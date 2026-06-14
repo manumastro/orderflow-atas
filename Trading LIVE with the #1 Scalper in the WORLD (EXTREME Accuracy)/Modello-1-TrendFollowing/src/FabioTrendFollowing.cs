@@ -18,6 +18,7 @@
 // ============================================================================
 
 using System.ComponentModel.DataAnnotations;
+using System.IO;
 using ATAS.Indicators;
 
 namespace FabioTrendFollowing;
@@ -60,6 +61,9 @@ public class FabioTrendFollowing : Indicator
 
     private decimal _cumulativeDelta;
     private readonly List<decimal> _cvdHistory = new();
+    private static readonly string LogDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ATAS", "Logs");
+    private static readonly string LogPath = Path.Combine(LogDir, "FabioTrendFollowing.log");
+    private StreamWriter? _logWriter;
 
     #endregion
 
@@ -104,6 +108,8 @@ public class FabioTrendFollowing : Indicator
             IsHidden = true
         };
         DataSeries.Add(_paintBars);
+
+        InitLog();
     }
 
     #endregion
@@ -295,12 +301,26 @@ public class FabioTrendFollowing : Indicator
 
     #region === Logging ===
 
+    private void InitLog()
+    {
+        try
+        {
+            Directory.CreateDirectory(LogDir);
+            _logWriter = new StreamWriter(LogPath, append: true) { AutoFlush = true };
+            _logWriter.WriteLine($"\n=== FabioTrendFollowing started {DateTime.Now:yyyy-MM-dd HH:mm:ss} ===");
+        }
+        catch { /* ignore log errors */ }
+    }
+
     private void LogSignal(int bar, string signalType, string details)
     {
         var candle = GetCandle(bar);
         var timestamp = candle.LastTime.ToString("HH:mm:ss");
-        System.Diagnostics.Debug.WriteLine(
-            $"[TREND] Bar={bar} | {timestamp} | {signalType} | {details}");
+        var msg = $"[TREND] Bar={bar} | {timestamp} | {signalType} | {details}";
+
+        System.Diagnostics.Debug.WriteLine(msg);
+
+        try { _logWriter?.WriteLine(msg); } catch { /* ignore */ }
     }
 
     #endregion
