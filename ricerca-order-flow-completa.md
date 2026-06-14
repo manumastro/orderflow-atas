@@ -1,104 +1,20 @@
-# ATAS — Ricerca Order Flow e Footprint
+# ATAS — Programmazione Order Flow e Footprint
 
 **Data ricerca:** 2026-06-10  
-**Contesto:** valutazione di ATAS per trading order flow / footprint su futures NQ/ES e sviluppo strategie volumetriche in C#.
+**Contesto:** sviluppo indicatori e strategie order flow / footprint su futures NQ/ES in C# con API ATAS.
 
 ---
 
 ## Indice
 
-1. [ATAS — panoramica e licenze](#1-atas--panoramica-e-licenze)
-2. [Breve confronto con altre piattaforme](#2-breve-confronto-con-altre-piattaforme)
-3. [ATAS per programmazione (API, coding)](#3-atas-per-programmazione-api-coding)
-4. [Strategia footprint NQ/ES — percorso ATAS](#4-strategia-footprint-nqes--percorso-atas)
-5. [Raccomandazioni finali](#5-raccomandazioni-finali)
-6. [Risorse e link](#6-risorse-e-link)
+1. [ATAS per programmazione (API, coding)](#1-atas-per-programmazione-api-coding)
+2. [Strategia footprint NQ/ES — percorso ATAS](#2-strategia-footprint-nqes--percorso-atas)
+3. [Raccomandazioni finali](#3-raccomandazioni-finali)
+4. [Risorse e link](#4-risorse-e-link)
 
 ---
 
-## 1. ATAS — panoramica e licenze
-
-**ATAS** (Advanced Time And Sales) è una piattaforma specializzata in order flow, footprint, volume profile e analisi del tape. Sviluppata da ATAS LLC (origine russofona/Lettonia). Sito ufficiale anche in [cinese](https://atas.net/cn/) e [russo](https://atas.net/ru/).
-
-### Punti di forza
-
-- **Footprint nativo** — 400+ varianti di visualizzazione cluster, bid/ask per livello di prezzo
-- **Big Trades** e Smart Tape per lettura del flusso istituzionale
-- **Market Replay** tick-level per validare strategie come in live
-- **Reload dati** dal server — meno tick persi rispetto ad altre piattaforme (vantaggio citato da trader pro)
-- **Crypto + futures + azioni** in un'unica piattaforma
-- **API C#** con accesso diretto a dati cluster (delta, POC, imbalance)
-- **Heatmap** (beta) per crypto; heatmap futures locale su piani avanzati
-- **Smart DOM** e DOM Trader integrati
-
-### Piani ufficiali (2026)
-
-| Piano | Prezzo indicativo | Note |
-|-------|-------------------|------|
-| **Start** | €0 — gratis per sempre | Crypto real-time; futures con **15 min di ritardo** |
-| **Plus** | ~€20–25/mese | Analisi base, Range/Renko/Reversal |
-| **Pro** | ~€40–70/mese | **Futures real-time**, più indicatori e connessioni |
-| **Ultra** | ~€50–90/mese | Tutto sbloccato, connessioni illimitate |
-| **Lifetime Ultra** | ~€1.999 una tantum | Licenza a vita |
-
-Fonte: [atas.net/pricing](https://atas.net/pricing/)
-
-### Percorsi economici legali
-
-- **Trial 14 giorni** sui piani a pagamento
-- **Rimborso 14 giorni** sul primo acquisto
-- **Promo stagionali** (Black Friday, Capodanno) con sconti fino a €200–500
-- **Prop firm** [The Trading Pit](https://www.thetradingpit.com/atas) — licenza ATAS inclusa con challenge
-
-### Cosa include il piano Start (gratis)
-
-- Dati crypto real-time
-- 1 connessione exchange
-- 2 asset simultanei
-- 3 indicatori per grafico
-- Indicatori base: Order Flow, Cumulative Delta, Market Profile, ecc.
-- BigTrades history (auto-filter)
-- Heatmap (Beta)
-- Market Replay
-
-### Cosa NON include Start (serve Plus/Pro/Ultra)
-
-- Big Trades avanzato, CVD Pro
-- Più di 3 indicatori / 2 asset
-- Frame Renko/Range avanzati
-- Heatmap storica estesa
-- **Futures CME/MOEX in real-time** (solo ritardo 15 min)
-
-**Per NQ/ES serio serve minimo Pro** (~€40/mese annuale).
-
-### Partnership Bitget (ufficiale)
-
-Partnership reale dal 2022 per trading crypto via API. Il piano Start gratuito con dati crypto real-time è già disponibile senza depositi o codici speciali. Link ufficiale: [partner.bitget.com/bg/Atas](https://partner.bitget.com/bg/Atas). Guida connessione: [help ATAS Bitget](https://help.atas.net/en/support/solutions/articles/72000606743-how-to-connect-to-bitget).
-
----
-
-## 2. Breve confronto con altre piattaforme
-
-ATAS è la scelta di riferimento per **order flow puro**. Le alternative hanno punti di forza diversi:
-
-| Criterio | ATAS | Sierra Chart | NinjaTrader |
-|----------|------|--------------|-------------|
-| **Order flow / footprint** | Eccellente (core) | Eccellente | Medio (add-on $59/mese) |
-| **Qualità dati tick** | Molto buona | Top (feed Denali) | Critiche da pro trader |
-| **API footprint** | C# .NET 8, ricca | C++ (ACSIL) | C#, meno profonda |
-| **Esecuzione futures** | Buona | Eccellente | Eccellente (SuperDOM) |
-| **Facilità d'uso** | Media | Bassa | Media-alta |
-| **Crypto** | Forte | Limitato | Limitato |
-| **Costo software** | ~€40–90/mese (Pro/Ultra) | ~$46/mese + exchange | Gratis + $59 OF+ o $1.499 lifetime |
-| **Backtest order flow** | Market Replay | Buono con replay | Debole su tick-level |
-
-**In sintesi:** per footprint, delta e Big Trades → **ATAS prima scelta**. Sierra Chart compete su feed dati e prezzo. NinjaTrader vince su broker+esecuzione, non su analisi volumetrica.
-
-Fonte comparativa: [United Daytraders](https://united-daytraders.com/blog/best-order-flow-trading-platforms), [Trader Dale](https://www.trader-dale.com/top-order-flow-platforms-data-explained-ninjatrader-sierra-chart-atas-quantower-tradingview/).
-
----
-
-## 3. ATAS per programmazione (API, coding)
+## 1. ATAS per programmazione (API, coding)
 
 ### Valutazione
 
@@ -146,7 +62,403 @@ Accesso nativo a **dati cluster** (`GetCandle()` con bid/ask volume, delta, POC,
 
 ---
 
-## 4. Strategia footprint NQ/ES — percorso ATAS
+### Espansione order flow — modello dati
+
+L'API order flow ruota attorno a due oggetti:
+
+| Oggetto | Ruolo |
+|---------|-------|
+| `IndicatorCandle` | Candela con OHLCV + delta aggregato, POC, OI, timestamp |
+| `PriceVolumeInfo` | Cluster footprint a un singolo livello di prezzo (bid, ask, volume) |
+
+**Regola fondamentale:** i bar vanno da `0` a `CurrentBar - 1`. Chiamare `GetCandle(bar)` fuori range interrompe i calcoli.
+
+#### Proprietà `IndicatorCandle` rilevanti per order flow
+
+| Proprietà | Uso |
+|-----------|-----|
+| `Open`, `High`, `Low`, `Close` | Struttura prezzo standard |
+| `Volume`, `Ask`, `Bid` | Volume totale e split bid/ask della barra |
+| `Delta` | `Ask - Bid` aggregato sulla barra |
+| `MaxDelta`, `MinDelta` | Estremi intra-barra del delta |
+| `MaxOI`, `MinOI` | Open Interest min/max sulla barra |
+| `LastTime` | Timestamp dell'ultimo trade sulla barra |
+| `Time` | Apertura barra |
+
+#### Metodi footprint su `IndicatorCandle`
+
+| Metodo / proprietà | Restituisce |
+|--------------------|-------------|
+| `GetPriceVolumeInfo(decimal price)` | Cluster a un prezzo specifico (es. high/low) |
+| `GetAllPriceLevels()` | Tutti i livelli footprint della barra |
+| `MaxVolumePriceInfo` | Livello con volume massimo → **POC** |
+| `MaxTickPriceInfo` | Livello con più tick |
+| `MaxPositiveDeltaPriceInfo` | Livello con delta positivo massimo |
+| `MaxNegativeDeltaPriceInfo` | Livello con delta negativo massimo |
+
+#### Proprietà `PriceVolumeInfo`
+
+| Proprietà | Significato |
+|-----------|-------------|
+| `Price` | Livello di prezzo |
+| `Volume` | Volume totale al livello |
+| `Ask` | Volume eseguito al ask (acquisti aggressivi) |
+| `Bid` | Volume eseguito al bid (vendite aggressive) |
+| `Ask - Bid` | Delta al livello |
+
+```csharp
+// Lettura completa footprint su barra chiusa
+protected override void OnCalculate(int bar, decimal value)
+{
+    if (bar < 0 || bar >= CurrentBar)
+        return;
+
+    var candle = GetCandle(bar);
+
+    // Aggregati barra
+    decimal barDelta = candle.Delta;
+    decimal maxDelta = candle.MaxDelta;
+    decimal minDelta = candle.MinDelta;
+
+    // POC e estremi delta
+    var poc = candle.MaxVolumePriceInfo;
+    var maxPosDelta = candle.MaxPositiveDeltaPriceInfo;
+    var maxNegDelta = candle.MaxNegativeDeltaPriceInfo;
+
+    // Cluster al high (utile per absorption / rejection)
+    var highLevel = candle.GetPriceVolumeInfo(candle.High);
+    if (highLevel != null)
+    {
+        decimal highVol = highLevel.Volume;
+        decimal highDelta = highLevel.Ask - highLevel.Bid;
+    }
+
+    // Iterazione tutti i livelli
+    foreach (var level in candle.GetAllPriceLevels())
+    {
+        if (level == null) continue;
+        decimal levelDelta = level.Ask - level.Bid;
+        // imbalance, stacked levels, value area...
+    }
+}
+```
+
+---
+
+### Espansione order flow — eventi tick e big trades
+
+Oltre ai dati cluster per barra, ATAS espone eventi real-time per analisi tape-level.
+
+#### `OnNewTrade(MarketDataArg arg)`
+
+Chiamato su **ogni singolo tick**. Utile per:
+- Conteggio tick buy/sell intra-barra
+- Filtri su size minima
+- Correlazione con DOM in tempo reale
+
+#### `OnCumulativeTrade(CumulativeTrade trade)` + `OnUpdateCumulativeTrade()`
+
+I cumulative trades sono **big trades aggregati** — possono essere modificati mentre si formano. Pattern corretto:
+
+```csharp
+private CumulativeTrade _lastTrade;
+private decimal _lastCumulativeTradeVolume;
+
+protected override void OnCumulativeTrade(CumulativeTrade trade)
+    => AddCumulativeTrade(trade);
+
+protected override void OnUpdateCumulativeTrade(CumulativeTrade trade)
+    => AddCumulativeTrade(trade);
+
+private void AddCumulativeTrade(CumulativeTrade trade)
+{
+    if (trade.Volume < MinBigTradeSize) // es. 50 per ES
+        return;
+
+    if (_lastTrade != trade)
+    {
+        _lastTrade = trade;
+        this[CurrentBar - 1] += GetVolumeByDirection(trade.Volume, trade.Direction);
+    }
+    else
+    {
+        // Trade in aggiornamento: aggiungi solo il delta di volume
+        this[CurrentBar - 1] += GetVolumeByDirection(
+            trade.Volume - _lastCumulativeTradeVolume, trade.Direction);
+    }
+    _lastCumulativeTradeVolume = trade.Volume;
+}
+
+private decimal GetVolumeByDirection(decimal volume, TradeDirection direction)
+    => volume * (direction == TradeDirection.Buy ? 1 : -1);
+```
+
+#### Storico cumulative trades
+
+Per backfill su barre già caricate:
+
+```csharp
+private CumulativeTradesRequest _request;
+
+protected override void OnFinishRecalculate()
+{
+    var startTime = GetCandle(0).Time;
+    var lastTime = GetCandle(CurrentBar - 1).LastTime;
+    _request = new CumulativeTradesRequest(startTime, lastTime, minVolume: 50, maxVolume: 0);
+    RequestForCumulativeTrades(_request);
+}
+
+protected override void OnCumulativeTradesResponse(
+    CumulativeTradesRequest request, IEnumerable<CumulativeTrade> trades)
+{
+    if (request != _request) return;
+    // Processa storico big trades
+}
+```
+
+`maxVolume: 0` disabilita il filtro superiore.
+
+---
+
+### Espansione order flow — DOM e MBO
+
+#### Market Depth (`MarketDepthChanged`)
+
+```csharp
+protected override void MarketDepthChanged(MarketDataArg arg)
+{
+    // Snapshot completo DOM
+    var snapshot = MarketDepthInfo.GetMarketDepthSnapshot();
+
+    // Volumi cumulativi bid/ask (Dom Power)
+    decimal cumAsks = MarketDepthInfo.CumulativeDomAsks;
+    decimal cumBids = MarketDepthInfo.CumulativeDomBids;
+}
+```
+
+**Segnali DOM codificabili:**
+
+| Segnale | Logica |
+|---------|--------|
+| **Pull** | Livelli bid/ask che spariscono senza trade corrispondente |
+| **Stack** | Nuovi livelli DOM che si accumulano sopra/sotto il prezzo |
+| **Dom imbalance** | `CumulativeDomBids / CumulativeDomAsks` sopra soglia |
+| **Spoofing hint** | Ordini grandi che appaiono e spariscono senza esecuzione (richiede MBO) |
+
+#### MBO — Market By Order (solo Rithmic)
+
+Accesso agli ordini singoli nel book. Unico feed supportato su ATAS.
+
+```csharp
+private IMarketByOrdersManager _manager;
+
+protected override async void OnInitialize()
+{
+    _manager = await SubscribeMarketByOrderData();
+    _manager.Changed += OnMboChanged;
+    OnMboChanged(_manager.MarketByOrders);
+}
+
+private void OnMboChanged(IEnumerable<MarketByOrder> orders)
+{
+    foreach (var mbo in orders)
+    {
+        // mbo.Type: Snapshot | New | Change | Delete
+        // mbo.Side: Bid | Ask | Trade
+        // mbo.Price, mbo.Volume, mbo.ExchangeOrderId, mbo.Priority
+    }
+}
+
+protected override void OnDispose()
+{
+    if (_manager != null)
+        _manager.Changed -= OnMboChanged;
+    base.OnDispose();
+}
+```
+
+Con MBO + `OnNewTrade()` puoi correlare `ExchangeOrderId` e `AggressorExchangeOrderId` per identificare chi ha colpito chi.
+
+---
+
+### Espansione order flow — implementazione segnali
+
+Pattern riutilizzabili per codificare i segnali footprint più comuni.
+
+#### Imbalance / Stacked Imbalance
+
+```csharp
+private bool HasStackedImbalance(IndicatorCandle candle, decimal ratio, int minLevels, bool bullish)
+{
+    var levels = candle.GetAllPriceLevels()
+        .Where(l => l != null)
+        .OrderBy(l => l.Price)
+        .ToList();
+
+    int streak = 0;
+    foreach (var level in levels)
+    {
+        bool isImbalance = bullish
+            ? (level.Bid > 0 && level.Ask / level.Bid >= ratio)
+            : (level.Ask > 0 && level.Bid / level.Ask >= ratio);
+
+        streak = isImbalance ? streak + 1 : 0;
+        if (streak >= minLevels) return true;
+    }
+    return false;
+}
+```
+
+Soglie tipiche ES/NQ: ratio **3:1**, minimo **3 livelli** consecutivi.
+
+#### Delta Divergence
+
+```csharp
+private bool IsBearishDeltaDivergence(int bar, int lookback = 5)
+{
+    var current = GetCandle(bar);
+    decimal prevHigh = decimal.MinValue;
+    decimal prevMaxDelta = decimal.MinValue;
+
+    for (int i = bar - lookback; i < bar; i++)
+    {
+        var c = GetCandle(i);
+        if (c.High > prevHigh) prevHigh = c.High;
+        if (c.MaxDelta > prevMaxDelta) prevMaxDelta = c.MaxDelta;
+    }
+
+    return current.High > prevHigh && current.Delta < prevMaxDelta;
+}
+```
+
+#### Absorption
+
+```csharp
+private bool IsAbsorption(IndicatorCandle candle, decimal volumeThreshold)
+{
+    var poc = candle.MaxVolumePriceInfo;
+    if (poc == null) return false;
+
+    // Alto volume al POC ma range stretto = absorption
+    decimal range = candle.High - candle.Low;
+    decimal tickSize = InstrumentInfo.TickSize;
+
+    return poc.Volume >= volumeThreshold
+        && range <= tickSize * 3
+        && Math.Abs(candle.Close - candle.Open) <= tickSize;
+}
+```
+
+#### POC Shift
+
+```csharp
+private int GetPocShiftDirection(int bar)
+{
+    if (bar < 1) return 0;
+    var prev = GetCandle(bar - 1).MaxVolumePriceInfo;
+    var curr = GetCandle(bar).MaxVolumePriceInfo;
+    if (prev == null || curr == null) return 0;
+
+    if (curr.Price > prev.Price) return 1;  // POC sale → bias bullish
+    if (curr.Price < prev.Price) return -1; // POC scende → bias bearish
+    return 0;
+}
+```
+
+#### CVD intra-sessione
+
+```csharp
+private decimal _sessionCvd;
+
+protected override void OnCalculate(int bar, decimal value)
+{
+    var candle = GetCandle(bar);
+    _sessionCvd += candle.Delta;
+    // Reset a inizio sessione con controllo su candle.Time
+}
+```
+
+---
+
+### Espansione order flow — architettura codice
+
+#### Setup progetto
+
+```
+1. Class Library .NET 8
+2. Riferimenti DLL da C:\Program Files (x86)\ATAS Platform\:
+   - ATAS.Indicators.dll
+   - ATAS.Strategies.dll
+   - ATAS.DataFeedsCore.dll
+   - Utils.Common.dll
+3. Build → copia output in:
+   - %APPDATA%\ATAS\Indicators  (indicatori)
+   - %APPDATA%\ATAS\Strategies   (strategie)
+4. In ATAS: pulsante lampeggiante per ricaricare la lista
+```
+
+Clone [AtasPlatform/Indicators](https://github.com/AtasPlatform/Indicators) come riferimento build.
+
+#### Separare logica segnali da UI
+
+```
+OrderFlowSignals.cs     ← logica pura (imbalance, divergence, absorption)
+FootprintIndicator.cs   ← visualizza segnali, log, alert
+FootprintStrategy.cs    ← eredita ChartStrategy, usa OrderFlowSignals
+```
+
+`ChartStrategy` eredita da `Indicator` — stessa API footprint disponibile in entrambi.
+
+#### Quando processare i segnali
+
+| Contesto | Momento |
+|----------|---------|
+| Indicatore | `OnCalculate()` su barra chiusa (`bar < CurrentBar - 1`) |
+| Strategia | `CanProcess()` → true solo su ultima barra chiusa |
+| Tick events | `OnNewTrade()` / `MarketDepthChanged()` — solo per filtri real-time, non per entry |
+
+**Anti-pattern:** aprire posizioni su ogni tick senza `CanProcess()`.
+
+#### Logging e debug
+
+```csharp
+this.LogInfo($"Bar {bar} | Delta={candle.Delta} | POC={poc?.Price} | Imbalance={hasImbalance}");
+```
+
+Usare `Market Replay` per validare log su sessioni storiche prima del live.
+
+#### Gestione memoria su `GetAllPriceLevels()`
+
+Su barre footprint dense (Range 1 tick, alta volatilità NQ), iterare tutti i livelli su ogni barra può essere costoso. Ottimizzazioni:
+
+- Processare solo barre chiuse, non l'intero storico ad ogni tick
+- Cachare risultati per barra già calcolata
+- Limitare analisi ai livelli tra `Low` e `High` con volume > 0
+
+---
+
+### Espansione order flow — matrice API completa
+
+| Dato order flow | API | Tipo accesso |
+|-----------------|-----|--------------|
+| OHLCV + delta barra | `GetCandle(bar)` | Barra |
+| Cluster per prezzo | `GetPriceVolumeInfo(price)` | Barra |
+| Tutti i livelli | `GetAllPriceLevels()` | Barra |
+| POC | `MaxVolumePriceInfo` | Barra |
+| Delta max/min intra-barra | `MaxDelta`, `MinDelta` | Barra |
+| Singolo tick | `OnNewTrade()` | Real-time |
+| Big trade | `OnCumulativeTrade()` | Real-time |
+| Storico big trades | `RequestForCumulativeTrades()` | Storico |
+| DOM update | `MarketDepthChanged()` | Real-time |
+| DOM snapshot | `MarketDepthInfo.GetMarketDepthSnapshot()` | Real-time |
+| DOM cumulativo | `CumulativeDomBids`, `CumulativeDomAsks` | Real-time |
+| Ordini singoli | `SubscribeMarketByOrderData()` | Real-time (Rithmic) |
+| Open Interest | `MaxOI`, `MinOI` | Barra |
+| Statistiche trading | `TradingStatisticsProvider` | Real-time / storico |
+
+---
+
+## 2. Strategia footprint NQ/ES — percorso ATAS
 
 ### Stack consigliato
 
@@ -302,62 +614,64 @@ Iniziare su **MES/MNQ** (micro) per testare con rischio ridotto.
 
 ---
 
-## 5. Raccomandazioni finali
+## 3. Raccomandazioni finali
 
-### Per obiettivo
+### Per obiettivo (programmazione)
 
-| Obiettivo | Consiglio ATAS |
-|-----------|----------------|
-| Provare order flow su crypto | Piano **Start** gratis |
-| Footprint serio su NQ/ES | **Pro** + Rithmic (~$100–150/mese totale) |
-| Sviluppare strategia custom | Indicatore → Market Replay → `ChartStrategy` |
-| Massime funzioni | **Ultra** o lifetime |
-| Risparmiare sulla licenza | Trial 14 gg, promo ufficiali, prop firm |
+| Obiettivo | Percorso |
+|-----------|----------|
+| Primo indicatore footprint | `GetCandle()` + `GetAllPriceLevels()` + Market Replay |
+| Strategia auto NQ/ES | Indicatore → validazione → `ChartStrategy` |
+| Big trades nel codice | `OnCumulativeTrade()` con gestione `OnUpdateCumulativeTrade()` |
+| DOM nel codice | `MarketDepthChanged()` + `CumulativeDomBids/Asks` |
+| Ordini singoli (spoofing, queue) | `SubscribeMarketByOrderData()` + feed Rithmic |
+| Codice manutenibile | Logica segnali in classe separata, condivisa tra indicator e strategy |
 
 ### Decision tree
 
 ```
-Solo crypto, costo zero?
-  → ATAS Start gratis
+Vuoi leggere footprint/delta per barra?
+  → GetCandle() + GetAllPriceLevels() + MaxVolumePriceInfo
 
-Futures NQ/ES con footprint?
-  → ATAS Pro + Rithmic + C# + Market Replay
-  → Iniziare su MES, poi ES/NQ
+Vuoi reagire a big trades?
+  → OnCumulativeTrade() + soglia volume per strumento
 
-Vuoi programmare indicatori order flow?
-  → ATAS (API cluster nativa in C#)
+Vuoi leggere il DOM?
+  → MarketDepthChanged() + GetMarketDepthSnapshot()
 
 Serve MBO / ordini singoli?
-  → ATAS + Rithmic (unica combinazione supportata)
+  → SubscribeMarketByOrderData() + Rithmic
+
+Pronto per il live?
+  → Indicatore validato su Market Replay → ChartStrategy con OnStopping()
 ```
 
 ---
 
-## 6. Risorse e link
+## 4. Risorse e link
 
-### ATAS — documentazione e sviluppo
+### Documentazione e sviluppo
 
 | Risorsa | URL |
 |---------|-----|
-| Sito principale | https://atas.net/ |
-| Pricing | https://atas.net/pricing/ |
-| Download | https://atas.net/atas-download/ |
 | Docs API | https://docs.atas.net/ |
+| Dati footprint (docs) | https://docs.atas.net/en/md_DataFeedsCore_2Docs_2en_20025__ReceivingProcessingData.html |
+| Strategie (docs) | https://docs.atas.net/en/md_DataFeedsCore_2Docs_2en_20100__Strategies.html |
 | GitHub esempi | https://github.com/AtasPlatform/Indicators |
 | Blog algoritmi | https://atas.net/blog/algorithms-for-atas/ |
-| Strategie (docs) | https://docs.atas.net/en/md_DataFeedsCore_2Docs_2en_20100__Strategies.html |
-| Dati footprint (docs) | https://docs.atas.net/en/md_DataFeedsCore_2Docs_2en_20025__ReceivingProcessingData.html |
-| Partnership Bitget | https://partner.bitget.com/bg/Atas |
-| Help Bitget | https://help.atas.net/en/support/solutions/articles/72000606743-how-to-connect-to-bitget |
-| The Trading Pit (licenza inclusa) | https://www.thetradingpit.com/atas |
+| .NET 8 SDK | https://dotnet.microsoft.com/download/dotnet/8.0 |
+| Telegram dev chat | https://t.me/+Afb9R7MEDqY3MDUy |
 
-### Confronti esterni (riferimento)
+### Riferimenti API order flow
 
-| Risorsa | URL |
-|---------|-----|
-| United Daytraders — best platforms | https://united-daytraders.com/blog/best-order-flow-trading-platforms |
-| Trader Dale — platforms comparison | https://www.trader-dale.com/top-order-flow-platforms-data-explained-ninjatrader-sierra-chart-atas-quantower-tradingview/ |
+| Classe / metodo | Documentazione |
+|-----------------|----------------|
+| `IndicatorCandle` | https://docs.atas.net/classATAS_1_1Indicators_1_1IndicatorCandle.html |
+| `PriceVolumeInfo` | https://docs.atas.net/classATAS_1_1Indicators_1_1PriceVolumeInfo.html |
+| `ChartStrategy` | https://docs.atas.net/classATAS_1_1Strategies_1_1Chart_1_1ChartStrategy.html |
+| `CumulativeTrade` | https://docs.atas.net/classATAS_1_1Indicators_1_1CumulativeTrade.html |
+| `IMarketByOrdersManager` | https://docs.atas.net/interfaceATAS_1_1DataFeedsCore_1_1IMarketByOrdersManager.html |
 
 ---
 
-*Documento aggiornato il 2026-06-10 — focalizzato su ATAS per order flow, footprint e strategie NQ/ES.*
+*Documento aggiornato il 2026-06-14 — focalizzato su programmazione order flow, footprint e strategie NQ/ES in C#.*

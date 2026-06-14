@@ -1,0 +1,14 @@
+# ATAS.DataFeedsCore.ConnectorWebsocket.IRequestSerializer Member List
+
+Source: https://docs.atas.net/en/interfaceATAS_1_1DataFeedsCore_1_1ConnectorWebsocket_1_1IRequestSerializer-members.html
+
+This is the complete list of members for [ATAS.DataFeedsCore.ConnectorWebsocket.IRequestSerializer](../interfaces/interfaceATAS_1_1DataFeedsCore_1_1ConnectorWebsocket_1_1IRequestSerializer.md), including all inherited members.
+
+| [Reset](../interfaces/interfaceATAS_1_1DataFeedsCore_1_1ConnectorWebsocket_1_1IRequestSerializer.md#afee9e7312ffacaa2af54353b3790b889)() | [ATAS.DataFeedsCore.ConnectorWebsocket.IRequestSerializer](../interfaces/interfaceATAS_1_1DataFeedsCore_1_1ConnectorWebsocket_1_1IRequestSerializer.md) | |
+| --- | --- | --- |
+| [SubscribeLiquidations](../interfaces/interfaceATAS_1_1DataFeedsCore_1_1ConnectorWebsocket_1_1IRequestSerializer.md#a57ca85f5567a3c860cde326abbf20e20)(IEnumerable securities) | [ATAS.DataFeedsCore.ConnectorWebsocket.IRequestSerializer](../interfaces/interfaceATAS_1_1DataFeedsCore_1_1ConnectorWebsocket_1_1IRequestSerializer.md) | |
+| [SubscribeMarket](../interfaces/interfaceATAS_1_1DataFeedsCore_1_1ConnectorWebsocket_1_1IRequestSerializer.md#a5a2ce5b08b9a1d13108082c130fa6487)(Security security, SubscriptionType types) | [ATAS.DataFeedsCore.ConnectorWebsocket.IRequestSerializer](../interfaces/interfaceATAS_1_1DataFeedsCore_1_1ConnectorWebsocket_1_1IRequestSerializer.md) | |
+| [SubscribeMarket](../interfaces/interfaceATAS_1_1DataFeedsCore_1_1ConnectorWebsocket_1_1IRequestSerializer.md#aff2c079ea28332ceb6e93ddabbc1241e)(IEnumerable securities, SubscriptionType types) | [ATAS.DataFeedsCore.ConnectorWebsocket.IRequestSerializer](../interfaces/interfaceATAS_1_1DataFeedsCore_1_1ConnectorWebsocket_1_1IRequestSerializer.md) | |
+| [UnsubscribeLiquidations](../interfaces/interfaceATAS_1_1DataFeedsCore_1_1ConnectorWebsocket_1_1IRequestSerializer.md#aca1d0d5991ca0493d5d066a126f7b278)(IEnumerable securities) | [ATAS.DataFeedsCore.ConnectorWebsocket.IRequestSerializer](../interfaces/interfaceATAS_1_1DataFeedsCore_1_1ConnectorWebsocket_1_1IRequestSerializer.md) | |
+| [UnsubscribeMarket](../interfaces/interfaceATAS_1_1DataFeedsCore_1_1ConnectorWebsocket_1_1IRequestSerializer.md#a10496930185b38f4687964092d067f50)(Security security, SubscriptionType types) | [ATAS.DataFeedsCore.ConnectorWebsocket.IRequestSerializer](../interfaces/interfaceATAS_1_1DataFeedsCore_1_1ConnectorWebsocket_1_1IRequestSerializer.md) | |
+| [UnsubscribeMarket](../interfaces/interfaceATAS_1_1DataFeedsCore_1_1ConnectorWebsocket_1_1IRequestSerializer.md#a178c1e8455ac01111050b17fa0a29d1a)(IEnumerable securities, SubscriptionType types) | [ATAS.DataFeedsCore.ConnectorWebsocket.IRequestSerializer](../interfaces/interfaceATAS_1_1DataFeedsCore_1_1ConnectorWebsocket_1_1IRequestSerializer.md) | |

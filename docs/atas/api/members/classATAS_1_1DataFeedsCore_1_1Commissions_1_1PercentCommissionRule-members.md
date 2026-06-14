@@ -1,0 +1,18 @@
+# ATAS.DataFeedsCore.Commissions.PercentCommissionRule Member List
+
+Source: https://docs.atas.net/en/classATAS_1_1DataFeedsCore_1_1Commissions_1_1PercentCommissionRule-members.html
+
+This is the complete list of members for [ATAS.DataFeedsCore.Commissions.PercentCommissionRule](../classes/classATAS_1_1DataFeedsCore_1_1Commissions_1_1PercentCommissionRule.md), including all inherited members.
+
+| [CommissionRule](../classes/classATAS_1_1DataFeedsCore_1_1Commissions_1_1CommissionRule.md#a23c8636b01444cbe359ffb0b6245df44)() | [ATAS.DataFeedsCore.Commissions.CommissionRule](../classes/classATAS_1_1DataFeedsCore_1_1Commissions_1_1CommissionRule.md) | protected |
+| --- | --- | --- |
+| [Load](../classes/classATAS_1_1DataFeedsCore_1_1Commissions_1_1CommissionRule.md#aa273dbe5e103ed7d7c01f3a5996d6827)(string value) | [ATAS.DataFeedsCore.Commissions.CommissionRule](../classes/classATAS_1_1DataFeedsCore_1_1Commissions_1_1CommissionRule.md) | virtual |
+| [Name](../classes/classATAS_1_1DataFeedsCore_1_1Commissions_1_1CommissionRule.md#a8ce3822f130bc228115a1df5b75a61ae) | [ATAS.DataFeedsCore.Commissions.CommissionRule](../classes/classATAS_1_1DataFeedsCore_1_1Commissions_1_1CommissionRule.md) | |
+| [NeedSave](../classes/classATAS_1_1DataFeedsCore_1_1Commissions_1_1CommissionRule.md#acbb7a20487bf6a4499d079c160a9a98c) | [ATAS.DataFeedsCore.Commissions.CommissionRule](../classes/classATAS_1_1DataFeedsCore_1_1Commissions_1_1CommissionRule.md) | |
+| [OnPropertyChanged](../classes/classATAS_1_1DataFeedsCore_1_1Commissions_1_1CommissionRule.md#ab3b08a57acdfbbe862c5e7b23574e431)(string propertyName) | [ATAS.DataFeedsCore.Commissions.CommissionRule](../classes/classATAS_1_1DataFeedsCore_1_1Commissions_1_1CommissionRule.md) | protectedvirtual |
+| [Percent](../classes/classATAS_1_1DataFeedsCore_1_1Commissions_1_1PercentCommissionRule.md#adf6fb2d24d69c1694c79f1f536bf69b0) | [ATAS.DataFeedsCore.Commissions.PercentCommissionRule](../classes/classATAS_1_1DataFeedsCore_1_1Commissions_1_1PercentCommissionRule.md) | |
+| [Process](../classes/classATAS_1_1DataFeedsCore_1_1Commissions_1_1PercentCommissionRule.md#af54c5e5914cb038e4b2b07ec88b3ab6f)(MyTrade trade) | [ATAS.DataFeedsCore.Commissions.PercentCommissionRule](../classes/classATAS_1_1DataFeedsCore_1_1Commissions_1_1PercentCommissionRule.md) | virtual |
+| [ATAS::DataFeedsCore::Commissions::CommissionRule.Process](../classes/classATAS_1_1DataFeedsCore_1_1Commissions_1_1CommissionRule.md#ac7bbd8986558c77206cab0bebad654fd)(Order order) | [ATAS.DataFeedsCore.Commissions.CommissionRule](../classes/classATAS_1_1DataFeedsCore_1_1Commissions_1_1CommissionRule.md) | virtual |
+| [PropertyChanged](../classes/classATAS_1_1DataFeedsCore_1_1Commissions_1_1CommissionRule.md#a8b8983c3791af891b1f3382da47fe934) | [ATAS.DataFeedsCore.Commissions.CommissionRule](../classes/classATAS_1_1DataFeedsCore_1_1Commissions_1_1CommissionRule.md) | |
+| [Save](../classes/classATAS_1_1DataFeedsCore_1_1Commissions_1_1CommissionRule.md#a6453358f4b5a1c4cb14de8cb2f8fbf8d)() | [ATAS.DataFeedsCore.Commissions.CommissionRule](../classes/classATAS_1_1DataFeedsCore_1_1Commissions_1_1CommissionRule.md) | virtual |
+| [ToString](../classes/classATAS_1_1DataFeedsCore_1_1Commissions_1_1CommissionRule.md#a711b115dab316ed6cce49b78726aabf3)() | [ATAS.DataFeedsCore.Commissions.CommissionRule](../classes/classATAS_1_1DataFeedsCore_1_1Commissions_1_1CommissionRule.md) | |

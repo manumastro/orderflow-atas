@@ -1,0 +1,29 @@
+# ATAS.Indicators.IndicatorDataProvider Member List
+
+Source: https://docs.atas.net/en/classATAS_1_1Indicators_1_1IndicatorDataProvider-members.html
+
+This is the complete list of members for [ATAS.Indicators.IndicatorDataProvider](../classes/classATAS_1_1Indicators_1_1IndicatorDataProvider.md), including all inherited members.
+
+| [AddAlert](../classes/classATAS_1_1Indicators_1_1IndicatorDataProvider.md#a4e4f1d1cf5788977f3b7e0c21199138a)(string soundFile, string instrument, string message, CrossColor background, CrossColor foreground, DateTime? time=null) | [ATAS.Indicators.IndicatorDataProvider](../classes/classATAS_1_1Indicators_1_1IndicatorDataProvider.md) | |
+| --- | --- | --- |
+| [CandlesDataSeries](../classes/classATAS_1_1Indicators_1_1IndicatorDataProvider.md#a4d7916207a6b0126c6e72f62094b465c) | [ATAS.Indicators.IndicatorDataProvider](../classes/classATAS_1_1Indicators_1_1IndicatorDataProvider.md) | |
+| [CandlesPanel](../classes/classATAS_1_1Indicators_1_1IndicatorDataProvider.md#a25ac59dd757bcaa818b4e5f8193d6bf4) | [ATAS.Indicators.IndicatorDataProvider](../classes/classATAS_1_1Indicators_1_1IndicatorDataProvider.md) | static |
+| [ChartInfo](../classes/classATAS_1_1Indicators_1_1IndicatorDataProvider.md#ad15db01224ee7fd65ac9e48c360f64b8) | [ATAS.Indicators.IndicatorDataProvider](../classes/classATAS_1_1Indicators_1_1IndicatorDataProvider.md) | |
+| [DoActionInGuiThread](../classes/classATAS_1_1Indicators_1_1IndicatorDataProvider.md#a9bc6f2f9a1506fa0079968756fbf9b24)(Action action) | [ATAS.Indicators.IndicatorDataProvider](../classes/classATAS_1_1Indicators_1_1IndicatorDataProvider.md) | |
+| [GetCustomStartTime](../classes/classATAS_1_1Indicators_1_1IndicatorDataProvider.md#aeedb31435bff70c7fca8d6bd784c29fc)(DateTime time, TimeSpan timeFrame) | [ATAS.Indicators.IndicatorDataProvider](../classes/classATAS_1_1Indicators_1_1IndicatorDataProvider.md) | |
+| [GetService](../classes/classATAS_1_1Indicators_1_1IndicatorDataProvider.md#ae03d9d5ab2d12a6e76ec83e22ed7af4a)() | [ATAS.Indicators.IndicatorDataProvider](../classes/classATAS_1_1Indicators_1_1IndicatorDataProvider.md) | |
+| [GlobalPlatformSettings](../classes/classATAS_1_1Indicators_1_1IndicatorDataProvider.md#ae3fb35301f0a2ec202c30424e17c53dc) | [ATAS.Indicators.IndicatorDataProvider](../classes/classATAS_1_1Indicators_1_1IndicatorDataProvider.md) | |
+| [IndicatorDataProvider](../classes/classATAS_1_1Indicators_1_1IndicatorDataProvider.md#abcda880af8d66f92fee42964a21ec06c)(ITradingStatisticsProvider tradingStatisticsProvider, IIndicatorServiceProvider indicatorServiceProvider, IOnlineDataProvider onlineDataProvider, IPlatformSettings platformSettings, IInstrumentInfo instrumentInfo, ITradingManager tradingManager, ICandleCreator candleCreator, IChart chartInfo) | [ATAS.Indicators.IndicatorDataProvider](../classes/classATAS_1_1Indicators_1_1IndicatorDataProvider.md) | |
+| [InstrumentInfo](../classes/classATAS_1_1Indicators_1_1IndicatorDataProvider.md#a1f4a141007f68819f59e3d8ea23adc3e) | [ATAS.Indicators.IndicatorDataProvider](../classes/classATAS_1_1Indicators_1_1IndicatorDataProvider.md) | |
+| [IsNewMonth](../classes/classATAS_1_1Indicators_1_1IndicatorDataProvider.md#ae9ddf3573b18659db6095d3e184a516c)(DateTime prevTime, DateTime newTime) | [ATAS.Indicators.IndicatorDataProvider](../classes/classATAS_1_1Indicators_1_1IndicatorDataProvider.md) | |
+| [IsNewSession](../classes/classATAS_1_1Indicators_1_1IndicatorDataProvider.md#a26547fdcd3e385111831639d6d41ce29)(DateTime prevTime, DateTime newTime) | [ATAS.Indicators.IndicatorDataProvider](../classes/classATAS_1_1Indicators_1_1IndicatorDataProvider.md) | |
+| [IsNewWeek](../classes/classATAS_1_1Indicators_1_1IndicatorDataProvider.md#ad159ab7aeea0f35d65ba7ae61fa67098)(DateTime prevTime, DateTime newTime) | [ATAS.Indicators.IndicatorDataProvider](../classes/classATAS_1_1Indicators_1_1IndicatorDataProvider.md) | |
+| [MarketDepthInfoProvider](../classes/classATAS_1_1Indicators_1_1IndicatorDataProvider.md#ac55df4a0c3b83ab6e84c6631b914e230) | [ATAS.Indicators.IndicatorDataProvider](../classes/classATAS_1_1Indicators_1_1IndicatorDataProvider.md) | |
+| [Name](../classes/classATAS_1_1Indicators_1_1IndicatorDataProvider.md#a03e1ae4a36efa91ca11a086d4ec72ac6) | [ATAS.Indicators.IndicatorDataProvider](../classes/classATAS_1_1Indicators_1_1IndicatorDataProvider.md) | |
+| [NewPanel](../classes/classATAS_1_1Indicators_1_1IndicatorDataProvider.md#a043db27227677cf8ae953b5a874ddbf8) | [ATAS.Indicators.IndicatorDataProvider](../classes/classATAS_1_1Indicators_1_1IndicatorDataProvider.md) | static |
+| [OnlineDataProvider](../classes/classATAS_1_1Indicators_1_1IndicatorDataProvider.md#ab4dbd6acb207b696a85cda757b0efbcd) | [ATAS.Indicators.IndicatorDataProvider](../classes/classATAS_1_1Indicators_1_1IndicatorDataProvider.md) | |
+| [OnNewGuiActionRequested](../classes/classATAS_1_1Indicators_1_1IndicatorDataProvider.md#ad3f65e2fbc3b1db79fea635211032c70) | [ATAS.Indicators.IndicatorDataProvider](../classes/classATAS_1_1Indicators_1_1IndicatorDataProvider.md) | |
+| [Panels](../classes/classATAS_1_1Indicators_1_1IndicatorDataProvider.md#a6b84f9dd2fa854b5166f2ae3d3677d15) | [ATAS.Indicators.IndicatorDataProvider](../classes/classATAS_1_1Indicators_1_1IndicatorDataProvider.md) | |
+| [ToString](../classes/classATAS_1_1Indicators_1_1IndicatorDataProvider.md#ac1e6460d70b8bd3fcefc232e0023788f)() | [ATAS.Indicators.IndicatorDataProvider](../classes/classATAS_1_1Indicators_1_1IndicatorDataProvider.md) | |
+| [TradingManager](../classes/classATAS_1_1Indicators_1_1IndicatorDataProvider.md#a67d84ee988cf86d93ee46f1df870eb51) | [ATAS.Indicators.IndicatorDataProvider](../classes/classATAS_1_1Indicators_1_1IndicatorDataProvider.md) | |
+| [TradingStatisticsProvider](../classes/classATAS_1_1Indicators_1_1IndicatorDataProvider.md#a970e4a05f7b1307c284d7e4af478d820) | [ATAS.Indicators.IndicatorDataProvider](../classes/classATAS_1_1Indicators_1_1IndicatorDataProvider.md) | |

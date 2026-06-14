@@ -1,0 +1,24 @@
+# ATAS.DataFeedsCore.Statistics.TradingStatistics Member List
+
+Source: https://docs.atas.net/en/classATAS_1_1DataFeedsCore_1_1Statistics_1_1TradingStatistics-members.html
+
+This is the complete list of members for [ATAS.DataFeedsCore.Statistics.TradingStatistics](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1TradingStatistics.md), including all inherited members.
+
+| [Add](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1TradingStatistics.md#a0d8ced9c5f0c0b13bbdea96eb34f15e8)(DailyNote note) | [ATAS.DataFeedsCore.Statistics.TradingStatistics](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1TradingStatistics.md) | |
+| --- | --- | --- |
+| [Add](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1TradingStatistics.md#a082043ebd9b00735c4b6b512c6b84096)(Order order) | [ATAS.DataFeedsCore.Statistics.TradingStatistics](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1TradingStatistics.md) | |
+| [Add](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1TradingStatistics.md#a55b56a796b1410f121d1eb15778a26e8)(MyTrade trade) | [ATAS.DataFeedsCore.Statistics.TradingStatistics](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1TradingStatistics.md) | |
+| [Add](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1TradingStatistics.md#a60bfe4b7bb8e11da0f16f1e6a8bbb1ad)(HistoryMyTrade historyTrade) | [ATAS.DataFeedsCore.Statistics.TradingStatistics](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1TradingStatistics.md) | |
+| [Clear](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1TradingStatistics.md#a0213e2f10880bf02e2b21f38eb61a177)() | [ATAS.DataFeedsCore.Statistics.TradingStatistics](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1TradingStatistics.md) | |
+| [ClearHistoryMyTrades](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1TradingStatistics.md#ab61f12b6d9867df5c8778028cae27d67)() | [ATAS.DataFeedsCore.Statistics.TradingStatistics](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1TradingStatistics.md) | |
+| [DailyNotes](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1TradingStatistics.md#a2997571777e1dedc477c983baf068119) | [ATAS.DataFeedsCore.Statistics.TradingStatistics](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1TradingStatistics.md) | |
+| [Equity](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1TradingStatistics.md#afd06a1112b677983d14207b09c81f4c0) | [ATAS.DataFeedsCore.Statistics.TradingStatistics](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1TradingStatistics.md) | |
+| [HistoryMyTrades](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1TradingStatistics.md#a1cbccc392b9792921309be1fd4bca4f0) | [ATAS.DataFeedsCore.Statistics.TradingStatistics](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1TradingStatistics.md) | |
+| [MyTrades](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1TradingStatistics.md#a4c5d9039ed7977389f92573d92d0f6b3) | [ATAS.DataFeedsCore.Statistics.TradingStatistics](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1TradingStatistics.md) | |
+| [Orders](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1TradingStatistics.md#aa3840e8494668ba8db42224b328e6127) | [ATAS.DataFeedsCore.Statistics.TradingStatistics](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1TradingStatistics.md) | |
+| [RecalcMetrics](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1TradingStatistics.md#a7010a434925ea982055e51ec506f33f9)() | [ATAS.DataFeedsCore.Statistics.TradingStatistics](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1TradingStatistics.md) | |
+| [Remove](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1TradingStatistics.md#a9a8e09932bb5dc303f141d2d22d3334c)(DailyNote note) | [ATAS.DataFeedsCore.Statistics.TradingStatistics](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1TradingStatistics.md) | |
+| [Statistics](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1TradingStatistics.md#af5a6b172c4cbd1f267f0985ac2ffc335) | [ATAS.DataFeedsCore.Statistics.TradingStatistics](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1TradingStatistics.md) | |
+| [TradingStatistics](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1TradingStatistics.md#a37a78384fc20b40fcade263e6f7a008f)() | [ATAS.DataFeedsCore.Statistics.TradingStatistics](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1TradingStatistics.md) | |
+| [Update](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1TradingStatistics.md#a141bd4a2a102f10366e07e84c451c2ea)(HistoryMyTrade historyTrade) | [ATAS.DataFeedsCore.Statistics.TradingStatistics](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1TradingStatistics.md) | |
+| [Update](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1TradingStatistics.md#ab0917afa89e3ed77a5451f42fb470469)(Order order) | [ATAS.DataFeedsCore.Statistics.TradingStatistics](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1TradingStatistics.md) | |

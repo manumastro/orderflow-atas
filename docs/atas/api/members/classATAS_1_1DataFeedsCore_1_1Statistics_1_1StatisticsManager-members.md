@@ -1,0 +1,22 @@
+# ATAS.DataFeedsCore.Statistics.StatisticsManager Member List
+
+Source: https://docs.atas.net/en/classATAS_1_1DataFeedsCore_1_1Statistics_1_1StatisticsManager-members.html
+
+This is the complete list of members for [ATAS.DataFeedsCore.Statistics.StatisticsManager](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1StatisticsManager.md), including all inherited members.
+
+| [Add](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1StatisticsManager.md#a71eab6a04eefcb8b56e4d58fdf92bfda)(Order order) | [ATAS.DataFeedsCore.Statistics.StatisticsManager](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1StatisticsManager.md) | protectedvirtual |
+| --- | --- | --- |
+| [Add](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1StatisticsManager.md#a34bd34a63761b98e8e7229c380997ab8)(MyTrade trade) | [ATAS.DataFeedsCore.Statistics.StatisticsManager](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1StatisticsManager.md) | protectedvirtual |
+| [AddToStatistics](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1StatisticsManager.md#a87d059b671395add5ce328f4801af654)(MyTrade trade) | [ATAS.DataFeedsCore.Statistics.StatisticsManager](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1StatisticsManager.md) | protected |
+| [Clear](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1StatisticsManager.md#a60bce64f0592bb336522a098c46c709b)(bool clearTradesQueue=false) | [ATAS.DataFeedsCore.Statistics.StatisticsManager](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1StatisticsManager.md) | virtual |
+| [Equity](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1StatisticsManager.md#ad0de2f0ce464208167f527133125f8c2) | [ATAS.DataFeedsCore.Statistics.StatisticsManager](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1StatisticsManager.md) | |
+| [HistoryMyTrades](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1StatisticsManager.md#a4008af2c1b4f5fcd0070ca2161ce2030) | [ATAS.DataFeedsCore.Statistics.StatisticsManager](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1StatisticsManager.md) | |
+| [MyTrades](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1StatisticsManager.md#a8cb62d7d8ccc3eda0d49c34e5ab6e23b) | [ATAS.DataFeedsCore.Statistics.StatisticsManager](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1StatisticsManager.md) | |
+| [OnPropertyChanged](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1StatisticsManager.md#a55f25f54803e38121e2e9b37e37a02be)(string propertyName) | [ATAS.DataFeedsCore.Statistics.StatisticsManager](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1StatisticsManager.md) | protectedvirtual |
+| [Orders](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1StatisticsManager.md#a9be328b27b8dcc65d50221829e37ac2d) | [ATAS.DataFeedsCore.Statistics.StatisticsManager](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1StatisticsManager.md) | |
+| [Process](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1StatisticsManager.md#a89b8ba92941aeedd6315bef541be34b9)(Order order) | [ATAS.DataFeedsCore.Statistics.StatisticsManager](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1StatisticsManager.md) | virtual |
+| [Process](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1StatisticsManager.md#ac11ad5f75fcd6295aea842f8cfbafb83)(MyTrade trade) | [ATAS.DataFeedsCore.Statistics.StatisticsManager](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1StatisticsManager.md) | virtual |
+| [PropertyChanged](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1StatisticsManager.md#a50df7b077551f819b0155d2e3ebe2d2f) | [ATAS.DataFeedsCore.Statistics.StatisticsManager](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1StatisticsManager.md) | |
+| [Statistics](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1StatisticsManager.md#a296daa56aec70f18c0f08497a904b029) | [ATAS.DataFeedsCore.Statistics.StatisticsManager](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1StatisticsManager.md) | |
+| [StatisticsManager](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1StatisticsManager.md#a70cae1876f03bdad3343e908a85b3dd9)() | [ATAS.DataFeedsCore.Statistics.StatisticsManager](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1StatisticsManager.md) | |
+| [UpdateStatistics](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1StatisticsManager.md#a16ab537de962d42fe5c50747484f3408)(HistoryMyTrade trade) | [ATAS.DataFeedsCore.Statistics.StatisticsManager](../classes/classATAS_1_1DataFeedsCore_1_1Statistics_1_1StatisticsManager.md) | protectedvirtual |
