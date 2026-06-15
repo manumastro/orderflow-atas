@@ -13,7 +13,9 @@ namespace FabioMeanReversion;
 [DisplayName("Fabio Mean Reversion")]
 public class FabioMeanReversion : Indicator
 {
-    private const string Version = "Step1b-fix-chart";
+    private const string Version = "Step1b-london-time";
+    private static readonly TimeSpan LondonStart = new(8, 0, 0);
+    private static readonly TimeSpan LondonEnd = new(17, 0, 0);
 
     private enum BalanceState
     {
@@ -50,6 +52,7 @@ public class FabioMeanReversion : Indicator
     private readonly List<int> _sessionIndexByBar = new();
     private int _londonIndex = -1;
     private long? _londonId;
+    private bool _londonByTime;
     private int _lastLondonStartBar = -1;
     private int _lastCompressionStartBar = -1;
     private BalanceState _lastLoggedBalanceState = BalanceState.OutsideLondon;
@@ -502,10 +505,14 @@ public class FabioMeanReversion : Indicator
         _sessions.Clear();
         _londonIndex = -1;
         _londonId = null;
+        _londonByTime = false;
 
         var descriptions = ChartInfo?.TradingSessionDescriptions;
         if (descriptions == null)
+        {
+            _londonByTime = true;
             return;
+        }
 
         foreach (var s in descriptions)
             _sessions.Add(s);
@@ -519,6 +526,9 @@ public class FabioMeanReversion : Indicator
                 break;
             }
         }
+
+        if (_londonIndex < 0)
+            _londonByTime = true;
     }
 
     private void LogStartup()
@@ -531,17 +541,17 @@ public class FabioMeanReversion : Indicator
 
         if (_sessions.Count == 0)
         {
-            WriteLog("WARN: TradingSessionDescriptions unavailable — London detection disabled");
+            WriteLog($"LONDON_MODE=TimeWindow {LondonStart:hh\\:mm}-{LondonEnd:hh\\:mm} (no session template)");
             return;
         }
 
         var names = string.Join(", ", _sessions.Select(s => s.Name));
         WriteLog($"SESSIONS [{names}]");
 
-        if (_londonIndex < 0)
-            WriteLog($"WARN: '{LondonSessionName}' not found — London detection disabled");
+        if (_londonIndex >= 0)
+            WriteLog($"LONDON_MODE=Template index={_londonIndex} id={_londonId} name={_sessions[_londonIndex].Name}");
         else
-            WriteLog($"LONDON_MATCH index={_londonIndex} id={_londonId} name={_sessions[_londonIndex].Name}");
+            WriteLog($"LONDON_MODE=TimeWindow {LondonStart:hh\\:mm}-{LondonEnd:hh\\:mm} (chart time, '{LondonSessionName}' not in template)");
     }
 
     private void UpdateSessionIndex(int bar)
@@ -563,20 +573,43 @@ public class FabioMeanReversion : Indicator
             _sessionIndexByBar[bar] = _sessionIndexByBar[bar - 1];
     }
 
-    private bool IsInLondonSession(int bar) =>
-        _londonIndex >= 0
-        && bar < _sessionIndexByBar.Count
-        && _sessionIndexByBar[bar] == _londonIndex;
+    private bool IsInLondonSession(int bar)
+    {
+        if (_londonIndex >= 0 && bar < _sessionIndexByBar.Count)
+            return _sessionIndexByBar[bar] == _londonIndex;
+
+        return _londonByTime && IsInLondonTimeWindow(bar);
+    }
+
+    private bool IsInLondonTimeWindow(int bar)
+    {
+        var time = GetCandle(bar).LastTime.TimeOfDay;
+        return time >= LondonStart && time < LondonEnd;
+    }
 
     private int GetLondonSessionStartBar(int bar)
     {
         if (!IsInLondonSession(bar))
             return -1;
 
-        while (bar > 0 && !IsNewSession(bar))
-            bar--;
+        if (_londonIndex >= 0)
+        {
+            while (bar > 0 && !IsNewSession(bar))
+                bar--;
 
-        return IsInLondonSession(bar) ? bar : -1;
+            return IsInLondonSession(bar) ? bar : -1;
+        }
+
+        var sessionDate = GetCandle(bar).LastTime.Date;
+        while (bar > 0)
+        {
+            var prev = GetCandle(bar - 1);
+            if (prev.LastTime.Date != sessionDate || !IsInLondonTimeWindow(bar - 1))
+                break;
+            bar--;
+        }
+
+        return bar;
     }
 
     #endregion
