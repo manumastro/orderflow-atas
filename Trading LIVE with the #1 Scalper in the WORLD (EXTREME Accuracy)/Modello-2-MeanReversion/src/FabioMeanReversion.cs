@@ -13,7 +13,7 @@ namespace FabioMeanReversion;
 [DisplayName("Fabio Mean Reversion")]
 public class FabioMeanReversion : Indicator
 {
-    private const string Version = "Step1b-2026-06-15";
+    private const string Version = "Step1b-fix-chart";
 
     private enum BalanceState
     {
@@ -39,8 +39,6 @@ public class FabioMeanReversion : Indicator
     [Display(Name = "Enable Logging", Order = 20)]
     public bool EnableLogging { get; set; } = true;
 
-    private PaintbarsDataSeries _londonBars = null!;
-    private PaintbarsDataSeries _balanceBars = null!;
     private ValueDataSeries _compressionHigh = null!;
     private ValueDataSeries _compressionLow = null!;
     private ValueDataSeries _compressionStartMarker = null!;
@@ -64,12 +62,6 @@ public class FabioMeanReversion : Indicator
 
     public FabioMeanReversion()
     {
-        _londonBars = new PaintbarsDataSeries("London Session");
-        DataSeries.Add(_londonBars);
-
-        _balanceBars = new PaintbarsDataSeries("Balance State");
-        DataSeries.Add(_balanceBars);
-
         _compressionHigh = new ValueDataSeries("Compression High")
         {
             VisualType = VisualMode.Line,
@@ -98,7 +90,6 @@ public class FabioMeanReversion : Indicator
         {
             VisualType = VisualMode.Line,
             Color = System.Windows.Media.Colors.White,
-            Width = 2,
             ShowZeroValue = false
         };
         DataSeries.Add(_pocLine);
@@ -135,6 +126,19 @@ public class FabioMeanReversion : Indicator
 
     protected override void OnCalculate(int bar, decimal value)
     {
+        try
+        {
+            OnCalculateBar(bar);
+        }
+        catch (Exception ex)
+        {
+            if (bar >= CurrentBar - 1)
+                WriteLog($"ERROR bar={bar} {ex.Message}");
+        }
+    }
+
+    private void OnCalculateBar(int bar)
+    {
         if (bar == 0)
         {
             _sessionIndexByBar.Clear();
@@ -149,12 +153,7 @@ public class FabioMeanReversion : Indicator
         UpdateSessionIndex(bar);
         ResetBarVisuals(bar);
 
-        var inLondon = IsInLondonSession(bar);
-        _londonBars[bar] = inLondon
-            ? System.Windows.Media.Colors.DodgerBlue
-            : System.Windows.Media.Colors.Transparent;
-
-        if (!inLondon)
+        if (!IsInLondonSession(bar))
         {
             LogBalanceState(bar, BalanceState.OutsideLondon);
             return;
@@ -169,6 +168,9 @@ public class FabioMeanReversion : Indicator
 
         var compressionHigh = GetRangeHigh(compressionStart, bar);
         var compressionLow = GetRangeLow(compressionStart, bar);
+        if (compressionHigh <= compressionLow)
+            return;
+
         var profile = BuildProfile(compressionStart, bar);
         var state = EvaluateBalanceState(bar, profile);
 
@@ -181,14 +183,6 @@ public class FabioMeanReversion : Indicator
             _vahLine[bar] = profile.VAH;
             _valLine[bar] = profile.VAL;
         }
-
-        _balanceBars[bar] = state switch
-        {
-            BalanceState.CompressionForming => System.Windows.Media.Colors.DarkGoldenrod,
-            BalanceState.BalanceReady => System.Windows.Media.Colors.MediumSeaGreen,
-            BalanceState.OutOfBalance => System.Windows.Media.Colors.IndianRed,
-            _ => System.Windows.Media.Colors.Transparent
-        };
 
         if (compressionStart == bar)
         {
@@ -469,23 +463,28 @@ public class FabioMeanReversion : Indicator
 
     private decimal GetRangeHigh(int fromBar, int toBar)
     {
-        var high = decimal.MinValue;
-        for (var i = fromBar; i <= toBar; i++)
+        if (fromBar > toBar)
+            return 0;
+
+        var high = GetCandle(fromBar).High;
+        for (var i = fromBar + 1; i <= toBar; i++)
             high = Math.Max(high, GetCandle(i).High);
         return high;
     }
 
     private decimal GetRangeLow(int fromBar, int toBar)
     {
-        var low = decimal.MaxValue;
-        for (var i = fromBar; i <= toBar; i++)
+        if (fromBar > toBar)
+            return 0;
+
+        var low = GetCandle(fromBar).Low;
+        for (var i = fromBar + 1; i <= toBar; i++)
             low = Math.Min(low, GetCandle(i).Low);
         return low;
     }
 
     private void ResetBarVisuals(int bar)
     {
-        _balanceBars[bar] = System.Windows.Media.Colors.Transparent;
         _compressionHigh[bar] = 0;
         _compressionLow[bar] = 0;
         _compressionStartMarker[bar] = 0;
