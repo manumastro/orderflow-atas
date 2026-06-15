@@ -13,6 +13,8 @@ namespace FabioMeanReversion;
 [DisplayName("Fabio Mean Reversion")]
 public class FabioMeanReversion : Indicator
 {
+    private const string Version = "Step1b-2026-06-15";
+
     private enum BalanceState
     {
         OutsideLondon,
@@ -52,7 +54,8 @@ public class FabioMeanReversion : Indicator
     private long? _londonId;
     private int _lastLondonStartBar = -1;
     private int _lastCompressionStartBar = -1;
-    private BalanceState _lastBalanceState = BalanceState.OutsideLondon;
+    private BalanceState _lastLoggedBalanceState = BalanceState.OutsideLondon;
+    private bool _startupLogged;
 
     private static readonly string LogPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -124,7 +127,11 @@ public class FabioMeanReversion : Indicator
         catch { /* ignore */ }
     }
 
-    protected override void OnInitialize() => ResolveSessions();
+    protected override void OnInitialize()
+    {
+        ResolveSessions();
+        LogStartup();
+    }
 
     protected override void OnCalculate(int bar, decimal value)
     {
@@ -133,29 +140,30 @@ public class FabioMeanReversion : Indicator
             _sessionIndexByBar.Clear();
             _lastLondonStartBar = -1;
             _lastCompressionStartBar = -1;
-            _lastBalanceState = BalanceState.OutsideLondon;
+            _lastLoggedBalanceState = BalanceState.OutsideLondon;
+            _startupLogged = false;
             ResolveSessions();
+            LogStartup();
         }
 
         UpdateSessionIndex(bar);
+        ResetBarVisuals(bar);
 
         var inLondon = IsInLondonSession(bar);
         _londonBars[bar] = inLondon
             ? System.Windows.Media.Colors.DodgerBlue
             : System.Windows.Media.Colors.Transparent;
 
-        ClearBarVisuals(bar);
-
         if (!inLondon)
         {
-            UpdateBalanceState(bar, BalanceState.OutsideLondon);
+            LogBalanceState(bar, BalanceState.OutsideLondon);
             return;
         }
 
         var compressionStart = FindCompressionStart(bar);
         if (compressionStart < 0)
         {
-            UpdateBalanceState(bar, BalanceState.NoCompression);
+            LogBalanceState(bar, BalanceState.NoCompression);
             return;
         }
 
@@ -164,17 +172,14 @@ public class FabioMeanReversion : Indicator
         var profile = BuildProfile(compressionStart, bar);
         var state = EvaluateBalanceState(bar, profile);
 
-        for (var i = compressionStart; i <= bar; i++)
-        {
-            _compressionHigh[i] = compressionHigh;
-            _compressionLow[i] = compressionLow;
+        _compressionHigh[bar] = compressionHigh;
+        _compressionLow[bar] = compressionLow;
 
-            if (profile.IsValid)
-            {
-                _pocLine[i] = profile.POC;
-                _vahLine[i] = profile.VAH;
-                _valLine[i] = profile.VAL;
-            }
+        if (profile.IsValid)
+        {
+            _pocLine[bar] = profile.POC;
+            _vahLine[bar] = profile.VAH;
+            _valLine[bar] = profile.VAL;
         }
 
         _balanceBars[bar] = state switch
@@ -185,8 +190,11 @@ public class FabioMeanReversion : Indicator
             _ => System.Windows.Media.Colors.Transparent
         };
 
-        var tick = InstrumentInfo?.TickSize ?? 0.25m;
-        _compressionStartMarker[compressionStart] = compressionLow - tick * 2;
+        if (compressionStart == bar)
+        {
+            var tick = InstrumentInfo?.TickSize ?? 0.25m;
+            _compressionStartMarker[bar] = compressionLow - tick * 2;
+        }
 
         if (bar < CurrentBar - 1)
             return;
@@ -200,7 +208,7 @@ public class FabioMeanReversion : Indicator
                 $"high={compressionHigh} low={compressionLow} bars={bar - compressionStart + 1}");
         }
 
-        UpdateBalanceState(bar, state, profile, compressionStart);
+        LogBalanceState(bar, state, profile, compressionStart);
 
         var londonStart = GetLondonSessionStartBar(bar);
         if (londonStart >= 0 && londonStart != _lastLondonStartBar)
@@ -362,12 +370,12 @@ public class FabioMeanReversion : Indicator
             && candle.Close <= profile.VAH + tolerance;
     }
 
-    private void UpdateBalanceState(int bar, BalanceState state, VolumeProfile? profile = null, int compressionStart = -1)
+    private void LogBalanceState(int bar, BalanceState state, VolumeProfile? profile = null, int compressionStart = -1)
     {
-        if (bar < CurrentBar - 1 || state == _lastBalanceState)
+        if (bar < CurrentBar - 1 || state == _lastLoggedBalanceState)
             return;
 
-        _lastBalanceState = state;
+        _lastLoggedBalanceState = state;
 
         if (profile?.IsValid == true)
         {
@@ -475,7 +483,7 @@ public class FabioMeanReversion : Indicator
         return low;
     }
 
-    private void ClearBarVisuals(int bar)
+    private void ResetBarVisuals(int bar)
     {
         _balanceBars[bar] = System.Windows.Media.Colors.Transparent;
         _compressionHigh[bar] = 0;
@@ -498,10 +506,7 @@ public class FabioMeanReversion : Indicator
 
         var descriptions = ChartInfo?.TradingSessionDescriptions;
         if (descriptions == null)
-        {
-            WriteLog("WARN: TradingSessionDescriptions unavailable");
             return;
-        }
 
         foreach (var s in descriptions)
             _sessions.Add(s);
@@ -515,9 +520,29 @@ public class FabioMeanReversion : Indicator
                 break;
             }
         }
+    }
+
+    private void LogStartup()
+    {
+        if (_startupLogged)
+            return;
+
+        _startupLogged = true;
+        WriteLog($"=== FabioMeanReversion {Version} started {DateTime.Now:yyyy-MM-dd HH:mm:ss} ===");
+
+        if (_sessions.Count == 0)
+        {
+            WriteLog("WARN: TradingSessionDescriptions unavailable — London detection disabled");
+            return;
+        }
+
+        var names = string.Join(", ", _sessions.Select(s => s.Name));
+        WriteLog($"SESSIONS [{names}]");
 
         if (_londonIndex < 0)
-            WriteLog($"WARN: '{LondonSessionName}' not in [{string.Join(", ", _sessions.Select(s => s.Name))}]");
+            WriteLog($"WARN: '{LondonSessionName}' not found — London detection disabled");
+        else
+            WriteLog($"LONDON_MATCH index={_londonIndex} id={_londonId} name={_sessions[_londonIndex].Name}");
     }
 
     private void UpdateSessionIndex(int bar)
