@@ -1,4 +1,4 @@
-// FabioMeanReversion — Model 2 · Step 0: sessione London (ATAS session template)
+// FabioMeanReversion — Model 2 · rewrite da zero
 
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
@@ -10,17 +10,8 @@ namespace FabioMeanReversion;
 [DisplayName("Fabio Mean Reversion")]
 public class FabioMeanReversion : Indicator
 {
-    [Display(Name = "London Session Name", Order = 10)]
-    public string LondonSessionName { get; set; } = "London";
-
-    [Display(Name = "Enable Logging", Order = 20)]
+    [Display(Name = "Enable Logging", Order = 10)]
     public bool EnableLogging { get; set; } = true;
-
-    private PaintbarsDataSeries _londonBars = null!;
-
-    private readonly List<TradingSessionDescription> _sessions = new();
-    private readonly List<int> _sessionIndexByBar = new();
-    private int _londonIndex = -1;
 
     private static readonly string LogPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -29,9 +20,6 @@ public class FabioMeanReversion : Indicator
 
     public FabioMeanReversion()
     {
-        _londonBars = new PaintbarsDataSeries("London Session");
-        DataSeries.Add(_londonBars);
-
         try
         {
             Directory.CreateDirectory(Path.GetDirectoryName(LogPath)!);
@@ -42,69 +30,12 @@ public class FabioMeanReversion : Indicator
 
     protected override void OnInitialize()
     {
-        ResolveSessions();
         WriteLog($"=== FabioMeanReversion started {DateTime.Now:yyyy-MM-dd HH:mm:ss} ===");
     }
 
     protected override void OnCalculate(int bar, decimal value)
     {
-        if (bar == 0)
-        {
-            _sessionIndexByBar.Clear();
-            ResolveSessions();
-        }
-
-        UpdateSessionIndex(bar);
-        _londonBars[bar] = IsInLondonSession(bar)
-            ? System.Windows.Media.Colors.DodgerBlue
-            : System.Windows.Media.Colors.Transparent;
     }
-
-    private void ResolveSessions()
-    {
-        _sessions.Clear();
-        _londonIndex = -1;
-
-        var descriptions = ChartInfo?.TradingSessionDescriptions;
-        if (descriptions == null)
-            return;
-
-        foreach (var s in descriptions)
-            _sessions.Add(s);
-
-        for (var i = 0; i < _sessions.Count; i++)
-        {
-            if ((_sessions[i].Name ?? "").Contains(LondonSessionName, StringComparison.OrdinalIgnoreCase))
-            {
-                _londonIndex = i;
-                break;
-            }
-        }
-    }
-
-    private void UpdateSessionIndex(int bar)
-    {
-        while (_sessionIndexByBar.Count <= bar)
-            _sessionIndexByBar.Add(-1);
-
-        if (_sessions.Count == 0)
-        {
-            _sessionIndexByBar[bar] = -1;
-            return;
-        }
-
-        if (bar == 0)
-            _sessionIndexByBar[bar] = 0;
-        else if (IsNewSession(bar))
-            _sessionIndexByBar[bar] = (_sessionIndexByBar[bar - 1] + 1) % _sessions.Count;
-        else
-            _sessionIndexByBar[bar] = _sessionIndexByBar[bar - 1];
-    }
-
-    private bool IsInLondonSession(int bar) =>
-        _londonIndex >= 0
-        && bar < _sessionIndexByBar.Count
-        && _sessionIndexByBar[bar] == _londonIndex;
 
     private void WriteLog(string msg)
     {
