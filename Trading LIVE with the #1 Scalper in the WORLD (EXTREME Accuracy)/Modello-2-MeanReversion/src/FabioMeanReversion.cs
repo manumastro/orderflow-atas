@@ -21,8 +21,6 @@ public class FabioMeanReversion : Indicator
     private readonly List<TradingSessionDescription> _sessions = new();
     private readonly List<int> _sessionIndexByBar = new();
     private int _londonIndex = -1;
-    private long? _londonId;
-    private int _lastLondonStartBar = -1;
 
     private static readonly string LogPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -42,14 +40,17 @@ public class FabioMeanReversion : Indicator
         catch { /* ignore */ }
     }
 
-    protected override void OnInitialize() => ResolveSessions();
+    protected override void OnInitialize()
+    {
+        ResolveSessions();
+        WriteLog($"=== FabioMeanReversion started {DateTime.Now:yyyy-MM-dd HH:mm:ss} ===");
+    }
 
     protected override void OnCalculate(int bar, decimal value)
     {
         if (bar == 0)
         {
             _sessionIndexByBar.Clear();
-            _lastLondonStartBar = -1;
             ResolveSessions();
         }
 
@@ -57,30 +58,16 @@ public class FabioMeanReversion : Indicator
         _londonBars[bar] = IsInLondonSession(bar)
             ? System.Windows.Media.Colors.DodgerBlue
             : System.Windows.Media.Colors.Transparent;
-
-        if (bar < CurrentBar - 1)
-            return;
-
-        var start = GetLondonSessionStartBar(bar);
-        if (start >= 0 && start != _lastLondonStartBar)
-        {
-            _lastLondonStartBar = start;
-            WriteLog($"LONDON_START bar={start} time={GetCandle(start).LastTime:HH:mm:ss} id={_londonId}");
-        }
     }
 
     private void ResolveSessions()
     {
         _sessions.Clear();
         _londonIndex = -1;
-        _londonId = null;
 
         var descriptions = ChartInfo?.TradingSessionDescriptions;
         if (descriptions == null)
-        {
-            WriteLog("WARN: TradingSessionDescriptions unavailable");
             return;
-        }
 
         foreach (var s in descriptions)
             _sessions.Add(s);
@@ -90,13 +77,9 @@ public class FabioMeanReversion : Indicator
             if ((_sessions[i].Name ?? "").Contains(LondonSessionName, StringComparison.OrdinalIgnoreCase))
             {
                 _londonIndex = i;
-                _londonId = _sessions[i].Id;
                 break;
             }
         }
-
-        if (_londonIndex < 0)
-            WriteLog($"WARN: '{LondonSessionName}' not in [{string.Join(", ", _sessions.Select(s => s.Name))}]");
     }
 
     private void UpdateSessionIndex(int bar)
@@ -122,17 +105,6 @@ public class FabioMeanReversion : Indicator
         _londonIndex >= 0
         && bar < _sessionIndexByBar.Count
         && _sessionIndexByBar[bar] == _londonIndex;
-
-    private int GetLondonSessionStartBar(int bar)
-    {
-        if (!IsInLondonSession(bar))
-            return -1;
-
-        while (bar > 0 && !IsNewSession(bar))
-            bar--;
-
-        return IsInLondonSession(bar) ? bar : -1;
-    }
 
     private void WriteLog(string msg)
     {
