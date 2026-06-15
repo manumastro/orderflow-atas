@@ -17,99 +17,6 @@ Mean reversion in mercato **in balance**. Il segnale non nasce da wick, delta o 
 
 ---
 
-## Come siamo arrivati a questa spiegazione
-
-### 1. Punto di partenza
-
-La prima bozza dello Step 1 assumeva:
-
-- Range profile = `IsNewSession(bar)` → barra corrente (session profile)
-- Balance identificabile subito all'apertura London
-
-Questa scelta era un'**approssimazione implementativa**, non una regola esplicita di Fabio nel transcript.
-
-### 2. Analisi del transcript
-
-Rileggendo il transcript con focus su *consolidation*, *profile*, *compression*, emergono passaggi chiave:
-
-| Timestamp | Cosa dice Fabio |
-|-----------|-----------------|
-| ~47:17 | *"The tricky part is correctly identifying the consolidation"* |
-| ~47:28 | Metodo semplice: *"I use the profile of the previous day"* |
-| ~47:47 | Metodo operativo: *"You see the compressed candles and you just plot the profile on there"* |
-| ~59:45 | *"Identifying the most interesting compression area... where the market didn't transact higher or lower"* |
-| ~1:00:24 | *"You don't identify it immediately... it's too early"* |
-| ~1:11:19 | Dentro la stessa consolidazione: *"from here to here... new dealing range"* → replot profile |
-| ~1:26:07 | Su 1m: *"profile from the first ball to the last ball"* per micro-compressione |
-| ~3:01:26 | *"The consolidation era is still the same"* — finché VAH/VAL non rompono |
-| ~3:01:40 | Validazione live: *"Did it break the value area low? No. Did it break the value area high? Yes."* |
-
-### 3. Conclusione
-
-Fabio **non** traccia il profile dall'inizio sessione. Traccia il profile sull'**area di compressione** che seleziona visivamente sul chart.
-
-Due concetti distinti:
-
-| Concetto | Cosa è | Ruolo |
-|----------|--------|-------|
-| **Sessione London** (Step 0) | *"You're looking at potentially London"* — finestra operativa | **Quando** si opera |
-| **Zona di balance** (Step 1) | Profile su area di compressione → POC/VAH/VAL | **Dove** è il range e i livelli |
-
-`IsNewSession` resta utile per Step 0 (London via `TradingSessionDescriptions`), **non** come inizio del range profile.
-
-### 4. Gap corretto
-
-| Elemento | Spec precedente (errata) | Spec corretta (fedele al transcript) |
-|----------|--------------------------|--------------------------------------|
-| Range profile | Inizio sessione → barra corrente | **Inizio compressione** → barra corrente |
-| Timing | Subito a London open | Quando compressione **visibile** (*"too early"* se no) |
-| Fallback | Non previsto | Daily profile giorno precedente |
-| Replot | Non previsto | Nuovo range *"from here to here"* dentro la stessa era |
-| Fine balance | Non definito | *"Consolidation era"* finisce con rottura VAH/VAL + follow-through |
-
----
-
-## Cosa fa Fabio per individuare la balance
-
-### Due modalità nel transcript
-
-**Modalità A — Semplice (contesto macro)**
-
-> *"You can make it stupid simple putting just daily profile."*  
-> *"I use the profile of the previous day."*
-
-Profile del **giorno precedente** → POC/VAH/VAL come riferimento. Facile, meno preciso intraday.
-
-**Modalità B — Operativa (quella del Modello 2 live)**
-
-> *"You see the compressed candles and you just plot the profile on there."*
-
-1. Guarda il chart e individua dove il mercato **non transa più alto né basso** (compressione visibile)
-2. Traccia il Volume Profile **solo su quell'area**
-3. Estrae POC, VAH, VAL (value area ~70%)
-4. Verifica che il profile **protegga** i confini
-
-> *"Market state is consolidation and is when the profile is protecting from breaking here and breaking here."*
-
-### Refinement intraday
-
-| Situazione | Fabio | Azione sul profile |
-|------------|-------|-------------------|
-| Nuovo dealing range dentro la stessa consolidazione | *"From here to here... new dealing range"* | Replot con nuovo `profileStartBar` |
-| Micro-contesto su 1m | *"Profile from the first ball to the last ball"* | Profile tra primo/ultimo cluster aggressione |
-| Era di consolidazione ancora valida | *"The consolidation era is still the same"* | Stessi VAH/VAL finché non rompono |
-| Era finita | *"Did it break VAH? ... Did it break VAL?"* con follow-through | Reset → cerca nuova compressione |
-
-### Cosa NON è balance
-
-- Profile del giorno intero come **unico** input operativo (è contesto, non trigger)
-- Profile da inizio sessione se **non** coincide con la compressione
-- Profile tracciato **troppo presto** — *"it's too early"*
-- Mercato con momentum — *"small orders balance → someone buying aggressively and continuation"*
-- Giornata di news/gap estremo (es. bombing Iran nel video) — contesto `RISKY`
-
----
-
 ## Pipeline — 7 step
 
 | Step | Nome | Cosa fa | Gate / output |
@@ -136,54 +43,147 @@ flowchart LR
 
 ---
 
-## Step 1 — Balance · specifica fedele al codice
+## Step 1 — Balance
 
-### A. Trovare l'area di compressione (`profileStartBar`)
+### Dal transcript
 
-Fabio seleziona visivamente l'area dove il prezzo *"didn't transact higher or lower"*. In codice:
+Il punto difficile è *"correctly identifying the consolidation"*. Fabio traccia il Volume Profile sull'**area di compressione** — dove il mercato *"didn't transact higher or lower"* — e da lì estrae POC, VAH, VAL.
 
-```
-profileEndBar   = bar corrente (rolling)
-profileStartBar = da trovare
-```
+| Timestamp | Cosa dice Fabio |
+|-----------|-----------------|
+| ~47:17 | *"The tricky part is correctly identifying the consolidation"* |
+| ~47:28 | Metodo semplice: *"I use the profile of the previous day"* |
+| ~47:47 | Metodo operativo: *"You see the compressed candles and you just plot the profile on there"* |
+| ~59:45 | *"Identifying the most interesting compression area... where the market didn't transact higher or lower"* |
+| ~1:00:24 | *"You don't identify it immediately... it's too early"* |
+| ~1:11:19 | Dentro la stessa consolidazione: *"from here to here... new dealing range"* → replot profile |
+| ~1:26:07 | Su 1m: *"profile from the first ball to the last ball"* per micro-compressione |
+| ~3:01:26 | *"The consolidation era is still the same"* — finché VAH/VAL non rompono |
+| ~3:01:40 | Validazione live: *"Did it break the value area low? No. Did it break the value area high? Yes."* |
+
+Due concetti distinti:
+
+| Concetto | Cosa è | Ruolo |
+|----------|--------|-------|
+| **Sessione London** (Step 0) | *"You're looking at potentially London"* — finestra operativa | **Quando** si opera |
+| **Zona di balance** (Step 1) | Profile su area di compressione → POC/VAH/VAL | **Dove** è il range e i livelli |
+
+`IsNewSession` serve per Step 0 (London via `TradingSessionDescriptions`). Il range profile parte dall'inizio compressione, non da `IsNewSession`.
+
+| Elemento | Regola |
+|----------|--------|
+| Range profile | Inizio compressione → barra corrente (rolling) |
+| Timing | Quando la compressione è **visibile**; altrimenti `NO_COMPRESSION` (*"too early"*) |
+| Fallback | Daily profile del giorno precedente (contesto macro) |
+| Replot | Nuovo range *"from here to here"* dentro la stessa *consolidation era* |
+| Fine balance | Rottura VAH/VAL con follow-through → fine era, cerca nuova compressione |
+
+### Cosa fa Fabio per individuare la balance
+
+**Modalità A — Semplice (contesto macro)**
+
+> *"You can make it stupid simple putting just daily profile."*  
+> *"I use the profile of the previous day."*
+
+Profile del **giorno precedente** → POC/VAH/VAL come riferimento. Facile, meno preciso intraday.
+
+**Modalità B — Operativa (Modello 2 live)**
+
+> *"You see the compressed candles and you just plot the profile on there."*
+
+1. Individua dove il mercato **non transa più alto né basso** (compressione visibile)
+2. Traccia il Volume Profile **solo su quell'area**
+3. Estrae POC, VAH, VAL (value area del profile — bulk of auction)
+4. Verifica che il profile **protegga** i confini
+
+> *"Market state is consolidation and is when the profile is protecting from breaking here and breaking here."*
+
+**Refinement intraday**
+
+| Situazione | Fabio | Azione sul profile |
+|------------|-------|-------------------|
+| Nuovo dealing range dentro la stessa consolidazione | *"From here to here... new dealing range"* | Replot sul nuovo range compressione |
+| Micro-contesto su 1m | *"Profile from the first ball to the last ball"* | Profile tra primo/ultimo cluster aggressione |
+| Era di consolidazione ancora valida | *"The consolidation era is still the same"* | Stessi VAH/VAL finché non rompono |
+| Era finita | *"Did it break VAH? ... Did it break VAL?"* con follow-through | Reset → cerca nuova compressione |
+
+**Cosa NON è balance**
+
+- Profile del giorno intero come **unico** input operativo (è contesto, non trigger)
+- Profile da inizio sessione se **non** coincide con la compressione
+- Profile tracciato **troppo presto** — *"it's too early"*
+- Mercato con momentum — *"small orders balance → someone buying aggressively and continuation"*
+- Giornata di news/gap estremo (es. bombing Iran nel video) — contesto `RISKY`
+
+### Principio: tutto dinamico (tranne big trades)
+
+Fabio non ragiona con numeri fissi su struttura e profile. Compressione, breakout, fakeout e follow-through emergono dal **contesto live**: range recente, volume, livelli VAH/VAL, comportamento post-rottura.
+
+**Eccezione — filtro big trade:** sulle executions usa una **soglia fissa in contratti**, oggettiva e testabile:
+
+| Timestamp | Cosa dice Fabio |
+|-----------|-----------------|
+| ~24:47 | *"Put a filter of 30 contracts on NASDAQ on the one minute... you will see the ball. So it's really objective."* |
+| ~1:31:44 | *"For the five minutes and one minutes for New York session you can use 30 contract as a filter."* |
+| ~1:31:52 | *"During London session you can go with 20. It's pretty accurate."* |
+| ~1:31:58 | Bubble più grande del filtro = aggressione maggiore (es. 100 contratti) — size proporzionale sul chart |
+
+| Sessione | Timeframe | Filtro big trade (NQ) |
+|----------|-----------|------------------------|
+| **London** | 1m / 5m | **20 contratti** |
+| **New York** | 1m / 5m | **30 contratti** |
+
+API: `OnCumulativeTrade` (fallback `OnNewTrade`) — print ≥ soglia sessione = "ball" visibile.
+
+| Area | Logica |
+|------|--------|
+| Compressione, profile, VAH/VAL | Dinamica — relativa a range e volume del momento |
+| Breakout / fakeout | Dinamica — livello profile + follow-through |
+| **Big trades / balls** | **Soglia fissa** per sessione (20 London, 30 NY) |
+
+### Specifica implementativa
+
+#### A. Trovare l'area di compressione
+
+Fabio seleziona visivamente l'area dove il prezzo *"didn't transact higher or lower"*. In codice il range profile è **rolling**: fine = barra corrente, inizio = dove inizia la compressione rilevata.
 
 **Algoritmo `FindCompressionStart(bar)`:**
 
 ```
 1. Da bar corrente, scansiona all'indietro
-2. Trova l'ultimo "impulse" — movimento direzionale con espansione del range
-   (close oltre swing precedente + range in crescita)
-3. profileStartBar = prima barra DOPO l'impulse, dove il prezzo
-   oscilla in un range ristretto
-4. Conferma: per almeno MinCompressionBars barre, high/low del range
-   non si espandono oltre ExpansionThreshold ticks
+2. Trova l'ultimo impulse — leg direzionale con espansione del range
+   (close oltre swing precedente, range/volume in crescita vs leg precedente)
+3. Inizio compressione = prima barra dopo l'impulse dove high/low restano
+   contenuti in un range nettamente più stretto del leg espansivo
+4. Conferma: il range della compressione non si espande in modo direzionale;
+   le candele sono "compressed" rispetto al contesto appena precedente
 ```
 
-Se non trovato → `NO_COMPRESSION` (equivalente a *"too early"*).
+Se la compressione non è ancora leggibile sul chart → `NO_COMPRESSION` (*"too early"*).
 
-### B. Costruire il profile sul range
+#### B. Costruire il profile sul range
 
 ```
-Per ogni barra da profileStartBar a profileEndBar:
+Per ogni barra nell'area di compressione (inizio → corrente):
   per ogni livello in GetCandle(b).GetAllPriceLevels():
     accumula volume per prezzo
 
 POC  = prezzo con volume massimo
-VAH/VAL = value area ValueAreaPercent% espansa simmetricamente dal POC
+VAH/VAL = value area (bulk of auction) espansa dal POC fino a ~70% del volume
 ```
 
 API ATAS: `GetCandle(bar).GetAllPriceLevels()` → `Price`, `Volume`, `Ask`, `Bid`.
 
-### C. Validare che sia balance (non solo profile calcolabile)
+#### C. Validare che sia balance (non solo profile calcolabile)
 
-| Check | Fabio | Codice |
-|-------|-------|--------|
-| Compressione visibile | Candele strette, no espansione direzionale | `MinCompressionBars` + range stabile |
-| Profile protettivo | VAH/VAL tengono | no `BrokeWithFollowThrough` su VAH/VAL |
-| Prezzo in value | Oscilla nel balance | close tra VAL e VAH (± `InsideValueToleranceTicks`) |
-| No momentum | No aggressione continua oltre confini | big trades/delta non spingono con follow-through |
+| Check | Fabio | Logica dinamica |
+|-------|-------|-----------------|
+| Compressione visibile | Candele strette, no espansione direzionale | Range corrente contratto vs ultimo impulse; profile accumula volume sufficiente |
+| Profile protettivo | VAH/VAL tengono | Tentativi di rottura senza follow-through sostenuto |
+| Prezzo in value | Oscilla nel balance | Close dentro/near value area definita dal profile stesso |
+| No momentum | No aggressione continua oltre confini | Aggressione oltre VAH/VAL non produce continuation |
 
-### D. Stati Step 1
+#### D. Stati Step 1
 
 | Stato | Significato | Equivalente Fabio |
 |-------|-------------|-------------------|
@@ -192,16 +192,16 @@ API ATAS: `GetCandle(bar).GetAllPriceLevels()` → `Price`, `Volume`, `Ask`, `Bi
 | `BALANCE_READY` | POC/VAH/VAL validi, confini protettivi, prezzo in/near value | *"consolidation era"* attiva |
 | `OUT_OF_BALANCE` | Rottura VAH/VAL con follow-through | Fine era → Modello 1 o flat |
 
-### E. Quando si aggiorna / si resetta
+#### E. Quando si aggiorna / si resetta
 
 | Evento | Azione |
 |--------|--------|
-| Nuova barra in compressione | Profile rolling: `profileEndBar = bar` |
-| Nuovo dealing range (*"from here to here"*) | Replot: nuovo `profileStartBar` |
+| Nuova barra in compressione | Profile rolling: estendi range fino a barra corrente |
+| Nuovo dealing range (*"from here to here"*) | Replot: nuovo inizio compressione |
 | Rottura VAH/VAL con follow-through | Fine *"consolidation era"* → reset, cerca nuova compressione |
 | Modalità fallback | `PreviousDayProfile` per contesto macro |
 
-### F. Timeline tipica London
+#### F. Timeline tipica London
 
 ```
 London open
@@ -222,7 +222,7 @@ Step 2+ (breakout, fakeout, trigger...)
 OUT_OF_BALANCE          → rottura con follow-through, era finita
 ```
 
-### G. Pseudocodice Step 1
+#### G. Pseudocodice Step 1
 
 ```csharp
 // Gate Step 0
@@ -251,20 +251,22 @@ else
 
 ### Step 2–3 — Breakout e fakeout
 
-- Breakout = close oltre VAH/VAL di almeno `MinBreakoutTicks`
-- **Regola Fabio:** primo drive ignorato (`RequireSecondDrive = true`)
-- Fakeout = breakout senza momentum → prezzo rientra inside value (`ReentryTicks`)
+- Breakout = close oltre VAH/VAL (il livello profile **è** la soglia)
+- **Regola Fabio:** primo drive ignorato — attendere il secondo tentativo
+- Fakeout = breakout senza follow-through → prezzo rientra inside value
+
+Follow-through = prezzo **continua** oltre il livello con aggressione sostenuta; fakeout = tentativo che **non tiene**.
 
 ### Step 4–5 — Trapped side e trigger
 
 | Condizione | Conferma trapped | Trigger |
 |------------|------------------|---------|
-| Prezzo sotto VAL | sell aggression, no follow-through, recupero verso value | big buy ≥ filtro + recovery / squeeze |
-| Prezzo sopra VAH | buy aggression, no follow-through, rientro in value | big sell ≥ filtro + recovery / squeeze |
+| Prezzo sotto VAL | sell aggression (ball ≥ filtro), no follow-through, recupero verso value | big buy ≥ filtro + recovery / squeeze |
+| Prezzo sopra VAH | buy aggression (ball ≥ filtro), no follow-through, rientro in value | big sell ≥ filtro + recovery / squeeze |
 
-- **Big trades:** executions/bubbles — London ~20, NY ~30 contratti
+- **Big trades:** filtro fisso — **20 contratti** London, **30 contratti** NY su 1m/5m NQ (*"you will see the ball"*)
 - **CVD:** conferma/gestione only
-- **Assorbimento:** big trade + no follow-through a livello profile
+- **Assorbimento:** ball ≥ filtro + no follow-through a livello profile
 
 ### Step 6 — Target e stop
 
@@ -311,7 +313,7 @@ BALANCE_READY → OUT_OF_BALANCE          (rottura VAH/VAL + follow-through)
 | Profile | volume per livello | `GetCandle(bar).GetAllPriceLevels()` |
 | London (Step 0) | sessione chart | `ChartInfo.TradingSessionDescriptions` + `IsNewSession(bar)` |
 | Compressione (Step 1) | range high/low, swing | candele — **non** `IsNewSession` come start profile |
-| Big trades | executions | `OnCumulativeTrade` → fallback `OnNewTrade` |
+| Big trades | executions ≥ 20 (London) / 30 (NY) | `OnCumulativeTrade` → fallback `OnNewTrade` |
 | Struttura | close vs VAH/VAL | candele + livelli profile |
 | Pressione | CVD, delta | filtro only |
 
@@ -319,24 +321,23 @@ BALANCE_READY → OUT_OF_BALANCE          (rottura VAH/VAL + follow-through)
 
 ---
 
-## Parametri (aggiornati Step 1)
+## Logica per step
 
-| Parametro | Default | Step | Note |
-|-----------|---------|------|------|
-| `LondonSessionName` | `"London"` | 0 | match su `TradingSessionDescriptions` |
-| `ProfileMode` | `Compression` | 1 | `Compression` / `PreviousDay` |
-| `ValueAreaPercent` | 70 | 1 | VAH/VAL |
-| `MinCompressionBars` | 10 | 1 | barre minime per confermare compressione |
-| `ExpansionThresholdTicks` | 8 | 1 | soglia per considerare un impulse |
-| `InsideValueToleranceTicks` | 2 | 1 | tolleranza "inside value" |
-| `MinBreakoutTicks` | 4 | 2 | |
-| `ReentryTicks` | 2 | 3 | |
-| `RequireSecondDrive` | true | 2–5 | |
-| `BigTradeFilter` | 20 | 5 | London |
-| `BigTradeFilterNY` | 30 | 5 | |
-| `TargetMode` | POC | 6 | |
+| Step | Input | Decisione |
+|------|-------|-----------|
+| **0** | Sessione chart (`TradingSessionDescriptions`) | London attiva o no |
+| **1** | Range vs ultimo impulse; volume per livello | Compressione visibile → POC/VAH/VAL; profile protettivo o no |
+| **2** | Close vs VAH/VAL | Breakout; primo drive scartato |
+| **3** | Follow-through dopo breakout | Fakeout se rientro in value senza continuation |
+| **4** | Ball ≥ filtro sessione fuori value + recupero | Trapped side |
+| **5** | Ball ≥ filtro + second drive | Trigger |
+| **6** | POC come bulk of auction; struttura failed breakout | Target, stop, invalidazione |
 
-~~`Session profile start = IsNewSession`~~ — **rimosso**, non fedele a Fabio.
+**Compressione:** range contratto vs ultimo leg espansivo — dinamico.
+
+**Breakout/fakeout:** VAH/VAL + follow-through — dinamico.
+
+**Big trade:** soglia fissa per sessione (20 London / 30 NY, 1m e 5m NQ) — unica eccezione numerica esplicita nel transcript.
 
 ---
 
@@ -369,7 +370,7 @@ POC:     21280.50 | VAH: 21295 | VAL: 21265
 | `CVD_*_DIV` | standalone | conferma only |
 | `SQUEEZE` (Δsum) | generico | trapped + recovery level |
 | `ABSORPTION` (delta barra) | generico | big trade + no follow-through |
-| Profile da session start | non fedele a Fabio | **non usare** |
+| Profile da `IsNewSession` | range ≠ compressione | range = area compressione |
 
 ---
 
@@ -378,7 +379,7 @@ POC:     21280.50 | VAH: 21295 | VAL: 21265
 | # | Step | Stato codice |
 |---|------|--------------|
 | 1 | **0** — London session (`TradingSessionDescriptions`) | ✅ fatto |
-| 2 | **1** — `FindCompressionStart` + `BuildProfile` + stati balance | da fare |
+| 2 | **1** — compressione dinamica + profile + stati balance | da fare |
 | 3 | **2–3** — breakout / fakeout | da fare |
 | 4 | **4** — trapped side | da fare |
 | 5 | **5** — trigger | da fare |
