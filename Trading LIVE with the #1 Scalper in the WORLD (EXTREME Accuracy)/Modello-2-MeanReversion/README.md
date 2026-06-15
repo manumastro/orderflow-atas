@@ -23,13 +23,10 @@
 
 ## 📐 Documentazione
 
-La specifica tecnica è in fasi. Al momento è disponibile solo la **Fase 1**:
-
 | Documento | Contenuto |
 |-----------|-----------|
-| [FabioMeanReversion.md](FabioMeanReversion.md) | **Fase 1** — Individuazione zona di balance (POC, VAH, VAL) |
-
-Fasi future: fakeout, aggressione, trigger, target POC.
+| [FabioMeanReversion.md](FabioMeanReversion.md) | **Spec completa** — teoria, input, output, state machine, trigger, parametri |
+| [AGENTS.md](../../AGENTS.md) | Stato implementazione codice ATAS |
 
 ---
 
@@ -42,7 +39,7 @@ cd Modello-2-MeanReversion\src
 deploy.bat
 ```
 
-> L'indicatore è in fase di riscrittura. La Fase 1 implementerà solo il **profile engine** e la visualizzazione della zona di balance.
+> L'indicatore è in fase di riscrittura. Vedi [AGENTS.md](../../AGENTS.md) per lo stato corrente.
 
 ---
 
