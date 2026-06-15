@@ -1,7 +1,0 @@
----
-pid: 16452
-cwd: "C:\Users\emanu\orderflow-atas"
-command: "cd \"C:\\Users\\emanu\\orderflow-atas\"; powershell -Command \"[System.Reflection.Assembly]::LoadFrom('C:\\Program Files (x86)\\ATAS Platform\\ATAS.Indicators.dll').GetExportedTypes() | Where-Object { $_.Name -match 'Session|Working' } | ForEach-Object { $_.FullName }\""
-started_at: 2026-06-15T12:48:52.565Z
-running_for_ms: 240011   
----
