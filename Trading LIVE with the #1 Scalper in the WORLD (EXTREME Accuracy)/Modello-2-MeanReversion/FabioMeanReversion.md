@@ -1,544 +1,185 @@
-# Studio completo — Fabio Valentino Modello 2 Mean Reversion
+# Modello 2 — Mean Reversion · Analisi implementazione
 
-**Data:** 2026-06-15  
-**Fonte:** transcript *Trading LIVE with the #1 Scalper in the WORLD (EXTREME Accuracy).txt*
-
-> Stato implementazione indicatore ATAS: vedi [AGENTS.md](../../AGENTS.md)
+**Fonte:** transcript *Trading LIVE with the #1 Scalper in the WORLD (EXTREME Accuracy)*  
+**Stato codice:** [AGENTS.md](../../AGENTS.md)
 
 ---
 
-## 1. Tesi corretta del Modello 2
+## Tesi
 
-Il Modello 2 **non** è un generico indicatore di wick, CVD divergence o delta.
+Mean reversion in mercato **in balance**. Il segnale non nasce da wick, delta o CVD isolati, ma dalla sequenza:
 
-È un modello di **mean reversion** dentro/attorno a una **zona di balance**, basato su Auction Market Theory:
+**profile → breakout → fakeout → trapped side → aggressione → rientro → target POC**
 
-1. Il mercato è in consolidamento / balance
-2. Il Volume Profile definisce dove il mercato sta transando valore
-3. Il prezzo prova a uscire dal balance
-4. Il breakout fallisce o viene riassorbito
-5. I trader intrappolati devono chiudere
-6. Il prezzo torna verso la zona dove avviene il bulk delle transazioni, soprattutto **POC**
+> *"Model 2 is mean reverting... consolidation... out of balance condition that gets back inside balance."*
 
-**Frase chiave dal transcript:**
-
-> *"Model 2 is mean reverting... market state is consolidation... we are trying to take the out of balance condition that gets back inside balance."*
-
-Quindi il segnale **non nasce dalla candela isolata**. Nasce dal rapporto fra:
-
-- profile / value area
-- breakout o fakeout
-- order flow eseguito
-- assorbimento / no follow-through
-- ritorno nel balance
-- target POC
+**Prerequisito assoluto:** mercato in consolidamento. Se out of balance → Modello 1 o flat.
 
 ---
 
-## 2. Cosa Fabio considera davvero per il Modello 2
-
-### 2.1 Market state: consolidation / balance
-
-Il primo filtro è lo **stato del mercato**.
-
-Fabio distingue sempre:
-
-- **balance**
-- **out of balance**
-
-Per il Modello 2 vuole il balance/consolidamento:
-
-> *"The model 2 is using the market state that is the opposite... consolidation."*
-
-Non si dovrebbe tradare mean reversion se il mercato è già in forte trend/out-of-balance. In quel caso è **Modello 1** o **no-trade**.
-
-### 2.2 Volume Profile
-
-Il Volume Profile è centrale anche nel Modello 2.
-
-Serve a identificare:
-
-- area di balance
-- Value Area High
-- Value Area Low
-- POC
-- Low Volume Node
-- aree di aggressione/delta per prezzo
-
-**Frasi chiave:**
-
-> *"Market state is consolidation and is when the profile is protecting from breaking here and breaking here."*
-
-> *"You go to where the bulk of the auctions taking place."*
-
-> *"This blue line is the value area."*
-
-> *"This is the value area high. This is the value area low. This is the POC."*
-
-### 2.3 Target: POC / bulk of auction
-
-Il target **non** è automaticamente l'altro lato del range.
-
-Il target a più alta probabilità è:
-
-- **POC**
-- bulk of auction
-- area dove si è transato più volume
-
-**Frase chiave:**
-
-> *"We don't go here... you go to where the bulk of the auction is taking place."*
-
-Quindi per il Modello 2 l'output deve mostrare sempre:
-
-- target POC
-- distanza dal POC
-- se il POC è coerente con la direzione del trade
-
-### 2.4 Non prendere il primo breakout
-
-Fabio lo ripete più volte:
-
-> *"We are not trying to take the first swing because it's risky. We are getting the second swing."*
-
-> *"Wait for the second drive. Don't take the first drive because you can get trapped in a fakeout."*
-
-Quindi un breakout fuori VAH/VAL **non è trigger**.
-
-È solo evento di contesto:
-
-- primo drive
-- possibile fakeout
-- possibile accumulo di trapped traders
-
-### 2.5 Trigger: big trades / aggression / bubbles
-
-Il trigger vero è **order flow eseguito**, non previsione.
-
-Fabio dice:
-
-> *"I wait for big trades."*
-
-> *"I jump in when the best ones are jumping in with big volume."*
-
-> *"You want to filter out the noise. You want to see what actual big orders are doing."*
-
-**Valori citati:**
-
-| Sessione | Soglia contratti |
-|----------|------------------|
-| New York / NQ | ~30 |
-| London | ~20 |
-| Filtro alto (chiarezza) | ~40 |
-
-Importante: Fabio guarda **market executions / bubbles**, non ordini limite:
-
-> *"I never watch limits... with execution these are executed market."*
-
-### 2.6 Assorbimento e no follow-through
-
-Il concetto non è solo "delta alto".
-
-È:
-
-1. Una parte aggredisce
-2. Ma il prezzo non prosegue
-3. O recupera il livello
-4. Quindi quella parte è **trapped**
-
-**Frasi chiave:**
-
-> *"Aggressive sellers without follow up."*
-
-> *"They are punching a wall."*
-
-> *"A lot of aggression and no follow up."*
-
-> *"This got absorbed."*
-
-Perciò l'input corretto non è solo `barDelta`, ma relazione fra:
-
-- big sell/buy executions
-- prezzo che non segue
-- recupero inside value/range
-- livello profile rilevante
-
-### 2.7 Squeeze
-
-Lo squeeze accade quando i trapped traders sono costretti a chiudere.
-
-**Esempio long:**
-
-1. Sellers entrano aggressivi sotto VAL / sotto range
-2. Non ottengono follow-through
-3. Il prezzo recupera il livello
-4. Se rompe sopra il livello di protezione, gli short chiudono
-5. Chiudere short = comprare → accelerazione long
-
-**Frasi chiave:**
-
-> *"Squeeze of the trapped sellers."*
-
-> *"When you recover all the aggressive sellers... they are getting fake out."*
-
-> *"They are forced to close position... closing a sell will create more momentum long."*
-
-### 2.8 CVD
-
-CVD **non** è trigger standalone.
-
-Fabio lo usa come benchmark di pressione e per capire se il movimento è supportato.
-
-**Frasi chiave:**
-
-> *"CVD is a benchmark for pressure of volume."*
-
-> *"If you see aggression and CVD doing this, the movement is not supported."*
-
-Quindi CVD deve essere:
-
-- conferma
-- filtro
-- warning
-- strumento di trade management
-
-Non deve generare da solo un `LONG?` o `SHORT?` se manca profile/location/trigger.
-
-### 2.9 Timeframe
-
-Fabio usa **5m** e **1m** nell'esempio:
-
-| Timeframe | Uso |
-|-----------|-----|
-| 5m | breakout / area / profile |
-| 1m | esecuzione |
-
-Ma dice che il modello può essere usato su più timeframe.
-
-Quindi l'indicatore non deve dipendere da timeframe fisso, ma deve distinguere:
-
-- **profile/context window**
-- **execution window**
-
-### 2.10 Sessione / condizione
-
-Modello 2 funziona meglio in:
-
-- London
-- summer / compression
-- condizioni di range
-
-Ma la sessione è **condizione**, non trigger.
-
-Fabio dice anche che in New York il mean reversion può essere pericoloso se il mercato rompe con momentum.
-
-Quindi il software deve dire:
-
-| Contesto | Stato |
-|----------|-------|
-| Mercato bilanciato | `MODEL2_VALID_CONTEXT` |
-| Apertura / volatilità / direzione incerta | `MODEL2_RISKY_CONTEXT` |
-| Trend / out-of-balance | `MODEL2_INVALID_CONTEXT` |
+## Pipeline — 7 step
+
+Ogni step ha un gate: se fallisce, i successivi non producono trigger.
+
+| Step | Nome | Cosa fa | Gate / output |
+|------|------|---------|---------------|
+| **0** | Contesto | Sessione London, range, no trend forte | `VALID` / `RISKY` / `INVALID` |
+| **1** | Balance | Session profile → POC, VAH, VAL | `BALANCE_READY` / `NO_PROFILE` / `OUT_OF_BALANCE` |
+| **2** | Breakout | Prezzo esce oltre VAH/VAL (min ticks) | `FIRST_BREAKOUT_WAIT` — **no entry** |
+| **3** | Fakeout | Breakout senza follow-through, rientro verso value | `FAKEOUT_WATCH` |
+| **4** | Trapped | Aggressione fuori value + no follow-through + recupero livello | `TRAPPED_*_WATCH` |
+| **5** | Trigger | Second drive: big trade + recovery level / squeeze | `TRIGGER_LONG` / `TRIGGER_SHORT` |
+| **6** | Gestione | Target POC, stop failed area, invalidazione | `INVALIDATED` se rottura con follow-through |
+
+```mermaid
+flowchart LR
+  S0[0 Contesto] --> S1[1 Balance]
+  S1 --> S2[2 Breakout]
+  S2 --> S3[3 Fakeout]
+  S3 --> S4[4 Trapped]
+  S4 --> S5[5 Trigger]
+  S5 --> S6[6 POC / Stop]
+  S1 -.->|out of balance| X[Modello 1 / flat]
+  S2 -.->|primo drive| W[attesa]
+```
+
+### Step 1 — Balance (implementare per primo)
+
+- **Range:** prima barra sessione (`IsNewSession`) → barra corrente
+- **Calcolo:** volume per price level → POC, VAH, VAL (value area 70%)
+- **Valido se:** profile con volume sufficiente, prezzo inside/near value, VAH/VAL protettivi
+- **Visual:** istogramma sessione, linee POC/VAH/VAL, marker SESSION START/END
+
+### Step 2–3 — Breakout e fakeout
+
+- Breakout = close oltre VAH/VAL di almeno `MinBreakoutTicks`
+- **Regola Fabio:** primo drive ignorato (`RequireSecondDrive = true`)
+- Fakeout = breakout senza momentum → prezzo rientra inside value (`ReentryTicks`)
+
+### Step 4–5 — Trapped side e trigger
+
+| Condizione | Conferma trapped | Trigger |
+|------------|------------------|---------|
+| Prezzo sotto VAL | sell aggression, no follow-through, recupero verso value | big buy ≥ filtro + break micro swing high / squeeze sellers |
+| Prezzo sopra VAH | buy aggression, no follow-through, rientro in value | big sell ≥ filtro + recovery level / squeeze buyers |
+
+- **Big trades:** executions/bubbles, non limit orders — London ~20, NY ~30 contratti
+- **CVD:** solo conferma/gestione, mai trigger standalone
+- **Assorbimento:** big trade + prezzo che non segue + livello profile (non delta barra isolato)
+
+### Step 6 — Target e stop
+
+| Elemento | Regola |
+|----------|--------|
+| **Target** | POC (bulk of auction), non l'altro lato del range |
+| **Stop** | sotto/sopra failed breakout e cluster aggressione — sbagliarsi subito |
+| **Invalida** | rottura livello con follow-through → narrative flip |
 
 ---
 
-## 3. Cosa NON deve essere un segnale operativo
+## State machine
 
-Queste cose **da sole** non devono generare segnale:
+| Stato | Step | Entry permessa |
+|-------|------|----------------|
+| `NO_TRADE_CONTEXT` | 0–1 | No |
+| `BALANCE_READY` | 1 | No — attendere breakout |
+| `FIRST_BREAKOUT_WAIT` | 2 | No |
+| `FAKEOUT_WATCH` | 3 | No |
+| `TRAPPED_SELLERS_LONG_WATCH` | 4 | No |
+| `TRAPPED_BUYERS_SHORT_WATCH` | 4 | No |
+| `TRIGGER_LONG` / `TRIGGER_SHORT` | 5 | Sì |
+| `INVALIDATED` | 6 | No — reset scenario |
 
-- Wick lunga isolata
-- CVD divergence isolata
-- Delta positivo/negativo isolato
-- Primo breakout fuori range
-- Primo tocco di VAH/VAL
-- Aggressione grande ma ancora senza recupero/fallimento
-- Movimento dentro noise/range senza uscita e rientro
+Transizioni chiave:
 
-Devono essere classificate come:
-
-- `CONTEXT`
-- `WATCH`
-- `NO_TRADE`
-- `WAIT_CONFIRMATION`
-
----
-
-## 4. Input corretti da usare
-
-### 4.1 Profile inputs
-
-| Input | Uso |
-|-------|-----|
-| Volume per price level | costruire profilo |
-| POC | target primario |
-| VAH | upper boundary balance |
-| VAL | lower boundary balance |
-| LVN | reaction/entry/refinement level |
-| Delta per price level | identificare dominanza buyer/seller |
-
-**Fonte ATAS:**
-
-- `GetCandle(bar)`
-- `GetAllPriceLevels()`
-- `PriceVolumeInfo.Price`, `Volume`, `Ask`, `Bid`
-
-### 4.2 Order flow inputs
-
-| Input | Uso |
-|-------|-----|
-| CumulativeTrade / big trades | trigger primario |
-| Direction Buy/Sell | lato aggressivo |
-| Volume trade | filtro 20/30/40 contratti |
-| Price del trade | livello di aggressione |
-| Delta live | pressione corrente |
-| CVD | benchmark pressione |
-
-**Fonte ATAS:**
-
-- `OnNewTrade(MarketDataArg)` per tick
-- `OnCumulativeTrade(CumulativeTrade)` per big trades se disponibile
-- fallback: aggregare tick per prezzo
-
-### 4.3 Price structure inputs
-
-| Input | Uso |
-|-------|-----|
-| Range high/low balance | break/fakeout |
-| Local swing high/low | secondo drive / trigger |
-| Close rispetto a VAH/VAL | rientro nel balance |
-| High/Low corrente | stop/invalidation |
-| Distance to POC | target e R:R |
+```
+NO_PROFILE → BALANCE_READY          (profile valido)
+BALANCE_READY → FIRST_BREAKOUT_WAIT (rottura VAH/VAL)
+FIRST_BREAKOUT_WAIT → FAKEOUT_WATCH (no follow-through)
+FAKEOUT_WATCH → TRAPPED_*_WATCH     (aggressione + recupero)
+TRAPPED_*_WATCH → TRIGGER_*         (second drive + big trade)
+* → INVALIDATED                     (rottura con follow-through)
+```
 
 ---
 
-## 5. Output corretti
+## Input ATAS
 
-### 5.1 Stati, non segnali grezzi
+| Categoria | Dato | API / fonte |
+|-----------|------|-------------|
+| Profile | volume, ask, bid per livello | `GetCandle(bar).GetAllPriceLevels()` |
+| Sessione | inizio range profile | `IsNewSession(bar)` |
+| Big trades | executions | `OnCumulativeTrade` → fallback `OnNewTrade` |
+| Struttura | swing, close vs VAH/VAL | candele + livelli profile |
+| Pressione | CVD, delta live | cumulo barra / tick — **filtro only** |
 
-L'indicatore deve produrre stati chiari:
-
-#### `NO_TRADE_CONTEXT`
-
-- non siamo in balance
-- o dati insufficienti
-- o troppo rumore
-
-#### `BALANCE_READY`
-
-- balance identificato
-- POC/VAH/VAL validi
-
-#### `FIRST_BREAKOUT_WAIT`
-
-- prezzo ha rotto VAH/VAL
-- nessuna entry
-
-#### `FAKEOUT_WATCH`
-
-- breakout non ha follow-through
-- si osserva rientro
-
-#### `TRAPPED_SELLERS_LONG_WATCH`
-
-- sellers aggressivi sotto VAL
-- no follow-through
-- possibile squeeze long
-
-#### `TRAPPED_BUYERS_SHORT_WATCH`
-
-- buyers aggressivi sopra VAH
-- no follow-through
-- possibile squeeze short
-
-#### `TRIGGER_LONG`
-
-- rientro nel balance + big buy aggression / recovery level
-- target POC sopra
-- stop sotto failed area / big orders
-
-#### `TRIGGER_SHORT`
-
-- rientro nel balance + big sell aggression / recovery level
-- target POC sotto
-- stop sopra failed area / big orders
-
-#### `INVALIDATED`
-
-- livello di invalidazione rotto con follow-through
-- narrative flips
-
-### 5.2 Output visuali
-
-**Sul prezzo:**
-
-- VAH line
-- VAL line
-- POC line
-- LVN marker
-- big aggression nodes
-- solo tag compatti: `WATCH LONG`, `TRIGGER LONG`, `WATCH SHORT`, `TRIGGER SHORT`, `INVALID`
-
-**Nel box:**
-
-- STATO
-- DOVE SIAMO rispetto a VAH/VAL/POC
-- COSA È SUCCESSO
-- COSA SERVE PER ENTRARE
-- TARGET
-- INVALIDA
-
-**Nel log:**
-
-- stesso testo del box
-- snapshot tecnico: price, POC/VAH/VAL, distance to POC, big trades count/volume, delta per level, CVD, state machine state
+**Timeframe:** context (es. 5m) e execution (es. 1m) separati — non hardcoded.
 
 ---
 
-## 6. Trigger reale secondo Fabio
+## Output indicatore
 
-### Long Modello 2
+### Chart
 
-**Condizione iniziale:**
+POC / VAH / VAL · LVN · nodi aggressione · tag: `WATCH LONG`, `TRIGGER LONG`, `WATCH SHORT`, `TRIGGER SHORT`, `INVALID`
 
-- mercato in balance
-- profile valido
-- prezzo esce sotto VAL / discount
-- primo movimento ignorato
+### Box (sempre visibile)
 
-**Watch:**
+```
+STATO:   TRAPPED_SELLERS_LONG_WATCH
+DOVE:    sotto VAL, rientro parziale
+MANCA:   big buy ≥ 20 + break recovery level
+TARGET:  POC 21280.50 (+12t)
+INVALIDA: close sotto 21260 con sell follow-through
+```
 
-- sell aggression sotto VAL
-- sellers non ottengono follow-through
-- prezzo recupera verso/inside value
-- si vede buyer protection / buyer aggression
-- short trapped
+### Log
 
-**Trigger:**
-
-- recupero del livello chiave / break del micro swing high
-- big buy trade sopra filtro
-- oppure squeeze dei trapped sellers
-- target POC sopra
-
-**Stop:**
-
-- sotto area di aggressione/protezione
-- sotto low del failed breakout
-- Fabio preferisce essere sbagliato subito
-
-### Short Modello 2
-
-Speculare:
-
-- balance
-- prezzo esce sopra VAH / premium
-- primo movimento ignorato
-- buy aggression senza follow-through
-- prezzo rientra dentro value
-- sell aggression o recovery level
-- target POC sotto
+Stesso testo del box + snapshot: price, POC/VAH/VAL, dist POC, big trades, delta livello, CVD, stato.
 
 ---
 
-## 7. Cosa cambiare nel nostro indicatore
+## Parametri
 
-### Da eliminare o declassare
-
-| Logica attuale | Azione |
-|----------------|--------|
-| `FAILED_AUCTION` da wick isolata | declassare a `CONTEXT`/`WATCH` se non fuori VAH/VAL |
-| `CVD_BULL_DIV` standalone | declassare a conferma, non segnale |
-| `SQUEEZE` da Δsum generico | sostituire con trapped-side + recovery level |
-| `ABSORPTION` da delta generico | sostituire con big trades no-follow-through a livello profile |
-| `LONG?`/`SHORT?` generici | sostituire con `WATCH` e `TRIGGER` |
-
-### Da aggiungere
-
-**Profile engine:**
-
-- lookback/session/manual profile
-- POC/VAH/VAL
-- LVN
-- delta per price level
-
-**Big trade engine:**
-
-- `OnCumulativeTrade` se ATAS lo supporta bene
-- fallback aggregazione tick
-- filter 20/30/40
-
-**Balance state machine:**
-
-- `BALANCE_READY`
-- `FIRST_BREAKOUT_WAIT`
-- `FAKEOUT_WATCH`
-- `TRIGGER_LONG`/`SHORT`
-- `INVALIDATED`
-
-**Risk/target:**
-
-- target POC
-- stop livello failed area
-- distance/R:R stimato
-
----
-
-## 8. Specifica minima nuova versione
-
-### Parametri
-
-| Parametro | Default | Note |
+| Parametro | Default | Step |
 |-----------|---------|------|
-| Session Profile Start | sessione corrente | profilo dalla prima barra di sessione via `IsNewSession(bar)` |
-| ValueAreaPercent | 70 | VAH/VAL |
-| BigTradeFilter | 20 | London default |
-| BigTradeFilterNY | 30 | NY default |
-| UseCumulativeTrades | true | se disponibile |
-| MinBreakoutTicks | 4 | uscita minima da VAH/VAL |
-| ReentryTicks | 2 | rientro nel value |
-| RequireSecondDrive | true | coerente Fabio |
-| LvnSensitivity | 0.35 | volume basso vs media |
-| TargetMode | POC | target primario |
-
-### Output primario
-
-Non "BUY/SELL" continuo, ma:
-
-```
-STATO: BALANCE READY
-DOVE: sotto VAL, possibile fakeout
-TRIGGER: manca buyer aggression > 20 contratti
-TARGET: POC 30280.50
-INVALIDA: nuova rottura sotto 30260 con sellers follow-through
-```
-
-Solo quando trigger completo:
-
-```
-TRIGGER LONG: trapped sellers recovered + big buy aggression
-TARGET: POC
-STOP: sotto failed low / big orders
-```
+| `ValueAreaPercent` | 70 | 1 |
+| Session profile start | `IsNewSession` | 1 |
+| `MinBreakoutTicks` | 4 | 2 |
+| `ReentryTicks` | 2 | 3 |
+| `RequireSecondDrive` | true | 2–5 |
+| `BigTradeFilter` | 20 (London) | 5 |
+| `BigTradeFilterNY` | 30 | 5 |
+| `UseCumulativeTrades` | true | 5 |
+| `LvnSensitivity` | 0.35 | 1 (refinement) |
+| `TargetMode` | POC | 6 |
 
 ---
 
-## 9. Conclusione
+## Non-segnali (declassare)
 
-Il nostro indicatore attuale è utile per leggere order flow, ma **non è ancora** il vero Modello 2 di Fabio.
+Da soli → `CONTEXT` / `WATCH` / `WAIT_CONFIRMATION`, mai `TRIGGER`:
 
-Il vero Modello 2 richiede questa gerarchia:
-
-1. **Market state:** balance/consolidation
-2. **Profile:** POC, VAH, VAL, LVN
-3. **First breakout:** osserva, non entrare
-4. **Fakeout/reentry:** prepara scenario
-5. **Big trades/aggression:** trigger
-6. **No follow-through/absorption:** conferma trapped side
-7. **Target POC**
-8. **Invalidation** se la rottura continua con follow-through
-
-La prossima implementazione deve essere una **riscrittura parziale** basata su profile/state machine, non un semplice tuning delle soglie attuali.
+| Segnale legacy | Problema | Azione |
+|----------------|----------|--------|
+| `FAILED_AUCTION` (wick) | fuori contesto profile | WATCH solo se oltre VAH/VAL |
+| `CVD_*_DIV` | standalone | conferma only |
+| `SQUEEZE` (Δsum) | generico | trapped + recovery level |
+| `ABSORPTION` (delta barra) | generico | big trade + no follow-through a livello |
+| `LONG?` / `SHORT?` | ambigui | `WATCH_*` / `TRIGGER_*` |
 
 ---
 
-*Specifica completa — Fabio Valentino Modello 2 Mean Reversion · orderflow-atas*
+## Ordine implementazione
+
+1. **Step 1** — profile engine + rendering + `BALANCE_READY`
+2. **Step 2–3** — breakout/fakeout detection + stati wait/watch
+3. **Step 4** — trapped side (big trades + no follow-through)
+4. **Step 5** — trigger + tag chart
+5. **Step 6** — target POC, stop, invalidazione + box/log
+
+Rimuovere dal codice legacy: `DetectFailedAuction`, `DetectSqueezeSetup`, `DetectAbsorption`, `DetectCvdDivergence` come trigger autonomi.
+
+---
+
+*Fabio Valentino · Modello 2 Mean Reversion · orderflow-atas*
