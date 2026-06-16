@@ -83,9 +83,22 @@ public class FabioMeanReversion : Indicator
 
     protected override void OnCalculate(int bar, decimal value)
     {
-        // Puliamo questa barra (solo paint e marker ora)
-        _paintBars[bar] = System.Windows.Media.Colors.Transparent;
         _compressionMarker[bar] = 0;
+
+        bool isLiveBar = (bar == CurrentBar - 1);
+
+        if (isLiveBar)
+        {
+            // Su barra live puliamo una finestra di paint/marker recente.
+            // Poi ridisegniamo SOLO la zona attiva corrente.
+            // Usiamo null (non Transparent) per non nascondere le candele.
+            int clearFrom = Math.Max(0, bar - CompressionLookback);
+            for (int i = clearFrom; i <= bar; i++)
+            {
+                _paintBars[i] = null;
+                _compressionMarker[i] = 0;
+            }
+        }
 
         // Cerca zona di balance che arriva fino a questa barra
         int impulseEnd = FindLastImpulse(bar);
@@ -117,6 +130,7 @@ public class FabioMeanReversion : Indicator
             return;
 
         // Evidenzia SOLO la zona di balance con paintbars + marker
+        // (barre fuori da questa zona non vengono toccate → candele normali visibili)
         for (int i = compStart; i <= bar; i++)
         {
             _paintBars[i] = System.Windows.Media.Colors.Gold;  // zona di balance
@@ -124,17 +138,6 @@ public class FabioMeanReversion : Indicator
 
         var sc = GetCandle(compStart);
         _compressionMarker[compStart] = sc.Low - (EffectiveTickSize * 3);
-
-        // Pulizia area prima della zona corrente (solo sulla barra live per evitare ghost)
-        if (bar == CurrentBar - 1)
-        {
-            int clearFrom = Math.Max(0, bar - CompressionLookback);
-            for (int i = clearFrom; i < compStart; i++)
-            {
-                _paintBars[i] = System.Windows.Media.Colors.Transparent;
-                _compressionMarker[i] = 0;
-            }
-        }
     }
 
     #endregion
