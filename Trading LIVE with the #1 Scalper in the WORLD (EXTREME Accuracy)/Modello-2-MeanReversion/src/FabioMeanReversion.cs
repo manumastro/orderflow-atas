@@ -57,6 +57,7 @@ public class FabioMeanReversion : Indicator
 
     private decimal EffectiveTickSize => InstrumentInfo?.TickSize > 0 ? InstrumentInfo.TickSize : 0.25m;
     private int _lastBalanceStart = -1;
+    private int _lastLoggedBar = -1;
 
     private static readonly string LogPath = System.IO.Path.Combine(
         System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData),
@@ -112,21 +113,24 @@ public class FabioMeanReversion : Indicator
         int impulseEnd = FindLastImpulse(bar);
         if (impulseEnd < 0)
         {
-            LogBal($"[BAL] Bar={bar}: no impulse found in lookback");
+            if (bar != _lastLoggedBar) LogBal($"[BAL] Bar={bar}: no impulse found in lookback");
+            _lastLoggedBar = bar;
             return;
         }
 
         int compStart = FindCompressionStart(bar, impulseEnd);
         if (compStart < 0)
         {
-            LogBal($"[BAL] Bar={bar}: no compression start after impulse {impulseEnd}");
+            if (bar != _lastLoggedBar) LogBal($"[BAL] Bar={bar}: no compression start after impulse {impulseEnd}");
+            _lastLoggedBar = bar;
             return;
         }
 
         int compBars = bar - compStart + 1;
         if (compBars < MinCompressionBars)
         {
-            LogBal($"[BAL] Bar={bar}: compression too short ({compBars} < {MinCompressionBars}) start={compStart}");
+            if (bar != _lastLoggedBar) LogBal($"[BAL] Bar={bar}: compression too short ({compBars} < {MinCompressionBars}) start={compStart}");
+            _lastLoggedBar = bar;
             return;
         }
 
@@ -134,7 +138,8 @@ public class FabioMeanReversion : Indicator
         decimal impulseRange = CalculateRange(impulseStart, impulseEnd);
         if (impulseRange <= 0)
         {
-            LogBal($"[BAL] Bar={bar}: invalid impulse range");
+            if (bar != _lastLoggedBar) LogBal($"[BAL] Bar={bar}: invalid impulse range");
+            _lastLoggedBar = bar;
             return;
         }
 
@@ -149,7 +154,8 @@ public class FabioMeanReversion : Indicator
         decimal ratio = compRange / impulseRange;
         if (compRange <= 0 || ratio > CompressionRangeRatio)
         {
-            LogBal($"[BAL] Bar={bar}: ratio too high {ratio:P2} (max {CompressionRangeRatio:P2}) compStart={compStart}");
+            if (bar != _lastLoggedBar) LogBal($"[BAL] Bar={bar}: ratio too high {ratio:P2} (max {CompressionRangeRatio:P2}) compStart={compStart}");
+            _lastLoggedBar = bar;
             return;
         }
 
@@ -223,11 +229,11 @@ public class FabioMeanReversion : Indicator
 
     private int FindLastImpulse(int currentBar)
     {
-        decimal bestScore = 0;
-        int best = -1;
         int start = Math.Max(1, currentBar - CompressionLookback + 1);
 
-        for (int i = currentBar - MinCompressionBars; i >= start; i--)
+        // Find the MOST RECENT impulse (latest bar with good score), not the best in window.
+        // This prevents sticking with an old impulse from the start of a big move.
+        for (int i = currentBar - 1; i >= start; i--)
         {
             var c = GetCandle(i);
             var prev = GetCandle(i - 1);
@@ -247,13 +253,12 @@ public class FabioMeanReversion : Indicator
             if (Math.Abs(c.Delta) > 0)
                 score += 0.05m;
 
-            if (score > bestScore)
+            if (score >= ImpulseMinScore)
             {
-                bestScore = score;
-                best = i;
+                return i;  // most recent good impulse
             }
         }
-        return bestScore >= ImpulseMinScore ? best : -1;
+        return -1;
     }
 
     private int FindImpulseStart(int impulseEnd)
