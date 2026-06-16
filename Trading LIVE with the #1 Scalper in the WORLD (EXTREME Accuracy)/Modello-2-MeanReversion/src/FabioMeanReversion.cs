@@ -49,6 +49,7 @@ public class FabioMeanReversion : Indicator
     #region === State ===
 
     private decimal EffectiveTickSize => InstrumentInfo?.TickSize > 0 ? InstrumentInfo.TickSize : 0.25m;
+    private int _lastBalanceStart = -1;
 
     #endregion
 
@@ -85,38 +86,35 @@ public class FabioMeanReversion : Indicator
     {
         _compressionMarker[bar] = 0;
 
-        bool isLiveBar = (bar == CurrentBar - 1);
-
-        if (isLiveBar)
-        {
-            // Su barra live puliamo una finestra di paint/marker recente.
-            // Poi ridisegniamo SOLO la zona attiva corrente.
-            // Usiamo null (non Transparent) per non nascondere le candele.
-            int clearFrom = Math.Max(0, bar - CompressionLookback);
-            for (int i = clearFrom; i <= bar; i++)
-            {
-                _paintBars[i] = null;
-                _compressionMarker[i] = 0;
-            }
-        }
-
         // Cerca zona di balance che arriva fino a questa barra
         int impulseEnd = FindLastImpulse(bar);
         if (impulseEnd < 0)
+        {
+            System.Diagnostics.Debug.WriteLine($"[BAL] Bar={bar}: no impulse found in lookback");
             return;
+        }
 
         int compStart = FindCompressionStart(bar, impulseEnd);
         if (compStart < 0)
+        {
+            System.Diagnostics.Debug.WriteLine($"[BAL] Bar={bar}: no compression start after impulse {impulseEnd}");
             return;
+        }
 
         int compBars = bar - compStart + 1;
         if (compBars < MinCompressionBars)
+        {
+            System.Diagnostics.Debug.WriteLine($"[BAL] Bar={bar}: compression too short ({compBars} < {MinCompressionBars}) start={compStart}");
             return;
+        }
 
         int impulseStart = FindImpulseStart(impulseEnd);
         decimal impulseRange = CalculateRange(impulseStart, impulseEnd);
         if (impulseRange <= 0)
+        {
+            System.Diagnostics.Debug.WriteLine($"[BAL] Bar={bar}: invalid impulse range");
             return;
+        }
 
         decimal compHigh = decimal.MinValue, compLow = decimal.MaxValue;
         for (int i = compStart; i <= bar; i++)
@@ -126,18 +124,35 @@ public class FabioMeanReversion : Indicator
             if (c.Low < compLow) compLow = c.Low;
         }
         decimal compRange = compHigh - compLow;
-        if (compRange <= 0 || compRange / impulseRange > CompressionRangeRatio)
+        decimal ratio = compRange / impulseRange;
+        if (compRange <= 0 || ratio > CompressionRangeRatio)
+        {
+            System.Diagnostics.Debug.WriteLine($"[BAL] Bar={bar}: ratio too high {ratio:P2} (max {CompressionRangeRatio:P2}) compStart={compStart}");
             return;
+        }
 
-        // Evidenzia SOLO la zona di balance con paintbars + marker
-        // (barre fuori da questa zona non vengono toccate → candele normali visibili)
+        // Valid zone! Highlight the ENTIRE zone
+        System.Diagnostics.Debug.WriteLine($"[BAL] *** BALANCE ZONE DETECTED *** Bar={bar} compStart={compStart} compBars={compBars} ratio={ratio:P2} impulseEnd={impulseEnd}");
+
+        // If new zone started, unpaint the previous one (so only current active zone is highlighted)
+        if (_lastBalanceStart >= 0 && _lastBalanceStart != compStart)
+        {
+            for (int i = _lastBalanceStart; i < compStart; i++)
+            {
+                _paintBars[i] = null;
+            }
+        }
+
+        // Paint the WHOLE zone (not just start bar)
         for (int i = compStart; i <= bar; i++)
         {
-            _paintBars[i] = System.Windows.Media.Colors.Gold;  // zona di balance
+            _paintBars[i] = System.Windows.Media.Colors.Gold;  // entire balance zone highlighted
         }
 
         var sc = GetCandle(compStart);
         _compressionMarker[compStart] = sc.Low - (EffectiveTickSize * 3);
+
+        _lastBalanceStart = compStart;
     }
 
     #endregion
