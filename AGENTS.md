@@ -7,3 +7,4 @@ Spec: `Modello-2-MeanReversion/FabioMeanReversion.md`.
 **Prossimo:** Step 0 — sessione London.
 Build: `Modello-*/src/deploy.bat`.
 Fonte: transcript in `Trading LIVE with the #1 Scalper in the WORLD (EXTREME Accuracy)/`.
+Documentazione API ATAS: `docs`.

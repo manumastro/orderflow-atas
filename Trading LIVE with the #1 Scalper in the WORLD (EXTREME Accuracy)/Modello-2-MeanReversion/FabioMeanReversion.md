@@ -503,8 +503,8 @@ POC:     21280.50 | VAH: 21295 | VAL: 21265
 
 | # | Step | Stato codice |
 |---|------|--------------|
-| 1 | **0** — London session (`TradingSessionDescriptions`) | ✅ fatto |
-| 2 | **1** — compressione dinamica + profile + stati balance | da fare |
+| 1 | **0** — London session (`TradingSessionDescriptions`) | ✅ fatto (time-based configurable + IsNewSession fallback ready) |
+| 2 | **1** — compressione dinamica + profile + stati balance | riparato (zone visibile con linee spanning + paint zone + daily fallback + marker) |
 | 3 | **2–3** — breakout / fakeout | da fare |
 | 4 | **4** — trapped side | da fare |
 | 5 | **5** — trigger | da fare |
