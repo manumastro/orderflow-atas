@@ -11,11 +11,10 @@
 // Logica base: dopo un impulse, zona dove il range resta compresso per abbastanza barre.
 // 
 // LOG per debug (real-time mirror):
-//   Esegui watch-balance-log.ps1 (da questa cartella).
-//   Crea una copia aggiornata in logs\FabioBalanceZone.log dentro il progetto.
-//   Poi apri quel file normalmente (VS Code, Notepad++, PowerShell tail, ecc).
-//   Il watcher usa FileSystemWatcher (notifiche OS, bassissimo impatto).
-// Cerca nel log le righe con "*** BALANCE ZONE DETECTED ***" o i motivi di scarto.
+//   Il modo piu semplice: doppio clic su "avvia-watcher.bat" (nella cartella Modello-2-MeanReversion).
+//   Crea/aggiorna automaticamente: logs\FabioBalanceZone.log
+//   Puoi tenerlo aperto con Notepad++ o VS Code mentre fai trading.
+// Cerca nel log le righe con "*** BALANCE ZONE DETECTED ***".
 // ============================================================================
 
 using System.ComponentModel;

@@ -1,14 +1,26 @@
 # watch-balance-log.ps1
 # Real-time mirror of the ATAS balance zone log into this project folder.
 #
-# Usage:
-#   1. Run this script (double-click or from PowerShell).
-#   2. It will create a "logs" folder here if missing.
-#   3. It will keep a local copy "logs\FabioBalanceZone.log" updated in real time.
-#   4. Press Ctrl+C to stop watching.
+# === COME ESEGUIRLO (il modo PIU' SEMPLICE) ===
+# 1. Vai nella cartella Modello-2-MeanReversion
+# 2. Fai doppio clic su "avvia-watcher.bat"
+#    (si aprirà PowerShell automaticamente con i permessi giusti)
 #
-# Performance: negligible. The indicator logs only on zone events (not every bar).
-# FileSystemWatcher uses OS notifications (no polling).
+# In alternativa (se preferisci PowerShell manuale):
+# - Tasto destro in uno spazio vuoto della cartella → "Apri finestra PowerShell qui"
+# - Digita:   .\watch-balance-log.ps1
+#
+# Se ti dice che non può eseguire script, esegui prima:
+#   Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+#
+# Per fermare: premi Ctrl+C dentro la finestra PowerShell
+#              (oppure chiudi semplicemente la finestra)
+#
+# Il log in tempo reale sarà visibile in:
+#   logs\FabioBalanceZone.log   (dentro questa cartella)
+#
+# Puoi tenerlo aperto con Notepad++ / VS Code mentre fai trading.
+# ============================================
 
 $sourceDir  = "$env:APPDATA\ATAS\Logs"
 $sourceFile = Join-Path $sourceDir "FabioBalanceZone.log"
