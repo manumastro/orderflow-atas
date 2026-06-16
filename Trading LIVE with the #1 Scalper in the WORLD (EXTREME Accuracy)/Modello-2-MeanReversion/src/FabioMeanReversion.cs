@@ -1,24 +1,27 @@
 // ============================================================================
 // FabioMeanReversion — Balance/Consolidation Zones (Historical Rectangles)
 // ============================================================================
-// Simple detection of past consolidation/balance zones (after impulse legs with contained range).
-// No sessions, no current-only logic, no profile values/lines.
-// 
-// Visuals: semi-transparent cyan rectangles (boxes) for EVERY historical zone found,
-// spanning the full bar range and actual high/low of the consolidation.
-// Zones are drawn for the past, independent of live price.
-// 
-// Scan is FULL HISTORY (dynamic from start of available data, no fixed lookback param).
-// Detection based on transcript: recent impulse + subsequent compression (small range).
-// 
-// LOG per debug: use tail-balance-log.bat (tails original ATAS log).
-// Look for "*** BALANCE ZONE DETECTED ***" and rectangle adds.
+// Semplice rilevamento di zone di consolidamento/balance PASSATE dopo un leg
+// espansivo. Solo rettangoli semi-trasparenti cyan. Niente sessioni, niente
+// paintbars, niente valori di profile/POC/VAH/VAL.
+//
+// Filosofia (dal transcript di Fabio Valentino):
+//   - impulso direzionale espansivo
+//   - mercato smette di fare nuovi massimi/minimi → area compressa (balance)
+//   - le zone sono strutturali: stesse strutture che si vedono su D1/M5/M1.
+//   - niente parametri fissi esposti: la detection è relativa alla volatilità
+//     locale e alla price action recente (full history).
+//
+// Log ultra-dettagliato per debug (tutta la history, un file al giorno):
+//   %APPDATA%\ATAS\Logs\FabioBalanceZone_yyyy-MM-dd.log
+// Interrogare in tempo reale con Modello-2-MeanReversion\tail-balance-log.bat
 // ============================================================================
 
+using System;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
-using System.Windows.Media;
+using System.Text.RegularExpressions;
 using ATAS.Indicators;
 using ATAS.Indicators.Drawing;
 
@@ -27,41 +30,54 @@ namespace FabioMeanReversion;
 [DisplayName("Fabio Mean Reversion")]
 public class FabioMeanReversion : Indicator
 {
-    #region === Parameters ===
+    #region === Parametri interni (non esposti all'utente) ===
 
-    // No fixed parameters exposed for detection (as per Fabio's approach in the transcript).
-    // Everything is dynamic: full history scan from start of data, relative impulse/compression
-    // based on recent price action (no hardcoded scores/ratios/bars that Fabio "doesn't think with").
-    // Tune not needed; the logic finds visible compressions after impulses.
+    // Tick size per default NQ/ES; usato solo per evitare divisioni per zero.
+    private decimal EffectiveTickSize => 0.25m;
 
-    #endregion
-
-    #region === DataSeries ===
-
-    // Using Rectangles collection for boxes instead of paintbars
+    // Durata minima visualmente significativa per una zona di balance.
+    // Non è un parametro utente: è una soglia di "visibilità" (es. 45 minuti).
+    // Il numero di barre si adatta al timeframe automaticamente.
+    private const int MinDurationMinutes = 45;
 
     #endregion
 
-    #region === State ===
+    #region === Stato ===
 
-    private decimal EffectiveTickSize => 0.25m; // default for NQ/ES; dynamic access had name conflict with ATAS type InstrumentInfo
     private int _lastLoggedBar = -1;
+    private int _lastProcessedBar = -1;
+    private int _minZoneBars = 5;
 
-    // For drawing closed past zones as rectangles (independent of current live state)
+    // Impulso (leg) che ha generato la zona aperta corrente
+    private int _lastImpulseEnd = -1;
+    private int _lastImpulseStart = -1;
+    private decimal _lastImpulseAvgRange;
+
+    // Zona aperta corrente (verrà disegnata quando si chiude)
     private int _openZoneStart = -1;
     private decimal _openZoneHigh = decimal.MinValue;
     private decimal _openZoneLow = decimal.MaxValue;
 
-    private static readonly string LogPath = System.IO.Path.Combine(
-        System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData),
-        "ATAS", "Logs", "FabioBalanceZone.log");
+    // Confini della zona: fissati all'apertura, permettono piccole espansioni
+    // del 10% ma chiudono la zona su un vero breakout.
+    private decimal _zoneBoundaryHigh = decimal.MinValue;
+    private decimal _zoneBoundaryLow = decimal.MaxValue;
+
+    // Un file di log al giorno: tutti i dati sono conservati e facilmente
+    // recuperabili con nome FabioBalanceZone_yyyy-MM-dd.log
+    private static string LogDirectory => Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+        "ATAS", "Logs");
+
+    private static string LogFilePath => Path.Combine(LogDirectory,
+        $"FabioBalanceZone_{DateTime.Now:yyyy-MM-dd}.log");
 
     private static void LogBal(string msg)
     {
         try
         {
-            System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(LogPath));
-            System.IO.File.AppendAllText(LogPath, $"[{System.DateTime.Now:HH:mm:ss}] {msg}\r\n");
+            Directory.CreateDirectory(LogDirectory);
+            File.AppendAllText(LogFilePath, $"[{DateTime.Now:HH:mm:ss}] {msg}\r\n");
         }
         catch { }
         System.Diagnostics.Debug.WriteLine(msg);
@@ -69,314 +85,515 @@ public class FabioMeanReversion : Indicator
 
     #endregion
 
-    #region === Constructor ===
+    #region === Costruttore ===
 
     public FabioMeanReversion() : base(true)
     {
         DenyToChangePanel = true;
         DataSeries[0].IsHidden = true;
 
-        LogBal("=== FabioMeanReversion BALANCE ZONE ONLY (rectangles for historical consolidations) started ===");
+        LogBal("=== FabioMeanReversion BALANCE ZONE ONLY started ===");
     }
 
     #endregion
 
-    #region === Core Calculation (SOLO zona di balance) ===
+    #region === Calcolo principale ===
 
     protected override void OnCalculate(int bar, decimal value)
     {
-        // Clear previous drawings at start of recalc (bar 0) so we redraw all historical past zones cleanly.
-        // This way zones are independent of "current" live state.
         if (bar == 0)
         {
             Rectangles.Clear();
-            _openZoneStart = -1;
-            _openZoneHigh = decimal.MinValue;
-            _openZoneLow = decimal.MaxValue;
-            _lastLoggedBar = -1;
+            ResetState();
+
+            if (CurrentBar > 0)
+            {
+                try
+                {
+                    var first = GetCandle(0);
+                    var last = GetCandle(CurrentBar - 1);
+                    _minZoneBars = ComputeMinZoneBars();
+
+                    LogBal($"=== RECALC START bars={CurrentBar} tf={ChartInfo?.TimeFrame ?? "?"} " +
+                           $"minZoneBars={_minZoneBars} first={first.Time:yyyy-MM-dd HH:mm} " +
+                           $"last={last.Time:yyyy-MM-dd HH:mm} file={Path.GetFileName(LogFilePath)} ===");
+                }
+                catch
+                {
+                    _minZoneBars = ComputeMinZoneBars();
+                    LogBal($"=== RECALC START bars={CurrentBar} tf={ChartInfo?.TimeFrame ?? "?"} " +
+                           $"minZoneBars={_minZoneBars} file={Path.GetFileName(LogFilePath)} ===");
+                }
+            }
+            else
+            {
+                LogBal($"=== RECALC START no bars file={Path.GetFileName(LogFilePath)} ===");
+            }
         }
 
-        var c = GetCandle(bar);
-        decimal rng = c.High - c.Low;
-        decimal bdy = Math.Abs(c.Close - c.Open);
-        // Verbose per-bar log for debugging (M5 or any TF) with time and prices, so we can reconstruct timeline from start of day.
-        // User can filter the log file for specific date/time like 2026-06-15 10:45 etc.
-        LogBal($"[CANDLE] bar={bar} time={c.LastTime:yyyy-MM-dd HH:mm} O={c.Open} H={c.High} L={c.Low} C={c.Close} range={rng} body={bdy} delta={c.Delta}");
+        if (bar < 0)
+            return;
 
-        // Cerca zona di balance che arriva fino a questa barra (funziona per storici e live)
+        // Log dettagliato OHLC di questa barra (tutta la history, una volta per barra)
+        LogBarDetails(bar);
+
+        if (bar < _minZoneBars)
+            return;
+
+        // Evita di processare più volte la stessa barra in tempo reale.
+        if (bar == _lastProcessedBar)
+            return;
+
         int impulseEnd = FindLastImpulse(bar);
-        if (impulseEnd < 0)
+        if (impulseEnd < 1)
         {
-            CloseOpenZoneIfAny(bar); // close any open when no impulse
-            if (bar != _lastLoggedBar) LogBal($"[BAL] Bar={bar} time={c.LastTime:HH:mm}: no impulse found in lookback");
-            _lastLoggedBar = bar;
-            return;
-        }
-
-        int compStart = FindCompressionStart(bar, impulseEnd);
-        if (compStart < 0)
-        {
-            CloseOpenZoneIfAny(bar);
-            if (bar != _lastLoggedBar) LogBal($"[BAL] Bar={bar} time={c.LastTime:HH:mm}: no compression start after impulse {impulseEnd}");
-            _lastLoggedBar = bar;
-            return;
-        }
-
-        int compBars = bar - compStart + 1;
-        const int minCompBars = 5;  // dynamic/simple, small to catch visible compressions (Fabio-style, no fixed param)
-        if (compBars < minCompBars)
-        {
-            CloseOpenZoneIfAny(bar);
-            if (bar != _lastLoggedBar) LogBal($"[BAL] Bar={bar} time={c.LastTime:HH:mm}: compression too short ({compBars} < {minCompBars}) start={compStart}");
-            _lastLoggedBar = bar;
+            CloseOpenZoneIfAny(bar, "no significant impulse");
+            _lastProcessedBar = bar;
             return;
         }
 
         int impulseStart = FindImpulseStart(impulseEnd);
-        decimal impulseRange = CalculateRange(impulseStart, impulseEnd);
-        if (impulseRange <= 0)
-        {
-            CloseOpenZoneIfAny(bar);
-            if (bar != _lastLoggedBar) LogBal($"[BAL] Bar={bar} time={c.LastTime:HH:mm}: invalid impulse range");
-            _lastLoggedBar = bar;
-            return;
-        }
+        decimal legRange = CalculateRange(impulseStart, impulseEnd);
+        decimal legAvgRange = RobustAvgRange(impulseStart, impulseEnd);
 
-        decimal compHigh = decimal.MinValue, compLow = decimal.MaxValue;
-        for (int i = compStart; i <= bar; i++)
+        // Se abbiamo già una zona aperta, ignora impulsi interni che NON rompono
+        // i lati della zona (failed breakout: Fabio dice "l'era di consolidamento
+        // è ancora la stessa"). Questo preserva la grande zona 10:45-15:25
+        // anche se ha qualche barra espansiva interna.
+        if (_openZoneStart >= 0 && impulseEnd > _openZoneStart)
         {
-            var cc = GetCandle(i);
-            if (cc.High > compHigh) compHigh = cc.High;
-            if (cc.Low < compLow) compLow = cc.Low;
-        }
-        decimal compRange = compHigh - compLow;
-        const decimal maxRatio = 0.6m;  // dynamic relative: compression range < 60% of impulse (no user param, per transcript)
-        decimal ratio = compRange / impulseRange;
-        if (compRange <= 0 || ratio > maxRatio)
-        {
-            CloseOpenZoneIfAny(bar);
-            if (bar != _lastLoggedBar) LogBal($"[BAL] Bar={bar} time={c.LastTime:HH:mm}: ratio too high {ratio:P2} (max {maxRatio:P2}) compStart={compStart} impulseEnd={impulseEnd}");
-            _lastLoggedBar = bar;
-            return;
-        }
+            var impCandle = GetCandle(impulseEnd);
+            decimal impRange = impCandle.High - impCandle.Low;
+            bool breaksHigh = impCandle.Close > _zoneBoundaryHigh && impRange > _lastImpulseAvgRange * 1.4m;
+            bool breaksLow = impCandle.Close < _zoneBoundaryLow && impRange > _lastImpulseAvgRange * 1.4m;
 
-        // Valid compression zone at this bar's snapshot.
-        // Track as open (for historical scan this will close at the right past point when later bars "break" it)
-        LogBal($"[BAL] *** BALANCE ZONE DETECTED *** Bar={bar} time={c.LastTime:HH:mm} compStart={compStart} compBars={compBars} ratio={ratio:P2} impulseEnd={impulseEnd} zoneHigh={compHigh} zoneLow={compLow}");
+            if (!breaksHigh && !breaksLow)
+            {
+                // Mantieni l'ancoraggio precedente e continua a estendere la zona.
+                impulseEnd = _lastImpulseEnd;
+                impulseStart = _lastImpulseStart;
+                legRange = CalculateRange(impulseStart, impulseEnd);
+                legAvgRange = _lastImpulseAvgRange;
+            }
+            else
+            {
+                // Nuovo impulso che rompe la zona attuale: chiudi la zona attuale.
+                int closeAt = Math.Min(bar - 1, impulseStart - 1);
+                if (closeAt >= _openZoneStart)
+                {
+                    AddZoneRectangle(_openZoneStart, closeAt, _openZoneLow, _openZoneHigh, "nuovo impulso rompe zona");
+                    ResetOpenZone();
+                }
+                else
+                {
+                    ResetOpenZone();
+                }
 
-        if (_openZoneStart < 0)
-        {
-            // start new open zone
-            _openZoneStart = compStart;
-            _openZoneHigh = compHigh;
-            _openZoneLow = compLow;
-        }
-        else if (compStart != _openZoneStart)
-        {
-            // new zone starting (replot), close previous as past zone (rectangle)
-            AddZoneRectangle(_openZoneStart, bar - 1, _openZoneLow, _openZoneHigh);
-            _openZoneStart = compStart;
-            _openZoneHigh = compHigh;
-            _openZoneLow = compLow;
+                _lastImpulseEnd = impulseEnd;
+                _lastImpulseStart = impulseStart;
+                _lastImpulseAvgRange = legAvgRange;
+            }
         }
         else
         {
-            // extend current open zone
-            _openZoneHigh = Math.Max(_openZoneHigh, compHigh);
-            _openZoneLow = Math.Min(_openZoneLow, compLow);
+            _lastImpulseEnd = impulseEnd;
+            _lastImpulseStart = impulseStart;
+            _lastImpulseAvgRange = legAvgRange;
         }
-    }
 
-    private void CloseOpenZoneIfAny(int currentBar)
-    {
+        int compStart = impulseEnd + 1;
+        if (compStart >= bar)
+        {
+            CloseOpenZoneIfAny(bar, "nessuna barra dopo l'impulso");
+            _lastProcessedBar = bar;
+            return;
+        }
+
+        // Se c'è una zona aperta e il prezzo la rompe con follow-through, chiudi l'era.
         if (_openZoneStart >= 0)
         {
-            AddZoneRectangle(_openZoneStart, currentBar, _openZoneLow, _openZoneHigh);
-            _openZoneStart = -1;
-            _openZoneHigh = decimal.MinValue;
-            _openZoneLow = decimal.MaxValue;
+            var cur = GetCandle(bar);
+            decimal curRange = cur.High - cur.Low;
+            decimal zoneRange = _zoneBoundaryHigh - _zoneBoundaryLow;
+            decimal buffer = Math.Max(zoneRange * 0.15m, legAvgRange * 0.5m);
+            bool breakUp = cur.Close > _zoneBoundaryHigh + buffer && curRange >= legAvgRange * 0.9m;
+            bool breakDown = cur.Close < _zoneBoundaryLow - buffer && curRange >= legAvgRange * 0.9m;
+
+            if (breakUp || breakDown)
+            {
+                int closeAt = bar - 1;
+                if (closeAt >= _openZoneStart)
+                {
+                    AddZoneRectangle(_openZoneStart, closeAt, _openZoneLow, _openZoneHigh, "breakout chiude era");
+                    ResetOpenZone();
+                }
+                else
+                {
+                    ResetOpenZone();
+                }
+
+                // Tratta la barra di breakout come inizio del nuovo leg
+                _lastImpulseEnd = bar;
+                _lastImpulseStart = bar;
+                _lastImpulseAvgRange = curRange;
+
+                _lastProcessedBar = bar;
+                return;
+            }
         }
-    }
 
-    private void AddZoneRectangle(int firstBar, int secondBar, decimal lowPrice, decimal highPrice)
-    {
-        if (firstBar >= secondBar || firstBar < 0) return;
+        int compBars = bar - compStart + 1;
+        GetHighLow(compStart, bar, out decimal compHigh, out decimal compLow);
+        decimal compRange = compHigh - compLow;
+        decimal compAvgRange = RobustAvgRange(compStart, bar);
 
-        // Simple semi-transparent rectangle box for the consolidation zone (height = actual high/low of zone, width = bars)
-        System.Drawing.Pen outlinePen = new System.Drawing.Pen(System.Drawing.Color.DarkCyan, 1);
-        System.Drawing.SolidBrush fillBrush = new System.Drawing.SolidBrush(System.Drawing.Color.FromArgb(40, 0, 255, 255)); // light cyan, low opacity box
+        decimal rangeRatio = legRange > 0 ? compRange / legRange : 0;
+        decimal avgRatio = legAvgRange > 0 ? compAvgRange / legAvgRange : 0;
 
-        var rect = new DrawingRectangle(firstBar, lowPrice, secondBar, highPrice, outlinePen, fillBrush);
-        // Do not extend; fixed historical zone
-        rect.ExtendLeft = false;
-        rect.ExtendRight = false;
+        // Log numerico dei controlli su questa barra (tutta la history)
+        LogBal($"[BAL]   -> LEGA endBar={impulseEnd} startBar={impulseStart} " +
+               $"range={legRange:F2} avgRange={legAvgRange:F2} bars={impulseEnd - impulseStart + 1}");
+        LogBal($"[BAL]   -> COMP start={compStart} bars={compBars} compRange={compRange:F2} " +
+               $"compAvg={compAvgRange:F2} rangeRatio={rangeRatio:P0} avgRatio={avgRatio:P0}");
 
-        Rectangles.Add(rect);
+        bool minOk = compBars >= _minZoneBars;
+        bool avgOk = avgRatio <= 0.65m;            // candelle compresse vs media del leg (più stretto)
+        bool rangeOk = rangeRatio <= 2.0m;         // la zona può anche essere ampia, purché non in fuga
+
+        if (!minOk || !avgOk || !rangeOk)
+        {
+            string why;
+            if (!minOk)
+                why = $"bars {compBars} < {_minZoneBars}";
+            else if (!avgOk)
+                why = $"avg ratio {avgRatio:P0} > 65%";
+            else
+                why = $"range ratio {rangeRatio:P0} > 200%";
+
+            // Se la zona fugge oltre il 250% del leg, chiudila definitivamente;
+            // altrimenti resta in attesa di un vero breakout.
+            bool runaway = !rangeOk && rangeRatio > 2.5m;
+            if (runaway || (!avgOk && avgRatio > 1.0m))
+                CloseOpenZoneIfAny(bar, $"zona terminata ({why})");
+            else
+                LogBal($"[BAL] Bar={bar}: comp non ancora matura ({why}) start={compStart}");
+
+            _lastProcessedBar = bar;
+            return;
+        }
+
+        // La zona è valida. Aggiorna/estendi quella aperta.
+        if (_openZoneStart < 0 || compStart != _openZoneStart)
+        {
+            if (_openZoneStart >= 0)
+            {
+                // Nuovo inizio di zona (replot su nuovo dealing range)
+                AddZoneRectangle(_openZoneStart, bar - 1, _openZoneLow, _openZoneHigh, "replot su nuovo dealing range");
+            }
+
+            _openZoneStart = compStart;
+            _openZoneHigh = compHigh;
+            _openZoneLow = compLow;
+            _zoneBoundaryHigh = compHigh;
+            _zoneBoundaryLow = compLow;
+
+            LogBal($"[BAL] *** ZONE OPEN *** bar={bar} start={compStart} end={bar} " +
+                   $"high={compHigh:F2} low={compLow:F2} bars={compBars}");
+        }
+        else
+        {
+            _openZoneHigh = Math.Max(_openZoneHigh, compHigh);
+            _openZoneLow = Math.Min(_openZoneLow, compLow);
+            // I boundary restano fissi all'apertura: così il box non "insegue"
+            // il prezzo per giorni, ma una chiusura vera li rompe nettamente.
+
+            LogBal($"[BAL] *** ZONE EXTEND *** bar={bar} start={compStart} end={bar} " +
+                   $"high={_openZoneHigh:F2} low={_openZoneLow:F2} bars={compBars}");
+        }
+
+        _lastProcessedBar = bar;
     }
 
     protected override void OnFinishRecalculate()
     {
-        // At the end of historical data, close any still-open zone so its rectangle is added (past zone).
-        if (_openZoneStart >= 0)
+        // Alla fine dei dati storici chiude l'ultima zona aperta (rendendola una
+        // zona passata disegnata come box).
+        if (_openZoneStart >= 0 && CurrentBar - 1 >= _openZoneStart)
         {
-            AddZoneRectangle(_openZoneStart, CurrentBar - 1, _openZoneLow, _openZoneHigh);
-            _openZoneStart = -1;
-            _openZoneHigh = decimal.MinValue;
-            _openZoneLow = decimal.MaxValue;
+            AddZoneRectangle(_openZoneStart, CurrentBar - 1, _openZoneLow, _openZoneHigh, "fine dati storici");
         }
+
+        ResetOpenZone();
+        _lastProcessedBar = -1;
     }
 
     #endregion
 
-    #region === Helper per zona di balance (semplificati) ===
+    #region === Helpers detection ===
 
-    private int FindCompressionStart(int currentBar, int impulseEnd)
-    {
-        int candidate = impulseEnd + 1;
-        if (candidate >= currentBar)
-            return -1;
-
-        // Compute range from after impulse to current
-        decimal fullHigh = decimal.MinValue;
-        decimal fullLow = decimal.MaxValue;
-        for (int i = candidate; i <= currentBar; i++)
-        {
-            var c = GetCandle(i);
-            if (c.High > fullHigh) fullHigh = c.High;
-            if (c.Low < fullLow) fullLow = c.Low;
-        }
-
-        // To support replotting on "new dealing range" (local recent consolidation):
-        // search back a bit for a tighter recent window start. If found significantly tighter than full post-impulse,
-        // use it so we don't stay stuck with an old wide range from after the impulse.
-        decimal recentHigh = decimal.MinValue;
-        decimal recentLow = decimal.MaxValue;
-        int recentStart = currentBar;
-
-        int look = Math.Min(50, currentBar - impulseEnd);
-        for (int s = currentBar; s >= Math.Max(candidate, currentBar - look); s--)
-        {
-            var c = GetCandle(s);
-            if (c.High > recentHigh) recentHigh = c.High;
-            if (c.Low < recentLow) recentLow = c.Low;
-            recentStart = s;
-        }
-
-        if (recentHigh - recentLow < (fullHigh - fullLow) * 0.65m && (recentHigh - recentLow) > 0)
-        {
-            candidate = recentStart;
-        }
-
-        if (candidate >= currentBar)
-            return -1;
-
-        decimal high = decimal.MinValue;
-        decimal low = decimal.MaxValue;
-        for (int i = candidate; i <= currentBar; i++)
-        {
-            var c = GetCandle(i);
-            if (c.High > high) high = c.High;
-            if (c.Low < low) low = c.Low;
-        }
-
-        if (HasDirectionalExpansion(candidate, currentBar, high, low))
-            return -1;
-
-        return candidate;
-    }
-
-    private bool HasDirectionalExpansion(int startBar, int endBar, decimal rangeHigh, decimal rangeLow)
-    {
-        if (endBar - startBar + 1 < 5)
-            return false;
-
-        int closesAbove = 0;
-        int closesBelow = 0;
-        decimal band = Math.Max(EffectiveTickSize * 2, (rangeHigh - rangeLow) * 0.15m);
-
-        int look = Math.Min(6, endBar - startBar + 1);
-        for (int i = Math.Max(startBar, endBar - look + 1); i <= endBar; i++)
-        {
-            var c = GetCandle(i);
-            if (c.Close >= rangeHigh - band) closesAbove++;
-            if (c.Close <= rangeLow + band) closesBelow++;
-        }
-        return closesAbove >= 5 || closesBelow >= 5;
-    }
-
+    // Ultimo impulso/leg espansivo rilevante prima della barra corrente.
+    // "Rilevante" = range robusto rispetto alla volatilità locale degli ultimi ~50 barre
+    // e corpo direzionale decente. Non ci si ferma al primo barra 1.5x la precedente.
     private int FindLastImpulse(int currentBar)
     {
-        if (currentBar < 2)
+        if (currentBar < 5)
             return -1;
 
-        // Dynamic from beginning of available data (no fixed lookback)
-        int start = 0;
+        int lookbackStart = Math.Max(1, currentBar - Math.Min(currentBar, 50));
+        decimal baseline = RobustAvgRange(lookbackStart, currentBar - 1);
+        if (baseline < EffectiveTickSize)
+            baseline = EffectiveTickSize;
 
-        // Dynamic impulse: most recent bar with significantly larger range than previous
-        // (relative, no fixed score threshold - Fabio doesn't use fixed numbers).
-        // Looks for "impulse leg" as per transcript: expansion after previous.
-        for (int i = currentBar - 1; i >= Math.Max(start, 1); i--)
+        int maxStart = Math.Max(1, currentBar - Math.Min(currentBar, 30));
+        decimal maxRecent = MaxRange(maxStart, currentBar - 1);
+        decimal threshold = Math.Max(baseline * 2.5m, maxRecent * 0.65m);
+
+        for (int i = currentBar - 1; i >= 1; i--)
         {
             var c = GetCandle(i);
-            var prev = GetCandle(i - 1);
-
             decimal range = c.High - c.Low;
-            if (range <= 0) continue;
+            if (range <= EffectiveTickSize)
+                continue;
 
-            decimal prevRange = Math.Max(prev.High - prev.Low, EffectiveTickSize);
             decimal body = Math.Abs(c.Close - c.Open);
-            decimal bodyRatio = body / range;
-            decimal rangeExp = range / prevRange;
+            bool strongRange = range >= threshold;
+            bool directionalBody = range > 0 && body / range >= 0.50m;
 
-            // Dynamic: recent bar has range at least 1.5x previous AND decent body ( >50% of its range)
-            // This captures "big trade" / impulse without hardcoded score.
-            if (rangeExp >= 1.5m && bodyRatio >= 0.5m)
-            {
-                return i;  // most recent impulse leg
-            }
+            if (strongRange && directionalBody)
+                return i;
         }
+
         return -1;
     }
 
+    // Trova l'inizio del leg che termina in impulseEnd, estendendosi a ritroso
+    // tra barre consecutive che contribuiscono alla stessa direzione.
     private int FindImpulseStart(int impulseEnd)
     {
-        if (impulseEnd <= 0) return 0;
+        if (impulseEnd <= 0)
+            return 0;
 
         var c = GetCandle(impulseEnd);
-        int direction = Math.Sign(c.Close - c.Open);
-        if (direction == 0)
-            direction = (c.Close >= c.Low + (c.High - c.Low) / 2m) ? 1 : -1;
+        int dir = Math.Sign(c.Close - c.Open);
+        if (dir == 0)
+            dir = c.Close >= c.Low + (c.High - c.Low) / 2m ? 1 : -1;
 
         int start = impulseEnd;
-        int minBar = Math.Max(1, impulseEnd - 8);
+        int maxLookback = Math.Max(0, impulseEnd - 12);
 
-        for (int i = impulseEnd - 1; i >= minBar; i--)
+        for (int i = impulseEnd - 1; i >= maxLookback; i--)
         {
-            var candle = GetCandle(i);
-            decimal r = candle.High - candle.Low;
-            if (r <= 0) break;
+            var ic = GetCandle(i);
+            decimal r = ic.High - ic.Low;
+            if (r <= EffectiveTickSize)
+                break;
 
-            int d = Math.Sign(candle.Close - candle.Open);
-            if (d == direction || Math.Abs(candle.Close - candle.Open) >= r * 0.6m)
-            {
-                start = i; continue;
-            }
-            break;
+            int idir = Math.Sign(ic.Close - ic.Open);
+            decimal ibody = Math.Abs(ic.Close - ic.Open);
+            bool contributes = (idir == dir && ibody >= r * 0.35m) || ibody >= r * 0.6m;
+
+            if (contributes)
+                start = i;
+            else
+                break;
         }
+
         return start;
     }
 
+    // Range massimo del periodo
     private decimal CalculateRange(int start, int end)
     {
-        if (start > end) return 0;
-        decimal hi = decimal.MinValue, lo = decimal.MaxValue;
+        if (start > end)
+            return 0;
+
+        GetHighLow(start, end, out decimal hi, out decimal lo);
+        return hi - lo;
+    }
+
+    // Range massimo nel periodo (usato per filtrare impulsi veramente strutturali).
+    private decimal MaxRange(int start, int end)
+    {
+        if (start > end)
+            return 0;
+        decimal max = 0;
+        for (int i = start; i <= end; i++)
+        {
+            decimal r = GetCandle(i).High - GetCandle(i).Low;
+            if (r > max) max = r;
+        }
+        return max;
+    }
+
+    // Media range robusta: esclude le 2 barre più ampie per non far saltare
+    // la media a causa di outlier (fakeout/spike) all'interno della compressione.
+    private decimal RobustAvgRange(int start, int end)
+    {
+        if (start > end)
+            return 0;
+
+        int n = end - start + 1;
+        if (n <= 2)
+        {
+            decimal sum = 0;
+            for (int i = start; i <= end; i++)
+                sum += GetCandle(i).High - GetCandle(i).Low;
+            return n == 0 ? 0 : sum / n;
+        }
+
+        decimal total = 0;
+        decimal max1 = 0;
+        decimal max2 = 0;
+
+        for (int i = start; i <= end; i++)
+        {
+            decimal r = GetCandle(i).High - GetCandle(i).Low;
+            total += r;
+
+            if (r > max1)
+            {
+                max2 = max1;
+                max1 = r;
+            }
+            else if (r > max2)
+            {
+                max2 = r;
+            }
+        }
+
+        return (total - max1 - max2) / (n - 2);
+    }
+
+    private void GetHighLow(int start, int end, out decimal hi, out decimal lo)
+    {
+        hi = decimal.MinValue;
+        lo = decimal.MaxValue;
+
         for (int i = start; i <= end; i++)
         {
             var c = GetCandle(i);
             if (c.High > hi) hi = c.High;
             if (c.Low < lo) lo = c.Low;
         }
-        return (hi == decimal.MinValue || lo == decimal.MaxValue) ? 0 : hi - lo;
+
+        if (hi == decimal.MinValue) hi = 0;
+        if (lo == decimal.MaxValue) lo = 0;
+    }
+
+    #endregion
+
+    #region === Helpers grafici / stato ===
+
+    private int ComputeMinZoneBars()
+    {
+        int tfMinutes = ParseTimeFrameMinutes(ChartInfo?.TimeFrame);
+        int needed = (int)Math.Ceiling((decimal)MinDurationMinutes / tfMinutes);
+        return Math.Max(needed, 5);
+    }
+
+    private int ParseTimeFrameMinutes(string? tf)
+    {
+        if (string.IsNullOrWhiteSpace(tf))
+            return 5;
+
+        string s = tf.Trim().ToLowerInvariant();
+
+        if (s.Contains("day") || s.Contains("daily"))
+            return 1440;
+        if (s.Contains("week"))
+            return 10080;
+        if (s.Contains("hour") || s.Contains("hr") || s.Contains("h"))
+        {
+            var m = System.Text.RegularExpressions.Regex.Match(s, @"\d+(\.\d+)?");
+            if (m.Success && decimal.TryParse(m.Value, System.Globalization.NumberStyles.Any,
+                System.Globalization.CultureInfo.InvariantCulture, out decimal h))
+                return (int)Math.Max(1, h * 60);
+            return 60;
+        }
+
+        {
+            var m = System.Text.RegularExpressions.Regex.Match(s, @"\d+(\.\d+)?");
+            if (m.Success && decimal.TryParse(m.Value, System.Globalization.NumberStyles.Any,
+                System.Globalization.CultureInfo.InvariantCulture, out decimal min))
+                return (int)Math.Max(1, min);
+        }
+
+        return 5;
+    }
+
+    private void ResetState()
+    {
+        _lastLoggedBar = -1;
+        _lastProcessedBar = -1;
+        _lastImpulseEnd = -1;
+        _lastImpulseStart = -1;
+        _lastImpulseAvgRange = 0;
+        ResetOpenZone();
+    }
+
+    private void ResetOpenZone()
+    {
+        _openZoneStart = -1;
+        _openZoneHigh = decimal.MinValue;
+        _openZoneLow = decimal.MaxValue;
+        _zoneBoundaryHigh = decimal.MinValue;
+        _zoneBoundaryLow = decimal.MaxValue;
+    }
+
+    private void LogBarDetails(int bar)
+    {
+        if (bar == _lastLoggedBar)
+            return;
+
+        var c = GetCandle(bar);
+        decimal range = c.High - c.Low;
+        decimal body = Math.Abs(c.Close - c.Open);
+        string extra = c.Volume > 0 ? $" vol={c.Volume:F0}" : "";
+        if (c.Delta != 0)
+            extra += $" delta={c.Delta:F0}";
+
+        LogBal($"[BAL] BAR bar={bar} {c.Time:yyyy-MM-dd HH:mm} O={c.Open:F2} H={c.High:F2} " +
+               $"L={c.Low:F2} C={c.Close:F2} rng={range:F2} body={body:F2}" + extra);
+
+        _lastLoggedBar = bar;
+    }
+
+    private void CloseOpenZoneIfAny(int currentBar, string reason)
+    {
+        if (_openZoneStart < 0)
+            return;
+
+        int closeBar = currentBar - 1;
+        if (closeBar >= _openZoneStart)
+        {
+            AddZoneRectangle(_openZoneStart, closeBar, _openZoneLow, _openZoneHigh, reason);
+        }
+        else
+        {
+            LogBal($"[BAL]   -> open zone skipped (closeBar={closeBar} < start={_openZoneStart}) reason={reason}");
+        }
+
+        ResetOpenZone();
+    }
+
+    private void AddZoneRectangle(int firstBar, int secondBar, decimal lowPrice, decimal highPrice, string reason)
+    {
+        if (firstBar >= secondBar || firstBar < 0)
+            return;
+
+        LogBal($"[BAL] +++ RECT ADDED ({reason}) bars={firstBar}..{secondBar} " +
+               $"low={lowPrice:F2} high={highPrice:F2}");
+
+        // Non disporre Pen/Brush: DrawingRectangle può mantenerli in vita per il rendering del chart.
+        var outlinePen = new System.Drawing.Pen(System.Drawing.Color.DarkCyan, 1);
+        var fillBrush = new System.Drawing.SolidBrush(System.Drawing.Color.FromArgb(40, 0, 255, 255));
+
+        var rect = new DrawingRectangle(firstBar, lowPrice, secondBar, highPrice, outlinePen, fillBrush)
+        {
+            ExtendLeft = false,
+            ExtendRight = false
+        };
+        Rectangles.Add(rect);
     }
 
     #endregion

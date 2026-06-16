@@ -5,6 +5,15 @@ echo  Model 2: Mean Reversion (London Session)
 echo ================================================
 echo.
 
+echo [0/2] Cleaning old balance logs...
+if exist "%APPDATA%\ATAS\Logs\FabioBalanceZone*.log" (
+    del /Q "%APPDATA%\ATAS\Logs\FabioBalanceZone*.log" >nul 2>&1
+    echo       Old logs deleted.
+) else (
+    echo       No old logs found.
+)
+echo.
+
 echo [1/2] Building Release...
 dotnet build -c Release
 if %ERRORLEVEL% neq 0 (
