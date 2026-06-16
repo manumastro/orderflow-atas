@@ -23,10 +23,8 @@ if not exist "%APPDATA%\ATAS\Logs\FabioBalanceZone.log" (
 echo Avvio PowerShell per il tail...
 echo.
 
-:: Lancia una NUOVA finestra PowerShell pulita con il tail
-:: Usiamo start per aprire una finestra separata (piu' stabile)
-start "Tail Balance Log" powershell -NoExit -Command ^
-    "& { Get-Content -LiteralPath \"$env:APPDATA\ATAS\Logs\FabioBalanceZone.log\" -Wait -Tail 50 -Encoding UTF8 }"
+:: Lancia una NUOVA finestra PowerShell pulita con il tail (tutto su una riga)
+start "Tail Balance Log" powershell -NoExit -Command "& { Get-Content -LiteralPath \"$env:APPDATA\ATAS\Logs\FabioBalanceZone.log\" -Wait -Tail 50 -Encoding UTF8 }"
 
 echo Finestra PowerShell aperta. Chiudi questa se vuoi.
 timeout /t 3 >nul
