@@ -9,6 +9,9 @@
 //   - Marker (quadrato magenta) all'inizio della zona
 //
 // Logica base: dopo un impulse, zona dove il range resta compresso per abbastanza barre.
+// 
+// LOG per debug: %APPDATA%\ATAS\Logs\FabioBalanceZone.log
+// Cerca righe con "*** BALANCE ZONE DETECTED ***" o i motivi di rifiuto.
 // ============================================================================
 
 using System.ComponentModel;
