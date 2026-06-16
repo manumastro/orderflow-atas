@@ -51,6 +51,21 @@ public class FabioMeanReversion : Indicator
     private decimal EffectiveTickSize => InstrumentInfo?.TickSize > 0 ? InstrumentInfo.TickSize : 0.25m;
     private int _lastBalanceStart = -1;
 
+    private static readonly string LogPath = System.IO.Path.Combine(
+        System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData),
+        "ATAS", "Logs", "FabioBalanceZone.log");
+
+    private static void LogBal(string msg)
+    {
+        try
+        {
+            System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(LogPath));
+            System.IO.File.AppendAllText(LogPath, $"[{System.DateTime.Now:HH:mm:ss}] {msg}\r\n");
+        }
+        catch { }
+        System.Diagnostics.Debug.WriteLine(msg);
+    }
+
     #endregion
 
     #region === Constructor ===
@@ -75,7 +90,7 @@ public class FabioMeanReversion : Indicator
         };
         DataSeries.Add(_compressionMarker);
 
-        System.Diagnostics.Debug.WriteLine("=== FabioMeanReversion BALANCE ZONE ONLY (no profile values) started ===");
+        LogBal("=== FabioMeanReversion BALANCE ZONE ONLY started (check this log for detections) ===");
     }
 
     #endregion
@@ -90,21 +105,21 @@ public class FabioMeanReversion : Indicator
         int impulseEnd = FindLastImpulse(bar);
         if (impulseEnd < 0)
         {
-            System.Diagnostics.Debug.WriteLine($"[BAL] Bar={bar}: no impulse found in lookback");
+            LogBal($"[BAL] Bar={bar}: no impulse found in lookback");
             return;
         }
 
         int compStart = FindCompressionStart(bar, impulseEnd);
         if (compStart < 0)
         {
-            System.Diagnostics.Debug.WriteLine($"[BAL] Bar={bar}: no compression start after impulse {impulseEnd}");
+            LogBal($"[BAL] Bar={bar}: no compression start after impulse {impulseEnd}");
             return;
         }
 
         int compBars = bar - compStart + 1;
         if (compBars < MinCompressionBars)
         {
-            System.Diagnostics.Debug.WriteLine($"[BAL] Bar={bar}: compression too short ({compBars} < {MinCompressionBars}) start={compStart}");
+            LogBal($"[BAL] Bar={bar}: compression too short ({compBars} < {MinCompressionBars}) start={compStart}");
             return;
         }
 
@@ -112,7 +127,7 @@ public class FabioMeanReversion : Indicator
         decimal impulseRange = CalculateRange(impulseStart, impulseEnd);
         if (impulseRange <= 0)
         {
-            System.Diagnostics.Debug.WriteLine($"[BAL] Bar={bar}: invalid impulse range");
+            LogBal($"[BAL] Bar={bar}: invalid impulse range");
             return;
         }
 
@@ -127,12 +142,12 @@ public class FabioMeanReversion : Indicator
         decimal ratio = compRange / impulseRange;
         if (compRange <= 0 || ratio > CompressionRangeRatio)
         {
-            System.Diagnostics.Debug.WriteLine($"[BAL] Bar={bar}: ratio too high {ratio:P2} (max {CompressionRangeRatio:P2}) compStart={compStart}");
+            LogBal($"[BAL] Bar={bar}: ratio too high {ratio:P2} (max {CompressionRangeRatio:P2}) compStart={compStart}");
             return;
         }
 
         // Valid zone! Highlight the ENTIRE zone
-        System.Diagnostics.Debug.WriteLine($"[BAL] *** BALANCE ZONE DETECTED *** Bar={bar} compStart={compStart} compBars={compBars} ratio={ratio:P2} impulseEnd={impulseEnd}");
+        LogBal($"[BAL] *** BALANCE ZONE DETECTED *** Bar={bar} compStart={compStart} compBars={compBars} ratio={ratio:P2} impulseEnd={impulseEnd}");
 
         // If new zone started, unpaint the previous one (so only current active zone is highlighted)
         if (_lastBalanceStart >= 0 && _lastBalanceStart != compStart)
