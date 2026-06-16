@@ -10,19 +10,25 @@ echo   %APPDATA%\ATAS\Logs\FabioBalanceZone.log
 echo.
 echo Mostra le ultime righe e segue gli aggiornamenti in tempo reale.
 echo.
-echo Per uscire: premi Ctrl + C
+echo Per uscire: premi Ctrl + C nella finestra PowerShell
 echo ================================================
 echo.
 
-:: Crea la directory se non esiste (per sicurezza)
-if not exist "%APPDATA%\ATAS\Logs" mkdir "%APPDATA%\ATAS\Logs"
+:: Assicura che la cartella esista
+if not exist "%APPDATA%\ATAS\Logs" mkdir "%APPDATA%\ATAS\Logs" >nul 2>&1
 
-:: Se il file non esiste ancora, crea uno stub vuoto
+:: Crea il file se non esiste (stub)
 if not exist "%APPDATA%\ATAS\Logs\FabioBalanceZone.log" (
-    echo. > "%APPDATA%\ATAS\Logs\FabioBalanceZone.log"
-    echo [INFO] File di log creato (vuoto per ora).
+    type nul > "%APPDATA%\ATAS\Logs\FabioBalanceZone.log"
+    echo [INFO] File di log creato.
 )
 
-:: Esegui il tail con PowerShell (mostra ultime 40 righe + follow)
-powershell -NoExit -Command ^
-    "Get-Content -Path \"$env:APPDATA\ATAS\Logs\FabioBalanceZone.log\" -Wait -Tail 40 -Encoding UTF8"
+echo Avvio tail in tempo reale...
+echo.
+
+:: Versione su UNA SOLA RIGA per evitare problemi di escaping con ^
+powershell -NoExit -Command "& { Get-Content -LiteralPath \"$env:APPDATA\ATAS\Logs\FabioBalanceZone.log\" -Wait -Tail 50 -Encoding UTF8 }"
+
+echo.
+echo Tail terminato.
+pause >nul
