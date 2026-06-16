@@ -214,6 +214,18 @@ public class FabioMeanReversion : Indicator
         Rectangles.Add(rect);
     }
 
+    protected override void OnFinishRecalculate()
+    {
+        // At the end of historical data, close any still-open zone so its rectangle is added (past zone).
+        if (_openZoneStart >= 0)
+        {
+            AddZoneRectangle(_openZoneStart, CurrentBar - 1, _openZoneLow, _openZoneHigh);
+            _openZoneStart = -1;
+            _openZoneHigh = decimal.MinValue;
+            _openZoneLow = decimal.MaxValue;
+        }
+    }
+
     #endregion
 
     #region === Helper per zona di balance (semplificati) ===
@@ -294,12 +306,15 @@ public class FabioMeanReversion : Indicator
 
     private int FindLastImpulse(int currentBar)
     {
+        if (currentBar < 2)
+            return -1;
+
         // Dynamic from beginning of available data (no fixed lookback)
         int start = 0;
 
         // Find the MOST RECENT impulse (latest bar with good score), not the best in window.
         // This prevents sticking with an old impulse from the start of a big move.
-        for (int i = currentBar - 1; i >= start; i--)
+        for (int i = currentBar - 1; i >= Math.Max(start, 1); i--)
         {
             var c = GetCandle(i);
             var prev = GetCandle(i - 1);
