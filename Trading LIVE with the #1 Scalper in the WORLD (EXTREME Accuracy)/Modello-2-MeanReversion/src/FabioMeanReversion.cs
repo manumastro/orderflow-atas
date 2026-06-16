@@ -21,12 +21,14 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
+using System.Windows.Media;
 using ATAS.Indicators;
+using ATAS.Indicators.Drawing;
 
 namespace FabioMeanReversion;
 
 [DisplayName("Fabio Mean Reversion")]
-public class FabioMeanReversion : Indicator
+public class FabioMeanReversion : ExtendedIndicator
 {
     #region === Parameters ===
 
@@ -48,16 +50,19 @@ public class FabioMeanReversion : Indicator
 
     #region === DataSeries ===
 
-    private PaintbarsDataSeries _paintBars = null!;
-    private ValueDataSeries _compressionMarker = null!;
+    // Using Rectangles collection for boxes instead of paintbars
 
     #endregion
 
     #region === State ===
 
-    private decimal EffectiveTickSize => InstrumentInfo?.TickSize > 0 ? InstrumentInfo.TickSize : 0.25m;
-    private int _lastBalanceStart = -1;
+    private decimal EffectiveTickSize => 0.25m; // default for NQ/ES; dynamic access had name conflict with ATAS type InstrumentInfo
     private int _lastLoggedBar = -1;
+
+    // For drawing closed past zones as rectangles (independent of current live state)
+    private int _openZoneStart = -1;
+    private decimal _openZoneHigh = decimal.MinValue;
+    private decimal _openZoneLow = decimal.MaxValue;
 
     private static readonly string LogPath = System.IO.Path.Combine(
         System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData),
@@ -83,22 +88,7 @@ public class FabioMeanReversion : Indicator
         DenyToChangePanel = true;
         DataSeries[0].IsHidden = true;
 
-        _paintBars = new PaintbarsDataSeries("Balance Zone Bars")
-        {
-            IsHidden = true
-        };
-        DataSeries.Add(_paintBars);
-
-        _compressionMarker = new ValueDataSeries("Balance Start")
-        {
-            VisualType = VisualMode.Square,
-            Color = System.Windows.Media.Colors.Magenta,
-            Width = 4,
-            ShowZeroValue = false
-        };
-        DataSeries.Add(_compressionMarker);
-
-        LogBal("=== FabioMeanReversion BALANCE ZONE ONLY started (check this log for detections) ===");
+        LogBal("=== FabioMeanReversion BALANCE ZONE ONLY (rectangles for historical consolidations) started ===");
     }
 
     #endregion
@@ -107,12 +97,22 @@ public class FabioMeanReversion : Indicator
 
     protected override void OnCalculate(int bar, decimal value)
     {
-        _compressionMarker[bar] = 0;
+        // Clear previous drawings at start of recalc (bar 0) so we redraw all historical past zones cleanly.
+        // This way zones are independent of "current" live state.
+        if (bar == 0)
+        {
+            Rectangles.Clear();
+            _openZoneStart = -1;
+            _openZoneHigh = decimal.MinValue;
+            _openZoneLow = decimal.MaxValue;
+            _lastLoggedBar = -1;
+        }
 
-        // Cerca zona di balance che arriva fino a questa barra
+        // Cerca zona di balance che arriva fino a questa barra (funziona per storici e live)
         int impulseEnd = FindLastImpulse(bar);
         if (impulseEnd < 0)
         {
+            CloseOpenZoneIfAny(bar); // close any open when no impulse
             if (bar != _lastLoggedBar) LogBal($"[BAL] Bar={bar}: no impulse found in lookback");
             _lastLoggedBar = bar;
             return;
@@ -121,6 +121,7 @@ public class FabioMeanReversion : Indicator
         int compStart = FindCompressionStart(bar, impulseEnd);
         if (compStart < 0)
         {
+            CloseOpenZoneIfAny(bar);
             if (bar != _lastLoggedBar) LogBal($"[BAL] Bar={bar}: no compression start after impulse {impulseEnd}");
             _lastLoggedBar = bar;
             return;
@@ -129,6 +130,7 @@ public class FabioMeanReversion : Indicator
         int compBars = bar - compStart + 1;
         if (compBars < MinCompressionBars)
         {
+            CloseOpenZoneIfAny(bar);
             if (bar != _lastLoggedBar) LogBal($"[BAL] Bar={bar}: compression too short ({compBars} < {MinCompressionBars}) start={compStart}");
             _lastLoggedBar = bar;
             return;
@@ -138,6 +140,7 @@ public class FabioMeanReversion : Indicator
         decimal impulseRange = CalculateRange(impulseStart, impulseEnd);
         if (impulseRange <= 0)
         {
+            CloseOpenZoneIfAny(bar);
             if (bar != _lastLoggedBar) LogBal($"[BAL] Bar={bar}: invalid impulse range");
             _lastLoggedBar = bar;
             return;
@@ -154,33 +157,64 @@ public class FabioMeanReversion : Indicator
         decimal ratio = compRange / impulseRange;
         if (compRange <= 0 || ratio > CompressionRangeRatio)
         {
+            CloseOpenZoneIfAny(bar);
             if (bar != _lastLoggedBar) LogBal($"[BAL] Bar={bar}: ratio too high {ratio:P2} (max {CompressionRangeRatio:P2}) compStart={compStart} impulseEnd={impulseEnd}");
             _lastLoggedBar = bar;
             return;
         }
 
-        // Valid zone! Highlight the ENTIRE zone
+        // Valid compression zone at this bar's snapshot.
+        // Track as open (for historical scan this will close at the right past point when later bars "break" it)
         LogBal($"[BAL] *** BALANCE ZONE DETECTED *** Bar={bar} compStart={compStart} compBars={compBars} ratio={ratio:P2} impulseEnd={impulseEnd}");
 
-        // If new zone started, unpaint the previous one (so only current active zone is highlighted)
-        if (_lastBalanceStart >= 0 && _lastBalanceStart != compStart)
+        if (_openZoneStart < 0)
         {
-            for (int i = _lastBalanceStart; i < compStart; i++)
-            {
-                _paintBars[i] = null;
-            }
+            // start new open zone
+            _openZoneStart = compStart;
+            _openZoneHigh = compHigh;
+            _openZoneLow = compLow;
         }
-
-        // Paint the WHOLE zone (not just start bar)
-        for (int i = compStart; i <= bar; i++)
+        else if (compStart != _openZoneStart)
         {
-            _paintBars[i] = System.Windows.Media.Colors.Gold;  // entire balance zone highlighted
+            // new zone starting (replot), close previous as past zone (rectangle)
+            AddZoneRectangle(_openZoneStart, bar - 1, _openZoneLow, _openZoneHigh);
+            _openZoneStart = compStart;
+            _openZoneHigh = compHigh;
+            _openZoneLow = compLow;
         }
+        else
+        {
+            // extend current open zone
+            _openZoneHigh = Math.Max(_openZoneHigh, compHigh);
+            _openZoneLow = Math.Min(_openZoneLow, compLow);
+        }
+    }
 
-        var sc = GetCandle(compStart);
-        _compressionMarker[compStart] = sc.Low - (EffectiveTickSize * 3);
+    private void CloseOpenZoneIfAny(int currentBar)
+    {
+        if (_openZoneStart >= 0)
+        {
+            AddZoneRectangle(_openZoneStart, currentBar, _openZoneLow, _openZoneHigh);
+            _openZoneStart = -1;
+            _openZoneHigh = decimal.MinValue;
+            _openZoneLow = decimal.MaxValue;
+        }
+    }
 
-        _lastBalanceStart = compStart;
+    private void AddZoneRectangle(int firstBar, int secondBar, decimal lowPrice, decimal highPrice)
+    {
+        if (firstBar >= secondBar || firstBar < 0) return;
+
+        // Simple semi-transparent rectangle box for the consolidation zone (height = actual high/low of zone, width = bars)
+        System.Drawing.Pen outlinePen = new System.Drawing.Pen(System.Drawing.Color.DarkCyan, 1);
+        System.Drawing.SolidBrush fillBrush = new System.Drawing.SolidBrush(System.Drawing.Color.FromArgb(40, 0, 255, 255)); // light cyan, low opacity box
+
+        var rect = new DrawingRectangle(firstBar, lowPrice, secondBar, highPrice, outlinePen, fillBrush);
+        // Do not extend; fixed historical zone
+        rect.ExtendLeft = false;
+        rect.ExtendRight = false;
+
+        Rectangles.Add(rect);
     }
 
     #endregion
@@ -189,23 +223,11 @@ public class FabioMeanReversion : Indicator
 
     private int FindCompressionStart(int currentBar, int impulseEnd)
     {
-        if (impulseEnd + 1 >= currentBar)
+        int candidate = impulseEnd + 1;
+        if (candidate >= currentBar)
             return -1;
 
-        // Find the start of the current tight range after the impulse:
-        // go back from current as far as possible (but >= impulseEnd+1) while the range
-        // from that start to current stays <= allowed ratio * impulseRange.
-        // This way we get the "most recent dealing range" compression, not the full post-impulse if it expanded then compressed.
-        decimal allowedMaxRange = 0; // will compute after we have impulseRange, but since we call before, we approximate or move logic.
-        // For simplicity, we first find a candidate start by looking for recent low volatility period.
-
-        // Alternative simple: start from impulse+1, but then shrink the start forward if the full range is too big, by finding the leftmost start where range[start..bar] is minimal or recent.
-        // Better: find the farthest start (smallest start) after impulse such that range[start..current] <= some, but to avoid depending on ratio here (ratio is after), we use a different approach.
-
-        // Practical: start candidate at impulse+1, compute full range.
-        // Then, to handle "new dealing range", if the full range is large, search for a more recent start where the range from there is smaller.
-        int candidate = impulseEnd + 1;
-
+        // Compute range from after impulse to current
         decimal fullHigh = decimal.MinValue;
         decimal fullLow = decimal.MaxValue;
         for (int i = candidate; i <= currentBar; i++)
@@ -215,58 +237,25 @@ public class FabioMeanReversion : Indicator
             if (c.Low < fullLow) fullLow = c.Low;
         }
 
-        // If the full post-impulse range is "reasonable", use it.
-        // But to find local compression, we look for the most recent start where adding the bar didn't expand the range much, or simply take the start of the last Min*2 bars if smaller range.
-        // Simple effective way: go back from current, keep track of running high/low, stop when the range from that point exceeds a local tolerance, but to tie to impulse we leave for the ratio check.
-        // For now, to address stuck old compStart: we will later use the most recent possible by finding where the recent range is tight.
-
-        // Improved: find the latest (largest) start after impulse such that the range from start to current is the "current" one.
-        // Actually, to get the compression zone start as the point from which the range has been contained.
-        // Go back from current until the range from that bar to current would be "the zone".
-        // But to make it after impulse:
-
-        // Find the leftmost start (earliest) >= candidate where from start to current the range is "compressed" relative to recent, but for simplicity:
-        // We keep the candidate, but add a back-search for tighter recent range.
-
-        // New logic: start from current, go back up to impulse+1, updating running high/low from the end.
-        // The "compression start" is the farthest we can go back without the range from that point exceeding say the last impulse's "context".
-        // But to keep simple and effective:
-
-        // Find the start by scanning back for the point after which no new extreme was made for a while.
-        // For this version, to fix the user's issue (old compStart with huge range): we search for a more recent candidate by finding the start of the last "flat" period.
+        // To support replotting on "new dealing range" (local recent consolidation):
+        // search back a bit for a tighter recent window start. If found significantly tighter than full post-impulse,
+        // use it so we don't stay stuck with an old wide range from after the impulse.
         decimal recentHigh = decimal.MinValue;
         decimal recentLow = decimal.MaxValue;
-        int bestRecentStart = currentBar;
+        int recentStart = currentBar;
 
-        // Go back up to say 50 bars or to impulse, find the start of current low range window.
-        int maxLook = Math.Min(50, currentBar - impulseEnd);
-        for (int s = currentBar; s >= Math.Max(candidate, currentBar - maxLook); s--)
+        int look = Math.Min(50, currentBar - impulseEnd);
+        for (int s = currentBar; s >= Math.Max(candidate, currentBar - look); s--)
         {
             var c = GetCandle(s);
             if (c.High > recentHigh) recentHigh = c.High;
             if (c.Low < recentLow) recentLow = c.Low;
-            // If this window range is small, update best start to this s
-            // But we take the smallest s (earliest) such that the range from s is not too directional or something.
-            // Simple: take the earliest s in the recent where the range from s to current is used if small.
-            bestRecentStart = s;  // will be the earliest in the look
+            recentStart = s;
         }
 
-        // Use the more recent start if it gives tighter range.
-        // For now, prefer a start that makes the range from it to current smaller than full.
-        // Compute range from bestRecentStart
-        decimal testHigh = decimal.MinValue;
-        decimal testLow = decimal.MaxValue;
-        for (int i = bestRecentStart; i <= currentBar; i++)
+        if (recentHigh - recentLow < (fullHigh - fullLow) * 0.65m && (recentHigh - recentLow) > 0)
         {
-            var c = GetCandle(i);
-            if (c.High > testHigh) testHigh = c.High;
-            if (c.Low < testLow) testLow = c.Low;
-        }
-
-        if ((testHigh - testLow) < (fullHigh - fullLow) * 0.7m || (fullHigh - fullLow) > 0) 
-        {
-            // if the recent window is significantly tighter, use it as better compression start
-            candidate = bestRecentStart;
+            candidate = recentStart;
         }
 
         if (candidate >= currentBar)
