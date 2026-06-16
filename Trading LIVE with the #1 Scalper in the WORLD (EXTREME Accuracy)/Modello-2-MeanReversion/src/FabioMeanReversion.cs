@@ -10,8 +10,10 @@
 //
 // Logica base: dopo un impulse, zona dove il range resta compresso per abbastanza barre.
 // 
-// LOG per debug: %APPDATA%\ATAS\Logs\FabioBalanceZone.log
-// Cerca righe con "*** BALANCE ZONE DETECTED ***" o i motivi di rifiuto.
+// LOG per debug:
+//   - Reale: %APPDATA%\ATAS\Logs\FabioBalanceZone.log
+//   - Consigliato: symlink in questa cartella del progetto (vedi create-log-symlink.ps1)
+// Cerca righe con "*** BALANCE ZONE DETECTED ***" o i motivi di rifiuto (no impulse, ratio alto, ecc).
 // ============================================================================
 
 using System.ComponentModel;
