@@ -28,7 +28,7 @@ using ATAS.Indicators.Drawing;
 namespace FabioMeanReversion;
 
 [DisplayName("Fabio Mean Reversion")]
-public class FabioMeanReversion : ExtendedIndicator
+public class FabioMeanReversion : Indicator
 {
     #region === Parameters ===
 
