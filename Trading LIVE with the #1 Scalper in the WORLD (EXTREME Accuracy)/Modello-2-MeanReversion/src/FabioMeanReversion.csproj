@@ -17,6 +17,7 @@
       <HintPath>C:\Program Files (x86)\ATAS Platform\ATAS.DataFeedsCore.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <Reference Include="System.Drawing" />
   </ItemGroup>
 
   <ItemGroup>
