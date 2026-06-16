@@ -96,12 +96,19 @@ public class FabioMeanReversion : Indicator
             _lastLoggedBar = -1;
         }
 
+        var c = GetCandle(bar);
+        decimal rng = c.High - c.Low;
+        decimal bdy = Math.Abs(c.Close - c.Open);
+        // Verbose per-bar log for debugging (M5 or any TF) with time and prices, so we can reconstruct timeline from start of day.
+        // User can filter the log file for specific date/time like 2026-06-15 10:45 etc.
+        LogBal($"[CANDLE] bar={bar} time={c.LastTime:yyyy-MM-dd HH:mm} O={c.Open} H={c.High} L={c.Low} C={c.Close} range={rng} body={bdy} delta={c.Delta}");
+
         // Cerca zona di balance che arriva fino a questa barra (funziona per storici e live)
         int impulseEnd = FindLastImpulse(bar);
         if (impulseEnd < 0)
         {
             CloseOpenZoneIfAny(bar); // close any open when no impulse
-            if (bar != _lastLoggedBar) LogBal($"[BAL] Bar={bar}: no impulse found in lookback");
+            if (bar != _lastLoggedBar) LogBal($"[BAL] Bar={bar} time={c.LastTime:HH:mm}: no impulse found in lookback");
             _lastLoggedBar = bar;
             return;
         }
@@ -110,7 +117,7 @@ public class FabioMeanReversion : Indicator
         if (compStart < 0)
         {
             CloseOpenZoneIfAny(bar);
-            if (bar != _lastLoggedBar) LogBal($"[BAL] Bar={bar}: no compression start after impulse {impulseEnd}");
+            if (bar != _lastLoggedBar) LogBal($"[BAL] Bar={bar} time={c.LastTime:HH:mm}: no compression start after impulse {impulseEnd}");
             _lastLoggedBar = bar;
             return;
         }
@@ -120,7 +127,7 @@ public class FabioMeanReversion : Indicator
         if (compBars < minCompBars)
         {
             CloseOpenZoneIfAny(bar);
-            if (bar != _lastLoggedBar) LogBal($"[BAL] Bar={bar}: compression too short ({compBars} < {minCompBars}) start={compStart}");
+            if (bar != _lastLoggedBar) LogBal($"[BAL] Bar={bar} time={c.LastTime:HH:mm}: compression too short ({compBars} < {minCompBars}) start={compStart}");
             _lastLoggedBar = bar;
             return;
         }
@@ -130,7 +137,7 @@ public class FabioMeanReversion : Indicator
         if (impulseRange <= 0)
         {
             CloseOpenZoneIfAny(bar);
-            if (bar != _lastLoggedBar) LogBal($"[BAL] Bar={bar}: invalid impulse range");
+            if (bar != _lastLoggedBar) LogBal($"[BAL] Bar={bar} time={c.LastTime:HH:mm}: invalid impulse range");
             _lastLoggedBar = bar;
             return;
         }
@@ -138,9 +145,9 @@ public class FabioMeanReversion : Indicator
         decimal compHigh = decimal.MinValue, compLow = decimal.MaxValue;
         for (int i = compStart; i <= bar; i++)
         {
-            var c = GetCandle(i);
-            if (c.High > compHigh) compHigh = c.High;
-            if (c.Low < compLow) compLow = c.Low;
+            var cc = GetCandle(i);
+            if (cc.High > compHigh) compHigh = cc.High;
+            if (cc.Low < compLow) compLow = cc.Low;
         }
         decimal compRange = compHigh - compLow;
         const decimal maxRatio = 0.6m;  // dynamic relative: compression range < 60% of impulse (no user param, per transcript)
@@ -148,14 +155,14 @@ public class FabioMeanReversion : Indicator
         if (compRange <= 0 || ratio > maxRatio)
         {
             CloseOpenZoneIfAny(bar);
-            if (bar != _lastLoggedBar) LogBal($"[BAL] Bar={bar}: ratio too high {ratio:P2} (max {maxRatio:P2}) compStart={compStart} impulseEnd={impulseEnd}");
+            if (bar != _lastLoggedBar) LogBal($"[BAL] Bar={bar} time={c.LastTime:HH:mm}: ratio too high {ratio:P2} (max {maxRatio:P2}) compStart={compStart} impulseEnd={impulseEnd}");
             _lastLoggedBar = bar;
             return;
         }
 
         // Valid compression zone at this bar's snapshot.
         // Track as open (for historical scan this will close at the right past point when later bars "break" it)
-        LogBal($"[BAL] *** BALANCE ZONE DETECTED *** Bar={bar} compStart={compStart} compBars={compBars} ratio={ratio:P2} impulseEnd={impulseEnd}");
+        LogBal($"[BAL] *** BALANCE ZONE DETECTED *** Bar={bar} time={c.LastTime:HH:mm} compStart={compStart} compBars={compBars} ratio={ratio:P2} impulseEnd={impulseEnd} zoneHigh={compHigh} zoneLow={compLow}");
 
         if (_openZoneStart < 0)
         {
