@@ -154,7 +154,7 @@ public class FabioMeanReversion : Indicator
         decimal ratio = compRange / impulseRange;
         if (compRange <= 0 || ratio > CompressionRangeRatio)
         {
-            if (bar != _lastLoggedBar) LogBal($"[BAL] Bar={bar}: ratio too high {ratio:P2} (max {CompressionRangeRatio:P2}) compStart={compStart}");
+            if (bar != _lastLoggedBar) LogBal($"[BAL] Bar={bar}: ratio too high {ratio:P2} (max {CompressionRangeRatio:P2}) compStart={compStart} impulseEnd={impulseEnd}");
             _lastLoggedBar = bar;
             return;
         }
