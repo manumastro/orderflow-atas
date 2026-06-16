@@ -34,8 +34,8 @@ public class FabioMeanReversion : Indicator
     public int CompressionLookback { get; set; } = 150;
 
     [Display(Name = "Compression Range Ratio", GroupName = "Balance Zone", Order = 11,
-        Description = "Max range of compression / range of previous impulse leg")]
-    public decimal CompressionRangeRatio { get; set; } = 0.45m;
+        Description = "Max range of compression / range of previous impulse leg (0.45 = strict, try 0.65-0.80 for more zones)")]
+    public decimal CompressionRangeRatio { get; set; } = 0.65m;
 
     [Display(Name = "Min Compression Bars", GroupName = "Balance Zone", Order = 12)]
     public int MinCompressionBars { get; set; } = 8;
