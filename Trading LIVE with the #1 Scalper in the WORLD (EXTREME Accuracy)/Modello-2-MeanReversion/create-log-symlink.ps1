@@ -1,4 +1,8 @@
-# Run this script as Administrator (right-click -> Run as administrator)
+# DEPRECATED / ALTERNATIVE
+# Use watch-balance-log.ps1 instead (no admin rights needed, creates a real-time copy inside the project).
+#
+# This script still works if you really want a symlink:
+# Run as Administrator (right-click -> Run as administrator)
 # It creates a symbolic link inside this folder pointing to the real-time ATAS log.
 # After creation you can open "FabioBalanceZone.log" directly from here and it will stay in sync.
 
