@@ -10,11 +10,12 @@
 //
 // Logica base: dopo un impulse, zona dove il range resta compresso per abbastanza barre.
 // 
-// LOG per debug (real-time mirror):
-//   Il modo piu semplice: doppio clic su "avvia-watcher.bat" (nella cartella Modello-2-MeanReversion).
-//   Crea/aggiorna automaticamente: logs\FabioBalanceZone.log
-//   Puoi tenerlo aperto con Notepad++ o VS Code mentre fai trading.
-// Cerca nel log le righe con "*** BALANCE ZONE DETECTED ***".
+// LOG per debug:
+//   Esegui il file "tail-balance-log.bat" (doppio clic).
+//   Apre PowerShell e fa il tail in tempo reale del log originale di ATAS.
+//   Mostra le ultime righe + segue tutti i nuovi messaggi.
+//   Per uscire: Ctrl+C nella finestra PowerShell.
+// Cerca le righe con "*** BALANCE ZONE DETECTED ***".
 // ============================================================================
 
 using System.ComponentModel;
