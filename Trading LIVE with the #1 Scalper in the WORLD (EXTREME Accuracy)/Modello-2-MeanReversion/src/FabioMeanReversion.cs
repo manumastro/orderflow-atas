@@ -1,21 +1,18 @@
 // ============================================================================
-// FabioMeanReversion — Balance Zone Detection (SIMPLIFIED FROM SCRATCH)
+// FabioMeanReversion — Balance/Consolidation Zones (Historical Rectangles)
 // ============================================================================
-// Solo individuazione della zona di balance / compressione.
-// Niente sessioni, niente profile, niente POC/VAH/VAL, niente linee di valore.
+// Simple detection of past consolidation/balance zones (after impulse legs with contained range).
+// No sessions, no current-only logic, no profile values/lines.
 // 
-// Visuals semplici:
-//   - Paintbars per evidenziare le barre della zona di balance (colore oro)
-//   - Marker (quadrato magenta) all'inizio della zona
-//
-// Logica base: dopo un impulse, zona dove il range resta compresso per abbastanza barre.
+// Visuals: semi-transparent cyan rectangles (boxes) for EVERY historical zone found,
+// spanning the full bar range and actual high/low of the consolidation.
+// Zones are drawn for the past, independent of live price.
 // 
-// LOG per debug:
-//   Esegui il file "tail-balance-log.bat" (doppio clic).
-//   Apre PowerShell e fa il tail in tempo reale del log originale di ATAS.
-//   Mostra le ultime righe + segue tutti i nuovi messaggi.
-//   Per uscire: Ctrl+C nella finestra PowerShell.
-// Cerca le righe con "*** BALANCE ZONE DETECTED ***".
+// Scan is FULL HISTORY (dynamic from start of available data, no fixed lookback param).
+// Detection based on transcript: recent impulse + subsequent compression (small range).
+// 
+// LOG per debug: use tail-balance-log.bat (tails original ATAS log).
+// Look for "*** BALANCE ZONE DETECTED ***" and rectangle adds.
 // ============================================================================
 
 using System.ComponentModel;
@@ -32,18 +29,18 @@ public class FabioMeanReversion : Indicator
 {
     #region === Parameters ===
 
-    [Display(Name = "Compression Lookback (bars)", GroupName = "Balance Zone", Order = 10)]
-    public int CompressionLookback { get; set; } = 150;
+    // Lookback removed: scan is now dynamic from the very beginning of available data (bar 0),
+    // as requested. No fixed input; uses all history for finding past zones.
 
     [Display(Name = "Compression Range Ratio", GroupName = "Balance Zone", Order = 11,
-        Description = "Max range of compression / range of previous impulse leg (0.45 = strict, try 0.65-0.80 for more zones)")]
+        Description = "Max range of compression / range of previous impulse leg (higher = more zones detected)")]
     public decimal CompressionRangeRatio { get; set; } = 0.65m;
 
     [Display(Name = "Min Compression Bars", GroupName = "Balance Zone", Order = 12)]
     public int MinCompressionBars { get; set; } = 8;
 
     [Display(Name = "Impulse Min Score", GroupName = "Balance Zone", Order = 13,
-        Description = "Min score (0-1) to consider a bar as impulse. Lower = more impulse bars detected")]
+        Description = "Min score (0-1) to consider a bar as impulse. Lower = more impulses detected")]
     public decimal ImpulseMinScore { get; set; } = 0.30m;
 
     #endregion
@@ -297,7 +294,8 @@ public class FabioMeanReversion : Indicator
 
     private int FindLastImpulse(int currentBar)
     {
-        int start = Math.Max(1, currentBar - CompressionLookback + 1);
+        // Dynamic from beginning of available data (no fixed lookback)
+        int start = 0;
 
         // Find the MOST RECENT impulse (latest bar with good score), not the best in window.
         // This prevents sticking with an old impulse from the start of a big move.
