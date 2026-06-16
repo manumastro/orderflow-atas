@@ -29,19 +29,10 @@ public class FabioMeanReversion : Indicator
 {
     #region === Parameters ===
 
-    // Lookback removed: scan is now dynamic from the very beginning of available data (bar 0),
-    // as requested. No fixed input; uses all history for finding past zones.
-
-    [Display(Name = "Compression Range Ratio", GroupName = "Balance Zone", Order = 11,
-        Description = "Max range of compression / range of previous impulse leg (higher = more zones detected)")]
-    public decimal CompressionRangeRatio { get; set; } = 0.65m;
-
-    [Display(Name = "Min Compression Bars", GroupName = "Balance Zone", Order = 12)]
-    public int MinCompressionBars { get; set; } = 8;
-
-    [Display(Name = "Impulse Min Score", GroupName = "Balance Zone", Order = 13,
-        Description = "Min score (0-1) to consider a bar as impulse. Lower = more impulses detected")]
-    public decimal ImpulseMinScore { get; set; } = 0.30m;
+    // No fixed parameters exposed for detection (as per Fabio's approach in the transcript).
+    // Everything is dynamic: full history scan from start of data, relative impulse/compression
+    // based on recent price action (no hardcoded scores/ratios/bars that Fabio "doesn't think with").
+    // Tune not needed; the logic finds visible compressions after impulses.
 
     #endregion
 
@@ -125,10 +116,11 @@ public class FabioMeanReversion : Indicator
         }
 
         int compBars = bar - compStart + 1;
-        if (compBars < MinCompressionBars)
+        const int minCompBars = 5;  // dynamic/simple, small to catch visible compressions (Fabio-style, no fixed param)
+        if (compBars < minCompBars)
         {
             CloseOpenZoneIfAny(bar);
-            if (bar != _lastLoggedBar) LogBal($"[BAL] Bar={bar}: compression too short ({compBars} < {MinCompressionBars}) start={compStart}");
+            if (bar != _lastLoggedBar) LogBal($"[BAL] Bar={bar}: compression too short ({compBars} < {minCompBars}) start={compStart}");
             _lastLoggedBar = bar;
             return;
         }
@@ -151,11 +143,12 @@ public class FabioMeanReversion : Indicator
             if (c.Low < compLow) compLow = c.Low;
         }
         decimal compRange = compHigh - compLow;
+        const decimal maxRatio = 0.6m;  // dynamic relative: compression range < 60% of impulse (no user param, per transcript)
         decimal ratio = compRange / impulseRange;
-        if (compRange <= 0 || ratio > CompressionRangeRatio)
+        if (compRange <= 0 || ratio > maxRatio)
         {
             CloseOpenZoneIfAny(bar);
-            if (bar != _lastLoggedBar) LogBal($"[BAL] Bar={bar}: ratio too high {ratio:P2} (max {CompressionRangeRatio:P2}) compStart={compStart} impulseEnd={impulseEnd}");
+            if (bar != _lastLoggedBar) LogBal($"[BAL] Bar={bar}: ratio too high {ratio:P2} (max {maxRatio:P2}) compStart={compStart} impulseEnd={impulseEnd}");
             _lastLoggedBar = bar;
             return;
         }
@@ -287,7 +280,7 @@ public class FabioMeanReversion : Indicator
 
     private bool HasDirectionalExpansion(int startBar, int endBar, decimal rangeHigh, decimal rangeLow)
     {
-        if (endBar - startBar + 1 < MinCompressionBars)
+        if (endBar - startBar + 1 < 5)
             return false;
 
         int closesAbove = 0;
@@ -312,8 +305,9 @@ public class FabioMeanReversion : Indicator
         // Dynamic from beginning of available data (no fixed lookback)
         int start = 0;
 
-        // Find the MOST RECENT impulse (latest bar with good score), not the best in window.
-        // This prevents sticking with an old impulse from the start of a big move.
+        // Dynamic impulse: most recent bar with significantly larger range than previous
+        // (relative, no fixed score threshold - Fabio doesn't use fixed numbers).
+        // Looks for "impulse leg" as per transcript: expansion after previous.
         for (int i = currentBar - 1; i >= Math.Max(start, 1); i--)
         {
             var c = GetCandle(i);
@@ -325,18 +319,13 @@ public class FabioMeanReversion : Indicator
             decimal prevRange = Math.Max(prev.High - prev.Low, EffectiveTickSize);
             decimal body = Math.Abs(c.Close - c.Open);
             decimal bodyRatio = body / range;
-            decimal closeExtreme = Math.Abs(((c.Close - c.Low) / range) - 0.5m) * 2m;
             decimal rangeExp = range / prevRange;
 
-            decimal score = bodyRatio * 0.40m + closeExtreme * 0.35m;
-            if (rangeExp > 1.2m)
-                score += Math.Min(0.25m, (rangeExp - 1m) * 0.20m);
-            if (Math.Abs(c.Delta) > 0)
-                score += 0.05m;
-
-            if (score >= ImpulseMinScore)
+            // Dynamic: recent bar has range at least 1.5x previous AND decent body ( >50% of its range)
+            // This captures "big trade" / impulse without hardcoded score.
+            if (rangeExp >= 1.5m && bodyRatio >= 0.5m)
             {
-                return i;  // most recent good impulse
+                return i;  // most recent impulse leg
             }
         }
         return -1;
