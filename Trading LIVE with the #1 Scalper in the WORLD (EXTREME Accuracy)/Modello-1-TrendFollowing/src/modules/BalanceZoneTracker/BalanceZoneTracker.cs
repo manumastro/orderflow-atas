@@ -154,6 +154,12 @@ namespace FabioTrendFollowing
 
                 case MarketState.OutOfBalance:
                     // Out-of-balance confermato, gli altri moduli possono operare
+                    // Estendi la zona fino alla barra corrente
+                    if (_currentZoneRectangle != null)
+                    {
+                        _currentZoneRectangle.SecondBar = bar;
+                    }
+                    
                     // Reset su nuova London session
                     if (isInLondonSession && !IsBarInCurrentZone(bar))
                     {
@@ -346,6 +352,10 @@ namespace FabioTrendFollowing
 
         private void ResetForNewSession(int bar)
         {
+            // Reset referenze alle zone vecchie
+            _currentZoneRectangle = null;
+            _currentPocLine = null;
+            
             _context.State = MarketState.NoZone;
             _context.CurrentZone = null;
             _context.PendingDirection = null;
@@ -393,7 +403,7 @@ namespace FabioTrendFollowing
             var outlinePen = new System.Drawing.Pen(System.Drawing.Color.Gray, 1);
             var pocPen = new System.Drawing.Pen(System.Drawing.Color.Orange, 2);
 
-            // Rettangolo VAH/VAL
+            // Rettangolo VAH/VAL (NON esteso a destra)
             _currentZoneRectangle = new DrawingRectangle(
                 zone.StartBar,
                 zone.VAH,
@@ -401,10 +411,7 @@ namespace FabioTrendFollowing
                 zone.VAL,
                 outlinePen,
                 fillBrush
-            )
-            {
-                ExtendRight = true
-            };
+            );
             _rectangles.Add(_currentZoneRectangle);
 
             // Linea POC

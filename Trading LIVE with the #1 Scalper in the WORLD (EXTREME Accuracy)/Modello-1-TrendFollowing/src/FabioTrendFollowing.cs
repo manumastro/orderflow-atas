@@ -32,12 +32,7 @@ public class FabioTrendFollowing : Indicator
         var candle = GetCandle(bar);
         _balanceTracker?.OnBarUpdate(bar, candle);
 
-        // Phase 1: solo BalanceZoneTracker attivo
-        if (_balanceTracker != null && _balanceTracker.IsOutOfBalance && bar == CurrentBar - 1)
-        {
-            Log($"[Bar {bar}] OUT_OF_BALANCE | Direction={_balanceTracker.Direction} | " +
-                $"POC={_balanceTracker.POC} | VAH={_balanceTracker.VAH} | VAL={_balanceTracker.VAL}");
-        }
+        // Log rimosso per evitare spam ad ogni tick
     }
     
     private void Log(string message)
