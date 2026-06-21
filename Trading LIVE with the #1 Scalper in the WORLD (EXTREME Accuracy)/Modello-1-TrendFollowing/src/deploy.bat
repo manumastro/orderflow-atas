@@ -21,5 +21,9 @@ copy /Y "bin\Release\net10.0-windows\FabioTrendFollowing.dll" "%ATAS_IND%\"
 
 echo.
 echo Done! DLL: %ATAS_IND%\FabioTrendFollowing.dll
+echo Timestamp:
+dir "%ATAS_IND%\FabioTrendFollowing.dll" | findstr "FabioTrendFollowing.dll"
+echo.
+echo IMPORTANT: Remove indicator from chart, restart ATAS, then re-add indicator.
 echo.
 pause
