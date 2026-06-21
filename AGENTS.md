@@ -15,12 +15,16 @@ Approccio trend following di Fabio per mercati OUT OF BALANCE:
 - Sessione: New York only
 - **Stato:** Prototipo con segnali isolati — richiede rewrite architetturale completo
 
-**Leggi solo `MODELLO-1-DOCUMENTAZIONE.md` per:**
-- Framework completo dal transcript
-- Analisi dei problemi architetturali critici
-- Design operativo del BalanceZoneTracker
-- Best practice Volume Profile / POC / VAH / VAL
-- Roadmap implementativa del refactoring
+**Leggi `MODELLO-1-DOCUMENTAZIONE.md` per:**
+- Mappa centrale del modello
+- Principi globali e pipeline target
+- Roadmap e ordine di implementazione
+- Link ai documenti modulari
+
+**Leggi anche `src/modules/<Modulo>/README.md` quando lavori su un modulo:**
+- Design operativo del modulo
+- Input/output e state machine locali
+- Criteri di validazione specifici
 
 ### Modello 2 — Mean Reversion (ABBANDONATO)
 **Path:** `Modello-2-MeanReversion/`  
@@ -47,9 +51,15 @@ deploy.bat  # copia DLL in %APPDATA%\ATAS\Indicators\
 
 **Refactoring completo Modello 1** per implementare il framework centrale.
 
-**📖 Tutto è documentato in:** `Modello-1-TrendFollowing/MODELLO-1-DOCUMENTAZIONE.md`
+**📖 Mappa centrale:** `Modello-1-TrendFollowing/MODELLO-1-DOCUMENTAZIONE.md`
 
-Piano di implementazione in 3 fasi:
-1. **Core Framework** (3-4 giorni): Balance zone tracker, impulse profiler, trade manager
-2. **Signals Refactor** (2-3 giorni): Aggression con context, absorption pattern, CVD as confirm
-3. **Polish & Testing** (1-2 giorni): Visual, parametri, backtest
+**📦 Moduli:** `Modello-1-TrendFollowing/src/modules/<Modulo>/README.md`
+
+Ordine di implementazione:
+1. `BalanceZoneTracker`
+2. `ImpulseProfiler`
+3. `LowVolumeNodeDetector`
+4. `AggressionDetector`
+5. `TradeManager`
+6. `ConfirmationLayer`
+7. `VisualRenderer`
