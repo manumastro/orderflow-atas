@@ -60,15 +60,17 @@ namespace FabioTrendFollowing
     {
         private readonly Indicator _indicator;
         private readonly MarketContext _context = new();
+        private readonly Action<string> _log;
 
         private readonly TimeZoneInfo _londonTimeZone;
         private readonly TimeZoneInfo _newYorkTimeZone;
 
         private const int MinSessionBars = 5;
 
-        public BalanceZoneTracker(Indicator indicator)
+        public BalanceZoneTracker(Indicator indicator, Action<string> log)
         {
             _indicator = indicator;
+            _log = log;
 
             try
             {
@@ -77,7 +79,7 @@ namespace FabioTrendFollowing
             }
             catch (TimeZoneNotFoundException ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[BalanceZoneTracker] Timezone not found: {ex.Message}");
+                _log($"[ERROR] Timezone not found: {ex.Message}");
                 throw;
             }
         }
@@ -360,8 +362,7 @@ namespace FabioTrendFollowing
 
         private void Log(string message)
         {
-            // Log tramite Debug per ora, può essere esteso con callback
-            System.Diagnostics.Debug.WriteLine(message);
+            _log(message);
         }
     }
 }
