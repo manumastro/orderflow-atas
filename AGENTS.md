@@ -21,7 +21,7 @@ Approccio trend following di Fabio per mercati OUT OF BALANCE:
 - Roadmap e ordine di implementazione
 - Link ai documenti modulari
 
-**Leggi anche `src/modules/<Modulo>/README.md` quando lavori su un modulo:**
+**Leggi anche `src/modules/<Modulo>/<Modulo>.md` quando lavori su un modulo:**
 - Design operativo del modulo
 - Input/output e state machine locali
 - Criteri di validazione specifici
@@ -53,7 +53,7 @@ deploy.bat  # copia DLL in %APPDATA%\ATAS\Indicators\
 
 **📖 Mappa centrale:** `Modello-1-TrendFollowing/MODELLO-1-DOCUMENTAZIONE.md`
 
-**📦 Moduli:** `Modello-1-TrendFollowing/src/modules/<Modulo>/README.md`
+**📦 Moduli:** `Modello-1-TrendFollowing/src/modules/<Modulo>/<Modulo>.md`
 
 Ordine di implementazione:
 1. `BalanceZoneTracker`

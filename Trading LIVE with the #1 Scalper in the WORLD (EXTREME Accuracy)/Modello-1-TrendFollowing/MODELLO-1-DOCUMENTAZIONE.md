@@ -4,13 +4,14 @@
 
 Questo documento è la mappa centrale del Modello 1.
 
-Non contiene tutti i dettagli implementativi: ogni modulo ha il proprio documento dentro `src/modules/<NomeModulo>/README.md`.
+Non contiene tutti i dettagli implementativi: ogni modulo ha il proprio documento dentro `src/modules/<NomeModulo>/<NomeModulo>.md`.
 
 Regola operativa:
 
 ```text
-MODELLO-1-DOCUMENTAZIONE.md = mappa, principi, roadmap globale
-src/modules/*/README.md    = design operativo del singolo modulo
+MODELLO-1-DOCUMENTAZIONE.md        = mappa, principi, roadmap globale
+src/modules/<Modulo>/<Modulo>.md    = design operativo del singolo modulo
+src/modules/MODULES.md              = indice dei moduli
 ```
 
 ---
@@ -89,21 +90,21 @@ Modello-1-TrendFollowing/
     ├── FabioTrendFollowing.csproj
     ├── deploy.bat
     └── modules/
-        ├── README.md
+        ├── MODULES.md
         ├── BalanceZoneTracker/
-        │   └── README.md
+        │   └── BalanceZoneTracker.md
         ├── ImpulseProfiler/
-        │   └── README.md
+        │   └── ImpulseProfiler.md
         ├── LowVolumeNodeDetector/
-        │   └── README.md
+        │   └── LowVolumeNodeDetector.md
         ├── AggressionDetector/
-        │   └── README.md
+        │   └── AggressionDetector.md
         ├── TradeManager/
-        │   └── README.md
+        │   └── TradeManager.md
         ├── ConfirmationLayer/
-        │   └── README.md
+        │   └── ConfirmationLayer.md
         └── VisualRenderer/
-            └── README.md
+            └── VisualRenderer.md
 ```
 
 ---
@@ -112,7 +113,7 @@ Modello-1-TrendFollowing/
 
 ### 4.1 BalanceZoneTracker
 
-Documento: `src/modules/BalanceZoneTracker/README.md`
+Documento: `src/modules/BalanceZoneTracker/BalanceZoneTracker.md`
 
 Scopo:
 
@@ -125,7 +126,7 @@ Questo è il primo modulo da implementare.
 
 ### 4.2 ImpulseProfiler
 
-Documento: `src/modules/ImpulseProfiler/README.md`
+Documento: `src/modules/ImpulseProfiler/ImpulseProfiler.md`
 
 Scopo:
 
@@ -135,7 +136,7 @@ Scopo:
 
 ### 4.3 LowVolumeNodeDetector
 
-Documento: `src/modules/LowVolumeNodeDetector/README.md`
+Documento: `src/modules/LowVolumeNodeDetector/LowVolumeNodeDetector.md`
 
 Scopo:
 
@@ -145,7 +146,7 @@ Scopo:
 
 ### 4.4 AggressionDetector
 
-Documento: `src/modules/AggressionDetector/README.md`
+Documento: `src/modules/AggressionDetector/AggressionDetector.md`
 
 Scopo:
 
@@ -155,7 +156,7 @@ Scopo:
 
 ### 4.5 TradeManager
 
-Documento: `src/modules/TradeManager/README.md`
+Documento: `src/modules/TradeManager/TradeManager.md`
 
 Scopo:
 
@@ -165,7 +166,7 @@ Scopo:
 
 ### 4.6 ConfirmationLayer
 
-Documento: `src/modules/ConfirmationLayer/README.md`
+Documento: `src/modules/ConfirmationLayer/ConfirmationLayer.md`
 
 Scopo:
 
@@ -175,7 +176,7 @@ Scopo:
 
 ### 4.7 VisualRenderer
 
-Documento: `src/modules/VisualRenderer/README.md`
+Documento: `src/modules/VisualRenderer/VisualRenderer.md`
 
 Scopo:
 
@@ -297,7 +298,7 @@ Fonti online consultate:
 
 Quando si sviluppa un modulo:
 
-1. aggiornare prima `src/modules/<Modulo>/README.md`;
+1. aggiornare prima `src/modules/<Modulo>/<Modulo>.md`;
 2. implementare il codice del modulo;
 3. aggiornare questa roadmap solo se cambia una decisione globale;
 4. fare build Release;

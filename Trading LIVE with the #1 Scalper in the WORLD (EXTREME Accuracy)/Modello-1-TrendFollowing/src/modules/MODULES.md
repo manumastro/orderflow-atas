@@ -2,7 +2,7 @@
 
 Questa cartella contiene lo scheletro modulare del Modello 1.
 
-Ogni modulo ha una cartella dedicata con un `README.md` operativo. Il codice C# del modulo verrà aggiunto nella stessa cartella quando la fase corrispondente sarà implementata.
+Ogni modulo ha una cartella dedicata con un documento operativo chiamato come il modulo: `src/modules/<Modulo>/<Modulo>.md`. Il codice C# del modulo verrà aggiunto nella stessa cartella quando la fase corrispondente sarà implementata.
 
 ## Ordine di Implementazione
 
@@ -18,7 +18,7 @@ Ogni modulo ha una cartella dedicata con un `README.md` operativo. Il codice C# 
 
 Prima di implementare o modificare un modulo:
 
-1. leggere il `README.md` del modulo;
+1. leggere `src/modules/<Modulo>/<Modulo>.md`;
 2. aggiornare il design se cambia una decisione;
 3. implementare il codice nella stessa cartella;
 4. verificare build Release;
