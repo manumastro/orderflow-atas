@@ -108,7 +108,7 @@ namespace FabioTrendFollowing
                 case MarketState.NoZone:
                     if (isInLondonSession)
                     {
-                        StartLondonSession(bar);
+                        StartLondonSession(bar, candle);
                     }
                     break;
 
@@ -148,16 +148,19 @@ namespace FabioTrendFollowing
             }
         }
 
-        private void StartLondonSession(int bar)
+        private void StartLondonSession(int bar, IndicatorCandle candle)
         {
             _context.State = MarketState.BuildingSessionProfile;
             _context.CurrentZone = new BalanceZone
             {
                 Type = BalanceType.LondonSession,
                 StartBar = bar,
-                IsReady = false
+                IsReady = false,
+                High = candle.High,
+                Low = candle.Low
             };
 
+            UpdateLondonProfile(bar, candle);
             Log($"[BALANCE_BUILDING] London start | Bar={bar}");
         }
 
