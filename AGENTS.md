@@ -6,7 +6,7 @@ Indicatori/strategie order flow C# per ATAS (futures NQ/ES).
 
 ### Modello 1 — Trend Following (IN REFACTORING)
 **Path:** `Modello-1-TrendFollowing/`  
-**📘 Documento Centrale:** `Modello-1-TrendFollowing/README.md` ⭐  
+**📘 Documento Centrale:** `Modello-1-TrendFollowing/MODELLO-1-DOCUMENTAZIONE.md` ⭐  
 **Codice:** `src/FabioTrendFollowing.cs`
 
 Approccio trend following di Fabio per mercati OUT OF BALANCE:
@@ -15,14 +15,12 @@ Approccio trend following di Fabio per mercati OUT OF BALANCE:
 - Sessione: New York only
 - **Stato:** Prototipo con segnali isolati — richiede rewrite architetturale completo
 
-**Leggi README.md per:**
-- Framework completo dal transcript (balance zones, out-of-balance validation)
-- Analisi dei 7 problemi architetturali critici
-- Piano di implementazione in 3 fasi
-- Architettura target (state machine, moduli, dataseries)
-
-**Leggi `BalanceZoneTracker.md` per:**
-- Documento operativo unico su balance zone, Volume Profile, POC/VAH/VAL, sessioni, state machine e roadmap del tracker
+**Leggi solo `MODELLO-1-DOCUMENTAZIONE.md` per:**
+- Framework completo dal transcript
+- Analisi dei problemi architetturali critici
+- Design operativo del BalanceZoneTracker
+- Best practice Volume Profile / POC / VAH / VAL
+- Roadmap implementativa del refactoring
 
 ### Modello 2 — Mean Reversion (ABBANDONATO)
 **Path:** `Modello-2-MeanReversion/`  
@@ -49,7 +47,7 @@ deploy.bat  # copia DLL in %APPDATA%\ATAS\Indicators\
 
 **Refactoring completo Modello 1** per implementare il framework centrale.
 
-**📖 Tutto è documentato in:** `Modello-1-TrendFollowing/README.md`
+**📖 Tutto è documentato in:** `Modello-1-TrendFollowing/MODELLO-1-DOCUMENTAZIONE.md`
 
 Piano di implementazione in 3 fasi:
 1. **Core Framework** (3-4 giorni): Balance zone tracker, impulse profiler, trade manager
