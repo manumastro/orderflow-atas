@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using ATAS.Indicators;
+using ATAS.Indicators.Drawing;
 
 namespace FabioTrendFollowing
 {
@@ -65,12 +66,24 @@ namespace FabioTrendFollowing
         private readonly TimeZoneInfo _londonTimeZone;
         private readonly TimeZoneInfo _newYorkTimeZone;
 
+        private readonly List<DrawingRectangle> _rectangles;
+        private readonly List<LineTillTouch> _lines;
+        
+        private DrawingRectangle? _currentZoneRectangle;
+        private LineTillTouch? _currentPocLine;
+
         private const int MinSessionBars = 5;
 
-        public BalanceZoneTracker(Indicator indicator, Action<string> log)
+        public BalanceZoneTracker(
+            Indicator indicator, 
+            Action<string> log,
+            List<DrawingRectangle> rectangles,
+            List<LineTillTouch> lines)
         {
             _indicator = indicator;
             _log = log;
+            _rectangles = rectangles;
+            _lines = lines;
 
             try
             {
@@ -212,6 +225,8 @@ namespace FabioTrendFollowing
             _context.CurrentZone.IsReady = true;
             _context.State = MarketState.BalanceReady;
 
+            DrawBalanceZone();
+
             Log($"[BALANCE_READY] London | POC={_context.CurrentZone.POC} | VAH={_context.CurrentZone.VAH} | VAL={_context.CurrentZone.VAL} | Bars={barCount} | Volume={_context.CurrentZone.TotalVolume}");
         }
 
@@ -313,6 +328,8 @@ namespace FabioTrendFollowing
                     _context.CurrentZone.BreakoutDirection = _context.PendingDirection;
                     _context.CurrentZone.BreakoutBar = _context.PendingBreakoutBar;
 
+                    UpdateBalanceZoneColors();
+
                     Log($"[OUT_OF_BALANCE] {_context.PendingDirection} | BreakoutBar={_context.PendingBreakoutBar} | TargetPOC={_context.CurrentZone.POC}");
                 }
             }
@@ -363,6 +380,68 @@ namespace FabioTrendFollowing
         private void Log(string message)
         {
             _log(message);
+        }
+
+        private void DrawBalanceZone()
+        {
+            if (_context.CurrentZone == null) return;
+
+            var zone = _context.CurrentZone;
+            
+            // Colore grigio neutro per balance ready
+            var fillBrush = new System.Drawing.SolidBrush(System.Drawing.Color.FromArgb(30, 128, 128, 128));
+            var outlinePen = new System.Drawing.Pen(System.Drawing.Color.Gray, 1);
+            var pocPen = new System.Drawing.Pen(System.Drawing.Color.Orange, 2);
+
+            // Rettangolo VAH/VAL
+            _currentZoneRectangle = new DrawingRectangle(
+                zone.StartBar,
+                zone.VAH,
+                zone.EndBar,
+                zone.VAL,
+                outlinePen,
+                fillBrush
+            )
+            {
+                ExtendRight = true
+            };
+            _rectangles.Add(_currentZoneRectangle);
+
+            // Linea POC
+            _currentPocLine = new LineTillTouch(
+                zone.StartBar,
+                zone.POC,
+                pocPen
+            )
+            {
+                IsRay = true
+            };
+            _lines.Add(_currentPocLine);
+        }
+
+        private void UpdateBalanceZoneColors()
+        {
+            if (_context.CurrentZone == null || _currentZoneRectangle == null) return;
+
+            var direction = _context.CurrentZone.BreakoutDirection;
+            if (direction == null) return;
+
+            if (direction == BreakoutDirection.Bullish)
+            {
+                // Blu trasparente per bullish
+                _currentZoneRectangle.Brush = new System.Drawing.SolidBrush(
+                    System.Drawing.Color.FromArgb(30, 0, 100, 200));
+                _currentZoneRectangle.Pen = new System.Drawing.Pen(
+                    System.Drawing.Color.DodgerBlue, 1);
+            }
+            else
+            {
+                // Rosso trasparente per bearish
+                _currentZoneRectangle.Brush = new System.Drawing.SolidBrush(
+                    System.Drawing.Color.FromArgb(30, 200, 50, 50));
+                _currentZoneRectangle.Pen = new System.Drawing.Pen(
+                    System.Drawing.Color.Red, 1);
+            }
         }
     }
 }

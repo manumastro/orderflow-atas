@@ -25,7 +25,7 @@ public class FabioTrendFollowing : Indicator
         if (bar == 0)
         {
             Log($"[ONCALCULATE] Bar 0 - Initializing BalanceZoneTracker");
-            _balanceTracker = new BalanceZoneTracker(this, Log);
+            _balanceTracker = new BalanceZoneTracker(this, Log, Rectangles, HorizontalLinesTillTouch);
             return;
         }
 
