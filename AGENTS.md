@@ -6,15 +6,20 @@ Indicatori/strategie order flow C# per ATAS (futures NQ/ES).
 
 ### Modello 1 — Trend Following (IN REFACTORING)
 **Path:** `Modello-1-TrendFollowing/`  
-**Spec:** `Modello-1-TrendFollowing/FabioTrendFollowing.md`  
-**Analisi:** `Modello-1-TrendFollowing/ANALISI.md` (problemi rilevati e piano di refactoring)  
+**📘 Documento Centrale:** `Modello-1-TrendFollowing/README.md` ⭐  
 **Codice:** `src/FabioTrendFollowing.cs`
 
 Approccio trend following di Fabio per mercati OUT OF BALANCE:
 - Entry su aggression clusters in low volume nodes
 - Target: POC della balance zone precedente
 - Sessione: New York only
-- **Stato:** Prototipo con segnali isolati — manca framework centrale (out-of-balance validation, balance zone tracking, entry/stop/target).
+- **Stato:** Prototipo con segnali isolati — richiede rewrite architetturale completo
+
+**Leggi README.md per:**
+- Framework completo dal transcript (balance zones, out-of-balance validation)
+- Analisi dei 7 problemi architetturali critici
+- Piano di implementazione in 3 fasi
+- Architettura target (state machine, moduli, dataseries)
 
 ### Modello 2 — Mean Reversion (ABBANDONATO)
 **Path:** `Modello-2-MeanReversion/`  
@@ -39,10 +44,11 @@ deploy.bat  # copia DLL in %APPDATA%\ATAS\Indicators\
 
 ## Focus Corrente
 
-**Refactoring completo Modello 1** per implementare il framework centrale:
-1. Out-of-balance detection (state machine BALANCE → OUT_OF_BALANCE)
-2. Balance zone tracking (volume profile, VAH/VAL/POC)
-3. Entry/Stop/Target calculation
-4. Context-aware signals (aggression, low volume nodes, absorption)
+**Refactoring completo Modello 1** per implementare il framework centrale.
 
-Vedere `Modello-1-TrendFollowing/ANALISI.md` per dettagli.
+**📖 Tutto è documentato in:** `Modello-1-TrendFollowing/README.md`
+
+Piano di implementazione in 3 fasi:
+1. **Core Framework** (3-4 giorni): Balance zone tracker, impulse profiler, trade manager
+2. **Signals Refactor** (2-3 giorni): Aggression con context, absorption pattern, CVD as confirm
+3. **Polish & Testing** (1-2 giorni): Visual, parametri, backtest
