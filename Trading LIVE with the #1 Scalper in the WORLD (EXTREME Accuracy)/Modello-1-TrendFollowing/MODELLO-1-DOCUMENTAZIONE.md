@@ -7,8 +7,8 @@ Questo è l'unico documento di riferimento per `Modello-1-TrendFollowing`.
 Accorpa:
 
 - metodo di Fabio dal transcript;
-- analisi del codice attuale;
-- problemi architetturali rilevati;
+- logica corretta da implementare;
+- decisioni architetturali del modello;
 - design del `BalanceZoneTracker`;
 - ricerca online su Volume Profile, sessioni e timeframe;
 - note dalla documentazione ATAS;
@@ -29,9 +29,9 @@ Trade solo quando il mercato è OUT OF BALANCE.
 Non cercare trend-following dentro una balance/range.
 ```
 
-L'indicatore attuale è un prototipo: implementa segnali isolati come aggression, low volume node, absorption e CVD divergence, ma manca il framework centrale del metodo.
+Il codice dell'indicatore deve partire da una base pulita e implementare direttamente la pipeline corretta, senza recuperare logiche parziali o segnali isolati.
 
-Il rewrite deve partire dal `BalanceZoneTracker`, perché senza una balance zone di riferimento non è possibile sapere se il mercato è davvero out-of-balance.
+La prima implementazione deve partire dal `BalanceZoneTracker`, perché senza una balance zone di riferimento non è possibile sapere se il mercato è davvero out-of-balance.
 
 Obiettivo finale:
 
@@ -104,116 +104,113 @@ Motivi:
 
 ---
 
-## 3. Stato del Codice Attuale
+## 3. Logica Corretta da Implementare
 
-File principale:
+Il codice deve seguire una pipeline unica e ordinata. Ogni modulo dipende dal contesto prodotto dal modulo precedente.
 
-```text
-Modello-1-TrendFollowing/src/FabioTrendFollowing.cs
-```
-
-Segnali presenti:
-
-1. `AGGRESSION` — big trades sopra soglia.
-2. `LOW_VOLUME_NODE` — volume basso su lookback fisso.
-3. `ABSORPTION` — delta forte ma prezzo che non segue.
-4. `CVD_DIVERGENCE` — divergenza prezzo/CVD.
-
-Problema: questi segnali sono cercati senza contesto strutturale.
-
-Il codice attuale fa concettualmente questo:
+### 3.1 Pipeline Operativa
 
 ```text
-Se siamo in NY:
-  cerca aggression
-  cerca low volume node
-  cerca absorption
-  cerca CVD divergence
+1. Costruisci la London balance reference.
+2. Calcola e congela POC / VAH / VAL.
+3. Durante NY, monitora solo breakout contro livelli congelati.
+4. Conferma OUT_OF_BALANCE con 2 close consecutive fuori value area.
+5. Dal breakout confermato, costruisci il profilo dell'impulso.
+6. Identifica low volume node solo dentro l'impulso.
+7. Cerca aggression cluster solo in low volume node e nella direzione del breakout.
+8. Calcola entry, stop e target.
+9. Usa absorption e CVD solo come conferme, non come trigger primari.
 ```
 
-Il codice target deve fare questo:
+### 3.2 Regola di Contesto Obbligatoria
+
+Nessun segnale operativo deve essere valutato prima del contesto:
 
 ```text
-Se siamo in NY:
-  se NON siamo out-of-balance: skip
-  se siamo out-of-balance:
-    profila impulso
-    cerca low volume node
-    cerca aggression contestuale
-    calcola trade plan
+Se non esiste una balance reference valida → nessun setup.
+Se NY non ha confermato OUT_OF_BALANCE → nessun setup trend-following.
+Se non esiste low volume node sull'impulso → nessun trigger aggression.
 ```
+
+### 3.3 Ordine dei Moduli
+
+Ordine implementativo corretto:
+
+1. `BalanceZoneTracker`
+2. `OutOfBalanceDetector`
+3. `ImpulseProfiler`
+4. `LowVolumeNodeDetector`
+5. `AggressionDetector`
+6. `TradeManager`
+7. `ConfirmationLayer` per absorption e CVD
+
+### 3.4 Semantica dei Segnali
+
+`Aggression` è il trigger, ma solo dopo contesto valido.
+
+`Low Volume Node` è una location, non un segnale autonomo.
+
+`Absorption` è un pattern di conferma multi-barra.
+
+`CVD` è una conferma di qualità del movimento, non un motivo sufficiente per entrare.
+
+### 3.5 Trade Plan
+
+Ogni setup valido deve produrre:
+
+- direzione (`Bullish` o `Bearish`);
+- entry area sul cluster aggression;
+- stop 2-3 tick oltre il cluster;
+- target primario sul POC della balance precedente;
+- risk/reward stimato prima del segnale grafico.
 
 ---
 
-## 4. Problemi Architetturali Critici
+## 4. Principi Architetturali
 
-### 4.1 Manca Out-of-Balance Validation
+### 4.1 Livelli Congelati
 
-Il codice cerca segnali su ogni barra NY. Questo è contrario al framework di Fabio.
-
-Serve un pre-filtro obbligatorio:
-
-```csharp
-if (!IsOutOfBalance)
-    return;
-```
-
-### 4.2 Manca Balance Zone Tracking
-
-Non esiste tracking robusto di:
-
-- POC;
-- VAH;
-- VAL;
-- balance precedente;
-- breakout confermato;
-- target POC.
-
-### 4.3 Low Volume Node su Lookback Generico
-
-Il codice usa un lookback fisso. Fabio invece profila l'impulso:
+Una balance zone confermata non deve cambiare durante NY.
 
 ```text
-from the beginning to the end of the impulse
+POC / VAH / VAL congelati
+→ breakout valutato contro livelli fissi
+→ target stabile
 ```
 
-Quindi il low volume node deve essere calcolato dal breakout in poi, non sulle ultime N barre casuali.
+### 4.2 Session-Based First
 
-### 4.4 Aggression Senza Contesto
-
-L'aggression isolata non basta. Serve cambio di regime:
+La prima versione deve usare solo:
 
 ```text
-small orders / balance
-→ big orders / aggression
-→ continuation
+London chiusa = balance reference
+NY RTH = trading / breakout window
 ```
 
-### 4.5 Entry / Stop / Target Mancanti
+La consolidation intra-session è una fase successiva e opzionale.
 
-Il modello deve calcolare:
+### 4.3 Retroattività
 
-- entry sul cluster di aggression;
-- stop 2-3 tick oltre il cluster;
-- target sul POC della balance precedente.
+Tutto il framework fino al low volume node deve funzionare su storico ATAS.
 
-### 4.6 Absorption Troppo Semplice
+Eventuali trigger non ricostruibili storicamente devono essere isolati e documentati come live-only, ma il `BalanceZoneTracker` deve essere completamente retroattivo.
 
-L'absorption non è solo:
+### 4.4 Semplicità Prima dei Parametri
 
-```text
-delta forte + close che tiene
-```
+Non esporre parametri finché la logica base non è validata visivamente.
 
-È un pattern multi-barra:
+La prima versione usa costanti interne e log leggibili.
 
-1. pressione aggressiva ripetuta;
-2. prezzo che non passa;
-3. breakout opposto/conferma.
+### 4.5 Conferme Dopo il Trigger
 
-### 4.7 CVD Usato nel Posto Sbagliato
+Absorption e CVD non devono bloccare la costruzione del contesto.
 
-Il CVD deve essere conferma, non trigger primario.
+Sono layer di conferma da aggiungere dopo che:
+
+1. balance reference esiste;
+2. out-of-balance è confermato;
+3. impulse profile esiste;
+4. aggression trigger è in location valida.
 
 ---
 
@@ -911,7 +908,7 @@ Implementare:
 1. Start impulse = breakout bar confermata.
 2. Profilo volume dal breakout in poi.
 3. Identificazione low volume node sull'impulso.
-4. Non usare più lookback fisso generico.
+4. Ogni low volume node deve appartenere al profilo dell'impulso attivo.
 
 ### Phase 4 — Aggression Contextuale
 
@@ -1080,17 +1077,19 @@ Modello 2 Mean Reversion abbandonato come implementazione programmatica. Mantenu
 
 Focus esclusivo su Modello 1 Trend Following.
 
-### 2026-06-21 — Analisi Codice Attuale
+### 2026-06-21 — Ripartenza da Base Pulita
 
-Rilevati sette problemi critici:
+Il codice del Modello 1 deve essere trattato come una nuova implementazione guidata da questo documento.
 
-1. manca out-of-balance validation;
-2. manca balance zone tracking;
-3. low volume node su lookback generico;
-4. aggression senza contesto;
-5. entry/stop/target mancanti;
-6. absorption troppo semplice;
-7. CVD usato come trigger.
+La logica corretta parte da:
+
+1. balance reference session-based;
+2. out-of-balance validation;
+3. impulse profiling;
+4. low volume node sull'impulso;
+5. aggression contestuale;
+6. trade plan con entry, stop e target;
+7. absorption e CVD solo come conferme.
 
 ### 2026-06-21 — Ricerca BalanceZoneTracker
 
