@@ -21,6 +21,9 @@ Approccio trend following di Fabio per mercati OUT OF BALANCE:
 - Piano di implementazione in 3 fasi
 - Architettura target (state machine, moduli, dataseries)
 
+**Leggi `BalanceZoneTracker.md` per:**
+- Documento operativo unico su balance zone, Volume Profile, POC/VAH/VAL, sessioni, state machine e roadmap del tracker
+
 ### Modello 2 — Mean Reversion (ABBANDONATO)
 **Path:** `Modello-2-MeanReversion/`  
 **Spec:** `Modello-2-MeanReversion/FabioMeanReversion.md`  

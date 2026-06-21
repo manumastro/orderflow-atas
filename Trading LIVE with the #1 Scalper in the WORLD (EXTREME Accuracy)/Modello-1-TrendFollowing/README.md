@@ -8,6 +8,8 @@ Implementazione ATAS del modello di trend following di Fabio Valentino (Robins W
 
 **Principio fondamentale:** Trade solo quando il mercato è **OUT OF BALANCE** (trending), mai in balance/ranging.
 
+**Documento operativo BalanceZoneTracker:** `BalanceZoneTracker.md` — fonte unica per ricerca, best practice, design e roadmap implementativa del modulo balance/out-of-balance.
+
 ---
 
 ## 1. Il Metodo di Fabio (dal Transcript)
