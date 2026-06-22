@@ -131,6 +131,12 @@ namespace FabioTrendFollowing
 
             var isInLondonSession = IsInLondonSession(londonTime);
             var isInNewYorkSession = IsInNewYorkSession(nyTime);
+            
+            // Log stato ogni 10 barre durante sessione attiva
+            if (bar % 10 == 0 && (isInLondonSession || isInNewYorkSession))
+            {
+                _log($"[STATE] Bar={bar}, State={_context.State}, LondonSession={isInLondonSession}, NYSession={isInNewYorkSession}");
+            }
 
             // State machine
             switch (_context.State)
