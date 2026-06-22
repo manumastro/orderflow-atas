@@ -4,9 +4,6 @@
 
 ✅ **Phase 1 Completata** - Hybrid approach implementato (commit 877df9b)
 
-**Note implementative:**  
-Box visivo usa High/Low della sessione London (copre 100% candele). VAH/VAL usati solo per breakout detection. Dettagli: `HYBRID-APPROACH-ANALYSIS.md`
-
 ---
 
 ## 1. Scopo
@@ -42,7 +39,7 @@ Non responsabilità:
 | POC | price level con volume massimo |
 | VAH/VAL | espansione contigua dal POC |
 | Breakout | 2 close consecutive fuori VAH/VAL |
-| **Box visivo** | **High/Low sessione (hybrid)** |
+| **Rendering** | **Box: High/Low, Breakout logic: VAH/VAL** |
 | Timezone | `TimeZoneInfo`, no offset hardcoded |
 | Timeframe | M5 raccomandato, non bloccante |
 | Confini | congelati dopo fine London |
@@ -309,13 +306,48 @@ Non bloccare nella prima versione. Loggare metriche per analisi futura.
 
 ---
 
-## 10. Visual
+## 10. Hybrid Approach: Rendering
 
-Il rendering può essere implementato direttamente qui oppure delegato a `VisualRenderer`.
+**Problema identificato:**  
+Quando il mercato si muove in trend durante London, la Value Area (VAH/VAL) diventa asimmetrica e non copre tutte le candele della sessione.
+
+**Esempio:** Sessione scende da 30820 a 30450 → POC finisce a 30506 → VAH espande poco verso l'alto (30605) → prime candele (30820) fuori dalla Value Area.
+
+**Soluzione implementata:**
+- **Box visivo**: usa `High/Low` della sessione (copre 100% candele)
+- **Breakout logic**: usa `VAH/VAL` (mantiene coerenza modello Fabio)
+- **POC line**: invariato (prezzo con max volume)
+
+```csharp
+// Rendering: High/Low per box visivo
+new DrawingRectangle(
+    zone.StartBar,
+    zone.High,    // ← range completo sessione
+    zone.EndBar,
+    zone.Low,
+    outlinePen,
+    fillBrush
+);
+
+// Business logic: VAH/VAL per breakout
+var isBullishBreak = close > zone.VAH;
+var isBearishBreak = close < zone.VAL;
+```
+
+**Vantaggi:**
+1. Visual accuracy: il trader vede il range completo London
+2. Coerenza modello: breakout detection invariato
+3. Stabilità: non dipende da asimmetrie volume profile
+
+**Impatto su moduli successivi:** Nessuno - la business logic usa VAH/VAL come previsto.
+
+---
+
+## 11. Visual
 
 Elementi minimi:
 
-- rettangolo `VAH/VAL`;
+- rettangolo `High/Low` (box visivo);
 - linea `POC`;
 - colore differente se breakout bullish/bearish.
 
@@ -327,7 +359,7 @@ creare drawing object una volta e aggiornare SecondBar
 
 ---
 
-## 11. Log Attesi
+## 12. Log Attesi
 
 ```text
 [BALANCE_BUILDING] London start | Bar=...
