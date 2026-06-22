@@ -45,6 +45,11 @@ namespace FabioTrendFollowing
         public BreakoutDirection? BreakoutDirection { get; set; }
         public int? BreakoutBar { get; set; }
 
+        public int SessionHighBar { get; set; }
+        public int SessionLowBar { get; set; }
+        public DateTime SessionHighTimeUtc { get; set; }
+        public DateTime SessionLowTimeUtc { get; set; }
+
         public Dictionary<decimal, decimal> Profile { get; } = new();
     }
 
@@ -66,6 +71,7 @@ namespace FabioTrendFollowing
 
         private readonly TimeZoneInfo _londonTimeZone;
         private readonly TimeZoneInfo _newYorkTimeZone;
+        private readonly TimeZoneInfo _italyTimeZone;
 
         private readonly List<DrawingRectangle> _rectangles;
         private readonly List<LineTillTouch> _lines;
@@ -80,6 +86,7 @@ namespace FabioTrendFollowing
         private const int MinCompleteSessionBars = 90; // Tolleranza -6 bars
         
         private bool _firstCompleteSessionFound = false;
+        private int _lastLoggedPreCloseBar = -1;
 
         public BalanceZoneTracker(
             Indicator indicator, 
@@ -103,6 +110,16 @@ namespace FabioTrendFollowing
             {
                 _log($"[ERROR] Timezone not found: {ex.Message}");
                 throw;
+            }
+
+            try
+            {
+                _italyTimeZone = TimeZoneInfo.FindSystemTimeZoneById("W. Europe Standard Time");
+            }
+            catch (TimeZoneNotFoundException)
+            {
+                _italyTimeZone = TimeZoneInfo.Local;
+                _log($"[WARN] Italy timezone not found, using local timezone: {_italyTimeZone.Id}");
             }
         }
 
@@ -206,8 +223,14 @@ namespace FabioTrendFollowing
                 StartBar = bar,
                 IsReady = false,
                 High = candle.High,
-                Low = candle.Low
+                Low = candle.Low,
+                SessionHighBar = bar,
+                SessionLowBar = bar,
+                SessionHighTimeUtc = candle.Time,
+                SessionLowTimeUtc = candle.Time
             };
+
+            _lastLoggedPreCloseBar = -1;
 
             UpdateLondonProfile(bar, candle);
             _log($"[SESSION_START] London session started at bar {bar} (London: {londonTime:yyyy-MM-dd HH:mm}, UTC: {candle.Time:yyyy-MM-dd HH:mm:ss})");
@@ -233,10 +256,29 @@ namespace FabioTrendFollowing
             }
 
             _context.CurrentZone.TotalVolume += candle.Volume;
-            _context.CurrentZone.High = Math.Max(_context.CurrentZone.High, candle.High);
-            _context.CurrentZone.Low = _context.CurrentZone.Low == 0 
-                ? candle.Low 
-                : Math.Min(_context.CurrentZone.Low, candle.Low);
+
+            var previousHigh = _context.CurrentZone.High;
+            var previousLow = _context.CurrentZone.Low;
+
+            if (candle.High > previousHigh)
+            {
+                _context.CurrentZone.High = candle.High;
+                _context.CurrentZone.SessionHighBar = bar;
+                _context.CurrentZone.SessionHighTimeUtc = candle.Time;
+                LogSessionExtreme("NEW_SESSION_HIGH", bar, candle, previousHigh);
+                LogPotentialRejection("HIGH_REJECTION_CANDIDATE", bar, candle, previousHigh);
+            }
+
+            if (previousLow == 0 || candle.Low < previousLow)
+            {
+                _context.CurrentZone.Low = candle.Low;
+                _context.CurrentZone.SessionLowBar = bar;
+                _context.CurrentZone.SessionLowTimeUtc = candle.Time;
+                LogSessionExtreme("NEW_SESSION_LOW", bar, candle, previousLow);
+                LogPotentialRejection("LOW_REJECTION_CANDIDATE", bar, candle, previousLow);
+            }
+
+            LogLondonPreCloseCandle(bar, candle);
         }
 
         private void FinalizeLondonSession(int bar)
@@ -253,6 +295,8 @@ namespace FabioTrendFollowing
             _log($"[SESSION_END] London session ended at bar {bar - 1} (London: {londonTime:yyyy-MM-dd HH:mm}, UTC: {endCandle.Time:yyyy-MM-dd HH:mm:ss}). Bars in session: {barCount}");
             _log($"[SESSION_END] Candle: O={endCandle.Open:F2}, H={endCandle.High:F2}, L={endCandle.Low:F2}, C={endCandle.Close:F2}");
             _log($"[SESSION_END] Session range so far: High={_context.CurrentZone.High:F2}, Low={_context.CurrentZone.Low:F2}, TotalVolume={_context.CurrentZone.TotalVolume:F0}");
+            _log($"[SESSION_EXTREMES] High={_context.CurrentZone.High:F2} at Bar={_context.CurrentZone.SessionHighBar}, {FormatTimes(_context.CurrentZone.SessionHighTimeUtc)}");
+            _log($"[SESSION_EXTREMES] Low={_context.CurrentZone.Low:F2} at Bar={_context.CurrentZone.SessionLowBar}, {FormatTimes(_context.CurrentZone.SessionLowTimeUtc)}");
             
             // Verifica se è una sessione completa
             if (!_firstCompleteSessionFound)
@@ -468,6 +512,52 @@ namespace FabioTrendFollowing
             var endMinutes = 16 * 60;        // 16:00
 
             return totalMinutes >= startMinutes && totalMinutes < endMinutes;
+        }
+
+        private string FormatTimes(DateTime utcTime)
+        {
+            var londonTime = TimeZoneInfo.ConvertTimeFromUtc(utcTime, _londonTimeZone);
+            var italyTime = TimeZoneInfo.ConvertTimeFromUtc(utcTime, _italyTimeZone);
+            return $"UTC={utcTime:yyyy-MM-dd HH:mm:ss}, London={londonTime:yyyy-MM-dd HH:mm}, Italy={italyTime:yyyy-MM-dd HH:mm}";
+        }
+
+        private void LogSessionExtreme(string tag, int bar, IndicatorCandle candle, decimal previousExtreme)
+        {
+            _log($"[{tag}] Bar={bar}, {FormatTimes(candle.Time)}, Previous={previousExtreme:F2}, O={candle.Open:F2}, H={candle.High:F2}, L={candle.Low:F2}, C={candle.Close:F2}, V={candle.Volume:F0}");
+        }
+
+        private void LogPotentialRejection(string tag, int bar, IndicatorCandle candle, decimal previousExtreme)
+        {
+            var range = candle.High - candle.Low;
+            if (range <= 0)
+                return;
+
+            var upperWick = candle.High - Math.Max(candle.Open, candle.Close);
+            var lowerWick = Math.Min(candle.Open, candle.Close) - candle.Low;
+            var closePosition = (candle.Close - candle.Low) / range;
+
+            var highRejection = tag == "HIGH_REJECTION_CANDIDATE"
+                && (candle.Close < previousExtreme || upperWick >= range * 0.40m || closePosition <= 0.50m);
+            var lowRejection = tag == "LOW_REJECTION_CANDIDATE"
+                && (candle.Close > previousExtreme || lowerWick >= range * 0.40m || closePosition >= 0.50m);
+
+            if (!highRejection && !lowRejection)
+                return;
+
+            _log($"[{tag}] Bar={bar}, {FormatTimes(candle.Time)}, PreviousExtreme={previousExtreme:F2}, Range={range:F2}, UpperWick={upperWick:F2}, LowerWick={lowerWick:F2}, ClosePosition={closePosition:P0}, O={candle.Open:F2}, H={candle.High:F2}, L={candle.Low:F2}, C={candle.Close:F2}, V={candle.Volume:F0}");
+        }
+
+        private void LogLondonPreCloseCandle(int bar, IndicatorCandle candle)
+        {
+            if (bar == _lastLoggedPreCloseBar)
+                return;
+
+            var londonTime = TimeZoneInfo.ConvertTimeFromUtc(candle.Time, _londonTimeZone);
+            if (londonTime.Hour != 15)
+                return;
+
+            _lastLoggedPreCloseBar = bar;
+            _log($"[LONDON_PRE_CLOSE] Bar={bar}, {FormatTimes(candle.Time)}, O={candle.Open:F2}, H={candle.High:F2}, L={candle.Low:F2}, C={candle.Close:F2}, V={candle.Volume:F0}");
         }
 
         private void Log(string message)
