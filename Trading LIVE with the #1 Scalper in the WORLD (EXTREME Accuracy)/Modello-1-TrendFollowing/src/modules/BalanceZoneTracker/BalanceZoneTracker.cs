@@ -164,6 +164,12 @@ namespace FabioTrendFollowing
                         _currentZoneRectangle.SecondBar = bar;
                     }
                     
+                    // Estendi anche la linea POC
+                    if (_currentPocLine != null)
+                    {
+                        _currentPocLine.SecondBar = bar;
+                    }
+                    
                     // Reset su nuova London session
                     if (isInLondonSession && !IsBarInCurrentZone(bar))
                     {
@@ -256,6 +262,9 @@ namespace FabioTrendFollowing
                 _context.CurrentZone = null;
                 return;
             }
+
+            // Log range prezzi prima dei calcoli
+            Log($"[PROFILE_RANGE] High={_context.CurrentZone.High} | Low={_context.CurrentZone.Low} | ProfileLevels={_context.CurrentZone.Profile.Count}");
 
             CalculatePOC();
             CalculateValueArea();
@@ -446,16 +455,19 @@ namespace FabioTrendFollowing
             );
             _rectangles.Add(_currentZoneRectangle);
 
-            // Linea POC
+            // Linea POC (NON Ray, termina a EndBar)
             _currentPocLine = new LineTillTouch(
                 zone.StartBar,
                 zone.POC,
                 pocPen
             )
             {
-                IsRay = true
+                IsRay = false,
+                SecondBar = zone.EndBar
             };
             _lines.Add(_currentPocLine);
+
+            Log($"[DRAW_ZONE] Rectangle=({zone.StartBar},{zone.VAH})-({zone.EndBar},{zone.VAL}) | POC_Line=({zone.StartBar},{zone.POC})-({zone.EndBar},{zone.POC})");
         }
 
         private void UpdateBalanceZoneColors()
