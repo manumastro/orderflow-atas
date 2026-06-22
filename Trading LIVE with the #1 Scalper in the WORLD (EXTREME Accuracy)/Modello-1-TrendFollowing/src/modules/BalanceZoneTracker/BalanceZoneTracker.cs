@@ -73,6 +73,10 @@ namespace FabioTrendFollowing
         private LineTillTouch? _currentPocLine;
 
         private const int MinSessionBars = 5;
+        private const int ExpectedLondonBars = 96; // 8h * 12 bars/h on M5
+        private const int MinCompleteSessionBars = 90; // Tolleranza -6 bars
+        
+        private bool _firstCompleteSessionFound = false;
 
         public BalanceZoneTracker(
             Indicator indicator, 
@@ -171,6 +175,16 @@ namespace FabioTrendFollowing
 
         private void StartLondonSession(int bar, IndicatorCandle candle)
         {
+            // Verifica se è l'inizio esatto della sessione London (08:00 GMT)
+            var londonTime = TimeZoneInfo.ConvertTimeFromUtc(candle.Time, _londonTimeZone);
+            
+            // Salta sessioni parziali fino a trovare la prima completa
+            if (!_firstCompleteSessionFound && londonTime.Hour != 8)
+            {
+                Log($"[SKIP] Partial London session detected at {londonTime:HH:mm} | Bar={bar}");
+                return;
+            }
+            
             _context.State = MarketState.BuildingSessionProfile;
             _context.CurrentZone = new BalanceZone
             {
@@ -182,7 +196,7 @@ namespace FabioTrendFollowing
             };
 
             UpdateLondonProfile(bar, candle);
-            Log($"[BALANCE_BUILDING] London start | Bar={bar}");
+            Log($"[BALANCE_BUILDING] London start | Bar={bar} | Time={londonTime:HH:mm}");
         }
 
         private void UpdateLondonProfile(int bar, IndicatorCandle candle)
@@ -217,6 +231,24 @@ namespace FabioTrendFollowing
             _context.CurrentZone.EndBar = bar - 1;
 
             var barCount = _context.CurrentZone.EndBar - _context.CurrentZone.StartBar + 1;
+            
+            // Verifica se è una sessione completa
+            if (!_firstCompleteSessionFound)
+            {
+                if (barCount < MinCompleteSessionBars)
+                {
+                    Log($"[SKIP] Incomplete London session | Bars={barCount} (expected ~{ExpectedLondonBars})");
+                    _context.State = MarketState.NoZone;
+                    _context.CurrentZone = null;
+                    return;
+                }
+                else
+                {
+                    _firstCompleteSessionFound = true;
+                    Log($"[FIRST_COMPLETE] First complete London session found | Bars={barCount}");
+                }
+            }
+            
             if (barCount < MinSessionBars || _context.CurrentZone.Profile.Count == 0)
             {
                 Log($"[BALANCE_INVALID] London session too short or empty | Bars={barCount}");
