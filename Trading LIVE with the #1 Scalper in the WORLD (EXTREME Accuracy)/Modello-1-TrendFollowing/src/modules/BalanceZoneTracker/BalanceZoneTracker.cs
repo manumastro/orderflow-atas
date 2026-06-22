@@ -72,10 +72,6 @@ namespace FabioTrendFollowing
         
         private DrawingRectangle? _currentZoneRectangle;
         private LineTillTouch? _currentPocLine;
-        
-        // Out-of-balance visual: linea superiore + linea verticale di supporto
-        private LineTillTouch? _outOfBalanceTopLine;
-        private LineTillTouch? _outOfBalanceStartLine;
 
         private const int MinSessionBars = 5;
         private const int ExpectedLondonBars = 96; // 8h * 12 bars/h on M5
@@ -410,7 +406,6 @@ namespace FabioTrendFollowing
                     _context.CurrentZone.BreakoutBar = _context.PendingBreakoutBar;
 
                     UpdateBalanceZoneColors();
-                    DrawOutOfBalanceZone(bar, candle);
 
                     _log($"[BREAKOUT_CONFIRMED] Direction: {_context.PendingDirection}, Bar: {bar}, Time: {candle.Time:yyyy-MM-dd HH:mm:ss}, Close: {close:F2}, VAH: {_context.CurrentZone.VAH:F2}, VAL: {_context.CurrentZone.VAL:F2}");
                     _log($"[BREAKOUT_CONFIRMED] Candle: O={candle.Open}, H={candle.High}, L={candle.Low}, C={candle.Close}");
@@ -433,8 +428,6 @@ namespace FabioTrendFollowing
             // Reset referenze alle zone vecchie
             _currentZoneRectangle = null;
             _currentPocLine = null;
-            _outOfBalanceTopLine = null;
-            _outOfBalanceStartLine = null;
             
             _context.State = MarketState.NoZone;
             _context.CurrentZone = null;
@@ -661,52 +654,5 @@ namespace FabioTrendFollowing
             }
         }
         
-        private void DrawOutOfBalanceZone(int bar, IndicatorCandle candle)
-        {
-            if (_context.CurrentZone == null) return;
-            
-            var direction = _context.CurrentZone.BreakoutDirection;
-            if (direction == null) return;
-            
-            var breakoutBar = _context.CurrentZone.BreakoutBar ?? bar;
-            
-            // Determina il prezzo per la linea superiore (VAH per bullish, VAL per bearish)
-            var topPrice = direction == BreakoutDirection.Bullish 
-                ? _context.CurrentZone.VAH 
-                : _context.CurrentZone.VAL;
-            
-            // Colore in base alla direzione
-            var color = direction == BreakoutDirection.Bullish 
-                ? System.Drawing.Color.DodgerBlue 
-                : System.Drawing.Color.Red;
-            
-            var pen = new System.Drawing.Pen(color, 2);
-            
-            // Linea verticale di inizio (al breakout bar)
-            _outOfBalanceStartLine = new LineTillTouch(
-                breakoutBar,
-                topPrice,
-                pen
-            )
-            {
-                IsRay = false,
-                SecondBar = breakoutBar,
-                SecondPrice = candle.Low  // Scende fino al low della candela di breakout
-            };
-            _lines.Add(_outOfBalanceStartLine);
-            
-            // Linea orizzontale superiore (da breakout bar fino a barra corrente)
-            _outOfBalanceTopLine = new LineTillTouch(
-                breakoutBar,
-                topPrice,
-                pen
-            )
-            {
-                IsRay = true  // Si estende a destra
-            };
-            _lines.Add(_outOfBalanceTopLine);
-            
-            _log($"[DRAW_OOB] Out-of-balance zone drawn: Direction={direction}, TopPrice={topPrice:F2}, BreakoutBar={breakoutBar}");
-        }
     }
 }
