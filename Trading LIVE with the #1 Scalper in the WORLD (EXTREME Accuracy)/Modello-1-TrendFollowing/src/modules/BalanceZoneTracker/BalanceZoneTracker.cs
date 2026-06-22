@@ -258,7 +258,8 @@ namespace FabioTrendFollowing
             var londonTime = TimeZoneInfo.ConvertTimeFromUtc(endCandle.Time, _londonTimeZone);
             
             _log($"[SESSION_END] London session ended at bar {bar - 1} (London: {londonTime:yyyy-MM-dd HH:mm}, UTC: {endCandle.Time:yyyy-MM-dd HH:mm:ss}). Bars in session: {barCount}");
-            _log($"[SESSION_END] Candle: O={endCandle.Open}, H={endCandle.High}, L={endCandle.Low}, C={endCandle.Close}");
+            _log($"[SESSION_END] Candle: O={endCandle.Open:F2}, H={endCandle.High:F2}, L={endCandle.Low:F2}, C={endCandle.Close:F2}");
+            _log($"[SESSION_END] Session range so far: High={_context.CurrentZone.High:F2}, Low={_context.CurrentZone.Low:F2}, TotalVolume={_context.CurrentZone.TotalVolume:F0}");
             
             // Verifica se è una sessione completa
             if (!_firstCompleteSessionFound)
@@ -286,7 +287,9 @@ namespace FabioTrendFollowing
             }
 
             // Log range prezzi prima dei calcoli
-            _log($"[PROFILE_RANGE] High={_context.CurrentZone.High} | Low={_context.CurrentZone.Low} | ProfileLevels={_context.CurrentZone.Profile.Count}");
+            _log($"[PROFILE_RANGE] High={_context.CurrentZone.High:F2} | Low={_context.CurrentZone.Low:F2} | ProfileLevels={_context.CurrentZone.Profile.Count}");
+            _log($"[PROFILE_DETAIL] First 10 levels: {string.Join(", ", _context.CurrentZone.Profile.OrderBy(kv => kv.Key).Take(10).Select(kv => $"{kv.Key:F2}={kv.Value:F0}"))}");
+            _log($"[PROFILE_DETAIL] Last 10 levels: {string.Join(", ", _context.CurrentZone.Profile.OrderByDescending(kv => kv.Key).Take(10).Select(kv => $"{kv.Key:F2}={kv.Value:F0}"))}");
 
             CalculatePOC();
             CalculateValueArea();
@@ -299,8 +302,8 @@ namespace FabioTrendFollowing
             _log($"[ZONE_READY] Balance zone ready: High={_context.CurrentZone.High:F2}, Low={_context.CurrentZone.Low:F2}, POC={_context.CurrentZone.POC:F2}, VAH={_context.CurrentZone.VAH:F2}, VAL={_context.CurrentZone.VAL:F2}, TotalVolume={_context.CurrentZone.TotalVolume:F0}");
             _log($"[ZONE_READY] StartBar={_context.CurrentZone.StartBar}, EndBar={_context.CurrentZone.EndBar}, Bars={barCount}");
             
-            // Verifica copertura candele nella zona
-            VerifyZoneCoverage(_context.CurrentZone);
+            // Verifica copertura candele nella zona - TUTTE LE CANDELE
+            VerifyZoneCoverageComplete(_context.CurrentZone);
         }
 
         private void CalculatePOC()
@@ -312,6 +315,12 @@ namespace FabioTrendFollowing
 
             // Tie-break: prezzo più basso
             _context.CurrentZone.POC = pocCandidates.Min(kv => kv.Key);
+            
+            _log($"[POC_CALC] MaxVolume={maxVolume:F0}, POC={_context.CurrentZone.POC:F2}, Candidates={pocCandidates.Count}");
+            if (pocCandidates.Count > 1)
+            {
+                _log($"[POC_CALC] Multiple POC candidates (tie-break to lowest): {string.Join(", ", pocCandidates.Select(kv => $"{kv.Key:F2}"))}");
+            }
         }
 
         private void CalculateValueArea()
@@ -324,9 +333,14 @@ namespace FabioTrendFollowing
             var pocIndex = sortedLevels.FindIndex(kv => kv.Key == _context.CurrentZone.POC);
             if (pocIndex == -1) return;
 
+            _log($"[VALUE_AREA_CALC] TotalVolume={_context.CurrentZone.TotalVolume:F0}, Target70%={targetVolume:F0}");
+            _log($"[VALUE_AREA_CALC] POC at index {pocIndex} of {sortedLevels.Count} levels, Price={_context.CurrentZone.POC:F2}");
+
             var accumulatedVolume = sortedLevels[pocIndex].Value;
             var lowerIndex = pocIndex;
             var upperIndex = pocIndex;
+
+            _log($"[VALUE_AREA_CALC] Starting expansion from POC, InitialVolume={accumulatedVolume:F0}");
 
             while (accumulatedVolume < targetVolume && (lowerIndex > 0 || upperIndex < sortedLevels.Count - 1))
             {
@@ -337,11 +351,13 @@ namespace FabioTrendFollowing
                 {
                     lowerIndex--;
                     accumulatedVolume += sortedLevels[lowerIndex].Value;
+                    _log($"[VALUE_AREA_CALC] Expanded down: Price={sortedLevels[lowerIndex].Key:F2}, Volume={sortedLevels[lowerIndex].Value:F0}, Accumulated={accumulatedVolume:F0}");
                 }
                 else if (upperIndex < sortedLevels.Count - 1)
                 {
                     upperIndex++;
                     accumulatedVolume += sortedLevels[upperIndex].Value;
+                    _log($"[VALUE_AREA_CALC] Expanded up: Price={sortedLevels[upperIndex].Key:F2}, Volume={sortedLevels[upperIndex].Value:F0}, Accumulated={accumulatedVolume:F0}");
                 }
                 else
                 {
@@ -351,6 +367,9 @@ namespace FabioTrendFollowing
 
             _context.CurrentZone.VAL = sortedLevels[lowerIndex].Key;
             _context.CurrentZone.VAH = sortedLevels[upperIndex].Key;
+            
+            _log($"[VALUE_AREA_CALC] Final: VAL={_context.CurrentZone.VAL:F2} (index {lowerIndex}), VAH={_context.CurrentZone.VAH:F2} (index {upperIndex})");
+            _log($"[VALUE_AREA_CALC] Final accumulated volume: {accumulatedVolume:F0} ({100.0m * accumulatedVolume / _context.CurrentZone.TotalVolume:F1}%)");
         }
 
         private void CheckForBreakout(int bar, IndicatorCandle candle)
@@ -495,45 +514,83 @@ namespace FabioTrendFollowing
             };
             _lines.Add(_currentPocLine);
 
-            _log($"[DRAW_ZONE] Rectangle=({zone.StartBar},{zone.VAH})-({zone.EndBar},{zone.VAL}) | POC_Line=({zone.StartBar},{zone.POC})-({zone.EndBar},{zone.POC})");
+            _log($"[DRAW_ZONE] Rectangle=({zone.StartBar},{zone.VAH:F2})-({zone.EndBar},{zone.VAL:F2})");
+            _log($"[DRAW_ZONE] POC_Line=({zone.StartBar},{zone.POC:F2})-({zone.EndBar},{zone.POC:F2})");
+            _log($"[DRAW_ZONE] Zone High={zone.High:F2}, Low={zone.Low:F2}");
+            
+            // Log delle prime 5 candele della zona per verifica
+            _log($"[DRAW_ZONE] === First 5 candles in zone ===");
+            for (int i = zone.StartBar; i < Math.Min(zone.StartBar + 5, zone.EndBar); i++)
+            {
+                var c = _getCandle(i);
+                _log($"[DRAW_ZONE] Bar {i}: Time={c.Time:yyyy-MM-dd HH:mm:ss}, O={c.Open:F2}, H={c.High:F2}, L={c.Low:F2}, C={c.Close:F2}");
+            }
         }
 
-        private void VerifyZoneCoverage(BalanceZone zone)
+        private void VerifyZoneCoverageComplete(BalanceZone zone)
         {
-            _log($"[VERIFY_COVERAGE] Checking if zone covers candles properly...");
+            _log($"[VERIFY_COVERAGE] === COMPLETE COVERAGE CHECK ===");
+            _log($"[VERIFY_COVERAGE] Zone: VAH={zone.VAH:F2}, VAL={zone.VAL:F2}, High={zone.High:F2}, Low={zone.Low:F2}");
+            _log($"[VERIFY_COVERAGE] StartBar={zone.StartBar}, EndBar={zone.EndBar}, Total={zone.EndBar - zone.StartBar + 1} bars");
             
             int totalCandles = 0;
             int fullyCovered = 0;
             int partiallyCovered = 0;
             int notCovered = 0;
+            int beyondHigh = 0;
+            int belowLow = 0;
             
-            // Campiona ogni 10 candele per non fare spam
-            for (int i = zone.StartBar; i <= zone.EndBar; i += 10)
+            // Verifica TUTTE le candele
+            for (int i = zone.StartBar; i <= zone.EndBar; i++)
             {
                 var candle = _getCandle(i);
                 totalCandles++;
                 
                 bool candleFullyCovered = candle.High <= zone.VAH && candle.Low >= zone.VAL;
                 bool candlePartiallyCovered = (candle.High >= zone.VAL && candle.Low <= zone.VAH);
+                bool candleBeyondHigh = candle.Low > zone.High;
+                bool candleBelowLow = candle.High < zone.Low;
                 
+                string status;
                 if (candleFullyCovered)
                 {
                     fullyCovered++;
-                    _log($"[VERIFY_COVERAGE] Bar {i}: FULLY COVERED | Candle H={candle.High:F2} L={candle.Low:F2} | Zone VAH={zone.VAH:F2} VAL={zone.VAL:F2}");
+                    status = "FULLY_COVERED";
                 }
                 else if (candlePartiallyCovered)
                 {
                     partiallyCovered++;
-                    _log($"[VERIFY_COVERAGE] Bar {i}: PARTIALLY COVERED | Candle H={candle.High:F2} L={candle.Low:F2} | Zone VAH={zone.VAH:F2} VAL={zone.VAL:F2}");
+                    status = "PARTIALLY_COVERED";
                 }
                 else
                 {
                     notCovered++;
-                    _log($"[VERIFY_COVERAGE] Bar {i}: NOT COVERED | Candle H={candle.High:F2} L={candle.Low:F2} | Zone VAH={zone.VAH:F2} VAL={zone.VAL:F2}");
+                    status = "NOT_COVERED";
+                    
+                    if (candleBeyondHigh)
+                    {
+                        beyondHigh++;
+                        status = "BEYOND_HIGH";
+                    }
+                    else if (candleBelowLow)
+                    {
+                        belowLow++;
+                        status = "BELOW_LOW";
+                    }
                 }
+                
+                // Log TUTTE le candele con status
+                _log($"[VERIFY_COVERAGE] Bar {i}: {status} | Time={candle.Time:yyyy-MM-dd HH:mm:ss} | Candle H={candle.High:F2} L={candle.Low:F2} | Zone VAH={zone.VAH:F2} VAL={zone.VAL:F2} High={zone.High:F2} Low={zone.Low:F2}");
             }
             
-            _log($"[VERIFY_COVERAGE] Summary: Total={totalCandles}, FullyCovered={fullyCovered}, PartiallyCovered={partiallyCovered}, NotCovered={notCovered}");
+            _log($"[VERIFY_COVERAGE] === SUMMARY ===");
+            _log($"[VERIFY_COVERAGE] Total={totalCandles}, FullyCovered={fullyCovered} ({100.0*fullyCovered/totalCandles:F1}%), PartiallyCovered={partiallyCovered} ({100.0*partiallyCovered/totalCandles:F1}%), NotCovered={notCovered} ({100.0*notCovered/totalCandles:F1}%)");
+            _log($"[VERIFY_COVERAGE] BeyondHigh={beyondHigh}, BelowLow={belowLow}");
+            
+            if (notCovered > totalCandles * 0.5m)
+            {
+                _log($"[VERIFY_COVERAGE] ⚠️ WARNING: More than 50% of candles NOT covered! Zone might be incorrect.");
+            }
         }
 
         private bool IsValidLondonSessionStart(DateTime londonTime, int sessionStartBar, int currentBar)
