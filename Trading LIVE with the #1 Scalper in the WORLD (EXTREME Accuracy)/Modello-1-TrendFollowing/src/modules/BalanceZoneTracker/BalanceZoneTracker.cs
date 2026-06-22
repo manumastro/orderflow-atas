@@ -84,9 +84,12 @@ namespace FabioTrendFollowing
         private const int MinSessionBars = 5;
         private const int ExpectedLondonBars = 96; // 8h * 12 bars/h on M5
         private const int MinCompleteSessionBars = 90; // Tolleranza -6 bars
+        private const int PreviewProfileEveryBars = 5;
+        private const int LateLondonPreviewStartHour = 14;
         
         private bool _firstCompleteSessionFound = false;
         private int _lastLoggedPreCloseBar = -1;
+        private int _lastPreviewProfileBar = -1;
 
         public BalanceZoneTracker(
             Indicator indicator, 
@@ -231,6 +234,7 @@ namespace FabioTrendFollowing
             };
 
             _lastLoggedPreCloseBar = -1;
+            _lastPreviewProfileBar = -1;
 
             UpdateLondonProfile(bar, candle);
             _log($"[SESSION_START] London session started at bar {bar} (London: {londonTime:yyyy-MM-dd HH:mm}, UTC: {candle.Time:yyyy-MM-dd HH:mm:ss})");
@@ -260,13 +264,16 @@ namespace FabioTrendFollowing
             var previousHigh = _context.CurrentZone.High;
             var previousLow = _context.CurrentZone.Low;
 
+            var importantEvent = false;
+
             if (candle.High > previousHigh)
             {
                 _context.CurrentZone.High = candle.High;
                 _context.CurrentZone.SessionHighBar = bar;
                 _context.CurrentZone.SessionHighTimeUtc = candle.Time;
                 LogSessionExtreme("NEW_SESSION_HIGH", bar, candle, previousHigh);
-                LogPotentialRejection("HIGH_REJECTION_CANDIDATE", bar, candle, previousHigh);
+                importantEvent |= LogPotentialRejection("HIGH_REJECTION_CANDIDATE", bar, candle, previousHigh);
+                importantEvent = true;
             }
 
             if (previousLow == 0 || candle.Low < previousLow)
@@ -275,10 +282,12 @@ namespace FabioTrendFollowing
                 _context.CurrentZone.SessionLowBar = bar;
                 _context.CurrentZone.SessionLowTimeUtc = candle.Time;
                 LogSessionExtreme("NEW_SESSION_LOW", bar, candle, previousLow);
-                LogPotentialRejection("LOW_REJECTION_CANDIDATE", bar, candle, previousLow);
+                importantEvent |= LogPotentialRejection("LOW_REJECTION_CANDIDATE", bar, candle, previousLow);
+                importantEvent = true;
             }
 
             LogLondonPreCloseCandle(bar, candle);
+            LogPreviewProfileIfNeeded(bar, candle, importantEvent);
         }
 
         private void FinalizeLondonSession(int bar)
@@ -526,11 +535,11 @@ namespace FabioTrendFollowing
             _log($"[{tag}] Bar={bar}, {FormatTimes(candle.Time)}, Previous={previousExtreme:F2}, O={candle.Open:F2}, H={candle.High:F2}, L={candle.Low:F2}, C={candle.Close:F2}, V={candle.Volume:F0}");
         }
 
-        private void LogPotentialRejection(string tag, int bar, IndicatorCandle candle, decimal previousExtreme)
+        private bool LogPotentialRejection(string tag, int bar, IndicatorCandle candle, decimal previousExtreme)
         {
             var range = candle.High - candle.Low;
             if (range <= 0)
-                return;
+                return false;
 
             var upperWick = candle.High - Math.Max(candle.Open, candle.Close);
             var lowerWick = Math.Min(candle.Open, candle.Close) - candle.Low;
@@ -542,9 +551,11 @@ namespace FabioTrendFollowing
                 && (candle.Close > previousExtreme || lowerWick >= range * 0.40m || closePosition >= 0.50m);
 
             if (!highRejection && !lowRejection)
-                return;
+                return false;
 
-            _log($"[{tag}] Bar={bar}, {FormatTimes(candle.Time)}, PreviousExtreme={previousExtreme:F2}, Range={range:F2}, UpperWick={upperWick:F2}, LowerWick={lowerWick:F2}, ClosePosition={closePosition:P0}, O={candle.Open:F2}, H={candle.High:F2}, L={candle.Low:F2}, C={candle.Close:F2}, V={candle.Volume:F0}");
+            var (bid, ask, delta, topLevels) = GetCandleVolumeDiagnostics(candle);
+            _log($"[{tag}] Bar={bar}, {FormatTimes(candle.Time)}, PreviousExtreme={previousExtreme:F2}, Range={range:F2}, UpperWick={upperWick:F2}, LowerWick={lowerWick:F2}, ClosePosition={closePosition:P0}, O={candle.Open:F2}, H={candle.High:F2}, L={candle.Low:F2}, C={candle.Close:F2}, V={candle.Volume:F0}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}, TopLevels={topLevels}");
+            return true;
         }
 
         private void LogLondonPreCloseCandle(int bar, IndicatorCandle candle)
@@ -557,7 +568,110 @@ namespace FabioTrendFollowing
                 return;
 
             _lastLoggedPreCloseBar = bar;
-            _log($"[LONDON_PRE_CLOSE] Bar={bar}, {FormatTimes(candle.Time)}, O={candle.Open:F2}, H={candle.High:F2}, L={candle.Low:F2}, C={candle.Close:F2}, V={candle.Volume:F0}");
+            var (bid, ask, delta, topLevels) = GetCandleVolumeDiagnostics(candle);
+            _log($"[LONDON_PRE_CLOSE] Bar={bar}, {FormatTimes(candle.Time)}, O={candle.Open:F2}, H={candle.High:F2}, L={candle.Low:F2}, C={candle.Close:F2}, V={candle.Volume:F0}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}, TopLevels={topLevels}");
+        }
+
+        private void LogPreviewProfileIfNeeded(int bar, IndicatorCandle candle, bool force)
+        {
+            if (_context.CurrentZone == null || _context.CurrentZone.Profile.Count == 0)
+                return;
+
+            var londonTime = TimeZoneInfo.ConvertTimeFromUtc(candle.Time, _londonTimeZone);
+            var isLateLondon = londonTime.Hour >= LateLondonPreviewStartHour;
+            var shouldLogByCadence = isLateLondon && (_lastPreviewProfileBar < 0 || bar - _lastPreviewProfileBar >= PreviewProfileEveryBars);
+
+            if (!force && !shouldLogByCadence)
+                return;
+
+            if (!TryCalculateProfilePreview(_context.CurrentZone, out var poc, out var vah, out var val, out var valueAreaVolume, out var maxVolume))
+                return;
+
+            _lastPreviewProfileBar = bar;
+            var (bid, ask, delta, topLevels) = GetCandleVolumeDiagnostics(candle);
+            var relation = candle.Close > vah ? "ABOVE_PREVIEW_VAH" : candle.Close < val ? "BELOW_PREVIEW_VAL" : "INSIDE_PREVIEW_VA";
+            var sessionBars = bar - _context.CurrentZone.StartBar + 1;
+
+            _log($"[PROFILE_PREVIEW] Bar={bar}, {FormatTimes(candle.Time)}, Reason={(force ? "event" : "cadence")}, Bars={sessionBars}, High={_context.CurrentZone.High:F2}, Low={_context.CurrentZone.Low:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, VA_Volume={valueAreaVolume:F0}, TotalVolume={_context.CurrentZone.TotalVolume:F0}, MaxLevelVolume={maxVolume:F0}, Close={candle.Close:F2}, Relation={relation}, DistToPOC={candle.Close - poc:F2}, DistToVAH={candle.Close - vah:F2}, DistToVAL={candle.Close - val:F2}, CandleBid={bid:F0}, CandleAsk={ask:F0}, CandleDelta={delta:F0}, TopCandleLevels={topLevels}");
+        }
+
+        private bool TryCalculateProfilePreview(BalanceZone zone, out decimal poc, out decimal vah, out decimal val, out decimal valueAreaVolume, out decimal maxVolume)
+        {
+            poc = 0;
+            vah = 0;
+            val = 0;
+            valueAreaVolume = 0;
+            maxVolume = 0;
+
+            if (zone.Profile.Count == 0 || zone.TotalVolume <= 0)
+                return false;
+
+            foreach (var kvp in zone.Profile)
+            {
+                if (kvp.Value > maxVolume || (kvp.Value == maxVolume && (poc == 0 || kvp.Key < poc)))
+                {
+                    maxVolume = kvp.Value;
+                    poc = kvp.Key;
+                }
+            }
+
+            var sortedLevels = zone.Profile.OrderBy(kv => kv.Key).ToList();
+            var pocIndex = -1;
+            for (var i = 0; i < sortedLevels.Count; i++)
+            {
+                if (sortedLevels[i].Key == poc)
+                {
+                    pocIndex = i;
+                    break;
+                }
+            }
+
+            if (pocIndex < 0)
+                return false;
+
+            var targetVolume = zone.TotalVolume * 0.70m;
+            valueAreaVolume = sortedLevels[pocIndex].Value;
+            var lowerIndex = pocIndex;
+            var upperIndex = pocIndex;
+
+            while (valueAreaVolume < targetVolume && (lowerIndex > 0 || upperIndex < sortedLevels.Count - 1))
+            {
+                var lowerVolume = lowerIndex > 0 ? sortedLevels[lowerIndex - 1].Value : 0;
+                var upperVolume = upperIndex < sortedLevels.Count - 1 ? sortedLevels[upperIndex + 1].Value : 0;
+
+                if (lowerVolume >= upperVolume && lowerIndex > 0)
+                {
+                    lowerIndex--;
+                    valueAreaVolume += sortedLevels[lowerIndex].Value;
+                }
+                else if (upperIndex < sortedLevels.Count - 1)
+                {
+                    upperIndex++;
+                    valueAreaVolume += sortedLevels[upperIndex].Value;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            val = sortedLevels[lowerIndex].Key;
+            vah = sortedLevels[upperIndex].Key;
+            return true;
+        }
+
+        private (decimal Bid, decimal Ask, decimal Delta, string TopLevels) GetCandleVolumeDiagnostics(IndicatorCandle candle)
+        {
+            var levels = candle.GetAllPriceLevels();
+            var bid = levels.Sum(level => level.Bid);
+            var ask = levels.Sum(level => level.Ask);
+            var delta = ask - bid;
+            var topLevels = string.Join(";", levels
+                .OrderByDescending(level => level.Volume)
+                .Take(5)
+                .Select(level => $"{level.Price:F2}:V{level.Volume:F0}/D{level.Ask - level.Bid:F0}"));
+
+            return (bid, ask, delta, topLevels);
         }
 
         private void Log(string message)
