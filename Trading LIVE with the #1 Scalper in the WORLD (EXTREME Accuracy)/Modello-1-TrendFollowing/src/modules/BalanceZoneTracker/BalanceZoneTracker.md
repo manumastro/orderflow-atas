@@ -1,5 +1,14 @@
 # BalanceZoneTracker
 
+## Status
+
+✅ **Phase 1 Completata** - Hybrid approach implementato (commit 877df9b)
+
+**Note implementative:**  
+Box visivo usa High/Low della sessione London (copre 100% candele). VAH/VAL usati solo per breakout detection. Dettagli: `HYBRID-APPROACH-ANALYSIS.md`
+
+---
+
 ## 1. Scopo
 
 Il `BalanceZoneTracker` è il primo modulo da implementare.
@@ -33,6 +42,7 @@ Non responsabilità:
 | POC | price level con volume massimo |
 | VAH/VAL | espansione contigua dal POC |
 | Breakout | 2 close consecutive fuori VAH/VAL |
+| **Box visivo** | **High/Low sessione (hybrid)** |
 | Timezone | `TimeZoneInfo`, no offset hardcoded |
 | Timeframe | M5 raccomandato, non bloccante |
 | Confini | congelati dopo fine London |
