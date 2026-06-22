@@ -25,14 +25,20 @@ public class FabioTrendFollowing : Indicator
         if (bar == 0)
         {
             Log($"[ONCALCULATE] Bar 0 - Initializing BalanceZoneTracker");
-            _balanceTracker = new BalanceZoneTracker(this, Log, Rectangles, HorizontalLinesTillTouch);
+            Log($"[INSTRUMENT] Name: {InstrumentInfo?.Instrument}, TickSize: {InstrumentInfo?.TickSize}, Exchange: {InstrumentInfo?.Exchange}");
+            _balanceTracker = new BalanceZoneTracker(this, Log, Rectangles, HorizontalLinesTillTouch, GetCandle);
             return;
         }
 
         var candle = GetCandle(bar);
+        
+        // Log periodico ogni 100 barre per verificare dati
+        if (bar % 100 == 0)
+        {
+            Log($"[BAR_CHECK] Bar={bar}, Time={candle.Time:yyyy-MM-dd HH:mm:ss}, O={candle.Open}, H={candle.High}, L={candle.Low}, C={candle.Close}, V={candle.Volume}");
+        }
+        
         _balanceTracker?.OnBarUpdate(bar, candle);
-
-        // Log rimosso per evitare spam ad ogni tick
     }
     
     private void Log(string message)

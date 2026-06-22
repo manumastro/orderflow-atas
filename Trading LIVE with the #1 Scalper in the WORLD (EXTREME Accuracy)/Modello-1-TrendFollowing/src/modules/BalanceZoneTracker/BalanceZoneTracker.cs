@@ -62,6 +62,7 @@ namespace FabioTrendFollowing
         private readonly Indicator _indicator;
         private readonly MarketContext _context = new();
         private readonly Action<string> _log;
+        private readonly Func<int, IndicatorCandle> _getCandle;
 
         private readonly TimeZoneInfo _londonTimeZone;
         private readonly TimeZoneInfo _newYorkTimeZone;
@@ -82,12 +83,14 @@ namespace FabioTrendFollowing
             Indicator indicator, 
             Action<string> log,
             List<DrawingRectangle> rectangles,
-            List<LineTillTouch> lines)
+            List<LineTillTouch> lines,
+            Func<int, IndicatorCandle> getCandle)
         {
             _indicator = indicator;
             _log = log;
             _rectangles = rectangles;
             _lines = lines;
+            _getCandle = getCandle;
 
             try
             {
@@ -114,6 +117,12 @@ namespace FabioTrendFollowing
         public void OnBarUpdate(int bar, IndicatorCandle candle)
         {
             var barTime = candle.Time;
+
+            // Log dettagliato prima barra per verifica dati
+            if (bar == 1)
+            {
+                _log($"[BAR_DETAIL] First bar: Time={barTime:yyyy-MM-dd HH:mm:ss}, O={candle.Open}, H={candle.High}, L={candle.Low}, C={candle.Close}, V={candle.Volume}");
+            }
 
             var londonTime = TimeZoneInfo.ConvertTimeFromUtc(barTime, _londonTimeZone);
             var nyTime = TimeZoneInfo.ConvertTimeFromUtc(barTime, _newYorkTimeZone);
@@ -170,6 +179,12 @@ namespace FabioTrendFollowing
                         _currentPocLine.SecondBar = bar;
                     }
                     
+                    // Log estensione zona ogni 50 barre durante out-of-balance
+                    if (bar % 50 == 0)
+                    {
+                        _log($"[ZONE_EXTEND] Zone extended to bar {bar}, Time: {candle.Time:yyyy-MM-dd HH:mm:ss}");
+                    }
+                    
                     // Reset su nuova London session
                     if (isInLondonSession && !IsBarInCurrentZone(bar))
                     {
@@ -187,7 +202,7 @@ namespace FabioTrendFollowing
             // Salta sessioni parziali fino a trovare la prima completa
             if (!_firstCompleteSessionFound && londonTime.Hour != 8)
             {
-                Log($"[SKIP] Partial London session detected at {londonTime:HH:mm} | Bar={bar}");
+                _log($"[SKIP] Partial London session detected at {londonTime:HH:mm} | Bar={bar}");
                 return;
             }
             
@@ -202,7 +217,8 @@ namespace FabioTrendFollowing
             };
 
             UpdateLondonProfile(bar, candle);
-            Log($"[BALANCE_BUILDING] London start | Bar={bar} | Time={londonTime:HH:mm}");
+            _log($"[SESSION_START] London session started at bar {bar} (London: {londonTime:yyyy-MM-dd HH:mm}, UTC: {candle.Time:yyyy-MM-dd HH:mm:ss})");
+            _log($"[SESSION_START] Candle: O={candle.Open}, H={candle.High}, L={candle.Low}, C={candle.Close}");
         }
 
         private void UpdateLondonProfile(int bar, IndicatorCandle candle)
@@ -238,12 +254,18 @@ namespace FabioTrendFollowing
 
             var barCount = _context.CurrentZone.EndBar - _context.CurrentZone.StartBar + 1;
             
+            var endCandle = _getCandle(bar - 1);
+            var londonTime = TimeZoneInfo.ConvertTimeFromUtc(endCandle.Time, _londonTimeZone);
+            
+            _log($"[SESSION_END] London session ended at bar {bar - 1} (London: {londonTime:yyyy-MM-dd HH:mm}, UTC: {endCandle.Time:yyyy-MM-dd HH:mm:ss}). Bars in session: {barCount}");
+            _log($"[SESSION_END] Candle: O={endCandle.Open}, H={endCandle.High}, L={endCandle.Low}, C={endCandle.Close}");
+            
             // Verifica se è una sessione completa
             if (!_firstCompleteSessionFound)
             {
                 if (barCount < MinCompleteSessionBars)
                 {
-                    Log($"[SKIP] Incomplete London session | Bars={barCount} (expected ~{ExpectedLondonBars})");
+                    _log($"[SESSION_SKIP] First session incomplete (only {barCount} bars), skipping...");
                     _context.State = MarketState.NoZone;
                     _context.CurrentZone = null;
                     return;
@@ -251,20 +273,20 @@ namespace FabioTrendFollowing
                 else
                 {
                     _firstCompleteSessionFound = true;
-                    Log($"[FIRST_COMPLETE] First complete London session found | Bars={barCount}");
+                    _log($"[FIRST_COMPLETE] First complete London session found | Bars={barCount}");
                 }
             }
             
             if (barCount < MinSessionBars || _context.CurrentZone.Profile.Count == 0)
             {
-                Log($"[BALANCE_INVALID] London session too short or empty | Bars={barCount}");
+                _log($"[BALANCE_INVALID] London session too short or empty | Bars={barCount}");
                 _context.State = MarketState.NoZone;
                 _context.CurrentZone = null;
                 return;
             }
 
             // Log range prezzi prima dei calcoli
-            Log($"[PROFILE_RANGE] High={_context.CurrentZone.High} | Low={_context.CurrentZone.Low} | ProfileLevels={_context.CurrentZone.Profile.Count}");
+            _log($"[PROFILE_RANGE] High={_context.CurrentZone.High} | Low={_context.CurrentZone.Low} | ProfileLevels={_context.CurrentZone.Profile.Count}");
 
             CalculatePOC();
             CalculateValueArea();
@@ -274,7 +296,11 @@ namespace FabioTrendFollowing
 
             DrawBalanceZone();
 
-            Log($"[BALANCE_READY] London | POC={_context.CurrentZone.POC} | VAH={_context.CurrentZone.VAH} | VAL={_context.CurrentZone.VAL} | Bars={barCount} | Volume={_context.CurrentZone.TotalVolume}");
+            _log($"[ZONE_READY] Balance zone ready: High={_context.CurrentZone.High:F2}, Low={_context.CurrentZone.Low:F2}, POC={_context.CurrentZone.POC:F2}, VAH={_context.CurrentZone.VAH:F2}, VAL={_context.CurrentZone.VAL:F2}, TotalVolume={_context.CurrentZone.TotalVolume:F0}");
+            _log($"[ZONE_READY] StartBar={_context.CurrentZone.StartBar}, EndBar={_context.CurrentZone.EndBar}, Bars={barCount}");
+            
+            // Verifica copertura candele nella zona
+            VerifyZoneCoverage(_context.CurrentZone);
         }
 
         private void CalculatePOC()
@@ -342,7 +368,7 @@ namespace FabioTrendFollowing
                 _context.PendingDirection = BreakoutDirection.Bullish;
                 _context.PendingBreakoutBar = bar;
                 _context.ConsecutiveOutsideCloses = 1;
-                Log($"[BREAKOUT_PENDING] Bullish | Close={close} > VAH={_context.CurrentZone.VAH}");
+                _log($"[BREAKOUT_PENDING] Bullish | Bar={bar}, Time={candle.Time:yyyy-MM-dd HH:mm:ss}, Close={close:F2} > VAH={_context.CurrentZone.VAH:F2}");
             }
             else if (isBearishBreak)
             {
@@ -350,7 +376,7 @@ namespace FabioTrendFollowing
                 _context.PendingDirection = BreakoutDirection.Bearish;
                 _context.PendingBreakoutBar = bar;
                 _context.ConsecutiveOutsideCloses = 1;
-                Log($"[BREAKOUT_PENDING] Bearish | Close={close} < VAL={_context.CurrentZone.VAL}");
+                _log($"[BREAKOUT_PENDING] Bearish | Bar={bar}, Time={candle.Time:yyyy-MM-dd HH:mm:ss}, Close={close:F2} < VAL={_context.CurrentZone.VAL:F2}");
             }
         }
 
@@ -377,7 +403,9 @@ namespace FabioTrendFollowing
 
                     UpdateBalanceZoneColors();
 
-                    Log($"[OUT_OF_BALANCE] {_context.PendingDirection} | BreakoutBar={_context.PendingBreakoutBar} | TargetPOC={_context.CurrentZone.POC}");
+                    _log($"[BREAKOUT_CONFIRMED] Direction: {_context.PendingDirection}, Bar: {bar}, Time: {candle.Time:yyyy-MM-dd HH:mm:ss}, Close: {close:F2}, VAH: {_context.CurrentZone.VAH:F2}, VAL: {_context.CurrentZone.VAL:F2}");
+                    _log($"[BREAKOUT_CONFIRMED] Candle: O={candle.Open}, H={candle.High}, L={candle.Low}, C={candle.Close}");
+                    _log($"[OUT_OF_BALANCE] {_context.PendingDirection} | BreakoutBar={_context.PendingBreakoutBar} | TargetPOC={_context.CurrentZone.POC}");
                 }
             }
             else
@@ -387,7 +415,7 @@ namespace FabioTrendFollowing
                 _context.PendingDirection = null;
                 _context.PendingBreakoutBar = -1;
                 _context.ConsecutiveOutsideCloses = 0;
-                Log("[FALSE_BREAKOUT] Returned inside value area");
+                _log("[FALSE_BREAKOUT] Returned inside value area");
             }
         }
 
@@ -467,7 +495,80 @@ namespace FabioTrendFollowing
             };
             _lines.Add(_currentPocLine);
 
-            Log($"[DRAW_ZONE] Rectangle=({zone.StartBar},{zone.VAH})-({zone.EndBar},{zone.VAL}) | POC_Line=({zone.StartBar},{zone.POC})-({zone.EndBar},{zone.POC})");
+            _log($"[DRAW_ZONE] Rectangle=({zone.StartBar},{zone.VAH})-({zone.EndBar},{zone.VAL}) | POC_Line=({zone.StartBar},{zone.POC})-({zone.EndBar},{zone.POC})");
+        }
+
+        private void VerifyZoneCoverage(BalanceZone zone)
+        {
+            _log($"[VERIFY_COVERAGE] Checking if zone covers candles properly...");
+            
+            int totalCandles = 0;
+            int fullyCovered = 0;
+            int partiallyCovered = 0;
+            int notCovered = 0;
+            
+            // Campiona ogni 10 candele per non fare spam
+            for (int i = zone.StartBar; i <= zone.EndBar; i += 10)
+            {
+                var candle = _getCandle(i);
+                totalCandles++;
+                
+                bool candleFullyCovered = candle.High <= zone.VAH && candle.Low >= zone.VAL;
+                bool candlePartiallyCovered = (candle.High >= zone.VAL && candle.Low <= zone.VAH);
+                
+                if (candleFullyCovered)
+                {
+                    fullyCovered++;
+                    _log($"[VERIFY_COVERAGE] Bar {i}: FULLY COVERED | Candle H={candle.High:F2} L={candle.Low:F2} | Zone VAH={zone.VAH:F2} VAL={zone.VAL:F2}");
+                }
+                else if (candlePartiallyCovered)
+                {
+                    partiallyCovered++;
+                    _log($"[VERIFY_COVERAGE] Bar {i}: PARTIALLY COVERED | Candle H={candle.High:F2} L={candle.Low:F2} | Zone VAH={zone.VAH:F2} VAL={zone.VAL:F2}");
+                }
+                else
+                {
+                    notCovered++;
+                    _log($"[VERIFY_COVERAGE] Bar {i}: NOT COVERED | Candle H={candle.High:F2} L={candle.Low:F2} | Zone VAH={zone.VAH:F2} VAL={zone.VAL:F2}");
+                }
+            }
+            
+            _log($"[VERIFY_COVERAGE] Summary: Total={totalCandles}, FullyCovered={fullyCovered}, PartiallyCovered={partiallyCovered}, NotCovered={notCovered}");
+        }
+
+        private bool IsValidLondonSessionStart(DateTime londonTime, int sessionStartBar, int currentBar)
+        {
+            // Solo la prima sessione deve iniziare esattamente alle 08:00
+            if (!_firstCompleteSessionFound && londonTime.Hour != 8)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        private Dictionary<decimal, decimal> BuildProfile(int startBar, int endBar)
+        {
+            var profile = new Dictionary<decimal, decimal>();
+            
+            for (int bar = startBar; bar <= endBar; bar++)
+            {
+                var candle = _getCandle(bar);
+                var levels = candle.GetAllPriceLevels();
+                
+                foreach (var level in levels)
+                {
+                    if (profile.ContainsKey(level.Price))
+                    {
+                        profile[level.Price] += level.Volume;
+                    }
+                    else
+                    {
+                        profile[level.Price] = level.Volume;
+                    }
+                }
+            }
+            
+            return profile;
         }
 
         private void UpdateBalanceZoneColors()
