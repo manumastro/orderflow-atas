@@ -491,12 +491,13 @@ namespace FabioTrendFollowing
             var outlinePen = new System.Drawing.Pen(System.Drawing.Color.Gray, 1);
             var pocPen = new System.Drawing.Pen(System.Drawing.Color.Orange, 2);
 
-            // Rettangolo VAH/VAL (NON esteso a destra)
+            // HYBRID APPROACH: Box visivo usa High/Low (range completo sessione)
+            // ma VAH/VAL vengono usati solo per breakout detection
             _currentZoneRectangle = new DrawingRectangle(
                 zone.StartBar,
-                zone.VAH,
+                zone.High,      // ← High della sessione (non VAH)
                 zone.EndBar,
-                zone.VAL,
+                zone.Low,       // ← Low della sessione (non VAL)
                 outlinePen,
                 fillBrush
             );
@@ -514,9 +515,10 @@ namespace FabioTrendFollowing
             };
             _lines.Add(_currentPocLine);
 
-            _log($"[DRAW_ZONE] Rectangle=({zone.StartBar},{zone.VAH:F2})-({zone.EndBar},{zone.VAL:F2})");
-            _log($"[DRAW_ZONE] POC_Line=({zone.StartBar},{zone.POC:F2})-({zone.EndBar},{zone.POC:F2})");
-            _log($"[DRAW_ZONE] Zone High={zone.High:F2}, Low={zone.Low:F2}");
+            _log($"[DRAW_ZONE] Rectangle=(Bar:{zone.StartBar}, High:{zone.High:F2})-(Bar:{zone.EndBar}, Low:{zone.Low:F2})");
+            _log($"[DRAW_ZONE] POC_Line=(Bar:{zone.StartBar}, Price:{zone.POC:F2})-(Bar:{zone.EndBar}, Price:{zone.POC:F2})");
+            _log($"[DRAW_ZONE] VAH={zone.VAH:F2}, VAL={zone.VAL:F2} (used for breakout detection only)");
+            _log($"[DRAW_ZONE] Zone visual box: High={zone.High:F2}, Low={zone.Low:F2}");
             
             // Log delle prime 5 candele della zona per verifica
             _log($"[DRAW_ZONE] === First 5 candles in zone ===");
@@ -530,66 +532,80 @@ namespace FabioTrendFollowing
         private void VerifyZoneCoverageComplete(BalanceZone zone)
         {
             _log($"[VERIFY_COVERAGE] === COMPLETE COVERAGE CHECK ===");
-            _log($"[VERIFY_COVERAGE] Zone: VAH={zone.VAH:F2}, VAL={zone.VAL:F2}, High={zone.High:F2}, Low={zone.Low:F2}");
+            _log($"[VERIFY_COVERAGE] Zone visual box: High={zone.High:F2}, Low={zone.Low:F2}");
+            _log($"[VERIFY_COVERAGE] Zone VAH={zone.VAH:F2}, VAL={zone.VAL:F2} (breakout detection)");
             _log($"[VERIFY_COVERAGE] StartBar={zone.StartBar}, EndBar={zone.EndBar}, Total={zone.EndBar - zone.StartBar + 1} bars");
             
             int totalCandles = 0;
-            int fullyCovered = 0;
-            int partiallyCovered = 0;
-            int notCovered = 0;
-            int beyondHigh = 0;
-            int belowLow = 0;
+            int fullyCoveredByBox = 0;
+            int partiallyCoveredByBox = 0;
+            int notCoveredByBox = 0;
+            int fullyCoveredByVA = 0;
+            int partiallyCoveredByVA = 0;
+            int notCoveredByVA = 0;
             
-            // Verifica TUTTE le candele
+            // Verifica TUTTE le candele rispetto sia al box (High/Low) che alla Value Area (VAH/VAL)
             for (int i = zone.StartBar; i <= zone.EndBar; i++)
             {
                 var candle = _getCandle(i);
                 totalCandles++;
                 
-                bool candleFullyCovered = candle.High <= zone.VAH && candle.Low >= zone.VAL;
-                bool candlePartiallyCovered = (candle.High >= zone.VAL && candle.Low <= zone.VAH);
-                bool candleBeyondHigh = candle.Low > zone.High;
-                bool candleBelowLow = candle.High < zone.Low;
+                // Coverage rispetto al box visivo (High/Low)
+                bool candleFullyCoveredByBox = candle.High <= zone.High && candle.Low >= zone.Low;
+                bool candlePartiallyCoveredByBox = (candle.High >= zone.Low && candle.Low <= zone.High);
                 
-                string status;
-                if (candleFullyCovered)
+                // Coverage rispetto alla Value Area (VAH/VAL)
+                bool candleFullyCoveredByVA = candle.High <= zone.VAH && candle.Low >= zone.VAL;
+                bool candlePartiallyCoveredByVA = (candle.High >= zone.VAL && candle.Low <= zone.VAH);
+                
+                string boxStatus;
+                if (candleFullyCoveredByBox)
                 {
-                    fullyCovered++;
-                    status = "FULLY_COVERED";
+                    fullyCoveredByBox++;
+                    boxStatus = "FULLY_IN_BOX";
                 }
-                else if (candlePartiallyCovered)
+                else if (candlePartiallyCoveredByBox)
                 {
-                    partiallyCovered++;
-                    status = "PARTIALLY_COVERED";
+                    partiallyCoveredByBox++;
+                    boxStatus = "PARTIALLY_IN_BOX";
                 }
                 else
                 {
-                    notCovered++;
-                    status = "NOT_COVERED";
-                    
-                    if (candleBeyondHigh)
-                    {
-                        beyondHigh++;
-                        status = "BEYOND_HIGH";
-                    }
-                    else if (candleBelowLow)
-                    {
-                        belowLow++;
-                        status = "BELOW_LOW";
-                    }
+                    notCoveredByBox++;
+                    boxStatus = "OUT_OF_BOX";
                 }
                 
-                // Log TUTTE le candele con status
-                _log($"[VERIFY_COVERAGE] Bar {i}: {status} | Time={candle.Time:yyyy-MM-dd HH:mm:ss} | Candle H={candle.High:F2} L={candle.Low:F2} | Zone VAH={zone.VAH:F2} VAL={zone.VAL:F2} High={zone.High:F2} Low={zone.Low:F2}");
+                string vaStatus;
+                if (candleFullyCoveredByVA)
+                {
+                    fullyCoveredByVA++;
+                    vaStatus = "FULLY_IN_VA";
+                }
+                else if (candlePartiallyCoveredByVA)
+                {
+                    partiallyCoveredByVA++;
+                    vaStatus = "PARTIALLY_IN_VA";
+                }
+                else
+                {
+                    notCoveredByVA++;
+                    vaStatus = "OUT_OF_VA";
+                }
+                
+                // Log solo candele problematiche per ridurre spam
+                if (!candleFullyCoveredByBox)
+                {
+                    _log($"[VERIFY_COVERAGE] Bar {i}: {boxStatus} | {vaStatus} | Time={candle.Time:yyyy-MM-dd HH:mm:ss} | Candle H={candle.High:F2} L={candle.Low:F2} | Box H={zone.High:F2} L={zone.Low:F2} | VA H={zone.VAH:F2} L={zone.VAL:F2}");
+                }
             }
             
             _log($"[VERIFY_COVERAGE] === SUMMARY ===");
-            _log($"[VERIFY_COVERAGE] Total={totalCandles}, FullyCovered={fullyCovered} ({100.0*fullyCovered/totalCandles:F1}%), PartiallyCovered={partiallyCovered} ({100.0*partiallyCovered/totalCandles:F1}%), NotCovered={notCovered} ({100.0*notCovered/totalCandles:F1}%)");
-            _log($"[VERIFY_COVERAGE] BeyondHigh={beyondHigh}, BelowLow={belowLow}");
+            _log($"[VERIFY_COVERAGE] BOX (High/Low): Total={totalCandles}, FullyCovered={fullyCoveredByBox} ({100.0*fullyCoveredByBox/totalCandles:F1}%), PartiallyCovered={partiallyCoveredByBox} ({100.0*partiallyCoveredByBox/totalCandles:F1}%), NotCovered={notCoveredByBox} ({100.0*notCoveredByBox/totalCandles:F1}%)");
+            _log($"[VERIFY_COVERAGE] VA (VAH/VAL): Total={totalCandles}, FullyCovered={fullyCoveredByVA} ({100.0*fullyCoveredByVA/totalCandles:F1}%), PartiallyCovered={partiallyCoveredByVA} ({100.0*partiallyCoveredByVA/totalCandles:F1}%), NotCovered={notCoveredByVA} ({100.0*notCoveredByVA/totalCandles:F1}%)");
             
-            if (notCovered > totalCandles * 0.5m)
+            if (notCoveredByBox > 0)
             {
-                _log($"[VERIFY_COVERAGE] ⚠️ WARNING: More than 50% of candles NOT covered! Zone might be incorrect.");
+                _log($"[VERIFY_COVERAGE] ⚠️ WARNING: {notCoveredByBox} candles not covered by box! This should NEVER happen.");
             }
         }
 
