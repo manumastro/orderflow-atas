@@ -38,8 +38,9 @@ public class FabioTrendFollowing : Indicator
         if (bar == 0)
         {
             Log($"[ONCALCULATE] Bar 0 - Initializing BalanceZoneTracker");
-            Log($"[INSTRUMENT] Name: {InstrumentInfo?.Instrument}, TickSize: {InstrumentInfo?.TickSize}, Exchange: {InstrumentInfo?.Exchange}");
+            Log($"[INSTRUMENT] Name: {InstrumentInfo?.Instrument}, TickSize: {InstrumentInfo?.TickSize}, Exchange: {InstrumentInfo?.Exchange}, InstrumentTimeZone={InstrumentInfo?.TimeZone}");
             Log($"[CHART] CurrentBar={CurrentBar}, ChartType={ChartInfo?.ChartType}");
+            LogChartTradingSessions();
             _balanceTracker = new BalanceZoneTracker(this, Log, Rectangles, HorizontalLinesTillTouch, GetCandle);
             return;
         }
@@ -55,6 +56,35 @@ public class FabioTrendFollowing : Indicator
         _balanceTracker?.OnBarUpdate(bar, candle);
     }
     
+    private void LogChartTradingSessions()
+    {
+        try
+        {
+            var sessions = ChartInfo?.TradingSessionDescriptions;
+            if (sessions == null)
+            {
+                Log("[CHART_SESSIONS] TradingSessionDescriptions=null");
+                return;
+            }
+
+            var count = 0;
+            foreach (var session in sessions)
+            {
+                count++;
+                Log($"[CHART_SESSIONS] #{count}: {session}");
+            }
+
+            if (count == 0)
+            {
+                Log("[CHART_SESSIONS] No trading session descriptions exposed by chart");
+            }
+        }
+        catch (Exception ex)
+        {
+            Log($"[CHART_SESSIONS] Error reading trading sessions: {ex.Message}");
+        }
+    }
+
     private void Log(string message)
     {
         try
