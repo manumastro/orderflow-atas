@@ -72,6 +72,8 @@ namespace FabioTrendFollowing
         
         private DrawingRectangle? _currentZoneRectangle;
         private LineTillTouch? _currentPocLine;
+        private LineTillTouch? _currentVahLine;
+        private LineTillTouch? _currentValLine;
 
         private const int MinSessionBars = 5;
         private const int ExpectedLondonBars = 96; // 8h * 12 bars/h on M5
@@ -428,6 +430,8 @@ namespace FabioTrendFollowing
             // Reset referenze alle zone vecchie
             _currentZoneRectangle = null;
             _currentPocLine = null;
+            _currentVahLine = null;
+            _currentValLine = null;
             
             _context.State = MarketState.NoZone;
             _context.CurrentZone = null;
@@ -499,10 +503,43 @@ namespace FabioTrendFollowing
                 SecondBar = zone.EndBar
             };
             _lines.Add(_currentPocLine);
+            
+            // Linea VAH (Value Area High) - linea tratteggiata blu chiaro
+            var vahPen = new System.Drawing.Pen(System.Drawing.Color.LightBlue, 1)
+            {
+                DashStyle = System.Drawing.Drawing2D.DashStyle.Dash
+            };
+            _currentVahLine = new LineTillTouch(
+                zone.StartBar,
+                zone.VAH,
+                vahPen
+            )
+            {
+                IsRay = false,
+                SecondBar = zone.EndBar
+            };
+            _lines.Add(_currentVahLine);
+            
+            // Linea VAL (Value Area Low) - linea tratteggiata blu chiaro
+            var valPen = new System.Drawing.Pen(System.Drawing.Color.LightBlue, 1)
+            {
+                DashStyle = System.Drawing.Drawing2D.DashStyle.Dash
+            };
+            _currentValLine = new LineTillTouch(
+                zone.StartBar,
+                zone.VAL,
+                valPen
+            )
+            {
+                IsRay = false,
+                SecondBar = zone.EndBar
+            };
+            _lines.Add(_currentValLine);
 
             _log($"[DRAW_ZONE] Rectangle=(Bar:{zone.StartBar}, High:{zone.High:F2})-(Bar:{zone.EndBar}, Low:{zone.Low:F2})");
             _log($"[DRAW_ZONE] POC_Line=(Bar:{zone.StartBar}, Price:{zone.POC:F2})-(Bar:{zone.EndBar}, Price:{zone.POC:F2})");
-            _log($"[DRAW_ZONE] VAH={zone.VAH:F2}, VAL={zone.VAL:F2} (used for breakout detection only)");
+            _log($"[DRAW_ZONE] VAH_Line=(Bar:{zone.StartBar}, Price:{zone.VAH:F2})-(Bar:{zone.EndBar}, Price:{zone.VAH:F2})");
+            _log($"[DRAW_ZONE] VAL_Line=(Bar:{zone.StartBar}, Price:{zone.VAL:F2})-(Bar:{zone.EndBar}, Price:{zone.VAL:F2})");
             _log($"[DRAW_ZONE] Zone visual box: High={zone.High:F2}, Low={zone.Low:F2}");
             
             // Log delle prime 5 candele della zona per verifica
