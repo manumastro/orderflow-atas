@@ -90,6 +90,10 @@ namespace FabioTrendFollowing
         private bool _firstCompleteSessionFound = false;
         private int _lastLoggedPreCloseBar = -1;
         private int _lastPreviewProfileBar = -1;
+        private int _lastLowRejectionCandidateBar = -1;
+        private int _lastHighRejectionCandidateBar = -1;
+        private bool _lowRejectionPocReclaimed;
+        private bool _highRejectionPocLost;
 
         public BalanceZoneTracker(
             Indicator indicator, 
@@ -235,6 +239,10 @@ namespace FabioTrendFollowing
 
             _lastLoggedPreCloseBar = -1;
             _lastPreviewProfileBar = -1;
+            _lastLowRejectionCandidateBar = -1;
+            _lastHighRejectionCandidateBar = -1;
+            _lowRejectionPocReclaimed = false;
+            _highRejectionPocLost = false;
 
             UpdateLondonProfile(bar, candle);
             _log($"[SESSION_START] London session started at bar {bar} (London: {londonTime:yyyy-MM-dd HH:mm}, UTC: {candle.Time:yyyy-MM-dd HH:mm:ss})");
@@ -272,7 +280,12 @@ namespace FabioTrendFollowing
                 _context.CurrentZone.SessionHighBar = bar;
                 _context.CurrentZone.SessionHighTimeUtc = candle.Time;
                 LogSessionExtreme("NEW_SESSION_HIGH", bar, candle, previousHigh);
-                importantEvent |= LogPotentialRejection("HIGH_REJECTION_CANDIDATE", bar, candle, previousHigh);
+                if (LogPotentialRejection("HIGH_REJECTION_CANDIDATE", bar, candle, previousHigh))
+                {
+                    _lastHighRejectionCandidateBar = bar;
+                    _highRejectionPocLost = false;
+                    importantEvent = true;
+                }
                 importantEvent = true;
             }
 
@@ -282,7 +295,12 @@ namespace FabioTrendFollowing
                 _context.CurrentZone.SessionLowBar = bar;
                 _context.CurrentZone.SessionLowTimeUtc = candle.Time;
                 LogSessionExtreme("NEW_SESSION_LOW", bar, candle, previousLow);
-                importantEvent |= LogPotentialRejection("LOW_REJECTION_CANDIDATE", bar, candle, previousLow);
+                if (LogPotentialRejection("LOW_REJECTION_CANDIDATE", bar, candle, previousLow))
+                {
+                    _lastLowRejectionCandidateBar = bar;
+                    _lowRejectionPocReclaimed = false;
+                    importantEvent = true;
+                }
                 importantEvent = true;
             }
 
@@ -593,6 +611,25 @@ namespace FabioTrendFollowing
             var sessionBars = bar - _context.CurrentZone.StartBar + 1;
 
             _log($"[PROFILE_PREVIEW] Bar={bar}, {FormatTimes(candle.Time)}, Reason={(force ? "event" : "cadence")}, Bars={sessionBars}, High={_context.CurrentZone.High:F2}, Low={_context.CurrentZone.Low:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, VA_Volume={valueAreaVolume:F0}, TotalVolume={_context.CurrentZone.TotalVolume:F0}, MaxLevelVolume={maxVolume:F0}, Close={candle.Close:F2}, Relation={relation}, DistToPOC={candle.Close - poc:F2}, DistToVAH={candle.Close - vah:F2}, DistToVAL={candle.Close - val:F2}, CandleBid={bid:F0}, CandleAsk={ask:F0}, CandleDelta={delta:F0}, TopCandleLevels={topLevels}");
+            LogMeanReversionTriggerIfNeeded(bar, candle, poc, vah, val, bid, ask, delta);
+        }
+
+        private void LogMeanReversionTriggerIfNeeded(int bar, IndicatorCandle candle, decimal poc, decimal vah, decimal val, decimal bid, decimal ask, decimal delta)
+        {
+            if (_context.CurrentZone == null)
+                return;
+
+            if (_lastLowRejectionCandidateBar >= 0 && !_lowRejectionPocReclaimed && bar > _lastLowRejectionCandidateBar && candle.Close > poc)
+            {
+                _lowRejectionPocReclaimed = true;
+                _log($"[MR_TRIGGER] Direction=Long, Trigger=POC_RECLAIM_AFTER_LOW_REJECTION, Bar={bar}, {FormatTimes(candle.Time)}, CandidateBar={_lastLowRejectionCandidateBar}, Close={candle.Close:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, DistToPOC={candle.Close - poc:F2}, StopReference={_context.CurrentZone.Low:F2}, Target1={vah:F2}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}");
+            }
+
+            if (_lastHighRejectionCandidateBar >= 0 && !_highRejectionPocLost && bar > _lastHighRejectionCandidateBar && candle.Close < poc)
+            {
+                _highRejectionPocLost = true;
+                _log($"[MR_TRIGGER] Direction=Short, Trigger=POC_LOSS_AFTER_HIGH_REJECTION, Bar={bar}, {FormatTimes(candle.Time)}, CandidateBar={_lastHighRejectionCandidateBar}, Close={candle.Close:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, DistToPOC={candle.Close - poc:F2}, StopReference={_context.CurrentZone.High:F2}, Target1={val:F2}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}");
+            }
         }
 
         private bool TryCalculateProfilePreview(BalanceZone zone, out decimal poc, out decimal vah, out decimal val, out decimal valueAreaVolume, out decimal maxVolume)
