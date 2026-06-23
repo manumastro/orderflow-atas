@@ -113,7 +113,48 @@ Il segnale discrezionale Metodo 2 sarebbe nato prima della conferma Modello 1.
 
 ---
 
-## 5. Profile Preview
+## 5. Caso Studio — 23/06/2026 NQU6
+
+Evento osservato durante la London in formazione:
+
+1. **Early short iniziale**
+   - `09:10` Italy: high rejection candidate a `30054.25`.
+   - `09:30` Italy: `[MR_EARLY_TRIGGER] Direction=Short`.
+   - Il prezzo perde area `POC preview=30000.00` e accelera verso il basso.
+   - Questo early short non è necessariamente un errore: il mercato è poi effettivamente sceso.
+
+2. **Early long successivo**
+   - `10:25` Italy: low rejection candidate a `29776.00` con delta positivo `+28`.
+   - `10:50` Italy: `[MR_EARLY_TRIGGER] Direction=Long`.
+   - Close `29831.75`, ancora sotto `POC preview=29850.50`, ma con follow-through positivo.
+   - Target1 naturale: `POC preview=29850.50`.
+   - Target2: `VAH preview=29956.25`.
+
+3. **Conferma tardiva**
+   - `11:15` Italy: `[MR_TRIGGER] Direction=Long` su reclaim POC.
+   - Close `29910.50`, sopra `POC=29850.50`, ma già vicino al target `VAH=29934.00`.
+   - Conclusione: il reclaim POC è utile come conferma/management, ma può essere troppo tardi come entry primaria.
+
+Nota operativa:
+
+```text
+Il Modello 2 deve distinguere tra:
+- early trigger: rejection + follow-through;
+- conservative trigger: reclaim/loss del POC preview.
+```
+
+La sequenza del 23/06 mostra che nella stessa London possono comparire due idee opposte:
+
+```text
+fakeout alto → short
+selloff → fakeout basso → long
+```
+
+Per questo il Modello 2 dovrà gestire contesto e priorità, non solo trigger isolati.
+
+---
+
+## 6. Profile Preview
 
 Per studiare il Modello 2 serve calcolare livelli provvisori durante la sessione.
 
@@ -128,8 +169,9 @@ POC/VAH/VAL ufficiali restano congelati solo a fine London per il Modello 1.
 Parametri iniziali usati per debug:
 
 - aggiornamento profile: ogni barra;
-- preview `POC/VAH/VAL`: ogni 5 barre da London 14:00 in poi;
+- preview `POC/VAH/VAL`: ogni 5 barre durante tutta London;
 - preview forzata su nuovi massimi/minimi e rejection candidate;
+- log trigger anticipato `[MR_EARLY_TRIGGER]` e conferma POC `[MR_TRIGGER]`;
 - nessun disegno e nessun impatto sulla state machine del Modello 1.
 
 Log utili:
@@ -144,9 +186,9 @@ Log utili:
 
 ---
 
-## 6. Ipotesi di Detection Iniziale
+## 7. Ipotesi di Detection Iniziale
 
-### 6.1 Fakeout Alto
+### 7.1 Fakeout Alto
 
 Condizioni candidate:
 
@@ -166,7 +208,7 @@ Sweep above preview VAH
 → optional break below preview VAL
 ```
 
-### 6.2 Fakeout Basso
+### 7.2 Fakeout Basso
 
 Speculare:
 
@@ -179,7 +221,7 @@ Sweep below preview VAL
 
 ---
 
-## 7. Dati Necessari
+## 8. Dati Necessari
 
 Per validare il Modello 2 servono:
 
@@ -195,7 +237,7 @@ Questi dati sono già presenti nei log di debug aggiunti al `BalanceZoneTracker`
 
 ---
 
-## 8. Non Obiettivi Attuali
+## 9. Non Obiettivi Attuali
 
 In questa fase il Modello 2 non deve:
 
@@ -207,7 +249,7 @@ In questa fase il Modello 2 non deve:
 
 ---
 
-## 9. Prossimi Passi
+## 10. Prossimi Passi
 
 1. Raccogliere altri esempi reali con `[PROFILE_PREVIEW]`.
 2. Classificare manualmente: fakeout valido, fakeout debole, trend continuation.
