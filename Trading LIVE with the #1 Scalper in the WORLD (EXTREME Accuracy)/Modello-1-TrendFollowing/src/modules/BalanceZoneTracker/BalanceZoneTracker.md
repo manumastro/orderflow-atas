@@ -423,7 +423,7 @@ EntryCaveat=NotFirstExactBubblePrint
 
 `EntryBubblePrice` non è ancora il primo print esatto della bubble live: è il livello dominante ricostruito dalla candela trigger, utile per avvicinare il log al concetto Fabio di ingresso sui big trades.
 
-`[MR_AGGRESSION_CONFIRM]` prova invece a ricostruire dai `CumulativeTrade` storici la prima aggressione significativa dopo la rejection, con timestamp e prezzo del trade aggregato (`FirstPrice`, `LastPrice`, `Volume`). Questo è il log più vicino all'idea di conferma intrabar storica.
+`[MR_AGGRESSION_CONFIRM]` prova invece a ricostruire dai `CumulativeTrade` storici la prima aggressione significativa dopo la rejection, con timestamp e prezzo del trade aggregato (`FirstPrice`, `LastPrice`, `Volume`). Per i long cerca prima il momento dello sweep del low della candidate e poi solo buy aggression successive; per gli short fa l'equivalente sullo sweep high. Nei log espone anche `SweepTimeUtc` e `SearchStartUtc`. Questo è il log più vicino all'idea di conferma intrabar storica.
 
 ---
 

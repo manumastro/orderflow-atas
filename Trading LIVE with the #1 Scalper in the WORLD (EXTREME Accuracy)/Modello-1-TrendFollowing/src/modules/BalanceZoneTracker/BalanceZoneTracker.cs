@@ -828,7 +828,8 @@ namespace FabioTrendFollowing
             var candidateCandle = _getCandle(triggerLog.CandidateBar);
             var triggerCandle = _getCandle(triggerLog.Bar);
             var direction = triggerLog.Direction == "Long" ? TradeDirection.Buy : TradeDirection.Sell;
-            var startTime = candidateCandle.Time;
+            var sweepTime = GetCandidateSweepTime(triggerLog.Direction, candidateCandle, trades);
+            var startTime = sweepTime ?? candidateCandle.Time;
             var endTime = triggerCandle.LastTime > triggerCandle.Time ? triggerCandle.LastTime : triggerCandle.Time.AddMinutes(5);
 
             var matchingTrade = trades
@@ -846,7 +847,23 @@ namespace FabioTrendFollowing
             triggerLog.HistoricalAggressionLogged = true;
             var italyTime = TimeZoneInfo.ConvertTimeFromUtc(matchingTrade.Time, _italyTimeZone);
             var londonTime = TimeZoneInfo.ConvertTimeFromUtc(matchingTrade.Time, _londonTimeZone);
-            _log($"[MR_AGGRESSION_CONFIRM] Direction={triggerLog.Direction}, Trigger={triggerLog.Trigger}, Mode=HistoricalCumulativeTrade, Bar={triggerLog.Bar}, CandidateBar={triggerLog.CandidateBar}, UTC={matchingTrade.Time:yyyy-MM-dd HH:mm:ss.fff}, London={londonTime:yyyy-MM-dd HH:mm:ss.fff}, Italy={italyTime:yyyy-MM-dd HH:mm:ss.fff}, FirstPrice={matchingTrade.FirstPrice:F2}, LastPrice={matchingTrade.Lastprice:F2}, Volume={matchingTrade.Volume:F0}, TradeDirection={matchingTrade.Direction}, POC={triggerLog.POC:F2}, VAH={triggerLog.VAH:F2}, VAL={triggerLog.VAL:F2}, MinVolume={MinHistoricalAggressionVolume:F0}");
+            _log($"[MR_AGGRESSION_CONFIRM] Direction={triggerLog.Direction}, Trigger={triggerLog.Trigger}, Mode=HistoricalCumulativeTrade, Bar={triggerLog.Bar}, CandidateBar={triggerLog.CandidateBar}, UTC={matchingTrade.Time:yyyy-MM-dd HH:mm:ss.fff}, London={londonTime:yyyy-MM-dd HH:mm:ss.fff}, Italy={italyTime:yyyy-MM-dd HH:mm:ss.fff}, FirstPrice={matchingTrade.FirstPrice:F2}, LastPrice={matchingTrade.Lastprice:F2}, Volume={matchingTrade.Volume:F0}, TradeDirection={matchingTrade.Direction}, SweepTimeUtc={(sweepTime.HasValue ? sweepTime.Value.ToString("yyyy-MM-dd HH:mm:ss.fff") : "n/a")}, SearchStartUtc={startTime:yyyy-MM-dd HH:mm:ss.fff}, POC={triggerLog.POC:F2}, VAH={triggerLog.VAH:F2}, VAL={triggerLog.VAL:F2}, MinVolume={MinHistoricalAggressionVolume:F0}");
+        }
+
+        private static DateTime? GetCandidateSweepTime(string direction, IndicatorCandle candidateCandle, IReadOnlyCollection<CumulativeTrade> trades)
+        {
+            var candidateEndTime = candidateCandle.LastTime > candidateCandle.Time
+                ? candidateCandle.LastTime
+                : candidateCandle.Time.AddMinutes(5);
+
+            return trades
+                .Where(trade => trade.Time >= candidateCandle.Time && trade.Time <= candidateEndTime)
+                .Where(trade => direction == "Long"
+                    ? Math.Min(trade.FirstPrice, trade.Lastprice) <= candidateCandle.Low
+                    : Math.Max(trade.FirstPrice, trade.Lastprice) >= candidateCandle.High)
+                .OrderBy(trade => trade.Time)
+                .Select(trade => (DateTime?)trade.Time)
+                .FirstOrDefault();
         }
 
         private static bool IsHistoricalAggressionInsideValue(string direction, MeanReversionTriggerLog triggerLog, CumulativeTrade trade)
