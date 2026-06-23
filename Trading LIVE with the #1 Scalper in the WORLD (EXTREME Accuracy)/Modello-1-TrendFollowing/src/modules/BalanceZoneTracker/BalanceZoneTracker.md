@@ -409,14 +409,18 @@ Non va rallentato per ridurre spam mentre il Modello 2 è in fase diagnostica,
 perché i trigger MR usano POC/VAH/VAL preview aggiornati.
 ```
 
-I trigger mean reversion diagnostici includono `BarMode`:
+I trigger mean reversion diagnostici includono `BarMode` e un'indicazione della bubble dominante nella candela trigger:
 
 ```text
 BarMode=HISTORICAL_CLOSED   // barra storica/chiusa, tipica di reload o replay
 BarMode=LIVE_OR_LAST_BAR    // barra più recente o ancora in formazione
+EntryBubbleSide=Buy/Sell
+EntryBubblePrice=...        // livello footprint con delta direzionale dominante nella candela trigger
+EntryBubbleMode=DominantTriggerCandleLevel
+EntryCaveat=NotFirstExactBubblePrint
 ```
 
-Questa distinzione serve a capire se un trigger è stato generato live/intrabar oppure ricostruito da storico consolidato.
+`EntryBubblePrice` non è ancora il primo print esatto della bubble live: è il livello dominante ricostruito dalla candela trigger, utile per avvicinare il log al concetto Fabio di ingresso sui big trades.
 
 ---
 

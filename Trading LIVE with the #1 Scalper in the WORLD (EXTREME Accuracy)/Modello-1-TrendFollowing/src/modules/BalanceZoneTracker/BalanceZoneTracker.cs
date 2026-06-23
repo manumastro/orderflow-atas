@@ -667,7 +667,8 @@ namespace FabioTrendFollowing
                 if ((closeAboveRejectionClose || tradedAboveRejectionHigh) && positiveFollowThrough && closeBackInsideValue)
                 {
                     _lowRejectionEarlyTriggered = true;
-                    _log($"[MR_EARLY_TRIGGER] Direction=Long, Trigger=LOW_REJECTION_FOLLOW_THROUGH, BarMode={GetBarMode(bar)}, Bar={bar}, CurrentBar={_currentBar}, {FormatTimes(candle.Time)}, CandidateBar={_lastLowRejectionCandidateBar}, CandidateLow={_lastLowRejectionLow:F2}, CandidateClose={_lastLowRejectionClose:F2}, CandidateHigh={_lastLowRejectionHigh:F2}, CandidateDelta={_lastLowRejectionDelta:F0}, Close={candle.Close:F2}, High={candle.High:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, DistToPOC={candle.Close - poc:F2}, StopReference={_lastLowRejectionLow:F2}, Target1={poc:F2}, Target2={vah:F2}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}");
+                    var entryBubble = FormatEntryBubble("Buy", candle);
+                    _log($"[MR_EARLY_TRIGGER] Direction=Long, Trigger=LOW_REJECTION_FOLLOW_THROUGH, BarMode={GetBarMode(bar)}, Bar={bar}, CurrentBar={_currentBar}, {FormatTimes(candle.Time)}, CandidateBar={_lastLowRejectionCandidateBar}, CandidateLow={_lastLowRejectionLow:F2}, CandidateClose={_lastLowRejectionClose:F2}, CandidateHigh={_lastLowRejectionHigh:F2}, CandidateDelta={_lastLowRejectionDelta:F0}, Close={candle.Close:F2}, High={candle.High:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, DistToPOC={candle.Close - poc:F2}, StopReference={_lastLowRejectionLow:F2}, Target1={poc:F2}, Target2={vah:F2}, {entryBubble}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}");
                 }
             }
 
@@ -681,7 +682,8 @@ namespace FabioTrendFollowing
                 if ((closeBelowRejectionClose || tradedBelowRejectionLow) && negativeFollowThrough && closeBackInsideValue)
                 {
                     _highRejectionEarlyTriggered = true;
-                    _log($"[MR_EARLY_TRIGGER] Direction=Short, Trigger=HIGH_REJECTION_FOLLOW_THROUGH, BarMode={GetBarMode(bar)}, Bar={bar}, CurrentBar={_currentBar}, {FormatTimes(candle.Time)}, CandidateBar={_lastHighRejectionCandidateBar}, CandidateHigh={_lastHighRejectionHigh:F2}, CandidateClose={_lastHighRejectionClose:F2}, CandidateLow={_lastHighRejectionLow:F2}, CandidateDelta={_lastHighRejectionDelta:F0}, Close={candle.Close:F2}, Low={candle.Low:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, DistToPOC={candle.Close - poc:F2}, StopReference={_lastHighRejectionHigh:F2}, Target1={poc:F2}, Target2={val:F2}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}");
+                    var entryBubble = FormatEntryBubble("Sell", candle);
+                    _log($"[MR_EARLY_TRIGGER] Direction=Short, Trigger=HIGH_REJECTION_FOLLOW_THROUGH, BarMode={GetBarMode(bar)}, Bar={bar}, CurrentBar={_currentBar}, {FormatTimes(candle.Time)}, CandidateBar={_lastHighRejectionCandidateBar}, CandidateHigh={_lastHighRejectionHigh:F2}, CandidateClose={_lastHighRejectionClose:F2}, CandidateLow={_lastHighRejectionLow:F2}, CandidateDelta={_lastHighRejectionDelta:F0}, Close={candle.Close:F2}, Low={candle.Low:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, DistToPOC={candle.Close - poc:F2}, StopReference={_lastHighRejectionHigh:F2}, Target1={poc:F2}, Target2={val:F2}, {entryBubble}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}");
                 }
             }
         }
@@ -694,13 +696,15 @@ namespace FabioTrendFollowing
             if (_lastLowRejectionCandidateBar >= 0 && !_lowRejectionPocReclaimed && bar > _lastLowRejectionCandidateBar && candle.Close > poc)
             {
                 _lowRejectionPocReclaimed = true;
-                _log($"[MR_TRIGGER] Direction=Long, Trigger=POC_RECLAIM_AFTER_LOW_REJECTION, BarMode={GetBarMode(bar)}, Bar={bar}, CurrentBar={_currentBar}, {FormatTimes(candle.Time)}, CandidateBar={_lastLowRejectionCandidateBar}, Close={candle.Close:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, DistToPOC={candle.Close - poc:F2}, StopReference={_context.CurrentZone.Low:F2}, Target1={vah:F2}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}");
+                var entryBubble = FormatEntryBubble("Buy", candle);
+                _log($"[MR_TRIGGER] Direction=Long, Trigger=POC_RECLAIM_AFTER_LOW_REJECTION, BarMode={GetBarMode(bar)}, Bar={bar}, CurrentBar={_currentBar}, {FormatTimes(candle.Time)}, CandidateBar={_lastLowRejectionCandidateBar}, Close={candle.Close:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, DistToPOC={candle.Close - poc:F2}, StopReference={_context.CurrentZone.Low:F2}, Target1={vah:F2}, {entryBubble}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}");
             }
 
             if (_lastHighRejectionCandidateBar >= 0 && !_highRejectionPocLost && bar > _lastHighRejectionCandidateBar && candle.Close < poc)
             {
                 _highRejectionPocLost = true;
-                _log($"[MR_TRIGGER] Direction=Short, Trigger=POC_LOSS_AFTER_HIGH_REJECTION, BarMode={GetBarMode(bar)}, Bar={bar}, CurrentBar={_currentBar}, {FormatTimes(candle.Time)}, CandidateBar={_lastHighRejectionCandidateBar}, Close={candle.Close:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, DistToPOC={candle.Close - poc:F2}, StopReference={_context.CurrentZone.High:F2}, Target1={val:F2}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}");
+                var entryBubble = FormatEntryBubble("Sell", candle);
+                _log($"[MR_TRIGGER] Direction=Short, Trigger=POC_LOSS_AFTER_HIGH_REJECTION, BarMode={GetBarMode(bar)}, Bar={bar}, CurrentBar={_currentBar}, {FormatTimes(candle.Time)}, CandidateBar={_lastHighRejectionCandidateBar}, Close={candle.Close:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, DistToPOC={candle.Close - poc:F2}, StopReference={_context.CurrentZone.High:F2}, Target1={val:F2}, {entryBubble}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}");
             }
         }
 
@@ -767,6 +771,38 @@ namespace FabioTrendFollowing
             val = sortedLevels[lowerIndex].Key;
             vah = sortedLevels[upperIndex].Key;
             return true;
+        }
+
+        private string FormatEntryBubble(string side, IndicatorCandle candle)
+        {
+            var buySide = side == "Buy";
+            var bubble = GetDominantAggressionLevel(candle, buySide);
+
+            if (!bubble.Found)
+                return $"EntryBubbleSide={side}, EntryBubblePrice=n/a, EntryBubbleVolume=0, EntryBubbleDelta=0, EntryBubbleMode=DominantTriggerCandleLevel, EntryCaveat=NotFirstExactBubblePrint";
+
+            return $"EntryBubbleSide={side}, EntryBubblePrice={bubble.Price:F2}, EntryBubbleVolume={bubble.Volume:F0}, EntryBubbleDelta={bubble.Delta:F0}, EntryBubbleMode=DominantTriggerCandleLevel, EntryCaveat=NotFirstExactBubblePrint";
+        }
+
+        private (bool Found, decimal Price, decimal Volume, decimal Delta) GetDominantAggressionLevel(IndicatorCandle candle, bool buySide)
+        {
+            var level = candle.GetAllPriceLevels()
+                .Select(priceLevel => new
+                {
+                    priceLevel.Price,
+                    priceLevel.Volume,
+                    Delta = priceLevel.Ask - priceLevel.Bid,
+                    Strength = buySide ? priceLevel.Ask - priceLevel.Bid : priceLevel.Bid - priceLevel.Ask
+                })
+                .Where(priceLevel => priceLevel.Strength > 0)
+                .OrderByDescending(priceLevel => priceLevel.Strength)
+                .ThenByDescending(priceLevel => priceLevel.Volume)
+                .FirstOrDefault();
+
+            if (level == null)
+                return (false, 0, 0, 0);
+
+            return (true, level.Price, level.Volume, level.Delta);
         }
 
         private (decimal Bid, decimal Ask, decimal Delta, string TopLevels) GetCandleVolumeDiagnostics(IndicatorCandle candle)
