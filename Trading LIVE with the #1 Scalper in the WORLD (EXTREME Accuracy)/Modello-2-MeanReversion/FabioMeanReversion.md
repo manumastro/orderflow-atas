@@ -125,7 +125,8 @@ Sintesi osservativa:
 - il primo `[MR_EARLY_TRIGGER]` short arriva presto e non è un errore: il mercato prosegue effettivamente al ribasso;
 - il selloff crea poi un nuovo minimo significativo a `29776.00`;
 - da quel low nasce un `[LOW_REJECTION_CANDIDATE]` con delta tornato positivo;
-- il `[MR_EARLY_TRIGGER]` long arriva prima del reclaim del `POC preview`, quindi è più utile come entry iniziale;
+- il `[MR_AGGRESSION_CONFIRM]` storico da footprint/cumulative trades individua l'entry più fedele a Fabio;
+- il `[MR_EARLY_TRIGGER]` long arriva prima del reclaim del `POC preview`, quindi è più utile della conferma conservativa di barra;
 - il `[MR_TRIGGER]` su reclaim POC è più robusto, ma nel caso osservato arriva tardi e va considerato più come conferma/management.
 
 Importanza per il Modello 2:
@@ -148,16 +149,16 @@ Regola tecnica:
 
 ```text
 Il volume profile si aggiorna ogni barra.
-POC/VAH/VAL preview si calcolano ogni N barre o su eventi importanti.
+POC/VAH/VAL preview si calcolano live/intrabar durante London.
 POC/VAH/VAL ufficiali restano congelati solo a fine London per il Modello 1.
 ```
 
-Parametri iniziali usati per debug:
+Parametri diagnostici correnti:
 
 - aggiornamento profile: ogni barra;
-- preview `POC/VAH/VAL`: ogni 5 barre durante tutta London;
-- preview forzata su nuovi massimi/minimi e rejection candidate;
+- preview `POC/VAH/VAL`: live/intrabar durante tutta London;
 - log trigger anticipato `[MR_EARLY_TRIGGER]` e conferma POC `[MR_TRIGGER]`;
+- richiesta storica `CumulativeTrades` sugli ultimi 7 giorni per `[MR_AGGRESSION_CONFIRM]`;
 - nessun disegno e nessun impatto sulla state machine del Modello 1.
 
 File di log:
@@ -166,54 +167,39 @@ File di log:
 FabioTrendFollowing_YYYY-MM-DD.log
 ```
 
-Contiene eventi sintetici e decisionali:
-
-```text
-[MR_EARLY_TRIGGER]
-[MR_TRIGGER]
-[SESSION_START]
-[SESSION_END]
-[ZONE_READY]
-[BREAKOUT_CONFIRMED]
-[OUT_OF_BALANCE]
-```
-
-```text
-FabioTrendFollowing_verbose_YYYY-MM-DD.log
-```
-
-Contiene diagnostica rumorosa/intrabar:
-
-```text
-[PROFILE_PREVIEW]
-[HIGH_REJECTION_CANDIDATE]
-[LOW_REJECTION_CANDIDATE]
-[NEW_SESSION_HIGH]
-[NEW_SESSION_LOW]
-[LONDON_PRE_CLOSE]
-[STATE]
-```
+Contiene tutto in un unico file: trigger, profilo preview, rejection candidate, cumulative trades e diagnostica.
 
 Regola di analisi:
 
 ```text
-Prima leggere il main log per capire cosa è successo.
-Poi usare il verbose log solo per ricostruire il contesto del trigger.
+Per entry footprint: cercare [MR_AGGRESSION_CONFIRM].
+Per conferma di barra: cercare [MR_EARLY_TRIGGER] e [MR_TRIGGER].
+Per contesto: seguire NEW_SESSION_LOW/HIGH -> LOW/HIGH_REJECTION_CANDIDATE -> PROFILE_PREVIEW.
 ```
 
-I log `[MR_EARLY_TRIGGER]` e `[MR_TRIGGER]` includono anche:
+I log `[MR_EARLY_TRIGGER]` e `[MR_TRIGGER]` includono `BarMode`:
 
 ```text
 BarMode=HISTORICAL_CLOSED
 BarMode=LIVE_OR_LAST_BAR
 ```
 
-Significato:
+`[MR_AGGRESSION_CONFIRM]` aggiunge invece la lettura footprint storica:
 
-- `HISTORICAL_CLOSED`: trigger ricostruito su barra storica/chiusa durante reload o replay.
-- `LIVE_OR_LAST_BAR`: trigger nato sulla barra più recente o ancora in formazione.
+```text
+EntryModel=FootprintCumulativeTrade
+EntryPrice=...
+EntryAreaLow=...
+EntryAreaHigh=...
+SweepTimeUtc=...
+SecondsAfterSweep=...
+StopReference=...
+RiskPoints=...
+Target1POC=...
+RewardToPOC=...
+```
 
-Questa distinzione è fondamentale perché i livelli preview, soprattutto `POC preview`, possono cambiare tra calcolo live intrabar e storico consolidato dopo reload.
+Questa distinzione è fondamentale: i trigger di barra confermano il setup, mentre `[MR_AGGRESSION_CONFIRM]` prova a stimare l'entry più fedele al metodo Fabio sui big trades dopo lo sweep.
 
 ---
 
@@ -259,6 +245,7 @@ Per validare il Modello 2 servono:
 - `POC/VAH/VAL preview` al momento dello sweep;
 - distanza del close da `POC`, `VAH`, `VAL` preview;
 - delta candela (`Ask - Bid`);
+- cumulative trades storici dopo lo sweep (`FirstPrice`, `LastPrice`, `Volume`, `Direction`, `Time`);
 - top price levels della candela;
 - volume della candela rispetto al contesto;
 - timestamp in ora italiana;

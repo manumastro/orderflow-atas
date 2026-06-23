@@ -72,6 +72,10 @@ public class FabioTrendFollowing : Indicator
             if (endTime <= startTime)
                 endTime = GetCandle(CurrentBar - 1).Time;
 
+            var maxLookbackStart = endTime.AddDays(-7);
+            if (startTime < maxLookbackStart)
+                startTime = maxLookbackStart;
+
             _cumulativeTradesRequest = new CumulativeTradesRequest(startTime, endTime, 0, 0);
             Log($"[CUM_TRADES_REQUEST] Begin={startTime:yyyy-MM-dd HH:mm:ss}, End={endTime:yyyy-MM-dd HH:mm:ss}, CurrentBar={CurrentBar}");
             RequestForCumulativeTrades(_cumulativeTradesRequest);

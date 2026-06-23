@@ -380,6 +380,7 @@ Contiene sia eventi decisionali sia diagnostica rumorosa/intrabar:
 [FALSE_BREAKOUT]
 [MR_EARLY_TRIGGER]
 [MR_TRIGGER]
+[MR_AGGRESSION_CONFIRM]
 [BAR_CHECK]
 [BAR_DETAIL]
 [STATE]
@@ -397,7 +398,8 @@ Regola di analisi:
 
 ```text
 Filtrare prima il file per fascia oraria.
-Cercare MR_EARLY_TRIGGER e MR_TRIGGER.
+Per entry footprint cercare MR_AGGRESSION_CONFIRM.
+Per conferma di barra cercare MR_EARLY_TRIGGER e MR_TRIGGER.
 Se non ci sono trigger, seguire: NEW_SESSION_LOW/HIGH -> LOW/HIGH_REJECTION_CANDIDATE -> PROFILE_PREVIEW.
 ```
 
@@ -409,21 +411,34 @@ Non va rallentato per ridurre spam mentre il Modello 2 è in fase diagnostica,
 perché i trigger MR usano POC/VAH/VAL preview aggiornati.
 ```
 
-I trigger mean reversion diagnostici includono `BarMode` e un'indicazione della bubble dominante nella candela trigger:
+I trigger mean reversion diagnostici includono `BarMode`:
 
 ```text
 BarMode=HISTORICAL_CLOSED   // barra storica/chiusa, tipica di reload o replay
 BarMode=LIVE_OR_LAST_BAR    // barra più recente o ancora in formazione
-EntryBubbleSide=Buy/Sell
-EntryBubblePrice=...        // livello footprint con delta direzionale dominante nella candela trigger
-EntryBubbleMode=DominantTriggerCandleLevel
-EntryCaveat=NotFirstExactBubblePrint
-[MR_AGGRESSION_CONFIRM]
 ```
 
-`EntryBubblePrice` non è ancora il primo print esatto della bubble live: è il livello dominante ricostruito dalla candela trigger, utile per avvicinare il log al concetto Fabio di ingresso sui big trades.
+`[MR_EARLY_TRIGGER]` e `[MR_TRIGGER]` sono conferme di barra: descrivono quando la candela successiva conferma il fakeout o quando il prezzo reclama/perde il `POC preview`.
 
-`[MR_AGGRESSION_CONFIRM]` prova invece a ricostruire dai `CumulativeTrade` storici la prima aggressione significativa dopo la rejection, con timestamp e prezzo del trade aggregato (`FirstPrice`, `LastPrice`, `Volume`). Per i long cerca prima il momento dello sweep del low della candidate e poi solo buy aggression successive; per gli short fa l'equivalente sullo sweep high. Nei log espone anche `SweepTimeUtc` e `SearchStartUtc`. Questo è il log più vicino all'idea di conferma intrabar storica.
+`[MR_AGGRESSION_CONFIRM]` è invece il log operativo dello studio footprint. Ricostruisce dai `CumulativeTrade` storici la prima aggressione significativa dopo la rejection:
+
+```text
+EntryModel=FootprintCumulativeTrade
+EntryPrice=...
+EntryAreaLow=...
+EntryAreaHigh=...
+Volume=...
+SweepTimeUtc=...
+SecondsAfterSweep=...
+StopReference=...
+RiskPoints=...
+Target1POC=...
+RewardToPOC=...
+Target2=...
+RewardToTarget2=...
+```
+
+Per i long cerca prima il momento dello sweep del low della candidate e poi solo buy aggression successive; per gli short fa l'equivalente sullo sweep high. Questo è il log più vicino all'idea Fabio di ingresso sui big trades.
 
 ---
 

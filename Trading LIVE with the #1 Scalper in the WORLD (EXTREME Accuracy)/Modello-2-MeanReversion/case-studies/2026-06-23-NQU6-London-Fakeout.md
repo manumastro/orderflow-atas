@@ -236,6 +236,61 @@ Lettura:
 
 ---
 
+### 15:30–15:35 Italy — Footprint entry dopo sweep profondo
+
+Dopo un nuovo selloff intraday, il prezzo fa uno sweep molto più profondo e rientra velocemente dentro la value area preview.
+
+```text
+15:30 Italy
+[LOW_REJECTION_CANDIDATE]
+Low=29616.50
+Close=29768.25
+CandidateDelta=+167
+VAL preview=29692.75
+POC preview=29712.00
+VAH preview=29875.00
+
+15:31:21.830 Italy circa
+SweepTime: minimo candidate già formato
+
+15:31:40.835 Italy
+[MR_AGGRESSION_CONFIRM]
+EntryModel=FootprintCumulativeTrade
+EntryPrice=29697.50
+EntryAreaLow=29694.75
+EntryAreaHigh=29697.50
+Volume=25
+TradeDirection=Buy
+SecondsAfterSweep=19.0
+StopReference=29616.50
+RiskPoints=81.00
+Target1POC=29712.00
+RewardToPOC=14.50
+Target2=29875.00
+RewardToTarget2=177.50
+
+15:35 Italy
+[MR_EARLY_TRIGGER] Direction=Long
+[MR_TRIGGER] Direction=Long
+Close=29780.75
+```
+
+Lettura:
+
+- la candela delle `15:30` è la rejection candidate;
+- la conferma footprint arriva **dentro la candela candidate**, circa 19 secondi dopo lo sweep;
+- l'entry più fedele al metodo Fabio non è la close `29780.75`, ma la buy aggression storica in area `29694.75–29697.50`;
+- il trigger di barra delle `15:35` conferma il setup, ma arriva molto più tardi e con rapporto rischio/rendimento peggiore.
+
+Regola derivata:
+
+```text
+Entry Fabio-style = prima buy/sell aggression significativa dopo sweep e rientro in value.
+Trigger di barra = conferma/validazione, non necessariamente prezzo di ingresso primario.
+```
+
+---
+
 ## 3. Conclusione del Caso
 
 Il 23/06 mostra una sequenza completa e utile per il Modello 2:
@@ -245,17 +300,18 @@ Il 23/06 mostra una sequenza completa e utile per il Modello 2:
 2. Early short valido
 3. Selloff e accettazione sotto value
 4. Sweep/fakeout basso
-5. Early long
-6. Reclaim POC tardivo
-7. Rotazione attorno al nuovo POC preview
+5. Footprint entry su buy aggression dopo sweep
+6. Early long di barra
+7. Reclaim POC tardivo
+8. Rotazione attorno al nuovo POC preview
 ```
 
 Lezione principale:
 
 ```text
+La entry più fedele a Fabio nasce dalla prima aggressione footprint dopo sweep.
+Il trigger anticipato di barra è utile come conferma.
 Il trigger conservativo sul POC è robusto ma spesso tardivo.
-Il trigger anticipato dopo rejection è più utile per entry,
-ma richiede contesto per evitare falsi segnali.
 ```
 
 ---
@@ -266,8 +322,8 @@ ma richiede contesto per evitare falsi segnali.
 
 ```text
 LOW_REJECTION_CANDIDATE
-→ candela successiva chiude sopra close/high della rejection
-→ delta o struttura conferma follow-through
+→ sweep identificato
+→ prima buy aggression significativa dopo sweep e rientro in value
 → target iniziale POC preview
 ```
 
@@ -275,16 +331,18 @@ Speculare per short:
 
 ```text
 HIGH_REJECTION_CANDIDATE
-→ candela successiva chiude sotto close/low della rejection
-→ delta o struttura conferma follow-through
+→ sweep identificato
+→ prima sell aggression significativa dopo sweep e rientro in value
 → target iniziale POC preview
 ```
 
-### Trigger conservativo
+### Trigger di barra e conferma conservativa
 
 ```text
-Low rejection → reclaim POC preview = conferma long
-High rejection → loss POC preview = conferma short
+Low rejection → candela successiva con follow-through = early confirmation long
+High rejection → candela successiva con follow-through = early confirmation short
+Low rejection → reclaim POC preview = conferma conservativa long
+High rejection → loss POC preview = conferma conservativa short
 ```
 
 ### Gestione livelli
