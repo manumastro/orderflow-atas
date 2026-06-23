@@ -283,6 +283,7 @@ namespace FabioTrendFollowing
 
             var isInLondonSession = IsInLondonSession(londonTime);
             var isInNewYorkSession = IsInNewYorkSession(nyTime);
+            var isClosedBarForBreakout = IsClosedBarForBreakout(bar);
             
             if (DetailedDebugLogs && bar % 10 == 0 && (isInLondonSession || isInNewYorkSession))
             {
@@ -311,14 +312,14 @@ namespace FabioTrendFollowing
                     break;
 
                 case MarketState.BalanceReady:
-                    if (isInNewYorkSession)
+                    if (isInNewYorkSession && isClosedBarForBreakout)
                     {
                         CheckForBreakout(bar, candle);
                     }
                     break;
 
                 case MarketState.BreakoutPending:
-                    if (isInNewYorkSession)
+                    if (isInNewYorkSession && isClosedBarForBreakout)
                     {
                         ConfirmBreakout(bar, candle);
                     }
@@ -641,6 +642,7 @@ namespace FabioTrendFollowing
         private void ConfirmBreakout(int bar, IndicatorCandle candle)
         {
             if (_context.CurrentZone == null) return;
+            if (bar <= _context.PendingBreakoutBar) return;
 
             var close = candle.Close;
 
@@ -702,6 +704,11 @@ namespace FabioTrendFollowing
         {
             var hour = londonTime.Hour;
             return hour >= 8 && hour < 16;
+        }
+
+        private bool IsClosedBarForBreakout(int bar)
+        {
+            return bar < _currentBar - 1;
         }
 
         private bool IsInNewYorkSession(DateTime nyTime)

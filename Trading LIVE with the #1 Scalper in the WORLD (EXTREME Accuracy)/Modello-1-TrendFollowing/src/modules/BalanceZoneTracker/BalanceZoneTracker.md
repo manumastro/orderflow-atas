@@ -270,6 +270,8 @@ Conferma:
 2 close consecutive fuori dalla value area nella stessa direzione
 ```
 
+La conferma usa solo barre chiuse. In live, la candela in formazione non può generare `BREAKOUT_PENDING`/`BREAKOUT_CONFIRMED`, e la stessa barra non può mai contare come prima e seconda close. Questo evita che un semplice touch intrabar di VAH/VAL colori subito la balance.
+
 False breakout:
 
 ```text
