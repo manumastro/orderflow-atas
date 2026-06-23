@@ -412,7 +412,16 @@ Regola di analisi:
 
 ```text
 Prima leggere il main log per individuare trigger e transizioni.
-Poi aprire il verbose log solo per ricostruire il contesto del trigger.
+Se il main non mostra trigger, aprire il verbose nella fascia oraria richiesta.
+Nel verbose seguire: NEW_SESSION_LOW/HIGH -> LOW/HIGH_REJECTION_CANDIDATE -> PROFILE_PREVIEW.
+```
+
+Nota operativa:
+
+```text
+[PROFILE_PREVIEW] è volutamente rumoroso e aggiornato live/intrabar durante London.
+Non va rallentato per ridurre spam mentre il Modello 2 è in fase diagnostica,
+perché i trigger MR usano POC/VAH/VAL preview aggiornati.
 ```
 
 I trigger mean reversion diagnostici includono `BarMode`:

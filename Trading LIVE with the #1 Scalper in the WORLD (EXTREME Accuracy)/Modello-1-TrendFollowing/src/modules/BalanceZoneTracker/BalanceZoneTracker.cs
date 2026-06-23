@@ -85,7 +85,6 @@ namespace FabioTrendFollowing
         private const int MinSessionBars = 5;
         private const int ExpectedLondonBars = 96; // 8h * 12 bars/h on M5
         private const int MinCompleteSessionBars = 90; // Tolleranza -6 bars
-        private const int PreviewProfileEveryBars = 5;
         private const int LondonPreviewStartHour = 8;
         
         private bool _firstCompleteSessionFound = false;
@@ -106,7 +105,6 @@ namespace FabioTrendFollowing
         private int _currentBar;
         private bool _lowRejectionEarlyTriggered;
         private bool _highRejectionEarlyTriggered;
-        private int _lastSeenLiveBar = -1;
 
         public BalanceZoneTracker(
             Indicator indicator, 
@@ -159,7 +157,6 @@ namespace FabioTrendFollowing
         {
             _currentBar = currentBar;
             var barTime = candle.Time;
-            LogLastBarSeenIfNeeded(bar, candle);
 
             // Log dettagliato prima barra per verifica dati
             if (bar == 1)
@@ -590,15 +587,6 @@ namespace FabioTrendFollowing
             return bar >= _currentBar - 1 ? "LIVE_OR_LAST_BAR" : "HISTORICAL_CLOSED";
         }
 
-        private void LogLastBarSeenIfNeeded(int bar, IndicatorCandle candle)
-        {
-            if (bar < _currentBar - 1 || bar == _lastSeenLiveBar)
-                return;
-
-            _lastSeenLiveBar = bar;
-            _verboseLog($"[LAST_BAR_SEEN] BarMode={GetBarMode(bar)}, Bar={bar}, CurrentBar={_currentBar}, {FormatTimes(candle.Time)}, O={candle.Open:F2}, H={candle.High:F2}, L={candle.Low:F2}, C={candle.Close:F2}, V={candle.Volume:F0}");
-        }
-
         private void LogSessionExtreme(string tag, int bar, IndicatorCandle candle, decimal previousExtreme)
         {
             _verboseLog($"[{tag}] Bar={bar}, {FormatTimes(candle.Time)}, Previous={previousExtreme:F2}, O={candle.Open:F2}, H={candle.High:F2}, L={candle.Low:F2}, C={candle.Close:F2}, V={candle.Volume:F0}");
@@ -650,9 +638,8 @@ namespace FabioTrendFollowing
 
             var londonTime = TimeZoneInfo.ConvertTimeFromUtc(candle.Time, _londonTimeZone);
             var isLondonPreviewWindow = londonTime.Hour >= LondonPreviewStartHour;
-            var shouldLogByCadence = isLondonPreviewWindow && (_lastPreviewProfileBar < 0 || bar - _lastPreviewProfileBar >= PreviewProfileEveryBars);
 
-            if (!force && !shouldLogByCadence)
+            if (!isLondonPreviewWindow)
                 return;
 
             if (!TryCalculateProfilePreview(_context.CurrentZone, out var poc, out var vah, out var val, out var valueAreaVolume, out var maxVolume))
@@ -663,7 +650,7 @@ namespace FabioTrendFollowing
             var relation = candle.Close > vah ? "ABOVE_PREVIEW_VAH" : candle.Close < val ? "BELOW_PREVIEW_VAL" : "INSIDE_PREVIEW_VA";
             var sessionBars = bar - _context.CurrentZone.StartBar + 1;
 
-            _verboseLog($"[PROFILE_PREVIEW] Bar={bar}, {FormatTimes(candle.Time)}, Reason={(force ? "event" : "cadence")}, Bars={sessionBars}, High={_context.CurrentZone.High:F2}, Low={_context.CurrentZone.Low:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, VA_Volume={valueAreaVolume:F0}, TotalVolume={_context.CurrentZone.TotalVolume:F0}, MaxLevelVolume={maxVolume:F0}, Close={candle.Close:F2}, Relation={relation}, DistToPOC={candle.Close - poc:F2}, DistToVAH={candle.Close - vah:F2}, DistToVAL={candle.Close - val:F2}, CandleBid={bid:F0}, CandleAsk={ask:F0}, CandleDelta={delta:F0}, TopCandleLevels={topLevels}");
+            _verboseLog($"[PROFILE_PREVIEW] Bar={bar}, {FormatTimes(candle.Time)}, Reason={(force ? "event" : "live")}, Bars={sessionBars}, High={_context.CurrentZone.High:F2}, Low={_context.CurrentZone.Low:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, VA_Volume={valueAreaVolume:F0}, TotalVolume={_context.CurrentZone.TotalVolume:F0}, MaxLevelVolume={maxVolume:F0}, Close={candle.Close:F2}, Relation={relation}, DistToPOC={candle.Close - poc:F2}, DistToVAH={candle.Close - vah:F2}, DistToVAL={candle.Close - val:F2}, CandleBid={bid:F0}, CandleAsk={ask:F0}, CandleDelta={delta:F0}, TopCandleLevels={topLevels}");
             LogMeanReversionEarlyTriggerIfNeeded(bar, candle, poc, vah, val, bid, ask, delta);
             LogMeanReversionTriggerIfNeeded(bar, candle, poc, vah, val, bid, ask, delta);
         }

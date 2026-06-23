@@ -47,9 +47,13 @@ deploy.bat  # copia DLL in %APPDATA%\ATAS\Indicators\
 Per `FabioTrendFollowing` i log sono divisi:
 
 - `%APPDATA%/ATAS/Logs/FabioTrendFollowing_YYYY-MM-DD.log` — eventi sintetici e decisionali (`[MR_EARLY_TRIGGER]`, `[MR_TRIGGER]`, `[ZONE_READY]`, `[OUT_OF_BALANCE]`).
-- `%APPDATA%/ATAS/Logs/FabioTrendFollowing_verbose_YYYY-MM-DD.log` — diagnostica rumorosa/intrabar (`[PROFILE_PREVIEW]`, rejection candidate, new high/low, state, drawing/debug).
+- `%APPDATA%/ATAS/Logs/FabioTrendFollowing_verbose_YYYY-MM-DD.log` — diagnostica volutamente rumorosa/intrabar (`[PROFILE_PREVIEW]`, rejection candidate, new high/low, state, drawing/debug).
 
-Quando analizzi cosa è successo sul mercato, leggi prima il main log e usa il verbose solo per ricostruire il contesto del trigger.
+Quando analizzi cosa è successo sul mercato:
+1. leggi prima il main log per trigger e transizioni;
+2. se il main non mostra trigger, apri il verbose nella fascia oraria richiesta;
+3. nel verbose segui in ordine `[NEW_SESSION_LOW/HIGH]` → `[LOW/HIGH_REJECTION_CANDIDATE]` → `[PROFILE_PREVIEW]`;
+4. non ridurre la frequenza dei `[PROFILE_PREVIEW]` per evitare spam: per il Modello 2 diagnostico servono aggiornati live/intrabar.
 
 ## Documentazione
 
