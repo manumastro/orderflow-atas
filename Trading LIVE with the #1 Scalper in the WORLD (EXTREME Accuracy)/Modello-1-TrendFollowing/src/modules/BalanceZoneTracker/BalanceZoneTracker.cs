@@ -98,7 +98,8 @@ namespace FabioTrendFollowing
         private const int MinCompleteSessionBars = 90; // Tolleranza -6 bars
         private const int LondonPreviewStartHour = 8;
         private static readonly bool DetailedDebugLogs = false;
-        private const decimal MinAggressionTradeVolume = 10m;
+        private const decimal LondonMinAggressionTradeVolume = 20m;
+        private const decimal NewYorkMinAggressionTradeVolume = 30m;
         
         private readonly List<MeanReversionTriggerLog> _meanReversionTriggerLogs = new();
         private readonly HashSet<string> _loggedAggressionCandidateKeys = new();
@@ -197,7 +198,8 @@ namespace FabioTrendFollowing
             if (_lastLowRejectionCandidateBar < 0 || _liveLowSweepTimeUtc == null)
                 return;
 
-            if (trade.Time < _liveLowSweepTimeUtc.Value || trade.Direction != TradeDirection.Buy || trade.Volume < MinAggressionTradeVolume || trade.Lastprice < _lastPreviewVal)
+            var minVolume = GetMinAggressionTradeVolume(trade.Time);
+            if (trade.Time < _liveLowSweepTimeUtc.Value || trade.Direction != TradeDirection.Buy || trade.Volume < minVolume || trade.Lastprice < _lastPreviewVal)
                 return;
 
             var candidateKey = $"Long:{_lastLowRejectionCandidateBar}";
@@ -224,7 +226,8 @@ namespace FabioTrendFollowing
             if (_lastHighRejectionCandidateBar < 0 || _liveHighSweepTimeUtc == null)
                 return;
 
-            if (trade.Time < _liveHighSweepTimeUtc.Value || trade.Direction != TradeDirection.Sell || trade.Volume < MinAggressionTradeVolume || trade.Lastprice > _lastPreviewVah)
+            var minVolume = GetMinAggressionTradeVolume(trade.Time);
+            if (trade.Time < _liveHighSweepTimeUtc.Value || trade.Direction != TradeDirection.Sell || trade.Volume < minVolume || trade.Lastprice > _lastPreviewVah)
                 return;
 
             var candidateKey = $"Short:{_lastHighRejectionCandidateBar}";
@@ -938,7 +941,32 @@ namespace FabioTrendFollowing
             var rewardToTarget2 = direction == "Long" ? vah - entryPrice : entryPrice - val;
             var secondsAfterSweep = sweepTime.HasValue ? (trade.Time - sweepTime.Value).TotalSeconds : 0;
 
-            _log($"[MR_AGGRESSION_CONFIRM] Direction={direction}, EntryModel={entryModel}, Trigger={trigger}, Bar={bar}, CandidateBar={candidateBar}, UTC={trade.Time:yyyy-MM-dd HH:mm:ss.fff}, London={londonTime:yyyy-MM-dd HH:mm:ss.fff}, Italy={italyTime:yyyy-MM-dd HH:mm:ss.fff}, EntryPrice={entryPrice:F2}, EntryAreaLow={entryAreaLow:F2}, EntryAreaHigh={entryAreaHigh:F2}, FirstPrice={trade.FirstPrice:F2}, LastPrice={trade.Lastprice:F2}, Volume={trade.Volume:F0}, TradeDirection={trade.Direction}, SweepTimeUtc={(sweepTime.HasValue ? sweepTime.Value.ToString("yyyy-MM-dd HH:mm:ss.fff") : "n/a")}, SecondsAfterSweep={secondsAfterSweep:F1}, StopReference={stopReference:F2}, RiskPoints={riskPoints:F2}, Target1POC={poc:F2}, Target2={target2:F2}, RewardToPOC={rewardToPoc:F2}, RewardToTarget2={rewardToTarget2:F2}, VAH={vah:F2}, VAL={val:F2}, MinVolume={MinAggressionTradeVolume:F0}");
+            var minVolume = GetMinAggressionTradeVolume(trade.Time);
+            var volumeRule = GetAggressionVolumeRule(trade.Time);
+            _log($"[MR_AGGRESSION_CONFIRM] Direction={direction}, EntryModel={entryModel}, Trigger={trigger}, Bar={bar}, CandidateBar={candidateBar}, UTC={trade.Time:yyyy-MM-dd HH:mm:ss.fff}, London={londonTime:yyyy-MM-dd HH:mm:ss.fff}, Italy={italyTime:yyyy-MM-dd HH:mm:ss.fff}, EntryPrice={entryPrice:F2}, EntryAreaLow={entryAreaLow:F2}, EntryAreaHigh={entryAreaHigh:F2}, FirstPrice={trade.FirstPrice:F2}, LastPrice={trade.Lastprice:F2}, Volume={trade.Volume:F0}, TradeDirection={trade.Direction}, SweepTimeUtc={(sweepTime.HasValue ? sweepTime.Value.ToString("yyyy-MM-dd HH:mm:ss.fff") : "n/a")}, SecondsAfterSweep={secondsAfterSweep:F1}, StopReference={stopReference:F2}, RiskPoints={riskPoints:F2}, Target1POC={poc:F2}, Target2={target2:F2}, RewardToPOC={rewardToPoc:F2}, RewardToTarget2={rewardToTarget2:F2}, VAH={vah:F2}, VAL={val:F2}, MinVolume={minVolume:F0}, VolumeRule={volumeRule}");
+        }
+
+        private decimal GetMinAggressionTradeVolume(DateTime utcTime)
+        {
+            var nyTime = TimeZoneInfo.ConvertTimeFromUtc(utcTime, _newYorkTimeZone);
+            if (IsInNewYorkSession(nyTime))
+                return NewYorkMinAggressionTradeVolume;
+
+            var londonTime = TimeZoneInfo.ConvertTimeFromUtc(utcTime, _londonTimeZone);
+            if (IsInLondonSession(londonTime))
+                return LondonMinAggressionTradeVolume;
+
+            return LondonMinAggressionTradeVolume;
+        }
+
+        private string GetAggressionVolumeRule(DateTime utcTime)
+        {
+            var nyTime = TimeZoneInfo.ConvertTimeFromUtc(utcTime, _newYorkTimeZone);
+            if (IsInNewYorkSession(nyTime))
+                return "NewYork30";
+
+            var londonTime = TimeZoneInfo.ConvertTimeFromUtc(utcTime, _londonTimeZone);
+            return IsInLondonSession(londonTime) ? "London20" : "DefaultLondon20";
         }
 
         private void LogHistoricalAggressionConfirmation(MeanReversionTriggerLog triggerLog, IReadOnlyCollection<CumulativeTrade> trades)
@@ -973,7 +1001,8 @@ namespace FabioTrendFollowing
                 if (trade.Direction != direction)
                     continue;
 
-                if (trade.Volume < MinAggressionTradeVolume)
+                var minVolume = GetMinAggressionTradeVolume(trade.Time);
+                if (trade.Volume < minVolume)
                     continue;
 
                 if (!IsHistoricalAggressionInsideValue(triggerLog.Direction, triggerLog, trade))

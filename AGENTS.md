@@ -54,7 +54,8 @@ Quando analizzi cosa è successo sul mercato:
 3. per conferma di barra cerca `[MR_EARLY_TRIGGER]` e `[MR_TRIGGER]`;
 4. per contesto risali a `[LOW/HIGH_REJECTION_CANDIDATE]`, `[NEW_SESSION_LOW/HIGH]`, `[PROFILE_PREVIEW]`;
 5. considera la barra come contesto/candidate e il footprint come entry Fabio-style;
-6. i log tecnici `[BAR_CHECK]`, `[STATE]`, `[DRAW_ZONE]`, `[VERIFY_COVERAGE]`, `[POC_CALC]`, `[VALUE_AREA_CALC]` sono disattivati di default.
+6. per `[MR_AGGRESSION_CONFIRM]` la soglia volume è `London20` / `NewYork30`;
+7. i log tecnici `[BAR_CHECK]`, `[STATE]`, `[DRAW_ZONE]`, `[VERIFY_COVERAGE]`, `[POC_CALC]`, `[VALUE_AREA_CALC]` sono disattivati di default.
 
 ## Documentazione
 

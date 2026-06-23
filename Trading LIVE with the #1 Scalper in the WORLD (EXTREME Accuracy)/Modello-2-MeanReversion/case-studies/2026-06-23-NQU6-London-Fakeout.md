@@ -260,6 +260,8 @@ EntryPrice=29697.50
 EntryAreaLow=29694.75
 EntryAreaHigh=29697.50
 Volume=25
+MinVolume=20
+VolumeRule=London20
 TradeDirection=Buy
 SecondsAfterSweep=19.0
 StopReference=29616.50
@@ -279,7 +281,7 @@ Lettura:
 
 - la candela delle `15:30` è la rejection candidate;
 - la conferma footprint arriva **dentro la candela candidate**, circa 19 secondi dopo lo sweep;
-- l'entry più fedele al metodo Fabio non è la close `29780.75`, ma la buy aggression footprint in area `29694.75–29697.50`; in live lo stesso evento deve nascere da `OnCumulativeTrade`, dopo reload da `CumulativeTrades` storici;
+- l'entry più fedele al metodo Fabio non è la close `29780.75`, ma la buy aggression footprint in area `29694.75–29697.50`; il trade `Volume=25` passa la soglia London `20`; in live lo stesso evento deve nascere da `OnCumulativeTrade`, dopo reload da `CumulativeTrades` storici;
 - il trigger di barra delle `15:35` conferma il setup, ma arriva molto più tardi e con rapporto rischio/rendimento peggiore.
 
 Regola derivata:

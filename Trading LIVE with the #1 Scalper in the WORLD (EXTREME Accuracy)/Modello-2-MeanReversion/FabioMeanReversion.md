@@ -250,20 +250,27 @@ Lo studio della barra non va eliminato per il fakeout: serve a definire che il m
 
 ### 7.4 Soglia volume aggressione
 
-Nel transcript Fabio non dà una soglia numerica fissa. Dice di aspettare `big trades`, `bubble` e `big volume`, quindi la soglia deve essere trattata come parametro diagnostico e adattivo.
-
-Valore attuale:
+Appunto operativo dal metodo Fabio:
 
 ```text
-MinAggressionTradeVolume = 10
+London: big trade/bubble >= 20
+New York: big trade/bubble >= 30
 ```
 
-Interpretazione:
+Valori correnti nel codice:
 
-- è una soglia iniziale prudente per filtrare micro trade;
-- non è una regola definitiva;
-- va calibrata su strumento, sessione, volatilità e distribuzione dei cumulative trades;
-- miglioramento futuro: usare percentile/volume relativo invece di valore fisso.
+```text
+LondonMinAggressionTradeVolume = 20
+NewYorkMinAggressionTradeVolume = 30
+```
+
+Regola:
+
+- durante London si usa soglia `20`;
+- durante New York si usa soglia `30`;
+- in eventuale sovrapposizione si dà precedenza alla regola New York;
+- fuori sessione si usa fallback `London20`;
+- miglioramento futuro: confrontare queste soglie con percentile/volume relativo per strumento e volatilità.
 
 ---
 
