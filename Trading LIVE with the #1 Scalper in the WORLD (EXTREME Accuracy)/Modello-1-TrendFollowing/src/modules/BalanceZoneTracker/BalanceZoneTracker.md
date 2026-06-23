@@ -361,15 +361,13 @@ creare drawing object una volta e aggiornare SecondBar
 
 ## 12. Log Attesi
 
-### Main log
-
-File:
+File unico:
 
 ```text
 FabioTrendFollowing_YYYY-MM-DD.log
 ```
 
-Contiene eventi sintetici e decisionali:
+Contiene sia eventi decisionali sia diagnostica rumorosa/intrabar:
 
 ```text
 [SESSION_START]
@@ -382,19 +380,6 @@ Contiene eventi sintetici e decisionali:
 [FALSE_BREAKOUT]
 [MR_EARLY_TRIGGER]
 [MR_TRIGGER]
-```
-
-### Verbose log
-
-File:
-
-```text
-FabioTrendFollowing_verbose_YYYY-MM-DD.log
-```
-
-Contiene diagnostica rumorosa o intrabar:
-
-```text
 [BAR_CHECK]
 [BAR_DETAIL]
 [STATE]
@@ -411,9 +396,9 @@ Contiene diagnostica rumorosa o intrabar:
 Regola di analisi:
 
 ```text
-Prima leggere il main log per individuare trigger e transizioni.
-Se il main non mostra trigger, aprire il verbose nella fascia oraria richiesta.
-Nel verbose seguire: NEW_SESSION_LOW/HIGH -> LOW/HIGH_REJECTION_CANDIDATE -> PROFILE_PREVIEW.
+Filtrare prima il file per fascia oraria.
+Cercare MR_EARLY_TRIGGER e MR_TRIGGER.
+Se non ci sono trigger, seguire: NEW_SESSION_LOW/HIGH -> LOW/HIGH_REJECTION_CANDIDATE -> PROFILE_PREVIEW.
 ```
 
 Nota operativa:
