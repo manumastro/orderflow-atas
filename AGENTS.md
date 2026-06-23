@@ -51,11 +51,12 @@ Per `FabioTrendFollowing` c'è un solo log giornaliero:
 Quando analizzi cosa è successo sul mercato:
 1. filtra prima il log per la fascia oraria richiesta;
 2. per entry footprint cerca `[MR_AGGRESSION_CONFIRM]`;
-3. per conferma di barra cerca `[MR_EARLY_TRIGGER]` e `[MR_TRIGGER]`;
-4. per contesto risali a `[LOW/HIGH_REJECTION_CANDIDATE]`, `[NEW_SESSION_LOW/HIGH]`, `[PROFILE_PREVIEW]`;
-5. considera la barra come contesto/candidate e il footprint come entry Fabio-style;
-6. per `[MR_AGGRESSION_CONFIRM]` la soglia volume è hardcoded a `20`;
-7. i log tecnici `[BAR_CHECK]`, `[STATE]`, `[DRAW_ZONE]`, `[VERIFY_COVERAGE]`, `[POC_CALC]`, `[VALUE_AREA_CALC]` sono disattivati di default.
+3. per push/outcome cerca `[MR_MFE_UPDATE]`, `[MR_TARGET_HIT]`, `[MR_INVALIDATED]`;
+4. per conferma di barra cerca `[MR_EARLY_TRIGGER]` e `[MR_TRIGGER]`;
+5. per contesto risali a `[LOW/HIGH_REJECTION_CANDIDATE]`, `[NEW_SESSION_LOW/HIGH]`, `[PROFILE_PREVIEW]`;
+6. considera la barra come contesto/candidate e il footprint come entry Fabio-style;
+7. per `[MR_AGGRESSION_CONFIRM]` la soglia volume è hardcoded a `20`;
+8. i log tecnici `[BAR_CHECK]`, `[STATE]`, `[DRAW_ZONE]`, `[VERIFY_COVERAGE]`, `[POC_CALC]`, `[VALUE_AREA_CALC]` sono disattivati di default.
 
 ## Documentazione
 

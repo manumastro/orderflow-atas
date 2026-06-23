@@ -275,6 +275,11 @@ RewardToTarget2=177.50
 [MR_EARLY_TRIGGER] Direction=Long
 [MR_TRIGGER] Direction=Long
 Close=29780.75
+
+15:50–16:15 Italy
+[MR_TARGET_HIT] Target=POC
+[MR_TARGET_HIT] Target=Target2
+[MR_MFE_UPDATE] MFE≈313.75 MaxFavorablePrice≈30011.25
 ```
 
 Lettura:
@@ -282,7 +287,8 @@ Lettura:
 - la candela delle `15:30` è la rejection candidate;
 - la conferma footprint arriva **dentro la candela candidate**, circa 19 secondi dopo lo sweep;
 - l'entry più fedele al metodo Fabio non è la close `29780.75`, ma la buy aggression footprint in area `29694.75–29697.50`; il trade `Volume=25` passa la soglia provvisoria hardcoded `20`; in live lo stesso evento deve nascere da `OnCumulativeTrade`, dopo reload da `CumulativeTrades` storici;
-- il trigger di barra delle `15:35` conferma il setup, ma arriva molto più tardi e con rapporto rischio/rendimento peggiore.
+- il trigger di barra delle `15:35` conferma il setup, ma arriva molto più tardi e con rapporto rischio/rendimento peggiore;
+- i log outcome devono evidenziare automaticamente il push successivo, invece di costringerci a ricostruirlo dai `[PROFILE_PREVIEW]`.
 
 Regola derivata:
 

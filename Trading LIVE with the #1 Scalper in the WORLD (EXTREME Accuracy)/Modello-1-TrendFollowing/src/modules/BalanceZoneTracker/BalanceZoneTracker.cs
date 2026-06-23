@@ -74,6 +74,25 @@ namespace FabioTrendFollowing
         public bool HistoricalAggressionLogged { get; set; }
     }
 
+    internal sealed class MeanReversionOutcome
+    {
+        public string Direction { get; set; } = string.Empty;
+        public string EntryModel { get; set; } = string.Empty;
+        public int EntryBar { get; set; }
+        public int CandidateBar { get; set; }
+        public decimal EntryPrice { get; set; }
+        public decimal StopReference { get; set; }
+        public decimal Target1POC { get; set; }
+        public decimal Target2 { get; set; }
+        public decimal MfePoints { get; set; }
+        public decimal MaePoints { get; set; }
+        public decimal MaxFavorablePrice { get; set; }
+        public decimal MaxAdversePrice { get; set; }
+        public bool Target1Hit { get; set; }
+        public bool Target2Hit { get; set; }
+        public bool Invalidated { get; set; }
+    }
+
     internal sealed class BalanceZoneTracker
     {
         private readonly Indicator _indicator;
@@ -101,6 +120,7 @@ namespace FabioTrendFollowing
         private const decimal MinAggressionTradeVolume = 20m;
         
         private readonly List<MeanReversionTriggerLog> _meanReversionTriggerLogs = new();
+        private readonly List<MeanReversionOutcome> _meanReversionOutcomes = new();
         private readonly HashSet<string> _loggedAggressionCandidateKeys = new();
         private bool _firstCompleteSessionFound = false;
         private int _lastLoggedPreCloseBar = -1;
@@ -316,6 +336,8 @@ namespace FabioTrendFollowing
                     }
                     break;
             }
+
+            UpdateMeanReversionOutcomes(bar, candle);
         }
 
         private void StartLondonSession(int bar, IndicatorCandle candle)
@@ -943,6 +965,139 @@ namespace FabioTrendFollowing
             var minVolume = GetMinAggressionTradeVolume(trade.Time);
             var volumeRule = GetAggressionVolumeRule(trade.Time);
             _log($"[MR_AGGRESSION_CONFIRM] Direction={direction}, EntryModel={entryModel}, Trigger={trigger}, Bar={bar}, CandidateBar={candidateBar}, UTC={trade.Time:yyyy-MM-dd HH:mm:ss.fff}, London={londonTime:yyyy-MM-dd HH:mm:ss.fff}, Italy={italyTime:yyyy-MM-dd HH:mm:ss.fff}, EntryPrice={entryPrice:F2}, EntryAreaLow={entryAreaLow:F2}, EntryAreaHigh={entryAreaHigh:F2}, FirstPrice={trade.FirstPrice:F2}, LastPrice={trade.Lastprice:F2}, Volume={trade.Volume:F0}, TradeDirection={trade.Direction}, SweepTimeUtc={(sweepTime.HasValue ? sweepTime.Value.ToString("yyyy-MM-dd HH:mm:ss.fff") : "n/a")}, SecondsAfterSweep={secondsAfterSweep:F1}, StopReference={stopReference:F2}, RiskPoints={riskPoints:F2}, Target1POC={poc:F2}, Target2={target2:F2}, RewardToPOC={rewardToPoc:F2}, RewardToTarget2={rewardToTarget2:F2}, VAH={vah:F2}, VAL={val:F2}, MinVolume={minVolume:F0}, VolumeRule={volumeRule}");
+
+            var outcome = RegisterMeanReversionOutcome(direction, entryModel, bar, candidateBar, entryPrice, stopReference, poc, target2);
+            EvaluateMeanReversionOutcomeRange(outcome, bar, Math.Max(bar, _currentBar - 1));
+        }
+
+        private MeanReversionOutcome RegisterMeanReversionOutcome(string direction, string entryModel, int entryBar, int candidateBar, decimal entryPrice, decimal stopReference, decimal target1Poc, decimal target2)
+        {
+            var existing = _meanReversionOutcomes.FirstOrDefault(outcome => outcome.Direction == direction && outcome.CandidateBar == candidateBar);
+            if (existing != null)
+                return existing;
+
+            var outcome = new MeanReversionOutcome
+            {
+                Direction = direction,
+                EntryModel = entryModel,
+                EntryBar = entryBar,
+                CandidateBar = candidateBar,
+                EntryPrice = entryPrice,
+                StopReference = stopReference,
+                Target1POC = target1Poc,
+                Target2 = target2,
+                MaxFavorablePrice = entryPrice,
+                MaxAdversePrice = entryPrice
+            };
+
+            _meanReversionOutcomes.Add(outcome);
+            return outcome;
+        }
+
+        private void UpdateMeanReversionOutcomes(int bar, IndicatorCandle candle)
+        {
+            foreach (var outcome in _meanReversionOutcomes.Where(outcome => bar >= outcome.EntryBar && !outcome.Invalidated))
+            {
+                EvaluateMeanReversionOutcomeCandle(outcome, bar, candle);
+            }
+        }
+
+        private void EvaluateMeanReversionOutcomeRange(MeanReversionOutcome outcome, int startBar, int endBar)
+        {
+            for (var bar = startBar; bar <= endBar && bar < _currentBar; bar++)
+            {
+                EvaluateMeanReversionOutcomeCandle(outcome, bar, _getCandle(bar));
+                if (outcome.Invalidated)
+                    break;
+            }
+        }
+
+        private void EvaluateMeanReversionOutcomeCandle(MeanReversionOutcome outcome, int bar, IndicatorCandle candle)
+        {
+            if (outcome.Direction == "Long")
+            {
+                EvaluateLongOutcome(outcome, bar, candle);
+            }
+            else
+            {
+                EvaluateShortOutcome(outcome, bar, candle);
+            }
+        }
+
+        private void EvaluateLongOutcome(MeanReversionOutcome outcome, int bar, IndicatorCandle candle)
+        {
+            var favorablePoints = candle.High - outcome.EntryPrice;
+            var adversePoints = outcome.EntryPrice - candle.Low;
+            UpdateMfeMae(outcome, bar, candle, favorablePoints, adversePoints, candle.High, candle.Low);
+
+            if (!outcome.Target1Hit && outcome.Target1POC > outcome.EntryPrice && candle.High >= outcome.Target1POC)
+            {
+                outcome.Target1Hit = true;
+                LogTargetHit(outcome, bar, candle, "POC", outcome.Target1POC, outcome.Target1POC - outcome.EntryPrice);
+            }
+
+            if (!outcome.Target2Hit && outcome.Target2 > outcome.EntryPrice && candle.High >= outcome.Target2)
+            {
+                outcome.Target2Hit = true;
+                LogTargetHit(outcome, bar, candle, "Target2", outcome.Target2, outcome.Target2 - outcome.EntryPrice);
+            }
+
+            if (!outcome.Invalidated && candle.Low <= outcome.StopReference)
+            {
+                outcome.Invalidated = true;
+                LogInvalidated(outcome, bar, candle);
+            }
+        }
+
+        private void EvaluateShortOutcome(MeanReversionOutcome outcome, int bar, IndicatorCandle candle)
+        {
+            var favorablePoints = outcome.EntryPrice - candle.Low;
+            var adversePoints = candle.High - outcome.EntryPrice;
+            UpdateMfeMae(outcome, bar, candle, favorablePoints, adversePoints, candle.Low, candle.High);
+
+            if (!outcome.Target1Hit && outcome.Target1POC < outcome.EntryPrice && candle.Low <= outcome.Target1POC)
+            {
+                outcome.Target1Hit = true;
+                LogTargetHit(outcome, bar, candle, "POC", outcome.Target1POC, outcome.EntryPrice - outcome.Target1POC);
+            }
+
+            if (!outcome.Target2Hit && outcome.Target2 < outcome.EntryPrice && candle.Low <= outcome.Target2)
+            {
+                outcome.Target2Hit = true;
+                LogTargetHit(outcome, bar, candle, "Target2", outcome.Target2, outcome.EntryPrice - outcome.Target2);
+            }
+
+            if (!outcome.Invalidated && candle.High >= outcome.StopReference)
+            {
+                outcome.Invalidated = true;
+                LogInvalidated(outcome, bar, candle);
+            }
+        }
+
+        private void UpdateMfeMae(MeanReversionOutcome outcome, int bar, IndicatorCandle candle, decimal favorablePoints, decimal adversePoints, decimal favorablePrice, decimal adversePrice)
+        {
+            if (adversePoints > outcome.MaePoints)
+            {
+                outcome.MaePoints = adversePoints;
+                outcome.MaxAdversePrice = adversePrice;
+            }
+
+            if (favorablePoints <= outcome.MfePoints)
+                return;
+
+            outcome.MfePoints = favorablePoints;
+            outcome.MaxFavorablePrice = favorablePrice;
+            _log($"[MR_MFE_UPDATE] Direction={outcome.Direction}, EntryModel={outcome.EntryModel}, Bar={bar}, CandidateBar={outcome.CandidateBar}, {FormatTimes(candle.Time)}, EntryPrice={outcome.EntryPrice:F2}, MFE={outcome.MfePoints:F2}, MaxFavorablePrice={outcome.MaxFavorablePrice:F2}, MAE={outcome.MaePoints:F2}, MaxAdversePrice={outcome.MaxAdversePrice:F2}");
+        }
+
+        private void LogTargetHit(MeanReversionOutcome outcome, int bar, IndicatorCandle candle, string target, decimal targetPrice, decimal rewardPoints)
+        {
+            _log($"[MR_TARGET_HIT] Direction={outcome.Direction}, EntryModel={outcome.EntryModel}, Target={target}, Bar={bar}, CandidateBar={outcome.CandidateBar}, {FormatTimes(candle.Time)}, EntryPrice={outcome.EntryPrice:F2}, TargetPrice={targetPrice:F2}, RewardPoints={rewardPoints:F2}, MFE={outcome.MfePoints:F2}, MAE={outcome.MaePoints:F2}");
+        }
+
+        private void LogInvalidated(MeanReversionOutcome outcome, int bar, IndicatorCandle candle)
+        {
+            _log($"[MR_INVALIDATED] Direction={outcome.Direction}, EntryModel={outcome.EntryModel}, Bar={bar}, CandidateBar={outcome.CandidateBar}, {FormatTimes(candle.Time)}, EntryPrice={outcome.EntryPrice:F2}, StopReference={outcome.StopReference:F2}, MFE={outcome.MfePoints:F2}, MAE={outcome.MaePoints:F2}");
         }
 
         private decimal GetMinAggressionTradeVolume(DateTime utcTime)

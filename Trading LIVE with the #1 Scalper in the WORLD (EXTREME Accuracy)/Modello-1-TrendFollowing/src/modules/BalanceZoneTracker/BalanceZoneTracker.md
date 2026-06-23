@@ -385,6 +385,9 @@ Contiene un set pulito di eventi decisionali e diagnostica utile:
 [NEW_SESSION_LOW]
 [LONDON_PRE_CLOSE]
 [MR_AGGRESSION_CONFIRM]
+[MR_MFE_UPDATE]
+[MR_TARGET_HIT]
+[MR_INVALIDATED]
 [MR_EARLY_TRIGGER]
 [MR_TRIGGER]
 [CUM_TRADES_REQUEST]
@@ -451,6 +454,16 @@ RewardToPOC=...
 Target2=...
 RewardToTarget2=...
 ```
+
+Dopo ogni entry footprint, il modulo traccia automaticamente outcome e push successivo:
+
+```text
+[MR_MFE_UPDATE]      // nuova massima escursione favorevole
+[MR_TARGET_HIT]      // POC o Target2 raggiunto
+[MR_INVALIDATED]     // stop/sweep reference rotto
+```
+
+Questi log servono a evitare di dover dedurre manualmente dai `[PROFILE_PREVIEW]` se dopo l'entry c'è stato un push significativo.
 
 Per i long cerca prima il momento dello sweep del low della candidate e poi solo buy aggression successive; per gli short fa l'equivalente sullo sweep high. La soglia minima è provvisoriamente hardcoded a `20` per evitare overfitting; il transcript conferma il concetto di big trades/bubbles e cita `30 contracts on NASDAQ on the one minute`, ma non una regola completa per sessione. Questo è il log più vicino all'idea Fabio di ingresso sui big trades.
 

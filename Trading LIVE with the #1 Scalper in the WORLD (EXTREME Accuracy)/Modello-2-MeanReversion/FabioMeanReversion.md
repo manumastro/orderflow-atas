@@ -174,6 +174,7 @@ Regola di analisi:
 
 ```text
 Per entry footprint: cercare [MR_AGGRESSION_CONFIRM].
+Per push/outcome: cercare [MR_MFE_UPDATE], [MR_TARGET_HIT], [MR_INVALIDATED].
 Per conferma di barra: cercare [MR_EARLY_TRIGGER] e [MR_TRIGGER].
 Per contesto: seguire NEW_SESSION_LOW/HIGH -> LOW/HIGH_REJECTION_CANDIDATE -> PROFILE_PREVIEW.
 ```
@@ -201,7 +202,7 @@ Target1POC=...
 RewardToPOC=...
 ```
 
-Questa distinzione è fondamentale: la barra definisce contesto/candidate, mentre `[MR_AGGRESSION_CONFIRM]` prova a stimare l'entry più fedele al metodo Fabio sui big trades dopo lo sweep.
+Questa distinzione è fondamentale: la barra definisce contesto/candidate, mentre `[MR_AGGRESSION_CONFIRM]` prova a stimare l'entry più fedele al metodo Fabio sui big trades dopo lo sweep. Dopo l'entry, `[MR_MFE_UPDATE]`, `[MR_TARGET_HIT]` e `[MR_INVALIDATED]` misurano se il push è davvero partito.
 
 ---
 
@@ -282,6 +283,7 @@ Per validare il Modello 2 servono:
 - delta candela (`Ask - Bid`);
 - cumulative trades live/storici dopo lo sweep (`FirstPrice`, `LastPrice`, `Volume`, `Direction`, `Time`);
 - tempo tra sweep e aggressione (`SecondsAfterSweep`);
+- outcome post-entry: MFE, MAE, target hit, invalidation;
 - volume della candela rispetto al contesto;
 - timestamp in ora italiana;
 - massimo/minimo della sessione con bar/time.
