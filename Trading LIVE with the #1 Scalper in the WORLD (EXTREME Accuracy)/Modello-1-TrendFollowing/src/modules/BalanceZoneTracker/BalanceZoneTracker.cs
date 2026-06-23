@@ -67,6 +67,7 @@ namespace FabioTrendFollowing
         private readonly Indicator _indicator;
         private readonly MarketContext _context = new();
         private readonly Action<string> _log;
+        private readonly Action<string> _verboseLog;
         private readonly Func<int, IndicatorCandle> _getCandle;
 
         private readonly TimeZoneInfo _londonTimeZone;
@@ -108,12 +109,14 @@ namespace FabioTrendFollowing
         public BalanceZoneTracker(
             Indicator indicator, 
             Action<string> log,
+            Action<string> verboseLog,
             List<DrawingRectangle> rectangles,
             List<LineTillTouch> lines,
             Func<int, IndicatorCandle> getCandle)
         {
             _indicator = indicator;
             _log = log;
+            _verboseLog = verboseLog;
             _rectangles = rectangles;
             _lines = lines;
             _getCandle = getCandle;
@@ -157,7 +160,7 @@ namespace FabioTrendFollowing
             // Log dettagliato prima barra per verifica dati
             if (bar == 1)
             {
-                _log($"[BAR_DETAIL] First bar: Time={barTime:yyyy-MM-dd HH:mm:ss}, O={candle.Open}, H={candle.High}, L={candle.Low}, C={candle.Close}, V={candle.Volume}");
+                _verboseLog($"[BAR_DETAIL] First bar: Time={barTime:yyyy-MM-dd HH:mm:ss}, O={candle.Open}, H={candle.High}, L={candle.Low}, C={candle.Close}, V={candle.Volume}");
             }
 
             var londonTime = TimeZoneInfo.ConvertTimeFromUtc(barTime, _londonTimeZone);
@@ -169,7 +172,7 @@ namespace FabioTrendFollowing
             // Log stato ogni 10 barre durante sessione attiva
             if (bar % 10 == 0 && (isInLondonSession || isInNewYorkSession))
             {
-                _log($"[STATE] Bar={bar}, State={_context.State}, LondonSession={isInLondonSession}, NYSession={isInNewYorkSession}");
+                _verboseLog($"[STATE] Bar={bar}, State={_context.State}, LondonSession={isInLondonSession}, NYSession={isInNewYorkSession}");
             }
 
             // State machine
@@ -580,7 +583,7 @@ namespace FabioTrendFollowing
 
         private void LogSessionExtreme(string tag, int bar, IndicatorCandle candle, decimal previousExtreme)
         {
-            _log($"[{tag}] Bar={bar}, {FormatTimes(candle.Time)}, Previous={previousExtreme:F2}, O={candle.Open:F2}, H={candle.High:F2}, L={candle.Low:F2}, C={candle.Close:F2}, V={candle.Volume:F0}");
+            _verboseLog($"[{tag}] Bar={bar}, {FormatTimes(candle.Time)}, Previous={previousExtreme:F2}, O={candle.Open:F2}, H={candle.High:F2}, L={candle.Low:F2}, C={candle.Close:F2}, V={candle.Volume:F0}");
         }
 
         private bool LogPotentialRejection(string tag, int bar, IndicatorCandle candle, decimal previousExtreme, out decimal candleDelta)
@@ -604,7 +607,7 @@ namespace FabioTrendFollowing
 
             var (bid, ask, delta, topLevels) = GetCandleVolumeDiagnostics(candle);
             candleDelta = delta;
-            _log($"[{tag}] Bar={bar}, {FormatTimes(candle.Time)}, PreviousExtreme={previousExtreme:F2}, Range={range:F2}, UpperWick={upperWick:F2}, LowerWick={lowerWick:F2}, ClosePosition={closePosition:P0}, O={candle.Open:F2}, H={candle.High:F2}, L={candle.Low:F2}, C={candle.Close:F2}, V={candle.Volume:F0}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}, TopLevels={topLevels}");
+            _verboseLog($"[{tag}] Bar={bar}, {FormatTimes(candle.Time)}, PreviousExtreme={previousExtreme:F2}, Range={range:F2}, UpperWick={upperWick:F2}, LowerWick={lowerWick:F2}, ClosePosition={closePosition:P0}, O={candle.Open:F2}, H={candle.High:F2}, L={candle.Low:F2}, C={candle.Close:F2}, V={candle.Volume:F0}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}, TopLevels={topLevels}");
             return true;
         }
 
@@ -619,7 +622,7 @@ namespace FabioTrendFollowing
 
             _lastLoggedPreCloseBar = bar;
             var (bid, ask, delta, topLevels) = GetCandleVolumeDiagnostics(candle);
-            _log($"[LONDON_PRE_CLOSE] Bar={bar}, {FormatTimes(candle.Time)}, O={candle.Open:F2}, H={candle.High:F2}, L={candle.Low:F2}, C={candle.Close:F2}, V={candle.Volume:F0}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}, TopLevels={topLevels}");
+            _verboseLog($"[LONDON_PRE_CLOSE] Bar={bar}, {FormatTimes(candle.Time)}, O={candle.Open:F2}, H={candle.High:F2}, L={candle.Low:F2}, C={candle.Close:F2}, V={candle.Volume:F0}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}, TopLevels={topLevels}");
         }
 
         private void LogPreviewProfileIfNeeded(int bar, IndicatorCandle candle, bool force)
@@ -642,7 +645,7 @@ namespace FabioTrendFollowing
             var relation = candle.Close > vah ? "ABOVE_PREVIEW_VAH" : candle.Close < val ? "BELOW_PREVIEW_VAL" : "INSIDE_PREVIEW_VA";
             var sessionBars = bar - _context.CurrentZone.StartBar + 1;
 
-            _log($"[PROFILE_PREVIEW] Bar={bar}, {FormatTimes(candle.Time)}, Reason={(force ? "event" : "cadence")}, Bars={sessionBars}, High={_context.CurrentZone.High:F2}, Low={_context.CurrentZone.Low:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, VA_Volume={valueAreaVolume:F0}, TotalVolume={_context.CurrentZone.TotalVolume:F0}, MaxLevelVolume={maxVolume:F0}, Close={candle.Close:F2}, Relation={relation}, DistToPOC={candle.Close - poc:F2}, DistToVAH={candle.Close - vah:F2}, DistToVAL={candle.Close - val:F2}, CandleBid={bid:F0}, CandleAsk={ask:F0}, CandleDelta={delta:F0}, TopCandleLevels={topLevels}");
+            _verboseLog($"[PROFILE_PREVIEW] Bar={bar}, {FormatTimes(candle.Time)}, Reason={(force ? "event" : "cadence")}, Bars={sessionBars}, High={_context.CurrentZone.High:F2}, Low={_context.CurrentZone.Low:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, VA_Volume={valueAreaVolume:F0}, TotalVolume={_context.CurrentZone.TotalVolume:F0}, MaxLevelVolume={maxVolume:F0}, Close={candle.Close:F2}, Relation={relation}, DistToPOC={candle.Close - poc:F2}, DistToVAH={candle.Close - vah:F2}, DistToVAL={candle.Close - val:F2}, CandleBid={bid:F0}, CandleAsk={ask:F0}, CandleDelta={delta:F0}, TopCandleLevels={topLevels}");
             LogMeanReversionEarlyTriggerIfNeeded(bar, candle, poc, vah, val, bid, ask, delta);
             LogMeanReversionTriggerIfNeeded(bar, candle, poc, vah, val, bid, ask, delta);
         }
@@ -778,9 +781,9 @@ namespace FabioTrendFollowing
             return (bid, ask, delta, topLevels);
         }
 
-        private void Log(string message)
+        private void LogVerbose(string message)
         {
-            _log(message);
+            _verboseLog(message);
         }
 
         private void DrawBalanceZone()

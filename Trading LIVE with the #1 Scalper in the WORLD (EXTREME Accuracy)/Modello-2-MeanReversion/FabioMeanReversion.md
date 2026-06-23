@@ -160,14 +160,45 @@ Parametri iniziali usati per debug:
 - log trigger anticipato `[MR_EARLY_TRIGGER]` e conferma POC `[MR_TRIGGER]`;
 - nessun disegno e nessun impatto sulla state machine del Modello 1.
 
-Log utili:
+File di log:
+
+```text
+FabioTrendFollowing_YYYY-MM-DD.log
+```
+
+Contiene eventi sintetici e decisionali:
+
+```text
+[MR_EARLY_TRIGGER]
+[MR_TRIGGER]
+[SESSION_START]
+[SESSION_END]
+[ZONE_READY]
+[BREAKOUT_CONFIRMED]
+[OUT_OF_BALANCE]
+```
+
+```text
+FabioTrendFollowing_verbose_YYYY-MM-DD.log
+```
+
+Contiene diagnostica rumorosa/intrabar:
 
 ```text
 [PROFILE_PREVIEW]
 [HIGH_REJECTION_CANDIDATE]
 [LOW_REJECTION_CANDIDATE]
+[NEW_SESSION_HIGH]
+[NEW_SESSION_LOW]
 [LONDON_PRE_CLOSE]
-[SESSION_EXTREMES]
+[STATE]
+```
+
+Regola di analisi:
+
+```text
+Prima leggere il main log per capire cosa è successo.
+Poi usare il verbose log solo per ricostruire il contesto del trigger.
 ```
 
 ---

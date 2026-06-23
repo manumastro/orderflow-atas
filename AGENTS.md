@@ -26,13 +26,13 @@ Approccio trend following di Fabio per mercati OUT OF BALANCE:
 - Input/output e state machine locali
 - Criteri di validazione specifici
 
-### Modello 2 — Mean Reversion (ABBANDONATO)
+### Modello 2 — Mean Reversion (STUDIO DIAGNOSTICO)
 **Path:** `Modello-2-MeanReversion/`  
 **Spec:** `Modello-2-MeanReversion/FabioMeanReversion.md`  
 **Codice:** `src/FabioMeanReversion.cs` (placeholder vuoto)
 
-Approccio mean reversion basato su balance zones — **non implementato programmaticamente**.  
-Mantenuto solo come riferimento per trading discrezionale (balance zones, breakout/fakeout, trapped traders, big orders).
+Approccio mean reversion basato su balance zones, fakeout e ritorno verso POC.  
+Non è ancora un modello operativo separato: il codice diagnostico vive temporaneamente nel `BalanceZoneTracker` del Modello 1 senza contaminare la state machine trend-following.
 
 ## Build & Deploy
 
@@ -41,6 +41,15 @@ cd Modello-*/src
 dotnet build -c Release
 deploy.bat  # copia DLL in %APPDATA%\ATAS\Indicators\
 ```
+
+## Log ATAS
+
+Per `FabioTrendFollowing` i log sono divisi:
+
+- `%APPDATA%/ATAS/Logs/FabioTrendFollowing_YYYY-MM-DD.log` — eventi sintetici e decisionali (`[MR_EARLY_TRIGGER]`, `[MR_TRIGGER]`, `[ZONE_READY]`, `[OUT_OF_BALANCE]`).
+- `%APPDATA%/ATAS/Logs/FabioTrendFollowing_verbose_YYYY-MM-DD.log` — diagnostica rumorosa/intrabar (`[PROFILE_PREVIEW]`, rejection candidate, new high/low, state, drawing/debug).
+
+Quando analizzi cosa è successo sul mercato, leggi prima il main log e usa il verbose solo per ricostruire il contesto del trigger.
 
 ## Documentazione
 

@@ -361,12 +361,58 @@ creare drawing object una volta e aggiornare SecondBar
 
 ## 12. Log Attesi
 
+### Main log
+
+File:
+
 ```text
-[BALANCE_BUILDING] London start | Bar=...
-[BALANCE_READY] London | POC=... | VAH=... | VAL=... | Bars=... | Volume=...
-[BREAKOUT_PENDING] Bullish | Close=... > VAH=...
-[OUT_OF_BALANCE] Bullish | BreakoutBar=... | TargetPOC=...
-[FALSE_BREAKOUT] Returned inside value area
+FabioTrendFollowing_YYYY-MM-DD.log
+```
+
+Contiene eventi sintetici e decisionali:
+
+```text
+[SESSION_START]
+[SESSION_END]
+[SESSION_EXTREMES]
+[ZONE_READY]
+[BREAKOUT_PENDING]
+[BREAKOUT_CONFIRMED]
+[OUT_OF_BALANCE]
+[FALSE_BREAKOUT]
+[MR_EARLY_TRIGGER]
+[MR_TRIGGER]
+```
+
+### Verbose log
+
+File:
+
+```text
+FabioTrendFollowing_verbose_YYYY-MM-DD.log
+```
+
+Contiene diagnostica rumorosa o intrabar:
+
+```text
+[BAR_CHECK]
+[BAR_DETAIL]
+[STATE]
+[PROFILE_PREVIEW]
+[HIGH_REJECTION_CANDIDATE]
+[LOW_REJECTION_CANDIDATE]
+[NEW_SESSION_HIGH]
+[NEW_SESSION_LOW]
+[LONDON_PRE_CLOSE]
+[DRAW_ZONE]
+[VERIFY_COVERAGE]
+```
+
+Regola di analisi:
+
+```text
+Prima leggere il main log per individuare trigger e transizioni.
+Poi aprire il verbose log solo per ricostruire il contesto del trigger.
 ```
 
 ---
