@@ -97,10 +97,11 @@ namespace FabioTrendFollowing
         private const int ExpectedLondonBars = 96; // 8h * 12 bars/h on M5
         private const int MinCompleteSessionBars = 90; // Tolleranza -6 bars
         private const int LondonPreviewStartHour = 8;
-        private const decimal MinHistoricalAggressionVolume = 10m;
+        private static readonly bool DetailedDebugLogs = false;
+        private const decimal MinAggressionTradeVolume = 10m;
         
         private readonly List<MeanReversionTriggerLog> _meanReversionTriggerLogs = new();
-        private readonly HashSet<string> _historicalAggressionCandidateKeys = new();
+        private readonly HashSet<string> _loggedAggressionCandidateKeys = new();
         private bool _firstCompleteSessionFound = false;
         private int _lastLoggedPreCloseBar = -1;
         private int _lastPreviewProfileBar = -1;
@@ -119,6 +120,11 @@ namespace FabioTrendFollowing
         private int _currentBar;
         private bool _lowRejectionEarlyTriggered;
         private bool _highRejectionEarlyTriggered;
+        private decimal _lastPreviewPoc;
+        private decimal _lastPreviewVah;
+        private decimal _lastPreviewVal;
+        private DateTime? _liveLowSweepTimeUtc;
+        private DateTime? _liveHighSweepTimeUtc;
 
         public BalanceZoneTracker(
             Indicator indicator, 
@@ -177,13 +183,75 @@ namespace FabioTrendFollowing
             }
         }
 
+        public void OnLiveCumulativeTrade(CumulativeTrade trade)
+        {
+            if (_context.CurrentZone == null || _lastPreviewVal == 0 || _lastPreviewVah == 0 || _lastPreviewPoc == 0)
+                return;
+
+            TryLogLiveLongAggression(trade);
+            TryLogLiveShortAggression(trade);
+        }
+
+        private void TryLogLiveLongAggression(CumulativeTrade trade)
+        {
+            if (_lastLowRejectionCandidateBar < 0 || _liveLowSweepTimeUtc == null)
+                return;
+
+            if (trade.Time < _liveLowSweepTimeUtc.Value || trade.Direction != TradeDirection.Buy || trade.Volume < MinAggressionTradeVolume || trade.Lastprice < _lastPreviewVal)
+                return;
+
+            var candidateKey = $"Long:{_lastLowRejectionCandidateBar}";
+            if (_loggedAggressionCandidateKeys.Contains(candidateKey))
+                return;
+
+            _loggedAggressionCandidateKeys.Add(candidateKey);
+            LogAggressionConfirmation(
+                "Long",
+                "LIVE_BUY_AGGRESSION_AFTER_LOW_REJECTION",
+                "FootprintCumulativeTradeLive",
+                _currentBar - 1,
+                _lastLowRejectionCandidateBar,
+                _getCandle(_lastLowRejectionCandidateBar),
+                trade,
+                _liveLowSweepTimeUtc,
+                _lastPreviewPoc,
+                _lastPreviewVah,
+                _lastPreviewVal);
+        }
+
+        private void TryLogLiveShortAggression(CumulativeTrade trade)
+        {
+            if (_lastHighRejectionCandidateBar < 0 || _liveHighSweepTimeUtc == null)
+                return;
+
+            if (trade.Time < _liveHighSweepTimeUtc.Value || trade.Direction != TradeDirection.Sell || trade.Volume < MinAggressionTradeVolume || trade.Lastprice > _lastPreviewVah)
+                return;
+
+            var candidateKey = $"Short:{_lastHighRejectionCandidateBar}";
+            if (_loggedAggressionCandidateKeys.Contains(candidateKey))
+                return;
+
+            _loggedAggressionCandidateKeys.Add(candidateKey);
+            LogAggressionConfirmation(
+                "Short",
+                "LIVE_SELL_AGGRESSION_AFTER_HIGH_REJECTION",
+                "FootprintCumulativeTradeLive",
+                _currentBar - 1,
+                _lastHighRejectionCandidateBar,
+                _getCandle(_lastHighRejectionCandidateBar),
+                trade,
+                _liveHighSweepTimeUtc,
+                _lastPreviewPoc,
+                _lastPreviewVah,
+                _lastPreviewVal);
+        }
+
         public void OnBarUpdate(int bar, IndicatorCandle candle, int currentBar)
         {
             _currentBar = currentBar;
             var barTime = candle.Time;
 
-            // Log dettagliato prima barra per verifica dati
-            if (bar == 1)
+            if (DetailedDebugLogs && bar == 1)
             {
                 _log($"[BAR_DETAIL] First bar: Time={barTime:yyyy-MM-dd HH:mm:ss}, O={candle.Open}, H={candle.High}, L={candle.Low}, C={candle.Close}, V={candle.Volume}");
             }
@@ -194,8 +262,7 @@ namespace FabioTrendFollowing
             var isInLondonSession = IsInLondonSession(londonTime);
             var isInNewYorkSession = IsInNewYorkSession(nyTime);
             
-            // Log stato ogni 10 barre durante sessione attiva
-            if (bar % 10 == 0 && (isInLondonSession || isInNewYorkSession))
+            if (DetailedDebugLogs && bar % 10 == 0 && (isInLondonSession || isInNewYorkSession))
             {
                 _log($"[STATE] Bar={bar}, State={_context.State}, LondonSession={isInLondonSession}, NYSession={isInNewYorkSession}");
             }
@@ -287,6 +354,8 @@ namespace FabioTrendFollowing
             _lastHighRejectionClose = 0;
             _lastHighRejectionLow = 0;
             _lastHighRejectionDelta = 0;
+            _liveLowSweepTimeUtc = null;
+            _liveHighSweepTimeUtc = null;
             _lowRejectionPocReclaimed = false;
             _highRejectionPocLost = false;
             _lowRejectionEarlyTriggered = false;
@@ -337,6 +406,7 @@ namespace FabioTrendFollowing
                     _lastHighRejectionDelta = highRejectionDelta;
                     _highRejectionPocLost = false;
                     _highRejectionEarlyTriggered = false;
+                    _liveHighSweepTimeUtc = candle.LastTime > candle.Time ? candle.LastTime : candle.Time;
                     importantEvent = true;
                 }
                 importantEvent = true;
@@ -357,6 +427,7 @@ namespace FabioTrendFollowing
                     _lastLowRejectionDelta = lowRejectionDelta;
                     _lowRejectionPocReclaimed = false;
                     _lowRejectionEarlyTriggered = false;
+                    _liveLowSweepTimeUtc = candle.LastTime > candle.Time ? candle.LastTime : candle.Time;
                     importantEvent = true;
                 }
                 importantEvent = true;
@@ -408,10 +479,12 @@ namespace FabioTrendFollowing
                 return;
             }
 
-            // Log range prezzi prima dei calcoli
-            _log($"[PROFILE_RANGE] High={_context.CurrentZone.High:F2} | Low={_context.CurrentZone.Low:F2} | ProfileLevels={_context.CurrentZone.Profile.Count}");
-            _log($"[PROFILE_DETAIL] First 10 levels: {string.Join(", ", _context.CurrentZone.Profile.OrderBy(kv => kv.Key).Take(10).Select(kv => $"{kv.Key:F2}={kv.Value:F0}"))}");
-            _log($"[PROFILE_DETAIL] Last 10 levels: {string.Join(", ", _context.CurrentZone.Profile.OrderByDescending(kv => kv.Key).Take(10).Select(kv => $"{kv.Key:F2}={kv.Value:F0}"))}");
+            if (DetailedDebugLogs)
+            {
+                _log($"[PROFILE_RANGE] High={_context.CurrentZone.High:F2} | Low={_context.CurrentZone.Low:F2} | ProfileLevels={_context.CurrentZone.Profile.Count}");
+                _log($"[PROFILE_DETAIL] First 10 levels: {string.Join(", ", _context.CurrentZone.Profile.OrderBy(kv => kv.Key).Take(10).Select(kv => $"{kv.Key:F2}={kv.Value:F0}"))}");
+                _log($"[PROFILE_DETAIL] Last 10 levels: {string.Join(", ", _context.CurrentZone.Profile.OrderByDescending(kv => kv.Key).Take(10).Select(kv => $"{kv.Key:F2}={kv.Value:F0}"))}");
+            }
 
             CalculatePOC();
             CalculateValueArea();
@@ -424,8 +497,10 @@ namespace FabioTrendFollowing
             _log($"[ZONE_READY] Balance zone ready: High={_context.CurrentZone.High:F2}, Low={_context.CurrentZone.Low:F2}, POC={_context.CurrentZone.POC:F2}, VAH={_context.CurrentZone.VAH:F2}, VAL={_context.CurrentZone.VAL:F2}, TotalVolume={_context.CurrentZone.TotalVolume:F0}");
             _log($"[ZONE_READY] StartBar={_context.CurrentZone.StartBar}, EndBar={_context.CurrentZone.EndBar}, Bars={barCount}");
             
-            // Verifica copertura candele nella zona - TUTTE LE CANDELE
-            VerifyZoneCoverageComplete(_context.CurrentZone);
+            if (DetailedDebugLogs)
+            {
+                VerifyZoneCoverageComplete(_context.CurrentZone);
+            }
         }
 
         private void CalculatePOC()
@@ -438,10 +513,13 @@ namespace FabioTrendFollowing
             // Tie-break: prezzo più basso
             _context.CurrentZone.POC = pocCandidates.Min(kv => kv.Key);
             
-            _log($"[POC_CALC] MaxVolume={maxVolume:F0}, POC={_context.CurrentZone.POC:F2}, Candidates={pocCandidates.Count}");
-            if (pocCandidates.Count > 1)
+            if (DetailedDebugLogs)
             {
-                _log($"[POC_CALC] Multiple POC candidates (tie-break to lowest): {string.Join(", ", pocCandidates.Select(kv => $"{kv.Key:F2}"))}");
+                _log($"[POC_CALC] MaxVolume={maxVolume:F0}, POC={_context.CurrentZone.POC:F2}, Candidates={pocCandidates.Count}");
+                if (pocCandidates.Count > 1)
+                {
+                    _log($"[POC_CALC] Multiple POC candidates (tie-break to lowest): {string.Join(", ", pocCandidates.Select(kv => $"{kv.Key:F2}"))}");
+                }
             }
         }
 
@@ -455,14 +533,20 @@ namespace FabioTrendFollowing
             var pocIndex = sortedLevels.FindIndex(kv => kv.Key == _context.CurrentZone.POC);
             if (pocIndex == -1) return;
 
-            _log($"[VALUE_AREA_CALC] TotalVolume={_context.CurrentZone.TotalVolume:F0}, Target70%={targetVolume:F0}");
-            _log($"[VALUE_AREA_CALC] POC at index {pocIndex} of {sortedLevels.Count} levels, Price={_context.CurrentZone.POC:F2}");
+            if (DetailedDebugLogs)
+            {
+                _log($"[VALUE_AREA_CALC] TotalVolume={_context.CurrentZone.TotalVolume:F0}, Target70%={targetVolume:F0}");
+                _log($"[VALUE_AREA_CALC] POC at index {pocIndex} of {sortedLevels.Count} levels, Price={_context.CurrentZone.POC:F2}");
+            }
 
             var accumulatedVolume = sortedLevels[pocIndex].Value;
             var lowerIndex = pocIndex;
             var upperIndex = pocIndex;
 
-            _log($"[VALUE_AREA_CALC] Starting expansion from POC, InitialVolume={accumulatedVolume:F0}");
+            if (DetailedDebugLogs)
+            {
+                _log($"[VALUE_AREA_CALC] Starting expansion from POC, InitialVolume={accumulatedVolume:F0}");
+            }
 
             while (accumulatedVolume < targetVolume && (lowerIndex > 0 || upperIndex < sortedLevels.Count - 1))
             {
@@ -473,13 +557,19 @@ namespace FabioTrendFollowing
                 {
                     lowerIndex--;
                     accumulatedVolume += sortedLevels[lowerIndex].Value;
-                    _log($"[VALUE_AREA_CALC] Expanded down: Price={sortedLevels[lowerIndex].Key:F2}, Volume={sortedLevels[lowerIndex].Value:F0}, Accumulated={accumulatedVolume:F0}");
+                    if (DetailedDebugLogs)
+                    {
+                        _log($"[VALUE_AREA_CALC] Expanded down: Price={sortedLevels[lowerIndex].Key:F2}, Volume={sortedLevels[lowerIndex].Value:F0}, Accumulated={accumulatedVolume:F0}");
+                    }
                 }
                 else if (upperIndex < sortedLevels.Count - 1)
                 {
                     upperIndex++;
                     accumulatedVolume += sortedLevels[upperIndex].Value;
-                    _log($"[VALUE_AREA_CALC] Expanded up: Price={sortedLevels[upperIndex].Key:F2}, Volume={sortedLevels[upperIndex].Value:F0}, Accumulated={accumulatedVolume:F0}");
+                    if (DetailedDebugLogs)
+                    {
+                        _log($"[VALUE_AREA_CALC] Expanded up: Price={sortedLevels[upperIndex].Key:F2}, Volume={sortedLevels[upperIndex].Value:F0}, Accumulated={accumulatedVolume:F0}");
+                    }
                 }
                 else
                 {
@@ -490,8 +580,11 @@ namespace FabioTrendFollowing
             _context.CurrentZone.VAL = sortedLevels[lowerIndex].Key;
             _context.CurrentZone.VAH = sortedLevels[upperIndex].Key;
             
-            _log($"[VALUE_AREA_CALC] Final: VAL={_context.CurrentZone.VAL:F2} (index {lowerIndex}), VAH={_context.CurrentZone.VAH:F2} (index {upperIndex})");
-            _log($"[VALUE_AREA_CALC] Final accumulated volume: {accumulatedVolume:F0} ({100.0m * accumulatedVolume / _context.CurrentZone.TotalVolume:F1}%)");
+            if (DetailedDebugLogs)
+            {
+                _log($"[VALUE_AREA_CALC] Final: VAL={_context.CurrentZone.VAL:F2} (index {lowerIndex}), VAH={_context.CurrentZone.VAH:F2} (index {upperIndex})");
+                _log($"[VALUE_AREA_CALC] Final accumulated volume: {accumulatedVolume:F0} ({100.0m * accumulatedVolume / _context.CurrentZone.TotalVolume:F1}%)");
+            }
         }
 
         private void CheckForBreakout(int bar, IndicatorCandle candle)
@@ -670,11 +763,14 @@ namespace FabioTrendFollowing
                 return;
 
             _lastPreviewProfileBar = bar;
-            var (bid, ask, delta, topLevels) = GetCandleVolumeDiagnostics(candle);
+            _lastPreviewPoc = poc;
+            _lastPreviewVah = vah;
+            _lastPreviewVal = val;
+            var (bid, ask, delta, _) = GetCandleVolumeDiagnostics(candle);
             var relation = candle.Close > vah ? "ABOVE_PREVIEW_VAH" : candle.Close < val ? "BELOW_PREVIEW_VAL" : "INSIDE_PREVIEW_VA";
             var sessionBars = bar - _context.CurrentZone.StartBar + 1;
 
-            _log($"[PROFILE_PREVIEW] Bar={bar}, {FormatTimes(candle.Time)}, Reason={(force ? "event" : "live")}, Bars={sessionBars}, High={_context.CurrentZone.High:F2}, Low={_context.CurrentZone.Low:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, VA_Volume={valueAreaVolume:F0}, TotalVolume={_context.CurrentZone.TotalVolume:F0}, MaxLevelVolume={maxVolume:F0}, Close={candle.Close:F2}, Relation={relation}, DistToPOC={candle.Close - poc:F2}, DistToVAH={candle.Close - vah:F2}, DistToVAL={candle.Close - val:F2}, CandleBid={bid:F0}, CandleAsk={ask:F0}, CandleDelta={delta:F0}, TopCandleLevels={topLevels}");
+            _log($"[PROFILE_PREVIEW] Bar={bar}, {FormatTimes(candle.Time)}, Reason={(force ? "event" : "live")}, Bars={sessionBars}, High={_context.CurrentZone.High:F2}, Low={_context.CurrentZone.Low:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, VA_Volume={valueAreaVolume:F0}, TotalVolume={_context.CurrentZone.TotalVolume:F0}, MaxLevelVolume={maxVolume:F0}, Close={candle.Close:F2}, Relation={relation}, DistToPOC={candle.Close - poc:F2}, DistToVAH={candle.Close - vah:F2}, DistToVAL={candle.Close - val:F2}, CandleBid={bid:F0}, CandleAsk={ask:F0}, CandleDelta={delta:F0}");
             LogMeanReversionEarlyTriggerIfNeeded(bar, candle, poc, vah, val, bid, ask, delta);
             LogMeanReversionTriggerIfNeeded(bar, candle, poc, vah, val, bid, ask, delta);
         }
@@ -817,13 +913,41 @@ namespace FabioTrendFollowing
             });
         }
 
+        private void LogAggressionConfirmation(
+            string direction,
+            string trigger,
+            string entryModel,
+            int bar,
+            int candidateBar,
+            IndicatorCandle candidateCandle,
+            CumulativeTrade trade,
+            DateTime? sweepTime,
+            decimal poc,
+            decimal vah,
+            decimal val)
+        {
+            var italyTime = TimeZoneInfo.ConvertTimeFromUtc(trade.Time, _italyTimeZone);
+            var londonTime = TimeZoneInfo.ConvertTimeFromUtc(trade.Time, _londonTimeZone);
+            var entryPrice = trade.Lastprice;
+            var entryAreaLow = Math.Min(trade.FirstPrice, trade.Lastprice);
+            var entryAreaHigh = Math.Max(trade.FirstPrice, trade.Lastprice);
+            var stopReference = direction == "Long" ? candidateCandle.Low : candidateCandle.High;
+            var riskPoints = direction == "Long" ? entryPrice - stopReference : stopReference - entryPrice;
+            var rewardToPoc = direction == "Long" ? poc - entryPrice : entryPrice - poc;
+            var target2 = direction == "Long" ? vah : val;
+            var rewardToTarget2 = direction == "Long" ? vah - entryPrice : entryPrice - val;
+            var secondsAfterSweep = sweepTime.HasValue ? (trade.Time - sweepTime.Value).TotalSeconds : 0;
+
+            _log($"[MR_AGGRESSION_CONFIRM] Direction={direction}, EntryModel={entryModel}, Trigger={trigger}, Bar={bar}, CandidateBar={candidateBar}, UTC={trade.Time:yyyy-MM-dd HH:mm:ss.fff}, London={londonTime:yyyy-MM-dd HH:mm:ss.fff}, Italy={italyTime:yyyy-MM-dd HH:mm:ss.fff}, EntryPrice={entryPrice:F2}, EntryAreaLow={entryAreaLow:F2}, EntryAreaHigh={entryAreaHigh:F2}, FirstPrice={trade.FirstPrice:F2}, LastPrice={trade.Lastprice:F2}, Volume={trade.Volume:F0}, TradeDirection={trade.Direction}, SweepTimeUtc={(sweepTime.HasValue ? sweepTime.Value.ToString("yyyy-MM-dd HH:mm:ss.fff") : "n/a")}, SecondsAfterSweep={secondsAfterSweep:F1}, StopReference={stopReference:F2}, RiskPoints={riskPoints:F2}, Target1POC={poc:F2}, Target2={target2:F2}, RewardToPOC={rewardToPoc:F2}, RewardToTarget2={rewardToTarget2:F2}, VAH={vah:F2}, VAL={val:F2}, MinVolume={MinAggressionTradeVolume:F0}");
+        }
+
         private void LogHistoricalAggressionConfirmation(MeanReversionTriggerLog triggerLog, IReadOnlyCollection<CumulativeTrade> trades)
         {
             if (triggerLog.CandidateBar < 0 || triggerLog.CandidateBar >= _currentBar || triggerLog.Bar < 0 || triggerLog.Bar >= _currentBar)
                 return;
 
             var candidateKey = $"{triggerLog.Direction}:{triggerLog.CandidateBar}";
-            if (_historicalAggressionCandidateKeys.Contains(candidateKey))
+            if (_loggedAggressionCandidateKeys.Contains(candidateKey))
             {
                 triggerLog.HistoricalAggressionLogged = true;
                 return;
@@ -849,7 +973,7 @@ namespace FabioTrendFollowing
                 if (trade.Direction != direction)
                     continue;
 
-                if (trade.Volume < MinHistoricalAggressionVolume)
+                if (trade.Volume < MinAggressionTradeVolume)
                     continue;
 
                 if (!IsHistoricalAggressionInsideValue(triggerLog.Direction, triggerLog, trade))
@@ -866,18 +990,19 @@ namespace FabioTrendFollowing
             }
 
             triggerLog.HistoricalAggressionLogged = true;
-            _historicalAggressionCandidateKeys.Add(candidateKey);
-            var italyTime = TimeZoneInfo.ConvertTimeFromUtc(matchingTrade.Time, _italyTimeZone);
-            var londonTime = TimeZoneInfo.ConvertTimeFromUtc(matchingTrade.Time, _londonTimeZone);
-            var entryPrice = matchingTrade.Lastprice;
-            var entryAreaLow = Math.Min(matchingTrade.FirstPrice, matchingTrade.Lastprice);
-            var entryAreaHigh = Math.Max(matchingTrade.FirstPrice, matchingTrade.Lastprice);
-            var stopReference = triggerLog.Direction == "Long" ? candidateCandle.Low : candidateCandle.High;
-            var riskPoints = triggerLog.Direction == "Long" ? entryPrice - stopReference : stopReference - entryPrice;
-            var rewardToPoc = triggerLog.Direction == "Long" ? triggerLog.POC - entryPrice : entryPrice - triggerLog.POC;
-            var rewardToTarget2 = triggerLog.Direction == "Long" ? triggerLog.VAH - entryPrice : entryPrice - triggerLog.VAL;
-            var secondsAfterSweep = sweepTime.HasValue ? (matchingTrade.Time - sweepTime.Value).TotalSeconds : 0;
-            _log($"[MR_AGGRESSION_CONFIRM] Direction={triggerLog.Direction}, EntryModel=FootprintCumulativeTrade, Trigger={triggerLog.Trigger}, Bar={triggerLog.Bar}, CandidateBar={triggerLog.CandidateBar}, UTC={matchingTrade.Time:yyyy-MM-dd HH:mm:ss.fff}, London={londonTime:yyyy-MM-dd HH:mm:ss.fff}, Italy={italyTime:yyyy-MM-dd HH:mm:ss.fff}, EntryPrice={entryPrice:F2}, EntryAreaLow={entryAreaLow:F2}, EntryAreaHigh={entryAreaHigh:F2}, FirstPrice={matchingTrade.FirstPrice:F2}, LastPrice={matchingTrade.Lastprice:F2}, Volume={matchingTrade.Volume:F0}, TradeDirection={matchingTrade.Direction}, SweepTimeUtc={(sweepTime.HasValue ? sweepTime.Value.ToString("yyyy-MM-dd HH:mm:ss.fff") : "n/a")}, SecondsAfterSweep={secondsAfterSweep:F1}, StopReference={stopReference:F2}, RiskPoints={riskPoints:F2}, Target1POC={triggerLog.POC:F2}, Target2={(triggerLog.Direction == "Long" ? triggerLog.VAH : triggerLog.VAL):F2}, RewardToPOC={rewardToPoc:F2}, RewardToTarget2={rewardToTarget2:F2}, VAH={triggerLog.VAH:F2}, VAL={triggerLog.VAL:F2}, MinVolume={MinHistoricalAggressionVolume:F0}");
+            _loggedAggressionCandidateKeys.Add(candidateKey);
+            LogAggressionConfirmation(
+                triggerLog.Direction,
+                triggerLog.Trigger,
+                "FootprintCumulativeTradeHistorical",
+                triggerLog.Bar,
+                triggerLog.CandidateBar,
+                candidateCandle,
+                matchingTrade,
+                sweepTime,
+                triggerLog.POC,
+                triggerLog.VAH,
+                triggerLog.VAL);
         }
 
         private static DateTime? GetCandidateSweepTime(string direction, IndicatorCandle candidateCandle, IReadOnlyCollection<CumulativeTrade> trades)
@@ -984,18 +1109,19 @@ namespace FabioTrendFollowing
             };
             _lines.Add(_currentValLine);
 
-            _log($"[DRAW_ZONE] Rectangle=(Bar:{zone.StartBar}, High:{zone.High:F2})-(Bar:{zone.EndBar}, Low:{zone.Low:F2})");
-            _log($"[DRAW_ZONE] POC_Line=(Bar:{zone.StartBar}, Price:{zone.POC:F2})-(Bar:{zone.EndBar}, Price:{zone.POC:F2})");
-            _log($"[DRAW_ZONE] VAH_Line=(Bar:{zone.StartBar}, Price:{zone.VAH:F2})-(Bar:{zone.EndBar}, Price:{zone.VAH:F2})");
-            _log($"[DRAW_ZONE] VAL_Line=(Bar:{zone.StartBar}, Price:{zone.VAL:F2})-(Bar:{zone.EndBar}, Price:{zone.VAL:F2})");
-            _log($"[DRAW_ZONE] Zone visual box: High={zone.High:F2}, Low={zone.Low:F2}");
-            
-            // Log delle prime 5 candele della zona per verifica
-            _log($"[DRAW_ZONE] === First 5 candles in zone ===");
-            for (int i = zone.StartBar; i < Math.Min(zone.StartBar + 5, zone.EndBar); i++)
+            if (DetailedDebugLogs)
             {
-                var c = _getCandle(i);
-                _log($"[DRAW_ZONE] Bar {i}: Time={c.Time:yyyy-MM-dd HH:mm:ss}, O={c.Open:F2}, H={c.High:F2}, L={c.Low:F2}, C={c.Close:F2}");
+                _log($"[DRAW_ZONE] Rectangle=(Bar:{zone.StartBar}, High:{zone.High:F2})-(Bar:{zone.EndBar}, Low:{zone.Low:F2})");
+                _log($"[DRAW_ZONE] POC_Line=(Bar:{zone.StartBar}, Price:{zone.POC:F2})-(Bar:{zone.EndBar}, Price:{zone.POC:F2})");
+                _log($"[DRAW_ZONE] VAH_Line=(Bar:{zone.StartBar}, Price:{zone.VAH:F2})-(Bar:{zone.EndBar}, Price:{zone.VAH:F2})");
+                _log($"[DRAW_ZONE] VAL_Line=(Bar:{zone.StartBar}, Price:{zone.VAL:F2})-(Bar:{zone.EndBar}, Price:{zone.VAL:F2})");
+                _log($"[DRAW_ZONE] Zone visual box: High={zone.High:F2}, Low={zone.Low:F2}");
+                _log($"[DRAW_ZONE] === First 5 candles in zone ===");
+                for (int i = zone.StartBar; i < Math.Min(zone.StartBar + 5, zone.EndBar); i++)
+                {
+                    var c = _getCandle(i);
+                    _log($"[DRAW_ZONE] Bar {i}: Time={c.Time:yyyy-MM-dd HH:mm:ss}, O={c.Open:F2}, H={c.High:F2}, L={c.Low:F2}, C={c.Close:F2}");
+                }
             }
         }
 

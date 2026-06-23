@@ -52,8 +52,9 @@ Quando analizzi cosa è successo sul mercato:
 1. filtra prima il log per la fascia oraria richiesta;
 2. per entry footprint cerca `[MR_AGGRESSION_CONFIRM]`;
 3. per conferma di barra cerca `[MR_EARLY_TRIGGER]` e `[MR_TRIGGER]`;
-4. se non ci sono trigger, segui in ordine `[NEW_SESSION_LOW/HIGH]` → `[LOW/HIGH_REJECTION_CANDIDATE]` → `[PROFILE_PREVIEW]`;
-5. non ridurre la frequenza dei `[PROFILE_PREVIEW]` per evitare spam: per il Modello 2 diagnostico servono aggiornati live/intrabar.
+4. per contesto risali a `[LOW/HIGH_REJECTION_CANDIDATE]`, `[NEW_SESSION_LOW/HIGH]`, `[PROFILE_PREVIEW]`;
+5. considera la barra come contesto/candidate e il footprint come entry Fabio-style;
+6. i log tecnici `[BAR_CHECK]`, `[STATE]`, `[DRAW_ZONE]`, `[VERIFY_COVERAGE]`, `[POC_CALC]`, `[VALUE_AREA_CALC]` sono disattivati di default.
 
 ## Documentazione
 

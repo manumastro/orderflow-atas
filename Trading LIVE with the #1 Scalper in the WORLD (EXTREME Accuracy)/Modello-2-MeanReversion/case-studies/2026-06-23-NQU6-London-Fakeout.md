@@ -255,7 +255,7 @@ SweepTime: minimo candidate già formato
 
 15:31:40.835 Italy
 [MR_AGGRESSION_CONFIRM]
-EntryModel=FootprintCumulativeTrade
+EntryModel=FootprintCumulativeTradeHistorical
 EntryPrice=29697.50
 EntryAreaLow=29694.75
 EntryAreaHigh=29697.50
@@ -279,7 +279,7 @@ Lettura:
 
 - la candela delle `15:30` è la rejection candidate;
 - la conferma footprint arriva **dentro la candela candidate**, circa 19 secondi dopo lo sweep;
-- l'entry più fedele al metodo Fabio non è la close `29780.75`, ma la buy aggression storica in area `29694.75–29697.50`;
+- l'entry più fedele al metodo Fabio non è la close `29780.75`, ma la buy aggression footprint in area `29694.75–29697.50`; in live lo stesso evento deve nascere da `OnCumulativeTrade`, dopo reload da `CumulativeTrades` storici;
 - il trigger di barra delle `15:35` conferma il setup, ma arriva molto più tardi e con rapporto rischio/rendimento peggiore.
 
 Regola derivata:

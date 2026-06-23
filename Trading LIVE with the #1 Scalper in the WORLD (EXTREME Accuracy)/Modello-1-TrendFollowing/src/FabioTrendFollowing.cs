@@ -8,6 +8,7 @@ public class FabioTrendFollowing : Indicator
 {
     private BalanceZoneTracker? _balanceTracker;
     private CumulativeTradesRequest? _cumulativeTradesRequest;
+    private static readonly bool DetailedDebugLogs = false;
     private readonly string _logPath;
 
     public FabioTrendFollowing()
@@ -51,8 +52,7 @@ public class FabioTrendFollowing : Indicator
 
         var candle = GetCandle(bar);
         
-        // Log periodico ogni 50 barre per verificare dati
-        if (bar % 50 == 0)
+        if (DetailedDebugLogs && bar % 50 == 0)
         {
             Log($"[BAR_CHECK] Bar={bar}, Time={candle.Time:yyyy-MM-dd HH:mm:ss}, O={candle.Open:F2}, H={candle.High:F2}, L={candle.Low:F2}, C={candle.Close:F2}, V={candle.Volume:F0}");
         }
@@ -84,6 +84,16 @@ public class FabioTrendFollowing : Indicator
         {
             Log($"[CUM_TRADES_REQUEST_ERROR] {ex.Message}");
         }
+    }
+
+    protected override void OnCumulativeTrade(CumulativeTrade trade)
+    {
+        _balanceTracker?.OnLiveCumulativeTrade(trade);
+    }
+
+    protected override void OnUpdateCumulativeTrade(CumulativeTrade trade)
+    {
+        _balanceTracker?.OnLiveCumulativeTrade(trade);
     }
 
     protected override void OnCumulativeTradesResponse(CumulativeTradesRequest request, IEnumerable<CumulativeTrade> cumulativeTrades)

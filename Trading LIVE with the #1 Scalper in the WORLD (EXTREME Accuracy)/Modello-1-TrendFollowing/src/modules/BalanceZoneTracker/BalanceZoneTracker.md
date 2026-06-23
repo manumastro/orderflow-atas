@@ -367,7 +367,7 @@ File unico:
 FabioTrendFollowing_YYYY-MM-DD.log
 ```
 
-Contiene sia eventi decisionali sia diagnostica rumorosa/intrabar:
+Contiene un set pulito di eventi decisionali e diagnostica utile:
 
 ```text
 [SESSION_START]
@@ -378,18 +378,29 @@ Contiene sia eventi decisionali sia diagnostica rumorosa/intrabar:
 [BREAKOUT_CONFIRMED]
 [OUT_OF_BALANCE]
 [FALSE_BREAKOUT]
-[MR_EARLY_TRIGGER]
-[MR_TRIGGER]
-[MR_AGGRESSION_CONFIRM]
-[BAR_CHECK]
-[BAR_DETAIL]
-[STATE]
 [PROFILE_PREVIEW]
 [HIGH_REJECTION_CANDIDATE]
 [LOW_REJECTION_CANDIDATE]
 [NEW_SESSION_HIGH]
 [NEW_SESSION_LOW]
 [LONDON_PRE_CLOSE]
+[MR_AGGRESSION_CONFIRM]
+[MR_EARLY_TRIGGER]
+[MR_TRIGGER]
+[CUM_TRADES_REQUEST]
+[CUM_TRADES_RESPONSE]
+```
+
+Log disattivati di default e riattivabili solo per debug tecnico:
+
+```text
+[BAR_CHECK]
+[BAR_DETAIL]
+[STATE]
+[PROFILE_RANGE]
+[PROFILE_DETAIL]
+[POC_CALC]
+[VALUE_AREA_CALC]
 [DRAW_ZONE]
 [VERIFY_COVERAGE]
 ```
@@ -420,10 +431,11 @@ BarMode=LIVE_OR_LAST_BAR    // barra più recente o ancora in formazione
 
 `[MR_EARLY_TRIGGER]` e `[MR_TRIGGER]` sono conferme di barra: descrivono quando la candela successiva conferma il fakeout o quando il prezzo reclama/perde il `POC preview`.
 
-`[MR_AGGRESSION_CONFIRM]` è invece il log operativo dello studio footprint. Ricostruisce dai `CumulativeTrade` storici la prima aggressione significativa dopo la rejection:
+`[MR_AGGRESSION_CONFIRM]` è invece il log operativo dello studio footprint. Può nascere live da `OnCumulativeTrade`/`OnUpdateCumulativeTrade` oppure, dopo reload, da `RequestForCumulativeTrades`:
 
 ```text
-EntryModel=FootprintCumulativeTrade
+EntryModel=FootprintCumulativeTradeLive
+EntryModel=FootprintCumulativeTradeHistorical
 EntryPrice=...
 EntryAreaLow=...
 EntryAreaHigh=...
@@ -440,9 +452,20 @@ RewardToTarget2=...
 
 Per i long cerca prima il momento dello sweep del low della candidate e poi solo buy aggression successive; per gli short fa l'equivalente sullo sweep high. Questo è il log più vicino all'idea Fabio di ingresso sui big trades.
 
+### Barra vs Footprint
+
+```text
+Barra = contesto e candidate.
+Footprint = entry.
+Barra successiva = conferma.
+POC reclaim/loss = conferma conservativa e management.
+```
+
+La barra serve ancora per definire lo sweep/fakeout perché il fakeout è una condizione strutturale: nuovo high/low, rejection, close position, rapporto con `VAH/VAL preview`. Il footprint non sostituisce questa parte: la rende operativa, mostrando quando entrano i big trades dopo lo sweep.
+
 ---
 
-## 12. Criteri di Validazione
+## 13. Criteri di Validazione
 
 Il modulo è valido se:
 
@@ -456,7 +479,7 @@ Il modulo è valido se:
 
 ---
 
-## 13. Prima Implementazione
+## 14. Prima Implementazione
 
 Ordine consigliato:
 

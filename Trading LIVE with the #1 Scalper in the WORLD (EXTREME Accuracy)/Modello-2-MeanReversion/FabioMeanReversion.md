@@ -158,7 +158,8 @@ Parametri diagnostici correnti:
 - aggiornamento profile: ogni barra;
 - preview `POC/VAH/VAL`: live/intrabar durante tutta London;
 - log trigger anticipato `[MR_EARLY_TRIGGER]` e conferma POC `[MR_TRIGGER]`;
-- richiesta storica `CumulativeTrades` sugli ultimi 7 giorni per `[MR_AGGRESSION_CONFIRM]`;
+- conferma footprint live tramite `OnCumulativeTrade` / `OnUpdateCumulativeTrade`;
+- fallback storico/reload tramite `CumulativeTrades` sugli ultimi 7 giorni per `[MR_AGGRESSION_CONFIRM]`;
 - nessun disegno e nessun impatto sulla state machine del Modello 1.
 
 File di log:
@@ -167,7 +168,7 @@ File di log:
 FabioTrendFollowing_YYYY-MM-DD.log
 ```
 
-Contiene tutto in un unico file: trigger, profilo preview, rejection candidate, cumulative trades e diagnostica.
+Contiene tutto in un unico file, ma i log tecnici pesanti sono disattivati di default. Restano attivi trigger, profile preview, rejection candidate e cumulative trades utili allo studio.
 
 Regola di analisi:
 
@@ -184,10 +185,11 @@ BarMode=HISTORICAL_CLOSED
 BarMode=LIVE_OR_LAST_BAR
 ```
 
-`[MR_AGGRESSION_CONFIRM]` aggiunge invece la lettura footprint storica:
+`[MR_AGGRESSION_CONFIRM]` aggiunge invece la lettura footprint live o storica:
 
 ```text
-EntryModel=FootprintCumulativeTrade
+EntryModel=FootprintCumulativeTradeLive
+EntryModel=FootprintCumulativeTradeHistorical
 EntryPrice=...
 EntryAreaLow=...
 EntryAreaHigh=...
@@ -199,7 +201,7 @@ Target1POC=...
 RewardToPOC=...
 ```
 
-Questa distinzione è fondamentale: i trigger di barra confermano il setup, mentre `[MR_AGGRESSION_CONFIRM]` prova a stimare l'entry più fedele al metodo Fabio sui big trades dopo lo sweep.
+Questa distinzione è fondamentale: la barra definisce contesto/candidate, mentre `[MR_AGGRESSION_CONFIRM]` prova a stimare l'entry più fedele al metodo Fabio sui big trades dopo lo sweep.
 
 ---
 
@@ -212,7 +214,7 @@ Condizioni candidate:
 1. Prezzo fa nuovo massimo della balance in formazione.
 2. Close era sopra `VAH preview` o comunque molto estesa rispetto al `POC preview`.
 3. Candela successiva o stessa candela rientra sotto `VAH preview`.
-4. Delta passa da positivo/assorbito a negativo.
+4. Footprint mostra sell aggression significativa dopo lo sweep.
 5. Il prezzo torna verso `POC preview`.
 6. Conferma forte se rompe sotto `POC preview` o `VAL preview`.
 
@@ -232,9 +234,36 @@ Speculare:
 ```text
 Sweep below preview VAL
 → rejection / close back inside VA
+→ buy aggression significativa dopo sweep
 → return toward preview POC
 → optional break above preview VAH
 ```
+
+### 7.3 Barra vs Footprint
+
+```text
+Barra = struttura del fakeout: nuovo high/low, rejection, close position, relazione con VAH/VAL preview.
+Footprint = timing di ingresso: big trades/aggression dopo lo sweep.
+```
+
+Lo studio della barra non va eliminato per il fakeout: serve a definire che il mercato ha effettivamente fatto sweep e rifiuto. Il footprint sostituisce invece la barra come prezzo di entry primaria, perché Fabio parla di entrare quando si vede la mano dei big market participants.
+
+### 7.4 Soglia volume aggressione
+
+Nel transcript Fabio non dà una soglia numerica fissa. Dice di aspettare `big trades`, `bubble` e `big volume`, quindi la soglia deve essere trattata come parametro diagnostico e adattivo.
+
+Valore attuale:
+
+```text
+MinAggressionTradeVolume = 10
+```
+
+Interpretazione:
+
+- è una soglia iniziale prudente per filtrare micro trade;
+- non è una regola definitiva;
+- va calibrata su strumento, sessione, volatilità e distribuzione dei cumulative trades;
+- miglioramento futuro: usare percentile/volume relativo invece di valore fisso.
 
 ---
 
@@ -245,8 +274,8 @@ Per validare il Modello 2 servono:
 - `POC/VAH/VAL preview` al momento dello sweep;
 - distanza del close da `POC`, `VAH`, `VAL` preview;
 - delta candela (`Ask - Bid`);
-- cumulative trades storici dopo lo sweep (`FirstPrice`, `LastPrice`, `Volume`, `Direction`, `Time`);
-- top price levels della candela;
+- cumulative trades live/storici dopo lo sweep (`FirstPrice`, `LastPrice`, `Volume`, `Direction`, `Time`);
+- tempo tra sweep e aggressione (`SecondsAfterSweep`);
 - volume della candela rispetto al contesto;
 - timestamp in ora italiana;
 - massimo/minimo della sessione con bar/time.
