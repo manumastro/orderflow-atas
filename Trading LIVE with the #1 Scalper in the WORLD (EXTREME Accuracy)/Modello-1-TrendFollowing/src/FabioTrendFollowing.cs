@@ -7,6 +7,7 @@ namespace FabioTrendFollowing;
 public class FabioTrendFollowing : Indicator
 {
     private BalanceZoneTracker? _balanceTracker;
+    private CumulativeTradesRequest? _cumulativeTradesRequest;
     private readonly string _logPath;
 
     public FabioTrendFollowing()
@@ -57,6 +58,38 @@ public class FabioTrendFollowing : Indicator
         }
         
         _balanceTracker?.OnBarUpdate(bar, candle, CurrentBar);
+    }
+
+    protected override void OnFinishRecalculate()
+    {
+        if (CurrentBar <= 1)
+            return;
+
+        try
+        {
+            var startTime = GetCandle(0).Time;
+            var endTime = GetCandle(CurrentBar - 1).LastTime;
+            if (endTime <= startTime)
+                endTime = GetCandle(CurrentBar - 1).Time;
+
+            _cumulativeTradesRequest = new CumulativeTradesRequest(startTime, endTime, 0, 0);
+            Log($"[CUM_TRADES_REQUEST] Begin={startTime:yyyy-MM-dd HH:mm:ss}, End={endTime:yyyy-MM-dd HH:mm:ss}, CurrentBar={CurrentBar}");
+            RequestForCumulativeTrades(_cumulativeTradesRequest);
+        }
+        catch (Exception ex)
+        {
+            Log($"[CUM_TRADES_REQUEST_ERROR] {ex.Message}");
+        }
+    }
+
+    protected override void OnCumulativeTradesResponse(CumulativeTradesRequest request, IEnumerable<CumulativeTrade> cumulativeTrades)
+    {
+        if (_cumulativeTradesRequest == null || request != _cumulativeTradesRequest)
+            return;
+
+        var trades = cumulativeTrades.ToList();
+        Log($"[CUM_TRADES_RESPONSE] Count={trades.Count}, RequestId={request.RequestId}");
+        _balanceTracker?.OnHistoricalCumulativeTrades(trades);
     }
     
     private void LogChartTradingSessions()

@@ -62,6 +62,18 @@ namespace FabioTrendFollowing
         public int ConsecutiveOutsideCloses { get; set; }
     }
 
+    internal sealed class MeanReversionTriggerLog
+    {
+        public string Direction { get; set; } = string.Empty;
+        public string Trigger { get; set; } = string.Empty;
+        public int Bar { get; set; }
+        public int CandidateBar { get; set; }
+        public decimal POC { get; set; }
+        public decimal VAH { get; set; }
+        public decimal VAL { get; set; }
+        public bool HistoricalAggressionLogged { get; set; }
+    }
+
     internal sealed class BalanceZoneTracker
     {
         private readonly Indicator _indicator;
@@ -85,7 +97,9 @@ namespace FabioTrendFollowing
         private const int ExpectedLondonBars = 96; // 8h * 12 bars/h on M5
         private const int MinCompleteSessionBars = 90; // Tolleranza -6 bars
         private const int LondonPreviewStartHour = 8;
+        private const decimal MinHistoricalAggressionVolume = 10m;
         
+        private readonly List<MeanReversionTriggerLog> _meanReversionTriggerLogs = new();
         private bool _firstCompleteSessionFound = false;
         private int _lastLoggedPreCloseBar = -1;
         private int _lastPreviewProfileBar = -1;
@@ -149,6 +163,18 @@ namespace FabioTrendFollowing
         public decimal? VAH => _context.CurrentZone?.VAH;
         public decimal? VAL => _context.CurrentZone?.VAL;
         public decimal? POC => _context.CurrentZone?.POC;
+
+        public void OnHistoricalCumulativeTrades(IEnumerable<CumulativeTrade> cumulativeTrades)
+        {
+            var trades = cumulativeTrades
+                .OrderBy(trade => trade.Time)
+                .ToList();
+
+            foreach (var triggerLog in _meanReversionTriggerLogs.Where(log => !log.HistoricalAggressionLogged))
+            {
+                LogHistoricalAggressionConfirmation(triggerLog, trades);
+            }
+        }
 
         public void OnBarUpdate(int bar, IndicatorCandle candle, int currentBar)
         {
@@ -667,6 +693,7 @@ namespace FabioTrendFollowing
                 if ((closeAboveRejectionClose || tradedAboveRejectionHigh) && positiveFollowThrough && closeBackInsideValue)
                 {
                     _lowRejectionEarlyTriggered = true;
+                    RegisterMeanReversionTrigger("Long", "LOW_REJECTION_FOLLOW_THROUGH", bar, _lastLowRejectionCandidateBar, poc, vah, val);
                     var entryBubble = FormatEntryBubble("Buy", candle);
                     _log($"[MR_EARLY_TRIGGER] Direction=Long, Trigger=LOW_REJECTION_FOLLOW_THROUGH, BarMode={GetBarMode(bar)}, Bar={bar}, CurrentBar={_currentBar}, {FormatTimes(candle.Time)}, CandidateBar={_lastLowRejectionCandidateBar}, CandidateLow={_lastLowRejectionLow:F2}, CandidateClose={_lastLowRejectionClose:F2}, CandidateHigh={_lastLowRejectionHigh:F2}, CandidateDelta={_lastLowRejectionDelta:F0}, Close={candle.Close:F2}, High={candle.High:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, DistToPOC={candle.Close - poc:F2}, StopReference={_lastLowRejectionLow:F2}, Target1={poc:F2}, Target2={vah:F2}, {entryBubble}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}");
                 }
@@ -682,6 +709,7 @@ namespace FabioTrendFollowing
                 if ((closeBelowRejectionClose || tradedBelowRejectionLow) && negativeFollowThrough && closeBackInsideValue)
                 {
                     _highRejectionEarlyTriggered = true;
+                    RegisterMeanReversionTrigger("Short", "HIGH_REJECTION_FOLLOW_THROUGH", bar, _lastHighRejectionCandidateBar, poc, vah, val);
                     var entryBubble = FormatEntryBubble("Sell", candle);
                     _log($"[MR_EARLY_TRIGGER] Direction=Short, Trigger=HIGH_REJECTION_FOLLOW_THROUGH, BarMode={GetBarMode(bar)}, Bar={bar}, CurrentBar={_currentBar}, {FormatTimes(candle.Time)}, CandidateBar={_lastHighRejectionCandidateBar}, CandidateHigh={_lastHighRejectionHigh:F2}, CandidateClose={_lastHighRejectionClose:F2}, CandidateLow={_lastHighRejectionLow:F2}, CandidateDelta={_lastHighRejectionDelta:F0}, Close={candle.Close:F2}, Low={candle.Low:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, DistToPOC={candle.Close - poc:F2}, StopReference={_lastHighRejectionHigh:F2}, Target1={poc:F2}, Target2={val:F2}, {entryBubble}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}");
                 }
@@ -696,6 +724,7 @@ namespace FabioTrendFollowing
             if (_lastLowRejectionCandidateBar >= 0 && !_lowRejectionPocReclaimed && bar > _lastLowRejectionCandidateBar && candle.Close > poc)
             {
                 _lowRejectionPocReclaimed = true;
+                RegisterMeanReversionTrigger("Long", "POC_RECLAIM_AFTER_LOW_REJECTION", bar, _lastLowRejectionCandidateBar, poc, vah, val);
                 var entryBubble = FormatEntryBubble("Buy", candle);
                 _log($"[MR_TRIGGER] Direction=Long, Trigger=POC_RECLAIM_AFTER_LOW_REJECTION, BarMode={GetBarMode(bar)}, Bar={bar}, CurrentBar={_currentBar}, {FormatTimes(candle.Time)}, CandidateBar={_lastLowRejectionCandidateBar}, Close={candle.Close:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, DistToPOC={candle.Close - poc:F2}, StopReference={_context.CurrentZone.Low:F2}, Target1={vah:F2}, {entryBubble}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}");
             }
@@ -703,6 +732,7 @@ namespace FabioTrendFollowing
             if (_lastHighRejectionCandidateBar >= 0 && !_highRejectionPocLost && bar > _lastHighRejectionCandidateBar && candle.Close < poc)
             {
                 _highRejectionPocLost = true;
+                RegisterMeanReversionTrigger("Short", "POC_LOSS_AFTER_HIGH_REJECTION", bar, _lastHighRejectionCandidateBar, poc, vah, val);
                 var entryBubble = FormatEntryBubble("Sell", candle);
                 _log($"[MR_TRIGGER] Direction=Short, Trigger=POC_LOSS_AFTER_HIGH_REJECTION, BarMode={GetBarMode(bar)}, Bar={bar}, CurrentBar={_currentBar}, {FormatTimes(candle.Time)}, CandidateBar={_lastHighRejectionCandidateBar}, Close={candle.Close:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, DistToPOC={candle.Close - poc:F2}, StopReference={_context.CurrentZone.High:F2}, Target1={val:F2}, {entryBubble}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}");
             }
@@ -771,6 +801,59 @@ namespace FabioTrendFollowing
             val = sortedLevels[lowerIndex].Key;
             vah = sortedLevels[upperIndex].Key;
             return true;
+        }
+
+        private void RegisterMeanReversionTrigger(string direction, string trigger, int bar, int candidateBar, decimal poc, decimal vah, decimal val)
+        {
+            if (_meanReversionTriggerLogs.Any(log => log.Direction == direction && log.Trigger == trigger && log.Bar == bar && log.CandidateBar == candidateBar))
+                return;
+
+            _meanReversionTriggerLogs.Add(new MeanReversionTriggerLog
+            {
+                Direction = direction,
+                Trigger = trigger,
+                Bar = bar,
+                CandidateBar = candidateBar,
+                POC = poc,
+                VAH = vah,
+                VAL = val
+            });
+        }
+
+        private void LogHistoricalAggressionConfirmation(MeanReversionTriggerLog triggerLog, IReadOnlyCollection<CumulativeTrade> trades)
+        {
+            if (triggerLog.CandidateBar < 0 || triggerLog.CandidateBar >= _currentBar || triggerLog.Bar < 0 || triggerLog.Bar >= _currentBar)
+                return;
+
+            var candidateCandle = _getCandle(triggerLog.CandidateBar);
+            var triggerCandle = _getCandle(triggerLog.Bar);
+            var direction = triggerLog.Direction == "Long" ? TradeDirection.Buy : TradeDirection.Sell;
+            var startTime = candidateCandle.Time;
+            var endTime = triggerCandle.LastTime > triggerCandle.Time ? triggerCandle.LastTime : triggerCandle.Time.AddMinutes(5);
+
+            var matchingTrade = trades
+                .Where(trade => trade.Direction == direction)
+                .Where(trade => trade.Volume >= MinHistoricalAggressionVolume)
+                .Where(trade => trade.Time >= startTime && trade.Time <= endTime)
+                .Where(trade => IsHistoricalAggressionInsideValue(triggerLog.Direction, triggerLog, trade))
+                .OrderBy(trade => trade.Time)
+                .ThenBy(trade => triggerLog.Direction == "Long" ? trade.FirstPrice : -trade.FirstPrice)
+                .FirstOrDefault();
+
+            if (matchingTrade == null)
+                return;
+
+            triggerLog.HistoricalAggressionLogged = true;
+            var italyTime = TimeZoneInfo.ConvertTimeFromUtc(matchingTrade.Time, _italyTimeZone);
+            var londonTime = TimeZoneInfo.ConvertTimeFromUtc(matchingTrade.Time, _londonTimeZone);
+            _log($"[MR_AGGRESSION_CONFIRM] Direction={triggerLog.Direction}, Trigger={triggerLog.Trigger}, Mode=HistoricalCumulativeTrade, Bar={triggerLog.Bar}, CandidateBar={triggerLog.CandidateBar}, UTC={matchingTrade.Time:yyyy-MM-dd HH:mm:ss.fff}, London={londonTime:yyyy-MM-dd HH:mm:ss.fff}, Italy={italyTime:yyyy-MM-dd HH:mm:ss.fff}, FirstPrice={matchingTrade.FirstPrice:F2}, LastPrice={matchingTrade.Lastprice:F2}, Volume={matchingTrade.Volume:F0}, TradeDirection={matchingTrade.Direction}, POC={triggerLog.POC:F2}, VAH={triggerLog.VAH:F2}, VAL={triggerLog.VAL:F2}, MinVolume={MinHistoricalAggressionVolume:F0}");
+        }
+
+        private static bool IsHistoricalAggressionInsideValue(string direction, MeanReversionTriggerLog triggerLog, CumulativeTrade trade)
+        {
+            return direction == "Long"
+                ? trade.Lastprice >= triggerLog.VAL
+                : trade.Lastprice <= triggerLog.VAH;
         }
 
         private string FormatEntryBubble(string side, IndicatorCandle candle)

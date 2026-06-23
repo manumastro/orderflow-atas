@@ -418,9 +418,12 @@ EntryBubbleSide=Buy/Sell
 EntryBubblePrice=...        // livello footprint con delta direzionale dominante nella candela trigger
 EntryBubbleMode=DominantTriggerCandleLevel
 EntryCaveat=NotFirstExactBubblePrint
+[MR_AGGRESSION_CONFIRM]
 ```
 
 `EntryBubblePrice` non è ancora il primo print esatto della bubble live: è il livello dominante ricostruito dalla candela trigger, utile per avvicinare il log al concetto Fabio di ingresso sui big trades.
+
+`[MR_AGGRESSION_CONFIRM]` prova invece a ricostruire dai `CumulativeTrade` storici la prima aggressione significativa dopo la rejection, con timestamp e prezzo del trade aggregato (`FirstPrice`, `LastPrice`, `Volume`). Questo è il log più vicino all'idea di conferma intrabar storica.
 
 ---
 
