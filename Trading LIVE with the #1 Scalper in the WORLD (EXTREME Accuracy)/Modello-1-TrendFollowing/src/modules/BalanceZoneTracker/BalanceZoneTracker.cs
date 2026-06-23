@@ -106,6 +106,7 @@ namespace FabioTrendFollowing
         private int _currentBar;
         private bool _lowRejectionEarlyTriggered;
         private bool _highRejectionEarlyTriggered;
+        private int _lastSeenLiveBar = -1;
 
         public BalanceZoneTracker(
             Indicator indicator, 
@@ -158,6 +159,7 @@ namespace FabioTrendFollowing
         {
             _currentBar = currentBar;
             var barTime = candle.Time;
+            LogLastBarSeenIfNeeded(bar, candle);
 
             // Log dettagliato prima barra per verifica dati
             if (bar == 1)
@@ -586,6 +588,15 @@ namespace FabioTrendFollowing
         private string GetBarMode(int bar)
         {
             return bar >= _currentBar - 1 ? "LIVE_OR_LAST_BAR" : "HISTORICAL_CLOSED";
+        }
+
+        private void LogLastBarSeenIfNeeded(int bar, IndicatorCandle candle)
+        {
+            if (bar < _currentBar - 1 || bar == _lastSeenLiveBar)
+                return;
+
+            _lastSeenLiveBar = bar;
+            _verboseLog($"[LAST_BAR_SEEN] BarMode={GetBarMode(bar)}, Bar={bar}, CurrentBar={_currentBar}, {FormatTimes(candle.Time)}, O={candle.Open:F2}, H={candle.High:F2}, L={candle.Low:F2}, C={candle.Close:F2}, V={candle.Volume:F0}");
         }
 
         private void LogSessionExtreme(string tag, int bar, IndicatorCandle candle, decimal previousExtreme)
