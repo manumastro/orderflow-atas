@@ -103,6 +103,7 @@ namespace FabioTrendFollowing
         private decimal _lastHighRejectionDelta;
         private bool _lowRejectionPocReclaimed;
         private bool _highRejectionPocLost;
+        private int _currentBar;
         private bool _lowRejectionEarlyTriggered;
         private bool _highRejectionEarlyTriggered;
 
@@ -153,8 +154,9 @@ namespace FabioTrendFollowing
         public decimal? VAL => _context.CurrentZone?.VAL;
         public decimal? POC => _context.CurrentZone?.POC;
 
-        public void OnBarUpdate(int bar, IndicatorCandle candle)
+        public void OnBarUpdate(int bar, IndicatorCandle candle, int currentBar)
         {
+            _currentBar = currentBar;
             var barTime = candle.Time;
 
             // Log dettagliato prima barra per verifica dati
@@ -581,6 +583,11 @@ namespace FabioTrendFollowing
             return $"UTC={utcTime:yyyy-MM-dd HH:mm:ss}, London={londonTime:yyyy-MM-dd HH:mm}, Italy={italyTime:yyyy-MM-dd HH:mm}";
         }
 
+        private string GetBarMode(int bar)
+        {
+            return bar >= _currentBar - 1 ? "LIVE_OR_LAST_BAR" : "HISTORICAL_CLOSED";
+        }
+
         private void LogSessionExtreme(string tag, int bar, IndicatorCandle candle, decimal previousExtreme)
         {
             _verboseLog($"[{tag}] Bar={bar}, {FormatTimes(candle.Time)}, Previous={previousExtreme:F2}, O={candle.Open:F2}, H={candle.High:F2}, L={candle.Low:F2}, C={candle.Close:F2}, V={candle.Volume:F0}");
@@ -665,7 +672,7 @@ namespace FabioTrendFollowing
                 if ((closeAboveRejectionClose || tradedAboveRejectionHigh) && positiveFollowThrough && closeBackInsideValue)
                 {
                     _lowRejectionEarlyTriggered = true;
-                    _log($"[MR_EARLY_TRIGGER] Direction=Long, Trigger=LOW_REJECTION_FOLLOW_THROUGH, Bar={bar}, {FormatTimes(candle.Time)}, CandidateBar={_lastLowRejectionCandidateBar}, CandidateLow={_lastLowRejectionLow:F2}, CandidateClose={_lastLowRejectionClose:F2}, CandidateHigh={_lastLowRejectionHigh:F2}, CandidateDelta={_lastLowRejectionDelta:F0}, Close={candle.Close:F2}, High={candle.High:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, DistToPOC={candle.Close - poc:F2}, StopReference={_lastLowRejectionLow:F2}, Target1={poc:F2}, Target2={vah:F2}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}");
+                    _log($"[MR_EARLY_TRIGGER] Direction=Long, Trigger=LOW_REJECTION_FOLLOW_THROUGH, BarMode={GetBarMode(bar)}, Bar={bar}, CurrentBar={_currentBar}, {FormatTimes(candle.Time)}, CandidateBar={_lastLowRejectionCandidateBar}, CandidateLow={_lastLowRejectionLow:F2}, CandidateClose={_lastLowRejectionClose:F2}, CandidateHigh={_lastLowRejectionHigh:F2}, CandidateDelta={_lastLowRejectionDelta:F0}, Close={candle.Close:F2}, High={candle.High:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, DistToPOC={candle.Close - poc:F2}, StopReference={_lastLowRejectionLow:F2}, Target1={poc:F2}, Target2={vah:F2}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}");
                 }
             }
 
@@ -679,7 +686,7 @@ namespace FabioTrendFollowing
                 if ((closeBelowRejectionClose || tradedBelowRejectionLow) && negativeFollowThrough && closeBackInsideValue)
                 {
                     _highRejectionEarlyTriggered = true;
-                    _log($"[MR_EARLY_TRIGGER] Direction=Short, Trigger=HIGH_REJECTION_FOLLOW_THROUGH, Bar={bar}, {FormatTimes(candle.Time)}, CandidateBar={_lastHighRejectionCandidateBar}, CandidateHigh={_lastHighRejectionHigh:F2}, CandidateClose={_lastHighRejectionClose:F2}, CandidateLow={_lastHighRejectionLow:F2}, CandidateDelta={_lastHighRejectionDelta:F0}, Close={candle.Close:F2}, Low={candle.Low:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, DistToPOC={candle.Close - poc:F2}, StopReference={_lastHighRejectionHigh:F2}, Target1={poc:F2}, Target2={val:F2}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}");
+                    _log($"[MR_EARLY_TRIGGER] Direction=Short, Trigger=HIGH_REJECTION_FOLLOW_THROUGH, BarMode={GetBarMode(bar)}, Bar={bar}, CurrentBar={_currentBar}, {FormatTimes(candle.Time)}, CandidateBar={_lastHighRejectionCandidateBar}, CandidateHigh={_lastHighRejectionHigh:F2}, CandidateClose={_lastHighRejectionClose:F2}, CandidateLow={_lastHighRejectionLow:F2}, CandidateDelta={_lastHighRejectionDelta:F0}, Close={candle.Close:F2}, Low={candle.Low:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, DistToPOC={candle.Close - poc:F2}, StopReference={_lastHighRejectionHigh:F2}, Target1={poc:F2}, Target2={val:F2}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}");
                 }
             }
         }
@@ -692,13 +699,13 @@ namespace FabioTrendFollowing
             if (_lastLowRejectionCandidateBar >= 0 && !_lowRejectionPocReclaimed && bar > _lastLowRejectionCandidateBar && candle.Close > poc)
             {
                 _lowRejectionPocReclaimed = true;
-                _log($"[MR_TRIGGER] Direction=Long, Trigger=POC_RECLAIM_AFTER_LOW_REJECTION, Bar={bar}, {FormatTimes(candle.Time)}, CandidateBar={_lastLowRejectionCandidateBar}, Close={candle.Close:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, DistToPOC={candle.Close - poc:F2}, StopReference={_context.CurrentZone.Low:F2}, Target1={vah:F2}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}");
+                _log($"[MR_TRIGGER] Direction=Long, Trigger=POC_RECLAIM_AFTER_LOW_REJECTION, BarMode={GetBarMode(bar)}, Bar={bar}, CurrentBar={_currentBar}, {FormatTimes(candle.Time)}, CandidateBar={_lastLowRejectionCandidateBar}, Close={candle.Close:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, DistToPOC={candle.Close - poc:F2}, StopReference={_context.CurrentZone.Low:F2}, Target1={vah:F2}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}");
             }
 
             if (_lastHighRejectionCandidateBar >= 0 && !_highRejectionPocLost && bar > _lastHighRejectionCandidateBar && candle.Close < poc)
             {
                 _highRejectionPocLost = true;
-                _log($"[MR_TRIGGER] Direction=Short, Trigger=POC_LOSS_AFTER_HIGH_REJECTION, Bar={bar}, {FormatTimes(candle.Time)}, CandidateBar={_lastHighRejectionCandidateBar}, Close={candle.Close:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, DistToPOC={candle.Close - poc:F2}, StopReference={_context.CurrentZone.High:F2}, Target1={val:F2}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}");
+                _log($"[MR_TRIGGER] Direction=Short, Trigger=POC_LOSS_AFTER_HIGH_REJECTION, BarMode={GetBarMode(bar)}, Bar={bar}, CurrentBar={_currentBar}, {FormatTimes(candle.Time)}, CandidateBar={_lastHighRejectionCandidateBar}, Close={candle.Close:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, DistToPOC={candle.Close - poc:F2}, StopReference={_context.CurrentZone.High:F2}, Target1={val:F2}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}");
             }
         }
 

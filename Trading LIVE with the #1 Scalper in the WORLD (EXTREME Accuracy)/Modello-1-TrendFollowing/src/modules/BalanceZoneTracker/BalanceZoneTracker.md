@@ -415,6 +415,15 @@ Prima leggere il main log per individuare trigger e transizioni.
 Poi aprire il verbose log solo per ricostruire il contesto del trigger.
 ```
 
+I trigger mean reversion diagnostici includono `BarMode`:
+
+```text
+BarMode=HISTORICAL_CLOSED   // barra storica/chiusa, tipica di reload o replay
+BarMode=LIVE_OR_LAST_BAR    // barra più recente o ancora in formazione
+```
+
+Questa distinzione serve a capire se un trigger è stato generato live/intrabar oppure ricostruito da storico consolidato.
+
 ---
 
 ## 12. Criteri di Validazione

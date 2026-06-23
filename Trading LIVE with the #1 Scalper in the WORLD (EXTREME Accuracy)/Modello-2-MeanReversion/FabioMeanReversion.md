@@ -201,6 +201,20 @@ Prima leggere il main log per capire cosa è successo.
 Poi usare il verbose log solo per ricostruire il contesto del trigger.
 ```
 
+I log `[MR_EARLY_TRIGGER]` e `[MR_TRIGGER]` includono anche:
+
+```text
+BarMode=HISTORICAL_CLOSED
+BarMode=LIVE_OR_LAST_BAR
+```
+
+Significato:
+
+- `HISTORICAL_CLOSED`: trigger ricostruito su barra storica/chiusa durante reload o replay.
+- `LIVE_OR_LAST_BAR`: trigger nato sulla barra più recente o ancora in formazione.
+
+Questa distinzione è fondamentale perché i livelli preview, soprattutto `POC preview`, possono cambiare tra calcolo live intrabar e storico consolidato dopo reload.
+
 ---
 
 ## 7. Ipotesi di Detection Iniziale

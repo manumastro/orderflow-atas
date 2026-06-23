@@ -64,7 +64,7 @@ public class FabioTrendFollowing : Indicator
             LogVerbose($"[BAR_CHECK] Bar={bar}, Time={candle.Time:yyyy-MM-dd HH:mm:ss}, O={candle.Open:F2}, H={candle.High:F2}, L={candle.Low:F2}, C={candle.Close:F2}, V={candle.Volume:F0}");
         }
         
-        _balanceTracker?.OnBarUpdate(bar, candle);
+        _balanceTracker?.OnBarUpdate(bar, candle, CurrentBar);
     }
     
     private void LogChartTradingSessions()
