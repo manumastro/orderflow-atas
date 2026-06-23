@@ -98,8 +98,7 @@ namespace FabioTrendFollowing
         private const int MinCompleteSessionBars = 90; // Tolleranza -6 bars
         private const int LondonPreviewStartHour = 8;
         private static readonly bool DetailedDebugLogs = false;
-        private const decimal LondonMinAggressionTradeVolume = 20m;
-        private const decimal NewYorkMinAggressionTradeVolume = 30m;
+        private const decimal MinAggressionTradeVolume = 20m;
         
         private readonly List<MeanReversionTriggerLog> _meanReversionTriggerLogs = new();
         private readonly HashSet<string> _loggedAggressionCandidateKeys = new();
@@ -948,25 +947,12 @@ namespace FabioTrendFollowing
 
         private decimal GetMinAggressionTradeVolume(DateTime utcTime)
         {
-            var nyTime = TimeZoneInfo.ConvertTimeFromUtc(utcTime, _newYorkTimeZone);
-            if (IsInNewYorkSession(nyTime))
-                return NewYorkMinAggressionTradeVolume;
-
-            var londonTime = TimeZoneInfo.ConvertTimeFromUtc(utcTime, _londonTimeZone);
-            if (IsInLondonSession(londonTime))
-                return LondonMinAggressionTradeVolume;
-
-            return LondonMinAggressionTradeVolume;
+            return MinAggressionTradeVolume;
         }
 
         private string GetAggressionVolumeRule(DateTime utcTime)
         {
-            var nyTime = TimeZoneInfo.ConvertTimeFromUtc(utcTime, _newYorkTimeZone);
-            if (IsInNewYorkSession(nyTime))
-                return "NewYork30";
-
-            var londonTime = TimeZoneInfo.ConvertTimeFromUtc(utcTime, _londonTimeZone);
-            return IsInLondonSession(londonTime) ? "London20" : "DefaultLondon20";
+            return "Hardcoded20";
         }
 
         private void LogHistoricalAggressionConfirmation(MeanReversionTriggerLog triggerLog, IReadOnlyCollection<CumulativeTrade> trades)

@@ -250,27 +250,26 @@ Lo studio della barra non va eliminato per il fakeout: serve a definire che il m
 
 ### 7.4 Soglia volume aggressione
 
-Appunto operativo dal metodo Fabio:
+Riferimento verificato nel transcript:
 
 ```text
-London: big trade/bubble >= 20
-New York: big trade/bubble >= 30
+30 contracts on NASDAQ on the one minute
 ```
 
-Valori correnti nel codice:
+Fabio parla anche di `big trades`, `bubble`, `big volume` e `larger orders`, ma nel transcript disponibile non c'è una regola completa e verificata per sessione.
+
+Valore corrente nel codice:
 
 ```text
-LondonMinAggressionTradeVolume = 20
-NewYorkMinAggressionTradeVolume = 30
+MinAggressionTradeVolume = 20
+VolumeRule = Hardcoded20
 ```
 
-Regola:
+Regola provvisoria:
 
-- durante London si usa soglia `20`;
-- durante New York si usa soglia `30`;
-- in eventuale sovrapposizione si dà precedenza alla regola New York;
-- fuori sessione si usa fallback `London20`;
-- miglioramento futuro: confrontare queste soglie con percentile/volume relativo per strumento e volatilità.
+- usare soglia unica `20` per evitare overfitting;
+- trattare `30 NASDAQ M1` come riferimento da testare, non come regola attiva;
+- miglioramento futuro: confrontare `20`, `30` e percentile/volume relativo per strumento, sessione e volatilità.
 
 ---
 
