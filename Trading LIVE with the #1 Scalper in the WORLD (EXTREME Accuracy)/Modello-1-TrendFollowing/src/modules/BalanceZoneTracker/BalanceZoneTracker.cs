@@ -85,7 +85,7 @@ namespace FabioTrendFollowing
         private const int ExpectedLondonBars = 96; // 8h * 12 bars/h on M5
         private const int MinCompleteSessionBars = 90; // Tolleranza -6 bars
         private const int PreviewProfileEveryBars = 5;
-        private const int LateLondonPreviewStartHour = 14;
+        private const int LondonPreviewStartHour = 8;
         
         private bool _firstCompleteSessionFound = false;
         private int _lastLoggedPreCloseBar = -1;
@@ -578,8 +578,8 @@ namespace FabioTrendFollowing
                 return;
 
             var londonTime = TimeZoneInfo.ConvertTimeFromUtc(candle.Time, _londonTimeZone);
-            var isLateLondon = londonTime.Hour >= LateLondonPreviewStartHour;
-            var shouldLogByCadence = isLateLondon && (_lastPreviewProfileBar < 0 || bar - _lastPreviewProfileBar >= PreviewProfileEveryBars);
+            var isLondonPreviewWindow = londonTime.Hour >= LondonPreviewStartHour;
+            var shouldLogByCadence = isLondonPreviewWindow && (_lastPreviewProfileBar < 0 || bar - _lastPreviewProfileBar >= PreviewProfileEveryBars);
 
             if (!force && !shouldLogByCadence)
                 return;
