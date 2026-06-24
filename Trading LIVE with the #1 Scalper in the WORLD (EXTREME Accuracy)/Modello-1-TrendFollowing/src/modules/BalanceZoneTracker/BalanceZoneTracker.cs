@@ -100,10 +100,6 @@ namespace FabioTrendFollowing
         private readonly Action<string> _log;
         private readonly Func<int, IndicatorCandle> _getCandle;
 
-        private readonly TimeZoneInfo _londonTimeZone;
-        private readonly TimeZoneInfo _newYorkTimeZone;
-        private readonly TimeZoneInfo _italyTimeZone;
-
         private readonly List<DrawingRectangle> _rectangles;
         private readonly List<LineTillTouch> _lines;
         
@@ -145,6 +141,19 @@ namespace FabioTrendFollowing
         private decimal _lastPreviewVal;
         private DateTime? _liveLowSweepTimeUtc;
         private DateTime? _liveHighSweepTimeUtc;
+        private bool _nySessionActive;
+        private int _nySessionStartBar = -1;
+        private int _nySessionEndBar = -1;
+        private int _nySessionHighBar = -1;
+        private int _nySessionLowBar = -1;
+        private DateTime _nySessionHighTimeUtc;
+        private DateTime _nySessionLowTimeUtc;
+        private decimal _nySessionHigh;
+        private decimal _nySessionLow;
+        private decimal _nySessionTotalVolume;
+        private readonly Dictionary<decimal, decimal> _nySessionProfile = new();
+        private int _lastLoggedNyPreCloseBar = -1;
+        private int _lastNyPreviewProfileBar = -1;
 
         public BalanceZoneTracker(
             Indicator indicator, 
@@ -159,26 +168,6 @@ namespace FabioTrendFollowing
             _lines = lines;
             _getCandle = getCandle;
 
-            try
-            {
-                _londonTimeZone = TimeZoneInfo.FindSystemTimeZoneById("GMT Standard Time");
-                _newYorkTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
-            }
-            catch (TimeZoneNotFoundException ex)
-            {
-                _log($"[ERROR] Timezone not found: {ex.Message}");
-                throw;
-            }
-
-            try
-            {
-                _italyTimeZone = TimeZoneInfo.FindSystemTimeZoneById("W. Europe Standard Time");
-            }
-            catch (TimeZoneNotFoundException)
-            {
-                _italyTimeZone = TimeZoneInfo.Local;
-                _log($"[WARN] Italy timezone not found, using local timezone: {_italyTimeZone.Id}");
-            }
         }
 
         // API pubblica per gli altri moduli
@@ -278,8 +267,8 @@ namespace FabioTrendFollowing
                 _log($"[BAR_DETAIL] First bar: Time={barTime:yyyy-MM-dd HH:mm:ss}, O={candle.Open}, H={candle.High}, L={candle.Low}, C={candle.Close}, V={candle.Volume}");
             }
 
-            var londonTime = TimeZoneInfo.ConvertTimeFromUtc(barTime, _londonTimeZone);
-            var nyTime = TimeZoneInfo.ConvertTimeFromUtc(barTime, _newYorkTimeZone);
+            var londonTime = MarketTimeZones.ToLondon(barTime);
+            var nyTime = MarketTimeZones.ToNewYork(barTime);
 
             var isInLondonSession = IsInLondonSession(londonTime);
             var isInNewYorkSession = IsInNewYorkSession(nyTime);
@@ -312,6 +301,11 @@ namespace FabioTrendFollowing
                     break;
 
                 case MarketState.BalanceReady:
+                    if (isInNewYorkSession)
+                    {
+                        LogNewYorkSession(bar, candle, isClosedBarForBreakout);
+                    }
+
                     if (isInNewYorkSession && isClosedBarForBreakout)
                     {
                         CheckForBreakout(bar, candle);
@@ -319,6 +313,11 @@ namespace FabioTrendFollowing
                     break;
 
                 case MarketState.BreakoutPending:
+                    if (isInNewYorkSession)
+                    {
+                        LogNewYorkSession(bar, candle, isClosedBarForBreakout);
+                    }
+
                     if (isInNewYorkSession && isClosedBarForBreakout)
                     {
                         ConfirmBreakout(bar, candle);
@@ -329,6 +328,10 @@ namespace FabioTrendFollowing
                     // Out-of-balance confermato, gli altri moduli possono operare
                     // NON estendere il box della balance zone (rimane fisso sulla sessione London)
                     // Visual separato per la zona out-of-balance
+                    if (isInNewYorkSession)
+                    {
+                        LogNewYorkSession(bar, candle, isClosedBarForBreakout);
+                    }
                     
                     // Reset su nuova London session
                     if (isInLondonSession && !IsBarInCurrentZone(bar))
@@ -344,12 +347,13 @@ namespace FabioTrendFollowing
         private void StartLondonSession(int bar, IndicatorCandle candle)
         {
             // Verifica se è l'inizio esatto della sessione London (08:00 GMT)
-            var londonTime = TimeZoneInfo.ConvertTimeFromUtc(candle.Time, _londonTimeZone);
+            var londonTime = MarketTimeZones.ToLondon(candle.Time);
             
             // Salta sessioni parziali fino a trovare la prima completa
             if (!_firstCompleteSessionFound && londonTime.Hour != 8)
             {
-                _log($"[SKIP] Partial London session detected at {londonTime:HH:mm} | Bar={bar}");
+                var italyTime = MarketTimeZones.ToItaly(candle.Time);
+                _log($"[SKIP] Partial London session detected at London={londonTime:HH:mm}, Italy={italyTime:HH:mm} | Bar={bar}");
                 return;
             }
             
@@ -387,7 +391,7 @@ namespace FabioTrendFollowing
             _highRejectionEarlyTriggered = false;
 
             UpdateLondonProfile(bar, candle);
-            _log($"[SESSION_START] London session started at bar {bar} (London: {londonTime:yyyy-MM-dd HH:mm}, UTC: {candle.Time:yyyy-MM-dd HH:mm:ss})");
+            _log($"[SESSION_START] London session started at bar {bar} ({FormatTimes(candle.Time)})");
             _log($"[SESSION_START] Candle: O={candle.Open}, H={candle.High}, L={candle.Low}, C={candle.Close}");
         }
 
@@ -464,67 +468,167 @@ namespace FabioTrendFollowing
 
         private void FinalizeLondonSession(int bar)
         {
+            FinalizeSession(bar, "London", MinCompleteSessionBars, MinSessionBars, true);
+        }
+
+        private void LogNewYorkSession(int bar, IndicatorCandle candle, bool isClosedBarForBreakout)
+        {
+            if (!_nySessionActive)
+            {
+                StartNewYorkSession(bar, candle);
+            }
+            else
+            {
+                UpdateNewYorkSession(bar, candle);
+            }
+
+            if (_nySessionActive && bar != _lastLoggedNyPreCloseBar && isClosedBarForBreakout)
+            {
+                _lastLoggedNyPreCloseBar = bar;
+                var (bid, ask, delta, topLevels) = GetCandleVolumeDiagnostics(candle);
+                _log($"[NY_PRE_CLOSE] Bar={bar}, {FormatTimes(candle.Time)}, O={candle.Open:F2}, H={candle.High:F2}, L={candle.Low:F2}, C={candle.Close:F2}, V={candle.Volume:F0}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}, TopLevels={topLevels}");
+            }
+
+            if (_nySessionActive)
+            {
+                LogNewYorkPreviewProfileIfNeeded(bar, candle, !isClosedBarForBreakout);
+            }
+        }
+
+        private void StartNewYorkSession(int bar, IndicatorCandle candle)
+        {
+            _nySessionActive = true;
+            _nySessionStartBar = bar;
+            _nySessionEndBar = bar;
+            _nySessionHighBar = bar;
+            _nySessionLowBar = bar;
+            _nySessionHigh = candle.High;
+            _nySessionLow = candle.Low;
+            _nySessionTotalVolume = 0;
+            _nySessionProfile.Clear();
+            _lastLoggedNyPreCloseBar = -1;
+            _lastNyPreviewProfileBar = -1;
+            _nySessionHighTimeUtc = candle.Time;
+            _nySessionLowTimeUtc = candle.Time;
+
+            UpdateNewYorkSession(bar, candle);
+            _log($"[NY_SESSION_START] New York session started at bar {bar} ({FormatTimes(candle.Time)})");
+            _log($"[NY_SESSION_START] Candle: O={candle.Open:F2}, H={candle.High:F2}, L={candle.Low:F2}, C={candle.Close:F2}");
+        }
+
+        private void UpdateNewYorkSession(int bar, IndicatorCandle candle)
+        {
+            if (!_nySessionActive)
+                return;
+
+            _nySessionEndBar = bar;
+
+            foreach (var level in candle.GetAllPriceLevels())
+            {
+                if (_nySessionProfile.ContainsKey(level.Price))
+                {
+                    _nySessionProfile[level.Price] += level.Volume;
+                }
+                else
+                {
+                    _nySessionProfile[level.Price] = level.Volume;
+                }
+            }
+
+            _nySessionTotalVolume += candle.Volume;
+
+            if (candle.High > _nySessionHigh)
+            {
+                _nySessionHigh = candle.High;
+                _nySessionHighBar = bar;
+                _nySessionHighTimeUtc = candle.Time;
+                LogSessionExtreme("NEW_NY_SESSION_HIGH", bar, candle, _nySessionHigh);
+            }
+
+            if (_nySessionLow == 0 || candle.Low < _nySessionLow)
+            {
+                _nySessionLow = candle.Low;
+                _nySessionLowBar = bar;
+                _nySessionLowTimeUtc = candle.Time;
+                LogSessionExtreme("NEW_NY_SESSION_LOW", bar, candle, _nySessionLow);
+            }
+        }
+
+        private void LogNewYorkPreviewProfileIfNeeded(int bar, IndicatorCandle candle, bool force)
+        {
+            if (_nySessionProfile.Count == 0 || _nySessionTotalVolume <= 0)
+                return;
+
+            if (!TryCalculateProfilePreview(_nySessionProfile, _nySessionTotalVolume, out var poc, out var vah, out var val, out var valueAreaVolume, out var maxVolume))
+                return;
+
+            _lastNyPreviewProfileBar = bar;
+            var (bid, ask, delta, _) = GetCandleVolumeDiagnostics(candle);
+            var relation = candle.Close > vah ? "ABOVE_PREVIEW_VAH" : candle.Close < val ? "BELOW_PREVIEW_VAL" : "INSIDE_PREVIEW_VA";
+            var nyBars = _nySessionEndBar - _nySessionStartBar + 1;
+
+            _log($"[NY_PROFILE_PREVIEW] Bar={bar}, {FormatTimes(candle.Time)}, Reason={(force ? "event" : "live")}, Bars={nyBars}, High={_nySessionHigh:F2}, Low={_nySessionLow:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, VA_Volume={valueAreaVolume:F0}, TotalVolume={_nySessionTotalVolume:F0}, MaxLevelVolume={maxVolume:F0}, Close={candle.Close:F2}, Relation={relation}, DistToPOC={candle.Close - poc:F2}, DistToVAH={candle.Close - vah:F2}, DistToVAL={candle.Close - val:F2}, CandleBid={bid:F0}, CandleAsk={ask:F0}, CandleDelta={delta:F0}");
+        }
+
+        private void FinalizeSession(int bar, string sessionName, int minCompleteBars, int minSessionBars, bool isLondon)
+        {
             if (_context.CurrentZone == null) return;
 
             _context.CurrentZone.EndBar = bar - 1;
 
             var barCount = _context.CurrentZone.EndBar - _context.CurrentZone.StartBar + 1;
-            
             var endCandle = _getCandle(bar - 1);
-            var londonTime = TimeZoneInfo.ConvertTimeFromUtc(endCandle.Time, _londonTimeZone);
-            
-            _log($"[SESSION_END] London session ended at bar {bar - 1} (London: {londonTime:yyyy-MM-dd HH:mm}, UTC: {endCandle.Time:yyyy-MM-dd HH:mm:ss}). Bars in session: {barCount}");
+
+            _log($"[SESSION_END] {sessionName} session ended at bar {bar - 1} ({FormatTimes(endCandle.Time)}). Bars in session: {barCount}");
             _log($"[SESSION_END] Candle: O={endCandle.Open:F2}, H={endCandle.High:F2}, L={endCandle.Low:F2}, C={endCandle.Close:F2}");
-            _log($"[SESSION_END] Session range so far: High={_context.CurrentZone.High:F2}, Low={_context.CurrentZone.Low:F2}, TotalVolume={_context.CurrentZone.TotalVolume:F0}");
-            _log($"[SESSION_EXTREMES] High={_context.CurrentZone.High:F2} at Bar={_context.CurrentZone.SessionHighBar}, {FormatTimes(_context.CurrentZone.SessionHighTimeUtc)}");
-            _log($"[SESSION_EXTREMES] Low={_context.CurrentZone.Low:F2} at Bar={_context.CurrentZone.SessionLowBar}, {FormatTimes(_context.CurrentZone.SessionLowTimeUtc)}");
-            
-            // Verifica se è una sessione completa
-            if (!_firstCompleteSessionFound)
+
+            if (isLondon)
             {
-                if (barCount < MinCompleteSessionBars)
-                {
-                    _log($"[SESSION_SKIP] First session incomplete (only {barCount} bars), skipping...");
-                    _context.State = MarketState.NoZone;
-                    _context.CurrentZone = null;
-                    return;
-                }
-                else
-                {
-                    _firstCompleteSessionFound = true;
-                    _log($"[FIRST_COMPLETE] First complete London session found | Bars={barCount}");
-                }
+                _log($"[SESSION_END] Session range so far: High={_context.CurrentZone.High:F2}, Low={_context.CurrentZone.Low:F2}, TotalVolume={_context.CurrentZone.TotalVolume:F0}");
+                _log($"[SESSION_EXTREMES] High={_context.CurrentZone.High:F2} at Bar={_context.CurrentZone.SessionHighBar}, {FormatTimes(_context.CurrentZone.SessionHighTimeUtc)}");
+                _log($"[SESSION_EXTREMES] Low={_context.CurrentZone.Low:F2} at Bar={_context.CurrentZone.SessionLowBar}, {FormatTimes(_context.CurrentZone.SessionLowTimeUtc)}");
             }
-            
-            if (barCount < MinSessionBars || _context.CurrentZone.Profile.Count == 0)
+
+            if (barCount < minCompleteBars)
             {
-                _log($"[BALANCE_INVALID] London session too short or empty | Bars={barCount}");
+                _log($"[SESSION_SKIP] {sessionName} session incomplete (only {barCount} bars), skipping...");
                 _context.State = MarketState.NoZone;
                 _context.CurrentZone = null;
                 return;
             }
 
-            if (DetailedDebugLogs)
+            if (barCount < minSessionBars || (isLondon && _context.CurrentZone.Profile.Count == 0))
             {
-                _log($"[PROFILE_RANGE] High={_context.CurrentZone.High:F2} | Low={_context.CurrentZone.Low:F2} | ProfileLevels={_context.CurrentZone.Profile.Count}");
-                _log($"[PROFILE_DETAIL] First 10 levels: {string.Join(", ", _context.CurrentZone.Profile.OrderBy(kv => kv.Key).Take(10).Select(kv => $"{kv.Key:F2}={kv.Value:F0}"))}");
-                _log($"[PROFILE_DETAIL] Last 10 levels: {string.Join(", ", _context.CurrentZone.Profile.OrderByDescending(kv => kv.Key).Take(10).Select(kv => $"{kv.Key:F2}={kv.Value:F0}"))}");
+                _log($"[BALANCE_INVALID] {sessionName} session too short or empty | Bars={barCount}");
+                _context.State = MarketState.NoZone;
+                _context.CurrentZone = null;
+                return;
             }
 
-            CalculatePOC();
-            CalculateValueArea();
-
-            _context.CurrentZone.IsReady = true;
-            _context.State = MarketState.BalanceReady;
-
-            DrawBalanceZone();
-
-            _log($"[ZONE_READY] Balance zone ready: High={_context.CurrentZone.High:F2}, Low={_context.CurrentZone.Low:F2}, POC={_context.CurrentZone.POC:F2}, VAH={_context.CurrentZone.VAH:F2}, VAL={_context.CurrentZone.VAL:F2}, TotalVolume={_context.CurrentZone.TotalVolume:F0}");
-            _log($"[ZONE_READY] StartBar={_context.CurrentZone.StartBar}, EndBar={_context.CurrentZone.EndBar}, Bars={barCount}");
-            
-            if (DetailedDebugLogs)
+            if (isLondon)
             {
-                VerifyZoneCoverageComplete(_context.CurrentZone);
+                if (DetailedDebugLogs)
+                {
+                    _log($"[PROFILE_RANGE] High={_context.CurrentZone.High:F2} | Low={_context.CurrentZone.Low:F2} | ProfileLevels={_context.CurrentZone.Profile.Count}");
+                    _log($"[PROFILE_DETAIL] First 10 levels: {string.Join(", ", _context.CurrentZone.Profile.OrderBy(kv => kv.Key).Take(10).Select(kv => $"{kv.Key:F2}={kv.Value:F0}"))}");
+                    _log($"[PROFILE_DETAIL] Last 10 levels: {string.Join(", ", _context.CurrentZone.Profile.OrderByDescending(kv => kv.Key).Take(10).Select(kv => $"{kv.Key:F2}={kv.Value:F0}"))}");
+                }
+
+                CalculatePOC();
+                CalculateValueArea();
+
+                _context.CurrentZone.IsReady = true;
+                _context.State = MarketState.BalanceReady;
+
+                DrawBalanceZone();
+
+                _log($"[ZONE_READY] Balance zone ready: High={_context.CurrentZone.High:F2}, Low={_context.CurrentZone.Low:F2}, POC={_context.CurrentZone.POC:F2}, VAH={_context.CurrentZone.VAH:F2}, VAL={_context.CurrentZone.VAL:F2}, TotalVolume={_context.CurrentZone.TotalVolume:F0}");
+                _log($"[ZONE_READY] StartBar={_context.CurrentZone.StartBar}, EndBar={_context.CurrentZone.EndBar}, Bars={barCount}");
+
+                if (DetailedDebugLogs)
+                {
+                    VerifyZoneCoverageComplete(_context.CurrentZone);
+                }
             }
         }
 
@@ -627,7 +731,7 @@ namespace FabioTrendFollowing
                 _context.PendingDirection = BreakoutDirection.Bullish;
                 _context.PendingBreakoutBar = bar;
                 _context.ConsecutiveOutsideCloses = 1;
-                _log($"[BREAKOUT_PENDING] Bullish | Bar={bar}, Time={candle.Time:yyyy-MM-dd HH:mm:ss}, Close={close:F2} > VAH={_context.CurrentZone.VAH:F2}");
+                _log($"[BREAKOUT_PENDING] Bullish | Bar={bar}, {FormatTimes(candle.Time)}, Close={close:F2} > VAH={_context.CurrentZone.VAH:F2}");
             }
             else if (isBearishBreak)
             {
@@ -635,7 +739,7 @@ namespace FabioTrendFollowing
                 _context.PendingDirection = BreakoutDirection.Bearish;
                 _context.PendingBreakoutBar = bar;
                 _context.ConsecutiveOutsideCloses = 1;
-                _log($"[BREAKOUT_PENDING] Bearish | Bar={bar}, Time={candle.Time:yyyy-MM-dd HH:mm:ss}, Close={close:F2} < VAL={_context.CurrentZone.VAL:F2}");
+                _log($"[BREAKOUT_PENDING] Bearish | Bar={bar}, {FormatTimes(candle.Time)}, Close={close:F2} < VAL={_context.CurrentZone.VAL:F2}");
             }
         }
 
@@ -663,7 +767,7 @@ namespace FabioTrendFollowing
 
                     UpdateBalanceZoneColors();
 
-                    _log($"[BREAKOUT_CONFIRMED] Direction: {_context.PendingDirection}, Bar: {bar}, Time: {candle.Time:yyyy-MM-dd HH:mm:ss}, Close: {close:F2}, VAH: {_context.CurrentZone.VAH:F2}, VAL: {_context.CurrentZone.VAL:F2}");
+                    _log($"[BREAKOUT_CONFIRMED] Direction: {_context.PendingDirection}, Bar: {bar}, {FormatTimes(candle.Time)}, Close: {close:F2}, VAH: {_context.CurrentZone.VAH:F2}, VAL: {_context.CurrentZone.VAL:F2}");
                     _log($"[BREAKOUT_CONFIRMED] Candle: O={candle.Open}, H={candle.High}, L={candle.Low}, C={candle.Close}");
                     _log($"[OUT_OF_BALANCE] {_context.PendingDirection} | BreakoutBar={_context.PendingBreakoutBar} | TargetPOC={_context.CurrentZone.POC}");
                 }
@@ -725,9 +829,7 @@ namespace FabioTrendFollowing
 
         private string FormatTimes(DateTime utcTime)
         {
-            var londonTime = TimeZoneInfo.ConvertTimeFromUtc(utcTime, _londonTimeZone);
-            var italyTime = TimeZoneInfo.ConvertTimeFromUtc(utcTime, _italyTimeZone);
-            return $"UTC={utcTime:yyyy-MM-dd HH:mm:ss}, London={londonTime:yyyy-MM-dd HH:mm}, Italy={italyTime:yyyy-MM-dd HH:mm}";
+            return MarketTimeZones.FormatUtcLondonItaly(utcTime);
         }
 
         private string GetBarMode(int bar)
@@ -770,7 +872,7 @@ namespace FabioTrendFollowing
             if (bar == _lastLoggedPreCloseBar)
                 return;
 
-            var londonTime = TimeZoneInfo.ConvertTimeFromUtc(candle.Time, _londonTimeZone);
+            var londonTime = MarketTimeZones.ToLondon(candle.Time);
             if (londonTime.Hour != 15)
                 return;
 
@@ -784,13 +886,13 @@ namespace FabioTrendFollowing
             if (_context.CurrentZone == null || _context.CurrentZone.Profile.Count == 0)
                 return;
 
-            var londonTime = TimeZoneInfo.ConvertTimeFromUtc(candle.Time, _londonTimeZone);
+            var londonTime = MarketTimeZones.ToLondon(candle.Time);
             var isLondonPreviewWindow = londonTime.Hour >= LondonPreviewStartHour;
 
             if (!isLondonPreviewWindow)
                 return;
 
-            if (!TryCalculateProfilePreview(_context.CurrentZone, out var poc, out var vah, out var val, out var valueAreaVolume, out var maxVolume))
+            if (!TryCalculateProfilePreview(_context.CurrentZone.Profile, _context.CurrentZone.TotalVolume, out var poc, out var vah, out var val, out var valueAreaVolume, out var maxVolume))
                 return;
 
             _lastPreviewProfileBar = bar;
@@ -862,7 +964,7 @@ namespace FabioTrendFollowing
             }
         }
 
-        private bool TryCalculateProfilePreview(BalanceZone zone, out decimal poc, out decimal vah, out decimal val, out decimal valueAreaVolume, out decimal maxVolume)
+        private bool TryCalculateProfilePreview(IReadOnlyDictionary<decimal, decimal> profile, decimal totalVolume, out decimal poc, out decimal vah, out decimal val, out decimal valueAreaVolume, out decimal maxVolume)
         {
             poc = 0;
             vah = 0;
@@ -870,10 +972,10 @@ namespace FabioTrendFollowing
             valueAreaVolume = 0;
             maxVolume = 0;
 
-            if (zone.Profile.Count == 0 || zone.TotalVolume <= 0)
+            if (profile.Count == 0 || totalVolume <= 0)
                 return false;
 
-            foreach (var kvp in zone.Profile)
+            foreach (var kvp in profile)
             {
                 if (kvp.Value > maxVolume || (kvp.Value == maxVolume && (poc == 0 || kvp.Key < poc)))
                 {
@@ -882,7 +984,7 @@ namespace FabioTrendFollowing
                 }
             }
 
-            var sortedLevels = zone.Profile.OrderBy(kv => kv.Key).ToList();
+            var sortedLevels = profile.OrderBy(kv => kv.Key).ToList();
             var pocIndex = -1;
             for (var i = 0; i < sortedLevels.Count; i++)
             {
@@ -896,7 +998,7 @@ namespace FabioTrendFollowing
             if (pocIndex < 0)
                 return false;
 
-            var targetVolume = zone.TotalVolume * 0.70m;
+            var targetVolume = totalVolume * 0.70m;
             valueAreaVolume = sortedLevels[pocIndex].Value;
             var lowerIndex = pocIndex;
             var upperIndex = pocIndex;
@@ -957,8 +1059,8 @@ namespace FabioTrendFollowing
             decimal vah,
             decimal val)
         {
-            var italyTime = TimeZoneInfo.ConvertTimeFromUtc(trade.Time, _italyTimeZone);
-            var londonTime = TimeZoneInfo.ConvertTimeFromUtc(trade.Time, _londonTimeZone);
+            var italyTime = MarketTimeZones.ToItaly(trade.Time);
+            var londonTime = MarketTimeZones.ToLondon(trade.Time);
             var entryPrice = trade.Lastprice;
             var entryAreaLow = Math.Min(trade.FirstPrice, trade.Lastprice);
             var entryAreaHigh = Math.Max(trade.FirstPrice, trade.Lastprice);
@@ -971,7 +1073,9 @@ namespace FabioTrendFollowing
 
             var minVolume = GetMinAggressionTradeVolume(trade.Time);
             var volumeRule = GetAggressionVolumeRule(trade.Time);
-            _log($"[MR_AGGRESSION_CONFIRM] Direction={direction}, EntryModel={entryModel}, Trigger={trigger}, Bar={bar}, CandidateBar={candidateBar}, UTC={trade.Time:yyyy-MM-dd HH:mm:ss.fff}, London={londonTime:yyyy-MM-dd HH:mm:ss.fff}, Italy={italyTime:yyyy-MM-dd HH:mm:ss.fff}, EntryPrice={entryPrice:F2}, EntryAreaLow={entryAreaLow:F2}, EntryAreaHigh={entryAreaHigh:F2}, FirstPrice={trade.FirstPrice:F2}, LastPrice={trade.Lastprice:F2}, Volume={trade.Volume:F0}, TradeDirection={trade.Direction}, SweepTimeUtc={(sweepTime.HasValue ? sweepTime.Value.ToString("yyyy-MM-dd HH:mm:ss.fff") : "n/a")}, SecondsAfterSweep={secondsAfterSweep:F1}, StopReference={stopReference:F2}, RiskPoints={riskPoints:F2}, Target1POC={poc:F2}, Target2={target2:F2}, RewardToPOC={rewardToPoc:F2}, RewardToTarget2={rewardToTarget2:F2}, VAH={vah:F2}, VAL={val:F2}, MinVolume={minVolume:F0}, VolumeRule={volumeRule}");
+            var sweepTimeItaly = sweepTime.HasValue ? MarketTimeZones.ToItaly(sweepTime.Value) : (DateTime?)null;
+            var sweepTimeLondon = sweepTime.HasValue ? MarketTimeZones.ToLondon(sweepTime.Value) : (DateTime?)null;
+            _log($"[MR_AGGRESSION_CONFIRM] Direction={direction}, EntryModel={entryModel}, Trigger={trigger}, Bar={bar}, CandidateBar={candidateBar}, Italy={italyTime:yyyy-MM-dd HH:mm:ss.fff}, London={londonTime:yyyy-MM-dd HH:mm:ss.fff}, UTC={trade.Time:yyyy-MM-dd HH:mm:ss.fff}, EntryPrice={entryPrice:F2}, EntryAreaLow={entryAreaLow:F2}, EntryAreaHigh={entryAreaHigh:F2}, FirstPrice={trade.FirstPrice:F2}, LastPrice={trade.Lastprice:F2}, Volume={trade.Volume:F0}, TradeDirection={trade.Direction}, SweepTimeItaly={(sweepTimeItaly.HasValue ? sweepTimeItaly.Value.ToString("yyyy-MM-dd HH:mm:ss.fff") : "n/a")}, SweepTimeLondon={(sweepTimeLondon.HasValue ? sweepTimeLondon.Value.ToString("yyyy-MM-dd HH:mm:ss.fff") : "n/a")}, SweepTimeUtc={(sweepTime.HasValue ? sweepTime.Value.ToString("yyyy-MM-dd HH:mm:ss.fff") : "n/a")}, SecondsAfterSweep={secondsAfterSweep:F1}, StopReference={stopReference:F2}, RiskPoints={riskPoints:F2}, Target1POC={poc:F2}, Target2={target2:F2}, RewardToPOC={rewardToPoc:F2}, RewardToTarget2={rewardToTarget2:F2}, VAH={vah:F2}, VAL={val:F2}, MinVolume={minVolume:F0}, VolumeRule={volumeRule}");
 
             var outcome = RegisterMeanReversionOutcome(direction, entryModel, bar, candidateBar, entryPrice, stopReference, poc, target2);
             EvaluateMeanReversionOutcomeRange(outcome, bar, Math.Max(bar, _currentBar - 1));
@@ -1368,7 +1472,7 @@ namespace FabioTrendFollowing
                 // Log solo candele problematiche per ridurre spam
                 if (!candleFullyCoveredByBox)
                 {
-                    _log($"[VERIFY_COVERAGE] Bar {i}: {boxStatus} | {vaStatus} | Time={candle.Time:yyyy-MM-dd HH:mm:ss} | Candle H={candle.High:F2} L={candle.Low:F2} | Box H={zone.High:F2} L={zone.Low:F2} | VA H={zone.VAH:F2} L={zone.VAL:F2}");
+                    _log($"[VERIFY_COVERAGE] Bar {i}: {boxStatus} | {vaStatus} | {FormatTimes(candle.Time)} | Candle H={candle.High:F2} L={candle.Low:F2} | Box H={zone.High:F2} L={zone.Low:F2} | VA H={zone.VAH:F2} L={zone.VAL:F2}");
                 }
             }
             

@@ -25,10 +25,20 @@ public class FabioTrendFollowing : Indicator
 
         try
         {
-            File.WriteAllText(_logPath, string.Empty);
+            using var logFile = new FileStream(_logPath, FileMode.Create, FileAccess.Write, FileShare.ReadWrite);
         }
         catch
         {
+            try
+            {
+                if (File.Exists(_logPath))
+                    File.Delete(_logPath);
+
+                using var logFile = File.Create(_logPath);
+            }
+            catch
+            {
+            }
         }
 
         Log("[INIT] FabioTrendFollowing indicator created");
@@ -51,7 +61,7 @@ public class FabioTrendFollowing : Indicator
         
         if (DetailedDebugLogs && bar % 50 == 0)
         {
-            Log($"[BAR_CHECK] Bar={bar}, Time={candle.Time:yyyy-MM-dd HH:mm:ss}, O={candle.Open:F2}, H={candle.High:F2}, L={candle.Low:F2}, C={candle.Close:F2}, V={candle.Volume:F0}");
+            Log($"[BAR_CHECK] Bar={bar}, Italy={MarketTimeZones.ToItaly(candle.Time):yyyy-MM-dd HH:mm:ss}, UTC={candle.Time:yyyy-MM-dd HH:mm:ss}, O={candle.Open:F2}, H={candle.High:F2}, L={candle.Low:F2}, C={candle.Close:F2}, V={candle.Volume:F0}");
         }
         
         _balanceTracker?.OnBarUpdate(bar, candle, CurrentBar);
@@ -74,7 +84,7 @@ public class FabioTrendFollowing : Indicator
                 startTime = maxLookbackStart;
 
             _cumulativeTradesRequest = new CumulativeTradesRequest(startTime, endTime, 0, 0);
-            Log($"[CUM_TRADES_REQUEST] Begin={startTime:yyyy-MM-dd HH:mm:ss}, End={endTime:yyyy-MM-dd HH:mm:ss}, CurrentBar={CurrentBar}");
+            Log($"[CUM_TRADES_REQUEST] BeginItaly={MarketTimeZones.ToItaly(startTime):yyyy-MM-dd HH:mm:ss}, BeginUtc={startTime:yyyy-MM-dd HH:mm:ss}, EndItaly={MarketTimeZones.ToItaly(endTime):yyyy-MM-dd HH:mm:ss}, EndUtc={endTime:yyyy-MM-dd HH:mm:ss}, CurrentBar={CurrentBar}");
             RequestForCumulativeTrades(_cumulativeTradesRequest);
         }
         catch (Exception ex)
@@ -138,7 +148,7 @@ public class FabioTrendFollowing : Indicator
         {
             lock (_logSync)
             {
-                var timestamp = DateTime.Now.ToString("HH:mm:ss.fff");
+                var timestamp = MarketTimeZones.ToItaly(DateTime.UtcNow).ToString("HH:mm:ss.fff");
                 var logMessage = $"[{timestamp}] {message}";
                 File.AppendAllText(_logPath, logMessage + Environment.NewLine);
             }
@@ -147,4 +157,5 @@ public class FabioTrendFollowing : Indicator
         {
         }
     }
+
 }

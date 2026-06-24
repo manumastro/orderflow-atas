@@ -76,7 +76,8 @@ London = balance reference
 New York RTH = trading / breakout window
 ```
 
-Le sessioni devono usare `TimeZoneInfo`, non offset hardcoded.
+Le sessioni devono usare `MarketTimeZones`, non offset hardcoded.
+La normalizzazione `Italy` come riferimento primario vale solo per i log; la logica operativa resta basata sulle sessioni di mercato.
 
 ---
 
@@ -251,7 +252,7 @@ Absorption/CVD come conferme + rendering leggibile
 | POC | prezzo con volume massimo |
 | VAH/VAL | espansione contigua dal POC |
 | Breakout | 2 close consecutive fuori VAH/VAL |
-| Timezone | `TimeZoneInfo`, no offset hardcoded |
+| Timezone | `MarketTimeZones` per la logica; `Italy` primario solo nei log |
 | Parametri UI | minimi finché non validato visivamente |
 | Codice iniziale | base pulita, no vecchi detector isolati |
 

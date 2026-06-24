@@ -40,7 +40,7 @@ Non responsabilità:
 | VAH/VAL | espansione contigua dal POC |
 | Breakout | 2 close consecutive fuori VAH/VAL |
 | **Rendering** | **Box: High/Low, Breakout logic: VAH/VAL** |
-| Timezone | `TimeZoneInfo`, no offset hardcoded |
+| Timezone | `MarketTimeZones` per la logica; `Italy` primario solo nei log |
 | Timeframe | M5 raccomandato, non bloccante |
 | Confini | congelati dopo fine London |
 | Consolidation override | non in Phase 1 |
@@ -171,21 +171,31 @@ public decimal? POC { get; }
 
 ## 6. Session Detection
 
-Usare sempre `TimeZoneInfo`.
+Usare sempre `MarketTimeZones` come source of truth per la logica di sessione e conversione.
 
 ```csharp
-private readonly TimeZoneInfo _londonTimeZone =
-    TimeZoneInfo.FindSystemTimeZoneById("GMT Standard Time");
-
-private readonly TimeZoneInfo _newYorkTimeZone =
-    TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
+MarketTimeZones.ToItaly(utcTime)
+MarketTimeZones.ToLondon(utcTime)
+MarketTimeZones.ToNewYork(utcTime)
 ```
+
+Tutte le conversioni passano da `MarketTimeZones`; non creare copie locali dei timezone.
 
 London:
 
 ```text
 08:00–16:00 London local time
 ```
+
+Nei log, il formato standard è:
+
+```text
+Italy=... , London=... , UTC=...
+```
+
+con `Italy` come riferimento primario.
+
+Questa priorità riguarda solo la presentazione dei log, non la logica di sessione.
 
 New York:
 
@@ -195,9 +205,11 @@ New York:
 
 Note:
 
-- `GMT Standard Time` gestisce GMT/BST.
-- `Eastern Standard Time` gestisce EST/EDT.
+- La conversione passa da `MarketTimeZones`, che incapsula i timezone standard.
 - Non usare offset UTC fissi.
+- Per i log, `Italy` è il riferimento primario, con `London` e `UTC` come supporto.
+- Questa regola non cambia la logica operativa di sessione, breakout o profiling.
+- Se una data viene mostrata in forma breve, deve essere comunque interpretabile con il formato completo del log.
 
 ---
 
