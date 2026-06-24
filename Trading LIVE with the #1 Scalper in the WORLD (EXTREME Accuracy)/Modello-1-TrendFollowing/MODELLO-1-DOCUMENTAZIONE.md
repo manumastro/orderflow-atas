@@ -80,7 +80,15 @@ Le sessioni devono usare `TimeZoneInfo`, non offset hardcoded.
 
 ---
 
-## 3. Struttura Directory
+## 3. Log ATAS
+
+La guida canonica per interpretare i log è `../../docs/atas/log-reading.md`.
+
+Per qualsiasi analisi operativa usa quella guida come riferimento primario, poi torna qui per la logica specifica del Modello 1.
+
+---
+
+## 4. Struttura Directory
 
 ```text
 Modello-1-TrendFollowing/

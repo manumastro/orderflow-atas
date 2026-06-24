@@ -153,60 +153,17 @@ POC/VAH/VAL preview si calcolano live/intrabar durante London.
 POC/VAH/VAL ufficiali restano congelati solo a fine London per il Modello 1.
 ```
 
-Parametri diagnostici correnti:
+---
 
-- aggiornamento profile: ogni barra;
-- preview `POC/VAH/VAL`: live/intrabar durante tutta London;
-- log trigger anticipato `[MR_EARLY_TRIGGER]` e conferma POC `[MR_TRIGGER]`;
-- conferma footprint live tramite `OnCumulativeTrade` / `OnUpdateCumulativeTrade`;
-- fallback storico/reload tramite `CumulativeTrades` sugli ultimi 7 giorni per `[MR_AGGRESSION_CONFIRM]`;
-- nessun disegno e nessun impatto sulla state machine del Modello 1.
+## 7. Log ATAS
 
-File di log:
+La guida canonica per interpretare i log è `../docs/atas/log-reading.md`.
 
-```text
-FabioTrendFollowing_YYYY-MM-DD.log
-```
-
-Contiene tutto in un unico file, ma i log tecnici pesanti sono disattivati di default. Restano attivi trigger, profile preview, rejection candidate e cumulative trades utili allo studio.
-
-Regola di analisi:
-
-```text
-Per entry footprint: cercare [MR_AGGRESSION_CONFIRM].
-Per push/outcome: cercare [MR_MFE_UPDATE], [MR_TARGET_HIT], [MR_INVALIDATED].
-Per conferma di barra: cercare [MR_EARLY_TRIGGER] e [MR_TRIGGER].
-Per contesto: seguire NEW_SESSION_LOW/HIGH -> LOW/HIGH_REJECTION_CANDIDATE -> PROFILE_PREVIEW.
-```
-
-I log `[MR_EARLY_TRIGGER]` e `[MR_TRIGGER]` includono `BarMode`:
-
-```text
-BarMode=HISTORICAL_CLOSED
-BarMode=LIVE_OR_LAST_BAR
-```
-
-`[MR_AGGRESSION_CONFIRM]` aggiunge invece la lettura footprint live o storica:
-
-```text
-EntryModel=FootprintCumulativeTradeLive
-EntryModel=FootprintCumulativeTradeHistorical
-EntryPrice=...
-EntryAreaLow=...
-EntryAreaHigh=...
-SweepTimeUtc=...
-SecondsAfterSweep=...
-StopReference=...
-RiskPoints=...
-Target1POC=...
-RewardToPOC=...
-```
-
-Questa distinzione è fondamentale: la barra definisce contesto/candidate, mentre `[MR_AGGRESSION_CONFIRM]` prova a stimare l'entry più fedele al metodo Fabio sui big trades dopo lo sweep. Dopo l'entry, `[MR_MFE_UPDATE]`, `[MR_TARGET_HIT]` e `[MR_INVALIDATED]` misurano se il push è davvero partito.
+Per i dettagli specifici del Modello 2, rimanda a quella guida e poi usa qui solo la logica del fakeout / mean reversion.
 
 ---
 
-## 7. Ipotesi di Detection Iniziale
+## 8. Ipotesi di Detection Iniziale
 
 ### 7.1 Fakeout Alto
 

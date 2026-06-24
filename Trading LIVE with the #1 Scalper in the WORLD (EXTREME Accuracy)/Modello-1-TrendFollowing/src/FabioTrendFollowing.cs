@@ -9,6 +9,7 @@ public class FabioTrendFollowing : Indicator
     private BalanceZoneTracker? _balanceTracker;
     private CumulativeTradesRequest? _cumulativeTradesRequest;
     private static readonly bool DetailedDebugLogs = false;
+    private readonly object _logSync = new();
     private readonly string _logPath;
 
     public FabioTrendFollowing()
@@ -19,21 +20,17 @@ public class FabioTrendFollowing : Indicator
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "ATAS", "Logs");
 
-        _logPath = Path.Combine(logDirectory, $"FabioTrendFollowing_{DateTime.Now:yyyy-MM-dd}.log");
-        
-        // Cancella log precedente all'inizializzazione
+        Directory.CreateDirectory(logDirectory);
+        _logPath = Path.Combine(logDirectory, "FabioTrendFollowing.log");
+
         try
         {
-            if (File.Exists(_logPath))
-            {
-                File.Delete(_logPath);
-            }
+            File.WriteAllText(_logPath, string.Empty);
         }
         catch
         {
-            // Ignore delete errors
         }
-            
+
         Log("[INIT] FabioTrendFollowing indicator created");
         Log($"[LOGS] Path={_logPath}");
     }
@@ -139,13 +136,15 @@ public class FabioTrendFollowing : Indicator
     {
         try
         {
-            var timestamp = DateTime.Now.ToString("HH:mm:ss.fff");
-            var logMessage = $"[{timestamp}] {message}";
-            File.AppendAllText(_logPath, logMessage + Environment.NewLine);
+            lock (_logSync)
+            {
+                var timestamp = DateTime.Now.ToString("HH:mm:ss.fff");
+                var logMessage = $"[{timestamp}] {message}";
+                File.AppendAllText(_logPath, logMessage + Environment.NewLine);
+            }
         }
         catch
         {
-            // Ignore log errors
         }
     }
 }
