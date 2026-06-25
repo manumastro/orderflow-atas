@@ -1,0 +1,66 @@
+        private bool TryCalculateProfilePreview(IReadOnlyDictionary<decimal, decimal> profile, decimal totalVolume, out decimal poc, out decimal vah, out decimal val, out decimal valueAreaVolume, out decimal maxVolume)
+        {
+            poc = 0;
+            vah = 0;
+            val = 0;
+            valueAreaVolume = 0;
+            maxVolume = 0;
+
+            if (profile.Count == 0 || totalVolume <= 0)
+                return false;
+
+            foreach (var kvp in profile)
+            {
+                if (kvp.Value > maxVolume || (kvp.Value == maxVolume && (poc == 0 || kvp.Key < poc)))
+                {
+                    maxVolume = kvp.Value;
+                    poc = kvp.Key;
+                }
+            }
+
+            var sortedLevels = profile.OrderBy(kv => kv.Key).ToList();
+            var pocIndex = -1;
+            for (var i = 0; i < sortedLevels.Count; i++)
+            {
+                if (sortedLevels[i].Key == poc)
+                {
+                    pocIndex = i;
+                    break;
+                }
+            }
+
+            if (pocIndex < 0)
+                return false;
+
+            var targetVolume = totalVolume * 0.70m;
+            valueAreaVolume = sortedLevels[pocIndex].Value;
+            var lowerIndex = pocIndex;
+            var upperIndex = pocIndex;
+
+            while (valueAreaVolume < targetVolume && (lowerIndex > 0 || upperIndex < sortedLevels.Count - 1))
+            {
+                var lowerVolume = lowerIndex > 0 ? sortedLevels[lowerIndex - 1].Value : 0;
+                var upperVolume = upperIndex < sortedLevels.Count - 1 ? sortedLevels[upperIndex + 1].Value : 0;
+
+                if (lowerVolume >= upperVolume && lowerIndex > 0)
+                {
+                    lowerIndex--;
+                    valueAreaVolume += sortedLevels[lowerIndex].Value;
+                }
+                else if (upperIndex < sortedLevels.Count - 1)
+                {
+                    upperIndex++;
+                    valueAreaVolume += sortedLevels[upperIndex].Value;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            val = sortedLevels[lowerIndex].Key;
+            vah = sortedLevels[upperIndex].Key;
+            return true;
+        }
+
+        private void RegisterMeanReversionTrigger(string direction, string trigger, int bar, int candidateBar, decimal poc, decimal vah, decimal val)

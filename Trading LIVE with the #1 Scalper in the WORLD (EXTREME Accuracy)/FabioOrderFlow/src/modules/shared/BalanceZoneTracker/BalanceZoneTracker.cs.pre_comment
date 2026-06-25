@@ -181,12 +181,11 @@ namespace FabioOrderFlow
             _currentBar = currentBar;
             
             // Reset footprint-first state all'inizio di ogni nuova barra (solo se abilitato)
-            // MR sweep state moved to module
-            // if (_enableLiveFootprintFirst)
-            // {
-            //     _activeLongSweep = null;
-            //     _activeShortSweep = null;
-            // }
+            if (_enableLiveFootprintFirst)
+            {
+                _activeLongSweep = null;
+                _activeShortSweep = null;
+            }
             
             var barTime = candle.Time;
 
@@ -269,7 +268,7 @@ namespace FabioOrderFlow
                     break;
             }
 
-            // UpdateMeanReversionOutcomes(bar, candle); // Moved to MR module
+            UpdateMeanReversionOutcomes(bar, candle);
         }
 
         private void StartLondonSession(int bar, IndicatorCandle candle)
@@ -301,11 +300,22 @@ namespace FabioOrderFlow
 
             _lastLoggedPreCloseBar = -1;
             _lastPreviewProfileBar = -1;
-            // MR state variables moved to module
-            // _lastLowRejectionCandidateBar = -1;
-            // _lastHighRejectionCandidateBar = -1;
-            // _lastLowRejectionHigh = 0;
-            // ...
+            _lastLowRejectionCandidateBar = -1;
+            _lastHighRejectionCandidateBar = -1;
+            _lastLowRejectionHigh = 0;
+            _lastLowRejectionClose = 0;
+            _lastLowRejectionLow = 0;
+            _lastLowRejectionDelta = 0;
+            _lastHighRejectionHigh = 0;
+            _lastHighRejectionClose = 0;
+            _lastHighRejectionLow = 0;
+            _lastHighRejectionDelta = 0;
+            _liveLowSweepTimeUtc = null;
+            _liveHighSweepTimeUtc = null;
+            _lowRejectionPocReclaimed = false;
+            _highRejectionPocLost = false;
+            _lowRejectionEarlyTriggered = false;
+            _highRejectionEarlyTriggered = false;
 
             UpdateLondonProfile(bar, candle);
             _log($"[SESSION_START] London session started at bar {bar} ({FormatTimes(candle.Time)})");
@@ -343,12 +353,18 @@ namespace FabioOrderFlow
                 _context.CurrentZone.SessionHighBar = bar;
                 _context.CurrentZone.SessionHighTimeUtc = candle.Time;
                 LogSessionExtreme("NEW_SESSION_HIGH", bar, candle, previousHigh);
-                // MR logic moved to module
-                // if (LogPotentialRejection("HIGH_REJECTION_CANDIDATE", bar, candle, previousHigh, out var highRejectionDelta))
-                // {
-                //     _lastHighRejectionCandidateBar = bar;
-                //     ...
-                // }
+                if (LogPotentialRejection("HIGH_REJECTION_CANDIDATE", bar, candle, previousHigh, out var highRejectionDelta))
+                {
+                    _lastHighRejectionCandidateBar = bar;
+                    _lastHighRejectionHigh = candle.High;
+                    _lastHighRejectionClose = candle.Close;
+                    _lastHighRejectionLow = candle.Low;
+                    _lastHighRejectionDelta = highRejectionDelta;
+                    _highRejectionPocLost = false;
+                    _highRejectionEarlyTriggered = false;
+                    _liveHighSweepTimeUtc = candle.LastTime > candle.Time ? candle.LastTime : candle.Time;
+                    importantEvent = true;
+                }
                 importantEvent = true;
             }
 
@@ -358,12 +374,18 @@ namespace FabioOrderFlow
                 _context.CurrentZone.SessionLowBar = bar;
                 _context.CurrentZone.SessionLowTimeUtc = candle.Time;
                 LogSessionExtreme("NEW_SESSION_LOW", bar, candle, previousLow);
-                // MR logic moved to module
-                // if (LogPotentialRejection("LOW_REJECTION_CANDIDATE", bar, candle, previousLow, out var lowRejectionDelta))
-                // {
-                //     _lastLowRejectionCandidateBar = bar;
-                //     ...
-                // }
+                if (LogPotentialRejection("LOW_REJECTION_CANDIDATE", bar, candle, previousLow, out var lowRejectionDelta))
+                {
+                    _lastLowRejectionCandidateBar = bar;
+                    _lastLowRejectionHigh = candle.High;
+                    _lastLowRejectionClose = candle.Close;
+                    _lastLowRejectionLow = candle.Low;
+                    _lastLowRejectionDelta = lowRejectionDelta;
+                    _lowRejectionPocReclaimed = false;
+                    _lowRejectionEarlyTriggered = false;
+                    _liveLowSweepTimeUtc = candle.LastTime > candle.Time ? candle.LastTime : candle.Time;
+                    importantEvent = true;
+                }
                 importantEvent = true;
             }
 
@@ -744,7 +766,7 @@ namespace FabioOrderFlow
 
         private void LogSessionExtreme(string tag, int bar, IndicatorCandle candle, decimal previousExtreme)
         {
-            // Stub - session extreme logging moved to module
+            return true;
         }
 
         private void LogLondonPreCloseCandle(int bar, IndicatorCandle candle)
@@ -1007,102 +1029,6 @@ namespace FabioOrderFlow
                 _currentZoneRectangle.Pen = new System.Drawing.Pen(
                     System.Drawing.Color.Red, 1);
             }
-        }
-
-        // ========================================
-        // MR STUB METHODS (temporary - to be removed)
-        // These are kept as stubs to avoid breaking core logic
-        // MR logic is now in LondonMeanReversionModule
-        // ========================================
-        
-        private bool LogPotentialRejection(string tag, int bar, IndicatorCandle candle, decimal previousExtreme, out decimal candleDelta)
-        {
-            candleDelta = 0;
-            return false; // Stub
-        }
-        
-        private bool TryCalculateProfilePreview(IReadOnlyDictionary<decimal, decimal> profile, decimal totalVolume, out decimal poc, out decimal vah, out decimal val, out decimal valueAreaVolume, out decimal maxVolume)
-        {
-            poc = 0;
-            vah = 0;
-            val = 0;
-            valueAreaVolume = 0;
-            maxVolume = 0;
-
-            if (profile.Count == 0 || totalVolume <= 0)
-                return false;
-
-            foreach (var kvp in profile)
-            {
-                if (kvp.Value > maxVolume || (kvp.Value == maxVolume && (poc == 0 || kvp.Key < poc)))
-                {
-                    maxVolume = kvp.Value;
-                    poc = kvp.Key;
-                }
-            }
-
-            var sortedLevels = profile.OrderBy(kv => kv.Key).ToList();
-            var pocIndex = -1;
-            for (var i = 0; i < sortedLevels.Count; i++)
-            {
-                if (sortedLevels[i].Key == poc)
-                {
-                    pocIndex = i;
-                    break;
-                }
-            }
-
-            if (pocIndex < 0)
-                return false;
-
-            var targetVolume = totalVolume * 0.70m;
-            valueAreaVolume = sortedLevels[pocIndex].Value;
-            var lowerIndex = pocIndex;
-            var upperIndex = pocIndex;
-
-            while (valueAreaVolume < targetVolume && (lowerIndex > 0 || upperIndex < sortedLevels.Count - 1))
-            {
-                var lowerVolume = lowerIndex > 0 ? sortedLevels[lowerIndex - 1].Value : 0;
-                var upperVolume = upperIndex < sortedLevels.Count - 1 ? sortedLevels[upperIndex + 1].Value : 0;
-
-                if (lowerVolume >= upperVolume && lowerIndex > 0)
-                {
-                    lowerIndex--;
-                    valueAreaVolume += sortedLevels[lowerIndex].Value;
-                }
-                else if (upperIndex < sortedLevels.Count - 1)
-                {
-                    upperIndex++;
-                    valueAreaVolume += sortedLevels[upperIndex].Value;
-                }
-                else
-                {
-                    break;
-                }
-            }
-
-            val = sortedLevels[lowerIndex].Key;
-            vah = sortedLevels[upperIndex].Key;
-            return true;
-        }
-        
-        private void UpdateMeanReversionOutcomes(int bar, IndicatorCandle candle)
-        {
-            // Stub - delegated to MR module
-        }
-        
-        private (decimal Bid, decimal Ask, decimal Delta, string TopLevels) GetCandleVolumeDiagnostics(IndicatorCandle candle)
-        {
-            var levels = candle.GetAllPriceLevels();
-            var bid = levels.Sum(level => level.Bid);
-            var ask = levels.Sum(level => level.Ask);
-            var delta = ask - bid;
-            var topLevels = string.Join(";", levels
-                .OrderByDescending(level => level.Volume)
-                .Take(5)
-                .Select(level => $"{level.Price:F2}:V{level.Volume:F0}/D{level.Ask - level.Bid:F0}"));
-
-            return (bid, ask, delta, topLevels);
         }
     }
 }

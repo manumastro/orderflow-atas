@@ -65,7 +65,8 @@ public class FabioOrderFlow : Indicator
             if (EnableLondonMeanReversion)
             {
                 _meanReversionModule = new LondonMeanReversionModule(_balanceTracker, Log, GetCandle, EnableLiveFootprintFirst);
-                Log("[MODULE] London Mean Reversion module initialized");
+                _balanceTracker.SetMeanReversionModule(_meanReversionModule);
+                Log("[MODULE] London Mean Reversion module initialized and connected");
             }
             
             return;
