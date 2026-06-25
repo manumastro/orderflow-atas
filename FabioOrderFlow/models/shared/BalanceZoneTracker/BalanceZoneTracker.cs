@@ -260,6 +260,9 @@ namespace FabioOrderFlow
                     }
                     break;
             }
+            
+            // Call MR module for evaluation
+            _meanReversionModule?.OnBarUpdate(bar, currentBar);
         }
 
         private void StartLondonSession(int bar, IndicatorCandle candle)
