@@ -239,4 +239,13 @@ public bool EnableLiveFootprintFirst { get; set; } = true;
 
 ---
 
-**Conclusion:** BalanceZoneTracker is a well-functioning monolith. Mean Reversion logic is integrated but clearly separable. Extraction recommended only when implementing second model or when module independence becomes valuable.
+**Conclusion:** BalanceZoneTracker is a well-functioning monolith with **clearly delimited sections** (marked with comments). Mean Reversion logic is integrated but cleanly separable. Code regions marked with:
+
+```csharp
+// ========================================
+// MEAN REVERSION ... (Lines X-Y)
+// To extract: Move to LondonMeanReversionModule
+// ========================================
+```
+
+Extraction recommended when implementing Post-London Impulse or when module independence becomes valuable.

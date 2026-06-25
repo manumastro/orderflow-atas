@@ -1,7 +1,7 @@
 # London Mean Reversion Module
 
-**Status:** Logic implemented in `shared/BalanceZoneTracker/BalanceZoneTracker.cs` (pending extraction)  
-**Target Location:** `LondonMeanReversion/LondonMeanReversionModule.cs`  
+**Status:** Logic implemented and integrated in `shared/BalanceZoneTracker/BalanceZoneTracker.cs`  
+**Target Location:** `LondonMeanReversion/LondonMeanReversionModule.cs` (future extraction)  
 **Lines:** ~600 (estimated after extraction)
 
 ---
@@ -13,6 +13,25 @@ Fade London fakeouts back to POC using sweep → rejection → aggression confir
 **Active during:**
 - London session (08:00-16:00 London) with live profile preview
 - Post-breakout (until new balance established)
+
+---
+
+## Current Implementation
+
+**Fully integrated in BalanceZoneTracker.cs** with clear code delimiters:
+
+```csharp
+// ========================================
+// MEAN REVERSION STATE (Lines ~90-120)
+// To extract: Move to LondonMeanReversionModule
+// ========================================
+```
+
+**Sections marked:**
+1. State variables (~30 lines, lines 90-120)
+2. Methods (~600 lines, lines 314-1835)
+
+**Working perfectly** - 15 entry, 57.1% win rate, +408.5 points net
 
 ---
 

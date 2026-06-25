@@ -142,12 +142,21 @@ namespace FabioOrderFlow
         private static readonly bool DetailedDebugLogs = false;
         private const decimal MinAggressionTradeVolume = 20m;
         
+        // ========================================
+        // MEAN REVERSION STATE (Lines ~90-120)
+        // To extract: Move to LondonMeanReversionModule
+        // ========================================
         private readonly List<MeanReversionTriggerLog> _meanReversionTriggerLogs = new();
         private readonly List<MeanReversionOutcome> _meanReversionOutcomes = new();
         private readonly HashSet<string> _loggedAggressionCandidateKeys = new();
         private bool _firstCompleteSessionFound = false;
         private int _lastLoggedPreCloseBar = -1;
         private int _lastPreviewProfileBar = -1;
+        
+        // ========================================
+        // MEAN REVERSION REJECTION TRACKING
+        // To extract: Move to LondonMeanReversionModule
+        // ========================================
         private int _lastLowRejectionCandidateBar = -1;
         private int _lastHighRejectionCandidateBar = -1;
         private decimal _lastLowRejectionHigh;
@@ -160,19 +169,31 @@ namespace FabioOrderFlow
         private decimal _lastHighRejectionDelta;
         private bool _lowRejectionPocReclaimed;
         private bool _highRejectionPocLost;
+        // ========================================
+        
         private int _currentBar;
+        
+        // ========================================
+        // MEAN REVERSION EARLY TRIGGER FLAGS
+        // To extract: Move to LondonMeanReversionModule
+        // ========================================
         private bool _lowRejectionEarlyTriggered;
         private bool _highRejectionEarlyTriggered;
+        // ========================================
         private decimal _lastPreviewPoc;
         private decimal _lastPreviewVah;
         private decimal _lastPreviewVal;
+        
+        // ========================================
+        // MEAN REVERSION FOOTPRINT-FIRST STATE
+        // To extract: Move to LondonMeanReversionModule
+        // ========================================
         private DateTime? _liveLowSweepTimeUtc;
         private DateTime? _liveHighSweepTimeUtc;
-        
-        // Footprint-first trigger state
         private LiveSweepCandidate? _activeLongSweep;
         private LiveSweepCandidate? _activeShortSweep;
         private readonly HashSet<string> _footprintTriggeredKeys = new();
+        // ========================================
         
         private bool _nySessionActive;
         private int _nySessionStartBar = -1;
@@ -289,6 +310,16 @@ namespace FabioOrderFlow
                 }
             }
         }
+
+        // ========================================
+        // MEAN REVERSION METHODS (Lines ~314-1835)
+        // To extract: Move to LondonMeanReversionModule
+        // These methods handle:
+        // - Trigger detection (rejection, POC reclaim/loss)
+        // - Aggression confirmation (live + historical)
+        // - Exit management (Target2/Stop)
+        // - Footprint-first detection (sweep→rejection→entry)
+        // ========================================
 
         private void TryLogLiveLongAggression(CumulativeTrade trade)
         {

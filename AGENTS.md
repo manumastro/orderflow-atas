@@ -65,7 +65,11 @@ public bool EnablePostLondonImpulse { get; set; } = false;
 public bool EnableLiveFootprintFirst { get; set; } = true;
 ```
 
-**Note:** `EnableLondonMeanReversion` attualmente non condiziona logica (sempre attiva quando BalanceZoneTracker esiste). Vedi CODE-ANALYSIS.md per dettagli.
+**Note:** 
+- `EnableLondonMeanReversion` attualmente non condiziona logica (sempre attiva in BalanceZoneTracker)
+- `EnablePostLondonImpulse` non implementato
+- Codice MR è integrato in BalanceZoneTracker, delimitato da commenti per futura extraction
+- Vedi [`BalanceZoneTracker/CODE-ANALYSIS.md`](Trading%20LIVE%20with%20the%20%231%20Scalper%20in%20the%20WORLD%20(EXTREME%20Accuracy)/FabioOrderFlow/src/modules/shared/BalanceZoneTracker/CODE-ANALYSIS.md)
 
 ---
 
