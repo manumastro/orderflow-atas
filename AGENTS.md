@@ -25,29 +25,30 @@ Indicatori/strategie order flow C# per ATAS (futures NQ/ES).
 
 ## 📖 Documentazione per Modello
 
-**Modello 2 — Mean Reversion (London) - Implementation:**  
-[`FabioOrderFlow/docs/Modello-2-MeanReversion.md`](Trading%20LIVE%20with%20the%20%231%20Scalper%20in%20the%20WORLD%20(EXTREME%20Accuracy)/FabioOrderFlow/docs/Modello-2-MeanReversion.md)  
-Strategy implementata: fakeout detection, sweep → rejection → POC, aggression tracking
+**London Mean Reversion Model (Modello 2 - Production):**  
+[`FabioOrderFlow/models/LondonMeanReversionModel/README.md`](Trading%20LIVE%20with%20the%20%231%20Scalper%20in%20the%20WORLD%20(EXTREME%20Accuracy)/FabioOrderFlow/models/LondonMeanReversionModel/README.md)  
+Mean reversion su London balance zones: fakeout → rejection → POC
 
-**Modello 2 — Mean Reversion (London) - Original Spec:**  
-[`FabioOrderFlow/docs/specs/Modello-2-Original-Spec.md`](Trading%20LIVE%20with%20the%20%231%20Scalper%20in%20the%20WORLD%20(EXTREME%20Accuracy)/FabioOrderFlow/docs/specs/Modello-2-Original-Spec.md)  
-Spec originale Fabio (reference only)
+**Post-London Impulse Model (Modello 1 - Planned):**  
+[`FabioOrderFlow/models/PostLondonImpulseModel/README.md`](Trading%20LIVE%20with%20the%20%231%20Scalper%20in%20the%20WORLD%20(EXTREME%20Accuracy)/FabioOrderFlow/models/PostLondonImpulseModel/README.md)  
+Trend-following su breakout: impulse → low volume nodes
 
-**Modello 1 — Trend Following (Post-London):**  
+**Modello 1 Original Spec:**  
 [`Modello-1-TrendFollowing/MODELLO-1-DOCUMENTAZIONE.md`](Modello-1-TrendFollowing/MODELLO-1-DOCUMENTAZIONE.md)  
-Strategy: impulse on balance zone breakout, low volume nodes (pianificato)
+Spec originale (reference)
 
 ---
 
 ## 📖 Documentazione per Modulo Tecnico
 
-**BalanceZoneTracker (core):**  
-[`FabioOrderFlow/docs/modules/BalanceZoneTracker.md`](Trading%20LIVE%20with%20the%20%231%20Scalper%20in%20the%20WORLD%20(EXTREME%20Accuracy)/FabioOrderFlow/docs/modules/BalanceZoneTracker.md)  
-Core tracker: balance zones, sessioni, volume profile, state machine
+**Module docs:** Ogni modulo tecnico ha il proprio README.md o .md file nella sua directory.
 
-**SessionDetector (utility):**  
-[`FabioOrderFlow/docs/modules/SessionDetector.md`](Trading%20LIVE%20with%20the%20%231%20Scalper%20in%20the%20WORLD%20(EXTREME%20Accuracy)/FabioOrderFlow/docs/modules/SessionDetector.md)  
-Session detection, timezone conversions
+**Esempi:**
+- `FabioOrderFlow/models/LondonMeanReversionModel/modules/LondonMeanReversion/README.md`
+- `FabioOrderFlow/models/LondonMeanReversionModel/modules/shared/BalanceZoneTracker/BalanceZoneTracker.md`
+- `FabioOrderFlow/models/PostLondonImpulseModel/modules/PostLondonImpulse/README.md`
+
+**Design:** Documentation co-located with code.
 
 ---
 

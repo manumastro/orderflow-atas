@@ -8,33 +8,46 @@ Indicatore ATAS modulare per order flow analysis (NQ/ES futures).
 
 | Documento | Path | Descrizione |
 |-----------|------|-------------|
-| **README** | [`README.md`](README.md) | Overview, quick start, settings |
-| **Modello 2 (Impl)** | [`docs/Modello-2-MeanReversion.md`](docs/Modello-2-MeanReversion.md) | Mean reversion strategy (implementazione) |
-| **Modello 2 (Spec)** | [`docs/specs/Modello-2-Original-Spec.md`](docs/specs/Modello-2-Original-Spec.md) | Spec originale Fabio (reference) |
-| **Core Tracker** | [`docs/modules/BalanceZoneTracker.md`](docs/modules/BalanceZoneTracker.md) | Balance zones, sessioni, volume profile |
-| **Session Detector** | [`docs/modules/SessionDetector.md`](docs/modules/SessionDetector.md) | Rilevamento sessioni, timezone |
+| **README** | [`README.md`](README.md) | Overview, quick start, build & deploy |
+| **London MR Model** | [`models/LondonMeanReversionModel/README.md`](models/LondonMeanReversionModel/README.md) | Modello 2 - Mean Reversion (production) |
+| **Post-London Impulse Model** | [`models/PostLondonImpulseModel/README.md`](models/PostLondonImpulseModel/README.md) | Modello 1 - Trend Following (planned) |
+
+**Module docs:** Ogni modulo ha il proprio README.md nella sua directory.
 
 ## 🗂️ Struttura Progetto
 
 ```
 FabioOrderFlow/
-├── README.md                           # Quick start
 ├── AGENTS.md                           # Questo file
-├── docs/
-│   ├── Modello-2-MeanReversion.md     # Strategy implementation
-│   ├── specs/
-│   │   └── Modello-2-Original-Spec.md # Original spec (reference)
-│   └── modules/
-│       ├── BalanceZoneTracker.md      # Core tracker
-│       └── SessionDetector.md         # Session utility
-└── src/
-    ├── FabioOrderFlow.cs              # Orchestrator
-    └── modules/
-        ├── shared/
-        │   ├── BalanceZoneTracker/    # Core
-        │   └── SessionDetector/       # Utility
-        └── LondonMeanReversion/       # Strategy MR
+├── README.md                           # Quick start
+├── src/
+│   ├── FabioOrderFlow.cs              # Orchestrator
+│   ├── FabioOrderFlow.csproj
+│   └── deploy.bat
+└── models/
+    ├── shared/                         # Shared modules
+    │   └── BalanceZoneTracker/
+    │       ├── BalanceZoneTracker.cs
+    │       └── BalanceZoneTracker.md
+    ├── LondonMeanReversionModel/      # Modello 2 (production)
+    │   ├── README.md                  # Doc del modello
+    │   └── modules/
+    │       └── LondonMeanReversion/
+    │           ├── LondonMeanReversionModule.cs
+    │           └── README.md
+    └── PostLondonImpulseModel/        # Modello 1 (planned)
+        ├── README.md                  # Doc del modello
+        └── modules/
+            └── PostLondonImpulse/
+                ├── README.md
+                └── */                 # Submodules
 ```
+
+**Design:** 
+- Ogni **model** (trading strategy) ha la sua directory sotto `models/`
+- Ogni model contiene i suoi **modules** (componenti tecnici)
+- **models/shared/** contiene moduli condivisi tra tutti i models
+- Le **doc stanano nelle directory dei moduli** (README.md o .md files)
 
 ## 🔧 Build & Deploy
 
@@ -52,33 +65,34 @@ dotnet build -c Release
 
 **Key tags:**
 - `[SESSION_START]` / `[SESSION_END]` — Session transitions
-- `[PROFILE_PREVIEW]` — Profile calculation preview
+- `[PROFILE_PREVIEW]` — Profile calculation
 - `[MR_TRIGGER_M5]` — Mean reversion trigger
-- `[MR_LIVE_AGGRESSION_*]` — Live aggression tracking
+- `[MR_LIVE_AGGRESSION_*]` — Live aggression
 - `[MR_OUTCOME]` — Outcome tracking
 
 **Parsing guide:** `../../docs/atas/log-reading.md`
 
 ## 🎯 Workflow per Agents
 
-### Working on Core Tracker
+### Working on London Mean Reversion Model
 
-1. **Read:** [`docs/modules/BalanceZoneTracker.md`](docs/modules/BalanceZoneTracker.md)
-2. **Code:** `src/modules/shared/BalanceZoneTracker/`
-3. **Test:** Build + check logs per session detection
+1. **Read:** [`models/LondonMeanReversionModel/README.md`](models/LondonMeanReversionModel/README.md)
+2. **Module docs:** `models/LondonMeanReversionModel/modules/*/README.md`
+3. **Code:** `models/LondonMeanReversionModel/modules/`
+4. **Test:** CumulativeTrades chart + verify triggers in logs
 
-### Working on Mean Reversion Strategy
+### Working on Post-London Impulse Model
 
-1. **Read:** [`docs/Modello-2-MeanReversion.md`](docs/Modello-2-MeanReversion.md)
-2. **Code:** `src/modules/LondonMeanReversion/`
-3. **Test:** CumulativeTrades chart + verify triggers in logs
+1. **Read:** [`models/PostLondonImpulseModel/README.md`](models/PostLondonImpulseModel/README.md)
+2. **Module docs:** `models/PostLondonImpulseModel/modules/*/README.md` or `*.md`
+3. **Code:** `models/PostLondonImpulseModel/modules/`
+4. **Status:** Currently in design phase
 
-### Adding New Strategy Module
+### Working on Shared Modules (BalanceZoneTracker)
 
-1. **Create:** `src/modules/<ModuleName>/`
-2. **Document:** `docs/Modello-X-<Name>.md`
-3. **Register:** In `FabioOrderFlow.cs` orchestrator
-4. **Update:** This `AGENTS.md` with new paths
+1. **Read:** `models/shared/BalanceZoneTracker/BalanceZoneTracker.md`
+2. **Code:** `models/shared/BalanceZoneTracker/BalanceZoneTracker.cs`
+3. **Note:** Shared between all models, changes affect all
 
 ### Debugging
 
@@ -92,44 +106,44 @@ dotnet build -c Release
 |----------|------|
 | ATAS log parsing | `../../docs/atas/log-reading.md` |
 | ATAS API reference | `../../docs/atas/api/` |
-| Modello 1 spec (Trend Following) | `../../Modello-1-TrendFollowing/MODELLO-1-DOCUMENTAZIONE.md` |
-| Modello 2 original spec | `../../Modello-2-MeanReversion/FabioMeanReversion.md` |
+| Modello 1 original spec | `../../Modello-1-TrendFollowing/MODELLO-1-DOCUMENTAZIONE.md` |
 
 ## ⚙️ Architecture
 
-**Pattern:** Modular, dependency injection, event delegation
+**Pattern:** Model-based organization, modular components, dependency injection
 
 ```
 FabioOrderFlow (orchestrator)
-├── BalanceZoneTracker (core)
-│   ├── Session detection
-│   ├── Volume profile (POC/VAH/VAL)
-│   └── Balance zone state machine
-└── LondonMeanReversionModule (strategy)
-    ├── Rejection detection
-    ├── M5 trigger logic
-    └── Aggression tracking
+├── LondonMeanReversionModel (Modello 2 - production)
+│   └── LondonMeanReversionModule
+├── PostLondonImpulseModel (Modello 1 - planned)
+│   ├── ImpulseProfiler
+│   ├── LowVolumeNodeDetector
+│   └── AggressionDetector
+└── shared/
+    └── BalanceZoneTracker (used by all models)
 ```
 
 **Design principles:**
-- Core tracker: pure balance zone logic
-- Strategy modules: hot-pluggable, independent
-- Read-only access: modules read state, don't mutate
-- Event delegation: orchestrator → tracker → modules
+- **Model isolation:** Each trading model is independent
+- **Module composition:** Models use technical modules
+- **Shared components:** Common logic in shared/
+- **Documentation co-location:** Docs live with code
 
 ## 📝 Regole per Agents
 
-1. **Leggi prima di agire:** Consulta sempre il documento specifico del modulo/modello
-2. **Non improvvisare:** Segui l'architettura esistente (DI, delegation, read-only)
-3. **Mantieni separazione:** Core tracker non deve contenere strategy logic
-4. **Documenta modifiche:** Aggiorna il .md relativo quando modifichi codice
+1. **Leggi prima di agire:** Consulta il README del model, poi dei modules
+2. **Documentazione co-located:** Ogni modulo ha il suo README.md nella sua directory
+3. **Non improvvisare:** Segui l'architettura model → modules
+4. **Shared modules:** Modifiche a shared/ impattano tutti i models
 5. **Test sempre:** Build + deploy + verifica log dopo ogni modifica
 
 ## 🎯 Status
 
 - **Version:** 2.0.0
-- **Architecture:** Modular (refactored June 2026)
+- **Architecture:** Model-based (refactored June 2026)
 - **Build:** ✅ 0 errors, 8 warnings (unused fields)
 - **DLL size:** 74KB
-- **Modelli implementati:** Modello 2 (Mean Reversion)
-- **Modelli pianificati:** Modello 1 (Trend Following - Post-London Impulse)
+- **Models:**
+  - ✅ LondonMeanReversionModel (production)
+  - ⚠️ PostLondonImpulseModel (design phase)

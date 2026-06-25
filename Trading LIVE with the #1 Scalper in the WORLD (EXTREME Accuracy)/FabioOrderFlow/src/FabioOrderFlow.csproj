@@ -23,4 +23,9 @@
     <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Include models structure -->
+    <Compile Include="../models/**/*.cs" />
+  </ItemGroup>
+
 </Project>
