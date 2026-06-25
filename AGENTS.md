@@ -5,7 +5,7 @@ Indicatori/strategie order flow C# per ATAS (futures NQ/ES).
 ## Modelli
 
 ### FabioOrderFlow — Indicatore Unificato
-**Path:** `Modello-1-TrendFollowing/`  
+**Path:** `FabioOrderFlow/`  
 **File:** `src/FabioOrderFlow.cs`
 **DLL:** `FabioOrderFlow.dll`
 
@@ -38,7 +38,7 @@ Approccio impulse following post-breakout (futuro):
 - Sessione: Post-London breakout
 
 **Documentazione:**
-- Spec: `Modello-1-TrendFollowing/MODELLO-1-DOCUMENTAZIONE.md`
+- Spec: `FabioOrderFlow/MODELLO-1-DOCUMENTAZIONE.md`
 - Moduli: `src/modules/<Modulo>/<Modulo>.md`
 
 ## Build & Deploy
