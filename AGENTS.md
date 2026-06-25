@@ -1,63 +1,78 @@
-# AGENTS.md — orderflow-atas
+# orderflow-atas — Agent Guide
 
 Indicatori/strategie order flow C# per ATAS (futures NQ/ES).
 
----
-
-## 📁 Progetto: FabioOrderFlow
-
-**Path:** `Trading LIVE with the #1 Scalper in the WORLD (EXTREME Accuracy)/FabioOrderFlow/`  
-**Status:** ✅ v2.0.0 Production-ready (modular architecture)
-
-**Quando lavori su questo progetto, leggi sempre AGENTS.md del progetto prima di agire.**
+**Quando lavori su questo progetto, consulta sempre i documenti specifici prima di agire.**
 
 ---
 
-## 📚 Documentazione Progetto
+## 📂 Progetti
 
-**Central guide:** [`FabioOrderFlow/AGENTS.md`](Trading%20LIVE%20with%20the%20%231%20Scalper%20in%20the%20WORLD%20(EXTREME%20Accuracy)/FabioOrderFlow/AGENTS.md)  
-→ Path completi a tutti i documenti, workflow, regole per agents
+### FabioOrderFlow
 
-**Quick start:** [`FabioOrderFlow/README.md`](Trading%20LIVE%20with%20the%20%231%20Scalper%20in%20the%20WORLD%20(EXTREME%20Accuracy)/FabioOrderFlow/README.md)  
-→ Overview, build, deploy, settings
+**Path:** [`FabioOrderFlow/`](FabioOrderFlow/)  
+**Status:** ✅ v2.0.0 Production-ready  
+**Doc:** [`FabioOrderFlow/FabioOrderFlow.md`](FabioOrderFlow/FabioOrderFlow.md)
 
----
+Indicatore modulare ATAS: multiple trading models, modular architecture.
 
-## 📖 Documentazione per Modello
-
-**London Mean Reversion Model (Modello 2 - Production):**  
-[`FabioOrderFlow/models/LondonMeanReversionModel/README.md`](Trading%20LIVE%20with%20the%20%231%20Scalper%20in%20the%20WORLD%20(EXTREME%20Accuracy)/FabioOrderFlow/models/LondonMeanReversionModel/README.md)  
-Mean reversion su London balance zones: fakeout → rejection → POC
-
-**Post-London Impulse Model (Modello 1 - Planned):**  
-[`FabioOrderFlow/models/PostLondonImpulseModel/README.md`](Trading%20LIVE%20with%20the%20%231%20Scalper%20in%20the%20WORLD%20(EXTREME%20Accuracy)/FabioOrderFlow/models/PostLondonImpulseModel/README.md)  
-Trend-following su breakout: impulse → low volume nodes
-
-**Modello 1 Original Spec:**  
-[`Modello-1-TrendFollowing/MODELLO-1-DOCUMENTAZIONE.md`](Modello-1-TrendFollowing/MODELLO-1-DOCUMENTAZIONE.md)  
-Spec originale (reference)
+**Models:**
+- ✅ **LondonMeanReversionModel** (production) - [`LondonMeanReversionModel.md`](FabioOrderFlow/models/LondonMeanReversionModel/LondonMeanReversionModel.md)
+- ⚠️ **PostLondonImpulseModel** (design phase) - [`PostLondonImpulseModel.md`](FabioOrderFlow/models/PostLondonImpulseModel/PostLondonImpulseModel.md)
 
 ---
 
-## 📖 Documentazione per Modulo Tecnico
+## 🗂️ Struttura
 
-**Module docs:** Ogni modulo tecnico ha il proprio README.md o .md file nella sua directory.
+```
+orderflow-atas/
+├── AGENTS.md                           # Questo file
+├── docs/atas/                          # ATAS API docs (shared)
+├── Modello-1-TrendFollowing/           # Spec originale (reference)
+└── FabioOrderFlow/                     # Progetto principale
+    ├── FabioOrderFlow.md               # Doc progetto
+    ├── src/                            # Build & orchestrator
+    └── models/
+        ├── shared/                     # Shared modules
+        ├── LondonMeanReversionModel/   # Modello 2
+        │   ├── LondonMeanReversionModel.md
+        │   └── LondonMeanReversionModel.cs
+        └── PostLondonImpulseModel/     # Modello 1
+            ├── PostLondonImpulseModel.md
+            ├── PostLondonImpulseModel.cs
+            └── modules/                # Support modules
+```
 
-**Esempi:**
-- `FabioOrderFlow/models/LondonMeanReversionModel/modules/LondonMeanReversion/README.md`
-- `FabioOrderFlow/models/LondonMeanReversionModel/modules/shared/BalanceZoneTracker/BalanceZoneTracker.md`
-- `FabioOrderFlow/models/PostLondonImpulseModel/modules/PostLondonImpulse/README.md`
+---
 
-**Design:** Documentation co-located with code.
+## 🎯 Workflow per Agents
+
+### Working on FabioOrderFlow
+
+1. **Start:** [`FabioOrderFlow/FabioOrderFlow.md`](FabioOrderFlow/FabioOrderFlow.md)
+2. **Select model:** `FabioOrderFlow/models/<ModelName>/<ModelName>.md`
+3. **Core logic:** `FabioOrderFlow/models/<ModelName>/<ModelName>.cs`
+4. **Shared:** `FabioOrderFlow/models/shared/`
+
+### Working on a Specific Model
+
+**London Mean Reversion (Modello 2):**
+- Doc: [`FabioOrderFlow/models/LondonMeanReversionModel/LondonMeanReversionModel.md`](FabioOrderFlow/models/LondonMeanReversionModel/LondonMeanReversionModel.md)
+- Core: `FabioOrderFlow/models/LondonMeanReversionModel/LondonMeanReversionModel.cs`
+
+**Post-London Impulse (Modello 1):**
+- Doc: [`FabioOrderFlow/models/PostLondonImpulseModel/PostLondonImpulseModel.md`](FabioOrderFlow/models/PostLondonImpulseModel/PostLondonImpulseModel.md)
+- Core: `FabioOrderFlow/models/PostLondonImpulseModel/PostLondonImpulseModel.cs` (to be implemented)
+- Support modules: `FabioOrderFlow/models/PostLondonImpulseModel/modules/`
 
 ---
 
 ## 🔧 Build & Deploy
 
 ```bash
-cd "Trading LIVE with the #1 Scalper in the WORLD (EXTREME Accuracy)/FabioOrderFlow/src"
+cd FabioOrderFlow/src/
 dotnet build -c Release
-./deploy.bat  # Copia DLL in %APPDATA%\ATAS\Indicators\
+./deploy.bat
 ```
 
 **Output:**
@@ -71,39 +86,44 @@ dotnet build -c Release
 **Location:** `C:\Users\<User>\AppData\Roaming\ATAS\Logs\`
 
 **Key tags:**
-- `[SESSION_START]` / `[SESSION_END]` — Session transitions
-- `[PROFILE_PREVIEW]` — Profile calculation
-- `[MR_TRIGGER_M5]` — Mean reversion trigger
-- `[MR_LIVE_AGGRESSION_*]` — Live aggression
-- `[MR_OUTCOME]` — Outcome tracking
+- `[SESSION_START]` / `[SESSION_END]`
+- `[PROFILE_PREVIEW]`
+- `[MR_TRIGGER_M5]`
+- `[MR_LIVE_AGGRESSION_*]`
+- `[MR_OUTCOME]`
 
 **Parsing guide:** [`docs/atas/log-reading.md`](docs/atas/log-reading.md)
 
 ---
 
-## 🎯 Stato Progetto
-
-**Architettura:** Modular (refactored June 2026)  
-**Build:** ✅ 0 errors, 8 warnings (unused fields)  
-**DLL size:** 74KB (-17% from v1.x monolith)  
-
-**Modelli implementati:**
-- ✅ Modello 2: London Mean Reversion (production)
-
-**Modelli pianificati:**
-- ⏳ Modello 1: Post-London Impulse (design phase)
-
----
-
-## 📖 Documentazione ATAS
+## 📚 Documentazione ATAS
 
 - **Log reading:** [`docs/atas/log-reading.md`](docs/atas/log-reading.md)
 - **API reference:** [`docs/atas/api/`](docs/atas/api/)
 
 ---
 
-## 🔗 Riferimenti Storici
+## 🎯 Status
 
-- **Transcript Fabio:** [`Trading LIVE... .txt`](Trading%20LIVE%20with%20the%20%231%20Scalper%20in%20the%20WORLD%20(EXTREME%20Accuracy)/Trading%20LIVE%20with%20the%20%231%20Scalper%20in%20the%20WORLD%20(EXTREME%20Accuracy).txt)
-- **Sessioni clarification:** [`CHIAREZZA-DEFINITIVA.md`](Trading%20LIVE%20with%20the%20%231%20Scalper%20in%20the%20WORLD%20(EXTREME%20Accuracy)/CHIAREZZA-DEFINITIVA.md)
-- **Modello 2 original spec:** [`Modello-2-MeanReversion/FabioMeanReversion.md`](Modello-2-MeanReversion/FabioMeanReversion.md)
+**FabioOrderFlow v2.0.0:**
+- Build: ✅ 0 errors, 8 warnings
+- DLL: ✅ 74KB
+- Architecture: ✅ Model-based
+- Models: 1 production, 1 planned
+
+---
+
+## 📝 Regole per Agents
+
+1. **Entry point:** Questo file (`AGENTS.md`)
+2. **Project doc:** `FabioOrderFlow/FabioOrderFlow.md`
+3. **Model doc:** `models/<ModelName>/<ModelName>.md`
+4. **Core logic:** `models/<ModelName>/<ModelName>.cs`
+5. **No README.md:** Tutti i doc hanno nome del progetto/model
+6. **Build sempre:** Dopo modifiche al codice
+
+---
+
+## 🔗 Riferimenti
+
+- **Modello 1 spec:** [`Modello-1-TrendFollowing/MODELLO-1-DOCUMENTAZIONE.md`](Modello-1-TrendFollowing/MODELLO-1-DOCUMENTAZIONE.md)
