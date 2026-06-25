@@ -7,37 +7,43 @@ Indicatori/strategie order flow C# per ATAS (futures NQ/ES).
 ## 📁 Progetto: FabioOrderFlow
 
 **Path:** `Trading LIVE with the #1 Scalper in the WORLD (EXTREME Accuracy)/FabioOrderFlow/`  
-**File:** `src/FabioOrderFlow.cs`  
-**DLL:** `FabioOrderFlow.dll`
+**Status:** ✅ v2.0.0 Production-ready (modular architecture)
 
-Indicatore unificato che combina strategie order flow complementari basate su balance zones e volume profile.
+**Quando lavori su questo progetto, leggi sempre AGENTS.md del progetto prima di agire.**
 
 ---
 
-## 📚 Documentazione
+## 📚 Documentazione Progetto
 
-### Overview
-**File:** [`FabioOrderFlow/docs/README.md`](Trading%20LIVE%20with%20the%20%231%20Scalper%20in%20the%20WORLD%20(EXTREME%20Accuracy)/FabioOrderFlow/docs/README.md)  
-Panoramica completa: strategie, architettura, sessioni, configurazione.
+**Central guide:** [`FabioOrderFlow/AGENTS.md`](Trading%20LIVE%20with%20the%20%231%20Scalper%20in%20the%20WORLD%20(EXTREME%20Accuracy)/FabioOrderFlow/AGENTS.md)  
+→ Path completi a tutti i documenti, workflow, regole per agents
 
-### Strategie
-1. **London Mean Reversion** → [`docs/LondonMeanReversion.md`](Trading%20LIVE%20with%20the%20%231%20Scalper%20in%20the%20WORLD%20(EXTREME%20Accuracy)/FabioOrderFlow/docs/LondonMeanReversion.md)  
-   Fade London fakeouts, sweep → rejection → POC
-   
-2. **Post-London Impulse** → [`docs/PostLondonImpulse.md`](Trading%20LIVE%20with%20the%20%231%20Scalper%20in%20the%20WORLD%20(EXTREME%20Accuracy)/FabioOrderFlow/docs/PostLondonImpulse.md)  
-   Follow impulse to low volume nodes (future)
+**Quick start:** [`FabioOrderFlow/README.md`](Trading%20LIVE%20with%20the%20%231%20Scalper%20in%20the%20WORLD%20(EXTREME%20Accuracy)/FabioOrderFlow/README.md)  
+→ Overview, build, deploy, settings
 
-### Architettura Moduli
-**File:** [`FabioOrderFlow/src/modules/README.md`](Trading%20LIVE%20with%20the%20%231%20Scalper%20in%20the%20WORLD%20(EXTREME%20Accuracy)/FabioOrderFlow/src/modules/README.md)  
-Struttura moduli, shared/specific, dipendenze, implementazione.
+---
 
-### Analisi Codice
-**File:** [`BalanceZoneTracker/CODE-ANALYSIS.md`](Trading%20LIVE%20with%20the%20%231%20Scalper%20in%20the%20WORLD%20(EXTREME%20Accuracy)/FabioOrderFlow/src/modules/shared/BalanceZoneTracker/CODE-ANALYSIS.md)  
-Breakdown dettagliato: core (800 lines) vs mean reversion (600 lines), extraction plan.
+## 📖 Documentazione per Modello
 
-### Riferimenti
-- **Sessioni:** [`CHIAREZZA-DEFINITIVA.md`](Trading%20LIVE%20with%20the%20%231%20Scalper%20in%20the%20WORLD%20(EXTREME%20Accuracy)/CHIAREZZA-DEFINITIVA.md)
-- **Transcript:** [`Trading LIVE... .txt`](Trading%20LIVE%20with%20the%20%231%20Scalper%20in%20the%20WORLD%20(EXTREME%20Accuracy)/Trading%20LIVE%20with%20the%20%231%20Scalper%20in%20the%20WORLD%20(EXTREME%20Accuracy).txt)
+**Modello 2 — Mean Reversion (London):**  
+[`FabioOrderFlow/docs/Modello-2-MeanReversion.md`](Trading%20LIVE%20with%20the%20%231%20Scalper%20in%20the%20WORLD%20(EXTREME%20Accuracy)/FabioOrderFlow/docs/Modello-2-MeanReversion.md)  
+Strategy: fakeout detection, sweep → rejection → POC, aggression tracking
+
+**Modello 1 — Trend Following (Post-London):**  
+[`Modello-1-TrendFollowing/MODELLO-1-DOCUMENTAZIONE.md`](Modello-1-TrendFollowing/MODELLO-1-DOCUMENTAZIONE.md)  
+Strategy: impulse on balance zone breakout, low volume nodes (pianificato)
+
+---
+
+## 📖 Documentazione per Modulo Tecnico
+
+**BalanceZoneTracker (core):**  
+[`FabioOrderFlow/docs/modules/BalanceZoneTracker.md`](Trading%20LIVE%20with%20the%20%231%20Scalper%20in%20the%20WORLD%20(EXTREME%20Accuracy)/FabioOrderFlow/docs/modules/BalanceZoneTracker.md)  
+Core tracker: balance zones, sessioni, volume profile, state machine
+
+**SessionDetector (utility):**  
+[`FabioOrderFlow/docs/modules/SessionDetector.md`](Trading%20LIVE%20with%20the%20%231%20Scalper%20in%20the%20WORLD%20(EXTREME%20Accuracy)/FabioOrderFlow/docs/modules/SessionDetector.md)  
+Session detection, timezone conversions
 
 ---
 
@@ -46,48 +52,53 @@ Breakdown dettagliato: core (800 lines) vs mean reversion (600 lines), extractio
 ```bash
 cd "Trading LIVE with the #1 Scalper in the WORLD (EXTREME Accuracy)/FabioOrderFlow/src"
 dotnet build -c Release
-./deploy.bat  # Windows - copia DLL in %APPDATA%\ATAS\Indicators\
-./deploy.sh   # Linux
+./deploy.bat  # Copia DLL in %APPDATA%\ATAS\Indicators\
 ```
 
 **Output:**
-- DLL: `%APPDATA%\ATAS\Indicators\FabioOrderFlow.dll`
-- Log: `%APPDATA%\ATAS\Logs\FabioOrderFlow.log`
+- DLL: `%APPDATA%\ATAS\Indicators\FabioOrderFlow.dll` (74KB)
+- Logs: `%APPDATA%\ATAS\Logs\`
 
 ---
 
-## ⚙️ Configurazione
+## 📊 Log Files
 
-```csharp
-// Parametri disponibili in ATAS
-public bool EnableLondonMeanReversion { get; set; } = true;
-public bool EnablePostLondonImpulse { get; set; } = false;
-public bool EnableLiveFootprintFirst { get; set; } = true;
-```
+**Location:** `C:\Users\<User>\AppData\Roaming\ATAS\Logs\`
 
-**Note:** 
-- `EnableLondonMeanReversion` attualmente non condiziona logica (sempre attiva in BalanceZoneTracker)
-- `EnablePostLondonImpulse` non implementato
-- Codice MR è integrato in BalanceZoneTracker, delimitato da commenti per futura extraction
-- Vedi [`BalanceZoneTracker/CODE-ANALYSIS.md`](Trading%20LIVE%20with%20the%20%231%20Scalper%20in%20the%20WORLD%20(EXTREME%20Accuracy)/FabioOrderFlow/src/modules/shared/BalanceZoneTracker/CODE-ANALYSIS.md)
+**Key tags:**
+- `[SESSION_START]` / `[SESSION_END]` — Session transitions
+- `[PROFILE_PREVIEW]` — Profile calculation
+- `[MR_TRIGGER_M5]` — Mean reversion trigger
+- `[MR_LIVE_AGGRESSION_*]` — Live aggression
+- `[MR_OUTCOME]` — Outcome tracking
+
+**Parsing guide:** [`docs/atas/log-reading.md`](docs/atas/log-reading.md)
+
+---
+
+## 🎯 Stato Progetto
+
+**Architettura:** Modular (refactored June 2026)  
+**Build:** ✅ 0 errors, 8 warnings (unused fields)  
+**DLL size:** 74KB (-17% from v1.x monolith)  
+
+**Modelli implementati:**
+- ✅ Modello 2: London Mean Reversion (production)
+
+**Modelli pianificati:**
+- ⏳ Modello 1: Post-London Impulse (design phase)
 
 ---
 
 ## 📖 Documentazione ATAS
 
-- **Log reading:** `docs/atas/log-reading.md`
-- **API ATAS:** `docs/atas/api/`
+- **Log reading:** [`docs/atas/log-reading.md`](docs/atas/log-reading.md)
+- **API reference:** [`docs/atas/api/`](docs/atas/api/)
 
 ---
 
-## 🎯 Stato Corrente
+## 🔗 Riferimenti Storici
 
-**Sistema operativo:**
-- London Mean Reversion funzionante (integrato in BalanceZoneTracker)
-- Post-London Impulse documentato (da implementare)
-
-**Prossimi step:**
-- Implementare Post-London Impulse, oppure
-- Estrarre London Mean Reversion da BalanceZoneTracker (opzionale)
-
-Vedi `docs/README.md` per roadmap dettagliata.
+- **Transcript Fabio:** [`Trading LIVE... .txt`](Trading%20LIVE%20with%20the%20%231%20Scalper%20in%20the%20WORLD%20(EXTREME%20Accuracy)/Trading%20LIVE%20with%20the%20%231%20Scalper%20in%20the%20WORLD%20(EXTREME%20Accuracy).txt)
+- **Sessioni clarification:** [`CHIAREZZA-DEFINITIVA.md`](Trading%20LIVE%20with%20the%20%231%20Scalper%20in%20the%20WORLD%20(EXTREME%20Accuracy)/CHIAREZZA-DEFINITIVA.md)
+- **Modello 2 original spec:** [`Modello-2-MeanReversion/FabioMeanReversion.md`](Modello-2-MeanReversion/FabioMeanReversion.md)
