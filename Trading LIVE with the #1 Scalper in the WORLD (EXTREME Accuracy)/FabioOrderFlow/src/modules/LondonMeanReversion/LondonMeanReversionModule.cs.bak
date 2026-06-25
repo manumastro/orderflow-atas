@@ -2,104 +2,79 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using ATAS.Indicators;
-using ATAS.Indicators.Drawing;
 
 namespace FabioOrderFlow
 {
-    internal enum MarketState
+    // Mean Reversion Data Structures (moved from BalanceZoneTracker)
+    internal sealed class MeanReversionTriggerLog
     {
-        NoZone,
-        BuildingSessionProfile,
-        BalanceReady,
-        BreakoutPending,
-        OutOfBalance
-    }
-
-    internal enum BalanceType
-    {
-        LondonSession,
-        Consolidation
-    }
-
-    internal enum BreakoutDirection
-    {
-        Bullish,
-        Bearish
-    }
-
-    internal sealed class BalanceZone
-    {
-        public BalanceType Type { get; set; }
-        public int StartBar { get; set; }
-        public int EndBar { get; set; }
-
-        public decimal High { get; set; }
-        public decimal Low { get; set; }
+        public string Direction { get; set; } = string.Empty;
+        public string Trigger { get; set; } = string.Empty;
+        public int Bar { get; set; }
+        public int CandidateBar { get; set; }
         public decimal POC { get; set; }
         public decimal VAH { get; set; }
         public decimal VAL { get; set; }
-        public decimal TotalVolume { get; set; }
-
-        public bool IsReady { get; set; }
-        public bool IsBroken { get; set; }
-        public BreakoutDirection? BreakoutDirection { get; set; }
-        public int? BreakoutBar { get; set; }
-
-        public int SessionHighBar { get; set; }
-        public int SessionLowBar { get; set; }
-        public DateTime SessionHighTimeUtc { get; set; }
-        public DateTime SessionLowTimeUtc { get; set; }
-
-        public Dictionary<decimal, decimal> Profile { get; } = new();
+        public bool HistoricalAggressionLogged { get; set; }
     }
 
-    internal sealed class MarketContext
+    internal sealed class MeanReversionOutcome
     {
-        public MarketState State { get; set; } = MarketState.NoZone;
-        public BalanceZone? CurrentZone { get; set; }
-        public BreakoutDirection? PendingDirection { get; set; }
-        public int PendingBreakoutBar { get; set; } = -1;
-        public int ConsecutiveOutsideCloses { get; set; }
+        public string Direction { get; set; } = string.Empty;
+        public string EntryModel { get; set; } = string.Empty;
+        public int EntryBar { get; set; }
+        public int CandidateBar { get; set; }
+        public decimal EntryPrice { get; set; }
+        public decimal StopReference { get; set; }
+        public decimal Target1POC { get; set; }
+        public decimal Target2 { get; set; }
+        public decimal MfePoints { get; set; }
+        public decimal MaePoints { get; set; }
+        public decimal MaxFavorablePrice { get; set; }
+        public decimal MaxAdversePrice { get; set; }
+        public bool Target1Hit { get; set; }
+        public bool Target2Hit { get; set; }
+        public bool Invalidated { get; set; }
+        
+        // Exit management
+        public bool PositionClosed { get; set; }
+        public decimal FinalPnL { get; set; }
+        public string ExitReason { get; set; } = string.Empty;
+        public int ExitBar { get; set; }
+        public DateTime ExitTime { get; set; }
+    }
+    
+    // Footprint-first sweep detection
+    internal sealed class LiveSweepCandidate
+    {
+        public string Direction { get; set; } = string.Empty; // "High" or "Low"
+        public DateTime SweepTimeUtc { get; set; }
+        public decimal SweepPrice { get; set; }
+        public decimal SweepVolume { get; set; }
+        public int Bar { get; set; }
+        public bool RejectionDetected { get; set; }
+        public DateTime? RejectionTimeUtc { get; set; }
+        public decimal RejectionPrice { get; set; }
+        public decimal RejectionVolume { get; set; }
+        
+        // Livelli value area al momento dello sweep
+        public decimal VAH { get; set; }
+        public decimal VAL { get; set; }
+        public decimal POC { get; set; }
     }
 
-    internal sealed class BalanceZoneTracker
+    internal sealed class LondonMeanReversionModule
     {
-        private readonly Indicator _indicator;
-        private readonly MarketContext _context = new();
+        private readonly BalanceZoneTracker _balanceTracker;
         private readonly Action<string> _log;
         private readonly Func<int, IndicatorCandle> _getCandle;
         private readonly bool _enableLiveFootprintFirst;
-
-        private readonly List<DrawingRectangle> _rectangles;
-        private readonly List<LineTillTouch> _lines;
         
-        private DrawingRectangle? _currentZoneRectangle;
-        private LineTillTouch? _currentPocLine;
-        private LineTillTouch? _currentVahLine;
-        private LineTillTouch? _currentValLine;
-
-        private const int MinSessionBars = 5;
-        private const int ExpectedLondonBars = 96; // 8h * 12 bars/h on M5
-        private const int MinCompleteSessionBars = 90; // Tolleranza -6 bars
-        private const int LondonPreviewStartHour = 8;
-        private static readonly bool DetailedDebugLogs = false;
-        private const decimal MinAggressionTradeVolume = 20m;
-        
-        // ========================================
-        // MEAN REVERSION STATE (Lines ~90-120)
-        // To extract: Move to LondonMeanReversionModule
-        // ========================================
+        // MR State variables (extracted from BalanceZoneTracker)
         private readonly List<MeanReversionTriggerLog> _meanReversionTriggerLogs = new();
         private readonly List<MeanReversionOutcome> _meanReversionOutcomes = new();
         private readonly HashSet<string> _loggedAggressionCandidateKeys = new();
-        private bool _firstCompleteSessionFound = false;
-        private int _lastLoggedPreCloseBar = -1;
-        private int _lastPreviewProfileBar = -1;
         
-        // ========================================
-        // MEAN REVERSION REJECTION TRACKING
-        // To extract: Move to LondonMeanReversionModule
-        // ========================================
         private int _lastLowRejectionCandidateBar = -1;
         private int _lastHighRejectionCandidateBar = -1;
         private decimal _lastLowRejectionHigh;
@@ -112,122 +87,55 @@ namespace FabioOrderFlow
         private decimal _lastHighRejectionDelta;
         private bool _lowRejectionPocReclaimed;
         private bool _highRejectionPocLost;
-        // ========================================
-        
-        private int _currentBar;
-        
-        // ========================================
-        // MEAN REVERSION EARLY TRIGGER FLAGS
-        // To extract: Move to LondonMeanReversionModule
-        // ========================================
         private bool _lowRejectionEarlyTriggered;
         private bool _highRejectionEarlyTriggered;
-        // ========================================
-        private decimal _lastPreviewPoc;
-        private decimal _lastPreviewVah;
-        private decimal _lastPreviewVal;
         
-        // ========================================
-        // MEAN REVERSION FOOTPRINT-FIRST STATE
-        // To extract: Move to LondonMeanReversionModule
-        // ========================================
         private DateTime? _liveLowSweepTimeUtc;
         private DateTime? _liveHighSweepTimeUtc;
         private LiveSweepCandidate? _activeLongSweep;
         private LiveSweepCandidate? _activeShortSweep;
         private readonly HashSet<string> _footprintTriggeredKeys = new();
-        // ========================================
         
-        private bool _nySessionActive;
-        private int _nySessionStartBar = -1;
-        private int _nySessionEndBar = -1;
-        private int _nySessionHighBar = -1;
-        private int _nySessionLowBar = -1;
-        private DateTime _nySessionHighTimeUtc;
-        private DateTime _nySessionLowTimeUtc;
-        private decimal _nySessionHigh;
-        private decimal _nySessionLow;
-        private decimal _nySessionTotalVolume;
-        private readonly Dictionary<decimal, decimal> _nySessionProfile = new();
-        private int _lastLoggedNyPreCloseBar = -1;
-        private int _lastNyPreviewProfileBar = -1;
-
-        public BalanceZoneTracker(
-            Indicator indicator, 
-            Action<string> log,
-            List<DrawingRectangle> rectangles,
-            List<LineTillTouch> lines,
-            Func<int, IndicatorCandle> getCandle,
-            bool enableLiveFootprintFirst = false)
-        {
-            _indicator = indicator;
-            _log = log;
-            _rectangles = rectangles;
-            _lines = lines;
-            _getCandle = getCandle;
-            _enableLiveFootprintFirst = enableLiveFootprintFirst;
-            _getCandle = getCandle;
-
-        }
-
-        // API pubblica per gli altri moduli
-        public bool HasBalanceZone => _context.CurrentZone?.IsReady == true;
-        public bool IsOutOfBalance => _context.State == MarketState.OutOfBalance;
-        public BreakoutDirection? Direction => _context.CurrentZone?.BreakoutDirection;
-        public decimal? BalancePocTarget => _context.CurrentZone?.POC;
-        public int? BreakoutBar => _context.CurrentZone?.BreakoutBar;
-        public decimal? VAH => _context.CurrentZone?.VAH;
-        public decimal? VAL => _context.CurrentZone?.VAL;
-        public decimal? POC => _context.CurrentZone?.POC;
+        private int _currentBar;
+        private const decimal MinAggressionTradeVolume = 20m;
         
-        // For MR module access
-        public BalanceZone? CurrentZone => _context.CurrentZone;
-        
-        // Mean Reversion module access
         public List<MeanReversionTriggerLog> MeanReversionTriggerLogs => _meanReversionTriggerLogs;
         public List<MeanReversionOutcome> MeanReversionOutcomes => _meanReversionOutcomes;
-        public decimal LastPreviewPoc => _lastPreviewPoc;
-        public decimal LastPreviewVah => _lastPreviewVah;
-        public decimal LastPreviewVal => _lastPreviewVal;
-
+        
+        public LondonMeanReversionModule(
+            BalanceZoneTracker balanceTracker,
+            Action<string> log,
+            Func<int, IndicatorCandle> getCandle,
+            bool enableLiveFootprintFirst = true)
+        {
+            _balanceTracker = balanceTracker ?? throw new ArgumentNullException(nameof(balanceTracker));
+            _log = log ?? throw new ArgumentNullException(nameof(log));
+            _getCandle = getCandle ?? throw new ArgumentNullException(nameof(getCandle));
+            _enableLiveFootprintFirst = enableLiveFootprintFirst;
+        }
+        
+        public void OnBarUpdate(int bar, int currentBar)
+        {
+            _currentBar = currentBar;
+        }
+        
         public void OnHistoricalCumulativeTrades(IEnumerable<CumulativeTrade> cumulativeTrades)
         {
-            var trades = cumulativeTrades
-                .OrderBy(trade => trade.Time)
-                .ToList();
-
-            // Log aggression per trigger M5 esistenti
+            var trades = cumulativeTrades.OrderBy(t => t.Time).ToList();
             foreach (var triggerLog in _meanReversionTriggerLogs.Where(log => !log.HistoricalAggressionLogged))
             {
                 LogHistoricalAggressionConfirmation(triggerLog, trades);
             }
         }
-
+        
         public void OnLiveCumulativeTrade(CumulativeTrade trade)
         {
-            if (_context.CurrentZone == null || _lastPreviewVal == 0 || _lastPreviewVah == 0 || _lastPreviewPoc == 0)
+            if (!_enableLiveFootprintFirst)
                 return;
-
-            // EXISTING LOGIC: Log aggression per trigger M5 esistenti
+                
             TryLogLiveLongAggression(trade);
             TryLogLiveShortAggression(trade);
             
-            // NEW LOGIC: Footprint-first trigger detection (solo se abilitato)
-            if (!_enableLiveFootprintFirst)
-                return;
-            
-            // 1. Detect Sweeps
-            if (IsHighSweepTrade(trade))
-            {
-                ProcessLiveHighSweep(trade);
-            }
-            
-            if (IsLowSweepTrade(trade))
-            {
-                ProcessLiveLowSweep(trade);
-            }
-            
-            // 2. Detect Rejections
             if (_activeShortSweep != null && !_activeShortSweep.RejectionDetected)
             {
                 if (IsRejectionTrade(_activeShortSweep, trade))
@@ -235,7 +143,7 @@ namespace FabioOrderFlow
                     ProcessLiveRejection(_activeShortSweep, trade);
                 }
             }
-            
+
             if (_activeLongSweep != null && !_activeLongSweep.RejectionDetected)
             {
                 if (IsRejectionTrade(_activeLongSweep, trade))
@@ -243,35 +151,34 @@ namespace FabioOrderFlow
                     ProcessLiveRejection(_activeLongSweep, trade);
                 }
             }
-            
-            // 3. Detect Entry
+
             if (_activeShortSweep != null && _activeShortSweep.RejectionDetected)
             {
                 if (IsAggressionEntryTrade(_activeShortSweep, trade))
                 {
                     ProcessFootprintEntry(_activeShortSweep, trade);
-                    _activeShortSweep = null; // Reset dopo entry
+                    _activeShortSweep = null;
                 }
             }
-            
+
             if (_activeLongSweep != null && _activeLongSweep.RejectionDetected)
             {
                 if (IsAggressionEntryTrade(_activeLongSweep, trade))
                 {
                     ProcessFootprintEntry(_activeLongSweep, trade);
-                    _activeLongSweep = null; // Reset dopo entry
+                    _activeLongSweep = null;
                 }
             }
-        }
 
+            if (IsHighSweepTrade(trade))
+                ProcessLiveHighSweep(trade);
+
+            if (IsLowSweepTrade(trade))
+                ProcessLiveLowSweep(trade);
+        }
+        
         // ========================================
-        // MEAN REVERSION METHODS (Lines ~314-1835)
-        // To extract: Move to LondonMeanReversionModule
-        // These methods handle:
-        // - Trigger detection (rejection, POC reclaim/loss)
-        // - Aggression confirmation (live + historical)
-        // - Exit management (Target2/Stop)
-        // - Footprint-first detection (sweep→rejection→entry)
+        // MR METHODS (extracted from BalanceZoneTracker lines 331-1870)
         // ========================================
 
         private void TryLogLiveLongAggression(CumulativeTrade trade)
@@ -1814,6 +1721,5 @@ namespace FabioOrderFlow
         }
 
         #endregion
-        
     }
 }
