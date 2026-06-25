@@ -114,9 +114,40 @@ namespace FabioOrderFlow
             _enableLiveFootprintFirst = enableLiveFootprintFirst;
         }
         
-        public void OnBarUpdate(int bar, int currentBar)
+        public void OnBarUpdate(int bar, int currentBar, IndicatorCandle candle)
         {
             _currentBar = currentBar;
+            UpdateMeanReversionOutcomes(bar, candle);
+        }
+        
+        public void OnNewSessionHigh(int bar, IndicatorCandle candle, decimal previousHigh)
+        {
+            if (LogPotentialRejection("HIGH_REJECTION_CANDIDATE", bar, candle, previousHigh, out var highRejectionDelta))
+            {
+                _lastHighRejectionCandidateBar = bar;
+                _lastHighRejectionHigh = candle.High;
+                _lastHighRejectionClose = candle.Close;
+                _lastHighRejectionLow = candle.Low;
+                _lastHighRejectionDelta = highRejectionDelta;
+                _highRejectionPocLost = false;
+                _highRejectionEarlyTriggered = false;
+                _liveHighSweepTimeUtc = candle.LastTime > candle.Time ? candle.LastTime : candle.Time;
+            }
+        }
+        
+        public void OnNewSessionLow(int bar, IndicatorCandle candle, decimal previousLow)
+        {
+            if (LogPotentialRejection("LOW_REJECTION_CANDIDATE", bar, candle, previousLow, out var lowRejectionDelta))
+            {
+                _lastLowRejectionCandidateBar = bar;
+                _lastLowRejectionHigh = candle.High;
+                _lastLowRejectionClose = candle.Close;
+                _lastLowRejectionLow = candle.Low;
+                _lastLowRejectionDelta = lowRejectionDelta;
+                _lowRejectionPocReclaimed = false;
+                _lowRejectionEarlyTriggered = false;
+                _liveLowSweepTimeUtc = candle.LastTime > candle.Time ? candle.LastTime : candle.Time;
+            }
         }
         
         public void OnHistoricalCumulativeTrades(IEnumerable<CumulativeTrade> cumulativeTrades)
@@ -261,7 +292,7 @@ namespace FabioOrderFlow
             return true;
         }
 
-        private void LogMeanReversionEarlyTriggerIfNeeded(int bar, IndicatorCandle candle, decimal poc, decimal vah, decimal val, decimal bid, decimal ask, decimal delta)
+        public void LogMeanReversionEarlyTriggerIfNeeded(int bar, IndicatorCandle candle, decimal poc, decimal vah, decimal val, decimal bid, decimal ask, decimal delta)
         {
             if (_balanceTracker.CurrentZone == null)
                 return;
@@ -297,7 +328,7 @@ namespace FabioOrderFlow
             }
         }
 
-        private void LogMeanReversionTriggerIfNeeded(int bar, IndicatorCandle candle, decimal poc, decimal vah, decimal val, decimal bid, decimal ask, decimal delta)
+        public void LogMeanReversionTriggerIfNeeded(int bar, IndicatorCandle candle, decimal poc, decimal vah, decimal val, decimal bid, decimal ask, decimal delta)
         {
             if (_balanceTracker.CurrentZone == null)
                 return;

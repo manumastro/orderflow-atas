@@ -262,7 +262,7 @@ namespace FabioOrderFlow
             }
             
             // Call MR module for evaluation
-            _meanReversionModule?.OnBarUpdate(bar, currentBar);
+            _meanReversionModule?.OnBarUpdate(bar, currentBar, candle);
         }
 
         private void StartLondonSession(int bar, IndicatorCandle candle)
@@ -331,6 +331,7 @@ namespace FabioOrderFlow
                 _context.CurrentZone.SessionHighBar = bar;
                 _context.CurrentZone.SessionHighTimeUtc = candle.Time;
                 LogSessionExtreme("NEW_SESSION_HIGH", bar, candle, previousHigh);
+                _meanReversionModule?.OnNewSessionHigh(bar, candle, previousHigh);
                 importantEvent = true;
             }
 
@@ -340,6 +341,7 @@ namespace FabioOrderFlow
                 _context.CurrentZone.SessionLowBar = bar;
                 _context.CurrentZone.SessionLowTimeUtc = candle.Time;
                 LogSessionExtreme("NEW_SESSION_LOW", bar, candle, previousLow);
+                _meanReversionModule?.OnNewSessionLow(bar, candle, previousLow);
                 importantEvent = true;
             }
 
@@ -760,6 +762,11 @@ namespace FabioOrderFlow
             var sessionBars = bar - _context.CurrentZone.StartBar + 1;
 
             _log($"[PROFILE_PREVIEW] Bar={bar}, {FormatTimes(candle.Time)}, Reason={(force ? "event" : "live")}, Bars={sessionBars}, High={_context.CurrentZone.High:F2}, Low={_context.CurrentZone.Low:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, VA_Volume={valueAreaVolume:F0}, TotalVolume={_context.CurrentZone.TotalVolume:F0}, MaxLevelVolume={maxVolume:F0}, Close={candle.Close:F2}, Relation={relation}, DistToPOC={candle.Close - poc:F2}, DistToVAH={candle.Close - vah:F2}, DistToVAL={candle.Close - val:F2}");
+            
+            // Call MR module for trigger evaluation
+            var (bid, ask, delta, _) = GetCandleVolumeDiagnostics(candle);
+            _meanReversionModule?.LogMeanReversionEarlyTriggerIfNeeded(bar, candle, poc, vah, val, bid, ask, delta);
+            _meanReversionModule?.LogMeanReversionTriggerIfNeeded(bar, candle, poc, vah, val, bid, ask, delta);
         }
 
         private void DrawBalanceZone()
