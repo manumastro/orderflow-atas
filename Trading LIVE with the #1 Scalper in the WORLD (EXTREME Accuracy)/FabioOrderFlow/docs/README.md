@@ -49,37 +49,28 @@
 
 ## 🏗️ Architecture
 
-### Current State (Integrated)
+### Current Implementation
 
 ```
-FabioOrderFlow.cs
-└── BalanceZoneTracker.cs (1835 lines)
-    ├── Core (session, profile, breakout)
-    └── London Mean Reversion (integrated)
+FabioOrderFlow.cs (main indicator)
+└── BalanceZoneTracker.cs (1835 lines, monolithic)
+    ├── Core (~800 lines)
+    │   ├── Session management (London/NY)
+    │   ├── Profile calculation (POC/VAH/VAL)
+    │   ├── Breakout detection
+    │   ├── State machine
+    │   └── Visual rendering
+    │
+    └── London Mean Reversion (~600 lines, integrated)
+        ├── Trigger detection
+        ├── Aggression confirmation
+        ├── Exit management
+        └── Footprint-first (optional)
 ```
 
-### Target State (Modular)
+**Analysis:** See [`src/modules/shared/BalanceZoneTracker/CODE-ANALYSIS.md`](../src/modules/shared/BalanceZoneTracker/CODE-ANALYSIS.md)
 
-```
-FabioOrderFlow.cs
-├── BalanceZoneTracker (core only, ~800 lines)
-│   ├── Session management
-│   ├── Profile calculation
-│   ├── Breakout detection
-│   └── Visual rendering
-│
-├── LondonMeanReversionModule (~600 lines)
-│   ├── Trigger detection
-│   ├── Aggression confirmation
-│   ├── Exit management
-│   └── Footprint-first (optional)
-│
-└── PostLondonImpulseModule (future)
-    ├── Impulse profiling
-    ├── Low volume nodes
-    ├── Aggression clusters
-    └── Entry management
-```
+**Status:** Working perfectly as monolithic. Extraction to separate modules optional (recommended when implementing Post-London Impulse).
 
 ---
 
@@ -87,33 +78,43 @@ FabioOrderFlow.cs
 
 **London Session (08:00-16:00 London):**
 - Balance zone building
-- Profile preview live updates
+- Profile preview with live updates
 - Mean reversion triggers active
 
-**NY Overlap (09:30-11:00 NY = 14:30-16:00 London):**
+**NY Overlap (14:30-16:00 London = 09:30-11:00 NY):**
 - Breakout detection window (1.5h)
 - State transition: Balance → OutOfBalance
 
 **Post-London (16:00+ London):**
-- Mean reversion continues (if out-of-balance)
-- Future: Impulse following active
+- Mean reversion continues if out-of-balance
+- Future: Impulse following (Post-London Impulse strategy)
+
+**Reference:** [`../../CHIAREZZA-DEFINITIVA.md`](../../CHIAREZZA-DEFINITIVA.md)
 
 ---
 
 ## 🎯 Quick Reference
 
-| Model | Status | Session | Parameter | Performance |
-|-------|--------|---------|-----------|-------------|
-| London Mean Reversion | ✅ Implemented | London 08:00-16:00 | `EnableLondonMeanReversion = true` | 15 entry, +408.5 pts |
-| Post-London Impulse | ⏳ Future | Post-breakout | `EnablePostLondonImpulse = false` | TBD |
+| Strategy | Status | Session | Parameter | Implementation |
+|----------|--------|---------|-----------|----------------|
+| London Mean Reversion | ✅ Working | London 08:00-16:00 | `EnableLondonMeanReversion = true` | Integrated in BalanceZoneTracker |
+| Post-London Impulse | ⏳ Documented | Post-breakout | `EnablePostLondonImpulse = false` | To be implemented |
+
+**Configuration:**
+```csharp
+public bool EnableLondonMeanReversion { get; set; } = true;   // Always active (parameter not conditional yet)
+public bool EnablePostLondonImpulse { get; set; } = false;    // Not implemented
+public bool EnableLiveFootprintFirst { get; set; } = true;    // Optional real-time detection
+```
 
 ---
 
 ## 📖 Related Documents
 
-- **Project Overview:** `../../AGENTS.md`
-- **Session Analysis:** `../../CHIAREZZA-DEFINITIVA.md`
-- **Refactoring Summary:** `../../REFACTORING-SUMMARY.md`
+- **Project Overview:** [`../../AGENTS.md`](../../AGENTS.md)
+- **Session Analysis:** [`../../CHIAREZZA-DEFINITIVA.md`](../../CHIAREZZA-DEFINITIVA.md)
+- **Module Architecture:** [`../src/modules/README.md`](../src/modules/README.md)
+- **Code Analysis:** [`../src/modules/shared/BalanceZoneTracker/CODE-ANALYSIS.md`](../src/modules/shared/BalanceZoneTracker/CODE-ANALYSIS.md)
 - **Module Specs:** `../src/modules/<Module>/<Module>.md`
 
 ---
