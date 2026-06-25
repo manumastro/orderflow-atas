@@ -1,7 +1,8 @@
 # Refactoring Completo - Riepilogo
 
 **Data:** 2026-06-25  
-**Commit:** 120a2f1 (directory restructure) + 5db73fd (naming)  
+**Commit Latest:** 5937106 (docs + module structure)  
+**Commit Chain:** 7aec726 (backup) → 5db73fd (naming) → 120a2f1 (directories) → 23025d3 (summary) → 5937106 (structure)  
 **Backup point:** 7aec726 (pre-refactoring)
 
 ---
