@@ -2,9 +2,9 @@ using System;
 using System.IO;
 using ATAS.Indicators;
 
-namespace FabioTrendFollowing;
+namespace FabioOrderFlow;
 
-public class FabioTrendFollowing : Indicator
+public class FabioOrderFlow : Indicator
 {
     private BalanceZoneTracker? _balanceTracker;
     private CumulativeTradesRequest? _cumulativeTradesRequest;
@@ -12,19 +12,21 @@ public class FabioTrendFollowing : Indicator
     private readonly object _logSync = new();
     private readonly string _logPath;
     
-    // Input parameter per abilitare footprint-first su live
+    // Module parameters
+    public bool EnableLondonMeanReversion { get; set; } = true;
+    public bool EnablePostLondonImpulse { get; set; } = false;
     public bool EnableLiveFootprintFirst { get; set; } = false;
 
-    public FabioTrendFollowing()
+    public FabioOrderFlow()
     {
-        Name = "Fabio Trend Following";
+        Name = "Fabio Order Flow";
         
         var logDirectory = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "ATAS", "Logs");
 
         Directory.CreateDirectory(logDirectory);
-        _logPath = Path.Combine(logDirectory, "FabioTrendFollowing.log");
+        _logPath = Path.Combine(logDirectory, "FabioOrderFlow.log");
 
         try
         {

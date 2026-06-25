@@ -1,6 +1,6 @@
 using System;
 
-namespace FabioTrendFollowing;
+namespace FabioOrderFlow;
 
 internal static class MarketTimeZones
 {

@@ -4,7 +4,7 @@ using System.Linq;
 using ATAS.Indicators;
 using ATAS.Indicators.Drawing;
 
-namespace FabioTrendFollowing
+namespace FabioOrderFlow
 {
     internal enum MarketState
     {

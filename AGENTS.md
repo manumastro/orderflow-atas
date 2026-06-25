@@ -4,35 +4,42 @@ Indicatori/strategie order flow C# per ATAS (futures NQ/ES).
 
 ## Modelli
 
-### Modello 1 — Trend Following (IN REFACTORING)
+### FabioOrderFlow — Indicatore Unificato
 **Path:** `Modello-1-TrendFollowing/`  
-**📘 Documento Centrale:** `Modello-1-TrendFollowing/MODELLO-1-DOCUMENTAZIONE.md` ⭐  
-**Codice:** `src/FabioTrendFollowing.cs`
+**File:** `src/FabioOrderFlow.cs`
+**DLL:** `FabioOrderFlow.dll`
 
-Approccio trend following di Fabio per mercati OUT OF BALANCE:
+#### Modulo 1: London Mean Reversion (IMPLEMENTATO) ✅
+**Parametro:** `EnableLondonMeanReversion` (default: `true`)
+
+Approccio mean reversion per London fakeouts:
+- Attivo durante London session (08:00-16:00) con profile preview live
+- Entry su sweep → rejection → ritorno verso POC
+- Target: POC/Target2 della balance zone
+- Exit automatico al Target2/Stop
+- **Performance:** 15 entry, win rate 57.1%, +408.5 punti net
+
+**Documentazione:**
+- Spec completa: `Modello-2-MeanReversion/FabioMeanReversion.md`
+- Logica: `src/modules/BalanceZoneTracker/BalanceZoneTracker.cs` (attualmente integrato)
+- Sessioni: `CHIAREZZA-DEFINITIVA.md`
+
+**Entry opzionale footprint-first:**
+- Parametro: `EnableLiveFootprintFirst` (default: `false`)
+- Real-time sweep→rejection→entry
+- Solo su live/replay
+
+#### Modulo 2: Post-London Impulse (NON IMPLEMENTATO) ⏳
+**Parametro:** `EnablePostLondonImpulse` (default: `false`)
+
+Approccio impulse following post-breakout (futuro):
 - Entry su aggression clusters in low volume nodes
 - Target: POC della balance zone precedente
-- Sessione: New York only
-- **Stato:** Prototipo con segnali isolati — richiede rewrite architetturale completo
+- Sessione: Post-London breakout
 
-**Leggi `MODELLO-1-DOCUMENTAZIONE.md` per:**
-- Mappa centrale del modello
-- Principi globali e pipeline target
-- Roadmap e ordine di implementazione
-- Link ai documenti modulari
-
-**Leggi anche `src/modules/<Modulo>/<Modulo>.md` quando lavori su un modulo:**
-- Design operativo del modulo
-- Input/output e state machine locali
-- Criteri di validazione specifici
-
-### Modello 2 — Mean Reversion (STUDIO DIAGNOSTICO)
-**Path:** `Modello-2-MeanReversion/`  
-**Spec:** `Modello-2-MeanReversion/FabioMeanReversion.md`  
-**Codice:** `src/FabioMeanReversion.cs` (placeholder vuoto)
-
-Approccio mean reversion basato su balance zones, fakeout e ritorno verso POC.  
-Non è ancora un modello operativo separato: il codice diagnostico vive temporaneamente nel `BalanceZoneTracker` del Modello 1 senza contaminare la state machine trend-following.
+**Documentazione:**
+- Spec: `Modello-1-TrendFollowing/MODELLO-1-DOCUMENTAZIONE.md`
+- Moduli: `src/modules/<Modulo>/<Modulo>.md`
 
 ## Build & Deploy
 
