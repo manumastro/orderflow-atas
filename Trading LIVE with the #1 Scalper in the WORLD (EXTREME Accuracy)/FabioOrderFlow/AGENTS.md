@@ -12,8 +12,6 @@ Indicatore ATAS modulare per order flow analysis (NQ/ES futures).
 | **London MR Model** | [`models/LondonMeanReversionModel/README.md`](models/LondonMeanReversionModel/README.md) | Modello 2 - Mean Reversion (production) |
 | **Post-London Impulse Model** | [`models/PostLondonImpulseModel/README.md`](models/PostLondonImpulseModel/README.md) | Modello 1 - Trend Following (planned) |
 
-**Module docs:** Ogni modulo ha il proprio README.md nella sua directory.
-
 ## 🗂️ Struttura Progetto
 
 ```
@@ -29,25 +27,25 @@ FabioOrderFlow/
     │   └── BalanceZoneTracker/
     │       ├── BalanceZoneTracker.cs
     │       └── BalanceZoneTracker.md
-    ├── LondonMeanReversionModel/      # Modello 2 (production)
-    │   ├── README.md                  # Doc del modello
-    │   └── modules/
-    │       └── LondonMeanReversion/
-    │           ├── LondonMeanReversionModule.cs
-    │           └── README.md
-    └── PostLondonImpulseModel/        # Modello 1 (planned)
-        ├── README.md                  # Doc del modello
-        └── modules/
-            └── PostLondonImpulse/
-                ├── README.md
-                └── */                 # Submodules
+    ├── LondonMeanReversionModel/       # Modello 2 (production)
+    │   ├── README.md                   # Doc del modello
+    │   └── LondonMeanReversionModule.cs  # CORE del modello
+    └── PostLondonImpulseModel/         # Modello 1 (planned)
+        ├── README.md                   # Doc del modello
+        ├── PostLondonImpulseModel.cs   # CORE (da implementare)
+        └── modules/                    # Moduli di supporto
+            ├── AggressionDetector/
+            ├── ImpulseProfiler/
+            ├── LowVolumeNodeDetector/
+            └── ...
 ```
 
 **Design:** 
-- Ogni **model** (trading strategy) ha la sua directory sotto `models/`
-- Ogni model contiene i suoi **modules** (componenti tecnici)
+- Ogni **model** ha la sua directory sotto `models/`
+- Ogni model ha il suo **file core** (.cs) a livello model
+- **models/<Model>/modules/** contiene moduli di supporto (opzionale)
 - **models/shared/** contiene moduli condivisi tra tutti i models
-- Le **doc stanano nelle directory dei moduli** (README.md o .md files)
+- **Documentation:** README.md a livello model, .md files nei support modules
 
 ## 🔧 Build & Deploy
 
@@ -57,7 +55,7 @@ dotnet build -c Release
 ./deploy.bat
 ```
 
-**DLL:** `%APPDATA%\ATAS\Indicators\FabioOrderFlow.dll`
+**DLL:** `%APPDATA%\ATAS\Indicators\FabioOrderFlow.dll` (74KB)
 
 ## 📊 Log Files
 
@@ -77,16 +75,15 @@ dotnet build -c Release
 ### Working on London Mean Reversion Model
 
 1. **Read:** [`models/LondonMeanReversionModel/README.md`](models/LondonMeanReversionModel/README.md)
-2. **Module docs:** `models/LondonMeanReversionModel/modules/*/README.md`
-3. **Code:** `models/LondonMeanReversionModel/modules/`
-4. **Test:** CumulativeTrades chart + verify triggers in logs
+2. **Core code:** `models/LondonMeanReversionModel/LondonMeanReversionModule.cs`
+3. **Test:** CumulativeTrades chart + verify triggers in logs
 
 ### Working on Post-London Impulse Model
 
 1. **Read:** [`models/PostLondonImpulseModel/README.md`](models/PostLondonImpulseModel/README.md)
-2. **Module docs:** `models/PostLondonImpulseModel/modules/*/README.md` or `*.md`
-3. **Code:** `models/PostLondonImpulseModel/modules/`
-4. **Status:** Currently in design phase
+2. **Module design docs:** `models/PostLondonImpulseModel/modules/*/*.md`
+3. **Core code:** `models/PostLondonImpulseModel/PostLondonImpulseModel.cs` (to be created)
+4. **Status:** Design phase
 
 ### Working on Shared Modules (BalanceZoneTracker)
 
@@ -110,31 +107,31 @@ dotnet build -c Release
 
 ## ⚙️ Architecture
 
-**Pattern:** Model-based organization, modular components, dependency injection
+**Pattern:** Model-based organization, core files at model level, shared components
 
 ```
 FabioOrderFlow (orchestrator)
-├── LondonMeanReversionModel (Modello 2 - production)
-│   └── LondonMeanReversionModule
-├── PostLondonImpulseModel (Modello 1 - planned)
-│   ├── ImpulseProfiler
-│   ├── LowVolumeNodeDetector
-│   └── AggressionDetector
+├── LondonMeanReversionModel
+│   └── LondonMeanReversionModule.cs (core)
+├── PostLondonImpulseModel
+│   ├── PostLondonImpulseModel.cs (core - to be implemented)
+│   └── modules/ (support: ImpulseProfiler, AggressionDetector, etc.)
 └── shared/
     └── BalanceZoneTracker (used by all models)
 ```
 
 **Design principles:**
-- **Model isolation:** Each trading model is independent
-- **Module composition:** Models use technical modules
-- **Shared components:** Common logic in shared/
-- **Documentation co-location:** Docs live with code
+- **Model isolation:** Each trading model independent
+- **Core at model level:** Main logic in model's .cs file
+- **Support modules:** Optional modules/ subdirectory
+- **Shared components:** Common logic in models/shared/
+- **Documentation co-location:** README.md with model
 
 ## 📝 Regole per Agents
 
-1. **Leggi prima di agire:** Consulta il README del model, poi dei modules
-2. **Documentazione co-located:** Ogni modulo ha il suo README.md nella sua directory
-3. **Non improvvisare:** Segui l'architettura model → modules
+1. **Leggi prima di agire:** Consulta il README del model
+2. **Core logic:** A livello model (ModelName.cs)
+3. **Support modules:** In models/<Model>/modules/ (se necessari)
 4. **Shared modules:** Modifiche a shared/ impattano tutti i models
 5. **Test sempre:** Build + deploy + verifica log dopo ogni modifica
 
@@ -142,7 +139,7 @@ FabioOrderFlow (orchestrator)
 
 - **Version:** 2.0.0
 - **Architecture:** Model-based (refactored June 2026)
-- **Build:** ✅ 0 errors, 8 warnings (unused fields)
+- **Build:** ✅ 0 errors, 8 warnings
 - **DLL size:** 74KB
 - **Models:**
   - ✅ LondonMeanReversionModel (production)
