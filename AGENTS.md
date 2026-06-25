@@ -25,9 +25,13 @@ Indicatori/strategie order flow C# per ATAS (futures NQ/ES).
 
 ## 📖 Documentazione per Modello
 
-**Modello 2 — Mean Reversion (London):**  
+**Modello 2 — Mean Reversion (London) - Implementation:**  
 [`FabioOrderFlow/docs/Modello-2-MeanReversion.md`](Trading%20LIVE%20with%20the%20%231%20Scalper%20in%20the%20WORLD%20(EXTREME%20Accuracy)/FabioOrderFlow/docs/Modello-2-MeanReversion.md)  
-Strategy: fakeout detection, sweep → rejection → POC, aggression tracking
+Strategy implementata: fakeout detection, sweep → rejection → POC, aggression tracking
+
+**Modello 2 — Mean Reversion (London) - Original Spec:**  
+[`FabioOrderFlow/docs/specs/Modello-2-Original-Spec.md`](Trading%20LIVE%20with%20the%20%231%20Scalper%20in%20the%20WORLD%20(EXTREME%20Accuracy)/FabioOrderFlow/docs/specs/Modello-2-Original-Spec.md)  
+Spec originale Fabio (reference only)
 
 **Modello 1 — Trend Following (Post-London):**  
 [`Modello-1-TrendFollowing/MODELLO-1-DOCUMENTAZIONE.md`](Modello-1-TrendFollowing/MODELLO-1-DOCUMENTAZIONE.md)  

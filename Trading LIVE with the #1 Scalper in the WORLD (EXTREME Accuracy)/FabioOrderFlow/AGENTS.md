@@ -9,9 +9,10 @@ Indicatore ATAS modulare per order flow analysis (NQ/ES futures).
 | Documento | Path | Descrizione |
 |-----------|------|-------------|
 | **README** | [`README.md`](README.md) | Overview, quick start, settings |
+| **Modello 2 (Impl)** | [`docs/Modello-2-MeanReversion.md`](docs/Modello-2-MeanReversion.md) | Mean reversion strategy (implementazione) |
+| **Modello 2 (Spec)** | [`docs/specs/Modello-2-Original-Spec.md`](docs/specs/Modello-2-Original-Spec.md) | Spec originale Fabio (reference) |
 | **Core Tracker** | [`docs/modules/BalanceZoneTracker.md`](docs/modules/BalanceZoneTracker.md) | Balance zones, sessioni, volume profile |
 | **Session Detector** | [`docs/modules/SessionDetector.md`](docs/modules/SessionDetector.md) | Rilevamento sessioni, timezone |
-| **Modello 2 MR** | [`docs/Modello-2-MeanReversion.md`](docs/Modello-2-MeanReversion.md) | Mean reversion strategy (London) |
 
 ## 🗂️ Struttura Progetto
 
@@ -20,7 +21,9 @@ FabioOrderFlow/
 ├── README.md                           # Quick start
 ├── AGENTS.md                           # Questo file
 ├── docs/
-│   ├── Modello-2-MeanReversion.md     # Strategy mean reversion
+│   ├── Modello-2-MeanReversion.md     # Strategy implementation
+│   ├── specs/
+│   │   └── Modello-2-Original-Spec.md # Original spec (reference)
 │   └── modules/
 │       ├── BalanceZoneTracker.md      # Core tracker
 │       └── SessionDetector.md         # Session utility
