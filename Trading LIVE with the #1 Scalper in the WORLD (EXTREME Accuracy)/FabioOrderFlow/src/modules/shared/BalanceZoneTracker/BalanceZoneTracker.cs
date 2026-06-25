@@ -236,6 +236,13 @@ namespace FabioOrderFlow
         public decimal? VAH => _context.CurrentZone?.VAH;
         public decimal? VAL => _context.CurrentZone?.VAL;
         public decimal? POC => _context.CurrentZone?.POC;
+        
+        // Mean Reversion module access
+        public List<MeanReversionTriggerLog> MeanReversionTriggerLogs => _meanReversionTriggerLogs;
+        public List<MeanReversionOutcome> MeanReversionOutcomes => _meanReversionOutcomes;
+        public decimal LastPreviewPoc => _lastPreviewPoc;
+        public decimal LastPreviewVah => _lastPreviewVah;
+        public decimal LastPreviewVal => _lastPreviewVal;
 
         public void OnHistoricalCumulativeTrades(IEnumerable<CumulativeTrade> cumulativeTrades)
         {

@@ -7,6 +7,7 @@ namespace FabioOrderFlow;
 public class FabioOrderFlow : Indicator
 {
     private BalanceZoneTracker? _balanceTracker;
+    private LondonMeanReversionModule? _meanReversionModule;
     private CumulativeTradesRequest? _cumulativeTradesRequest;
     private static readonly bool DetailedDebugLogs = false;
     private readonly object _logSync = new();
@@ -59,6 +60,14 @@ public class FabioOrderFlow : Indicator
             Log($"[CHART] CurrentBar={CurrentBar}, ChartType={ChartInfo?.ChartType}");
             LogChartTradingSessions();
             _balanceTracker = new BalanceZoneTracker(this, Log, Rectangles, HorizontalLinesTillTouch, GetCandle, EnableLiveFootprintFirst);
+            
+            // Initialize Mean Reversion module if enabled
+            if (EnableLondonMeanReversion)
+            {
+                _meanReversionModule = new LondonMeanReversionModule(_balanceTracker, Log, GetCandle, EnableLiveFootprintFirst);
+                Log("[MODULE] London Mean Reversion module initialized");
+            }
+            
             return;
         }
 
