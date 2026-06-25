@@ -180,14 +180,6 @@ namespace FabioOrderFlow
         {
             _currentBar = currentBar;
             
-            // Reset footprint-first state all'inizio di ogni nuova barra (solo se abilitato)
-            // MR sweep state moved to module
-            // if (_enableLiveFootprintFirst)
-            // {
-            //     _activeLongSweep = null;
-            //     _activeShortSweep = null;
-            // }
-            
             var barTime = candle.Time;
 
             if (DetailedDebugLogs && bar == 1)
@@ -268,8 +260,6 @@ namespace FabioOrderFlow
                     }
                     break;
             }
-
-            // UpdateMeanReversionOutcomes(bar, candle); // Moved to MR module
         }
 
         private void StartLondonSession(int bar, IndicatorCandle candle)
@@ -301,11 +291,6 @@ namespace FabioOrderFlow
 
             _lastLoggedPreCloseBar = -1;
             _lastPreviewProfileBar = -1;
-            // MR state variables moved to module
-            // _lastLowRejectionCandidateBar = -1;
-            // _lastHighRejectionCandidateBar = -1;
-            // _lastLowRejectionHigh = 0;
-            // ...
 
             UpdateLondonProfile(bar, candle);
             _log($"[SESSION_START] London session started at bar {bar} ({FormatTimes(candle.Time)})");
@@ -343,12 +328,6 @@ namespace FabioOrderFlow
                 _context.CurrentZone.SessionHighBar = bar;
                 _context.CurrentZone.SessionHighTimeUtc = candle.Time;
                 LogSessionExtreme("NEW_SESSION_HIGH", bar, candle, previousHigh);
-                // MR logic moved to module
-                // if (LogPotentialRejection("HIGH_REJECTION_CANDIDATE", bar, candle, previousHigh, out var highRejectionDelta))
-                // {
-                //     _lastHighRejectionCandidateBar = bar;
-                //     ...
-                // }
                 importantEvent = true;
             }
 
@@ -358,12 +337,6 @@ namespace FabioOrderFlow
                 _context.CurrentZone.SessionLowBar = bar;
                 _context.CurrentZone.SessionLowTimeUtc = candle.Time;
                 LogSessionExtreme("NEW_SESSION_LOW", bar, candle, previousLow);
-                // MR logic moved to module
-                // if (LogPotentialRejection("LOW_REJECTION_CANDIDATE", bar, candle, previousLow, out var lowRejectionDelta))
-                // {
-                //     _lastLowRejectionCandidateBar = bar;
-                //     ...
-                // }
                 importantEvent = true;
             }
 
@@ -744,7 +717,7 @@ namespace FabioOrderFlow
 
         private void LogSessionExtreme(string tag, int bar, IndicatorCandle candle, decimal previousExtreme)
         {
-            // Stub - session extreme logging moved to module
+            // Stub - session extreme logging can be added if needed
         }
 
         private void LogLondonPreCloseCandle(int bar, IndicatorCandle candle)
@@ -984,43 +957,6 @@ namespace FabioOrderFlow
             return profile;
         }
 
-        private void UpdateBalanceZoneColors()
-        {
-            if (_context.CurrentZone == null || _currentZoneRectangle == null) return;
-
-            var direction = _context.CurrentZone.BreakoutDirection;
-            if (direction == null) return;
-
-            if (direction == BreakoutDirection.Bullish)
-            {
-                // Blu trasparente per bullish
-                _currentZoneRectangle.Brush = new System.Drawing.SolidBrush(
-                    System.Drawing.Color.FromArgb(30, 0, 100, 200));
-                _currentZoneRectangle.Pen = new System.Drawing.Pen(
-                    System.Drawing.Color.DodgerBlue, 1);
-            }
-            else
-            {
-                // Rosso trasparente per bearish
-                _currentZoneRectangle.Brush = new System.Drawing.SolidBrush(
-                    System.Drawing.Color.FromArgb(30, 200, 50, 50));
-                _currentZoneRectangle.Pen = new System.Drawing.Pen(
-                    System.Drawing.Color.Red, 1);
-            }
-        }
-
-        // ========================================
-        // MR STUB METHODS (temporary - to be removed)
-        // These are kept as stubs to avoid breaking core logic
-        // MR logic is now in LondonMeanReversionModule
-        // ========================================
-        
-        private bool LogPotentialRejection(string tag, int bar, IndicatorCandle candle, decimal previousExtreme, out decimal candleDelta)
-        {
-            candleDelta = 0;
-            return false; // Stub
-        }
-        
         private bool TryCalculateProfilePreview(IReadOnlyDictionary<decimal, decimal> profile, decimal totalVolume, out decimal poc, out decimal vah, out decimal val, out decimal valueAreaVolume, out decimal maxVolume)
         {
             poc = 0;
@@ -1086,11 +1022,6 @@ namespace FabioOrderFlow
             return true;
         }
         
-        private void UpdateMeanReversionOutcomes(int bar, IndicatorCandle candle)
-        {
-            // Stub - delegated to MR module
-        }
-        
         private (decimal Bid, decimal Ask, decimal Delta, string TopLevels) GetCandleVolumeDiagnostics(IndicatorCandle candle)
         {
             var levels = candle.GetAllPriceLevels();
@@ -1103,6 +1034,31 @@ namespace FabioOrderFlow
                 .Select(level => $"{level.Price:F2}:V{level.Volume:F0}/D{level.Ask - level.Bid:F0}"));
 
             return (bid, ask, delta, topLevels);
+        }
+
+        private void UpdateBalanceZoneColors()
+        {
+            if (_context.CurrentZone == null || _currentZoneRectangle == null) return;
+
+            var direction = _context.CurrentZone.BreakoutDirection;
+            if (direction == null) return;
+
+            if (direction == BreakoutDirection.Bullish)
+            {
+                // Blu trasparente per bullish
+                _currentZoneRectangle.Brush = new System.Drawing.SolidBrush(
+                    System.Drawing.Color.FromArgb(30, 0, 100, 200));
+                _currentZoneRectangle.Pen = new System.Drawing.Pen(
+                    System.Drawing.Color.DodgerBlue, 1);
+            }
+            else
+            {
+                // Rosso trasparente per bearish
+                _currentZoneRectangle.Brush = new System.Drawing.SolidBrush(
+                    System.Drawing.Color.FromArgb(30, 200, 50, 50));
+                _currentZoneRectangle.Pen = new System.Drawing.Pen(
+                    System.Drawing.Color.Red, 1);
+            }
         }
     }
 }
