@@ -91,6 +91,32 @@ namespace FabioTrendFollowing
         public bool Target1Hit { get; set; }
         public bool Target2Hit { get; set; }
         public bool Invalidated { get; set; }
+        
+        // Exit management
+        public bool PositionClosed { get; set; }
+        public decimal FinalPnL { get; set; }
+        public string ExitReason { get; set; } = string.Empty;
+        public int ExitBar { get; set; }
+        public DateTime ExitTime { get; set; }
+    }
+    
+    // Footprint-first sweep detection
+    internal sealed class LiveSweepCandidate
+    {
+        public string Direction { get; set; } = string.Empty; // "High" or "Low"
+        public DateTime SweepTimeUtc { get; set; }
+        public decimal SweepPrice { get; set; }
+        public decimal SweepVolume { get; set; }
+        public int Bar { get; set; }
+        public bool RejectionDetected { get; set; }
+        public DateTime? RejectionTimeUtc { get; set; }
+        public decimal RejectionPrice { get; set; }
+        public decimal RejectionVolume { get; set; }
+        
+        // Livelli value area al momento dello sweep
+        public decimal VAH { get; set; }
+        public decimal VAL { get; set; }
+        public decimal POC { get; set; }
     }
 
     internal sealed class BalanceZoneTracker
@@ -99,6 +125,7 @@ namespace FabioTrendFollowing
         private readonly MarketContext _context = new();
         private readonly Action<string> _log;
         private readonly Func<int, IndicatorCandle> _getCandle;
+        private readonly bool _enableLiveFootprintFirst;
 
         private readonly List<DrawingRectangle> _rectangles;
         private readonly List<LineTillTouch> _lines;
@@ -141,6 +168,12 @@ namespace FabioTrendFollowing
         private decimal _lastPreviewVal;
         private DateTime? _liveLowSweepTimeUtc;
         private DateTime? _liveHighSweepTimeUtc;
+        
+        // Footprint-first trigger state
+        private LiveSweepCandidate? _activeLongSweep;
+        private LiveSweepCandidate? _activeShortSweep;
+        private readonly HashSet<string> _footprintTriggeredKeys = new();
+        
         private bool _nySessionActive;
         private int _nySessionStartBar = -1;
         private int _nySessionEndBar = -1;
@@ -160,12 +193,15 @@ namespace FabioTrendFollowing
             Action<string> log,
             List<DrawingRectangle> rectangles,
             List<LineTillTouch> lines,
-            Func<int, IndicatorCandle> getCandle)
+            Func<int, IndicatorCandle> getCandle,
+            bool enableLiveFootprintFirst = false)
         {
             _indicator = indicator;
             _log = log;
             _rectangles = rectangles;
             _lines = lines;
+            _getCandle = getCandle;
+            _enableLiveFootprintFirst = enableLiveFootprintFirst;
             _getCandle = getCandle;
 
         }
@@ -186,6 +222,7 @@ namespace FabioTrendFollowing
                 .OrderBy(trade => trade.Time)
                 .ToList();
 
+            // Log aggression per trigger M5 esistenti
             foreach (var triggerLog in _meanReversionTriggerLogs.Where(log => !log.HistoricalAggressionLogged))
             {
                 LogHistoricalAggressionConfirmation(triggerLog, trades);
@@ -197,8 +234,60 @@ namespace FabioTrendFollowing
             if (_context.CurrentZone == null || _lastPreviewVal == 0 || _lastPreviewVah == 0 || _lastPreviewPoc == 0)
                 return;
 
+            // EXISTING LOGIC: Log aggression per trigger M5 esistenti
             TryLogLiveLongAggression(trade);
             TryLogLiveShortAggression(trade);
+            
+            // NEW LOGIC: Footprint-first trigger detection (solo se abilitato)
+            if (!_enableLiveFootprintFirst)
+                return;
+            
+            // 1. Detect Sweeps
+            if (IsHighSweepTrade(trade))
+            {
+                ProcessLiveHighSweep(trade);
+            }
+            
+            if (IsLowSweepTrade(trade))
+            {
+                ProcessLiveLowSweep(trade);
+            }
+            
+            // 2. Detect Rejections
+            if (_activeShortSweep != null && !_activeShortSweep.RejectionDetected)
+            {
+                if (IsRejectionTrade(_activeShortSweep, trade))
+                {
+                    ProcessLiveRejection(_activeShortSweep, trade);
+                }
+            }
+            
+            if (_activeLongSweep != null && !_activeLongSweep.RejectionDetected)
+            {
+                if (IsRejectionTrade(_activeLongSweep, trade))
+                {
+                    ProcessLiveRejection(_activeLongSweep, trade);
+                }
+            }
+            
+            // 3. Detect Entry
+            if (_activeShortSweep != null && _activeShortSweep.RejectionDetected)
+            {
+                if (IsAggressionEntryTrade(_activeShortSweep, trade))
+                {
+                    ProcessFootprintEntry(_activeShortSweep, trade);
+                    _activeShortSweep = null; // Reset dopo entry
+                }
+            }
+            
+            if (_activeLongSweep != null && _activeLongSweep.RejectionDetected)
+            {
+                if (IsAggressionEntryTrade(_activeLongSweep, trade))
+                {
+                    ProcessFootprintEntry(_activeLongSweep, trade);
+                    _activeLongSweep = null; // Reset dopo entry
+                }
+            }
         }
 
         private void TryLogLiveLongAggression(CumulativeTrade trade)
@@ -260,6 +349,14 @@ namespace FabioTrendFollowing
         public void OnBarUpdate(int bar, IndicatorCandle candle, int currentBar)
         {
             _currentBar = currentBar;
+            
+            // Reset footprint-first state all'inizio di ogni nuova barra (solo se abilitato)
+            if (_enableLiveFootprintFirst)
+            {
+                _activeLongSweep = null;
+                _activeShortSweep = null;
+            }
+            
             var barTime = candle.Time;
 
             if (DetailedDebugLogs && bar == 1)
@@ -353,7 +450,7 @@ namespace FabioTrendFollowing
             if (!_firstCompleteSessionFound && londonTime.Hour != 8)
             {
                 var italyTime = MarketTimeZones.ToItaly(candle.Time);
-                _log($"[SKIP] Partial London session detected at London={londonTime:HH:mm}, Italy={italyTime:HH:mm} | Bar={bar}");
+                _log($"[SKIP] Partial London session detected at London={londonTime:yyyy-MM-dd HH:mm:ss}, Italy={italyTime:yyyy-MM-dd HH:mm:ss} | Bar={bar}");
                 return;
             }
             
@@ -1137,6 +1234,10 @@ namespace FabioTrendFollowing
 
         private void EvaluateLongOutcome(MeanReversionOutcome outcome, int bar, IndicatorCandle candle)
         {
+            // Se posizione già chiusa, stop tracking
+            if (outcome.PositionClosed)
+                return;
+            
             var favorablePoints = candle.High - outcome.EntryPrice;
             var adversePoints = outcome.EntryPrice - candle.Low;
             UpdateMfeMae(outcome, bar, candle, favorablePoints, adversePoints, candle.High, candle.Low);
@@ -1151,17 +1252,28 @@ namespace FabioTrendFollowing
             {
                 outcome.Target2Hit = true;
                 LogTargetHit(outcome, bar, candle, "Target2", outcome.Target2, outcome.Target2 - outcome.EntryPrice);
+                
+                // AUTO-EXIT al Target2
+                outcome.FinalPnL = outcome.Target2 - outcome.EntryPrice;
+                LogPositionClosed(outcome, bar, candle, "TARGET2_HIT");
+                return; // Stop tracking
             }
 
             if (!outcome.Invalidated && candle.Low <= outcome.StopReference)
             {
                 outcome.Invalidated = true;
-                LogInvalidated(outcome, bar, candle);
+                outcome.FinalPnL = outcome.StopReference - outcome.EntryPrice;
+                LogPositionClosed(outcome, bar, candle, "STOP_HIT");
+                return; // Stop tracking
             }
         }
 
         private void EvaluateShortOutcome(MeanReversionOutcome outcome, int bar, IndicatorCandle candle)
         {
+            // Se posizione già chiusa, stop tracking
+            if (outcome.PositionClosed)
+                return;
+            
             var favorablePoints = outcome.EntryPrice - candle.Low;
             var adversePoints = candle.High - outcome.EntryPrice;
             UpdateMfeMae(outcome, bar, candle, favorablePoints, adversePoints, candle.Low, candle.High);
@@ -1176,12 +1288,19 @@ namespace FabioTrendFollowing
             {
                 outcome.Target2Hit = true;
                 LogTargetHit(outcome, bar, candle, "Target2", outcome.Target2, outcome.EntryPrice - outcome.Target2);
+                
+                // AUTO-EXIT al Target2
+                outcome.FinalPnL = outcome.EntryPrice - outcome.Target2;
+                LogPositionClosed(outcome, bar, candle, "TARGET2_HIT");
+                return; // Stop tracking
             }
 
             if (!outcome.Invalidated && candle.High >= outcome.StopReference)
             {
                 outcome.Invalidated = true;
-                LogInvalidated(outcome, bar, candle);
+                outcome.FinalPnL = outcome.EntryPrice - outcome.StopReference;
+                LogPositionClosed(outcome, bar, candle, "STOP_HIT");
+                return; // Stop tracking
             }
         }
 
@@ -1209,6 +1328,16 @@ namespace FabioTrendFollowing
         private void LogInvalidated(MeanReversionOutcome outcome, int bar, IndicatorCandle candle)
         {
             _log($"[MR_INVALIDATED] Direction={outcome.Direction}, EntryModel={outcome.EntryModel}, Bar={bar}, CandidateBar={outcome.CandidateBar}, {FormatTimes(candle.Time)}, EntryPrice={outcome.EntryPrice:F2}, StopReference={outcome.StopReference:F2}, MFE={outcome.MfePoints:F2}, MAE={outcome.MaePoints:F2}");
+        }
+        
+        private void LogPositionClosed(MeanReversionOutcome outcome, int bar, IndicatorCandle candle, string exitReason)
+        {
+            outcome.PositionClosed = true;
+            outcome.ExitReason = exitReason;
+            outcome.ExitBar = bar;
+            outcome.ExitTime = candle.Time;
+            
+            _log($"[MR_POSITION_CLOSED] Direction={outcome.Direction}, EntryModel={outcome.EntryModel}, ExitReason={exitReason}, Bar={bar}, CandidateBar={outcome.CandidateBar}, {FormatTimes(candle.Time)}, EntryPrice={outcome.EntryPrice:F2}, FinalPnL={outcome.FinalPnL:F2}, MFE={outcome.MfePoints:F2}, MAE={outcome.MaePoints:F2}, Target1Hit={outcome.Target1Hit}, Target2Hit={outcome.Target2Hit}");
         }
 
         private decimal GetMinAggressionTradeVolume(DateTime utcTime)
@@ -1401,7 +1530,7 @@ namespace FabioTrendFollowing
                 for (int i = zone.StartBar; i < Math.Min(zone.StartBar + 5, zone.EndBar); i++)
                 {
                     var c = _getCandle(i);
-                    _log($"[DRAW_ZONE] Bar {i}: Time={c.Time:yyyy-MM-dd HH:mm:ss}, O={c.Open:F2}, H={c.High:F2}, L={c.Low:F2}, C={c.Close:F2}");
+                    _log($"[DRAW_ZONE] Bar {i}: Time={FormatTimes(c.Time)}, O={c.Open:F2}, H={c.High:F2}, L={c.Low:F2}, C={c.Close:F2}");
                 }
             }
         }
@@ -1545,6 +1674,162 @@ namespace FabioTrendFollowing
                     System.Drawing.Color.Red, 1);
             }
         }
+        
+        #region Footprint-First Trigger Detection
+
+        private bool IsHighSweepTrade(CumulativeTrade trade)
+        {
+            if (_context.CurrentZone == null || _lastPreviewVah == 0)
+                return false;
+            
+            // Big sell trade che rompe sopra VAH
+            return trade.Direction == TradeDirection.Sell 
+                && trade.Volume >= MinAggressionTradeVolume
+                && trade.Lastprice > _lastPreviewVah;
+        }
+
+        private bool IsLowSweepTrade(CumulativeTrade trade)
+        {
+            if (_context.CurrentZone == null || _lastPreviewVal == 0)
+                return false;
+            
+            // Big buy trade che rompe sotto VAL
+            return trade.Direction == TradeDirection.Buy 
+                && trade.Volume >= MinAggressionTradeVolume
+                && trade.Lastprice < _lastPreviewVal;
+        }
+
+        private bool IsRejectionTrade(LiveSweepCandidate sweep, CumulativeTrade trade)
+        {
+            if (sweep.Direction == "High")
+            {
+                // Rejection = big buy trade dopo high sweep
+                return trade.Direction == TradeDirection.Buy
+                    && trade.Volume >= MinAggressionTradeVolume
+                    && trade.Lastprice < sweep.SweepPrice; // Trade sotto il sweep
+            }
+            else // "Low"
+            {
+                // Rejection = big sell trade dopo low sweep
+                return trade.Direction == TradeDirection.Sell
+                    && trade.Volume >= MinAggressionTradeVolume
+                    && trade.Lastprice > sweep.SweepPrice; // Trade sopra il sweep
+            }
+        }
+
+        private bool IsAggressionEntryTrade(LiveSweepCandidate sweep, CumulativeTrade trade)
+        {
+            if (!sweep.RejectionDetected)
+                return false;
+            
+            if (sweep.Direction == "High")
+            {
+                // Entry short = big sell trade dopo rejection
+                return trade.Direction == TradeDirection.Sell
+                    && trade.Volume >= MinAggressionTradeVolume
+                    && trade.Lastprice <= sweep.VAH; // Back inside value area del sweep
+            }
+            else // "Low"
+            {
+                // Entry long = big buy trade dopo rejection
+                return trade.Direction == TradeDirection.Buy
+                    && trade.Volume >= MinAggressionTradeVolume
+                    && trade.Lastprice >= sweep.VAL; // Back inside value area del sweep
+            }
+        }
+
+        private void ProcessLiveHighSweep(CumulativeTrade trade)
+        {
+            // Se già abbiamo un sweep attivo, non sovrascriverlo
+            if (_activeShortSweep != null)
+                return;
+            
+            _activeShortSweep = new LiveSweepCandidate
+            {
+                Direction = "High",
+                SweepTimeUtc = trade.Time,
+                SweepPrice = trade.Lastprice,
+                SweepVolume = trade.Volume,
+                Bar = _currentBar,
+                VAH = _lastPreviewVah,
+                VAL = _lastPreviewVal,
+                POC = _lastPreviewPoc
+            };
+            
+            _liveHighSweepTimeUtc = trade.Time;
+            
+            var italyTime = MarketTimeZones.ToItaly(trade.Time);
+            _log($"[FOOTPRINT_HIGH_SWEEP] Bar={_currentBar}, Italy={italyTime:yyyy-MM-dd HH:mm:ss.fff}, UTC={trade.Time:yyyy-MM-dd HH:mm:ss.fff}, Price={trade.Lastprice:F2}, Volume={trade.Volume:F0}, VAH={_lastPreviewVah:F2}");
+        }
+
+        private void ProcessLiveLowSweep(CumulativeTrade trade)
+        {
+            // Se già abbiamo un sweep attivo, non sovrascriverlo
+            if (_activeLongSweep != null)
+                return;
+            
+            _activeLongSweep = new LiveSweepCandidate
+            {
+                Direction = "Low",
+                SweepTimeUtc = trade.Time,
+                SweepPrice = trade.Lastprice,
+                SweepVolume = trade.Volume,
+                Bar = _currentBar,
+                VAH = _lastPreviewVah,
+                VAL = _lastPreviewVal,
+                POC = _lastPreviewPoc
+            };
+            
+            _liveLowSweepTimeUtc = trade.Time;
+            
+            var italyTime = MarketTimeZones.ToItaly(trade.Time);
+            _log($"[FOOTPRINT_LOW_SWEEP] Bar={_currentBar}, Italy={italyTime:yyyy-MM-dd HH:mm:ss.fff}, UTC={trade.Time:yyyy-MM-dd HH:mm:ss.fff}, Price={trade.Lastprice:F2}, Volume={trade.Volume:F0}, VAL={_lastPreviewVal:F2}");
+        }
+
+        private void ProcessLiveRejection(LiveSweepCandidate sweep, CumulativeTrade trade)
+        {
+            sweep.RejectionDetected = true;
+            sweep.RejectionTimeUtc = trade.Time;
+            sweep.RejectionPrice = trade.Lastprice;
+            sweep.RejectionVolume = trade.Volume;
+            
+            var italyTime = MarketTimeZones.ToItaly(trade.Time);
+            var secondsAfterSweep = (trade.Time - sweep.SweepTimeUtc).TotalSeconds;
+            var direction = sweep.Direction == "High" ? "Short" : "Long";
+            
+            _log($"[FOOTPRINT_REJECTION] Direction={direction}, Bar={_currentBar}, Italy={italyTime:yyyy-MM-dd HH:mm:ss.fff}, UTC={trade.Time:yyyy-MM-dd HH:mm:ss.fff}, RejectionPrice={trade.Lastprice:F2}, Volume={trade.Volume:F0}, SweepPrice={sweep.SweepPrice:F2}, SecondsAfterSweep={secondsAfterSweep:F1}");
+        }
+
+        private void ProcessFootprintEntry(LiveSweepCandidate sweep, CumulativeTrade trade)
+        {
+            var direction = sweep.Direction == "High" ? "Short" : "Long";
+            var candidateKey = $"Footprint:{direction}:{sweep.Bar}";
+            
+            // Evita entry duplicate per lo stesso sweep
+            if (_footprintTriggeredKeys.Contains(candidateKey))
+                return;
+            
+            _footprintTriggeredKeys.Add(candidateKey);
+            
+            var italyTime = MarketTimeZones.ToItaly(trade.Time);
+            var sweepToEntry = (trade.Time - sweep.SweepTimeUtc).TotalSeconds;
+            var rejectionToEntry = sweep.RejectionTimeUtc.HasValue 
+                ? (trade.Time - sweep.RejectionTimeUtc.Value).TotalSeconds 
+                : 0;
+            
+            var entryPrice = trade.Lastprice;
+            var stopReference = direction == "Long" ? sweep.SweepPrice : sweep.SweepPrice;
+            var target1Poc = sweep.POC; // Usa POC dello sweep, non quello corrente
+            var target2 = direction == "Long" ? sweep.VAH : sweep.VAL; // Usa VAH/VAL dello sweep
+            
+            _log($"[FOOTPRINT_ENTRY] Direction={direction}, Trigger=FOOTPRINT_FIRST, Bar={_currentBar}, SweepBar={sweep.Bar}, Italy={italyTime:yyyy-MM-dd HH:mm:ss.fff}, UTC={trade.Time:yyyy-MM-dd HH:mm:ss.fff}, EntryPrice={entryPrice:F2}, Volume={trade.Volume:F0}, StopReference={stopReference:F2}, Target1POC={target1Poc:F2}, Target2={target2:F2}, SweepToEntrySeconds={sweepToEntry:F1}, RejectionToEntrySeconds={rejectionToEntry:F1}");
+            
+            // Registra outcome per tracking
+            var outcome = RegisterMeanReversionOutcome(direction, "FootprintFirst", _currentBar, sweep.Bar, entryPrice, stopReference, target1Poc, target2);
+            EvaluateMeanReversionOutcomeRange(outcome, _currentBar, Math.Max(_currentBar - 1, sweep.Bar));
+        }
+
+        #endregion
         
     }
 }

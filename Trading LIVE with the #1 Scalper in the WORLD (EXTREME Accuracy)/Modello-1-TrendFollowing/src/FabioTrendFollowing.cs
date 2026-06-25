@@ -11,6 +11,9 @@ public class FabioTrendFollowing : Indicator
     private static readonly bool DetailedDebugLogs = false;
     private readonly object _logSync = new();
     private readonly string _logPath;
+    
+    // Input parameter per abilitare footprint-first su live
+    public bool EnableLiveFootprintFirst { get; set; } = false;
 
     public FabioTrendFollowing()
     {
@@ -53,7 +56,7 @@ public class FabioTrendFollowing : Indicator
             Log($"[INSTRUMENT] Name: {InstrumentInfo?.Instrument}, TickSize: {InstrumentInfo?.TickSize}, Exchange: {InstrumentInfo?.Exchange}, InstrumentTimeZone={InstrumentInfo?.TimeZone}");
             Log($"[CHART] CurrentBar={CurrentBar}, ChartType={ChartInfo?.ChartType}");
             LogChartTradingSessions();
-            _balanceTracker = new BalanceZoneTracker(this, Log, Rectangles, HorizontalLinesTillTouch, GetCandle);
+            _balanceTracker = new BalanceZoneTracker(this, Log, Rectangles, HorizontalLinesTillTouch, GetCandle, EnableLiveFootprintFirst);
             return;
         }
 
@@ -148,8 +151,8 @@ public class FabioTrendFollowing : Indicator
         {
             lock (_logSync)
             {
-                var timestamp = MarketTimeZones.ToItaly(DateTime.UtcNow).ToString("HH:mm:ss.fff");
-                var logMessage = $"[{timestamp}] {message}";
+                var timestamp = MarketTimeZones.ToItaly(DateTime.UtcNow).ToString("yyyy-MM-dd HH:mm:ss.fff");
+                var logMessage = $"[Italy={timestamp}] {message}";
                 File.AppendAllText(_logPath, logMessage + Environment.NewLine);
             }
         }

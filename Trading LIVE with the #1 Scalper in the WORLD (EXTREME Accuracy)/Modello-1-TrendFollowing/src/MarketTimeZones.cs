@@ -24,7 +24,7 @@ internal static class MarketTimeZones
     {
         var italyTime = ToItaly(utcTime);
         var londonTime = ToLondon(utcTime);
-        return $"Italy={italyTime:yyyy-MM-dd HH:mm}, London={londonTime:yyyy-MM-dd HH:mm}, UTC={utcTime:yyyy-MM-dd HH:mm:ss}";
+        return $"Italy={italyTime:yyyy-MM-dd HH:mm:ss}, London={londonTime:yyyy-MM-dd HH:mm:ss}, UTC={utcTime:yyyy-MM-dd HH:mm:ss}";
     }
 
     private static TimeZoneInfo CreateItalyTimeZone()

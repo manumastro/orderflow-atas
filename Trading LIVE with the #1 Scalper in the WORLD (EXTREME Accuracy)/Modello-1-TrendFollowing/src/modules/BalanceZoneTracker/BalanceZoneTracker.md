@@ -190,7 +190,7 @@ London:
 Nei log, il formato standard è:
 
 ```text
-Italy=... , London=... , UTC=...
+Italy=yyyy-MM-dd HH:mm:ss.fff, London=yyyy-MM-dd HH:mm:ss.fff, UTC=yyyy-MM-dd HH:mm:ss.fff
 ```
 
 con `Italy` come riferimento primario.

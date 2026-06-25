@@ -278,3 +278,116 @@ MeanReversionPreviewTracker
 ```
 
 Il modulo dovrà restare separato dalla pipeline del Modello 1.
+
+---
+
+## 11. Outcome Tracking e Entry Models
+
+### 11.1 Exit Management
+
+I trade mean reversion vengono chiusi automaticamente quando:
+- **Target2 raggiunto** → exit con `ExitReason=TARGET2_HIT`
+- **Stop colpito** → exit con `ExitReason=STOP_HIT`
+
+La classe `MeanReversionOutcome` traccia:
+- `PositionClosed` - se la posizione è stata chiusa
+- `FinalPnL` - profitto/perdita finale in punti
+- `ExitReason` - motivo della chiusura
+- `ExitBar`, `ExitTime` - barra e timestamp di uscita
+
+Log generato: `[MR_POSITION_CLOSED]` con PnL finale e statistiche complete.
+
+### 11.2 Entry Models
+
+Il sistema supporta due approcci di entry:
+
+#### M5 + Aggression Confirm (Storico e Live)
+
+**Trigger basati su struttura candela M5:**
+- `[MR_EARLY_TRIGGER]` - Entry anticipata (candela dopo rejection)
+- `[MR_TRIGGER]` - Entry conservativa (reclaim POC)
+
+**Conferma footprint:**
+- `[MR_AGGRESSION_CONFIRM]` con `EntryModel=FootprintCumulativeTradeHistorical`
+- Dopo trigger M5, cerca big trades (≥20 contratti) nei cumulative trades
+- Valida aggression dentro l'entry area della candela trigger
+- Log: `SecondsAfterSweep`, `Volume`, `TradeDirection`, `EntryPrice`
+- **Funziona sia su storico che su live**
+
+#### Footprint-First (Solo Live)
+
+**Parametro ATAS:** `EnableLiveFootprintFirst` (default: `false`)
+
+Sistema opzionale per entry real-time con latenza ridotta. Disabilitato di default.
+
+**Pipeline real-time:**
+1. **Sweep Detection** - `[FOOTPRINT_HIGH_SWEEP]` / `[FOOTPRINT_LOW_SWEEP]`
+   - Big trade (≥20) rompe sopra VAH o sotto VAL
+   - Salva livelli VAH/VAL/POC al momento dello sweep
+
+2. **Rejection Detection** - `[FOOTPRINT_REJECTION]`
+   - Big trade direzione opposta dopo sweep
+   - Log: `SecondsAfterSweep`, latenza media ~83s
+
+3. **Entry Detection** - `[FOOTPRINT_ENTRY]`
+   - Big buy (long) se `price >= sweep.VAL`
+   - Big sell (short) se `price <= sweep.VAH`
+   - `EntryModel=FootprintFirst`
+   - Log: `SweepToEntrySeconds`, `RejectionToEntrySeconds`
+
+**Gestione stato:**
+- Reset sweep senza rejection ad ogni nuova barra (`OnBarUpdate`)
+- Timeout 300s (5 min) per sweep con rejection se entry non arriva
+- Uno sweep attivo per direzione (long/short) per volta
+
+**Limitazione:** Footprint-first funziona solo su **live/replay real-time** perché richiede processing tick-by-tick. Su dati storici batch, usa M5 + Aggression Confirm.
+
+**Abilitazione:** Spunta `EnableLiveFootprintFirst` nelle proprietà dell'indicatore ATAS. Default: disabilitato per mantenere comportamento identico a storico.
+
+**Implementazione tecnica:**
+- Classe `LiveSweepCandidate` con VAH/VAL/POC salvati
+- Processing in `OnLiveCumulativeTrade` per detection real-time
+- Metodi helper: `IsHighSweepTrade`, `IsLowSweepTrade`, `IsRejectionTrade`, `IsAggressionEntryTrade`
+
+### 11.3 Statistiche Entry (24 Giugno 2026, Dati Storici)
+
+**M5 + Aggression Confirm:**
+- 15 entry totali (7 short, 6+ long)
+- 14 posizioni chiuse con exit management
+- Latenze sweep→entry: min 0s, max 290s, media 83s
+- Win rate: da validare con analisi outcome
+
+**Footprint-First:**
+- Non applicabile su dati storici (richiede live)
+- Da testare su live trading per confrontare con M5
+
+### 11.4 Log Monitoring
+
+```bash
+# Exit management (storico e live)
+grep "MR_POSITION_CLOSED" FabioTrendFollowing.log
+
+# Trigger M5 (storico e live)
+grep "MR_TRIGGER\|MR_EARLY_TRIGGER" FabioTrendFollowing.log
+
+# Footprint aggression M5 (storico e live)
+grep "MR_AGGRESSION_CONFIRM" FabioTrendFollowing.log
+
+# Footprint-first (solo live)
+grep "FOOTPRINT_" FabioTrendFollowing.log
+```
+
+### 11.5 Codice
+
+**File:** `BalanceZoneTracker.cs`
+
+**Classi principali:**
+- `MeanReversionOutcome` (linea ~77) - Tracking completo outcome con exit management
+- `LiveSweepCandidate` (linea ~103) - Sweep con livelli VAH/VAL/POC salvati
+
+**Metodi chiave:**
+- `OnHistoricalCumulativeTrades` (linea ~215) - Solo M5 + aggression confirm
+- `OnLiveCumulativeTrade` (linea ~325) - M5 + aggression + footprint-first
+- `OnBarUpdate` (linea ~389) - Reset sweep per nuova barra
+- `EvaluateLongOutcome`, `EvaluateShortOutcome` (linea ~1145) - Exit management
+- `#region Footprint-First Trigger Detection` (linea ~1550+) - 9 metodi helper

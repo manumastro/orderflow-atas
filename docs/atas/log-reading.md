@@ -5,7 +5,7 @@ Questa è la guida canonica per interpretare i log di `FabioTrendFollowing`.
 ## 1. Principi generali
 
 - Il file log è unico e viene svuotato a ogni inizializzazione dell'indicatore.
-- Il prefisso temporale `[..]` all'inizio di riga è l'orario di scrittura del log, non il tempo di mercato.
+- Il prefisso temporale all'inizio di riga è esplicitato come `Italy=yyyy-MM-dd HH:mm:ss.fff`; è la data/ora di scrittura del log in formato italiano, non il tempo di mercato.
 - I timestamp utili per il mercato sono quelli embedded nei campi `UTC=`, `London=` e `Italy=`.
 - Per l'analisi operativa usa sempre l'orario italiano come riferimento principale.
 - Usa `UTC` solo come supporto quando devi riallineare il timestamp.
