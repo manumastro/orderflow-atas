@@ -15,7 +15,7 @@ public class FabioOrderFlow : Indicator
     // Module parameters
     public bool EnableLondonMeanReversion { get; set; } = true;
     public bool EnablePostLondonImpulse { get; set; } = false;
-    public bool EnableLiveFootprintFirst { get; set; } = false;
+    public bool EnableLiveFootprintFirst { get; set; } = true;
 
     public FabioOrderFlow()
     {
