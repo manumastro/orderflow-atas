@@ -73,28 +73,18 @@ StopReference, Target1, Bid, Ask, Delta
 
 ### Aggression Confirmation
 
-**Historical Mode** (sempre attivo, per backtest/replay):
 ```
 [MR_AGGRESSION_CONFIRM] Direction, EntryModel=FootprintCumulativeTradeHistorical
-Bar, CandidateBar, EntryPrice, EntryAreaLow, EntryAreaHigh
-Volume, TradeDirection, SweepTime (intrabar timestamp con millisecondi)
-SecondsAfterSweep, StopReference, Target1POC, Target2
-VAH, VAL, MinVolume
+Bar, CandidateBar, EntryPrice, Volume, TradeDirection
+SweepTime, SecondsAfterSweep
+StopReference, Target1POC, Target2, VAH, VAL
 ```
 
-**Live Mode** (solo durante trading live, se `EnableLiveFootprintFirst=true`):
-```
-[FOOTPRINT_HIGH_SWEEP] Bar, Price, Volume, VAH
-[FOOTPRINT_LOW_SWEEP] Bar, Price, Volume, VAL
-[FOOTPRINT_REJECTION] Direction, Bar, RejectionPrice, Volume, SecondsAfterSweep
-[FOOTPRINT_ENTRY] Direction, Trigger=FOOTPRINT_FIRST, EntryPrice, Volume
-```
+**Timestamp intrabar:**  
+Gli entry timestamp sono sempre intrabar con precisione al millisecondo (es: `London=09:04:47.686`), non timestamp di chiusura bar. Questo permette di tracciare il timing preciso dell'aggression all'interno della barra.
 
-**Key Differences:**
-- **Historical:** Batch processing dopo chiusura bar trigger, individua entry con timestamp intrabar precisi (es: 09:04:47.686)
-- **Live:** Real-time tick-by-tick detection prima della chiusura bar, per alert anticipati
-- **Entrambi:** Stessi criteri (volume >= minVolume, direction corretta, inside value area)
-- **Precisione:** Entrambi individuano entry intrabar con millisecondi (non solo chiusura bar)
+**Live footprint detection:**  
+Durante trading live (se `EnableLiveFootprintFirst=true`), vengono generati anche tag `[FOOTPRINT_*]` per sweep/rejection/entry real-time.
 
 ### Outcome Tracking
 ```
@@ -111,75 +101,45 @@ PnL, MFE, MAE
 
 ```csharp
 EnableLondonMeanReversion = true      // Enable/disable module
-EnableLiveFootprintFirst = true       // Live tick detection (default: true)
-                                       // false = solo historical post-processing
-                                       // true = real-time footprint detection
+EnableLiveFootprintFirst = true       // Live footprint detection (default: true)
 MinAggressionTradeVolume = 20         // Threshold contracts per entry
 ```
 
-**EnableLiveFootprintFirst:**
-- Controlla SOLO la detection live tick-by-tick
-- NON influenza aggression confirmation storica (sempre attiva)
-- `true`: Alert e detection anticipati durante trading live
-- `false`: Aspetta chiusura bar per conferma (più conservativo)
-- Su backtest/replay: Irrilevante (usa sempre historical mode)
+**EnableLiveFootprintFirst:**  
+Controlla la detection live tick-by-tick durante trading attivo. Se `true`, genera tag `[FOOTPRINT_*]` real-time. Non influenza l'aggression confirmation su dati storici.
 
 ## Log Examples
 
 ### Trigger Detection
 ```
 [MR_TRIGGER] Direction=Short, Trigger=POC_LOSS_AFTER_HIGH_REJECTION, 
-  BarMode=HISTORICAL_CLOSED, Bar=5206, CurrentBar=5359, 
+  BarMode=HISTORICAL_CLOSED, Bar=5206, CandidateBar=5203, 
   Italy=2026-06-25 10:15:00, London=2026-06-25 09:15:00, UTC=2026-06-25 08:15:00, 
-  CandidateBar=5203, Close=30170.50, POC=30180.00, VAH=30198.75, VAL=30148.00, 
-  DistToPOC=-9.50, StopReference=30219.00, Target1=30148.00, Bid=296, Ask=296, Delta=0
+  Close=30170.50, POC=30180.00, VAH=30198.75, VAL=30148.00, 
+  DistToPOC=-9.50, StopReference=30219.00, Target1=30148.00
 ```
 
-### Aggression Confirmation (Historical)
+### Aggression Confirmation
 ```
 [MR_AGGRESSION_CONFIRM] Direction=Short, EntryModel=FootprintCumulativeTradeHistorical, 
   Trigger=HIGH_REJECTION_FOLLOW_THROUGH, Bar=5205, CandidateBar=5203, 
   Italy=2026-06-25 10:04:47.686, London=2026-06-25 09:04:47.686, UTC=2026-06-25 08:04:47.686, 
-  EntryPrice=30199.25, EntryAreaLow=30199.25, EntryAreaHigh=30202.50, 
-  FirstPrice=30202.50, LastPrice=30199.25, Volume=25, TradeDirection=Sell, 
+  EntryPrice=30199.25, Volume=25, TradeDirection=Sell, 
   SweepTimeItaly=2026-06-25 10:03:02.713, SweepTimeLondon=2026-06-25 09:03:02.713, 
-  SweepTimeUtc=2026-06-25 08:03:02.713, SecondsAfterSweep=105.0, 
-  StopReference=30219.00, RiskPoints=19.75, Target1POC=30180.00, Target2=30148.00, 
-  RewardToPOC=19.25, RewardToTarget2=51.25, VAH=30200.00, VAL=30148.00, 
-  MinVolume=20, VolumeRule=Hardcoded20
+  SecondsAfterSweep=105.0, StopReference=30219.00, Target1POC=30180.00, Target2=30148.00
 ```
 
-**Note:** Entry timestamp è INTRABAR (09:04:47.686) con millisecondi precisi, 105 secondi dopo sweep.
-
-### Aggression Confirmation (Live - durante trading attivo)
-```
-[FOOTPRINT_HIGH_SWEEP] Bar=152, Italy=2026-06-25 14:30:11.888, 
-  London=2026-06-25 13:30:11.888, UTC=2026-06-25 12:30:11.888, 
-  Price=30202.50, Volume=45, VAH=30200.00
-
-[FOOTPRINT_REJECTION] Direction=Short, Bar=152, 
-  Italy=2026-06-25 14:30:35.123, London=2026-06-25 13:30:35.123, UTC=2026-06-25 12:30:35.123, 
-  RejectionPrice=30195.00, Volume=32, SweepPrice=30202.50, SecondsAfterSweep=23.2
-
-[FOOTPRINT_ENTRY] Direction=Short, Trigger=FOOTPRINT_FIRST, Bar=153, 
-  SweepBar=152, Italy=2026-06-25 14:32:18.456, London=2026-06-25 13:32:18.456, 
-  UTC=2026-06-25 12:32:18.456, EntryPrice=30190.00, Volume=28, 
-  StopReference=30210.00, Target1POC=30180.00, Target2=30160.00, 
-  SweepToEntrySeconds=127.3, RejectionToEntrySeconds=103.3
-```
-
-**Note:** Live tags appaiono solo durante trading attivo (non su dati storici).
+**Nota timestamp intrabar:**  
+L'entry time `09:04:47.686` è dentro la barra (presumibilmente 09:00-09:05), con precisione al millisecondo. Il campo `SecondsAfterSweep=105.0` indica il ritardo preciso dal sweep.
 
 ### Outcome Tracking
 ```
-[MR_TARGET_HIT] Direction=Short, EntryModel=FootprintCumulativeTradeHistorical, 
-  Target=Target2, Bar=5212, CandidateBar=5203, Italy=2026-06-25 10:45:00, 
-  London=2026-06-25 09:45:00, UTC=2026-06-25 08:45:00, 
-  EntryPrice=30199.25, TargetPrice=30148.00, RewardPoints=51.25, MFE=60.00, MAE=18.50
+[MR_TARGET_HIT] Direction=Short, Target=Target2, Bar=5212, 
+  Italy=2026-06-25 10:45:00, EntryPrice=30199.25, TargetPrice=30148.00, 
+  RewardPoints=51.25, MFE=60.00, MAE=18.50
 
-[MR_POSITION_CLOSED] Direction=Short, EntryModel=FootprintCumulativeTradeHistorical, 
-  Bar=5212, CandidateBar=5203, Italy=2026-06-25 10:45:00, London=2026-06-25 09:45:00, 
-  UTC=2026-06-25 08:45:00, EntryPrice=30199.25, ExitPrice=30148.00, 
+[MR_POSITION_CLOSED] Direction=Short, Bar=5212, 
+  Italy=2026-06-25 10:45:00, EntryPrice=30199.25, ExitPrice=30148.00, 
   ExitReason=TARGET_HIT, PnL=51.25, MFE=60.00, MAE=18.50
 ```
 
