@@ -96,6 +96,13 @@ namespace FabioOrderFlow
         private decimal _lastPreviewVah;
         private decimal _lastPreviewVal;
         
+        // Last logged preview state (to avoid spam)
+        private decimal _lastLoggedPoc;
+        private decimal _lastLoggedVah;
+        private decimal _lastLoggedVal;
+        private string _lastLoggedRelation = "";
+        private int _lastLoggedPreviewBar = -1;
+        
         // Core state variables
         private bool _firstCompleteSessionFound = false;
         private int _lastLoggedPreCloseBar = -1;
@@ -115,6 +122,11 @@ namespace FabioOrderFlow
         private readonly Dictionary<decimal, decimal> _nySessionProfile = new();
         private int _lastLoggedNyPreCloseBar = -1;
         private int _lastNyPreviewProfileBar = -1;
+        private decimal _lastNyLoggedPoc;
+        private decimal _lastNyLoggedVah;
+        private decimal _lastNyLoggedVal;
+        private string _lastNyLoggedRelation = "";
+        private int _lastNyLoggedPreviewBar = -1;
 
         public BalanceZoneTracker(
             Indicator indicator, 
@@ -465,12 +477,27 @@ namespace FabioOrderFlow
             var relation = candle.Close > vah ? "ABOVE_PREVIEW_VAH" : candle.Close < val ? "BELOW_PREVIEW_VAL" : "INSIDE_PREVIEW_VA";
             var nyBars = _nySessionEndBar - _nySessionStartBar + 1;
 
-            // Log NY_PROFILE_PREVIEW only if force=true or there's an active trade
+            // Log NY_PROFILE_PREVIEW only if force=true or there's an active trade AND significant change
             var hasActiveTrades = _meanReversionModule?.MeanReversionOutcomes.Any(o => !o.PositionClosed) ?? false;
-            if (force || hasActiveTrades)
+            
+            // Check if significant change occurred
+            var significantChange = _lastNyLoggedPreviewBar != bar ||
+                                   _lastNyLoggedPoc != poc ||
+                                   _lastNyLoggedVah != vah ||
+                                   _lastNyLoggedVal != val ||
+                                   _lastNyLoggedRelation != relation;
+            
+            if (force || (hasActiveTrades && significantChange))
             {
                 var isHistorical = bar < _indicator.CurrentBar - 1;
                 _log($"[NY_PROFILE_PREVIEW] Bar={bar}, {FormatTimes(candle.Time)}, Reason={(force ? "event" : "live")}, Bars={nyBars}, High={_nySessionHigh:F2}, Low={_nySessionLow:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, VA_Volume={valueAreaVolume:F0}, TotalVolume={_nySessionTotalVolume:F0}, MaxLevelVolume={maxVolume:F0}, Close={candle.Close:F2}, Relation={relation}, DistToPOC={candle.Close - poc:F2}, DistToVAH={candle.Close - vah:F2}, DistToVAL={candle.Close - val:F2}, CandleBid={bid:F0}, CandleAsk={ask:F0}, CandleDelta={delta:F0}", isHistorical);
+                
+                // Update last logged state
+                _lastNyLoggedPreviewBar = bar;
+                _lastNyLoggedPoc = poc;
+                _lastNyLoggedVah = vah;
+                _lastNyLoggedVal = val;
+                _lastNyLoggedRelation = relation;
             }
         }
 
@@ -784,12 +811,27 @@ namespace FabioOrderFlow
 
             // Log PROFILE_PREVIEW only if:
             // 1. force=true (event: high/low/new bar)
-            // 2. There's an active MR trade
+            // 2. There's an active MR trade AND significant change occurred
             var hasActiveTrades = _meanReversionModule?.MeanReversionOutcomes.Any(o => !o.PositionClosed) ?? false;
-            if (force || hasActiveTrades)
+            
+            // Check if significant change occurred
+            var significantChange = _lastLoggedPreviewBar != bar ||
+                                   _lastLoggedPoc != poc ||
+                                   _lastLoggedVah != vah ||
+                                   _lastLoggedVal != val ||
+                                   _lastLoggedRelation != relation;
+            
+            if (force || (hasActiveTrades && significantChange))
             {
                 var isHistorical = bar < _indicator.CurrentBar - 1;
                 _log($"[PROFILE_PREVIEW] Bar={bar}, {FormatTimes(candle.Time)}, Reason={(force ? "event" : "live")}, Bars={sessionBars}, High={_context.CurrentZone.High:F2}, Low={_context.CurrentZone.Low:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, VA_Volume={valueAreaVolume:F0}, TotalVolume={_context.CurrentZone.TotalVolume:F0}, MaxLevelVolume={maxVolume:F0}, Close={candle.Close:F2}, Relation={relation}, DistToPOC={candle.Close - poc:F2}, DistToVAH={candle.Close - vah:F2}, DistToVAL={candle.Close - val:F2}", isHistorical);
+                
+                // Update last logged state
+                _lastLoggedPreviewBar = bar;
+                _lastLoggedPoc = poc;
+                _lastLoggedVah = vah;
+                _lastLoggedVal = val;
+                _lastLoggedRelation = relation;
             }
             
             // Call MR module for trigger evaluation
