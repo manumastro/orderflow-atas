@@ -171,6 +171,11 @@ namespace FabioOrderFlow
         {
             if (!_enableLiveFootprintFirst)
                 return;
+
+            // Block all trading after London close (16:00 London time)
+            var londonTime = MarketTimeZones.ToLondon(trade.Time);
+            if (londonTime.Hour >= 16)
+                return;
                 
             TryLogLiveLongAggression(trade);
             TryLogLiveShortAggression(trade);
@@ -677,6 +682,12 @@ namespace FabioOrderFlow
         private void LogHistoricalAggressionConfirmation(MeanReversionTriggerLog triggerLog, IReadOnlyCollection<CumulativeTrade> trades)
         {
             if (triggerLog.CandidateBar < 0 || triggerLog.CandidateBar >= _currentBar || triggerLog.Bar < 0 || triggerLog.Bar >= _currentBar)
+                return;
+
+            // Block all trading after London close (16:00 London time)
+            var barCandle = _getCandle(triggerLog.Bar);
+            var londonTime = MarketTimeZones.ToLondon(barCandle.Time);
+            if (londonTime.Hour >= 16)
                 return;
 
             var candidateKey = $"{triggerLog.Direction}:{triggerLog.CandidateBar}";
