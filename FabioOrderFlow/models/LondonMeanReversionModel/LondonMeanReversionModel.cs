@@ -591,7 +591,7 @@ namespace FabioOrderFlow
             if (!outcome.Invalidated && candle.Low <= outcome.StopReference)
             {
                 outcome.Invalidated = true;
-                outcome.FinalPnL = outcome.EntryPrice - outcome.StopReference; // Fixed: Long stop loss is negative
+                outcome.FinalPnL = outcome.StopReference - outcome.EntryPrice; // Stop loss: negative value
                 LogPositionClosed(outcome, bar, candle, "STOP_HIT");
                 return; // Stop tracking
             }
