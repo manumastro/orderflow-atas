@@ -124,6 +124,9 @@ namespace FabioOrderFlow
         
         public void OnNewSessionHigh(int bar, IndicatorCandle candle, decimal previousHigh)
         {
+            // Always log new session high
+            _log($"[NEW_SESSION_HIGH] Bar={bar}, {FormatTimes(candle.Time)}, NewHigh={candle.High:F2}, PreviousHigh={previousHigh:F2}, Close={candle.Close:F2}, Delta={(candle.High - candle.Close):F2}", false);
+            
             if (LogPotentialRejection("HIGH_REJECTION_CANDIDATE", bar, candle, previousHigh, out var highRejectionDelta))
             {
                 _lastHighRejectionCandidateBar = bar;
@@ -139,6 +142,9 @@ namespace FabioOrderFlow
         
         public void OnNewSessionLow(int bar, IndicatorCandle candle, decimal previousLow)
         {
+            // Always log new session low
+            _log($"[NEW_SESSION_LOW] Bar={bar}, {FormatTimes(candle.Time)}, NewLow={candle.Low:F2}, PreviousLow={previousLow:F2}, Close={candle.Close:F2}, Delta={(candle.Close - candle.Low):F2}", false);
+            
             if (LogPotentialRejection("LOW_REJECTION_CANDIDATE", bar, candle, previousLow, out var lowRejectionDelta))
             {
                 _lastLowRejectionCandidateBar = bar;
@@ -322,6 +328,11 @@ namespace FabioOrderFlow
                     var uuid = RegisterMeanReversionTrigger("Long", "LOW_REJECTION_FOLLOW_THROUGH", bar, _lastLowRejectionCandidateBar, poc, vah, val);
                     _log($"[MR_EARLY_TRIGGER] Uuid={uuid}, Direction=Long, Trigger=LOW_REJECTION_FOLLOW_THROUGH, BarMode={GetBarMode(bar)}, Bar={bar}, CurrentBar={_currentBar}, {FormatTimes(candle.Time)}, CandidateBar={_lastLowRejectionCandidateBar}, CandidateLow={_lastLowRejectionLow:F2}, CandidateClose={_lastLowRejectionClose:F2}, CandidateHigh={_lastLowRejectionHigh:F2}, CandidateDelta={_lastLowRejectionDelta:F0}, Close={candle.Close:F2}, High={candle.High:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, DistToPOC={candle.Close - poc:F2}, StopReference={_lastLowRejectionLow:F2}, Target1={poc:F2}, Target2={vah:F2}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}", IsHistoricalBar(bar));
                 }
+                else if (closeAboveRejectionClose || tradedAboveRejectionHigh || candle.Close > _lastLowRejectionLow + 10)
+                {
+                    // Log why follow-through failed (only if price moved significantly)
+                    _log($"[MR_FOLLOWTHROUGH_CHECK] Direction=Long, Bar={bar}, {FormatTimes(candle.Time)}, CandidateBar={_lastLowRejectionCandidateBar}, CloseAboveRejClose={closeAboveRejectionClose}, TradedAboveRejHigh={tradedAboveRejectionHigh}, PositiveFollowThrough={positiveFollowThrough}, CloseBackInsideValue={closeBackInsideValue}, Close={candle.Close:F2}, VAL={val:F2}, Delta={delta:F0}", false);
+                }
             }
 
             if (_lastHighRejectionCandidateBar >= 0 && !_highRejectionEarlyTriggered && bar > _lastHighRejectionCandidateBar)
@@ -336,6 +347,11 @@ namespace FabioOrderFlow
                     _highRejectionEarlyTriggered = true;
                     var uuid = RegisterMeanReversionTrigger("Short", "HIGH_REJECTION_FOLLOW_THROUGH", bar, _lastHighRejectionCandidateBar, poc, vah, val);
                     _log($"[MR_EARLY_TRIGGER] Uuid={uuid}, Direction=Short, Trigger=HIGH_REJECTION_FOLLOW_THROUGH, BarMode={GetBarMode(bar)}, Bar={bar}, CurrentBar={_currentBar}, {FormatTimes(candle.Time)}, CandidateBar={_lastHighRejectionCandidateBar}, CandidateHigh={_lastHighRejectionHigh:F2}, CandidateClose={_lastHighRejectionClose:F2}, CandidateLow={_lastHighRejectionLow:F2}, CandidateDelta={_lastHighRejectionDelta:F0}, Close={candle.Close:F2}, Low={candle.Low:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, DistToPOC={candle.Close - poc:F2}, StopReference={_lastHighRejectionHigh:F2}, Target1={poc:F2}, Target2={val:F2}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}", IsHistoricalBar(bar));
+                }
+                else if (closeBelowRejectionClose || tradedBelowRejectionLow || candle.Close < _lastHighRejectionHigh - 10)
+                {
+                    // Log why follow-through failed (only if price moved significantly)
+                    _log($"[MR_FOLLOWTHROUGH_CHECK] Direction=Short, Bar={bar}, {FormatTimes(candle.Time)}, CandidateBar={_lastHighRejectionCandidateBar}, CloseBelowRejClose={closeBelowRejectionClose}, TradedBelowRejLow={tradedBelowRejectionLow}, NegativeFollowThrough={negativeFollowThrough}, CloseBackInsideValue={closeBackInsideValue}, Close={candle.Close:F2}, VAH={vah:F2}, Delta={delta:F0}", false);
                 }
             }
         }
