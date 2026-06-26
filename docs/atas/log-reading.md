@@ -1,6 +1,6 @@
 # ATAS Log Reading
 
-Questa è la guida canonica per interpretare i log di `FabioTrendFollowing`.
+Questa è la guida canonica per interpretare i log di `FabioOrderFlow`.
 
 ## 1. Principi generali
 
@@ -13,10 +13,27 @@ Questa è la guida canonica per interpretare i log di `FabioTrendFollowing`.
 ## 2. File log
 
 ```text
-%APPDATA%/ATAS/Logs/FabioTrendFollowing.log
+%APPDATA%/ATAS/Logs/FabioOrderFlow.log
 ```
 
 Questo è il file corrente dell'indicatore.
+
+## 2.1 UUID Tracking
+
+Dalla versione 2.1, ogni trigger MR genera un **UUID unico** che viene propagato a tutti gli eventi correlati:
+
+- `[MR_TRIGGER]` e `[MR_EARLY_TRIGGER]` → campo `Uuid=<guid>`
+- `[MR_AGGRESSION_CONFIRM]` → campo `TriggerUuid=<guid>`
+- `[MR_MFE_UPDATE]` → campo `TriggerUuid=<guid>`
+- `[MR_TARGET_HIT]` → campo `TriggerUuid=<guid>`
+- `[MR_POSITION_CLOSED]` → campo `TriggerUuid=<guid>`
+
+Questo permette di:
+- Tracciare l'intera vita di un trade anche dopo ricaricamenti
+- Filtrare tutti gli eventi di un singolo trigger
+- Generare report strutturati per UUID
+
+**Nota:** I trade `FOOTPRINT_FIRST` usano UUID nel formato `footprint-<bar>` poiché non hanno un trigger MR standard.
 
 ## 3. Come leggere le barre
 
@@ -62,18 +79,38 @@ Questo è il file corrente dell'indicatore.
 3. Interpreta il footprint come timing di entry.
 4. Considera sempre la timezone dichiarata dal log quando confronti eventi e prezzi.
 
-## 6. Note per i modelli
+## 6. Report Tool
 
-### Modello 1 — Trend Following
+Per estrarre e analizzare i trade è disponibile lo script `report-trades.ps1`:
 
-- Il log serve a leggere balance, breakout, acceptance e continuation.
-- La documentazione di riferimento del modello è `../Modello-1-TrendFollowing/MODELLO-1-DOCUMENTAZIONE.md`.
+```powershell
+# Report di oggi
+.\report-trades.ps1
 
-### Modello 2 — Mean Reversion
+# Report di una data specifica
+.\report-trades.ps1 -Date "2026-06-26"
 
-- Il log serve a leggere fakeout, rejection e ritorno verso `POC`.
-- La documentazione di riferimento del modello è `../Modello-2-MeanReversion/FabioMeanReversion.md`.
+# Raggruppato per UUID
+.\report-trades.ps1 -GroupByUuid
 
-## 7. Regola pratica
+# Solo trade completati
+.\report-trades.ps1 -GroupByUuid -OnlyCompleted
+```
+
+Lo script parsifica i log e presenta:
+- Summary (conteggio trigger/entry/chiusure)
+- Lista trigger con UUID
+- Lista aggression con riferimento UUID
+- Grouping completo per UUID con timeline
+
+## 7. Note per i modelli
+
+### LondonMeanReversionModel
+
+- Il log traccia rejection, POC reclaim/loss, aggression confirmation
+- Ogni trigger ha un UUID unico per tracking completo
+- La documentazione di riferimento è `FabioOrderFlow/models/LondonMeanReversionModel/LondonMeanReversionModel.md`
+
+## 8. Regola pratica
 
 Se devi capire cosa è successo sul mercato, parti sempre da qui, poi passa alla documentazione del modello specifico.
