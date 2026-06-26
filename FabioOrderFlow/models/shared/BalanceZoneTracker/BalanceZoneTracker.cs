@@ -230,6 +230,12 @@ namespace FabioOrderFlow
                     {
                         CheckForBreakout(bar, candle);
                     }
+                    
+                    // Reset su nuova London session
+                    if (isInLondonSession && !IsBarInCurrentZone(bar))
+                    {
+                        ResetForNewSession(bar);
+                    }
                     break;
 
                 case MarketState.BreakoutPending:
@@ -241,6 +247,12 @@ namespace FabioOrderFlow
                     if (isInNewYorkSession && isClosedBarForBreakout)
                     {
                         ConfirmBreakout(bar, candle);
+                    }
+                    
+                    // Reset su nuova London session
+                    if (isInLondonSession && !IsBarInCurrentZone(bar))
+                    {
+                        ResetForNewSession(bar);
                     }
                     break;
 
