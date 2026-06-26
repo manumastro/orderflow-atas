@@ -396,7 +396,8 @@ namespace FabioOrderFlow
             {
                 _lastLoggedNyPreCloseBar = bar;
                 var (bid, ask, delta, topLevels) = GetCandleVolumeDiagnostics(candle);
-                LogEvent($"[NY_PRE_CLOSE] Bar={bar}, {FormatTimes(candle.Time)}, O={candle.Open:F2}, H={candle.High:F2}, L={candle.Low:F2}, C={candle.Close:F2}, V={candle.Volume:F0}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}, TopLevels={topLevels}");
+                // NY_PRE_CLOSE logging disabled to reduce log noise
+                // LogEvent($"[NY_PRE_CLOSE] Bar={bar}, {FormatTimes(candle.Time)}, O={candle.Open:F2}, H={candle.High:F2}, L={candle.Low:F2}, C={candle.Close:F2}, V={candle.Volume:F0}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}, TopLevels={topLevels}");
             }
 
             if (_nySessionActive)
@@ -785,7 +786,8 @@ namespace FabioOrderFlow
 
             _lastLoggedPreCloseBar = bar;
             var (bid, ask, delta, topLevels) = GetCandleVolumeDiagnostics(candle);
-            LogEvent($"[LONDON_PRE_CLOSE] Bar={bar}, {FormatTimes(candle.Time)}, O={candle.Open:F2}, H={candle.High:F2}, L={candle.Low:F2}, C={candle.Close:F2}, V={candle.Volume:F0}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}, TopLevels={topLevels}");
+            // LONDON_PRE_CLOSE logging disabled to reduce log noise
+            // LogEvent($"[LONDON_PRE_CLOSE] Bar={bar}, {FormatTimes(candle.Time)}, O={candle.Open:F2}, H={candle.High:F2}, L={candle.Low:F2}, C={candle.Close:F2}, V={candle.Volume:F0}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}, TopLevels={topLevels}");
         }
 
         private void LogPreviewProfileIfNeeded(int bar, IndicatorCandle candle, bool force)
