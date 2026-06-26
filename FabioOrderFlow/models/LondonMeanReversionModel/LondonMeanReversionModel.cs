@@ -591,7 +591,7 @@ namespace FabioOrderFlow
             if (!outcome.Invalidated && candle.Low <= outcome.StopReference)
             {
                 outcome.Invalidated = true;
-                outcome.FinalPnL = outcome.StopReference - outcome.EntryPrice;
+                outcome.FinalPnL = outcome.EntryPrice - outcome.StopReference; // Fixed: Long stop loss is negative
                 LogPositionClosed(outcome, bar, candle, "STOP_HIT");
                 return; // Stop tracking
             }
@@ -927,7 +927,9 @@ namespace FabioOrderFlow
                 : 0;
             
             var entryPrice = trade.Lastprice;
-            var stopReference = direction == "Long" ? sweep.SweepPrice : sweep.SweepPrice;
+            // Stop is below entry for Long (sweep low), above entry for Short (sweep high)
+            // For footprint-first, use the sweep price as stop reference
+            var stopReference = sweep.SweepPrice;
             var target1Poc = sweep.POC; // Usa POC dello sweep, non quello corrente
             var target2 = direction == "Long" ? sweep.VAH : sweep.VAL; // Usa VAH/VAL dello sweep
             
