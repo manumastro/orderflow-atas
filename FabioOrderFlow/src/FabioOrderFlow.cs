@@ -115,6 +115,12 @@ public class FabioOrderFlow : Indicator
         var trades = cumulativeTrades.ToList();
         Log($"[CUM_TRADES_RESPONSE] Count={trades.Count}, RequestId={request.RequestId}");
         _balanceTracker?.OnHistoricalCumulativeTrades(trades);
+        
+        // After cumulative trades processed, process active positions through historical bars
+        if (_meanReversionModule != null && CurrentBar > 0)
+        {
+            _meanReversionModule.ProcessHistoricalPositions(0, CurrentBar - 1);
+        }
     }
     
     private void LogChartTradingSessions()

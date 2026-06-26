@@ -257,6 +257,31 @@ namespace FabioOrderFlow
             {
                 CheckForAggressionEntry(setup, trades);
             }
+            
+            _log($"[MR_ENTRIES_FOUND] Total entries confirmed: {_activePositions.Count(p => !p.Closed)}", false);
+        }
+        
+        /// <summary>
+        /// Process active positions through historical bars to find exits
+        /// Called after cumulative trades have been processed
+        /// </summary>
+        public void ProcessHistoricalPositions(int startBar, int endBar)
+        {
+            if (_activePositions.Count == 0)
+            {
+                _log("[MR_PROCESS_HISTORICAL] No active positions to process", false);
+                return;
+            }
+            
+            _log($"[MR_PROCESS_HISTORICAL] Processing {_activePositions.Count} positions from bar {startBar} to {endBar}", false);
+            
+            for (int bar = startBar; bar <= endBar; bar++)
+            {
+                var candle = _getCandle(bar);
+                UpdateActivePositions(bar, candle);
+            }
+            
+            _log($"[MR_PROCESS_COMPLETE] Completed: {_completedTrades.Count}, Still active: {_activePositions.Count(p => !p.Closed)}", true);
         }
         
         // ========================================
