@@ -221,6 +221,11 @@ namespace FabioOrderFlow
             if (trade.Time < _liveLowSweepTimeUtc.Value || trade.Direction != TradeDirection.Buy || trade.Volume < minVolume || trade.Lastprice < _balanceTracker.LastPreviewVal)
                 return;
 
+            // Check timeout: max 300 seconds (5 minutes) after sweep
+            var secondsAfterSweep = (trade.Time - _liveLowSweepTimeUtc.Value).TotalSeconds;
+            if (secondsAfterSweep > 300)
+                return;
+
             var candidateKey = $"Long:{_lastLowRejectionCandidateBar}";
             if (_loggedAggressionCandidateKeys.Contains(candidateKey))
                 return;
@@ -247,6 +252,11 @@ namespace FabioOrderFlow
 
             var minVolume = GetMinAggressionTradeVolume(trade.Time);
             if (trade.Time < _liveHighSweepTimeUtc.Value || trade.Direction != TradeDirection.Sell || trade.Volume < minVolume || trade.Lastprice > _balanceTracker.LastPreviewVah)
+                return;
+
+            // Check timeout: max 300 seconds (5 minutes) after sweep
+            var secondsAfterSweep = (trade.Time - _liveHighSweepTimeUtc.Value).TotalSeconds;
+            if (secondsAfterSweep > 300)
                 return;
 
             var candidateKey = $"Short:{_lastHighRejectionCandidateBar}";
