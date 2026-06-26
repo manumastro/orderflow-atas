@@ -918,6 +918,11 @@ namespace FabioOrderFlow
             if (_footprintTriggeredKeys.Contains(candidateKey))
                 return;
             
+            // Skip FootprintFirst after London close (16:00 London = 17:00 Italy)
+            var londonTime = MarketTimeZones.ToLondon(trade.Time);
+            if (londonTime.Hour >= 16)
+                return;
+            
             _footprintTriggeredKeys.Add(candidateKey);
             
             var italyTime = MarketTimeZones.ToItaly(trade.Time);
