@@ -26,8 +26,13 @@ function Parse-LogLine {
     
     $obj = @{}
     
-    # Extract timestamp
+    # Extract timestamp - try both formats:
+    # 1. New format (historical): Italy=2026-06-25 15:30:00 (in body)
+    # 2. Old format (live): [Italy=2026-06-25 15:30:00] (prefix)
     if ($Line -match '\[Italy=([^\]]+)\]') {
+        $obj.Timestamp = $matches[1]
+    }
+    elseif ($Line -match 'Italy=([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]{3})?)') {
         $obj.Timestamp = $matches[1]
     }
     
