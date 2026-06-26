@@ -16,7 +16,6 @@ public class FabioOrderFlow : Indicator
     // Module parameters
     public bool EnableLondonMeanReversion { get; set; } = true;
     public bool EnablePostLondonImpulse { get; set; } = false;
-    public bool EnableLiveFootprintFirst { get; set; } = true;
 
     public FabioOrderFlow()
     {
@@ -59,14 +58,14 @@ public class FabioOrderFlow : Indicator
             Log($"[INSTRUMENT] Name: {InstrumentInfo?.Instrument}, TickSize: {InstrumentInfo?.TickSize}, Exchange: {InstrumentInfo?.Exchange}, InstrumentTimeZone={InstrumentInfo?.TimeZone}");
             Log($"[CHART] CurrentBar={CurrentBar}, ChartType={ChartInfo?.ChartType}");
             LogChartTradingSessions();
-            _balanceTracker = new BalanceZoneTracker(this, Log, Rectangles, HorizontalLinesTillTouch, GetCandle, EnableLiveFootprintFirst);
+            _balanceTracker = new BalanceZoneTracker(this, Log, Rectangles, HorizontalLinesTillTouch, GetCandle, false);
             
             // Initialize Mean Reversion module if enabled
             if (EnableLondonMeanReversion)
             {
-                _meanReversionModule = new LondonMeanReversionModule(_balanceTracker, Log, GetCandle, EnableLiveFootprintFirst);
+                _meanReversionModule = new LondonMeanReversionModule(_balanceTracker, Log, GetCandle);
                 _balanceTracker.SetMeanReversionModule(_meanReversionModule);
-                Log("[MODULE] London Mean Reversion module initialized and connected");
+                Log("[MODULE] London Mean Reversion module v3 initialized (Historical only)");
             }
             
             return;
@@ -106,16 +105,6 @@ public class FabioOrderFlow : Indicator
         {
             Log($"[CUM_TRADES_REQUEST_ERROR] {ex.Message}");
         }
-    }
-
-    protected override void OnCumulativeTrade(CumulativeTrade trade)
-    {
-        _balanceTracker?.OnLiveCumulativeTrade(trade);
-    }
-
-    protected override void OnUpdateCumulativeTrade(CumulativeTrade trade)
-    {
-        _balanceTracker?.OnLiveCumulativeTrade(trade);
     }
 
     protected override void OnCumulativeTradesResponse(CumulativeTradesRequest request, IEnumerable<CumulativeTrade> cumulativeTrades)

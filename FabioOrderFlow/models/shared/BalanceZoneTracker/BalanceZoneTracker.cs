@@ -164,9 +164,8 @@ namespace FabioOrderFlow
         public decimal LastPreviewVah => _lastPreviewVah;
         public decimal LastPreviewVal => _lastPreviewVal;
         
-        // MR data (delegated to module)
-        public List<MeanReversionTriggerLog> MeanReversionTriggerLogs => _meanReversionModule?.MeanReversionTriggerLogs ?? new();
-        public List<MeanReversionOutcome> MeanReversionOutcomes => _meanReversionModule?.MeanReversionOutcomes ?? new();
+        // Note: MR data structures removed - use module directly via _meanReversionModule
+        // Access via: _meanReversionModule.CompletedTrades, ActivePositions, ActiveSetups
         
         // Set MR module from external (called by FabioOrderFlow)
         public void SetMeanReversionModule(LondonMeanReversionModule module)
@@ -180,11 +179,7 @@ namespace FabioOrderFlow
             _meanReversionModule?.OnHistoricalCumulativeTrades(cumulativeTrades);
         }
 
-        public void OnLiveCumulativeTrade(CumulativeTrade trade)
-        {
-            // Delegate to MR module if enabled
-            _meanReversionModule?.OnLiveCumulativeTrade(trade);
-        }
+        // Note: OnLiveCumulativeTrade removed - v3 uses Historical detection only
 
         // ========================================
         // MEAN REVERSION METHODS
@@ -479,7 +474,8 @@ namespace FabioOrderFlow
             var nyBars = _nySessionEndBar - _nySessionStartBar + 1;
 
             // Log NY_PROFILE_PREVIEW only if force=true or there's an active trade AND significant change
-            var hasActiveTrades = _meanReversionModule?.MeanReversionOutcomes.Any(o => !o.PositionClosed) ?? false;
+            // Note: v3 uses ActivePositions instead of MeanReversionOutcomes
+            var hasActiveTrades = _meanReversionModule?.ActivePositions.Any(o => !o.Closed) ?? false;
             
             // Check if significant change occurred
             var significantChange = _lastNyLoggedPreviewBar != bar ||
@@ -838,10 +834,8 @@ namespace FabioOrderFlow
             //     _lastLoggedRelation = relation;
             // }
             
-            // Call MR module for trigger evaluation
-            var (bid, ask, delta, _) = GetCandleVolumeDiagnostics(candle);
-            _meanReversionModule?.LogMeanReversionEarlyTriggerIfNeeded(bar, candle, poc, vah, val, bid, ask, delta);
-            _meanReversionModule?.LogMeanReversionTriggerIfNeeded(bar, candle, poc, vah, val, bid, ask, delta);
+            // Note: v3 module handles trigger detection internally via OnNewSessionHigh/Low
+            // No need to call explicit trigger methods here
         }
 
         private void DrawBalanceZone()
