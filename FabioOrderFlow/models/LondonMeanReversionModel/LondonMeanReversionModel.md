@@ -1,271 +1,400 @@
-# Modello 2 — Mean Reversion (London Balance Zones)
+# London Mean Reversion Model
 
-Strategy mean reversion su balance zones di Londra: fakeout detection + ritorno verso POC.
+**Strategy:** Mean reversion durante London session su balance zones  
+**Market State:** CONSOLIDATION (balanced market)  
+**Session:** London (08:00-16:00 London time)  
+**Timeframe:** M5 per setup, M1 per execution  
+**Implementation:** Historical aggression detection only
 
-## Concept
+---
 
-**Idea:** Quando prezzo fa sweep di high/low della balance zone di Londra ma viene rigettato (rejection candle), si genera trigger M5 per trade verso POC.
+## 📚 Core Concept (Da Fabio Valentino)
 
-**Edge:** Fakeout su liquidity grab, mean reversion verso value area.
+### Market Behavior: Balance vs Imbalance
 
-## Implementation
+**Auction Market Theory (AMT):**
+- Market spende il 70% del tempo in BALANCE (consolidation)
+- Solo il 30% in IMBALANCE (trending)
+- Durante London session, il comportamento è prevalentemente **mean reverting**
 
-**Module:** `LondonMeanReversionModule`  
-**Status:** ✅ Production-ready  
-**Version:** 2.1 (UUID tracking)  
-**Historical Detection:** ✅ Fully operational (intrabar precision)  
-**Live Detection:** ✅ Implemented (requires live trading to test)
+**Il problema del trend following tradizionale:**
+- Traders cercano breakout e continuazioni
+- Ma se il breakout avviene DENTRO la value area del profilo → 70% probability di ritorno
+- Solo breakout FUORI dalla value area hanno chance di continuazione
 
-## Strategy Flow
+### Il Mean Reversion Edge
 
-```
-1. London Session (08:00-16:00 GMT)
-   ↓
-2. Build Volume Profile → POC, VAH, VAL
-   ↓
-3. Detect Sweep (new high/low)
-   ↓
-4. Check Rejection Candle (close 10+ ticks inside)
-   ↓
-5. Trigger M5 (direction verso POC)
-   ↓
-6. Track Aggression (CumulativeTrades)
-   ↓
-7. Monitor Outcome (POC reached?)
-```
+**Quando il mercato è in balance:**
+1. Definisci la **balance zone** (consolidation range) usando Volume Profile
+2. Identifica **POC** (Point of Control) = dove transaziona la maggior parte del volume
+3. Aspetta che il prezzo esca dalla balance zone (**out of balance**)
+4. **NON entrare subito!** Aspetta il **secondo movimento**
+5. Quando il prezzo rientra verso POC, cerca **aggression** dai big players
+6. Entry con loro, target = POC
 
-## Entry Conditions
+**Perché funziona:**
+- POC è dove i market participants sono disposti a transazionare
+- Quando il prezzo va "deep discount" o "premium" rispetto al POC, tende a tornare
+- È più facile che il mercato torni al POC che continui oltre la value area
 
-### Long (dopo low sweep)
-- ✅ New session low
-- ✅ Rejection candle: close >= low + 10 ticks
-- ✅ Delta positivo (ask > bid)
-- ✅ Entry aggression: ask > bid sotto VAL
+---
 
-### Short (dopo high sweep)
-- ✅ New session high
-- ✅ Rejection candle: close <= high - 10 ticks
-- ✅ Delta negativo (bid > ask)
-- ✅ Entry aggression: bid > ask sopra VAH
-
-## Trigger Types
-
-| Type | Condition |
-|------|-----------|
-| `HIGH_REJECTION_CANDIDATE` | Sweep high + rejection → M5 short |
-| `LOW_REJECTION_CANDIDATE` | Sweep low + rejection → M5 long |
-| `POC_LOST_EARLY` | POC perso prima di M5 → early short |
-| `POC_RECLAIMED_EARLY` | POC reclaimed prima di M5 → early long |
-
-## Target & Exit
-
-**Target:** POC della balance zone  
-**Risk:** 10-15 ticks (distance rejection to extreme)  
-**R:R:** Variabile (dipende da distanza POC-extreme)
-
-## Data Logged
-
-### UUID Tracking (v2.1+)
-
-Ogni trigger MR genera un **UUID unico** (`Guid`) che viene propagato a tutti gli eventi correlati:
+## 🎯 Strategy Flow
 
 ```
-[MR_TRIGGER] Uuid=<guid>, Direction=...
-[MR_AGGRESSION_CONFIRM] TriggerUuid=<guid>, Direction=...
-[MR_MFE_UPDATE] TriggerUuid=<guid>, Direction=...
-[MR_TARGET_HIT] TriggerUuid=<guid>, Direction=...
-[MR_POSITION_CLOSED] TriggerUuid=<guid>, Direction=...
+STEP 1: BALANCE ZONE IDENTIFICATION
+├─ Identifica consolidation range (compressed candles)
+├─ Plot Volume Profile sulla balance zone
+├─ Identifica: POC, VAH (Value Area High), VAL (Value Area Low)
+└─ Balance zone = dove il 70% del volume è stato scambiato
+
+STEP 2: WAIT FOR BREAKOUT (Out of Balance)
+├─ Prezzo rompe VAH (breakout high) o VAL (breakout low)
+├─ Market va "out of balance"
+├─ Sta cercando nuovo equilibrio
+└─ ❌ NON ENTRARE QUI! È il primo movimento (risky)
+
+STEP 3: WAIT FOR REJECTION (Fake Breakout)
+├─ Il breakout fallisce (rejection candle)
+├─ Prezzo inizia a rientrare nella balance zone
+├─ Conferma che il breakout era un "fakeout"
+└─ Setup pronto per mean reversion
+
+STEP 4: WAIT FOR RETRACEMENT (Second Movement)
+├─ Prezzo rientra DENTRO la balance zone
+├─ Questo è il SECONDO movimento → più sicuro
+├─ "I'm back inside the balance - this probability is really high"
+└─ Ora cerca entry point con aggression
+
+STEP 5: ENTRY WITH AGGRESSION (Big Orders)
+├─ Aspetta "big trades" (volume > threshold, es: 20-30 contracts)
+├─ Entry quando vedi "bubble" di buy/sell orders
+├─ "I jump in when the best ones are jumping in with big volume"
+├─ Direction: VERSO IL POC (mean reversion)
+└─ ✅ ENTRY CONFIRMED
+
+STEP 6: TARGET & EXIT
+├─ Target = POC della balance zone
+├─ "70% probability market will reverse from POC"
+├─ Take FULL position al POC (non partial)
+├─ Stop loss = 1-2 ticks sotto/sopra high/low del rejection point
+└─ Se sbagliato: "I want to be wrong IMMEDIATELY"
 ```
 
-**Vantaggi:**
-- Tracciamento completo della vita di un trade
-- Recupero dello stato dopo ricaricamenti ATAS
-- Query e report strutturati per UUID
-- Analisi isolata di singoli trigger
+---
 
-**Nota:** Trade `FOOTPRINT_FIRST` usano UUID nel formato `footprint-<bar>` poiché non hanno un trigger MR standard.
+## 📋 Entry Rules (Historical Aggression Only)
 
-### Trigger Detection
+### Prerequisites (Balance Zone Setup)
+
+1. **Identify Balance Zone:**
+   - Uso del profilo del giorno precedente (semplice)
+   - OPPURE: Identifica manualmente consolidation range (compressed candles)
+   - Plot Volume Profile → POC, VAH, VAL
+
+2. **Confirm Consolidation:**
+   - Market deve oscillare tra VAH e VAL senza breakout significativi
+   - "It's protecting from breaking here and breaking here"
+
+### Long Setup (After Low Breakout)
+
+**Sequenza:**
+1. ✅ Prezzo rompe VAL (breakout low) → Out of balance
+2. ✅ Rejection: prezzo rientra sopra VAL → Fake breakout confirmed
+3. ✅ Wait for retracement: prezzo torna DENTRO balance zone
+4. ✅ Cerca aggression: big BUY orders (volume > 20-30 contracts)
+5. ✅ Entry: quando vedi "bubble" di buy aggression
+6. ✅ Direction: VERSO IL POC (upward mean reversion)
+
+**Target:** POC  
+**Stop:** 1-2 ticks sotto il low del rejection point  
+
+### Short Setup (After High Breakout)
+
+**Sequenza:**
+1. ✅ Prezzo rompe VAH (breakout high) → Out of balance
+2. ✅ Rejection: prezzo rientra sotto VAH → Fake breakout confirmed
+3. ✅ Wait for retracement: prezzo torna DENTRO balance zone
+4. ✅ Cerca aggression: big SELL orders (volume > 20-30 contracts)
+5. ✅ Entry: quando vedi "bubble" di sell aggression
+6. ✅ Direction: VERSO IL POC (downward mean reversion)
+
+**Target:** POC  
+**Stop:** 1-2 ticks sopra l'high del rejection point
+
+---
+
+## ⚠️ Critical Rules
+
+### 1. NON Prendere il Primo Movimento
+
+> "I don't take the first movement. I wait, I wait for the first breakout... then I get the retracement."
+
+**Perché?**
+- Il primo breakout può essere un vero trend change
+- Rischi di entrare contro un nuovo trend
+- Il secondo movimento (retracement) conferma che è fake breakout
+
+### 2. Aspetta la Conferma dell'Aggression
+
+> "I wait for the hand of the big market participants. I wait for big trades."
+
+**Cosa cercare:**
+- Volume > threshold (20-30 contracts per NASDAQ)
+- "Bubble" on footprint chart
+- Direzione verso POC
+
+### 3. Se Sbagliato, Esci IMMEDIATAMENTE
+
+> "If I'm wrong, I want to be wrong immediately."
+
+**Risk Management:**
+- Stop loss stretto (10-20 ticks tipicamente)
+- No "let it breathe" - se va contro, esci
+- "Move stop to break even" dopo small movimento favorevole
+
+### 4. Stop Loss Placement
+
+> "Put the stop loss 1-2 ticks below the high [per short], not above the high."
+
+**Perché?**
+- Sopra/sotto high/low ci sono molti ordini → slippage
+- Market accelera quando rompe questi livelli
+- 1-2 ticks inside = eviti slippage, salvaguardi capitale
+
+### 5. Target = POC (FULL Position)
+
+> "We take out the FULL position because probability is 70% market will reverse from POC."
+
+**No partial exit:**
+- POC ha 70% probability di reversal
+- Non conviene tenere position per solo 30% chance
+- Better: prendi tutto al POC, cerca nuovo setup
+
+---
+
+## 🚫 When NOT to Trade
+
+### 1. Durante Compression Days
+
+> "Consolidation is killing your win rate... maybe you take 5 small stop-loss."
+
+**Quando skipare:**
+- Market in tight range per ore
+- Nessun clear breakout e retracement
+- Molti false signal
+
+### 2. Durante Strong Trends
+
+**Se vedi:**
+- Breakout oltre VAH/VAL con volume enorme
+- Continuous momentum (no retracement)
+- Market che continua out of balance
+→ **NON mean revert!** Aspetta che torni in balance
+
+### 3. Prima Barra della Sessione
+
+**Evita:**
+- Entry sulla prima M5 candle di London open
+- Manca contesto e setup precedente
+- Troppo volatile e imprevedibile
+
+### 4. Late Session (Dopo 15:30 London)
+
+**Cutoff:**
+- Stop entries 30 minuti prima della chiusura
+- Insufficient time per sviluppare trade verso POC
+- Risk di essere stopped out on close
+
+---
+
+## 📊 Implementation Details
+
+### Timeframe Strategy
+
+**M5 (5 minuti):**
+- Identifica balance zone
+- Identifica breakout e rejection
+- Frame setup generale
+
+**M1 (1 minuto):**
+- Execution level
+- Identifica aggression entries
+- Monitor order flow in dettaglio
+
+### Volume Profile Settings
+
+**Balance Zone:**
+- Plot profile sulla consolidation range
+- Timeframe: Dipende (può essere daily profile o intraday range)
+- Key levels: POC, VAH (top 70%), VAL (bottom 70%)
+
+### Aggression Filter
+
+**Threshold:**
+- NASDAQ: 20-30 contracts minimum
+- Filtra "noise" (small orders)
+- Focus su "big players"
+
+**Come identificare:**
+- Footprint chart: "bubbles" (large orders)
+- Delta spike (bid/ask imbalance)
+- Cluster di orders in pochi ticks
+
+---
+
+## 📈 Win Rate & Risk:Reward
+
+### Expected Performance
+
+**Win Rate:**
+- Mean reversion in balance: ~60-70%
+- Durante compression: può scendere a 40-50%
+- Trade quality > quantity
+
+**Risk:Reward:**
+- Minimum: 1:1 (se POC vicino)
+- Common: 1:2 to 1:5
+- Depends su distanza entry-POC
+
+**Position Sizing:**
+- Risk 0.25% - 0.5% per trade
+- Stop loss stretto permette size maggiore
+- "Aggressive risk management"
+
+---
+
+## 🔍 Example Scenario
+
+### Setup Identification
+
 ```
-[MR_TRIGGER] Uuid=<guid>, Direction, Trigger Type, Bar, CandidateBar
-POC, VAH, VAL, Close, DistToPOC
-StopReference, Target1, Bid, Ask, Delta
+1. Consolidation Range Identified:
+   - Range: 29,800 - 29,900 (100 pts)
+   - VAH: 29,880
+   - POC: 29,850
+   - VAL: 29,820
+
+2. Breakout Occurs:
+   - Prezzo rompe VAL (29,820) → low: 29,790
+   - Out of balance condition
+
+3. Rejection:
+   - Candle chiude a 29,835 (15 pts dentro VAL)
+   - Fake breakout confirmed
+
+4. Retracement:
+   - Prezzo rientra a 29,825 (inside balance zone)
+   - Questo è il SECONDO movimento
+
+5. Aggression Entry:
+   - Vedi big BUY bubble a 29,825 (30 contracts)
+   - Entry LONG @ 29,825
+   - Stop: 29,788 (2 ticks sotto low)
+   - Target: POC @ 29,850
+
+6. Outcome:
+   - Risk: 37 pts (29,825 - 29,788)
+   - Reward: 25 pts (29,850 - 29,825)
+   - R:R: 1:0.67 (non ideale ma POC target è objective)
 ```
 
-### Aggression Confirmation
+---
 
+## 🛠️ Technical Implementation
+
+### Module: LondonMeanReversionModel
+
+**Status:** ✅ Production (Historical Detection Only)  
+**Version:** 3.0 (Refactored for clarity)
+
+### Detection Logic
+
+**Phase 1: Balance Zone Tracking**
 ```
-[MR_AGGRESSION_CONFIRM] TriggerUuid=<guid>, Direction, EntryModel=FootprintCumulativeTradeHistorical
-Bar, CandidateBar, EntryPrice, Volume, TradeDirection
-SweepTime, SecondsAfterSweep
-StopReference, Target1POC, Target2, VAH, VAL
-```
-
-**Timestamp intrabar:**  
-Gli entry timestamp sono sempre intrabar con precisione al millisecondo (es: `London=09:04:47.686`), non timestamp di chiusura bar. Questo permette di tracciare il timing preciso dell'aggression all'interno della barra.
-
-**Live footprint detection:**  
-Durante trading live (se `EnableLiveFootprintFirst=true`), vengono generati anche tag `[FOOTPRINT_*]` per sweep/rejection/entry real-time.
-
-### Outcome Tracking
-```
-[MR_TARGET_HIT] TriggerUuid=<guid>, Direction, Target (POC/Target2), Bar, EntryPrice, TargetPrice
-RewardPoints, MFE, MAE
-
-[MR_POSITION_CLOSED] TriggerUuid=<guid>, Direction, Bar, EntryPrice, ExitPrice, ExitReason (STOP_HIT/TARGET_HIT)
-PnL, MFE, MAE
-
-[MR_MFE_UPDATE] TriggerUuid=<guid>, Direction, Bar, MFE, MAE (tracking intrabar durante posizione attiva)
+- Build Volume Profile per session
+- Track POC, VAH, VAL dinamicamente
+- Identify quando prezzo esce dalla value area
 ```
 
-## Configuration
+**Phase 2: Breakout & Rejection Detection**
+```
+- Detect new session high/low (breakout)
+- Check rejection candle (close back inside VAL/VAH)
+- Log rejection as potential setup
+```
+
+**Phase 3: Aggression Confirmation**
+```
+- Scan historical cumulative trades dopo rejection
+- Filter by volume (> MinAggressionVolume)
+- Filter by direction (towards POC)
+- Filter by timing (within timeout window)
+- Confirm entry quando aggression matches criteria
+```
+
+**Phase 4: Outcome Tracking**
+```
+- Track position verso POC target
+- Monitor MFE (Max Favorable Excursion)
+- Monitor MAE (Max Adverse Excursion)
+- Log exit: TARGET_HIT, STOP_HIT, or SESSION_CLOSE
+```
+
+### Configuration
 
 ```csharp
-EnableLondonMeanReversion = true      // Enable/disable module
-EnableLiveFootprintFirst = true       // Live footprint detection (default: true)
-MinAggressionTradeVolume = 20         // Threshold contracts per entry
-AggressionTimeoutSeconds = 3600       // Max delay sweep→entry (1 hour)
+EnableLondonMeanReversion = true
+MinAggressionTradeVolume = 20          // Minimum contracts per entry
+AggressionTimeoutSeconds = 3600        // Max delay sweep→entry (1 hour)
+SessionStartHour = 8                   // London session start (UTC+1)
+SessionEndHour = 16                    // London session end
+LateCutoffHour = 15                    // Stop new entries after 15:30
+LateCutoffMinute = 30
 ```
 
-**EnableLiveFootprintFirst:**  
-Controlla la detection live tick-by-tick durante trading attivo. Se `true`, genera tag `[FOOTPRINT_*]` real-time. Non influenza l'aggression confirmation su dati storici.
+### Logging Tags
 
-**AggressionTimeoutSeconds:**  
-Timeout massimo tra sweep e entry aggression. Default 3600s (1 ora). Previene entry tardive dopo setup invalidati.
-
-## Log Examples
-
-### Trigger Detection
 ```
-[MR_TRIGGER] Uuid=a1b2c3d4-e5f6-7890-abcd-ef1234567890, Direction=Short, 
-  Trigger=POC_LOSS_AFTER_HIGH_REJECTION, 
-  BarMode=HISTORICAL_CLOSED, Bar=5206, CandidateBar=5203, 
-  Italy=2026-06-25 10:15:00, London=2026-06-25 09:15:00, UTC=2026-06-25 08:15:00, 
-  Close=30170.50, POC=30180.00, VAH=30198.75, VAL=30148.00, 
-  DistToPOC=-9.50, StopReference=30219.00, Target1=30148.00
+[MR_BALANCE_ZONE] - Balance zone identified
+[MR_SWEEP] - VAH/VAL sweep detected
+[MR_REJECTION] - Rejection candle confirmed
+[MR_TRIGGER] - Setup ready, waiting for aggression
+[MR_AGGRESSION_CONFIRM] - Entry confirmed with big orders
+[MR_TARGET_HIT] - POC reached
+[MR_POSITION_CLOSED] - Trade closed (target/stop/session end)
 ```
 
-### Aggression Confirmation
-```
-[MR_AGGRESSION_CONFIRM] TriggerUuid=a1b2c3d4-e5f6-7890-abcd-ef1234567890, 
-  Direction=Short, EntryModel=FootprintCumulativeTradeHistorical, 
-  Trigger=HIGH_REJECTION_FOLLOW_THROUGH, Bar=5205, CandidateBar=5203, 
-  Italy=2026-06-25 10:04:47.686, London=2026-06-25 09:04:47.686, UTC=2026-06-25 08:04:47.686, 
-  EntryPrice=30199.25, Volume=25, TradeDirection=Sell, 
-  SweepTimeItaly=2026-06-25 10:03:02.713, SweepTimeLondon=2026-06-25 09:03:02.713, 
-  SecondsAfterSweep=105.0, StopReference=30219.00, Target1POC=30180.00, Target2=30148.00
-```
+---
 
-**Nota timestamp intrabar:**  
-L'entry time `09:04:47.686` è dentro la barra (presumibilmente 09:00-09:05), con precisione al millisecondo. Il campo `SecondsAfterSweep=105.0` indica il ritardo preciso dal sweep.
+## 📝 Key Takeaways
 
-### Outcome Tracking
-```
-[MR_TARGET_HIT] TriggerUuid=a1b2c3d4-e5f6-7890-abcd-ef1234567890, 
-  Direction=Short, Target=Target2, Bar=5212, 
-  Italy=2026-06-25 10:45:00, EntryPrice=30199.25, TargetPrice=30148.00, 
-  RewardPoints=51.25, MFE=60.00, MAE=18.50
+1. **Market State:** Funziona solo in BALANCE (consolidation), NON in strong trends
+2. **Session Timing:** London session (08:00-16:00), NOT New York
+3. **Entry:** SECONDO movimento (retracement), NON primo breakout
+4. **Confirmation:** Big orders (aggression), NON price action alone
+5. **Target:** POC, take FULL position
+6. **Stop:** Stretto (1-2 ticks inside high/low), exit FAST se wrong
+7. **Risk Management:** Aggressive (small stops, quick exits)
 
-[MR_POSITION_CLOSED] TriggerUuid=a1b2c3d4-e5f6-7890-abcd-ef1234567890, 
-  Direction=Short, Bar=5212, 
-  Italy=2026-06-25 10:45:00, EntryPrice=30199.25, ExitPrice=30148.00, 
-  ExitReason=TARGET_HIT, PnL=51.25, MFE=60.00, MAE=18.50
-```
+---
 
-## Trade Analysis & Reports
+## 🎓 Philosophy
 
-### Report Tool
+> "Why do I call it a MODEL and not a STRATEGY? Because market is a dynamic entity. You cannot cage it with strict rules. You need to understand the NARRATIVE."
 
-Usa `report-trades.ps1` per estrarre e analizzare i trade:
+**Key Principles:**
+- Non predire, LEGGI il mercato
+- Aspetta conferme oggettive (volume, aggression)
+- "Swim in the direction of the flow"
+- Risk management aggressivo: "wrong immediately"
+- Target oggettivo (POC) non soggettivo (R:R arbitrario)
 
-```powershell
-# Report di oggi
-.\report-trades.ps1
+---
 
-# Report di una data specifica
-.\report-trades.ps1 -Date "2026-06-26"
+## 📚 References
 
-# Raggruppato per UUID (mostra intera vita del trade)
-.\report-trades.ps1 -GroupByUuid
-
-# Solo trade completati
-.\report-trades.ps1 -GroupByUuid -OnlyCompleted
-```
-
-**Output esempio (GroupByUuid):**
-```
-UUID: a1b2c3d4-e5f6-7890-abcd-ef1234567890
-================================================================================
-  TRIGGER:
-    Time: 2026-06-25 10:15:00
-    Direction: Short
-    Type: POC_LOSS_AFTER_HIGH_REJECTION
-    Bar: 5206 (Candidate: 5203)
-
-  ENTRY:
-    Time: 2026-06-25 10:04:47.686
-    Price: 30199.25
-    Volume: 25
-    Stop: 30219.00
-    Target1: 30180.00
-    Target2: 30148.00
-    Risk: 19.75 pts
-    Delay: 105.0s
-
-  TARGETS:
-    POC hit @ 2026-06-25 10:30:00 - Price: 30180.00 (+19.25 pts)
-    Target2 hit @ 2026-06-25 10:45:00 - Price: 30148.00 (+51.25 pts)
-
-  PEAK PERFORMANCE:
-    MFE: 60.00 pts (Max: 30139.25)
-    MAE: 18.50 pts (Max: 30217.75)
-
-  CLOSED:
-    Time: 2026-06-25 10:45:00
-    Reason: TARGET2_HIT
-    PnL: 51.25 pts
-    Target1: True
-    Target2: True
-```
-
-### Query Manuale
-
-Per filtrare log per UUID specifico:
-
-```bash
-# Windows
-findstr "Uuid=a1b2c3d4" %APPDATA%\ATAS\Logs\FabioOrderFlow.log
-
-# PowerShell
-Select-String -Path $env:APPDATA\ATAS\Logs\FabioOrderFlow.log -Pattern "Uuid=a1b2c3d4"
-```
-
-## Backtesting
-
-**Log parsing:** `../../docs/atas/log-reading.md`
-
-**Metrics to track:**
-- Win rate (POC reached)
-- Average bars to target
-- Average R:R
-- False breakout frequency
-
-## Known Limitations
-
-- Single zone tracking (no history)
-- Historical aggression check: solo su sweep bars
-- Footprint-first experimental (può generare falsi positivi)
-- No dynamic target (sempre POC)
-
-## Future Enhancements
-
-- [ ] Dynamic target (partial profit at VAH/VAL)
-- [ ] Multi-zone context (previous sessions)
-- [ ] Volume profile quality filter
-- [ ] Time-based filter (early vs late session)
-
-## Related Docs
-
-- Core tracker: [BalanceZoneTracker.md](BalanceZoneTracker.md)
-- Session detection: [SessionDetector.md](SessionDetector.md)
-- Implementation: `src/modules/LondonMeanReversion/`
+- Transcript: Fabio Valentino @ Chart Fanatics
+- Concept: Auction Market Theory (AMT)
+- Tools: Volume Profile, Footprint Charts, Order Flow
+- Implementation: ATAS Platform, C# Indicator
