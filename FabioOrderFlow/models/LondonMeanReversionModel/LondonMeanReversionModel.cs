@@ -424,23 +424,28 @@ namespace FabioOrderFlow
         /// </summary>
         private void CheckForAggressionEntry(BalanceSetup setup, List<CumulativeTrade> trades)
         {
-            // Find trades after rejection time
+            // Calculate timeout window (max 1 hour after rejection)
+            var maxEntryTime = setup.RejectionTimeUtc.AddSeconds(AggressionTimeoutSeconds);
+            
+            // Find trades in the timeout window with sufficient volume
             var relevantTrades = trades
-                .Where(t => t.Time > setup.RejectionTimeUtc)
+                .Where(t => t.Time > setup.RejectionTimeUtc && t.Time <= maxEntryTime)
                 .Where(t => t.Volume >= MinAggressionVolume)
                 .ToList();
             
-            _log($"[MR_CHECK_AGGRESSION] SetupId={setup.SetupId}, Direction={setup.Direction}, RejectionTime={setup.RejectionTimeUtc:HH:mm:ss}, RelevantTrades={relevantTrades.Count}", false);
+            _log($"[MR_CHECK_AGGRESSION] SetupId={setup.SetupId.ToString().Substring(0,8)}, Direction={setup.Direction}, RejectionTime={setup.RejectionTimeUtc:HH:mm:ss}, WindowTrades={relevantTrades.Count}", false);
+            
+            int checkedCount = 0;
+            int criteriaRejects = 0;
             
             foreach (var trade in relevantTrades)
             {
-                // Check timeout (max 1 hour)
+                checkedCount++;
+                
                 var secondsAfterRejection = (trade.Time - setup.RejectionTimeUtc).TotalSeconds;
-                if (secondsAfterRejection > AggressionTimeoutSeconds)
-                    continue;
                 
                 // Check if trade matches setup criteria
-                if (IsAggressionEntry(setup, trade))
+                if (IsAggressionEntry(setup, trade, out string rejectReason))
                 {
                     // Confirm entry!
                     setup.AggressionConfirmed = true;
@@ -449,14 +454,29 @@ namespace FabioOrderFlow
                     
                     break; // Only one entry per setup
                 }
+                else
+                {
+                    criteriaRejects++;
+                    if (checkedCount <= 5) // Log first 5 rejects for debugging
+                    {
+                        _log($"[MR_REJECT] Setup={setup.SetupId.Substring(0,8)}, Trade: Price={trade.Lastprice:F2}, Vol={trade.Volume}, Dir={trade.Direction}, Reason={rejectReason}", false);
+                    }
+                }
+            }
+            
+            if (!setup.AggressionConfirmed && relevantTrades.Count > 0)
+            {
+                _log($"[MR_NO_ENTRY] Setup={setup.SetupId.ToString().Substring(0,8)}, Direction={setup.Direction}, WindowTrades={relevantTrades.Count}, Checked={checkedCount}, CriteriaRejects={criteriaRejects}", false);
             }
         }
         
         /// <summary>
         /// Check if trade qualifies as aggression entry for setup
         /// </summary>
-        private bool IsAggressionEntry(BalanceSetup setup, CumulativeTrade trade)
+        private bool IsAggressionEntry(BalanceSetup setup, CumulativeTrade trade, out string rejectReason)
         {
+            rejectReason = string.Empty;
+            
             if (setup.Direction == "Long")
             {
                 // Long setup requirements:
@@ -465,15 +485,24 @@ namespace FabioOrderFlow
                 // 3. Price is below POC (moving towards target)
                 
                 if (trade.Direction != TradeDirection.Buy)
+                {
+                    rejectReason = "Direction!=Buy";
                     return false;
+                }
                 
                 // Must be inside balance (above VAL)
                 if (trade.Lastprice < setup.VAL)
+                {
+                    rejectReason = $"Price {trade.Lastprice:F2} < VAL {setup.VAL:F2}";
                     return false;
+                }
                 
                 // Must be below POC (room to move to target)
                 if (trade.Lastprice >= setup.POC)
+                {
+                    rejectReason = $"Price {trade.Lastprice:F2} >= POC {setup.POC:F2}";
                     return false;
+                }
                 
                 return true;
             }
@@ -485,15 +514,24 @@ namespace FabioOrderFlow
                 // 3. Price is above POC (moving towards target)
                 
                 if (trade.Direction != TradeDirection.Sell)
+                {
+                    rejectReason = "Direction!=Sell";
                     return false;
+                }
                 
                 // Must be inside balance (below VAH)
                 if (trade.Lastprice > setup.VAH)
+                {
+                    rejectReason = $"Price {trade.Lastprice:F2} > VAH {setup.VAH:F2}";
                     return false;
+                }
                 
                 // Must be above POC (room to move to target)
                 if (trade.Lastprice <= setup.POC)
+                {
+                    rejectReason = $"Price {trade.Lastprice:F2} <= POC {setup.POC:F2}";
                     return false;
+                }
                 
                 return true;
             }
