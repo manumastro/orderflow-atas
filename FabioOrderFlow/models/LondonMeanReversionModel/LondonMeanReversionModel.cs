@@ -192,8 +192,10 @@ namespace FabioOrderFlow
             // Update active positions tracking
             UpdateActivePositions(bar, candle);
             
-            // Expire old setups that didn't get aggression confirmation
-            ExpireOldSetups(candle.Time);
+            // NOTE: Do NOT expire setups during historical calculation
+            // Expiry is only for real-time to prevent memory leak
+            // During historical, setups will be checked when cumulative trades arrive
+            // ExpireOldSetups(candle.Time);
         }
         
         /// <summary>
@@ -248,6 +250,8 @@ namespace FabioOrderFlow
         public void OnHistoricalCumulativeTrades(IEnumerable<CumulativeTrade> cumulativeTrades)
         {
             var trades = cumulativeTrades.OrderBy(t => t.Time).ToList();
+            
+            _log($"[MR_CUM_TRADES] Received {trades.Count} cumulative trades, Active setups: {_activeSetups.Count(s => !s.AggressionConfirmed && !s.Expired)}", false);
             
             foreach (var setup in _activeSetups.Where(s => !s.AggressionConfirmed && !s.Expired))
             {
@@ -400,6 +404,8 @@ namespace FabioOrderFlow
                 .Where(t => t.Time > setup.RejectionTimeUtc)
                 .Where(t => t.Volume >= MinAggressionVolume)
                 .ToList();
+            
+            _log($"[MR_CHECK_AGGRESSION] SetupId={setup.SetupId}, Direction={setup.Direction}, RejectionTime={setup.RejectionTimeUtc:HH:mm:ss}, RelevantTrades={relevantTrades.Count}", false);
             
             foreach (var trade in relevantTrades)
             {
