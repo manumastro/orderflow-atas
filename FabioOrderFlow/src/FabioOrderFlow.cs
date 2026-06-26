@@ -157,14 +157,24 @@ public class FabioOrderFlow : Indicator
         }
     }
 
-    private void Log(string message)
+    private void Log(string message, bool isHistorical = false)
     {
         try
         {
             lock (_logSync)
             {
-                var timestamp = MarketTimeZones.ToItaly(DateTime.UtcNow).ToString("yyyy-MM-dd HH:mm:ss.fff");
-                var logMessage = $"[Italy={timestamp}] {message}";
+                string logMessage;
+                if (isHistorical)
+                {
+                    // Historical logs: no processing timestamp, only event timestamp in fields
+                    logMessage = message;
+                }
+                else
+                {
+                    // Live logs: include processing timestamp
+                    var timestamp = MarketTimeZones.ToItaly(DateTime.UtcNow).ToString("yyyy-MM-dd HH:mm:ss.fff");
+                    logMessage = $"[Italy={timestamp}] {message}";
+                }
                 File.AppendAllText(_logPath, logMessage + Environment.NewLine);
             }
         }

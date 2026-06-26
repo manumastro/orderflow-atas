@@ -68,7 +68,7 @@ namespace FabioOrderFlow
     internal sealed class LondonMeanReversionModule
     {
         private readonly BalanceZoneTracker _balanceTracker;
-        private readonly Action<string> _log;
+        private readonly Action<string, bool> _log;
         private readonly Func<int, IndicatorCandle> _getCandle;
         private readonly bool _enableLiveFootprintFirst;
         
@@ -106,7 +106,7 @@ namespace FabioOrderFlow
         
         public LondonMeanReversionModule(
             BalanceZoneTracker balanceTracker,
-            Action<string> log,
+            Action<string, bool> log,
             Func<int, IndicatorCandle> getCandle,
             bool enableLiveFootprintFirst = true)
         {
@@ -300,7 +300,7 @@ namespace FabioOrderFlow
 
             var (bid, ask, delta, topLevels) = GetCandleVolumeDiagnostics(candle);
             candleDelta = delta;
-            _log($"[{tag}] Bar={bar}, {FormatTimes(candle.Time)}, PreviousExtreme={previousExtreme:F2}, Range={range:F2}, UpperWick={upperWick:F2}, LowerWick={lowerWick:F2}, ClosePosition={closePosition:P0}, O={candle.Open:F2}, H={candle.High:F2}, L={candle.Low:F2}, C={candle.Close:F2}, V={candle.Volume:F0}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}, TopLevels={topLevels}");
+            _log($"[{tag}] Bar={bar}, {FormatTimes(candle.Time)}, PreviousExtreme={previousExtreme:F2}, Range={range:F2}, UpperWick={upperWick:F2}, LowerWick={lowerWick:F2}, ClosePosition={closePosition:P0}, O={candle.Open:F2}, H={candle.High:F2}, L={candle.Low:F2}, C={candle.Close:F2}, V={candle.Volume:F0}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}, TopLevels={topLevels}", IsHistoricalBar(bar));
             return true;
         }
 
@@ -320,7 +320,7 @@ namespace FabioOrderFlow
                 {
                     _lowRejectionEarlyTriggered = true;
                     var uuid = RegisterMeanReversionTrigger("Long", "LOW_REJECTION_FOLLOW_THROUGH", bar, _lastLowRejectionCandidateBar, poc, vah, val);
-                    _log($"[MR_EARLY_TRIGGER] Uuid={uuid}, Direction=Long, Trigger=LOW_REJECTION_FOLLOW_THROUGH, BarMode={GetBarMode(bar)}, Bar={bar}, CurrentBar={_currentBar}, {FormatTimes(candle.Time)}, CandidateBar={_lastLowRejectionCandidateBar}, CandidateLow={_lastLowRejectionLow:F2}, CandidateClose={_lastLowRejectionClose:F2}, CandidateHigh={_lastLowRejectionHigh:F2}, CandidateDelta={_lastLowRejectionDelta:F0}, Close={candle.Close:F2}, High={candle.High:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, DistToPOC={candle.Close - poc:F2}, StopReference={_lastLowRejectionLow:F2}, Target1={poc:F2}, Target2={vah:F2}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}");
+                    _log($"[MR_EARLY_TRIGGER] Uuid={uuid}, Direction=Long, Trigger=LOW_REJECTION_FOLLOW_THROUGH, BarMode={GetBarMode(bar)}, Bar={bar}, CurrentBar={_currentBar}, {FormatTimes(candle.Time)}, CandidateBar={_lastLowRejectionCandidateBar}, CandidateLow={_lastLowRejectionLow:F2}, CandidateClose={_lastLowRejectionClose:F2}, CandidateHigh={_lastLowRejectionHigh:F2}, CandidateDelta={_lastLowRejectionDelta:F0}, Close={candle.Close:F2}, High={candle.High:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, DistToPOC={candle.Close - poc:F2}, StopReference={_lastLowRejectionLow:F2}, Target1={poc:F2}, Target2={vah:F2}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}", IsHistoricalBar(bar));
                 }
             }
 
@@ -335,7 +335,7 @@ namespace FabioOrderFlow
                 {
                     _highRejectionEarlyTriggered = true;
                     var uuid = RegisterMeanReversionTrigger("Short", "HIGH_REJECTION_FOLLOW_THROUGH", bar, _lastHighRejectionCandidateBar, poc, vah, val);
-                    _log($"[MR_EARLY_TRIGGER] Uuid={uuid}, Direction=Short, Trigger=HIGH_REJECTION_FOLLOW_THROUGH, BarMode={GetBarMode(bar)}, Bar={bar}, CurrentBar={_currentBar}, {FormatTimes(candle.Time)}, CandidateBar={_lastHighRejectionCandidateBar}, CandidateHigh={_lastHighRejectionHigh:F2}, CandidateClose={_lastHighRejectionClose:F2}, CandidateLow={_lastHighRejectionLow:F2}, CandidateDelta={_lastHighRejectionDelta:F0}, Close={candle.Close:F2}, Low={candle.Low:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, DistToPOC={candle.Close - poc:F2}, StopReference={_lastHighRejectionHigh:F2}, Target1={poc:F2}, Target2={val:F2}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}");
+                    _log($"[MR_EARLY_TRIGGER] Uuid={uuid}, Direction=Short, Trigger=HIGH_REJECTION_FOLLOW_THROUGH, BarMode={GetBarMode(bar)}, Bar={bar}, CurrentBar={_currentBar}, {FormatTimes(candle.Time)}, CandidateBar={_lastHighRejectionCandidateBar}, CandidateHigh={_lastHighRejectionHigh:F2}, CandidateClose={_lastHighRejectionClose:F2}, CandidateLow={_lastHighRejectionLow:F2}, CandidateDelta={_lastHighRejectionDelta:F0}, Close={candle.Close:F2}, Low={candle.Low:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, DistToPOC={candle.Close - poc:F2}, StopReference={_lastHighRejectionHigh:F2}, Target1={poc:F2}, Target2={val:F2}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}", IsHistoricalBar(bar));
                 }
             }
         }
@@ -349,14 +349,14 @@ namespace FabioOrderFlow
             {
                 _lowRejectionPocReclaimed = true;
                 var uuid = RegisterMeanReversionTrigger("Long", "POC_RECLAIM_AFTER_LOW_REJECTION", bar, _lastLowRejectionCandidateBar, poc, vah, val);
-                _log($"[MR_TRIGGER] Uuid={uuid}, Direction=Long, Trigger=POC_RECLAIM_AFTER_LOW_REJECTION, BarMode={GetBarMode(bar)}, Bar={bar}, CurrentBar={_currentBar}, {FormatTimes(candle.Time)}, CandidateBar={_lastLowRejectionCandidateBar}, Close={candle.Close:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, DistToPOC={candle.Close - poc:F2}, StopReference={_balanceTracker.CurrentZone.Low:F2}, Target1={vah:F2}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}");
+                _log($"[MR_TRIGGER] Uuid={uuid}, Direction=Long, Trigger=POC_RECLAIM_AFTER_LOW_REJECTION, BarMode={GetBarMode(bar)}, Bar={bar}, CurrentBar={_currentBar}, {FormatTimes(candle.Time)}, CandidateBar={_lastLowRejectionCandidateBar}, Close={candle.Close:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, DistToPOC={candle.Close - poc:F2}, StopReference={_balanceTracker.CurrentZone.Low:F2}, Target1={vah:F2}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}", IsHistoricalBar(bar));
             }
 
             if (_lastHighRejectionCandidateBar >= 0 && !_highRejectionPocLost && bar > _lastHighRejectionCandidateBar && candle.Close < poc)
             {
                 _highRejectionPocLost = true;
                 var uuid = RegisterMeanReversionTrigger("Short", "POC_LOSS_AFTER_HIGH_REJECTION", bar, _lastHighRejectionCandidateBar, poc, vah, val);
-                _log($"[MR_TRIGGER] Uuid={uuid}, Direction=Short, Trigger=POC_LOSS_AFTER_HIGH_REJECTION, BarMode={GetBarMode(bar)}, Bar={bar}, CurrentBar={_currentBar}, {FormatTimes(candle.Time)}, CandidateBar={_lastHighRejectionCandidateBar}, Close={candle.Close:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, DistToPOC={candle.Close - poc:F2}, StopReference={_balanceTracker.CurrentZone.High:F2}, Target1={val:F2}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}");
+                _log($"[MR_TRIGGER] Uuid={uuid}, Direction=Short, Trigger=POC_LOSS_AFTER_HIGH_REJECTION, BarMode={GetBarMode(bar)}, Bar={bar}, CurrentBar={_currentBar}, {FormatTimes(candle.Time)}, CandidateBar={_lastHighRejectionCandidateBar}, Close={candle.Close:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, DistToPOC={candle.Close - poc:F2}, StopReference={_balanceTracker.CurrentZone.High:F2}, Target1={val:F2}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}", IsHistoricalBar(bar));
             }
         }
 
@@ -479,7 +479,7 @@ namespace FabioOrderFlow
             var triggerLog = _meanReversionTriggerLogs.FirstOrDefault(t => t.Direction == direction && t.CandidateBar == candidateBar);
             var triggerUuid = triggerLog?.Uuid ?? "unknown";
             
-            _log($"[MR_AGGRESSION_CONFIRM] TriggerUuid={triggerUuid}, Direction={direction}, EntryModel={entryModel}, Trigger={trigger}, Bar={bar}, CandidateBar={candidateBar}, Italy={italyTime:yyyy-MM-dd HH:mm:ss.fff}, London={londonTime:yyyy-MM-dd HH:mm:ss.fff}, UTC={trade.Time:yyyy-MM-dd HH:mm:ss.fff}, EntryPrice={entryPrice:F2}, EntryAreaLow={entryAreaLow:F2}, EntryAreaHigh={entryAreaHigh:F2}, FirstPrice={trade.FirstPrice:F2}, LastPrice={trade.Lastprice:F2}, Volume={trade.Volume:F0}, TradeDirection={trade.Direction}, SweepTimeItaly={(sweepTimeItaly.HasValue ? sweepTimeItaly.Value.ToString("yyyy-MM-dd HH:mm:ss.fff") : "n/a")}, SweepTimeLondon={(sweepTimeLondon.HasValue ? sweepTimeLondon.Value.ToString("yyyy-MM-dd HH:mm:ss.fff") : "n/a")}, SweepTimeUtc={(sweepTime.HasValue ? sweepTime.Value.ToString("yyyy-MM-dd HH:mm:ss.fff") : "n/a")}, SecondsAfterSweep={secondsAfterSweep:F1}, StopReference={stopReference:F2}, RiskPoints={riskPoints:F2}, Target1POC={poc:F2}, Target2={target2:F2}, RewardToPOC={rewardToPoc:F2}, RewardToTarget2={rewardToTarget2:F2}, VAH={vah:F2}, VAL={val:F2}, MinVolume={minVolume:F0}, VolumeRule={volumeRule}");
+            _log($"[MR_AGGRESSION_CONFIRM] TriggerUuid={triggerUuid}, Direction={direction}, EntryModel={entryModel}, Trigger={trigger}, Bar={bar}, CandidateBar={candidateBar}, Italy={italyTime:yyyy-MM-dd HH:mm:ss.fff}, London={londonTime:yyyy-MM-dd HH:mm:ss.fff}, UTC={trade.Time:yyyy-MM-dd HH:mm:ss.fff}, EntryPrice={entryPrice:F2}, EntryAreaLow={entryAreaLow:F2}, EntryAreaHigh={entryAreaHigh:F2}, FirstPrice={trade.FirstPrice:F2}, LastPrice={trade.Lastprice:F2}, Volume={trade.Volume:F0}, TradeDirection={trade.Direction}, SweepTimeItaly={(sweepTimeItaly.HasValue ? sweepTimeItaly.Value.ToString("yyyy-MM-dd HH:mm:ss.fff") : "n/a")}, SweepTimeLondon={(sweepTimeLondon.HasValue ? sweepTimeLondon.Value.ToString("yyyy-MM-dd HH:mm:ss.fff") : "n/a")}, SweepTimeUtc={(sweepTime.HasValue ? sweepTime.Value.ToString("yyyy-MM-dd HH:mm:ss.fff") : "n/a")}, SecondsAfterSweep={secondsAfterSweep:F1}, StopReference={stopReference:F2}, RiskPoints={riskPoints:F2}, Target1POC={poc:F2}, Target2={target2:F2}, RewardToPOC={rewardToPoc:F2}, RewardToTarget2={rewardToTarget2:F2}, VAH={vah:F2}, VAL={val:F2}, MinVolume={minVolume:F0}, VolumeRule={volumeRule}", true);
 
             var outcome = RegisterMeanReversionOutcome(triggerUuid, direction, entryModel, bar, candidateBar, entryPrice, stopReference, poc, target2);
             EvaluateMeanReversionOutcomeRange(outcome, bar, Math.Max(bar, _currentBar - 1));
@@ -625,17 +625,17 @@ namespace FabioOrderFlow
 
             outcome.MfePoints = favorablePoints;
             outcome.MaxFavorablePrice = favorablePrice;
-            _log($"[MR_MFE_UPDATE] TriggerUuid={outcome.TriggerUuid}, Direction={outcome.Direction}, EntryModel={outcome.EntryModel}, Bar={bar}, CandidateBar={outcome.CandidateBar}, {FormatTimes(candle.Time)}, EntryPrice={outcome.EntryPrice:F2}, MFE={outcome.MfePoints:F2}, MaxFavorablePrice={outcome.MaxFavorablePrice:F2}, MAE={outcome.MaePoints:F2}, MaxAdversePrice={outcome.MaxAdversePrice:F2}");
+            _log($"[MR_MFE_UPDATE] TriggerUuid={outcome.TriggerUuid}, Direction={outcome.Direction}, EntryModel={outcome.EntryModel}, Bar={bar}, CandidateBar={outcome.CandidateBar}, {FormatTimes(candle.Time)}, EntryPrice={outcome.EntryPrice:F2}, MFE={outcome.MfePoints:F2}, MaxFavorablePrice={outcome.MaxFavorablePrice:F2}, MAE={outcome.MaePoints:F2}, MaxAdversePrice={outcome.MaxAdversePrice:F2}", IsHistoricalBar(bar));
         }
 
         private void LogTargetHit(MeanReversionOutcome outcome, int bar, IndicatorCandle candle, string target, decimal targetPrice, decimal rewardPoints)
         {
-            _log($"[MR_TARGET_HIT] TriggerUuid={outcome.TriggerUuid}, Direction={outcome.Direction}, EntryModel={outcome.EntryModel}, Target={target}, Bar={bar}, CandidateBar={outcome.CandidateBar}, {FormatTimes(candle.Time)}, EntryPrice={outcome.EntryPrice:F2}, TargetPrice={targetPrice:F2}, RewardPoints={rewardPoints:F2}, MFE={outcome.MfePoints:F2}, MAE={outcome.MaePoints:F2}");
+            _log($"[MR_TARGET_HIT] TriggerUuid={outcome.TriggerUuid}, Direction={outcome.Direction}, EntryModel={outcome.EntryModel}, Target={target}, Bar={bar}, CandidateBar={outcome.CandidateBar}, {FormatTimes(candle.Time)}, EntryPrice={outcome.EntryPrice:F2}, TargetPrice={targetPrice:F2}, RewardPoints={rewardPoints:F2}, MFE={outcome.MfePoints:F2}, MAE={outcome.MaePoints:F2}", IsHistoricalBar(bar));
         }
 
         private void LogInvalidated(MeanReversionOutcome outcome, int bar, IndicatorCandle candle)
         {
-            _log($"[MR_INVALIDATED] TriggerUuid={outcome.TriggerUuid}, Direction={outcome.Direction}, EntryModel={outcome.EntryModel}, Bar={bar}, CandidateBar={outcome.CandidateBar}, {FormatTimes(candle.Time)}, EntryPrice={outcome.EntryPrice:F2}, StopReference={outcome.StopReference:F2}, MFE={outcome.MfePoints:F2}, MAE={outcome.MaePoints:F2}");
+            _log($"[MR_INVALIDATED] TriggerUuid={outcome.TriggerUuid}, Direction={outcome.Direction}, EntryModel={outcome.EntryModel}, Bar={bar}, CandidateBar={outcome.CandidateBar}, {FormatTimes(candle.Time)}, EntryPrice={outcome.EntryPrice:F2}, StopReference={outcome.StopReference:F2}, MFE={outcome.MfePoints:F2}, MAE={outcome.MaePoints:F2}", IsHistoricalBar(bar));
         }
         
         private void LogPositionClosed(MeanReversionOutcome outcome, int bar, IndicatorCandle candle, string exitReason)
@@ -645,7 +645,7 @@ namespace FabioOrderFlow
             outcome.ExitBar = bar;
             outcome.ExitTime = candle.Time;
             
-            _log($"[MR_POSITION_CLOSED] TriggerUuid={outcome.TriggerUuid}, Direction={outcome.Direction}, EntryModel={outcome.EntryModel}, ExitReason={exitReason}, Bar={bar}, CandidateBar={outcome.CandidateBar}, {FormatTimes(candle.Time)}, EntryPrice={outcome.EntryPrice:F2}, FinalPnL={outcome.FinalPnL:F2}, MFE={outcome.MfePoints:F2}, MAE={outcome.MaePoints:F2}, Target1Hit={outcome.Target1Hit}, Target2Hit={outcome.Target2Hit}");
+            _log($"[MR_POSITION_CLOSED] TriggerUuid={outcome.TriggerUuid}, Direction={outcome.Direction}, EntryModel={outcome.EntryModel}, ExitReason={exitReason}, Bar={bar}, CandidateBar={outcome.CandidateBar}, {FormatTimes(candle.Time)}, EntryPrice={outcome.EntryPrice:F2}, FinalPnL={outcome.FinalPnL:F2}, MFE={outcome.MfePoints:F2}, MAE={outcome.MaePoints:F2}, Target1Hit={outcome.Target1Hit}, Target2Hit={outcome.Target2Hit}", IsHistoricalBar(bar));
         }
 
         private decimal GetMinAggressionTradeVolume(DateTime utcTime)
@@ -841,7 +841,7 @@ namespace FabioOrderFlow
             _liveHighSweepTimeUtc = trade.Time;
             
             var italyTime = MarketTimeZones.ToItaly(trade.Time);
-            _log($"[FOOTPRINT_HIGH_SWEEP] Bar={_currentBar}, Italy={italyTime:yyyy-MM-dd HH:mm:ss.fff}, UTC={trade.Time:yyyy-MM-dd HH:mm:ss.fff}, Price={trade.Lastprice:F2}, Volume={trade.Volume:F0}, VAH={_balanceTracker.LastPreviewVah:F2}");
+            _log($"[FOOTPRINT_HIGH_SWEEP] Bar={_currentBar}, Italy={italyTime:yyyy-MM-dd HH:mm:ss.fff}, UTC={trade.Time:yyyy-MM-dd HH:mm:ss.fff}, Price={trade.Lastprice:F2}, Volume={trade.Volume:F0}, VAH={_balanceTracker.LastPreviewVah:F2}", false);
         }
 
         private void ProcessLiveLowSweep(CumulativeTrade trade)
@@ -865,7 +865,7 @@ namespace FabioOrderFlow
             _liveLowSweepTimeUtc = trade.Time;
             
             var italyTime = MarketTimeZones.ToItaly(trade.Time);
-            _log($"[FOOTPRINT_LOW_SWEEP] Bar={_currentBar}, Italy={italyTime:yyyy-MM-dd HH:mm:ss.fff}, UTC={trade.Time:yyyy-MM-dd HH:mm:ss.fff}, Price={trade.Lastprice:F2}, Volume={trade.Volume:F0}, VAL={_balanceTracker.LastPreviewVal:F2}");
+            _log($"[FOOTPRINT_LOW_SWEEP] Bar={_currentBar}, Italy={italyTime:yyyy-MM-dd HH:mm:ss.fff}, UTC={trade.Time:yyyy-MM-dd HH:mm:ss.fff}, Price={trade.Lastprice:F2}, Volume={trade.Volume:F0}, VAL={_balanceTracker.LastPreviewVal:F2}", false);
         }
 
         private void ProcessLiveRejection(LiveSweepCandidate sweep, CumulativeTrade trade)
@@ -879,7 +879,7 @@ namespace FabioOrderFlow
             var secondsAfterSweep = (trade.Time - sweep.SweepTimeUtc).TotalSeconds;
             var direction = sweep.Direction == "High" ? "Short" : "Long";
             
-            _log($"[FOOTPRINT_REJECTION] Direction={direction}, Bar={_currentBar}, Italy={italyTime:yyyy-MM-dd HH:mm:ss.fff}, UTC={trade.Time:yyyy-MM-dd HH:mm:ss.fff}, RejectionPrice={trade.Lastprice:F2}, Volume={trade.Volume:F0}, SweepPrice={sweep.SweepPrice:F2}, SecondsAfterSweep={secondsAfterSweep:F1}");
+            _log($"[FOOTPRINT_REJECTION] Direction={direction}, Bar={_currentBar}, Italy={italyTime:yyyy-MM-dd HH:mm:ss.fff}, UTC={trade.Time:yyyy-MM-dd HH:mm:ss.fff}, RejectionPrice={trade.Lastprice:F2}, Volume={trade.Volume:F0}, SweepPrice={sweep.SweepPrice:F2}, SecondsAfterSweep={secondsAfterSweep:F1}", false);
         }
 
         private void ProcessFootprintEntry(LiveSweepCandidate sweep, CumulativeTrade trade)
@@ -904,7 +904,7 @@ namespace FabioOrderFlow
             var target1Poc = sweep.POC; // Usa POC dello sweep, non quello corrente
             var target2 = direction == "Long" ? sweep.VAH : sweep.VAL; // Usa VAH/VAL dello sweep
             
-            _log($"[FOOTPRINT_ENTRY] Direction={direction}, Trigger=FOOTPRINT_FIRST, Bar={_currentBar}, SweepBar={sweep.Bar}, Italy={italyTime:yyyy-MM-dd HH:mm:ss.fff}, UTC={trade.Time:yyyy-MM-dd HH:mm:ss.fff}, EntryPrice={entryPrice:F2}, Volume={trade.Volume:F0}, StopReference={stopReference:F2}, Target1POC={target1Poc:F2}, Target2={target2:F2}, SweepToEntrySeconds={sweepToEntry:F1}, RejectionToEntrySeconds={rejectionToEntry:F1}");
+            _log($"[FOOTPRINT_ENTRY] Direction={direction}, Trigger=FOOTPRINT_FIRST, Bar={_currentBar}, SweepBar={sweep.Bar}, Italy={italyTime:yyyy-MM-dd HH:mm:ss.fff}, UTC={trade.Time:yyyy-MM-dd HH:mm:ss.fff}, EntryPrice={entryPrice:F2}, Volume={trade.Volume:F0}, StopReference={stopReference:F2}, Target1POC={target1Poc:F2}, Target2={target2:F2}, SweepToEntrySeconds={sweepToEntry:F1}, RejectionToEntrySeconds={rejectionToEntry:F1}", false);
             
             // Registra outcome per tracking (footprint non ha trigger MR standard, usa UUID generico)
             var triggerUuid = "footprint-" + sweep.Bar.ToString();
@@ -921,6 +921,11 @@ namespace FabioOrderFlow
         private string GetBarMode(int bar)
         {
             return bar >= _currentBar - 1 ? "LIVE_OR_LAST_BAR" : "HISTORICAL_CLOSED";
+        }
+
+        private bool IsHistoricalBar(int bar)
+        {
+            return bar < _currentBar - 1;
         }
     }
 }

@@ -66,7 +66,7 @@ namespace FabioOrderFlow
     {
         private readonly Indicator _indicator;
         private readonly MarketContext _context = new();
-        private readonly Action<string> _log;
+        private readonly Action<string, bool> _log;
         private readonly Func<int, IndicatorCandle> _getCandle;
         private readonly bool _enableLiveFootprintFirst;
 
@@ -75,6 +75,9 @@ namespace FabioOrderFlow
         
         // Mean Reversion module (optional)
         private LondonMeanReversionModule? _meanReversionModule;
+        
+        // Helper for logging events (always live)
+        private void LogEvent(string message) => _log(message, false);
         
         private DrawingRectangle? _currentZoneRectangle;
         private LineTillTouch? _currentPocLine;
@@ -115,7 +118,7 @@ namespace FabioOrderFlow
 
         public BalanceZoneTracker(
             Indicator indicator, 
-            Action<string> log,
+            Action<string, bool> log,
             List<DrawingRectangle> rectangles,
             List<LineTillTouch> lines,
             Func<int, IndicatorCandle> getCandle,
@@ -184,7 +187,7 @@ namespace FabioOrderFlow
 
             if (DetailedDebugLogs && bar == 1)
             {
-                _log($"[BAR_DETAIL] First bar: Time={barTime:yyyy-MM-dd HH:mm:ss}, O={candle.Open}, H={candle.High}, L={candle.Low}, C={candle.Close}, V={candle.Volume}");
+                LogEvent($"[BAR_DETAIL] First bar: Time={barTime:yyyy-MM-dd HH:mm:ss}, O={candle.Open}, H={candle.High}, L={candle.Low}, C={candle.Close}, V={candle.Volume}");
             }
 
             var londonTime = MarketTimeZones.ToLondon(barTime);
@@ -196,7 +199,7 @@ namespace FabioOrderFlow
             
             if (DetailedDebugLogs && bar % 10 == 0 && (isInLondonSession || isInNewYorkSession))
             {
-                _log($"[STATE] Bar={bar}, State={_context.State}, LondonSession={isInLondonSession}, NYSession={isInNewYorkSession}");
+                LogEvent($"[STATE] Bar={bar}, State={_context.State}, LondonSession={isInLondonSession}, NYSession={isInNewYorkSession}");
             }
 
             // State machine
@@ -286,7 +289,7 @@ namespace FabioOrderFlow
             if (!_firstCompleteSessionFound && londonTime.Hour != 8)
             {
                 var italyTime = MarketTimeZones.ToItaly(candle.Time);
-                _log($"[SKIP] Partial London session detected at London={londonTime:yyyy-MM-dd HH:mm:ss}, Italy={italyTime:yyyy-MM-dd HH:mm:ss} | Bar={bar}");
+                LogEvent($"[SKIP] Partial London session detected at London={londonTime:yyyy-MM-dd HH:mm:ss}, Italy={italyTime:yyyy-MM-dd HH:mm:ss} | Bar={bar}");
                 return;
             }
             
@@ -308,8 +311,8 @@ namespace FabioOrderFlow
             _lastPreviewProfileBar = -1;
 
             UpdateLondonProfile(bar, candle);
-            _log($"[SESSION_START] London session started at bar {bar} ({FormatTimes(candle.Time)})");
-            _log($"[SESSION_START] Candle: O={candle.Open}, H={candle.High}, L={candle.Low}, C={candle.Close}");
+            LogEvent($"[SESSION_START] London session started at bar {bar} ({FormatTimes(candle.Time)})");
+            LogEvent($"[SESSION_START] Candle: O={candle.Open}, H={candle.High}, L={candle.Low}, C={candle.Close}");
         }
 
         private void UpdateLondonProfile(int bar, IndicatorCandle candle)
@@ -381,7 +384,7 @@ namespace FabioOrderFlow
             {
                 _lastLoggedNyPreCloseBar = bar;
                 var (bid, ask, delta, topLevels) = GetCandleVolumeDiagnostics(candle);
-                _log($"[NY_PRE_CLOSE] Bar={bar}, {FormatTimes(candle.Time)}, O={candle.Open:F2}, H={candle.High:F2}, L={candle.Low:F2}, C={candle.Close:F2}, V={candle.Volume:F0}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}, TopLevels={topLevels}");
+                LogEvent($"[NY_PRE_CLOSE] Bar={bar}, {FormatTimes(candle.Time)}, O={candle.Open:F2}, H={candle.High:F2}, L={candle.Low:F2}, C={candle.Close:F2}, V={candle.Volume:F0}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}, TopLevels={topLevels}");
             }
 
             if (_nySessionActive)
@@ -407,8 +410,8 @@ namespace FabioOrderFlow
             _nySessionLowTimeUtc = candle.Time;
 
             UpdateNewYorkSession(bar, candle);
-            _log($"[NY_SESSION_START] New York session started at bar {bar} ({FormatTimes(candle.Time)})");
-            _log($"[NY_SESSION_START] Candle: O={candle.Open:F2}, H={candle.High:F2}, L={candle.Low:F2}, C={candle.Close:F2}");
+            LogEvent($"[NY_SESSION_START] New York session started at bar {bar} ({FormatTimes(candle.Time)})");
+            LogEvent($"[NY_SESSION_START] Candle: O={candle.Open:F2}, H={candle.High:F2}, L={candle.Low:F2}, C={candle.Close:F2}");
         }
 
         private void UpdateNewYorkSession(int bar, IndicatorCandle candle)
@@ -462,7 +465,13 @@ namespace FabioOrderFlow
             var relation = candle.Close > vah ? "ABOVE_PREVIEW_VAH" : candle.Close < val ? "BELOW_PREVIEW_VAL" : "INSIDE_PREVIEW_VA";
             var nyBars = _nySessionEndBar - _nySessionStartBar + 1;
 
-            _log($"[NY_PROFILE_PREVIEW] Bar={bar}, {FormatTimes(candle.Time)}, Reason={(force ? "event" : "live")}, Bars={nyBars}, High={_nySessionHigh:F2}, Low={_nySessionLow:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, VA_Volume={valueAreaVolume:F0}, TotalVolume={_nySessionTotalVolume:F0}, MaxLevelVolume={maxVolume:F0}, Close={candle.Close:F2}, Relation={relation}, DistToPOC={candle.Close - poc:F2}, DistToVAH={candle.Close - vah:F2}, DistToVAL={candle.Close - val:F2}, CandleBid={bid:F0}, CandleAsk={ask:F0}, CandleDelta={delta:F0}");
+            // Log NY_PROFILE_PREVIEW only if force=true or there's an active trade
+            var hasActiveTrades = _meanReversionModule?.MeanReversionOutcomes.Any(o => !o.PositionClosed) ?? false;
+            if (force || hasActiveTrades)
+            {
+                var isHistorical = bar < _indicator.CurrentBar - 1;
+                _log($"[NY_PROFILE_PREVIEW] Bar={bar}, {FormatTimes(candle.Time)}, Reason={(force ? "event" : "live")}, Bars={nyBars}, High={_nySessionHigh:F2}, Low={_nySessionLow:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, VA_Volume={valueAreaVolume:F0}, TotalVolume={_nySessionTotalVolume:F0}, MaxLevelVolume={maxVolume:F0}, Close={candle.Close:F2}, Relation={relation}, DistToPOC={candle.Close - poc:F2}, DistToVAH={candle.Close - vah:F2}, DistToVAL={candle.Close - val:F2}, CandleBid={bid:F0}, CandleAsk={ask:F0}, CandleDelta={delta:F0}", isHistorical);
+            }
         }
 
         private void FinalizeSession(int bar, string sessionName, int minCompleteBars, int minSessionBars, bool isLondon)
@@ -474,19 +483,19 @@ namespace FabioOrderFlow
             var barCount = _context.CurrentZone.EndBar - _context.CurrentZone.StartBar + 1;
             var endCandle = _getCandle(bar - 1);
 
-            _log($"[SESSION_END] {sessionName} session ended at bar {bar - 1} ({FormatTimes(endCandle.Time)}). Bars in session: {barCount}");
-            _log($"[SESSION_END] Candle: O={endCandle.Open:F2}, H={endCandle.High:F2}, L={endCandle.Low:F2}, C={endCandle.Close:F2}");
+            LogEvent($"[SESSION_END] {sessionName} session ended at bar {bar - 1} ({FormatTimes(endCandle.Time)}). Bars in session: {barCount}");
+            LogEvent($"[SESSION_END] Candle: O={endCandle.Open:F2}, H={endCandle.High:F2}, L={endCandle.Low:F2}, C={endCandle.Close:F2}");
 
             if (isLondon)
             {
-                _log($"[SESSION_END] Session range so far: High={_context.CurrentZone.High:F2}, Low={_context.CurrentZone.Low:F2}, TotalVolume={_context.CurrentZone.TotalVolume:F0}");
-                _log($"[SESSION_EXTREMES] High={_context.CurrentZone.High:F2} at Bar={_context.CurrentZone.SessionHighBar}, {FormatTimes(_context.CurrentZone.SessionHighTimeUtc)}");
-                _log($"[SESSION_EXTREMES] Low={_context.CurrentZone.Low:F2} at Bar={_context.CurrentZone.SessionLowBar}, {FormatTimes(_context.CurrentZone.SessionLowTimeUtc)}");
+                LogEvent($"[SESSION_END] Session range so far: High={_context.CurrentZone.High:F2}, Low={_context.CurrentZone.Low:F2}, TotalVolume={_context.CurrentZone.TotalVolume:F0}");
+                LogEvent($"[SESSION_EXTREMES] High={_context.CurrentZone.High:F2} at Bar={_context.CurrentZone.SessionHighBar}, {FormatTimes(_context.CurrentZone.SessionHighTimeUtc)}");
+                LogEvent($"[SESSION_EXTREMES] Low={_context.CurrentZone.Low:F2} at Bar={_context.CurrentZone.SessionLowBar}, {FormatTimes(_context.CurrentZone.SessionLowTimeUtc)}");
             }
 
             if (barCount < minCompleteBars)
             {
-                _log($"[SESSION_SKIP] {sessionName} session incomplete (only {barCount} bars), skipping...");
+                LogEvent($"[SESSION_SKIP] {sessionName} session incomplete (only {barCount} bars), skipping...");
                 _context.State = MarketState.NoZone;
                 _context.CurrentZone = null;
                 return;
@@ -494,7 +503,7 @@ namespace FabioOrderFlow
 
             if (barCount < minSessionBars || (isLondon && _context.CurrentZone.Profile.Count == 0))
             {
-                _log($"[BALANCE_INVALID] {sessionName} session too short or empty | Bars={barCount}");
+                LogEvent($"[BALANCE_INVALID] {sessionName} session too short or empty | Bars={barCount}");
                 _context.State = MarketState.NoZone;
                 _context.CurrentZone = null;
                 return;
@@ -504,9 +513,9 @@ namespace FabioOrderFlow
             {
                 if (DetailedDebugLogs)
                 {
-                    _log($"[PROFILE_RANGE] High={_context.CurrentZone.High:F2} | Low={_context.CurrentZone.Low:F2} | ProfileLevels={_context.CurrentZone.Profile.Count}");
-                    _log($"[PROFILE_DETAIL] First 10 levels: {string.Join(", ", _context.CurrentZone.Profile.OrderBy(kv => kv.Key).Take(10).Select(kv => $"{kv.Key:F2}={kv.Value:F0}"))}");
-                    _log($"[PROFILE_DETAIL] Last 10 levels: {string.Join(", ", _context.CurrentZone.Profile.OrderByDescending(kv => kv.Key).Take(10).Select(kv => $"{kv.Key:F2}={kv.Value:F0}"))}");
+                    LogEvent($"[PROFILE_RANGE] High={_context.CurrentZone.High:F2} | Low={_context.CurrentZone.Low:F2} | ProfileLevels={_context.CurrentZone.Profile.Count}");
+                    LogEvent($"[PROFILE_DETAIL] First 10 levels: {string.Join(", ", _context.CurrentZone.Profile.OrderBy(kv => kv.Key).Take(10).Select(kv => $"{kv.Key:F2}={kv.Value:F0}"))}");
+                    LogEvent($"[PROFILE_DETAIL] Last 10 levels: {string.Join(", ", _context.CurrentZone.Profile.OrderByDescending(kv => kv.Key).Take(10).Select(kv => $"{kv.Key:F2}={kv.Value:F0}"))}");
                 }
 
                 CalculatePOC();
@@ -517,8 +526,8 @@ namespace FabioOrderFlow
 
                 DrawBalanceZone();
 
-                _log($"[ZONE_READY] Balance zone ready: High={_context.CurrentZone.High:F2}, Low={_context.CurrentZone.Low:F2}, POC={_context.CurrentZone.POC:F2}, VAH={_context.CurrentZone.VAH:F2}, VAL={_context.CurrentZone.VAL:F2}, TotalVolume={_context.CurrentZone.TotalVolume:F0}");
-                _log($"[ZONE_READY] StartBar={_context.CurrentZone.StartBar}, EndBar={_context.CurrentZone.EndBar}, Bars={barCount}");
+                LogEvent($"[ZONE_READY] Balance zone ready: High={_context.CurrentZone.High:F2}, Low={_context.CurrentZone.Low:F2}, POC={_context.CurrentZone.POC:F2}, VAH={_context.CurrentZone.VAH:F2}, VAL={_context.CurrentZone.VAL:F2}, TotalVolume={_context.CurrentZone.TotalVolume:F0}");
+                LogEvent($"[ZONE_READY] StartBar={_context.CurrentZone.StartBar}, EndBar={_context.CurrentZone.EndBar}, Bars={barCount}");
 
                 if (DetailedDebugLogs)
                 {
@@ -539,10 +548,10 @@ namespace FabioOrderFlow
             
             if (DetailedDebugLogs)
             {
-                _log($"[POC_CALC] MaxVolume={maxVolume:F0}, POC={_context.CurrentZone.POC:F2}, Candidates={pocCandidates.Count}");
+                LogEvent($"[POC_CALC] MaxVolume={maxVolume:F0}, POC={_context.CurrentZone.POC:F2}, Candidates={pocCandidates.Count}");
                 if (pocCandidates.Count > 1)
                 {
-                    _log($"[POC_CALC] Multiple POC candidates (tie-break to lowest): {string.Join(", ", pocCandidates.Select(kv => $"{kv.Key:F2}"))}");
+                    LogEvent($"[POC_CALC] Multiple POC candidates (tie-break to lowest): {string.Join(", ", pocCandidates.Select(kv => $"{kv.Key:F2}"))}");
                 }
             }
         }
@@ -559,8 +568,8 @@ namespace FabioOrderFlow
 
             if (DetailedDebugLogs)
             {
-                _log($"[VALUE_AREA_CALC] TotalVolume={_context.CurrentZone.TotalVolume:F0}, Target70%={targetVolume:F0}");
-                _log($"[VALUE_AREA_CALC] POC at index {pocIndex} of {sortedLevels.Count} levels, Price={_context.CurrentZone.POC:F2}");
+                LogEvent($"[VALUE_AREA_CALC] TotalVolume={_context.CurrentZone.TotalVolume:F0}, Target70%={targetVolume:F0}");
+                LogEvent($"[VALUE_AREA_CALC] POC at index {pocIndex} of {sortedLevels.Count} levels, Price={_context.CurrentZone.POC:F2}");
             }
 
             var accumulatedVolume = sortedLevels[pocIndex].Value;
@@ -569,7 +578,7 @@ namespace FabioOrderFlow
 
             if (DetailedDebugLogs)
             {
-                _log($"[VALUE_AREA_CALC] Starting expansion from POC, InitialVolume={accumulatedVolume:F0}");
+                LogEvent($"[VALUE_AREA_CALC] Starting expansion from POC, InitialVolume={accumulatedVolume:F0}");
             }
 
             while (accumulatedVolume < targetVolume && (lowerIndex > 0 || upperIndex < sortedLevels.Count - 1))
@@ -583,7 +592,7 @@ namespace FabioOrderFlow
                     accumulatedVolume += sortedLevels[lowerIndex].Value;
                     if (DetailedDebugLogs)
                     {
-                        _log($"[VALUE_AREA_CALC] Expanded down: Price={sortedLevels[lowerIndex].Key:F2}, Volume={sortedLevels[lowerIndex].Value:F0}, Accumulated={accumulatedVolume:F0}");
+                        LogEvent($"[VALUE_AREA_CALC] Expanded down: Price={sortedLevels[lowerIndex].Key:F2}, Volume={sortedLevels[lowerIndex].Value:F0}, Accumulated={accumulatedVolume:F0}");
                     }
                 }
                 else if (upperIndex < sortedLevels.Count - 1)
@@ -592,7 +601,7 @@ namespace FabioOrderFlow
                     accumulatedVolume += sortedLevels[upperIndex].Value;
                     if (DetailedDebugLogs)
                     {
-                        _log($"[VALUE_AREA_CALC] Expanded up: Price={sortedLevels[upperIndex].Key:F2}, Volume={sortedLevels[upperIndex].Value:F0}, Accumulated={accumulatedVolume:F0}");
+                        LogEvent($"[VALUE_AREA_CALC] Expanded up: Price={sortedLevels[upperIndex].Key:F2}, Volume={sortedLevels[upperIndex].Value:F0}, Accumulated={accumulatedVolume:F0}");
                     }
                 }
                 else
@@ -606,8 +615,8 @@ namespace FabioOrderFlow
             
             if (DetailedDebugLogs)
             {
-                _log($"[VALUE_AREA_CALC] Final: VAL={_context.CurrentZone.VAL:F2} (index {lowerIndex}), VAH={_context.CurrentZone.VAH:F2} (index {upperIndex})");
-                _log($"[VALUE_AREA_CALC] Final accumulated volume: {accumulatedVolume:F0} ({100.0m * accumulatedVolume / _context.CurrentZone.TotalVolume:F1}%)");
+                LogEvent($"[VALUE_AREA_CALC] Final: VAL={_context.CurrentZone.VAL:F2} (index {lowerIndex}), VAH={_context.CurrentZone.VAH:F2} (index {upperIndex})");
+                LogEvent($"[VALUE_AREA_CALC] Final accumulated volume: {accumulatedVolume:F0} ({100.0m * accumulatedVolume / _context.CurrentZone.TotalVolume:F1}%)");
             }
         }
 
@@ -626,7 +635,7 @@ namespace FabioOrderFlow
                 _context.PendingDirection = BreakoutDirection.Bullish;
                 _context.PendingBreakoutBar = bar;
                 _context.ConsecutiveOutsideCloses = 1;
-                _log($"[BREAKOUT_PENDING] Bullish | Bar={bar}, {FormatTimes(candle.Time)}, Close={close:F2} > VAH={_context.CurrentZone.VAH:F2}");
+                LogEvent($"[BREAKOUT_PENDING] Bullish | Bar={bar}, {FormatTimes(candle.Time)}, Close={close:F2} > VAH={_context.CurrentZone.VAH:F2}");
             }
             else if (isBearishBreak)
             {
@@ -634,7 +643,7 @@ namespace FabioOrderFlow
                 _context.PendingDirection = BreakoutDirection.Bearish;
                 _context.PendingBreakoutBar = bar;
                 _context.ConsecutiveOutsideCloses = 1;
-                _log($"[BREAKOUT_PENDING] Bearish | Bar={bar}, {FormatTimes(candle.Time)}, Close={close:F2} < VAL={_context.CurrentZone.VAL:F2}");
+                LogEvent($"[BREAKOUT_PENDING] Bearish | Bar={bar}, {FormatTimes(candle.Time)}, Close={close:F2} < VAL={_context.CurrentZone.VAL:F2}");
             }
         }
 
@@ -662,9 +671,9 @@ namespace FabioOrderFlow
 
                     UpdateBalanceZoneColors();
 
-                    _log($"[BREAKOUT_CONFIRMED] Direction: {_context.PendingDirection}, Bar: {bar}, {FormatTimes(candle.Time)}, Close: {close:F2}, VAH: {_context.CurrentZone.VAH:F2}, VAL: {_context.CurrentZone.VAL:F2}");
-                    _log($"[BREAKOUT_CONFIRMED] Candle: O={candle.Open}, H={candle.High}, L={candle.Low}, C={candle.Close}");
-                    _log($"[OUT_OF_BALANCE] {_context.PendingDirection} | BreakoutBar={_context.PendingBreakoutBar} | TargetPOC={_context.CurrentZone.POC}");
+                    LogEvent($"[BREAKOUT_CONFIRMED] Direction: {_context.PendingDirection}, Bar: {bar}, {FormatTimes(candle.Time)}, Close: {close:F2}, VAH: {_context.CurrentZone.VAH:F2}, VAL: {_context.CurrentZone.VAL:F2}");
+                    LogEvent($"[BREAKOUT_CONFIRMED] Candle: O={candle.Open}, H={candle.High}, L={candle.Low}, C={candle.Close}");
+                    LogEvent($"[OUT_OF_BALANCE] {_context.PendingDirection} | BreakoutBar={_context.PendingBreakoutBar} | TargetPOC={_context.CurrentZone.POC}");
                 }
             }
             else
@@ -674,7 +683,7 @@ namespace FabioOrderFlow
                 _context.PendingDirection = null;
                 _context.PendingBreakoutBar = -1;
                 _context.ConsecutiveOutsideCloses = 0;
-                _log("[FALSE_BREAKOUT] Returned inside value area");
+                LogEvent("[FALSE_BREAKOUT] Returned inside value area");
             }
         }
 
@@ -748,7 +757,7 @@ namespace FabioOrderFlow
 
             _lastLoggedPreCloseBar = bar;
             var (bid, ask, delta, topLevels) = GetCandleVolumeDiagnostics(candle);
-            _log($"[LONDON_PRE_CLOSE] Bar={bar}, {FormatTimes(candle.Time)}, O={candle.Open:F2}, H={candle.High:F2}, L={candle.Low:F2}, C={candle.Close:F2}, V={candle.Volume:F0}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}, TopLevels={topLevels}");
+            LogEvent($"[LONDON_PRE_CLOSE] Bar={bar}, {FormatTimes(candle.Time)}, O={candle.Open:F2}, H={candle.High:F2}, L={candle.Low:F2}, C={candle.Close:F2}, V={candle.Volume:F0}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}, TopLevels={topLevels}");
         }
 
         private void LogPreviewProfileIfNeeded(int bar, IndicatorCandle candle, bool force)
@@ -773,7 +782,15 @@ namespace FabioOrderFlow
             var relation = candle.Close > vah ? "ABOVE_PREVIEW_VAH" : candle.Close < val ? "BELOW_PREVIEW_VAL" : "INSIDE_PREVIEW_VA";
             var sessionBars = bar - _context.CurrentZone.StartBar + 1;
 
-            _log($"[PROFILE_PREVIEW] Bar={bar}, {FormatTimes(candle.Time)}, Reason={(force ? "event" : "live")}, Bars={sessionBars}, High={_context.CurrentZone.High:F2}, Low={_context.CurrentZone.Low:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, VA_Volume={valueAreaVolume:F0}, TotalVolume={_context.CurrentZone.TotalVolume:F0}, MaxLevelVolume={maxVolume:F0}, Close={candle.Close:F2}, Relation={relation}, DistToPOC={candle.Close - poc:F2}, DistToVAH={candle.Close - vah:F2}, DistToVAL={candle.Close - val:F2}");
+            // Log PROFILE_PREVIEW only if:
+            // 1. force=true (event: high/low/new bar)
+            // 2. There's an active MR trade
+            var hasActiveTrades = _meanReversionModule?.MeanReversionOutcomes.Any(o => !o.PositionClosed) ?? false;
+            if (force || hasActiveTrades)
+            {
+                var isHistorical = bar < _indicator.CurrentBar - 1;
+                _log($"[PROFILE_PREVIEW] Bar={bar}, {FormatTimes(candle.Time)}, Reason={(force ? "event" : "live")}, Bars={sessionBars}, High={_context.CurrentZone.High:F2}, Low={_context.CurrentZone.Low:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, VA_Volume={valueAreaVolume:F0}, TotalVolume={_context.CurrentZone.TotalVolume:F0}, MaxLevelVolume={maxVolume:F0}, Close={candle.Close:F2}, Relation={relation}, DistToPOC={candle.Close - poc:F2}, DistToVAH={candle.Close - vah:F2}, DistToVAL={candle.Close - val:F2}", isHistorical);
+            }
             
             // Call MR module for trigger evaluation
             var (bid, ask, delta, _) = GetCandleVolumeDiagnostics(candle);
@@ -850,26 +867,26 @@ namespace FabioOrderFlow
 
             if (DetailedDebugLogs)
             {
-                _log($"[DRAW_ZONE] Rectangle=(Bar:{zone.StartBar}, High:{zone.High:F2})-(Bar:{zone.EndBar}, Low:{zone.Low:F2})");
-                _log($"[DRAW_ZONE] POC_Line=(Bar:{zone.StartBar}, Price:{zone.POC:F2})-(Bar:{zone.EndBar}, Price:{zone.POC:F2})");
-                _log($"[DRAW_ZONE] VAH_Line=(Bar:{zone.StartBar}, Price:{zone.VAH:F2})-(Bar:{zone.EndBar}, Price:{zone.VAH:F2})");
-                _log($"[DRAW_ZONE] VAL_Line=(Bar:{zone.StartBar}, Price:{zone.VAL:F2})-(Bar:{zone.EndBar}, Price:{zone.VAL:F2})");
-                _log($"[DRAW_ZONE] Zone visual box: High={zone.High:F2}, Low={zone.Low:F2}");
-                _log($"[DRAW_ZONE] === First 5 candles in zone ===");
+                LogEvent($"[DRAW_ZONE] Rectangle=(Bar:{zone.StartBar}, High:{zone.High:F2})-(Bar:{zone.EndBar}, Low:{zone.Low:F2})");
+                LogEvent($"[DRAW_ZONE] POC_Line=(Bar:{zone.StartBar}, Price:{zone.POC:F2})-(Bar:{zone.EndBar}, Price:{zone.POC:F2})");
+                LogEvent($"[DRAW_ZONE] VAH_Line=(Bar:{zone.StartBar}, Price:{zone.VAH:F2})-(Bar:{zone.EndBar}, Price:{zone.VAH:F2})");
+                LogEvent($"[DRAW_ZONE] VAL_Line=(Bar:{zone.StartBar}, Price:{zone.VAL:F2})-(Bar:{zone.EndBar}, Price:{zone.VAL:F2})");
+                LogEvent($"[DRAW_ZONE] Zone visual box: High={zone.High:F2}, Low={zone.Low:F2}");
+                LogEvent($"[DRAW_ZONE] === First 5 candles in zone ===");
                 for (int i = zone.StartBar; i < Math.Min(zone.StartBar + 5, zone.EndBar); i++)
                 {
                     var c = _getCandle(i);
-                    _log($"[DRAW_ZONE] Bar {i}: Time={FormatTimes(c.Time)}, O={c.Open:F2}, H={c.High:F2}, L={c.Low:F2}, C={c.Close:F2}");
+                    LogEvent($"[DRAW_ZONE] Bar {i}: Time={FormatTimes(c.Time)}, O={c.Open:F2}, H={c.High:F2}, L={c.Low:F2}, C={c.Close:F2}");
                 }
             }
         }
 
         private void VerifyZoneCoverageComplete(BalanceZone zone)
         {
-            _log($"[VERIFY_COVERAGE] === COMPLETE COVERAGE CHECK ===");
-            _log($"[VERIFY_COVERAGE] Zone visual box: High={zone.High:F2}, Low={zone.Low:F2}");
-            _log($"[VERIFY_COVERAGE] Zone VAH={zone.VAH:F2}, VAL={zone.VAL:F2} (breakout detection)");
-            _log($"[VERIFY_COVERAGE] StartBar={zone.StartBar}, EndBar={zone.EndBar}, Total={zone.EndBar - zone.StartBar + 1} bars");
+            LogEvent($"[VERIFY_COVERAGE] === COMPLETE COVERAGE CHECK ===");
+            LogEvent($"[VERIFY_COVERAGE] Zone visual box: High={zone.High:F2}, Low={zone.Low:F2}");
+            LogEvent($"[VERIFY_COVERAGE] Zone VAH={zone.VAH:F2}, VAL={zone.VAL:F2} (breakout detection)");
+            LogEvent($"[VERIFY_COVERAGE] StartBar={zone.StartBar}, EndBar={zone.EndBar}, Total={zone.EndBar - zone.StartBar + 1} bars");
             
             int totalCandles = 0;
             int fullyCoveredByBox = 0;
@@ -930,17 +947,17 @@ namespace FabioOrderFlow
                 // Log solo candele problematiche per ridurre spam
                 if (!candleFullyCoveredByBox)
                 {
-                    _log($"[VERIFY_COVERAGE] Bar {i}: {boxStatus} | {vaStatus} | {FormatTimes(candle.Time)} | Candle H={candle.High:F2} L={candle.Low:F2} | Box H={zone.High:F2} L={zone.Low:F2} | VA H={zone.VAH:F2} L={zone.VAL:F2}");
+                    LogEvent($"[VERIFY_COVERAGE] Bar {i}: {boxStatus} | {vaStatus} | {FormatTimes(candle.Time)} | Candle H={candle.High:F2} L={candle.Low:F2} | Box H={zone.High:F2} L={zone.Low:F2} | VA H={zone.VAH:F2} L={zone.VAL:F2}");
                 }
             }
             
-            _log($"[VERIFY_COVERAGE] === SUMMARY ===");
-            _log($"[VERIFY_COVERAGE] BOX (High/Low): Total={totalCandles}, FullyCovered={fullyCoveredByBox} ({100.0*fullyCoveredByBox/totalCandles:F1}%), PartiallyCovered={partiallyCoveredByBox} ({100.0*partiallyCoveredByBox/totalCandles:F1}%), NotCovered={notCoveredByBox} ({100.0*notCoveredByBox/totalCandles:F1}%)");
-            _log($"[VERIFY_COVERAGE] VA (VAH/VAL): Total={totalCandles}, FullyCovered={fullyCoveredByVA} ({100.0*fullyCoveredByVA/totalCandles:F1}%), PartiallyCovered={partiallyCoveredByVA} ({100.0*partiallyCoveredByVA/totalCandles:F1}%), NotCovered={notCoveredByVA} ({100.0*notCoveredByVA/totalCandles:F1}%)");
+            LogEvent($"[VERIFY_COVERAGE] === SUMMARY ===");
+            LogEvent($"[VERIFY_COVERAGE] BOX (High/Low): Total={totalCandles}, FullyCovered={fullyCoveredByBox} ({100.0*fullyCoveredByBox/totalCandles:F1}%), PartiallyCovered={partiallyCoveredByBox} ({100.0*partiallyCoveredByBox/totalCandles:F1}%), NotCovered={notCoveredByBox} ({100.0*notCoveredByBox/totalCandles:F1}%)");
+            LogEvent($"[VERIFY_COVERAGE] VA (VAH/VAL): Total={totalCandles}, FullyCovered={fullyCoveredByVA} ({100.0*fullyCoveredByVA/totalCandles:F1}%), PartiallyCovered={partiallyCoveredByVA} ({100.0*partiallyCoveredByVA/totalCandles:F1}%), NotCovered={notCoveredByVA} ({100.0*notCoveredByVA/totalCandles:F1}%)");
             
             if (notCoveredByBox > 0)
             {
-                _log($"[VERIFY_COVERAGE] ⚠️ WARNING: {notCoveredByBox} candles not covered by box! This should NEVER happen.");
+                LogEvent($"[VERIFY_COVERAGE] ⚠️ WARNING: {notCoveredByBox} candles not covered by box! This should NEVER happen.");
             }
         }
 
