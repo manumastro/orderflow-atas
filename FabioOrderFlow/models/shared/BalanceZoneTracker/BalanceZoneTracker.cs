@@ -487,18 +487,19 @@ namespace FabioOrderFlow
                                    _lastNyLoggedVal != val ||
                                    _lastNyLoggedRelation != relation;
             
-            if (force || (hasActiveTrades && significantChange))
-            {
-                var isHistorical = bar < _indicator.CurrentBar - 1;
-                _log($"[NY_PROFILE_PREVIEW] Bar={bar}, {FormatTimes(candle.Time)}, Reason={(force ? "event" : "live")}, Bars={nyBars}, High={_nySessionHigh:F2}, Low={_nySessionLow:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, VA_Volume={valueAreaVolume:F0}, TotalVolume={_nySessionTotalVolume:F0}, MaxLevelVolume={maxVolume:F0}, Close={candle.Close:F2}, Relation={relation}, DistToPOC={candle.Close - poc:F2}, DistToVAH={candle.Close - vah:F2}, DistToVAL={candle.Close - val:F2}, CandleBid={bid:F0}, CandleAsk={ask:F0}, CandleDelta={delta:F0}", isHistorical);
-                
-                // Update last logged state
-                _lastNyLoggedPreviewBar = bar;
-                _lastNyLoggedPoc = poc;
-                _lastNyLoggedVah = vah;
-                _lastNyLoggedVal = val;
-                _lastNyLoggedRelation = relation;
-            }
+            // NY_PROFILE_PREVIEW logging disabled to reduce log noise
+            // if (force || (hasActiveTrades && significantChange))
+            // {
+            //     var isHistorical = bar < _indicator.CurrentBar - 1;
+            //     _log($"[NY_PROFILE_PREVIEW] Bar={bar}, {FormatTimes(candle.Time)}, Reason={(force ? "event" : "live")}, Bars={nyBars}, High={_nySessionHigh:F2}, Low={_nySessionLow:F2}, POC={poc:F2}, VAH={vah:F2}, VAL={val:F2}, VA_Volume={valueAreaVolume:F0}, TotalVolume={_nySessionTotalVolume:F0}, MaxLevelVolume={maxVolume:F0}, Close={candle.Close:F2}, Relation={relation}, DistToPOC={candle.Close - poc:F2}, DistToVAH={candle.Close - vah:F2}, DistToVAL={candle.Close - val:F2}, CandleBid={bid:F0}, CandleAsk={ask:F0}, CandleDelta={delta:F0}", isHistorical);
+            //     
+            //     // Update last logged state
+            //     _lastNyLoggedPreviewBar = bar;
+            //     _lastNyLoggedPoc = poc;
+            //     _lastNyLoggedVah = vah;
+            //     _lastNyLoggedVal = val;
+            //     _lastNyLoggedRelation = relation;
+            // }
         }
 
         private void FinalizeSession(int bar, string sessionName, int minCompleteBars, int minSessionBars, bool isLondon)
