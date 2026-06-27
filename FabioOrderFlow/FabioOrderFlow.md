@@ -1,108 +1,176 @@
 # FabioOrderFlow
 
-Indicatore ATAS modulare per analisi order flow (NQ/ES futures).
+Indicatore ATAS modulare per order flow su futures NQ/ES.
+
+Obiettivo corrente: **London Mean Reversion live-first**. Il modello deve generare segnali in live durante London usando cumulative big trades, e usare i dati storici gia' caricati sul chart per mostrare come lo stesso motore si sarebbe comportato.
+
+---
 
 ## Struttura
 
-```
+```text
 FabioOrderFlow/
-├── FabioOrderFlow.md                  # Questo file
+├── FabioOrderFlow.md
 ├── src/
-│   ├── FabioOrderFlow.cs             # Orchestrator
+│   ├── FabioOrderFlow.cs              # Orchestrator ATAS
+│   ├── MarketTimeZones.cs             # Conversioni London/Italy/New York
 │   ├── FabioOrderFlow.csproj
-│   └── deploy.bat
+│   └── deploy.bat / deploy.sh
 └── models/
-    ├── shared/                        # Shared modules
-    │   └── BalanceZoneTracker/
-    ├── LondonMeanReversionModel/      # Modello 2 (production)
-    │   ├── LondonMeanReversionModel.md
-    │   └── LondonMeanReversionModel.cs
-    └── PostLondonImpulseModel/        # Modello 1 (planned)
-        ├── PostLondonImpulseModel.md
-        ├── PostLondonImpulseModel.cs  # To be implemented
-        └── modules/                   # Support modules
+    ├── LondonMeanReversionModel/      # Modello attivo
+    │   ├── LondonMeanReversionModel.cs
+    │   └── LondonMeanReversionModel.md
+    ├── PostLondonImpulseModel/        # Non in scope ora
+    │   ├── PostLondonImpulseModel.md
+    │   └── modules/
+    └── shared/
+        └── BalanceZoneTracker/        # Profilo/value area condivisi
 ```
 
-**Design:** Core file = model file (.cs con nome del model)
+Regola: ogni modello ha una sola implementazione `.cs` attiva nella propria directory. Non tenere copie `.old` accanto al codice compilato.
+
+---
 
 ## Architecture
 
+```text
+FabioOrderFlow.cs
+├── inizializza BalanceZoneTracker
+├── inizializza LondonMeanReversionModule
+├── inoltra OnCalculate() al tracker
+├── inoltra cumulative trades live al tracker
+└── richiede cumulative trades storici dopo recalculation
+
+BalanceZoneTracker
+├── costruisce profilo London dinamico
+├── espone LastPreviewPoc / LastPreviewVah / LastPreviewVal
+├── evita duplicazione volume sulla candela corrente
+└── inoltra eventi al modello London
+
+LondonMeanReversionModule
+├── crea setup su sweep/rejection di VAH/VAL preview
+├── conferma entry con cumulative big trades live o storici
+├── usa TickSize dello strumento per rejection/stop
+└── traccia outcome da entry in avanti
 ```
-FabioOrderFlow (orchestrator)
-├── LondonMeanReversionModel.cs (✅ production)
-├── PostLondonImpulseModel.cs (⚠️ planned)
-└── shared/BalanceZoneTracker (used by all)
-```
+
+---
 
 ## Models
 
-| Model | Status | Doc |
-|-------|--------|-----|
-| LondonMeanReversionModel | ✅ Production | [LondonMeanReversionModel.md](models/LondonMeanReversionModel/LondonMeanReversionModel.md) |
-| PostLondonImpulseModel | ⚠️ Planned | [PostLondonImpulseModel.md](models/PostLondonImpulseModel/PostLondonImpulseModel.md) |
+| Model | Status | Scope |
+|-------|--------|-------|
+| LondonMeanReversionModel | Attivo | Mean reversion durante London |
+| PostLondonImpulseModel | Design/parking | Non lavorare ora salvo richiesta esplicita |
 
-## Quick Start
+---
 
-```bash
-cd src/
-dotnet build -c Release
-./deploy.bat
+## London Mean Reversion
+
+Fonte logica: transcript Fabio Valentino.
+
+Regole operative:
+
+- sessione: London 08:00-16:00;
+- nuove entry: fino a 15:30 London;
+- setup: sweep fuori `VAH/VAL` e close back inside;
+- entry: big cumulative trade nella direzione del ritorno verso POC;
+- target operativo: POC-only per trigger deboli, Target2 per POC reclaim/loss;
+- stop: high/low della rejection +/- offset in tick, protetto dopo POC sui trade Target2;
+- storico: usa la stessa logica live sui cumulative trades del chart.
+
+Dettaglio completo: `models/LondonMeanReversionModel/LondonMeanReversionModel.md`.
+
+---
+
+## ATAS Data Flow
+
+Live:
+
+```text
+OnCumulativeTrade / OnUpdateCumulativeTrade
+→ FabioOrderFlow
+→ BalanceZoneTracker.OnLiveCumulativeTrade
+→ LondonMeanReversionModule.OnLiveCumulativeTrade
+→ [MR_ENTRY] se setup + big trade sono validi
 ```
 
-**Deploy:** `%APPDATA%\ATAS\Indicators\FabioOrderFlow.dll` (74KB)
+Storico:
 
-**ATAS:**
-1. Restart ATAS
-2. Add `FabioOrderFlow` to chart (CumulativeTrades type recommended)
-3. Configure settings
+```text
+OnFinishRecalculate
+→ RequestForCumulativeTrades
+→ OnCumulativeTradesResponse
+→ BalanceZoneTracker.OnHistoricalCumulativeTrades
+→ LondonMeanReversionModule.OnHistoricalCumulativeTrades
+→ [MR_ENTRY] con EntryModel=FootprintCumulativeTradeHistorical
+```
+
+---
 
 ## Settings
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| `EnableLondonMeanReversion` | `true` | Enable MR model |
-| `EnableLiveFootprintFirst` | `false` | Experimental footprint |
+| `EnableLondonMeanReversion` | `true` | Abilita il modello London live-first |
+| `EnablePostLondonImpulse` | `false` | Placeholder, fuori scope ora |
+
+---
 
 ## Logs
 
-**Location:** `C:\Users\<User>\AppData\Roaming\ATAS\Logs\`
+Location:
 
-**Key tags:**
-- `[SESSION_START]` / `[SESSION_END]` - Session transitions
-- `[PROFILE_PREVIEW]` - Profile calculation
-- `[MR_TRIGGER_M5]` - Mean reversion trigger
-- `[MR_LIVE_AGGRESSION_*]` - Live aggression
-- `[MR_OUTCOME]` - Outcome tracking
-
-**Parsing guide:** `../docs/atas/log-reading.md`
-
-## Development
-
-**Project structure:**
-```
-src/FabioOrderFlow.cs              # Orchestrator
-models/<ModelName>/
-  ├── <ModelName>.md              # Doc
-  ├── <ModelName>.cs              # Core
-  └── modules/                    # Support (optional)
+```text
+%APPDATA%\ATAS\Logs\FabioOrderFlow.log
 ```
 
-**Add new model:**
-1. Create `models/<ModelName>/`
-2. Add `<ModelName>.md` (doc)
-3. Add `<ModelName>.cs` (core logic)
-4. Register in `FabioOrderFlow.cs`
-5. Add enable setting
+Key tags:
 
-## Status
+```text
+[SESSION_START] / [SESSION_END]
+[ZONE_READY]
+[MR_SETUP_LONG] / [MR_SETUP_SHORT]
+[MR_HISTORICAL_TRADES]
+[MR_ENTRY]
+[MR_MFE_UPDATE]
+[MR_TARGET1_HIT]
+[MR_EXIT]
+[MR_STUDY_TRIGGER]
+[MR_STUDY_ENTRY]
+[MR_STUDY_TARGET1_HIT]
+[MR_STUDY_CLOSE]
+```
 
-- **Version:** 2.0.0
-- **Build:** ✅ 0 errors, 8 warnings
-- **Architecture:** Model-based
-- **DLL size:** 74KB (-17% from v1.x)
+`[MR_ENTRY]` include `EntryModel`, `ManagementMode`, `FinalTarget`, `StudyTarget2` e `StudyTrigger`:
 
-## Related
+```text
+FootprintCumulativeTradeLive
+FootprintCumulativeTradeHistorical
+```
 
-- ATAS API docs: `../docs/atas/api/`
-- ATAS log reading: `../docs/atas/log-reading.md`
-- Modello 1 spec: `../Modello-1-TrendFollowing/MODELLO-1-DOCUMENTAZIONE.md`
+---
+
+## Build & Deploy
+
+```bash
+cd FabioOrderFlow/src/
+dotnet build -c Release
+./deploy.bat
+```
+
+Output:
+
+```text
+%APPDATA%\ATAS\Indicators\FabioOrderFlow.dll
+```
+
+---
+
+## Development Rules
+
+1. Prima di cambiare un modello, leggere il suo `.md`.
+2. Dopo ogni modifica C#, eseguire `dotnet build -c Release`.
+3. Il modello London e' la priorita' corrente.
+4. Non aggiungere nuova documentazione se basta correggere i file esistenti.
+5. Non duplicare implementazioni `.cs` nella directory del modello.

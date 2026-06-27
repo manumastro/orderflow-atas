@@ -11,14 +11,14 @@ Indicatori/strategie order flow C# per ATAS (futures NQ/ES).
 ### FabioOrderFlow
 
 **Path:** [`FabioOrderFlow/`](FabioOrderFlow/)  
-**Status:** ✅ v2.0.0 Production-ready  
+**Status:** ✅ Live-first London Mean Reversion  
 **Doc:** [`FabioOrderFlow/FabioOrderFlow.md`](FabioOrderFlow/FabioOrderFlow.md)
 
 Indicatore modulare ATAS: multiple trading models, modular architecture.
 
 **Models:**
-- ✅ **LondonMeanReversionModel** (production) - [`LondonMeanReversionModel.md`](FabioOrderFlow/models/LondonMeanReversionModel/LondonMeanReversionModel.md)
-- ⚠️ **PostLondonImpulseModel** (design phase) - [`PostLondonImpulseModel.md`](FabioOrderFlow/models/PostLondonImpulseModel/PostLondonImpulseModel.md)
+- ✅ **LondonMeanReversionModel** (active, live-first) - [`LondonMeanReversionModel.md`](FabioOrderFlow/models/LondonMeanReversionModel/LondonMeanReversionModel.md)
+- 🅿️ **PostLondonImpulseModel** (parked/design) - [`PostLondonImpulseModel.md`](FabioOrderFlow/models/PostLondonImpulseModel/PostLondonImpulseModel.md)
 
 ---
 
@@ -76,7 +76,7 @@ dotnet build -c Release
 ```
 
 **Output:**
-- DLL: `%APPDATA%\ATAS\Indicators\FabioOrderFlow.dll` (74KB)
+- DLL: `%APPDATA%\ATAS\Indicators\FabioOrderFlow.dll`
 - Logs: `%APPDATA%\ATAS\Logs\`
 
 ---
@@ -88,9 +88,9 @@ dotnet build -c Release
 **Key tags:**
 - `[SESSION_START]` / `[SESSION_END]`
 - `[PROFILE_PREVIEW]`
-- `[MR_TRIGGER_M5]`
-- `[MR_LIVE_AGGRESSION_*]`
-- `[MR_OUTCOME]`
+- `[MR_SETUP_LONG]` / `[MR_SETUP_SHORT]`
+- `[MR_ENTRY]`
+- `[MR_MFE_UPDATE]` / `[MR_EXIT]`
 
 **Parsing guide:** [`docs/atas/log-reading.md`](docs/atas/log-reading.md)
 
@@ -105,11 +105,11 @@ dotnet build -c Release
 
 ## 🎯 Status
 
-**FabioOrderFlow v2.0.0:**
-- Build: ✅ 0 errors, 8 warnings
-- DLL: ✅ 74KB
+**FabioOrderFlow:**
+- Build: ✅ 0 errors, 0 warnings
 - Architecture: ✅ Model-based
-- Models: 1 production, 1 planned
+- Active model: London Mean Reversion
+- Parked model: Post-London Impulse
 
 ---
 
@@ -121,6 +121,7 @@ dotnet build -c Release
 4. **Core logic:** `models/<ModelName>/<ModelName>.cs`
 5. **No README.md:** Tutti i doc hanno nome del progetto/model
 6. **Build sempre:** Dopo modifiche al codice
+7. **Priorita' corrente:** London Mean Reversion live-first; Post-London resta fuori scope salvo richiesta esplicita
 
 ---
 

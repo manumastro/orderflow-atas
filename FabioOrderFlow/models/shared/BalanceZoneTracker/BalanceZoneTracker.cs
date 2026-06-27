@@ -68,7 +68,6 @@ namespace FabioOrderFlow
         private readonly MarketContext _context = new();
         private readonly Action<string, bool> _log;
         private readonly Func<int, IndicatorCandle> _getCandle;
-        private readonly bool _enableLiveFootprintFirst;
 
         private readonly List<DrawingRectangle> _rectangles;
         private readonly List<LineTillTouch> _lines;
@@ -89,25 +88,19 @@ namespace FabioOrderFlow
         private const int MinCompleteSessionBars = 90; // Tolleranza -6 bars
         private const int LondonPreviewStartHour = 8;
         private static readonly bool DetailedDebugLogs = false;
-        private const decimal MinAggressionTradeVolume = 20m;
         
         // Preview profile values (shared with MR module)
         private decimal _lastPreviewPoc;
         private decimal _lastPreviewVah;
         private decimal _lastPreviewVal;
         
-        // Last logged preview state (to avoid spam)
-        private decimal _lastLoggedPoc;
-        private decimal _lastLoggedVah;
-        private decimal _lastLoggedVal;
-        private string _lastLoggedRelation = "";
-        private int _lastLoggedPreviewBar = -1;
-        
         // Core state variables
         private bool _firstCompleteSessionFound = false;
         private int _lastLoggedPreCloseBar = -1;
         private int _lastPreviewProfileBar = -1;
         private int _currentBar;
+        private readonly Dictionary<int, Dictionary<decimal, decimal>> _londonProfileBarVolumes = new();
+        private readonly Dictionary<int, decimal> _londonProfileBarTotals = new();
         
         private bool _nySessionActive;
         private int _nySessionStartBar = -1;
@@ -120,30 +113,23 @@ namespace FabioOrderFlow
         private decimal _nySessionLow;
         private decimal _nySessionTotalVolume;
         private readonly Dictionary<decimal, decimal> _nySessionProfile = new();
+        private readonly Dictionary<int, Dictionary<decimal, decimal>> _nyProfileBarVolumes = new();
+        private readonly Dictionary<int, decimal> _nyProfileBarTotals = new();
         private int _lastLoggedNyPreCloseBar = -1;
         private int _lastNyPreviewProfileBar = -1;
-        private decimal _lastNyLoggedPoc;
-        private decimal _lastNyLoggedVah;
-        private decimal _lastNyLoggedVal;
-        private string _lastNyLoggedRelation = "";
-        private int _lastNyLoggedPreviewBar = -1;
 
         public BalanceZoneTracker(
             Indicator indicator, 
             Action<string, bool> log,
             List<DrawingRectangle> rectangles,
             List<LineTillTouch> lines,
-            Func<int, IndicatorCandle> getCandle,
-            bool enableLiveFootprintFirst = false)
+            Func<int, IndicatorCandle> getCandle)
         {
             _indicator = indicator;
             _log = log;
             _rectangles = rectangles;
             _lines = lines;
             _getCandle = getCandle;
-            _enableLiveFootprintFirst = enableLiveFootprintFirst;
-            _getCandle = getCandle;
-
         }
 
         // API pubblica per gli altri moduli
@@ -179,7 +165,10 @@ namespace FabioOrderFlow
             _meanReversionModule?.OnHistoricalCumulativeTrades(cumulativeTrades);
         }
 
-        // Note: OnLiveCumulativeTrade removed - v3 uses Historical detection only
+        public void OnLiveCumulativeTrade(CumulativeTrade trade)
+        {
+            _meanReversionModule?.OnLiveCumulativeTrade(trade);
+        }
 
         // ========================================
         // MEAN REVERSION METHODS
@@ -316,6 +305,8 @@ namespace FabioOrderFlow
 
             _lastLoggedPreCloseBar = -1;
             _lastPreviewProfileBar = -1;
+            _londonProfileBarVolumes.Clear();
+            _londonProfileBarTotals.Clear();
 
             UpdateLondonProfile(bar, candle);
             LogEvent($"[SESSION_START] London session started at bar {bar} ({FormatTimes(candle.Time)})");
@@ -326,21 +317,13 @@ namespace FabioOrderFlow
         {
             if (_context.CurrentZone == null) return;
 
-            var levels = candle.GetAllPriceLevels();
-
-            foreach (var level in levels)
-            {
-                if (_context.CurrentZone.Profile.ContainsKey(level.Price))
-                {
-                    _context.CurrentZone.Profile[level.Price] += level.Volume;
-                }
-                else
-                {
-                    _context.CurrentZone.Profile[level.Price] = level.Volume;
-                }
-            }
-
-            _context.CurrentZone.TotalVolume += candle.Volume;
+            ReplaceProfileContribution(
+                _context.CurrentZone.Profile,
+                _londonProfileBarVolumes,
+                _londonProfileBarTotals,
+                bar,
+                candle,
+                total => _context.CurrentZone.TotalVolume = total);
 
             var previousHigh = _context.CurrentZone.High;
             var previousLow = _context.CurrentZone.Low;
@@ -412,6 +395,8 @@ namespace FabioOrderFlow
             _nySessionLow = candle.Low;
             _nySessionTotalVolume = 0;
             _nySessionProfile.Clear();
+            _nyProfileBarVolumes.Clear();
+            _nyProfileBarTotals.Clear();
             _lastLoggedNyPreCloseBar = -1;
             _lastNyPreviewProfileBar = -1;
             _nySessionHighTimeUtc = candle.Time;
@@ -429,19 +414,13 @@ namespace FabioOrderFlow
 
             _nySessionEndBar = bar;
 
-            foreach (var level in candle.GetAllPriceLevels())
-            {
-                if (_nySessionProfile.ContainsKey(level.Price))
-                {
-                    _nySessionProfile[level.Price] += level.Volume;
-                }
-                else
-                {
-                    _nySessionProfile[level.Price] = level.Volume;
-                }
-            }
-
-            _nySessionTotalVolume += candle.Volume;
+            ReplaceProfileContribution(
+                _nySessionProfile,
+                _nyProfileBarVolumes,
+                _nyProfileBarTotals,
+                bar,
+                candle,
+                total => _nySessionTotalVolume = total);
 
             if (candle.High > _nySessionHigh)
             {
@@ -473,17 +452,6 @@ namespace FabioOrderFlow
             var relation = candle.Close > vah ? "ABOVE_PREVIEW_VAH" : candle.Close < val ? "BELOW_PREVIEW_VAL" : "INSIDE_PREVIEW_VA";
             var nyBars = _nySessionEndBar - _nySessionStartBar + 1;
 
-            // Log NY_PROFILE_PREVIEW only if force=true or there's an active trade AND significant change
-            // Note: v3 uses ActivePositions instead of MeanReversionOutcomes
-            var hasActiveTrades = _meanReversionModule?.ActivePositions.Any(o => !o.Closed) ?? false;
-            
-            // Check if significant change occurred
-            var significantChange = _lastNyLoggedPreviewBar != bar ||
-                                   _lastNyLoggedPoc != poc ||
-                                   _lastNyLoggedVah != vah ||
-                                   _lastNyLoggedVal != val ||
-                                   _lastNyLoggedRelation != relation;
-            
             // NY_PROFILE_PREVIEW logging disabled to reduce log noise
             // if (force || (hasActiveTrades && significantChange))
             // {
@@ -722,6 +690,8 @@ namespace FabioOrderFlow
             
             _context.State = MarketState.NoZone;
             _context.CurrentZone = null;
+            _londonProfileBarVolumes.Clear();
+            _londonProfileBarTotals.Clear();
             _context.PendingDirection = null;
             _context.PendingBreakoutBar = -1;
             _context.ConsecutiveOutsideCloses = 0;
@@ -1034,6 +1004,46 @@ namespace FabioOrderFlow
             }
             
             return profile;
+        }
+
+        private void ReplaceProfileContribution(
+            Dictionary<decimal, decimal> profile,
+            Dictionary<int, Dictionary<decimal, decimal>> barVolumes,
+            Dictionary<int, decimal> barTotals,
+            int bar,
+            IndicatorCandle candle,
+            Action<decimal> setTotalVolume)
+        {
+            if (barVolumes.TryGetValue(bar, out var previousLevels))
+            {
+                foreach (var previous in previousLevels)
+                {
+                    if (!profile.TryGetValue(previous.Key, out var current))
+                        continue;
+
+                    var next = current - previous.Value;
+                    if (next <= 0)
+                        profile.Remove(previous.Key);
+                    else
+                        profile[previous.Key] = next;
+                }
+            }
+
+            var nextLevels = candle.GetAllPriceLevels()
+                .GroupBy(level => level.Price)
+                .ToDictionary(group => group.Key, group => group.Sum(level => level.Volume));
+
+            foreach (var next in nextLevels)
+            {
+                if (profile.ContainsKey(next.Key))
+                    profile[next.Key] += next.Value;
+                else
+                    profile[next.Key] = next.Value;
+            }
+
+            barVolumes[bar] = nextLevels;
+            barTotals[bar] = candle.Volume;
+            setTotalVolume(barTotals.Values.Sum());
         }
 
         private bool TryCalculateProfilePreview(IReadOnlyDictionary<decimal, decimal> profile, decimal totalVolume, out decimal poc, out decimal vah, out decimal val, out decimal valueAreaVolume, out decimal maxVolume)

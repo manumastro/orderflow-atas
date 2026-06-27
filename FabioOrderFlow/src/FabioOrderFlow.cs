@@ -46,7 +46,7 @@ public class FabioOrderFlow : Indicator
             }
         }
 
-        Log("[INIT] FabioTrendFollowing indicator created");
+        Log("[INIT] FabioOrderFlow indicator created");
         Log($"[LOGS] Path={_logPath}");
     }
 
@@ -58,14 +58,15 @@ public class FabioOrderFlow : Indicator
             Log($"[INSTRUMENT] Name: {InstrumentInfo?.Instrument}, TickSize: {InstrumentInfo?.TickSize}, Exchange: {InstrumentInfo?.Exchange}, InstrumentTimeZone={InstrumentInfo?.TimeZone}");
             Log($"[CHART] CurrentBar={CurrentBar}, ChartType={ChartInfo?.ChartType}");
             LogChartTradingSessions();
-            _balanceTracker = new BalanceZoneTracker(this, Log, Rectangles, HorizontalLinesTillTouch, GetCandle, false);
+            _balanceTracker = new BalanceZoneTracker(this, Log, Rectangles, HorizontalLinesTillTouch, GetCandle);
             
             // Initialize Mean Reversion module if enabled
             if (EnableLondonMeanReversion)
             {
-                _meanReversionModule = new LondonMeanReversionModule(_balanceTracker, Log, GetCandle);
+                var tickSize = InstrumentInfo?.TickSize ?? 1m;
+                _meanReversionModule = new LondonMeanReversionModule(_balanceTracker, Log, GetCandle, tickSize);
                 _balanceTracker.SetMeanReversionModule(_meanReversionModule);
-                Log("[MODULE] London Mean Reversion module v3 initialized (Historical only)");
+                Log($"[MODULE] London Mean Reversion module initialized (Live-first, TickSize={tickSize})");
             }
             
             return;
@@ -116,11 +117,18 @@ public class FabioOrderFlow : Indicator
         Log($"[CUM_TRADES_RESPONSE] Count={trades.Count}, RequestId={request.RequestId}");
         _balanceTracker?.OnHistoricalCumulativeTrades(trades);
         
-        // After cumulative trades processed, process active positions through historical bars
         if (_meanReversionModule != null && CurrentBar > 0)
-        {
             _meanReversionModule.ProcessHistoricalPositions(0, CurrentBar - 1);
-        }
+    }
+
+    protected override void OnCumulativeTrade(CumulativeTrade trade)
+    {
+        _balanceTracker?.OnLiveCumulativeTrade(trade);
+    }
+
+    protected override void OnUpdateCumulativeTrade(CumulativeTrade trade)
+    {
+        _balanceTracker?.OnLiveCumulativeTrade(trade);
     }
     
     private void LogChartTradingSessions()
