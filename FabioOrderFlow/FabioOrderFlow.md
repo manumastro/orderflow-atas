@@ -89,17 +89,17 @@ Stato ultimo reload analizzato:
 Entry operative: 13
 Base: 11
 Scale-in EXPAND25: 2
-PnL storico caricato: +123.25 punti
-Net R: +2.67R
-Current commit: cd72f7a Allow causal pre-POC value re-entry entries
+PnL storico caricato: +397.74 punti
+Net R: +6.18R
+Current commit: c0aa526 Promote dynamic RR stop cap
 ```
 
 Focus aperto:
 
 ```text
 - filtrare meglio NONE / LOW_REJECTION_FOLLOW_THROUGH / follow-through deboli
-- studiare tempo massimo dalla rejection per evitare setup stanchi
-- studiare stop dinamici per non penalizzare trade buoni con stop tecnico enorme
+- confermare che il timeout operativo 20 minuti resta robusto
+- monitorare lo stop dinamico CAP_VALUE_WIDTH_50 sui prossimi reload/sessioni
 - mantenere PostLondonImpulse fuori scope
 ```
 

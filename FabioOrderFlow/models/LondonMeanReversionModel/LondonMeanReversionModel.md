@@ -260,15 +260,15 @@ VALUE_REENTRY_TARGET2_SCALE_IN_EXPAND25
 
 ## Current State
 
-Ultimo reload analizzato dopo `cd72f7a Allow causal pre-POC value re-entry entries`:
+Ultimo reload analizzato dopo `c0aa526 Promote dynamic RR stop cap`:
 
 ```text
 MR_ENTRY: 13
 MR_EXIT: 13
-MR_TARGET1_HIT: 8
+MR_TARGET1_HIT: 9
+MR_MISSED_OPPORTUNITY: 8
 DAY_STUDY_ACTUAL_ENTRY: 13
-DAY_STUDY_CANDIDATE_ENTRY: 817
-DAY_STUDY_SCALE_PLAN: 143
+DAY_STUDY_DYNAMIC_STOP_CANDIDATE: 3131
 ```
 
 Risultato operativo su storico caricato:
@@ -277,27 +277,35 @@ Risultato operativo su storico caricato:
 Totale entry: 13
 Base: 11
 Scale-in EXPAND25: 2
-PnL: +123.25 punti
-Net R: +2.67R
-Exit: 3 TARGET2_HIT, 5 PROTECTED_STOP_HIT, 5 STOP_HIT
+PnL: +397.74 punti
+Net R: +6.18R
+Exit: 4 TARGET2_HIT, 5 PROTECTED_STOP_HIT, 4 STOP_HIT
 ```
 
 Entry operative ultimo reload:
 
 ```text
-2026-06-22 09:35:30 Short Base  30773.00 TARGET2_HIT        +13.75
-2026-06-22 10:25:57 Long  Base  30712.25 PROTECTED_STOP_HIT +15.25
-2026-06-22 15:35:12 Short Base  30802.25 STOP_HIT           -102.25
-2026-06-22 15:45:18 Short Base  30816.25 STOP_HIT           -111.00
-2026-06-22 16:15:00 Short Base  30906.75 TARGET2_HIT        +131.75
-2026-06-23 09:35:26 Long  Base  29996.00 STOP_HIT           -41.25
-2026-06-23 10:30:11 Long  Base  29809.75 PROTECTED_STOP_HIT +40.25
-2026-06-23 15:35:00 Long  Base  29753.75 PROTECTED_STOP_HIT +45.75
-2026-06-23 15:45:00 Long  Scale 29749.75 TARGET2_HIT        +185.25
-2026-06-24 10:37:02 Short Base  29823.25 STOP_HIT           -20.00
-2026-06-25 10:15:03 Short Base  30182.25 PROTECTED_STOP_HIT +1.75
-2026-06-25 10:28:53 Short Scale 30181.50 PROTECTED_STOP_HIT +1.00
-2026-06-26 14:55:33 Long  Base  29334.75 STOP_HIT           -37.00
+2026-06-22 09:35:30 Short Base  30773.00 TARGET2_HIT        +13.75  CAP_VALUE_WIDTH_50
+2026-06-22 10:25:57 Long  Base  30712.25 PROTECTED_STOP_HIT +15.25  ORIGINAL_REJECTION
+2026-06-22 10:44:31 Long  Scale 30727.75 PROTECTED_STOP_HIT +0.00   CAP_VALUE_WIDTH_50
+2026-06-22 15:35:00 Short Base  30780.75 STOP_HIT           -55.88  CAP_VALUE_WIDTH_50
+2026-06-22 15:45:00 Short Base  30788.50 STOP_HIT           -67.63  CAP_VALUE_WIDTH_50
+2026-06-22 16:15:00 Short Base  30906.75 TARGET2_HIT        +131.75 ORIGINAL_REJECTION
+2026-06-23 09:35:26 Long  Base  29996.00 STOP_HIT           -24.75  CAP_VALUE_WIDTH_50
+2026-06-23 10:30:11 Long  Base  29809.75 PROTECTED_STOP_HIT +40.25  ORIGINAL_REJECTION
+2026-06-23 15:35:00 Long  Base  29753.75 PROTECTED_STOP_HIT +45.75  CAP_VALUE_WIDTH_50
+2026-06-23 15:45:00 Long  Scale 29749.75 TARGET2_HIT        +185.25 CAP_VALUE_WIDTH_50
+2026-06-24 15:36:42 Long  Base  29773.50 PROTECTED_STOP_HIT +26.00  CAP_VALUE_WIDTH_50
+2026-06-24 16:25:10 Long  Base  29675.00 TARGET2_HIT        +125.00 CAP_VALUE_WIDTH_50
+2026-06-26 14:55:33 Long  Base  29334.75 STOP_HIT           -37.00  ORIGINAL_REJECTION
+```
+
+Reload notes:
+
+```text
+- 2026-06-24 16:25 long is now captured by dynamic RR: OriginalRisk 150.50 -> OperationalRisk 84.50, RR_T2 1.48, TARGET2_HIT +125.00.
+- 2026-06-24 10:37 short is filtered as stale by OperationalEntryTimeoutSeconds=1200.
+- Remaining weak entries are from NONE, HIGH_REJECTION_FOLLOW_THROUGH and LOW_REJECTION_FOLLOW_THROUGH; next likely operational cleanup is to leave those trigger states study-only or require stronger evidence.
 ```
 
 Current known issues / next studies:
