@@ -184,6 +184,7 @@ Le soglie in tick usano `InstrumentInfo.TickSize`, quindi stop e rejection sono 
 [MR_STUDY_TARGET1_HIT]   POC raggiunto nello study
 [MR_STUDY_CLOSE]         uscita study a Target2, stop o London close
 [MR_MISSED_OPPORTUNITY]  setup con trigger utile ma senza entry valida nel backfill storico
+[MR_EXTENDED_CUTOFF_OPPORTUNITY] entry valida solo estendendo studio fino a 16:00 London / 17:00 Italy
 Timeout entry           nessuna entry se il big trade arriva oltre 1 ora dalla rejection
 ```
 

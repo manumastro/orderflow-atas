@@ -333,14 +333,17 @@ namespace FabioOrderFlow
 
             if (setup.Direction == "Long")
             {
-                return trade.Direction == TradeDirection.Buy
-                    && trade.Lastprice >= setup.VAL
-                    && trade.Lastprice < setup.POC;
+                return trade.Direction == TradeDirection.Buy && IsInEntryZone(setup, trade);
             }
 
-            return trade.Direction == TradeDirection.Sell
-                && trade.Lastprice <= setup.VAH
-                && trade.Lastprice > setup.POC;
+            return trade.Direction == TradeDirection.Sell && IsInEntryZone(setup, trade);
+        }
+
+        private static bool IsInEntryZone(BalanceSetup setup, CumulativeTrade trade)
+        {
+            return setup.Direction == "Long"
+                ? trade.Lastprice >= setup.VAL && trade.Lastprice < setup.POC
+                : trade.Lastprice <= setup.VAH && trade.Lastprice > setup.POC;
         }
 
         private void LogMissedOpportunities(List<CumulativeTrade> trades)
@@ -352,8 +355,12 @@ namespace FabioOrderFlow
                     continue;
 
                 var windowEnd = setup.RejectionTimeUtc.AddSeconds(AggressionTimeoutSeconds);
-                var windowTrades = trades
+                var allWindowTrades = trades
                     .Where(t => t.Time > setup.RejectionTimeUtc && t.Time <= windowEnd)
+                    .Where(t => IsInLondonSession(t.Time))
+                    .ToList();
+
+                var windowTrades = allWindowTrades
                     .Where(t => IsLondonTradeAllowed(t.Time))
                     .ToList();
 
@@ -362,9 +369,15 @@ namespace FabioOrderFlow
                     .ToList();
 
                 var insideValueTrades = sameDirectionTrades
-                    .Where(t => setup.Direction == "Long"
-                        ? t.Lastprice >= setup.VAL && t.Lastprice < setup.POC
-                        : t.Lastprice <= setup.VAH && t.Lastprice > setup.POC)
+                    .Where(t => IsInEntryZone(setup, t))
+                    .ToList();
+
+                var extendedSameDirectionTrades = allWindowTrades
+                    .Where(t => setup.Direction == "Long" ? t.Direction == TradeDirection.Buy : t.Direction == TradeDirection.Sell)
+                    .ToList();
+
+                var extendedEntryZoneTrades = extendedSameDirectionTrades
+                    .Where(t => IsInEntryZone(setup, t))
                     .ToList();
 
                 var reason = windowTrades.Count == 0
@@ -382,8 +395,15 @@ namespace FabioOrderFlow
                 var bestSameDirectionPrice = sameDirectionTrades.Count > 0
                     ? sameDirectionTrades.OrderByDescending(t => t.Volume).First().Lastprice.ToString("F2")
                     : "NA";
+                var firstExtendedEntryZoneTrade = extendedEntryZoneTrades.Count > 0 ? extendedEntryZoneTrades[0] : null;
+                var extendedEntryZoneAfterCutoff = extendedEntryZoneTrades.Count(t => !IsLondonTradeAllowed(t.Time));
 
-                _log($"[MR_MISSED_OPPORTUNITY] SetupId={setup.SetupId}, Direction={setup.Direction}, StudyTrigger={trigger}, Reason={reason}, RejectionBar={setup.RejectionBar}, {FormatTime(setup.RejectionTimeUtc)}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}, Stop={setup.StopPrice:F2}, WindowBigTrades={windowTrades.Count}, SameDirectionBigTrades={sameDirectionTrades.Count}, EntryZoneBigTrades={insideValueTrades.Count}, MaxVolume={maxVolume:F0}, MaxSameDirectionVolume={maxSameDirectionVolume:F0}, FirstBigTrade={firstTradeTime}, FirstSameDirectionBigTrade={firstSameDirectionTime}, BestSameDirectionPrice={bestSameDirectionPrice}", true);
+                _log($"[MR_MISSED_OPPORTUNITY] SetupId={setup.SetupId}, Direction={setup.Direction}, StudyTrigger={trigger}, Reason={reason}, RejectionBar={setup.RejectionBar}, {FormatTime(setup.RejectionTimeUtc)}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}, Stop={setup.StopPrice:F2}, WindowBigTrades={windowTrades.Count}, SameDirectionBigTrades={sameDirectionTrades.Count}, EntryZoneBigTrades={insideValueTrades.Count}, ExtendedWindowBigTrades={allWindowTrades.Count}, ExtendedSameDirectionBigTrades={extendedSameDirectionTrades.Count}, ExtendedEntryZoneBigTrades={extendedEntryZoneTrades.Count}, ExtendedEntryZoneAfterCutoff={extendedEntryZoneAfterCutoff}, MaxVolume={maxVolume:F0}, MaxSameDirectionVolume={maxSameDirectionVolume:F0}, FirstBigTrade={firstTradeTime}, FirstSameDirectionBigTrade={firstSameDirectionTime}, BestSameDirectionPrice={bestSameDirectionPrice}", true);
+
+                if (insideValueTrades.Count == 0 && firstExtendedEntryZoneTrade != null)
+                {
+                    _log($"[MR_EXTENDED_CUTOFF_OPPORTUNITY] SetupId={setup.SetupId}, Direction={setup.Direction}, StudyTrigger={trigger}, RejectionBar={setup.RejectionBar}, {FormatTime(setup.RejectionTimeUtc)}, ExtendedEntryTime={FormatTime(firstExtendedEntryZoneTrade.Time)}, ExtendedEntryPrice={firstExtendedEntryZoneTrade.Lastprice:F2}, ExtendedEntryVolume={firstExtendedEntryZoneTrade.Volume:F0}, ExtendedEntryDirection={firstExtendedEntryZoneTrade.Direction}, OperationalCutoffLondon={LateCutoffHour:D2}:{LateCutoffMinute:D2}, SessionEndLondon=16:00, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}, Stop={setup.StopPrice:F2}", true);
+                }
             }
         }
 
@@ -857,6 +877,13 @@ namespace FabioOrderFlow
             var start = 8 * 60;
             var cutoff = LateCutoffHour * 60 + LateCutoffMinute;
             return minutes >= start && minutes < cutoff;
+        }
+
+        private bool IsInLondonSession(DateTime utcTime)
+        {
+            var london = MarketTimeZones.ToLondon(utcTime);
+            var minutes = london.Hour * 60 + london.Minute;
+            return minutes >= 8 * 60 && minutes < 16 * 60;
         }
 
         private static DateTime GetCandleEventTime(IndicatorCandle candle)
