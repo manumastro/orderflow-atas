@@ -819,12 +819,125 @@ namespace FabioOrderFlow
                 {
                     var outcome = EvaluateCandidateOutcome(candidate.Direction, candidate.EntryPrice, candidate.Stop, candidate.TargetPoc, candidate.Target2, candidate.EntryTimeUtc, setup.RejectionBar);
                     StudyLog($"[DAY_STUDY_CANDIDATE_ENTRY] SetupId={setup.SetupId}, CandidateType={candidate.CandidateType}, Trigger={trigger}, Direction={candidate.Direction}, EntryTime={FormatTime(candidate.EntryTimeUtc)}, EntryPrice={candidate.EntryPrice:F2}, Volume={candidate.Volume:F0}, Stop={candidate.Stop:F2}, TargetPOC={candidate.TargetPoc:F2}, Target2={candidate.Target2:F2}, Risk={candidate.Risk:F2}, RewardPOC={candidate.RewardPoc:F2}, RewardT2={candidate.RewardT2:F2}, RR_POC={(candidate.Risk > 0 ? candidate.RewardPoc / candidate.Risk : 0):F2}, RR_T2={(candidate.Risk > 0 ? candidate.RewardT2 / candidate.Risk : 0):F2}, OutcomePOC={outcome.OutcomePoc}, PnLPOC={outcome.PnlPoc:F2}, OutcomeT2={outcome.OutcomeT2}, PnLT2={outcome.PnlT2:F2}, MFE={outcome.Mfe:F2}, MAE={outcome.Mae:F2}", candidate.EntryTimeUtc);
+                    LogDynamicStopStudy(setup, trigger, candidate);
                 }
 
                 LogFabioStyleScaleInStudy(setup, trigger, candidates);
             }
 
             _dayStudyCompleted = true;
+        }
+
+        private void LogDynamicStopStudy(BalanceSetup setup, string trigger, StudyCandidate candidate)
+        {
+            if (candidate.CandidateType != "VALUE_REENTRY_BIG_TRADE")
+                return;
+
+            var secondsAfterRejection = (candidate.EntryTimeUtc - setup.RejectionTimeUtc).TotalSeconds;
+            var secondsAfterPocTrigger = setup.StudyPocTriggerConfirmed
+                ? (candidate.EntryTimeUtc - setup.StudyTriggerTimeUtc).TotalSeconds
+                : double.NaN;
+            var valueWidth = Math.Abs(setup.VAH - setup.VAL);
+            var plans = new List<DynamicStopPlan>
+            {
+                new("ORIGINAL_REJECTION", candidate.Stop),
+                new("VALUE_EDGE_2T", setup.Direction == "Long" ? setup.VAL - 2m * _tickSize : setup.VAH + 2m * _tickSize),
+                new("RECENT_SWING_AFTER_REJECTION_2T", GetRecentSwingStop(setup, candidate.EntryTimeUtc))
+            };
+
+            if (setup.StudyPocTriggerConfirmed && candidate.EntryTimeUtc > setup.StudyTriggerTimeUtc)
+                plans.Add(new DynamicStopPlan("POC_TRIGGER_BAR_2T", GetPocTriggerBarStop(setup)));
+
+            if (valueWidth > 0)
+            {
+                plans.Add(new DynamicStopPlan("CAP_VALUE_WIDTH_100", GetCappedStop(setup.Direction, candidate.EntryPrice, candidate.Stop, valueWidth)));
+                plans.Add(new DynamicStopPlan("CAP_VALUE_WIDTH_50", GetCappedStop(setup.Direction, candidate.EntryPrice, candidate.Stop, valueWidth * 0.5m)));
+            }
+
+            foreach (var plan in plans)
+            {
+                var risk = Math.Abs(candidate.EntryPrice - plan.Stop);
+                if (risk <= 0 || !IsStopBehindEntry(setup.Direction, candidate.EntryPrice, plan.Stop))
+                    continue;
+
+                var rewardPoc = Math.Abs(candidate.TargetPoc - candidate.EntryPrice);
+                var rewardT2 = Math.Abs(candidate.Target2 - candidate.EntryPrice);
+                var outcome = EvaluateProtectedTarget2Outcome(candidate.Direction, candidate.EntryPrice, plan.Stop, candidate.TargetPoc, candidate.Target2, candidate.EntryTimeUtc, setup.RejectionBar);
+
+                StudyLog($"[DAY_STUDY_DYNAMIC_STOP_CANDIDATE] SetupId={setup.SetupId}, StopPlan={plan.Name}, CandidateType={candidate.CandidateType}, Trigger={trigger}, Direction={candidate.Direction}, EntryTime={FormatTime(candidate.EntryTimeUtc)}, EntryPrice={candidate.EntryPrice:F2}, Volume={candidate.Volume:F0}, Stop={plan.Stop:F2}, OriginalStop={candidate.Stop:F2}, TargetPOC={candidate.TargetPoc:F2}, Target2={candidate.Target2:F2}, Risk={risk:F2}, OriginalRisk={candidate.Risk:F2}, RiskReductionPct={(candidate.Risk > 0 ? 1m - risk / candidate.Risk : 0):F2}, ValueWidth={valueWidth:F2}, RiskToValueWidth={(valueWidth > 0 ? risk / valueWidth : 0):F2}, RewardPOC={rewardPoc:F2}, RewardT2={rewardT2:F2}, RR_POC={rewardPoc / risk:F2}, RR_T2={rewardT2 / risk:F2}, SecondsAfterRejection={secondsAfterRejection:F1}, RejectionAgeBucket={GetRejectionAgeBucket(secondsAfterRejection)}, SecondsAfterPocTrigger={(double.IsNaN(secondsAfterPocTrigger) ? "NA" : secondsAfterPocTrigger.ToString("F1"))}, ExitReason={outcome.ExitReason}, PnL={outcome.Pnl:F2}, RMultiple={outcome.RMultiple:F2}R, Target1Hit={outcome.Target1Hit}", candidate.EntryTimeUtc);
+            }
+        }
+
+        private decimal GetPocTriggerBarStop(BalanceSetup setup)
+        {
+            var bar = FindBarByTime(setup.StudyTriggerTimeUtc, setup.RejectionBar);
+            var candle = _getCandle(bar);
+            return setup.Direction == "Long"
+                ? candle.Low - 2m * _tickSize
+                : candle.High + 2m * _tickSize;
+        }
+
+        private decimal GetRecentSwingStop(BalanceSetup setup, DateTime entryTimeUtc)
+        {
+            var startBar = Math.Min(FindBarByTime(setup.RejectionTimeUtc, setup.RejectionBar) + 1, Math.Max(0, _currentBar - 1));
+            var endBar = FindBarByTime(entryTimeUtc, startBar);
+            var entryDay = DateOnly.FromDateTime(MarketTimeZones.ToItaly(entryTimeUtc));
+            decimal? swing = null;
+
+            for (var bar = startBar; bar <= endBar; bar++)
+            {
+                var candle = _getCandle(bar);
+                var eventTime = GetCandleEventTime(candle);
+                if (DateOnly.FromDateTime(MarketTimeZones.ToItaly(eventTime)) != entryDay)
+                    break;
+
+                if (!IsInLondonSession(eventTime))
+                    break;
+
+                swing = setup.Direction == "Long"
+                    ? !swing.HasValue ? candle.Low : Math.Min(swing.Value, candle.Low)
+                    : !swing.HasValue ? candle.High : Math.Max(swing.Value, candle.High);
+            }
+
+            if (!swing.HasValue)
+                return setup.StopPrice;
+
+            return setup.Direction == "Long"
+                ? swing.Value - 2m * _tickSize
+                : swing.Value + 2m * _tickSize;
+        }
+
+        private static decimal GetCappedStop(string direction, decimal entryPrice, decimal originalStop, decimal maxRisk)
+        {
+            var originalRisk = Math.Abs(entryPrice - originalStop);
+            if (originalRisk <= maxRisk)
+                return originalStop;
+
+            return direction == "Long"
+                ? entryPrice - maxRisk
+                : entryPrice + maxRisk;
+        }
+
+        private static bool IsStopBehindEntry(string direction, decimal entryPrice, decimal stop)
+        {
+            return direction == "Long"
+                ? stop < entryPrice
+                : stop > entryPrice;
+        }
+
+        private static string GetRejectionAgeBucket(double seconds)
+        {
+            if (seconds < 120)
+                return "0_2M";
+            if (seconds < 300)
+                return "2_5M";
+            if (seconds < 600)
+                return "5_10M";
+            if (seconds < 1200)
+                return "10_20M";
+            if (seconds < 1800)
+                return "20_30M";
+            return "30_60M";
         }
 
         private void LogFabioStyleScaleInStudy(BalanceSetup setup, string trigger, List<StudyCandidate> candidates)
@@ -1241,6 +1354,7 @@ namespace FabioOrderFlow
         private sealed record StudyCandidate(string Direction, string CandidateType, DateTime EntryTimeUtc, decimal EntryPrice, decimal Volume, decimal Stop, decimal TargetPoc, decimal Target2, decimal Risk, decimal RewardPoc, decimal RewardT2);
         private sealed record StudyOutcome(string OutcomePoc, decimal PnlPoc, string OutcomeT2, decimal PnlT2, decimal Mfe, decimal Mae);
         private sealed record ProtectedStudyOutcome(string ExitReason, decimal Pnl, decimal RMultiple, bool Target1Hit);
+        private sealed record DynamicStopPlan(string Name, decimal Stop);
         private sealed record ScalePlan(string Name, int MaxAddOns, decimal MinVolume, int? MaxSecondsAfterRiskFree, decimal MinExpansionAfterRiskFreePct);
 
         private bool IsStudyFollowThrough(BalanceSetup setup, IndicatorCandle candle)

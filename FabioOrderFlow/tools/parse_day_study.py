@@ -27,6 +27,29 @@ def parse_fields(line: str) -> dict[str, str]:
 
 
 @dataclass
+class DynamicStopStats:
+    count: int = 0
+    wins: int = 0
+    target1_hits: int = 0
+    pnl: float = 0.0
+    net_r: float = 0.0
+    total_risk: float = 0.0
+    total_rr_t2: float = 0.0
+    total_risk_reduction: float = 0.0
+
+    def add(self, row: dict[str, str]) -> None:
+        pnl = dec(row.get("PnL", "0"))
+        self.count += 1
+        self.pnl += pnl
+        self.net_r += dec(row.get("RMultiple", "0"))
+        self.wins += pnl > 0
+        self.target1_hits += row.get("Target1Hit", "False") == "True"
+        self.total_risk += dec(row.get("Risk", "0"))
+        self.total_rr_t2 += dec(row.get("RR_T2", "0"))
+        self.total_risk_reduction += dec(row.get("RiskReductionPct", "0"))
+
+
+@dataclass
 class Stats:
     count: int = 0
     wins_poc: int = 0
@@ -78,6 +101,21 @@ def time_bucket(italy_time: str, minutes: int = 15) -> str:
     return f"{date} {hour:02d}:{(minute // minutes) * minutes:02d}"
 
 
+def print_dynamic_stop_stats(title: str, stats_by_key: dict[str, DynamicStopStats]) -> None:
+    print(f"\n{title}")
+    print("key\tn\tw\twinRate\tt1Hit\tpnl\tnetR\tavgRisk\tavgRR_T2\tavgRiskReduction")
+    for key in sorted(stats_by_key):
+        stats = stats_by_key[key]
+        win_rate = 100.0 * stats.wins / stats.count if stats.count else 0.0
+        avg_risk = stats.total_risk / stats.count if stats.count else 0.0
+        avg_rr_t2 = stats.total_rr_t2 / stats.count if stats.count else 0.0
+        avg_risk_reduction = stats.total_risk_reduction / stats.count if stats.count else 0.0
+        print(
+            f"{key}\t{stats.count}\t{stats.wins}\t{win_rate:.1f}%\t{stats.target1_hits}"
+            f"\t{stats.pnl:.2f}\t{stats.net_r:.2f}\t{avg_risk:.2f}\t{avg_rr_t2:.2f}\t{avg_risk_reduction:.2f}"
+        )
+
+
 def print_stats(title: str, stats_by_key: dict[str, Stats]) -> None:
     print(f"\n{title}")
     print("key\tn\tlowVol\tpocW\tpocPnL\tt2W\tt2PnL\tnRR05\tt2WRR05\tt2PnLRR05\tnRR1\tt2WRR1\tt2PnLRR1")
@@ -107,6 +145,9 @@ def main() -> int:
     candidates: list[tuple[float, dict[str, str], str]] = []
     scale_in_candidates: list[dict[str, str]] = []
     scale_plans: list[dict[str, str]] = []
+    dynamic_by_plan: defaultdict[str, DynamicStopStats] = defaultdict(DynamicStopStats)
+    dynamic_by_trigger_plan: defaultdict[str, DynamicStopStats] = defaultdict(DynamicStopStats)
+    dynamic_by_age_plan: defaultdict[str, DynamicStopStats] = defaultdict(DynamicStopStats)
 
     with args.log.open("r", encoding="utf-8", errors="replace") as handle:
         for line in handle:
@@ -123,6 +164,16 @@ def main() -> int:
 
             if tag == "DAY_STUDY_SCALE_PLAN":
                 scale_plans.append(parse_fields(line))
+                continue
+
+            if tag == "DAY_STUDY_DYNAMIC_STOP_CANDIDATE":
+                fields = parse_fields(line)
+                stop_plan = fields.get("StopPlan", "UNKNOWN")
+                trigger = fields.get("Trigger", "UNKNOWN")
+                age_bucket = fields.get("RejectionAgeBucket", "UNKNOWN")
+                dynamic_by_plan[stop_plan].add(fields)
+                dynamic_by_trigger_plan[f"{trigger} {stop_plan}"].add(fields)
+                dynamic_by_age_plan[f"{age_bucket} {stop_plan}"].add(fields)
                 continue
 
             if tag != "DAY_STUDY_CANDIDATE_ENTRY":
@@ -145,6 +196,11 @@ def main() -> int:
     print_stats("By Candidate Type", by_type)
     print_stats("By Trigger", by_trigger)
     print_stats("By 15m Bucket", by_bucket)
+
+    if dynamic_by_plan:
+        print_dynamic_stop_stats("Dynamic Stop Study By Plan", dynamic_by_plan)
+        print_dynamic_stop_stats("Dynamic Stop Study By Trigger And Plan", dynamic_by_trigger_plan)
+        print_dynamic_stop_stats("Dynamic Stop Study By Rejection Age And Plan", dynamic_by_age_plan)
 
     if scale_in_candidates:
         print("\nFabio-Style Scale-In Candidate Study")

@@ -212,6 +212,7 @@ Day-study dedicato per analisi manuale/agent:
 [DAY_STUDY_ACTUAL_ENTRY]    entry operative effettivamente prese
 [DAY_STUDY_SETUP_SUMMARY]   riepilogo setup e numero candidati alternativi
 [DAY_STUDY_CANDIDATE_ENTRY] candidate entry alternative con risk/reward, MFE/MAE, outcome POC e Target2
+[DAY_STUDY_DYNAMIC_STOP_CANDIDATE] studio non operativo degli stop alternativi per value-reentry: RR, outcome protetto, bucket temporale e riduzione rischio
 [DAY_STUDY_SCALE_IN_SUMMARY] simulazione scale-in Fabio-style per setup, solo dopo POC/risk-free della prima entry
 [DAY_STUDY_SCALE_IN_CANDIDATE] add-on candidate successivi alla prima entry risk-free, con RR/RMultiple
 [DAY_STUDY_SCALE_PLAN] piani setup-level: base + max add-on, filtri volume/tempo/espansione post-POC, TotalPnL/TotalR/worst leg
@@ -316,12 +317,14 @@ Current known issues / next studies:
    - Risk was larger because technical stop was very far.
    Next study: dynamic stop alternatives, not static RR exceptions.
 
-5. Dynamic stop study candidates:
-   - original rejection stop
-   - value edge stop with buffer
-   - POC reclaim/loss bar stop with buffer
-   - recent swing after reclaim/loss
-   - capped max risk by value-area width or point limit
+5. Dynamic stop study candidates are logged in `[DAY_STUDY_DYNAMIC_STOP_CANDIDATE]`:
+   - `ORIGINAL_REJECTION`: stop tecnico della rejection
+   - `VALUE_EDGE_2T`: `VAL - 2 tick` per long, `VAH + 2 tick` per short
+   - `RECENT_SWING_AFTER_REJECTION_2T`: swing dopo la rejection fino all'entry, con buffer 2 tick
+   - `POC_TRIGGER_BAR_2T`: low/high della barra di POC reclaim/loss, solo se gia' confermata prima del candidato
+   - `CAP_VALUE_WIDTH_100`: stop cap a massimo 1 value-area width di rischio
+   - `CAP_VALUE_WIDTH_50`: stop cap a massimo 0.5 value-area width di rischio
+   - ogni piano logga `Risk`, `RR_T2`, `RiskReductionPct`, `RejectionAgeBucket`, outcome protetto e `RMultiple`
 ```
 
 ## Current Files
