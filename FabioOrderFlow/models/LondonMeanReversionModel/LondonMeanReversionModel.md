@@ -158,6 +158,7 @@ Questo significa che il chart mostra come sarebbe andata la logica live sui dati
 
 ```csharp
 MinAggressionVolume = 20m
+StudyMinAggressionVolume = 15m
 AggressionTimeoutSeconds = 3600
 RejectionThresholdTicks = 10
 StopOffsetTicks = 2
@@ -185,6 +186,7 @@ Le soglie in tick usano `InstrumentInfo.TickSize`, quindi stop e rejection sono 
 [MR_STUDY_CLOSE]         uscita study a Target2, stop o London close
 [MR_MISSED_OPPORTUNITY]  setup con trigger utile ma senza entry valida nel backfill storico
 [MR_EXTENDED_CUTOFF_OPPORTUNITY] entry valida solo estendendo studio fino a 16:00 London / 17:00 Italy
+[MR_STUDY_MIN_VOLUME_OPPORTUNITY] entry valida nello studio abbassando big trade da 20 a 15
 Timeout entry           nessuna entry se il big trade arriva oltre 1 ora dalla rejection
 ```
 

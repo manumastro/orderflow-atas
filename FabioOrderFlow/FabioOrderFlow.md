@@ -142,6 +142,7 @@ Key tags:
 [MR_STUDY_CLOSE]
 [MR_MISSED_OPPORTUNITY]
 [MR_EXTENDED_CUTOFF_OPPORTUNITY]
+[MR_STUDY_MIN_VOLUME_OPPORTUNITY]
 ```
 
 `[MR_ENTRY]` include `EntryModel`, `ManagementMode`, `FinalTarget`, `StudyTarget2` e `StudyTrigger`:
