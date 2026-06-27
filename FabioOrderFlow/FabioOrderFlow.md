@@ -123,7 +123,10 @@ Location:
 
 ```text
 %APPDATA%\ATAS\Logs\FabioOrderFlow.log
+%APPDATA%\ATAS\Logs\FabioOrderFlow-study-2026-06-25.log
 ```
+
+Il file `FabioOrderFlow-study-2026-06-25.log` e' un dataset dedicato per studiare entry alternative fuori dalla logica operativa corrente.
 
 Key tags:
 

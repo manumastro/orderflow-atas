@@ -192,6 +192,20 @@ Le soglie in tick usano `InstrumentInfo.TickSize`, quindi stop e rejection sono 
 Timeout entry           nessuna entry se il big trade arriva oltre 1 ora dalla rejection
 ```
 
+Day-study dedicato per analisi manuale/agent:
+
+```text
+%APPDATA%\ATAS\Logs\FabioOrderFlow-study-2026-06-25.log
+
+[DAY_STUDY_BAR]             ogni barra London del giorno studio con OHLC, volume, bid/ask/delta, POC/VAH/VAL preview e top price levels
+[DAY_STUDY_SETUP]           ogni setup creato nel giorno studio
+[DAY_STUDY_TRIGGER]         follow-through o POC reclaim/loss nel giorno studio
+[DAY_STUDY_BIG_TRADE]       ogni cumulative trade >= MinAggressionVolume nella London del giorno studio, con relazione a profilo/setup
+[DAY_STUDY_ACTUAL_ENTRY]    entry operative effettivamente prese nel giorno studio
+[DAY_STUDY_SETUP_SUMMARY]   riepilogo setup e numero candidati alternativi
+[DAY_STUDY_CANDIDATE_ENTRY] candidate entry alternative con risk/reward, MFE/MAE, outcome POC e Target2
+```
+
 `EntryModel` distingue:
 
 ```text
