@@ -146,8 +146,8 @@ Live:
 
 Storico:
 
-- dopo il ricalcolo, `OnFinishRecalculate()` richiede i cumulative trades del chart caricato in blocchi da massimo 7 giorni, limite imposto da ATAS;
-- quando tutte le risposte sono arrivate, `OnCumulativeTradesResponse()` inoltra il batch completo al modulo;
+- dopo il ricalcolo, `OnFinishRecalculate()` richiede i cumulative trades degli ultimi 7 giorni del chart, limite imposto da ATAS per una singola request;
+- `OnCumulativeTradesResponse()` inoltra i trade storici al modulo;
 - i trade storici passano dalla stessa logica di entry del live;
 - le posizioni storiche vengono processate dalla barra dell'entry in avanti, non da prima dell'entry.
 
