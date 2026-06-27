@@ -39,9 +39,10 @@ Il modello quindi legge una balance in costruzione durante London, aspetta un'es
 3. Wait for value re-entry big trade
    - long: cumulative trade Buy >= 10 contratti tra `VAL` e `POC`
    - short: cumulative trade Sell >= 10 contratti tra `VAH` e `POC`
-   - il trade deve arrivare dopo la rejection, entro 1 ora
+   - il trade deve arrivare dopo la rejection, entro 20 minuti operativi
+   - lo study resta a 1 ora per analisi dei setup tardivi
    - non serve aspettare POC reclaim/loss: il POC diventa conferma/gestione, non prerequisito rigido
-   - `RewardToTarget2 / Risk >= 1.0`
+   - `RewardToTarget2 / Risk >= 1.0`, con risk operativo dinamico
 
 4. POC acceptance / management
    - long: `POC_RECLAIM_AFTER_LOW_REJECTION` conferma forza e abilita studio continuation
@@ -50,7 +51,8 @@ Il modello quindi legge una balance in costruzione durante London, aspetta un'es
 
 5. Register entry
    - entry price = Lastprice del cumulative trade
-   - stop = high/low della rejection +/- 2 tick
+   - stop originale = high/low della rejection +/- 2 tick
+   - stop operativo = stop originale cappato a massimo `0.5 * (VAH - VAL)` di rischio quando lo stop tecnico e' troppo lontano
    - Target1 = POC solo per protezione stop
    - Target2 = VAH per long / VAL per short
 
@@ -173,7 +175,9 @@ Questo significa che il chart mostra come sarebbe andata la logica live sui dati
 ```csharp
 MinAggressionVolume = 10m
 MinRewardRiskToTarget2 = 1.0m
-AggressionTimeoutSeconds = 3600
+DynamicStopMaxValueAreaRiskPct = 0.50m
+AggressionTimeoutSeconds = 3600      // study / setup window
+OperationalEntryTimeoutSeconds = 1200 // entry operative base
 RejectionThresholdTicks = 10
 StopOffsetTicks = 2
 LateCutoffHour = 15
@@ -306,16 +310,16 @@ Current known issues / next studies:
 2. Some follow-through entries without POC reclaim/loss restore trade frequency but add noise.
    Next filter candidate: allow base pre-POC only with stronger evidence, not simply any follow-through.
 
-3. 2026-06-24 10:37 short is formally valid but qualitatively weak:
-   - late/stale after rejection
+3. 2026-06-24 10:37 short was formally valid under the 1-hour window but qualitatively stale:
+   - about 27 minutes after rejection
    - small volume
    - setup family failed repeatedly
-   Next study: entry quality by seconds after rejection and trigger type.
+   Operational response: base entries now require `OperationalEntryTimeoutSeconds = 1200`, so this family should be filtered.
 
 4. 2026-06-24 16:25 long looked visually interesting but RR_T2 was below 1.0 because stop was the full rejection low:
    - Reward points were large.
    - Risk was larger because technical stop was very far.
-   Next study: dynamic stop alternatives, not static RR exceptions.
+   Operational response: RR now uses dynamic stop cap `0.5 * value width`; this makes the case eligible without lowering the static RR floor.
 
 5. Dynamic stop study candidates are logged in `[DAY_STUDY_DYNAMIC_STOP_CANDIDATE]`:
    - `ORIGINAL_REJECTION`: stop tecnico della rejection

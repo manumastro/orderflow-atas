@@ -24,11 +24,13 @@ namespace FabioOrderFlow
 
         private const decimal MinAggressionVolume = 10m;
         private const int AggressionTimeoutSeconds = 3600;
+        private const int OperationalEntryTimeoutSeconds = 1200;
         private const int RejectionThresholdTicks = 10;
         private const int StopOffsetTicks = 2;
         private const int LateCutoffHour = 15;
         private const int LateCutoffMinute = 30;
         private const decimal MinRewardRiskToTarget2 = 1.0m;
+        private const decimal DynamicStopMaxValueAreaRiskPct = 0.50m;
         private const decimal ScaleInMinExpansionAfterRiskFreePct = 0.25m;
         private const int MaxScaleInsPerSetup = 1;
 
@@ -339,7 +341,7 @@ namespace FabioOrderFlow
             return IsLondonTradeAllowed(trade.Time);
         }
 
-        private bool IsAggressionEntry(BalanceSetup setup, CumulativeTrade trade)
+        private bool IsAggressionEntry(BalanceSetup setup, CumulativeTrade trade, bool enforceFreshness = true)
         {
             if (trade.Volume < MinAggressionVolume)
                 return false;
@@ -351,6 +353,9 @@ namespace FabioOrderFlow
             if (!IsInEntryZone(setup, trade))
                 return false;
 
+            if (enforceFreshness && (trade.Time - setup.RejectionTimeUtc).TotalSeconds > OperationalEntryTimeoutSeconds)
+                return false;
+
             return GetRewardRiskToTarget2(setup, trade.Lastprice) >= MinRewardRiskToTarget2;
         }
 
@@ -359,7 +364,7 @@ namespace FabioOrderFlow
             if (!IsTradeInSetupWindow(setup, trade))
                 return false;
 
-            if (!IsAggressionEntry(setup, trade))
+            if (!IsAggressionEntry(setup, trade, enforceFreshness: false))
                 return false;
 
             var existingScaleIns = _activePositions.Count(p => p.SetupId == setup.SetupId && p.IsScaleIn);
@@ -399,12 +404,36 @@ namespace FabioOrderFlow
 
         private decimal GetRewardRiskToTarget2(BalanceSetup setup, decimal entryPrice)
         {
-            var risk = Math.Abs(entryPrice - setup.StopPrice);
+            var risk = GetOperationalRisk(setup, entryPrice);
             if (risk <= 0)
                 return 0;
 
             var reward = Math.Abs(GetStudyTarget2(setup) - entryPrice);
             return reward / risk;
+        }
+
+        private decimal GetOperationalStopPrice(BalanceSetup setup, decimal entryPrice)
+        {
+            var valueWidth = Math.Abs(setup.VAH - setup.VAL);
+            if (valueWidth <= 0)
+                return setup.StopPrice;
+
+            return GetCappedStop(setup.Direction, entryPrice, setup.StopPrice, valueWidth * DynamicStopMaxValueAreaRiskPct);
+        }
+
+        private decimal GetOperationalRisk(BalanceSetup setup, decimal entryPrice)
+        {
+            var stop = GetOperationalStopPrice(setup, entryPrice);
+            if (!IsStopBehindEntry(setup.Direction, entryPrice, stop))
+                return 0;
+
+            return Math.Abs(entryPrice - stop);
+        }
+
+        private string GetOperationalStopPlan(BalanceSetup setup, decimal entryPrice)
+        {
+            var operationalStop = GetOperationalStopPrice(setup, entryPrice);
+            return operationalStop == setup.StopPrice ? "ORIGINAL_REJECTION" : "CAP_VALUE_WIDTH_50";
         }
 
         private void LogMissedOpportunities(List<CumulativeTrade> trades)
@@ -437,7 +466,11 @@ namespace FabioOrderFlow
                     .Where(t => IsInEntryZone(setup, t))
                     .ToList();
 
-                var validRrEntryTrades = insideValueTrades
+                var freshInsideValueTrades = insideValueTrades
+                    .Where(t => (t.Time - setup.RejectionTimeUtc).TotalSeconds <= OperationalEntryTimeoutSeconds)
+                    .ToList();
+
+                var validRrEntryTrades = freshInsideValueTrades
                     .Where(t => GetRewardRiskToTarget2(setup, t.Lastprice) >= MinRewardRiskToTarget2)
                     .ToList();
 
@@ -451,9 +484,11 @@ namespace FabioOrderFlow
                         ? "NO_BIG_TRADE_IN_DIRECTION"
                         : insideValueTrades.Count == 0
                             ? "NO_BIG_TRADE_IN_ENTRY_ZONE"
-                            : validRrEntryTrades.Count == 0
-                                ? "RR_TO_TARGET2_TOO_LOW"
-                                : "UNKNOWN_NO_ENTRY";
+                            : freshInsideValueTrades.Count == 0
+                                ? "ENTRY_TOO_STALE_AFTER_REJECTION"
+                                : validRrEntryTrades.Count == 0
+                                    ? "RR_TO_TARGET2_TOO_LOW"
+                                    : "UNKNOWN_NO_ENTRY";
 
                 var maxVolume = operationalWindowTrades.Count > 0 ? operationalWindowTrades.Max(t => t.Volume) : 0m;
                 var maxSameDirectionVolume = sameDirectionTrades.Count > 0 ? sameDirectionTrades.Max(t => t.Volume) : 0m;
@@ -462,7 +497,7 @@ namespace FabioOrderFlow
                 var bestSameDirectionPrice = sameDirectionTrades.Count > 0
                     ? sameDirectionTrades.OrderByDescending(t => t.Volume).First().Lastprice.ToString("F2")
                     : "NA";
-                _log($"[MR_MISSED_OPPORTUNITY] SetupId={setup.SetupId}, Direction={setup.Direction}, StudyTrigger={trigger}, Reason={reason}, RejectionBar={setup.RejectionBar}, {FormatTime(setup.RejectionTimeUtc)}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}, Stop={setup.StopPrice:F2}, MinRewardRiskToTarget2={MinRewardRiskToTarget2:F2}, WindowBigTrades={operationalWindowTrades.Count}, SameDirectionBigTrades={sameDirectionTrades.Count}, EntryZoneBigTrades={insideValueTrades.Count}, ValidRrEntryTrades={validRrEntryTrades.Count}, ContinuationBigTrades={continuationTrades.Count}, MaxVolume={maxVolume:F0}, MaxSameDirectionVolume={maxSameDirectionVolume:F0}, FirstBigTrade={firstTradeTime}, FirstSameDirectionBigTrade={firstSameDirectionTime}, BestSameDirectionPrice={bestSameDirectionPrice}", true);
+                _log($"[MR_MISSED_OPPORTUNITY] SetupId={setup.SetupId}, Direction={setup.Direction}, StudyTrigger={trigger}, Reason={reason}, RejectionBar={setup.RejectionBar}, {FormatTime(setup.RejectionTimeUtc)}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}, Stop={setup.StopPrice:F2}, DynamicStopMaxValueAreaRiskPct={DynamicStopMaxValueAreaRiskPct:F2}, OperationalEntryTimeoutSeconds={OperationalEntryTimeoutSeconds}, MinRewardRiskToTarget2={MinRewardRiskToTarget2:F2}, WindowBigTrades={operationalWindowTrades.Count}, SameDirectionBigTrades={sameDirectionTrades.Count}, EntryZoneBigTrades={insideValueTrades.Count}, FreshEntryZoneBigTrades={freshInsideValueTrades.Count}, ValidRrEntryTrades={validRrEntryTrades.Count}, ContinuationBigTrades={continuationTrades.Count}, MaxVolume={maxVolume:F0}, MaxSameDirectionVolume={maxSameDirectionVolume:F0}, FirstBigTrade={firstTradeTime}, FirstSameDirectionBigTrade={firstSameDirectionTime}, BestSameDirectionPrice={bestSameDirectionPrice}", true);
 
                 if (insideValueTrades.Count == 0 && continuationTrades.Count > 0)
                 {
@@ -483,6 +518,8 @@ namespace FabioOrderFlow
             var target2 = GetStudyTarget2(setup);
             var useTarget2 = true;
             var finalTarget = target2;
+            var operationalStop = GetOperationalStopPrice(setup, entryTrade.Lastprice);
+            var operationalStopPlan = GetOperationalStopPlan(setup, entryTrade.Lastprice);
             var position = new ActivePosition
             {
                 SetupId = setup.SetupId,
@@ -491,8 +528,8 @@ namespace FabioOrderFlow
                 EntryPrice = entryTrade.Lastprice,
                 EntryBar = entryBar,
                 EntryTimeUtc = entryTrade.Time,
-                InitialStopPrice = setup.StopPrice,
-                StopPrice = setup.StopPrice,
+                InitialStopPrice = operationalStop,
+                StopPrice = operationalStop,
                 TargetPrice = finalTarget,
                 Target1Price = setup.POC,
                 Target2Price = target2,
@@ -521,8 +558,8 @@ namespace FabioOrderFlow
                 : position.EntryPrice - position.TargetPrice;
 
             var rewardRiskToTarget2 = riskPoints > 0 ? rewardToTarget2 / riskPoints : 0;
-            _log($"[MR_ENTRY] SetupId={setup.SetupId}, EntryModel={entryModel}, Direction={setup.Direction}, Bar={entryBar}, {FormatTime(entryTrade.Time)}, EntryPrice={position.EntryPrice:F2}, Volume={entryTrade.Volume:F0}, TradeDirection={entryTrade.Direction}, Stop={position.StopPrice:F2}, TargetPOC={setup.TargetPrice:F2}, FinalTarget={position.TargetPrice:F2}, ManagementMode={position.ManagementMode}, IsScaleIn={position.IsScaleIn}, ScaleInIndex={position.ScaleInIndex}, StudyTarget2={target2:F2}, StudyTrigger={studyTrigger}, Risk={riskPoints:F2}, Reward={rewardPoints:F2}, RewardToTarget2={rewardToTarget2:F2}, RewardToFinalTarget={rewardToFinalTarget:F2}, RewardRiskToTarget2={rewardRiskToTarget2:F2}, MinRewardRiskToTarget2={MinRewardRiskToTarget2:F2}, SecondsAfterRejection={(entryTrade.Time - setup.RejectionTimeUtc).TotalSeconds:F1}", isHistorical);
-            StudyLog($"[DAY_STUDY_ACTUAL_ENTRY] SetupId={setup.SetupId}, EntryModel={entryModel}, Direction={setup.Direction}, Bar={entryBar}, {FormatTime(entryTrade.Time)}, EntryPrice={position.EntryPrice:F2}, Volume={entryTrade.Volume:F0}, TradeDirection={entryTrade.Direction}, Stop={position.StopPrice:F2}, TargetPOC={setup.TargetPrice:F2}, FinalTarget={position.TargetPrice:F2}, ManagementMode={position.ManagementMode}, IsScaleIn={position.IsScaleIn}, ScaleInIndex={position.ScaleInIndex}, StudyTarget2={target2:F2}, StudyTrigger={studyTrigger}, Risk={riskPoints:F2}, RewardToTarget2={rewardToTarget2:F2}, RewardToFinalTarget={rewardToFinalTarget:F2}, RewardRiskToTarget2={rewardRiskToTarget2:F2}, SecondsAfterRejection={(entryTrade.Time - setup.RejectionTimeUtc).TotalSeconds:F1}", entryTrade.Time);
+            _log($"[MR_ENTRY] SetupId={setup.SetupId}, EntryModel={entryModel}, Direction={setup.Direction}, Bar={entryBar}, {FormatTime(entryTrade.Time)}, EntryPrice={position.EntryPrice:F2}, Volume={entryTrade.Volume:F0}, TradeDirection={entryTrade.Direction}, Stop={position.StopPrice:F2}, OriginalStop={setup.StopPrice:F2}, OperationalStopPlan={operationalStopPlan}, TargetPOC={setup.TargetPrice:F2}, FinalTarget={position.TargetPrice:F2}, ManagementMode={position.ManagementMode}, IsScaleIn={position.IsScaleIn}, ScaleInIndex={position.ScaleInIndex}, StudyTarget2={target2:F2}, StudyTrigger={studyTrigger}, Risk={riskPoints:F2}, Reward={rewardPoints:F2}, RewardToTarget2={rewardToTarget2:F2}, RewardToFinalTarget={rewardToFinalTarget:F2}, RewardRiskToTarget2={rewardRiskToTarget2:F2}, MinRewardRiskToTarget2={MinRewardRiskToTarget2:F2}, DynamicStopMaxValueAreaRiskPct={DynamicStopMaxValueAreaRiskPct:F2}, SecondsAfterRejection={(entryTrade.Time - setup.RejectionTimeUtc).TotalSeconds:F1}, OperationalEntryTimeoutSeconds={OperationalEntryTimeoutSeconds}", isHistorical);
+            StudyLog($"[DAY_STUDY_ACTUAL_ENTRY] SetupId={setup.SetupId}, EntryModel={entryModel}, Direction={setup.Direction}, Bar={entryBar}, {FormatTime(entryTrade.Time)}, EntryPrice={position.EntryPrice:F2}, Volume={entryTrade.Volume:F0}, TradeDirection={entryTrade.Direction}, Stop={position.StopPrice:F2}, OriginalStop={setup.StopPrice:F2}, OperationalStopPlan={operationalStopPlan}, TargetPOC={setup.TargetPrice:F2}, FinalTarget={position.TargetPrice:F2}, ManagementMode={position.ManagementMode}, IsScaleIn={position.IsScaleIn}, ScaleInIndex={position.ScaleInIndex}, StudyTarget2={target2:F2}, StudyTrigger={studyTrigger}, Risk={riskPoints:F2}, RewardToTarget2={rewardToTarget2:F2}, RewardToFinalTarget={rewardToFinalTarget:F2}, RewardRiskToTarget2={rewardRiskToTarget2:F2}, SecondsAfterRejection={(entryTrade.Time - setup.RejectionTimeUtc).TotalSeconds:F1}, OperationalEntryTimeoutSeconds={OperationalEntryTimeoutSeconds}", entryTrade.Time);
 
             if (isHistorical)
                 ProcessHistoricalPositions(entryBar, Math.Max(entryBar, _currentBar - 1));
@@ -749,7 +786,7 @@ namespace FabioOrderFlow
             try
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(_studyLogPath)!);
-                File.WriteAllText(_studyLogPath, $"[HISTORICAL_STUDY_START] MinAggressionVolume={MinAggressionVolume:F0}, MinRewardRiskToTarget2={MinRewardRiskToTarget2:F2}, CreatedItaly={MarketTimeZones.ToItaly(DateTime.UtcNow):yyyy-MM-dd HH:mm:ss}{Environment.NewLine}");
+                File.WriteAllText(_studyLogPath, $"[HISTORICAL_STUDY_START] MinAggressionVolume={MinAggressionVolume:F0}, MinRewardRiskToTarget2={MinRewardRiskToTarget2:F2}, DynamicStopMaxValueAreaRiskPct={DynamicStopMaxValueAreaRiskPct:F2}, OperationalEntryTimeoutSeconds={OperationalEntryTimeoutSeconds}, CreatedItaly={MarketTimeZones.ToItaly(DateTime.UtcNow):yyyy-MM-dd HH:mm:ss}{Environment.NewLine}");
                 _studyLogInitialized = true;
             }
             catch
