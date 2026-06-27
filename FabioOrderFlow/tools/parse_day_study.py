@@ -141,12 +141,14 @@ def main() -> int:
     counts: defaultdict[str, int] = defaultdict(int)
     by_type: defaultdict[str, Stats] = defaultdict(Stats)
     by_trigger: defaultdict[str, Stats] = defaultdict(Stats)
+    by_trigger_at_entry: defaultdict[str, Stats] = defaultdict(Stats)
     by_bucket: defaultdict[str, Stats] = defaultdict(Stats)
     candidates: list[tuple[float, dict[str, str], str]] = []
     scale_in_candidates: list[dict[str, str]] = []
     scale_plans: list[dict[str, str]] = []
     dynamic_by_plan: defaultdict[str, DynamicStopStats] = defaultdict(DynamicStopStats)
     dynamic_by_trigger_plan: defaultdict[str, DynamicStopStats] = defaultdict(DynamicStopStats)
+    dynamic_by_trigger_at_entry_plan: defaultdict[str, DynamicStopStats] = defaultdict(DynamicStopStats)
     dynamic_by_age_plan: defaultdict[str, DynamicStopStats] = defaultdict(DynamicStopStats)
 
     with args.log.open("r", encoding="utf-8", errors="replace") as handle:
@@ -170,9 +172,11 @@ def main() -> int:
                 fields = parse_fields(line)
                 stop_plan = fields.get("StopPlan", "UNKNOWN")
                 trigger = fields.get("Trigger", "UNKNOWN")
+                trigger_at_entry = fields.get("TriggerAtEntry", "UNKNOWN")
                 age_bucket = fields.get("RejectionAgeBucket", "UNKNOWN")
                 dynamic_by_plan[stop_plan].add(fields)
                 dynamic_by_trigger_plan[f"{trigger} {stop_plan}"].add(fields)
+                dynamic_by_trigger_at_entry_plan[f"{trigger_at_entry} {stop_plan}"].add(fields)
                 dynamic_by_age_plan[f"{age_bucket} {stop_plan}"].add(fields)
                 continue
 
@@ -186,6 +190,7 @@ def main() -> int:
 
             by_type[candidate_type].add(fields)
             by_trigger[trigger].add(fields)
+            by_trigger_at_entry[fields.get("TriggerAtEntry", "UNKNOWN")].add(fields)
             by_bucket[f"{bucket} {candidate_type}"].add(fields)
             candidates.append((dec(fields.get("PnLT2", "0")), fields, line.strip()))
 
@@ -195,11 +200,13 @@ def main() -> int:
 
     print_stats("By Candidate Type", by_type)
     print_stats("By Trigger", by_trigger)
+    print_stats("By Trigger At Entry", by_trigger_at_entry)
     print_stats("By 15m Bucket", by_bucket)
 
     if dynamic_by_plan:
         print_dynamic_stop_stats("Dynamic Stop Study By Plan", dynamic_by_plan)
         print_dynamic_stop_stats("Dynamic Stop Study By Trigger And Plan", dynamic_by_trigger_plan)
+        print_dynamic_stop_stats("Dynamic Stop Study By Trigger At Entry And Plan", dynamic_by_trigger_at_entry_plan)
         print_dynamic_stop_stats("Dynamic Stop Study By Rejection Age And Plan", dynamic_by_age_plan)
 
     if scale_in_candidates:

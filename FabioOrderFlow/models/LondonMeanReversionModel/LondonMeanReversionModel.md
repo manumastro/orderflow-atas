@@ -215,11 +215,11 @@ Day-study dedicato per analisi manuale/agent:
 [DAY_STUDY_BIG_TRADE]       ogni cumulative trade >= MinAggressionVolume nella London storica, con relazione a profilo/setup
 [DAY_STUDY_ACTUAL_ENTRY]    entry operative effettivamente prese
 [DAY_STUDY_SETUP_SUMMARY]   riepilogo setup e numero candidati alternativi
-[DAY_STUDY_CANDIDATE_ENTRY] candidate entry alternative con risk/reward, MFE/MAE, outcome POC e Target2
-[DAY_STUDY_DYNAMIC_STOP_CANDIDATE] studio non operativo degli stop alternativi per value-reentry: RR, outcome protetto, bucket temporale e riduzione rischio
-[DAY_STUDY_SCALE_IN_SUMMARY] simulazione scale-in Fabio-style per setup, solo dopo POC/risk-free della prima entry
-[DAY_STUDY_SCALE_IN_CANDIDATE] add-on candidate successivi alla prima entry risk-free, con RR/RMultiple
-[DAY_STUDY_SCALE_PLAN] piani setup-level: base + max add-on, filtri volume/tempo/espansione post-POC, TotalPnL/TotalR/worst leg
+[DAY_STUDY_CANDIDATE_ENTRY] candidate entry alternative con risk/reward, MFE/MAE, outcome POC e Target2; include `TriggerAtEntry` per distinguere informazione live da trigger finale post-entry
+[DAY_STUDY_DYNAMIC_STOP_CANDIDATE] studio non operativo degli stop alternativi per value-reentry: RR, outcome protetto, bucket temporale e riduzione rischio; include `TriggerAtEntry`
+[DAY_STUDY_SCALE_IN_SUMMARY] simulazione scale-in Fabio-style per setup, solo dopo POC/risk-free della prima entry; ora usa stop/RR dinamici operativi e timeout base 20 minuti
+[DAY_STUDY_SCALE_IN_CANDIDATE] add-on candidate successivi alla prima entry risk-free, con RR/RMultiple dinamici
+[DAY_STUDY_SCALE_PLAN] piani setup-level: base + max add-on, filtri volume/tempo/espansione post-POC, TotalPnL/TotalR/worst leg usando logica operativa corrente
 ```
 
 `EntryModel` distingue:
@@ -305,7 +305,7 @@ Reload notes:
 ```text
 - 2026-06-24 16:25 long is now captured by dynamic RR: OriginalRisk 150.50 -> OperationalRisk 84.50, RR_T2 1.48, TARGET2_HIT +125.00.
 - 2026-06-24 10:37 short is filtered as stale by OperationalEntryTimeoutSeconds=1200.
-- Remaining weak entries are from NONE, HIGH_REJECTION_FOLLOW_THROUGH and LOW_REJECTION_FOLLOW_THROUGH; next likely operational cleanup is to leave those trigger states study-only or require stronger evidence.
+- Remaining weak entries are from NONE, HIGH_REJECTION_FOLLOW_THROUGH and LOW_REJECTION_FOLLOW_THROUGH. Next study now logs `TriggerAtEntry` so the cleanup can be causal: decide whether a weak trigger was actually known at entry time, not only after the setup completed.
 ```
 
 Current known issues / next studies:

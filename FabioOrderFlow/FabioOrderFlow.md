@@ -176,7 +176,7 @@ Key tags:
 [DAY_STUDY_SCALE_PLAN]
 ```
 
-`[MR_ENTRY]` include `EntryModel`, `ManagementMode`, `FinalTarget`, `StudyTarget2` e `StudyTrigger`:
+`[MR_ENTRY]` include `EntryModel`, `ManagementMode`, `FinalTarget`, `StudyTarget2`, `StudyTrigger`, `TriggerAtEntry` e stop operativo dinamico:
 
 ```text
 FootprintCumulativeTradeLive

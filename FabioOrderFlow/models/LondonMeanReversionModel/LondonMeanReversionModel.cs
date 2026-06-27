@@ -71,7 +71,11 @@ namespace FabioOrderFlow
             public bool ScaleInConfirmed { get; set; }
             public bool Expired { get; set; }
             public bool StudyFollowThroughConfirmed { get; set; }
+            public int StudyFollowThroughBar { get; set; } = -1;
+            public DateTime StudyFollowThroughTimeUtc { get; set; }
             public bool StudyPocTriggerConfirmed { get; set; }
+            public int StudyPocTriggerBar { get; set; } = -1;
+            public DateTime StudyPocTriggerTimeUtc { get; set; }
             public int StudyTriggerBar { get; set; } = -1;
             public DateTime StudyTriggerTimeUtc { get; set; }
         }
@@ -515,6 +519,7 @@ namespace FabioOrderFlow
         {
             var entryBar = FindBarByTime(entryTrade.Time, setup.RejectionBar);
             var studyTrigger = GetStudyTriggerLabel(setup);
+            var triggerAtEntry = GetStudyTriggerLabelAtTime(setup, entryTrade.Time);
             var target2 = GetStudyTarget2(setup);
             var useTarget2 = true;
             var finalTarget = target2;
@@ -558,8 +563,8 @@ namespace FabioOrderFlow
                 : position.EntryPrice - position.TargetPrice;
 
             var rewardRiskToTarget2 = riskPoints > 0 ? rewardToTarget2 / riskPoints : 0;
-            _log($"[MR_ENTRY] SetupId={setup.SetupId}, EntryModel={entryModel}, Direction={setup.Direction}, Bar={entryBar}, {FormatTime(entryTrade.Time)}, EntryPrice={position.EntryPrice:F2}, Volume={entryTrade.Volume:F0}, TradeDirection={entryTrade.Direction}, Stop={position.StopPrice:F2}, OriginalStop={setup.StopPrice:F2}, OperationalStopPlan={operationalStopPlan}, TargetPOC={setup.TargetPrice:F2}, FinalTarget={position.TargetPrice:F2}, ManagementMode={position.ManagementMode}, IsScaleIn={position.IsScaleIn}, ScaleInIndex={position.ScaleInIndex}, StudyTarget2={target2:F2}, StudyTrigger={studyTrigger}, Risk={riskPoints:F2}, Reward={rewardPoints:F2}, RewardToTarget2={rewardToTarget2:F2}, RewardToFinalTarget={rewardToFinalTarget:F2}, RewardRiskToTarget2={rewardRiskToTarget2:F2}, MinRewardRiskToTarget2={MinRewardRiskToTarget2:F2}, DynamicStopMaxValueAreaRiskPct={DynamicStopMaxValueAreaRiskPct:F2}, SecondsAfterRejection={(entryTrade.Time - setup.RejectionTimeUtc).TotalSeconds:F1}, OperationalEntryTimeoutSeconds={OperationalEntryTimeoutSeconds}", isHistorical);
-            StudyLog($"[DAY_STUDY_ACTUAL_ENTRY] SetupId={setup.SetupId}, EntryModel={entryModel}, Direction={setup.Direction}, Bar={entryBar}, {FormatTime(entryTrade.Time)}, EntryPrice={position.EntryPrice:F2}, Volume={entryTrade.Volume:F0}, TradeDirection={entryTrade.Direction}, Stop={position.StopPrice:F2}, OriginalStop={setup.StopPrice:F2}, OperationalStopPlan={operationalStopPlan}, TargetPOC={setup.TargetPrice:F2}, FinalTarget={position.TargetPrice:F2}, ManagementMode={position.ManagementMode}, IsScaleIn={position.IsScaleIn}, ScaleInIndex={position.ScaleInIndex}, StudyTarget2={target2:F2}, StudyTrigger={studyTrigger}, Risk={riskPoints:F2}, RewardToTarget2={rewardToTarget2:F2}, RewardToFinalTarget={rewardToFinalTarget:F2}, RewardRiskToTarget2={rewardRiskToTarget2:F2}, SecondsAfterRejection={(entryTrade.Time - setup.RejectionTimeUtc).TotalSeconds:F1}, OperationalEntryTimeoutSeconds={OperationalEntryTimeoutSeconds}", entryTrade.Time);
+            _log($"[MR_ENTRY] SetupId={setup.SetupId}, EntryModel={entryModel}, Direction={setup.Direction}, Bar={entryBar}, {FormatTime(entryTrade.Time)}, EntryPrice={position.EntryPrice:F2}, Volume={entryTrade.Volume:F0}, TradeDirection={entryTrade.Direction}, Stop={position.StopPrice:F2}, OriginalStop={setup.StopPrice:F2}, OperationalStopPlan={operationalStopPlan}, TargetPOC={setup.TargetPrice:F2}, FinalTarget={position.TargetPrice:F2}, ManagementMode={position.ManagementMode}, IsScaleIn={position.IsScaleIn}, ScaleInIndex={position.ScaleInIndex}, StudyTarget2={target2:F2}, StudyTrigger={studyTrigger}, TriggerAtEntry={triggerAtEntry}, Risk={riskPoints:F2}, Reward={rewardPoints:F2}, RewardToTarget2={rewardToTarget2:F2}, RewardToFinalTarget={rewardToFinalTarget:F2}, RewardRiskToTarget2={rewardRiskToTarget2:F2}, MinRewardRiskToTarget2={MinRewardRiskToTarget2:F2}, DynamicStopMaxValueAreaRiskPct={DynamicStopMaxValueAreaRiskPct:F2}, SecondsAfterRejection={(entryTrade.Time - setup.RejectionTimeUtc).TotalSeconds:F1}, OperationalEntryTimeoutSeconds={OperationalEntryTimeoutSeconds}", isHistorical);
+            StudyLog($"[DAY_STUDY_ACTUAL_ENTRY] SetupId={setup.SetupId}, EntryModel={entryModel}, Direction={setup.Direction}, Bar={entryBar}, {FormatTime(entryTrade.Time)}, EntryPrice={position.EntryPrice:F2}, Volume={entryTrade.Volume:F0}, TradeDirection={entryTrade.Direction}, Stop={position.StopPrice:F2}, OriginalStop={setup.StopPrice:F2}, OperationalStopPlan={operationalStopPlan}, TargetPOC={setup.TargetPrice:F2}, FinalTarget={position.TargetPrice:F2}, ManagementMode={position.ManagementMode}, IsScaleIn={position.IsScaleIn}, ScaleInIndex={position.ScaleInIndex}, StudyTarget2={target2:F2}, StudyTrigger={studyTrigger}, TriggerAtEntry={triggerAtEntry}, Risk={riskPoints:F2}, RewardToTarget2={rewardToTarget2:F2}, RewardToFinalTarget={rewardToFinalTarget:F2}, RewardRiskToTarget2={rewardRiskToTarget2:F2}, SecondsAfterRejection={(entryTrade.Time - setup.RejectionTimeUtc).TotalSeconds:F1}, OperationalEntryTimeoutSeconds={OperationalEntryTimeoutSeconds}", entryTrade.Time);
 
             if (isHistorical)
                 ProcessHistoricalPositions(entryBar, Math.Max(entryBar, _currentBar - 1));
@@ -579,6 +584,8 @@ namespace FabioOrderFlow
                 if (!setup.StudyFollowThroughConfirmed && IsStudyFollowThrough(setup, candle))
                 {
                     setup.StudyFollowThroughConfirmed = true;
+                    setup.StudyFollowThroughBar = bar;
+                    setup.StudyFollowThroughTimeUtc = eventTime;
                     setup.StudyTriggerBar = bar;
                     setup.StudyTriggerTimeUtc = eventTime;
                     _log($"[MR_STUDY_TRIGGER] SetupId={setup.SetupId}, Direction={setup.Direction}, Trigger={GetFollowThroughLabel(setup)}, Bar={bar}, {FormatTime(eventTime)}, CandidateBar={setup.RejectionBar}, CandidateHigh={setup.RejectionHigh:F2}, CandidateLow={setup.RejectionLow:F2}, Close={candle.Close:F2}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}", IsHistoricalBar(bar));
@@ -588,6 +595,8 @@ namespace FabioOrderFlow
                 if (!setup.StudyPocTriggerConfirmed && IsStudyPocTrigger(setup, candle))
                 {
                     setup.StudyPocTriggerConfirmed = true;
+                    setup.StudyPocTriggerBar = bar;
+                    setup.StudyPocTriggerTimeUtc = eventTime;
                     setup.StudyTriggerBar = bar;
                     setup.StudyTriggerTimeUtc = eventTime;
                     _log($"[MR_STUDY_TRIGGER] SetupId={setup.SetupId}, Direction={setup.Direction}, Trigger={GetPocTriggerLabel(setup)}, Bar={bar}, {FormatTime(eventTime)}, CandidateBar={setup.RejectionBar}, Close={candle.Close:F2}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}", IsHistoricalBar(bar));
@@ -854,8 +863,9 @@ namespace FabioOrderFlow
 
                 foreach (var candidate in candidates)
                 {
+                    var triggerAtEntry = GetStudyTriggerLabelAtTime(setup, candidate.EntryTimeUtc);
                     var outcome = EvaluateCandidateOutcome(candidate.Direction, candidate.EntryPrice, candidate.Stop, candidate.TargetPoc, candidate.Target2, candidate.EntryTimeUtc, setup.RejectionBar);
-                    StudyLog($"[DAY_STUDY_CANDIDATE_ENTRY] SetupId={setup.SetupId}, CandidateType={candidate.CandidateType}, Trigger={trigger}, Direction={candidate.Direction}, EntryTime={FormatTime(candidate.EntryTimeUtc)}, EntryPrice={candidate.EntryPrice:F2}, Volume={candidate.Volume:F0}, Stop={candidate.Stop:F2}, TargetPOC={candidate.TargetPoc:F2}, Target2={candidate.Target2:F2}, Risk={candidate.Risk:F2}, RewardPOC={candidate.RewardPoc:F2}, RewardT2={candidate.RewardT2:F2}, RR_POC={(candidate.Risk > 0 ? candidate.RewardPoc / candidate.Risk : 0):F2}, RR_T2={(candidate.Risk > 0 ? candidate.RewardT2 / candidate.Risk : 0):F2}, OutcomePOC={outcome.OutcomePoc}, PnLPOC={outcome.PnlPoc:F2}, OutcomeT2={outcome.OutcomeT2}, PnLT2={outcome.PnlT2:F2}, MFE={outcome.Mfe:F2}, MAE={outcome.Mae:F2}", candidate.EntryTimeUtc);
+                    StudyLog($"[DAY_STUDY_CANDIDATE_ENTRY] SetupId={setup.SetupId}, CandidateType={candidate.CandidateType}, Trigger={trigger}, TriggerAtEntry={triggerAtEntry}, Direction={candidate.Direction}, EntryTime={FormatTime(candidate.EntryTimeUtc)}, EntryPrice={candidate.EntryPrice:F2}, Volume={candidate.Volume:F0}, Stop={candidate.Stop:F2}, TargetPOC={candidate.TargetPoc:F2}, Target2={candidate.Target2:F2}, Risk={candidate.Risk:F2}, RewardPOC={candidate.RewardPoc:F2}, RewardT2={candidate.RewardT2:F2}, RR_POC={(candidate.Risk > 0 ? candidate.RewardPoc / candidate.Risk : 0):F2}, RR_T2={(candidate.Risk > 0 ? candidate.RewardT2 / candidate.Risk : 0):F2}, OutcomePOC={outcome.OutcomePoc}, PnLPOC={outcome.PnlPoc:F2}, OutcomeT2={outcome.OutcomeT2}, PnLT2={outcome.PnlT2:F2}, MFE={outcome.Mfe:F2}, MAE={outcome.Mae:F2}", candidate.EntryTimeUtc);
                     LogDynamicStopStudy(setup, trigger, candidate);
                 }
 
@@ -871,8 +881,9 @@ namespace FabioOrderFlow
                 return;
 
             var secondsAfterRejection = (candidate.EntryTimeUtc - setup.RejectionTimeUtc).TotalSeconds;
+            var triggerAtEntry = GetStudyTriggerLabelAtTime(setup, candidate.EntryTimeUtc);
             var secondsAfterPocTrigger = setup.StudyPocTriggerConfirmed
-                ? (candidate.EntryTimeUtc - setup.StudyTriggerTimeUtc).TotalSeconds
+                ? (candidate.EntryTimeUtc - setup.StudyPocTriggerTimeUtc).TotalSeconds
                 : double.NaN;
             var valueWidth = Math.Abs(setup.VAH - setup.VAL);
             var plans = new List<DynamicStopPlan>
@@ -882,7 +893,7 @@ namespace FabioOrderFlow
                 new("RECENT_SWING_AFTER_REJECTION_2T", GetRecentSwingStop(setup, candidate.EntryTimeUtc))
             };
 
-            if (setup.StudyPocTriggerConfirmed && candidate.EntryTimeUtc > setup.StudyTriggerTimeUtc)
+            if (setup.StudyPocTriggerConfirmed && candidate.EntryTimeUtc > setup.StudyPocTriggerTimeUtc)
                 plans.Add(new DynamicStopPlan("POC_TRIGGER_BAR_2T", GetPocTriggerBarStop(setup)));
 
             if (valueWidth > 0)
@@ -901,13 +912,13 @@ namespace FabioOrderFlow
                 var rewardT2 = Math.Abs(candidate.Target2 - candidate.EntryPrice);
                 var outcome = EvaluateProtectedTarget2Outcome(candidate.Direction, candidate.EntryPrice, plan.Stop, candidate.TargetPoc, candidate.Target2, candidate.EntryTimeUtc, setup.RejectionBar);
 
-                StudyLog($"[DAY_STUDY_DYNAMIC_STOP_CANDIDATE] SetupId={setup.SetupId}, StopPlan={plan.Name}, CandidateType={candidate.CandidateType}, Trigger={trigger}, Direction={candidate.Direction}, EntryTime={FormatTime(candidate.EntryTimeUtc)}, EntryPrice={candidate.EntryPrice:F2}, Volume={candidate.Volume:F0}, Stop={plan.Stop:F2}, OriginalStop={candidate.Stop:F2}, TargetPOC={candidate.TargetPoc:F2}, Target2={candidate.Target2:F2}, Risk={risk:F2}, OriginalRisk={candidate.Risk:F2}, RiskReductionPct={(candidate.Risk > 0 ? 1m - risk / candidate.Risk : 0):F2}, ValueWidth={valueWidth:F2}, RiskToValueWidth={(valueWidth > 0 ? risk / valueWidth : 0):F2}, RewardPOC={rewardPoc:F2}, RewardT2={rewardT2:F2}, RR_POC={rewardPoc / risk:F2}, RR_T2={rewardT2 / risk:F2}, SecondsAfterRejection={secondsAfterRejection:F1}, RejectionAgeBucket={GetRejectionAgeBucket(secondsAfterRejection)}, SecondsAfterPocTrigger={(double.IsNaN(secondsAfterPocTrigger) ? "NA" : secondsAfterPocTrigger.ToString("F1"))}, ExitReason={outcome.ExitReason}, PnL={outcome.Pnl:F2}, RMultiple={outcome.RMultiple:F2}R, Target1Hit={outcome.Target1Hit}", candidate.EntryTimeUtc);
+                StudyLog($"[DAY_STUDY_DYNAMIC_STOP_CANDIDATE] SetupId={setup.SetupId}, StopPlan={plan.Name}, CandidateType={candidate.CandidateType}, Trigger={trigger}, TriggerAtEntry={triggerAtEntry}, Direction={candidate.Direction}, EntryTime={FormatTime(candidate.EntryTimeUtc)}, EntryPrice={candidate.EntryPrice:F2}, Volume={candidate.Volume:F0}, Stop={plan.Stop:F2}, OriginalStop={candidate.Stop:F2}, TargetPOC={candidate.TargetPoc:F2}, Target2={candidate.Target2:F2}, Risk={risk:F2}, OriginalRisk={candidate.Risk:F2}, RiskReductionPct={(candidate.Risk > 0 ? 1m - risk / candidate.Risk : 0):F2}, ValueWidth={valueWidth:F2}, RiskToValueWidth={(valueWidth > 0 ? risk / valueWidth : 0):F2}, RewardPOC={rewardPoc:F2}, RewardT2={rewardT2:F2}, RR_POC={rewardPoc / risk:F2}, RR_T2={rewardT2 / risk:F2}, SecondsAfterRejection={secondsAfterRejection:F1}, RejectionAgeBucket={GetRejectionAgeBucket(secondsAfterRejection)}, SecondsAfterPocTrigger={(double.IsNaN(secondsAfterPocTrigger) ? "NA" : secondsAfterPocTrigger.ToString("F1"))}, ExitReason={outcome.ExitReason}, PnL={outcome.Pnl:F2}, RMultiple={outcome.RMultiple:F2}R, Target1Hit={outcome.Target1Hit}", candidate.EntryTimeUtc);
             }
         }
 
         private decimal GetPocTriggerBarStop(BalanceSetup setup)
         {
-            var bar = FindBarByTime(setup.StudyTriggerTimeUtc, setup.RejectionBar);
+            var bar = FindBarByTime(setup.StudyPocTriggerTimeUtc, setup.RejectionBar);
             var candle = _getCandle(bar);
             return setup.Direction == "Long"
                 ? candle.Low - 2m * _tickSize
@@ -977,15 +988,27 @@ namespace FabioOrderFlow
             return "30_60M";
         }
 
+        private StudyCandidate ToOperationalStudyCandidate(BalanceSetup setup, StudyCandidate candidate)
+        {
+            var stop = GetOperationalStopPrice(setup, candidate.EntryPrice);
+            var risk = IsStopBehindEntry(setup.Direction, candidate.EntryPrice, stop)
+                ? Math.Abs(candidate.EntryPrice - stop)
+                : 0m;
+
+            return candidate with { Stop = stop, Risk = risk };
+        }
+
         private void LogFabioStyleScaleInStudy(BalanceSetup setup, string trigger, List<StudyCandidate> candidates)
         {
             var valueCandidates = candidates
                 .Where(c => c.CandidateType == "VALUE_REENTRY_BIG_TRADE")
+                .Select(c => ToOperationalStudyCandidate(setup, c))
                 .Where(c => c.Risk > 0 && c.RewardT2 / c.Risk >= MinRewardRiskToTarget2)
                 .OrderBy(c => c.EntryTimeUtc)
                 .ToList();
 
-            var baseCandidate = valueCandidates.FirstOrDefault();
+            var baseCandidate = valueCandidates
+                .FirstOrDefault(c => (c.EntryTimeUtc - setup.RejectionTimeUtc).TotalSeconds <= OperationalEntryTimeoutSeconds);
             if (baseCandidate == null)
                 return;
 
@@ -1140,7 +1163,7 @@ namespace FabioOrderFlow
         private StudyCandidate BuildStudyCandidate(BalanceSetup setup, CumulativeTrade trade, string trigger)
         {
             var inEntryZone = IsInEntryZone(setup, trade);
-            var continuation = IsTarget2ManagementTrigger(trigger) && trade.Time > setup.StudyTriggerTimeUtc && IsBeyondPocContinuationEntry(setup, trade);
+            var continuation = IsTarget2ManagementTrigger(trigger) && trade.Time > setup.StudyPocTriggerTimeUtc && IsBeyondPocContinuationEntry(setup, trade);
             var candidateType = inEntryZone
                 ? "VALUE_REENTRY_BIG_TRADE"
                 : continuation
@@ -1414,6 +1437,17 @@ namespace FabioOrderFlow
                 return GetPocTriggerLabel(setup);
 
             if (setup.StudyFollowThroughConfirmed)
+                return GetFollowThroughLabel(setup);
+
+            return "NONE";
+        }
+
+        private string GetStudyTriggerLabelAtTime(BalanceSetup setup, DateTime timeUtc)
+        {
+            if (setup.StudyPocTriggerConfirmed && setup.StudyPocTriggerTimeUtc <= timeUtc)
+                return GetPocTriggerLabel(setup);
+
+            if (setup.StudyFollowThroughConfirmed && setup.StudyFollowThroughTimeUtc <= timeUtc)
                 return GetFollowThroughLabel(setup);
 
             return "NONE";
