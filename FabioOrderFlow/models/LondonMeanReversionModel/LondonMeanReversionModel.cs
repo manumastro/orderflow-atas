@@ -32,7 +32,7 @@ namespace FabioOrderFlow
         private const decimal MinRewardRiskToTarget2 = 1.0m;
         private const decimal DynamicStopMaxValueAreaRiskPct = 0.50m;
         private const decimal ScaleInMinExpansionAfterRiskFreePct = 0.25m;
-        private const int MaxScaleInsPerSetup = 1;
+        private const int MaxScaleInsPerSetup = 2;
 
         private int _currentBar;
         private readonly List<BalanceSetup> _activeSetups = new();
@@ -310,13 +310,14 @@ namespace FabioOrderFlow
 
         private void ProcessAggressionTrade(CumulativeTrade trade, string entryModel, bool isHistorical)
         {
-            foreach (var setup in _activeSetups.Where(s => s.AggressionConfirmed && !s.ScaleInConfirmed && !s.Expired).ToList())
+            foreach (var setup in _activeSetups.Where(s => s.AggressionConfirmed && !s.Expired).ToList())
             {
                 if (!IsScaleInEntry(setup, trade))
                     continue;
 
-                setup.ScaleInConfirmed = true;
-                CreatePosition(setup, trade, entryModel, isHistorical, isScaleIn: true, scaleInIndex: 1);
+                var scaleInIndex = _activePositions.Count(p => p.SetupId == setup.SetupId && p.IsScaleIn) + 1;
+                setup.ScaleInConfirmed = scaleInIndex >= MaxScaleInsPerSetup;
+                CreatePosition(setup, trade, entryModel, isHistorical, isScaleIn: true, scaleInIndex: scaleInIndex);
                 break;
             }
 

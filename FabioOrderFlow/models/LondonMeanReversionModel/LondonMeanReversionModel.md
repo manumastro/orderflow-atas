@@ -64,9 +64,9 @@ Il modello quindi legge una balance in costruzione durante London, aspetta un'es
 
 7. Scale-in operativo Fabio-style
    - ManagementMode add-on = `VALUE_REENTRY_TARGET2_SCALE_IN_EXPAND25`
-   - massimo 1 add-on per setup
+   - massimo 2 add-on per setup
    - solo dopo che la base ha raggiunto POC/risk-free
-   - add-on deve rispettare la stessa entry value-reentry e `RR_T2 >= 1.0`
+   - add-on deve rispettare la stessa entry value-reentry e `RR_T2 >= 1.0` con stop dinamico operativo
    - dopo risk-free, il prezzo deve aver espanso almeno il 25% del tratto `POC -> Target2`
 
 8. Study leggero
@@ -176,6 +176,7 @@ Questo significa che il chart mostra come sarebbe andata la logica live sui dati
 MinAggressionVolume = 10m
 MinRewardRiskToTarget2 = 1.0m
 DynamicStopMaxValueAreaRiskPct = 0.50m
+MaxScaleInsPerSetup = 2
 AggressionTimeoutSeconds = 3600      // study / setup window
 OperationalEntryTimeoutSeconds = 1200 // entry operative base
 RejectionThresholdTicks = 10
@@ -305,7 +306,8 @@ Reload notes:
 ```text
 - 2026-06-24 16:25 long is now captured by dynamic RR: OriginalRisk 150.50 -> OperationalRisk 84.50, RR_T2 1.48, TARGET2_HIT +125.00.
 - 2026-06-24 10:37 short is filtered as stale by OperationalEntryTimeoutSeconds=1200.
-- Remaining weak entries are from NONE, HIGH_REJECTION_FOLLOW_THROUGH and LOW_REJECTION_FOLLOW_THROUGH. Next study now logs `TriggerAtEntry` so the cleanup can be causal: decide whether a weak trigger was actually known at entry time, not only after the setup completed.
+- Remaining weak entries have weak final labels (`NONE`, `HIGH_REJECTION_FOLLOW_THROUGH`, `LOW_REJECTION_FOLLOW_THROUGH`), but `TriggerAtEntry` showed all 11 base entries were `NONE` at the entry timestamp. Filtering `NONE` directly would remove the whole model, including good winners. Next cleanup should use a different causal quality measure, not final trigger label.
+- Scale-in study after dynamic RR alignment favored `SCALE_MAX_2_EXPAND25`: +586.24 points / +8.19R versus current +397.74 / +6.18R. Operational max scale-ins promoted from 1 to 2 while keeping EXPAND25.
 ```
 
 Current known issues / next studies:

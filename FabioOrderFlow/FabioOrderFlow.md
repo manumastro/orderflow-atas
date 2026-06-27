@@ -78,7 +78,7 @@ Regole operative:
 - POC reclaim/loss: conferma e gestione, non prerequisito rigido per aprire la base;
 - target operativo: lato opposto della value area;
 - stop: high/low della rejection +/- offset in tick, con cap dinamico a 0.5 value-area width quando il rischio tecnico e' eccessivo;
-- scale-in operativo: massimo 1 add-on `EXPAND25` dopo POC/risk-free della base;
+- scale-in operativo: massimo 2 add-on `EXPAND25` dopo POC/risk-free della base;
 - storico: usa la stessa logica live sui cumulative trades del chart.
 
 Dettaglio completo: `models/LondonMeanReversionModel/LondonMeanReversionModel.md`.
