@@ -1025,6 +1025,9 @@ namespace FabioOrderFlow
             for (var bar = entryBar; bar <= Math.Max(0, _currentBar - 1); bar++)
             {
                 var candle = _getCandle(bar);
+                if (DateOnly.FromDateTime(MarketTimeZones.ToItaly(candle.Time)) != StudyDay)
+                    break;
+
                 if (!IsInLondonSession(candle.Time))
                     break;
 
