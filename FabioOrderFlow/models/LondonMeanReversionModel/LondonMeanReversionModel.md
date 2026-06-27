@@ -44,7 +44,7 @@ Il modello quindi legge una balance in costruzione durante London, aspetta un'es
 4. Wait for value re-entry big trade
    - long: cumulative trade Buy >= 10 contratti tra `VAL` e `POC`
    - short: cumulative trade Sell >= 10 contratti tra `VAH` e `POC`
-   - il trade deve arrivare dopo la rejection, entro 1 ora
+   - il trade deve arrivare dopo il trigger POC reclaim/loss, entro 1 ora dalla rejection
    - `RewardToTarget2 / Risk >= 1.0`
 
 5. Register entry

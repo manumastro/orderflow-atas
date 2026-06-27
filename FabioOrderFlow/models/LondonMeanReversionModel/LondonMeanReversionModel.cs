@@ -347,6 +347,9 @@ namespace FabioOrderFlow
             if (!IsTarget2ManagementTrigger(GetStudyTriggerLabel(setup)))
                 return false;
 
+            if (!setup.StudyPocTriggerConfirmed || trade.Time <= setup.StudyTriggerTimeUtc)
+                return false;
+
             var expectedDirection = setup.Direction == "Long" ? TradeDirection.Buy : TradeDirection.Sell;
             if (trade.Direction != expectedDirection)
                 return false;
@@ -813,6 +816,7 @@ namespace FabioOrderFlow
                 var candidates = _lastHistoricalTrades
                     .Where(t => t.Volume >= MinAggressionVolume)
                     .Where(t => t.Time > setup.RejectionTimeUtc && t.Time <= windowEnd)
+                    .Where(t => !IsTarget2ManagementTrigger(trigger) || t.Time > setup.StudyTriggerTimeUtc)
                     .Where(t => IsLondonTradeAllowed(t.Time))
                     .Where(t => setup.Direction == "Long" ? t.Direction == TradeDirection.Buy : t.Direction == TradeDirection.Sell)
                     .Select(t => BuildStudyCandidate(setup, t, trigger))
