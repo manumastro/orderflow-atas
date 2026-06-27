@@ -106,6 +106,7 @@ def main() -> int:
     by_bucket: defaultdict[str, Stats] = defaultdict(Stats)
     candidates: list[tuple[float, dict[str, str], str]] = []
     scale_in_candidates: list[dict[str, str]] = []
+    scale_plans: list[dict[str, str]] = []
 
     with args.log.open("r", encoding="utf-8", errors="replace") as handle:
         for line in handle:
@@ -118,6 +119,10 @@ def main() -> int:
 
             if tag == "DAY_STUDY_SCALE_IN_CANDIDATE":
                 scale_in_candidates.append(parse_fields(line))
+                continue
+
+            if tag == "DAY_STUDY_SCALE_PLAN":
+                scale_plans.append(parse_fields(line))
                 continue
 
             if tag != "DAY_STUDY_CANDIDATE_ENTRY":
@@ -142,7 +147,7 @@ def main() -> int:
     print_stats("By 15m Bucket", by_bucket)
 
     if scale_in_candidates:
-        print("\nFabio-Style Scale-In Study")
+        print("\nFabio-Style Scale-In Candidate Study")
         print("plan\tn\tw\twinRate\tpnlT2\tnetR")
         for limit in (1, 2, 3, 5, 10):
             selected = [row for row in scale_in_candidates if int(dec(row.get("ScaleInIndex", "0"))) <= limit]
@@ -151,6 +156,23 @@ def main() -> int:
             net_r = sum(dec(row.get("RMultiple", "0")) for row in selected)
             win_rate = 100.0 * wins / len(selected) if selected else 0.0
             print(f"first_{limit}_add_ons\t{len(selected)}\t{wins}\t{win_rate:.1f}%\t{pnl:.2f}\t{net_r:.2f}")
+
+    if scale_plans:
+        print("\nFabio-Style Scale Plan Study")
+        print("plan\tsetups\tw\twinRate\ttotalPnL\ttotalR\tworstSetupPnL\tworstSetupR\tavgAddOns")
+        by_plan: defaultdict[str, list[dict[str, str]]] = defaultdict(list)
+        for row in scale_plans:
+            by_plan[row.get("Plan", "UNKNOWN")].append(row)
+        for plan in sorted(by_plan):
+            rows = by_plan[plan]
+            wins = sum(dec(row.get("TotalPnL", "0")) > 0 for row in rows)
+            total_pnl = sum(dec(row.get("TotalPnL", "0")) for row in rows)
+            total_r = sum(dec(row.get("TotalR", "0")) for row in rows)
+            worst_pnl = min(dec(row.get("TotalPnL", "0")) for row in rows)
+            worst_r = min(dec(row.get("TotalR", "0")) for row in rows)
+            avg_add_ons = sum(dec(row.get("AddOnCount", "0")) for row in rows) / len(rows)
+            win_rate = 100.0 * wins / len(rows) if rows else 0.0
+            print(f"{plan}\t{len(rows)}\t{wins}\t{win_rate:.1f}%\t{total_pnl:.2f}\t{total_r:.2f}\t{worst_pnl:.2f}\t{worst_r:.2f}\t{avg_add_ons:.2f}")
 
     print(f"\nTop {args.top} Candidates By PnLT2")
     print("PnLT2\tRR_T2\tType\tTrigger\tEntryTime\tEntryPrice\tVolume\tRisk\tOutcomeT2")

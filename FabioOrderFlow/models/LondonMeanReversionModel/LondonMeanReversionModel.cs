@@ -814,6 +814,63 @@ namespace FabioOrderFlow
                 var outcome = EvaluateCandidateOutcome(addOn.Direction, addOn.EntryPrice, addOn.Stop, addOn.TargetPoc, addOn.Target2, addOn.EntryTimeUtc, setup.RejectionBar);
                 StudyLog($"[DAY_STUDY_SCALE_IN_CANDIDATE] SetupId={setup.SetupId}, ScaleInIndex={scaleInIndex}, Trigger={trigger}, Direction={addOn.Direction}, BaseEntryTime={FormatTime(baseCandidate.EntryTimeUtc)}, RiskFreeTime={FormatTime(riskFreeTimeValue)}, EntryTime={FormatTime(addOn.EntryTimeUtc)}, EntryPrice={addOn.EntryPrice:F2}, Volume={addOn.Volume:F0}, Stop={addOn.Stop:F2}, TargetPOC={addOn.TargetPoc:F2}, Target2={addOn.Target2:F2}, Risk={addOn.Risk:F2}, RewardT2={addOn.RewardT2:F2}, RR_T2={(addOn.Risk > 0 ? addOn.RewardT2 / addOn.Risk : 0):F2}, OutcomeT2={outcome.OutcomeT2}, PnLT2={outcome.PnlT2:F2}, RMultiple={(addOn.Risk > 0 ? outcome.PnlT2 / addOn.Risk : 0):F2}R, MFE={outcome.Mfe:F2}, MAE={outcome.Mae:F2}", addOn.EntryTimeUtc);
             }
+
+            LogScalePlanStudy(setup, trigger, baseCandidate, riskFreeTime, addOns);
+        }
+
+        private void LogScalePlanStudy(BalanceSetup setup, string trigger, StudyCandidate baseCandidate, DateTime? riskFreeTime, List<StudyCandidate> addOns)
+        {
+            var plans = new[]
+            {
+                new ScalePlan("NO_SCALE", 0, MinAggressionVolume, null),
+                new ScalePlan("SCALE_MAX_1", 1, MinAggressionVolume, null),
+                new ScalePlan("SCALE_MAX_2", 2, MinAggressionVolume, null),
+                new ScalePlan("SCALE_MAX_3", 3, MinAggressionVolume, null),
+                new ScalePlan("SCALE_MAX_1_VOL20", 1, 20m, null),
+                new ScalePlan("SCALE_MAX_2_VOL20", 2, 20m, null),
+                new ScalePlan("SCALE_MAX_1_WITHIN_3MIN", 1, MinAggressionVolume, 180),
+                new ScalePlan("SCALE_MAX_1_WITHIN_5MIN", 1, MinAggressionVolume, 300),
+                new ScalePlan("SCALE_MAX_2_WITHIN_5MIN", 2, MinAggressionVolume, 300)
+            };
+
+            var baseProtectedOutcome = EvaluateProtectedTarget2Outcome(baseCandidate.Direction, baseCandidate.EntryPrice, baseCandidate.Stop, baseCandidate.TargetPoc, baseCandidate.Target2, baseCandidate.EntryTimeUtc, setup.RejectionBar);
+
+            foreach (var plan in plans)
+            {
+                var selectedAddOns = SelectScalePlanAddOns(addOns, plan, riskFreeTime).ToList();
+                var totalPnl = baseProtectedOutcome.Pnl;
+                var totalR = baseProtectedOutcome.RMultiple;
+                var winners = baseProtectedOutcome.Pnl > 0 ? 1 : 0;
+                var losers = baseProtectedOutcome.Pnl < 0 ? 1 : 0;
+                var worstLegR = baseProtectedOutcome.RMultiple;
+
+                foreach (var addOn in selectedAddOns)
+                {
+                    var addOnOutcome = EvaluateProtectedTarget2Outcome(addOn.Direction, addOn.EntryPrice, addOn.Stop, addOn.TargetPoc, addOn.Target2, addOn.EntryTimeUtc, setup.RejectionBar);
+                    totalPnl += addOnOutcome.Pnl;
+                    totalR += addOnOutcome.RMultiple;
+                    if (addOnOutcome.Pnl > 0)
+                        winners++;
+                    if (addOnOutcome.Pnl < 0)
+                        losers++;
+                    worstLegR = Math.Min(worstLegR, addOnOutcome.RMultiple);
+                }
+
+                StudyLog($"[DAY_STUDY_SCALE_PLAN] SetupId={setup.SetupId}, Plan={plan.Name}, Trigger={trigger}, Direction={setup.Direction}, BaseEntryTime={FormatTime(baseCandidate.EntryTimeUtc)}, BaseEntryPrice={baseCandidate.EntryPrice:F2}, BaseExitReason={baseProtectedOutcome.ExitReason}, BasePnL={baseProtectedOutcome.Pnl:F2}, BaseR={baseProtectedOutcome.RMultiple:F2}R, BaseTarget1Hit={baseProtectedOutcome.Target1Hit}, RiskFreeTime={(riskFreeTime.HasValue ? FormatTime(riskFreeTime.Value) : "NA")}, AddOnCount={selectedAddOns.Count}, AddOnMinVolume={plan.MinVolume:F0}, AddOnMaxSecondsAfterRiskFree={(plan.MaxSecondsAfterRiskFree.HasValue ? plan.MaxSecondsAfterRiskFree.Value.ToString() : "ANY")}, Winners={winners}, Losers={losers}, TotalPnL={totalPnl:F2}, TotalR={totalR:F2}R, WorstLegR={worstLegR:F2}R, MaxOpenContracts={1 + selectedAddOns.Count}", setup.RejectionTimeUtc);
+            }
+        }
+
+        private IEnumerable<StudyCandidate> SelectScalePlanAddOns(List<StudyCandidate> addOns, ScalePlan plan, DateTime? riskFreeTime)
+        {
+            if (plan.MaxAddOns <= 0 || !riskFreeTime.HasValue)
+                return Enumerable.Empty<StudyCandidate>();
+
+            var riskFreeTimeValue = riskFreeTime.Value;
+            return addOns
+                .Where(c => c.Volume >= plan.MinVolume)
+                .Where(c => !plan.MaxSecondsAfterRiskFree.HasValue || c.EntryTimeUtc <= riskFreeTimeValue.AddSeconds(plan.MaxSecondsAfterRiskFree.Value))
+                .OrderBy(c => c.EntryTimeUtc)
+                .Take(plan.MaxAddOns);
         }
 
         private StudyCandidate BuildStudyCandidate(BalanceSetup setup, CumulativeTrade trade, string trigger)
@@ -912,6 +969,83 @@ namespace FabioOrderFlow
             return new StudyOutcome(outcomePoc, pnlPoc, outcomeT2, pnlT2, mfe, mae);
         }
 
+        private ProtectedStudyOutcome EvaluateProtectedTarget2Outcome(string direction, decimal entry, decimal stop, decimal targetPoc, decimal target2, DateTime entryTimeUtc, int fallbackBar)
+        {
+            var entryBar = FindBarByTime(entryTimeUtc, fallbackBar);
+            var entryDay = DateOnly.FromDateTime(MarketTimeZones.ToItaly(entryTimeUtc));
+            var activeStop = stop;
+            var target1Hit = false;
+            var target1HitBar = -1;
+            var exitReason = "OPEN";
+            var exitPrice = entry;
+
+            for (var bar = entryBar; bar <= Math.Max(0, _currentBar - 1); bar++)
+            {
+                var candle = _getCandle(bar);
+                var eventTime = GetCandleEventTime(candle);
+                if (DateOnly.FromDateTime(MarketTimeZones.ToItaly(eventTime)) != entryDay)
+                    break;
+
+                if (!IsInLondonSession(eventTime))
+                    break;
+
+                if (direction == "Long")
+                {
+                    if (!target1Hit && targetPoc > entry && candle.High >= targetPoc)
+                    {
+                        target1Hit = true;
+                        target1HitBar = bar;
+                        activeStop = Math.Max(entry, targetPoc - 2m * _tickSize);
+                    }
+
+                    if (target2 > entry && candle.High >= target2)
+                    {
+                        exitReason = "TARGET2_HIT";
+                        exitPrice = target2;
+                        break;
+                    }
+
+                    if (candle.Low <= activeStop && (!target1Hit || bar > target1HitBar))
+                    {
+                        exitReason = target1Hit ? "PROTECTED_STOP_HIT" : "STOP_HIT";
+                        exitPrice = activeStop;
+                        break;
+                    }
+                }
+                else
+                {
+                    if (!target1Hit && targetPoc < entry && candle.Low <= targetPoc)
+                    {
+                        target1Hit = true;
+                        target1HitBar = bar;
+                        activeStop = Math.Min(entry, targetPoc + 2m * _tickSize);
+                    }
+
+                    if (target2 < entry && candle.Low <= target2)
+                    {
+                        exitReason = "TARGET2_HIT";
+                        exitPrice = target2;
+                        break;
+                    }
+
+                    if (candle.High >= activeStop && (!target1Hit || bar > target1HitBar))
+                    {
+                        exitReason = target1Hit ? "PROTECTED_STOP_HIT" : "STOP_HIT";
+                        exitPrice = activeStop;
+                        break;
+                    }
+                }
+            }
+
+            if (exitReason == "OPEN")
+                exitReason = "SESSION_END";
+
+            var pnl = direction == "Long" ? exitPrice - entry : entry - exitPrice;
+            var risk = Math.Abs(entry - stop);
+            var rMultiple = risk > 0 ? pnl / risk : 0;
+            return new ProtectedStudyOutcome(exitReason, pnl, rMultiple, target1Hit);
+        }
+
         private DateTime? FindTargetPocHitTime(string direction, decimal entry, decimal stop, decimal targetPoc, DateTime entryTimeUtc, int fallbackBar)
         {
             var entryBar = FindBarByTime(entryTimeUtc, fallbackBar);
@@ -995,6 +1129,8 @@ namespace FabioOrderFlow
 
         private sealed record StudyCandidate(string Direction, string CandidateType, DateTime EntryTimeUtc, decimal EntryPrice, decimal Volume, decimal Stop, decimal TargetPoc, decimal Target2, decimal Risk, decimal RewardPoc, decimal RewardT2);
         private sealed record StudyOutcome(string OutcomePoc, decimal PnlPoc, string OutcomeT2, decimal PnlT2, decimal Mfe, decimal Mae);
+        private sealed record ProtectedStudyOutcome(string ExitReason, decimal Pnl, decimal RMultiple, bool Target1Hit);
+        private sealed record ScalePlan(string Name, int MaxAddOns, decimal MinVolume, int? MaxSecondsAfterRiskFree);
 
         private bool IsStudyFollowThrough(BalanceSetup setup, IndicatorCandle candle)
         {

@@ -151,6 +151,7 @@ Key tags:
 [MR_STUDY_CONTINUATION_ENTRY]
 [DAY_STUDY_SCALE_IN_SUMMARY]
 [DAY_STUDY_SCALE_IN_CANDIDATE]
+[DAY_STUDY_SCALE_PLAN]
 ```
 
 `[MR_ENTRY]` include `EntryModel`, `ManagementMode`, `FinalTarget`, `StudyTarget2` e `StudyTrigger`:
