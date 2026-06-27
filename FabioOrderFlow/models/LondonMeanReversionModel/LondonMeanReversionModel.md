@@ -190,6 +190,7 @@ Le soglie in tick usano `InstrumentInfo.TickSize`, quindi stop e rejection sono 
 [MR_STUDY_MIN_VOLUME_OPPORTUNITY] entry valida nello studio abbassando big trade da 20 a 15
 [MR_STUDY_PRICE_TOUCH_OPPORTUNITY] big trade scartato da LastPrice ma che attraversa la entry zone
 [MR_STUDY_SETUP_BAR_AGGRESSION] big trade presente nella stessa barra della rejection, prima dell'inizio finestra corrente
+[MR_STUDY_CONTINUATION_ENTRY] big trade oltre POC dopo reclaim/loss, candidato continuation verso Target2
 Timeout entry           nessuna entry se il big trade arriva oltre 1 ora dalla rejection
 ```
 
