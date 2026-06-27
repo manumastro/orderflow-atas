@@ -93,7 +93,7 @@ Livelli:
 
 ```text
 Entry   = trade.Lastprice
-Stop    = rejection.Low - 2 tick
+Stop    = min(rejection.Low - 2 tick, cap risk a 0.5 value width) per long
 Target1 = setup.POC per protezione stop
 Target2 = setup.VAH operativo
 ```
@@ -117,7 +117,7 @@ Livelli:
 
 ```text
 Entry   = trade.Lastprice
-Stop    = rejection.High + 2 tick
+Stop    = max(rejection.High + 2 tick, cap risk a 0.5 value width) per short
 Target1 = setup.POC per protezione stop
 Target2 = setup.VAL operativo
 ```
@@ -202,7 +202,7 @@ Le soglie in tick usano `InstrumentInfo.TickSize`, quindi stop e rejection sono 
 [MR_STUDY_TRIGGER]       follow-through o POC reclaim/loss osservato dopo rejection
 [MR_MISSED_OPPORTUNITY]  setup senza entry valida, con motivo esplicito
 [MR_STUDY_CONTINUATION_ENTRY] big trade oltre POC dopo reclaim/loss, solo studio continuation
-Timeout entry           nessuna entry se il big trade arriva oltre 1 ora dalla rejection
+Timeout entry           nessuna entry operativa base se il big trade arriva oltre 20 minuti dalla rejection; study window a 1 ora
 ```
 
 Day-study dedicato per analisi manuale/agent:
@@ -230,7 +230,7 @@ FootprintCumulativeTradeLive
 FootprintCumulativeTradeHistorical
 ```
 
-`StudyTrigger` distingue:
+`StudyTrigger` descrive il trigger finale osservato sul setup. `TriggerAtEntry` descrive il trigger noto al timestamp dell'entry, quindi e' il campo da usare per studi causali.
 
 ```text
 NONE
@@ -256,89 +256,66 @@ VALUE_REENTRY_TARGET2_SCALE_IN_EXPAND25
 - Strong trend con breakout e nessun rientro in value.
 - Compressione strettissima con fakeout ripetuti e target POC troppo vicino.
 - Quando non arrivano big trades nella direzione del ritorno verso POC.
+- Quando la prima entry arriva oltre 20 minuti dalla rejection.
 
 ---
 
 ## Current State
 
-Ultimo reload analizzato dopo `c0aa526 Promote dynamic RR stop cap`:
+Current operative profile:
+
+```text
+Base management: VALUE_REENTRY_TARGET2
+Scale management: VALUE_REENTRY_TARGET2_SCALE_IN_EXPAND25
+Base max age after rejection: 20 minutes
+Study/setup window: 1 hour
+Risk model: ORIGINAL_REJECTION capped to 0.5 value-area width
+Scale-ins: max 2 add-ons after POC/risk-free and EXPAND25
+Continuation beyond POC: study-only
+```
+
+Reference reload on the currently loaded historical window:
 
 ```text
 MR_ENTRY: 13
 MR_EXIT: 13
 MR_TARGET1_HIT: 9
-MR_MISSED_OPPORTUNITY: 8
 DAY_STUDY_ACTUAL_ENTRY: 13
-DAY_STUDY_DYNAMIC_STOP_CANDIDATE: 3131
+DAY_STUDY_DYNAMIC_STOP_CANDIDATE: 3132
+DAY_STUDY_SCALE_PLAN: 143
 ```
 
-Risultato operativo su storico caricato:
+Reference performance on the loaded historical window:
 
 ```text
-Totale entry: 13
-Base: 11
-Scale-in EXPAND25: 2
-PnL: +397.74 punti
+Entry: 13 total, 11 base, 2 scale-in
+PnL: +397.74 points
 Net R: +6.18R
-Exit: 4 TARGET2_HIT, 5 PROTECTED_STOP_HIT, 4 STOP_HIT
+Exit mix: 4 TARGET2_HIT, 5 PROTECTED_STOP_HIT, 4 STOP_HIT
 ```
 
-Entry operative ultimo reload:
+Scale-in study aligned to current dynamic RR logic:
 
 ```text
-2026-06-22 09:35:30 Short Base  30773.00 TARGET2_HIT        +13.75  CAP_VALUE_WIDTH_50
-2026-06-22 10:25:57 Long  Base  30712.25 PROTECTED_STOP_HIT +15.25  ORIGINAL_REJECTION
-2026-06-22 10:44:31 Long  Scale 30727.75 PROTECTED_STOP_HIT +0.00   CAP_VALUE_WIDTH_50
-2026-06-22 15:35:00 Short Base  30780.75 STOP_HIT           -55.88  CAP_VALUE_WIDTH_50
-2026-06-22 15:45:00 Short Base  30788.50 STOP_HIT           -67.63  CAP_VALUE_WIDTH_50
-2026-06-22 16:15:00 Short Base  30906.75 TARGET2_HIT        +131.75 ORIGINAL_REJECTION
-2026-06-23 09:35:26 Long  Base  29996.00 STOP_HIT           -24.75  CAP_VALUE_WIDTH_50
-2026-06-23 10:30:11 Long  Base  29809.75 PROTECTED_STOP_HIT +40.25  ORIGINAL_REJECTION
-2026-06-23 15:35:00 Long  Base  29753.75 PROTECTED_STOP_HIT +45.75  CAP_VALUE_WIDTH_50
-2026-06-23 15:45:00 Long  Scale 29749.75 TARGET2_HIT        +185.25 CAP_VALUE_WIDTH_50
-2026-06-24 15:36:42 Long  Base  29773.50 PROTECTED_STOP_HIT +26.00  CAP_VALUE_WIDTH_50
-2026-06-24 16:25:10 Long  Base  29675.00 TARGET2_HIT        +125.00 CAP_VALUE_WIDTH_50
-2026-06-26 14:55:33 Long  Base  29334.75 STOP_HIT           -37.00  ORIGINAL_REJECTION
+NO_SCALE:             +212.49 points, +4.20R
+SCALE_MAX_1_EXPAND25: +399.49 points, +6.20R
+SCALE_MAX_2_EXPAND25: +586.24 points, +8.19R
 ```
 
-Reload notes:
+Operational validation examples:
 
 ```text
-- 2026-06-24 16:25 long is now captured by dynamic RR: OriginalRisk 150.50 -> OperationalRisk 84.50, RR_T2 1.48, TARGET2_HIT +125.00.
-- 2026-06-24 10:37 short is filtered as stale by OperationalEntryTimeoutSeconds=1200.
-- Remaining weak entries have weak final labels (`NONE`, `HIGH_REJECTION_FOLLOW_THROUGH`, `LOW_REJECTION_FOLLOW_THROUGH`), but `TriggerAtEntry` showed all 11 base entries were `NONE` at the entry timestamp. Filtering `NONE` directly would remove the whole model, including good winners. Next cleanup should use a different causal quality measure, not final trigger label.
-- Scale-in study after dynamic RR alignment favored `SCALE_MAX_2_EXPAND25`: +586.24 points / +8.19R versus current +397.74 / +6.18R. Operational max scale-ins promoted from 1 to 2 while keeping EXPAND25.
+2026-06-24 10:37 short: filtered by 20-minute base-entry timeout.
+2026-06-24 16:25 long: accepted by dynamic risk cap, TARGET2_HIT +125.00 points.
 ```
 
-Current known issues / next studies:
+Notes for future studies:
 
 ```text
-1. NONE and LOW_REJECTION_FOLLOW_THROUGH are weak for operative entries:
-   - LOW_REJECTION_FOLLOW_THROUGH study was strongly negative.
-   - NONE should probably remain study-only.
-
-2. Some follow-through entries without POC reclaim/loss restore trade frequency but add noise.
-   Next filter candidate: allow base pre-POC only with stronger evidence, not simply any follow-through.
-
-3. 2026-06-24 10:37 short was formally valid under the 1-hour window but qualitatively stale:
-   - about 27 minutes after rejection
-   - small volume
-   - setup family failed repeatedly
-   Operational response: base entries now require `OperationalEntryTimeoutSeconds = 1200`, so this family should be filtered.
-
-4. 2026-06-24 16:25 long looked visually interesting but RR_T2 was below 1.0 because stop was the full rejection low:
-   - Reward points were large.
-   - Risk was larger because technical stop was very far.
-   Operational response: RR now uses dynamic stop cap `0.5 * value width`; this makes the case eligible without lowering the static RR floor.
-
-5. Dynamic stop study candidates are logged in `[DAY_STUDY_DYNAMIC_STOP_CANDIDATE]`:
-   - `ORIGINAL_REJECTION`: stop tecnico della rejection
-   - `VALUE_EDGE_2T`: `VAL - 2 tick` per long, `VAH + 2 tick` per short
-   - `RECENT_SWING_AFTER_REJECTION_2T`: swing dopo la rejection fino all'entry, con buffer 2 tick
-   - `POC_TRIGGER_BAR_2T`: low/high della barra di POC reclaim/loss, solo se gia' confermata prima del candidato
-   - `CAP_VALUE_WIDTH_100`: stop cap a massimo 1 value-area width di rischio
-   - `CAP_VALUE_WIDTH_50`: stop cap a massimo 0.5 value-area width di rischio
-   - ogni piano logga `Risk`, `RR_T2`, `RiskReductionPct`, `RejectionAgeBucket`, outcome protetto e `RMultiple`
+- `StudyTrigger` is final setup context; `TriggerAtEntry` is the causal entry-time context.
+- In the reference reload all base entries had `TriggerAtEntry=NONE`; filtering `NONE` directly would remove the model.
+- Weak entries should be studied through causal quality fields such as rejection quality, value-area geometry, volume, distance to POC/edge, and early response, not by final trigger label alone.
+- Dynamic stop alternatives remain in study logs; operational risk currently uses only ORIGINAL_REJECTION or CAP_VALUE_WIDTH_50.
 ```
 
 ## Current Files

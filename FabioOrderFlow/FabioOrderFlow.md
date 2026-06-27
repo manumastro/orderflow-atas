@@ -83,23 +83,22 @@ Regole operative:
 
 Dettaglio completo: `models/LondonMeanReversionModel/LondonMeanReversionModel.md`.
 
-Stato ultimo reload analizzato:
+Stato corrente:
 
 ```text
-Entry operative: 13
+Entry operative reference: 13
 Base: 11
-Scale-in EXPAND25: 2
+Scale-in EXPAND25: 2 nel reload di riferimento
 PnL storico caricato: +397.74 punti
 Net R: +6.18R
-Current commit: c0aa526 Promote dynamic RR stop cap
 ```
 
 Focus aperto:
 
 ```text
-- filtrare meglio NONE / LOW_REJECTION_FOLLOW_THROUGH / follow-through deboli
-- confermare che il timeout operativo 20 minuti resta robusto
-- monitorare lo stop dinamico CAP_VALUE_WIDTH_50 sui prossimi reload/sessioni
+- valutare qualita' causale delle entry senza usare final trigger label come filtro diretto
+- confermare timeout operativo 20 minuti e CAP_VALUE_WIDTH_50 su nuove sessioni
+- monitorare max 2 scale-in EXPAND25 dopo reload
 - mantenere PostLondonImpulse fuori scope
 ```
 
