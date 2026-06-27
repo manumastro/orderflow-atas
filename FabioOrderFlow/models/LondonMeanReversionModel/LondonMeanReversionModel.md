@@ -187,6 +187,7 @@ Le soglie in tick usano `InstrumentInfo.TickSize`, quindi stop e rejection sono 
 [MR_MISSED_OPPORTUNITY]  setup con trigger utile ma senza entry valida nel backfill storico
 [MR_EXTENDED_CUTOFF_OPPORTUNITY] entry valida solo estendendo studio fino a 16:00 London / 17:00 Italy
 [MR_STUDY_MIN_VOLUME_OPPORTUNITY] entry valida nello studio abbassando big trade da 20 a 15
+[MR_STUDY_PRICE_TOUCH_OPPORTUNITY] big trade scartato da LastPrice ma che attraversa la entry zone
 Timeout entry           nessuna entry se il big trade arriva oltre 1 ora dalla rejection
 ```
 
