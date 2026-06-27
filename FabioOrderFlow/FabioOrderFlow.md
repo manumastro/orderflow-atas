@@ -71,8 +71,8 @@ Fonte logica: transcript Fabio Valentino.
 
 Regole operative:
 
-- sessione: London 08:00-16:00;
-- nuove entry: fino a 15:30 London;
+- sessione: London 08:00-16:00 London time, cioe' 09:00-17:00 italiane con ora legale;
+- nuove entry: fino a 15:30 London, cioe' 16:30 italiane con ora legale;
 - setup: sweep fuori `VAH/VAL` e close back inside;
 - entry: big cumulative trade nella direzione del ritorno verso POC;
 - target operativo: POC-only per trigger deboli, Target2 per POC reclaim/loss;
@@ -140,6 +140,7 @@ Key tags:
 [MR_STUDY_ENTRY]
 [MR_STUDY_TARGET1_HIT]
 [MR_STUDY_CLOSE]
+[MR_MISSED_OPPORTUNITY]
 ```
 
 `[MR_ENTRY]` include `EntryModel`, `ManagementMode`, `FinalTarget`, `StudyTarget2` e `StudyTrigger`:

@@ -181,6 +181,8 @@ namespace FabioOrderFlow
 
             foreach (var trade in trades)
                 ProcessAggressionTrade(trade, "FootprintCumulativeTradeHistorical", true);
+
+            LogMissedOpportunities(trades);
         }
 
         public void OnLiveCumulativeTrade(CumulativeTrade trade)
@@ -339,6 +341,50 @@ namespace FabioOrderFlow
             return trade.Direction == TradeDirection.Sell
                 && trade.Lastprice <= setup.VAH
                 && trade.Lastprice > setup.POC;
+        }
+
+        private void LogMissedOpportunities(List<CumulativeTrade> trades)
+        {
+            foreach (var setup in _activeSetups.Where(s => !s.AggressionConfirmed && !s.Expired))
+            {
+                var trigger = GetStudyTriggerLabel(setup);
+                if (trigger == "NONE")
+                    continue;
+
+                var windowEnd = setup.RejectionTimeUtc.AddSeconds(AggressionTimeoutSeconds);
+                var windowTrades = trades
+                    .Where(t => t.Time > setup.RejectionTimeUtc && t.Time <= windowEnd)
+                    .Where(t => IsLondonTradeAllowed(t.Time))
+                    .ToList();
+
+                var sameDirectionTrades = windowTrades
+                    .Where(t => setup.Direction == "Long" ? t.Direction == TradeDirection.Buy : t.Direction == TradeDirection.Sell)
+                    .ToList();
+
+                var insideValueTrades = sameDirectionTrades
+                    .Where(t => setup.Direction == "Long"
+                        ? t.Lastprice >= setup.VAL && t.Lastprice < setup.POC
+                        : t.Lastprice <= setup.VAH && t.Lastprice > setup.POC)
+                    .ToList();
+
+                var reason = windowTrades.Count == 0
+                    ? "NO_BIG_TRADE_IN_WINDOW"
+                    : sameDirectionTrades.Count == 0
+                        ? "NO_BIG_TRADE_IN_DIRECTION"
+                        : insideValueTrades.Count == 0
+                            ? "NO_BIG_TRADE_IN_ENTRY_ZONE"
+                            : "UNKNOWN_NO_ENTRY";
+
+                var maxVolume = windowTrades.Count > 0 ? windowTrades.Max(t => t.Volume) : 0m;
+                var maxSameDirectionVolume = sameDirectionTrades.Count > 0 ? sameDirectionTrades.Max(t => t.Volume) : 0m;
+                var firstTradeTime = windowTrades.Count > 0 ? FormatTime(windowTrades[0].Time) : "NA";
+                var firstSameDirectionTime = sameDirectionTrades.Count > 0 ? FormatTime(sameDirectionTrades[0].Time) : "NA";
+                var bestSameDirectionPrice = sameDirectionTrades.Count > 0
+                    ? sameDirectionTrades.OrderByDescending(t => t.Volume).First().Lastprice.ToString("F2")
+                    : "NA";
+
+                _log($"[MR_MISSED_OPPORTUNITY] SetupId={setup.SetupId}, Direction={setup.Direction}, StudyTrigger={trigger}, Reason={reason}, RejectionBar={setup.RejectionBar}, {FormatTime(setup.RejectionTimeUtc)}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}, Stop={setup.StopPrice:F2}, WindowBigTrades={windowTrades.Count}, SameDirectionBigTrades={sameDirectionTrades.Count}, EntryZoneBigTrades={insideValueTrades.Count}, MaxVolume={maxVolume:F0}, MaxSameDirectionVolume={maxSameDirectionVolume:F0}, FirstBigTrade={firstTradeTime}, FirstSameDirectionBigTrade={firstSameDirectionTime}, BestSameDirectionPrice={bestSameDirectionPrice}", true);
+            }
         }
 
         private void CreatePosition(BalanceSetup setup, CumulativeTrade entryTrade, string entryModel, bool isHistorical)

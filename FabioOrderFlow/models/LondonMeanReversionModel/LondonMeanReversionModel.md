@@ -2,7 +2,7 @@
 
 **Strategy:** mean reversion live durante London su value area dinamica  
 **Market State:** balance/compression, fakeout, rientro verso POC  
-**Session:** London 08:00-15:30 London time per nuove entry, gestione fino a 16:00  
+**Session:** London 08:00-15:30 London time per nuove entry, gestione fino a 16:00 London time  
 **Timeframe operativo:** chart M5 consigliato; entry da cumulative big trades live/storici  
 **Implementation:** live-first con backfill storico sul chart
 
@@ -109,6 +109,28 @@ Target2 = setup.VAL solo se StudyTrigger=POC_LOSS_AFTER_HIGH_REJECTION
 
 ---
 
+## Orari Operativi
+
+Il codice usa timezone London:
+
+```text
+Profilo/setup London: 08:00-16:00 London time
+Nuove entry: 08:00-15:30 London time
+Gestione posizioni: fino a 16:00 London time
+```
+
+Con l'ora legale europea, in Italia corrisponde a:
+
+```text
+Profilo/setup London: 09:00-17:00 Italy time
+Nuove entry: 09:00-16:30 Italy time
+Gestione posizioni: fino a 17:00 Italy time
+```
+
+Quando cambia l'ora legale, la conversione resta gestita da `MarketTimeZones`.
+
+---
+
 ## Live vs Storico
 
 Il sistema deve funzionare prima in live.
@@ -161,6 +183,7 @@ Le soglie in tick usano `InstrumentInfo.TickSize`, quindi stop e rejection sono 
 [MR_STUDY_ENTRY]         entry study parallela alla entry operativa
 [MR_STUDY_TARGET1_HIT]   POC raggiunto nello study
 [MR_STUDY_CLOSE]         uscita study a Target2, stop o London close
+[MR_MISSED_OPPORTUNITY]  setup con trigger utile ma senza entry valida nel backfill storico
 Timeout entry           nessuna entry se il big trade arriva oltre 1 ora dalla rejection
 ```
 
