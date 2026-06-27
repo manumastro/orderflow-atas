@@ -141,7 +141,8 @@ Live:
 - ATAS chiama `OnUpdateCumulativeTrade(CumulativeTrade trade)` quando quel trade viene aggiornato.
 - `FabioOrderFlow` inoltra entrambi a `BalanceZoneTracker.OnLiveCumulativeTrade()`.
 - Il tracker inoltra a `LondonMeanReversionModule.OnLiveCumulativeTrade()`.
-- Il modulo deduplica gli update dello stesso cumulative trade e usa solo volume incrementale utile.
+- Il modulo deduplica gli update dello stesso cumulative trade con una chiave stabile basata su tempo, direzione e `FirstPrice`.
+- Il trade viene valutato quando il volume aggregato supera `MinAggressionVolume`; non sommiamo gli update, perche' il big trade e' un trigger e non un indicatore delta cumulativo.
 
 Storico:
 

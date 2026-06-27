@@ -946,7 +946,7 @@ namespace FabioOrderFlow
 
         private string GetLiveTradeKey(CumulativeTrade trade)
         {
-            return $"{trade.Time.Ticks}:{trade.Direction}:{trade.FirstPrice:F2}:{trade.Lastprice:F2}";
+            return $"{trade.Time.Ticks}:{trade.Direction}:{trade.FirstPrice:F2}";
         }
 
         private string FormatTime(DateTime utc)
