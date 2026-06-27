@@ -778,9 +778,42 @@ namespace FabioOrderFlow
                     var outcome = EvaluateCandidateOutcome(candidate.Direction, candidate.EntryPrice, candidate.Stop, candidate.TargetPoc, candidate.Target2, candidate.EntryTimeUtc, setup.RejectionBar);
                     StudyLog($"[DAY_STUDY_CANDIDATE_ENTRY] SetupId={setup.SetupId}, CandidateType={candidate.CandidateType}, Trigger={trigger}, Direction={candidate.Direction}, EntryTime={FormatTime(candidate.EntryTimeUtc)}, EntryPrice={candidate.EntryPrice:F2}, Volume={candidate.Volume:F0}, Stop={candidate.Stop:F2}, TargetPOC={candidate.TargetPoc:F2}, Target2={candidate.Target2:F2}, Risk={candidate.Risk:F2}, RewardPOC={candidate.RewardPoc:F2}, RewardT2={candidate.RewardT2:F2}, RR_POC={(candidate.Risk > 0 ? candidate.RewardPoc / candidate.Risk : 0):F2}, RR_T2={(candidate.Risk > 0 ? candidate.RewardT2 / candidate.Risk : 0):F2}, OutcomePOC={outcome.OutcomePoc}, PnLPOC={outcome.PnlPoc:F2}, OutcomeT2={outcome.OutcomeT2}, PnLT2={outcome.PnlT2:F2}, MFE={outcome.Mfe:F2}, MAE={outcome.Mae:F2}", candidate.EntryTimeUtc);
                 }
+
+                LogFabioStyleScaleInStudy(setup, trigger, candidates);
             }
 
             _dayStudyCompleted = true;
+        }
+
+        private void LogFabioStyleScaleInStudy(BalanceSetup setup, string trigger, List<StudyCandidate> candidates)
+        {
+            var valueCandidates = candidates
+                .Where(c => c.CandidateType == "VALUE_REENTRY_BIG_TRADE")
+                .Where(c => c.Risk > 0 && c.RewardT2 / c.Risk >= MinRewardRiskToTarget2)
+                .OrderBy(c => c.EntryTimeUtc)
+                .ToList();
+
+            var baseCandidate = valueCandidates.FirstOrDefault();
+            if (baseCandidate == null)
+                return;
+
+            var baseOutcome = EvaluateCandidateOutcome(baseCandidate.Direction, baseCandidate.EntryPrice, baseCandidate.Stop, baseCandidate.TargetPoc, baseCandidate.Target2, baseCandidate.EntryTimeUtc, setup.RejectionBar);
+            var riskFreeTime = FindTargetPocHitTime(baseCandidate.Direction, baseCandidate.EntryPrice, baseCandidate.Stop, baseCandidate.TargetPoc, baseCandidate.EntryTimeUtc, setup.RejectionBar);
+            var baseReachedRiskFree = riskFreeTime.HasValue;
+            var riskFreeTimeValue = riskFreeTime.GetValueOrDefault();
+            var addOns = baseReachedRiskFree
+                ? valueCandidates.Where(c => c.EntryTimeUtc > riskFreeTimeValue).ToList()
+                : new List<StudyCandidate>();
+
+            StudyLog($"[DAY_STUDY_SCALE_IN_SUMMARY] SetupId={setup.SetupId}, Trigger={trigger}, Direction={setup.Direction}, BaseEntryTime={FormatTime(baseCandidate.EntryTimeUtc)}, BaseEntryPrice={baseCandidate.EntryPrice:F2}, BaseVolume={baseCandidate.Volume:F0}, BaseRisk={baseCandidate.Risk:F2}, BaseRR_T2={(baseCandidate.Risk > 0 ? baseCandidate.RewardT2 / baseCandidate.Risk : 0):F2}, BaseOutcomePOC={baseOutcome.OutcomePoc}, BaseOutcomeT2={baseOutcome.OutcomeT2}, BasePnLT2={baseOutcome.PnlT2:F2}, BaseReachedRiskFree={baseReachedRiskFree}, RiskFreeTime={(baseReachedRiskFree ? FormatTime(riskFreeTimeValue) : "NA")}, AddOnCandidates={addOns.Count}, FabioRule=ADD_ONLY_AFTER_POC_RISK_FREE", setup.RejectionTimeUtc);
+
+            var scaleInIndex = 0;
+            foreach (var addOn in addOns)
+            {
+                scaleInIndex++;
+                var outcome = EvaluateCandidateOutcome(addOn.Direction, addOn.EntryPrice, addOn.Stop, addOn.TargetPoc, addOn.Target2, addOn.EntryTimeUtc, setup.RejectionBar);
+                StudyLog($"[DAY_STUDY_SCALE_IN_CANDIDATE] SetupId={setup.SetupId}, ScaleInIndex={scaleInIndex}, Trigger={trigger}, Direction={addOn.Direction}, BaseEntryTime={FormatTime(baseCandidate.EntryTimeUtc)}, RiskFreeTime={FormatTime(riskFreeTimeValue)}, EntryTime={FormatTime(addOn.EntryTimeUtc)}, EntryPrice={addOn.EntryPrice:F2}, Volume={addOn.Volume:F0}, Stop={addOn.Stop:F2}, TargetPOC={addOn.TargetPoc:F2}, Target2={addOn.Target2:F2}, Risk={addOn.Risk:F2}, RewardT2={addOn.RewardT2:F2}, RR_T2={(addOn.Risk > 0 ? addOn.RewardT2 / addOn.Risk : 0):F2}, OutcomeT2={outcome.OutcomeT2}, PnLT2={outcome.PnlT2:F2}, RMultiple={(addOn.Risk > 0 ? outcome.PnlT2 / addOn.Risk : 0):F2}R, MFE={outcome.Mfe:F2}, MAE={outcome.Mae:F2}", addOn.EntryTimeUtc);
+            }
         }
 
         private StudyCandidate BuildStudyCandidate(BalanceSetup setup, CumulativeTrade trade, string trigger)
@@ -877,6 +910,40 @@ namespace FabioOrderFlow
             }
 
             return new StudyOutcome(outcomePoc, pnlPoc, outcomeT2, pnlT2, mfe, mae);
+        }
+
+        private DateTime? FindTargetPocHitTime(string direction, decimal entry, decimal stop, decimal targetPoc, DateTime entryTimeUtc, int fallbackBar)
+        {
+            var entryBar = FindBarByTime(entryTimeUtc, fallbackBar);
+            var entryDay = DateOnly.FromDateTime(MarketTimeZones.ToItaly(entryTimeUtc));
+
+            for (var bar = entryBar; bar <= Math.Max(0, _currentBar - 1); bar++)
+            {
+                var candle = _getCandle(bar);
+                var eventTime = GetCandleEventTime(candle);
+                if (DateOnly.FromDateTime(MarketTimeZones.ToItaly(eventTime)) != entryDay)
+                    break;
+
+                if (!IsInLondonSession(eventTime))
+                    break;
+
+                if (direction == "Long")
+                {
+                    if (candle.Low <= stop)
+                        return null;
+                    if (targetPoc > entry && candle.High >= targetPoc)
+                        return eventTime;
+                }
+                else
+                {
+                    if (candle.High >= stop)
+                        return null;
+                    if (targetPoc < entry && candle.Low <= targetPoc)
+                        return eventTime;
+                }
+            }
+
+            return null;
         }
 
         private (decimal Bid, decimal Ask, decimal Delta, string TopLevels) GetCandleVolumeDiagnostics(IndicatorCandle candle)

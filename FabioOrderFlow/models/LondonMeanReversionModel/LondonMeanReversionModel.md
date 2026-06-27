@@ -61,6 +61,7 @@ Il modello quindi legge una balance in costruzione durante London, aspetta un'es
 
 7. Study leggero
    - continuation oltre POC resta solo log study, non entry operativa
+   - scale-in Fabio-style resta solo log study: add-on solo dopo che la prima entry dello stesso setup ha raggiunto il POC/risk-free
    - il file historical study aiuta a confrontare candidati su tutto lo storico caricato
 ```
 
@@ -204,6 +205,8 @@ Day-study dedicato per analisi manuale/agent:
 [DAY_STUDY_ACTUAL_ENTRY]    entry operative effettivamente prese
 [DAY_STUDY_SETUP_SUMMARY]   riepilogo setup e numero candidati alternativi
 [DAY_STUDY_CANDIDATE_ENTRY] candidate entry alternative con risk/reward, MFE/MAE, outcome POC e Target2
+[DAY_STUDY_SCALE_IN_SUMMARY] simulazione scale-in Fabio-style per setup, solo dopo POC/risk-free della prima entry
+[DAY_STUDY_SCALE_IN_CANDIDATE] add-on candidate successivi alla prima entry risk-free, con RR/RMultiple
 ```
 
 `EntryModel` distingue:

@@ -105,6 +105,7 @@ def main() -> int:
     by_trigger: defaultdict[str, Stats] = defaultdict(Stats)
     by_bucket: defaultdict[str, Stats] = defaultdict(Stats)
     candidates: list[tuple[float, dict[str, str], str]] = []
+    scale_in_candidates: list[dict[str, str]] = []
 
     with args.log.open("r", encoding="utf-8", errors="replace") as handle:
         for line in handle:
@@ -114,6 +115,10 @@ def main() -> int:
 
             tag = tag_match.group(1)
             counts[tag] += 1
+
+            if tag == "DAY_STUDY_SCALE_IN_CANDIDATE":
+                scale_in_candidates.append(parse_fields(line))
+                continue
 
             if tag != "DAY_STUDY_CANDIDATE_ENTRY":
                 continue
@@ -135,6 +140,17 @@ def main() -> int:
     print_stats("By Candidate Type", by_type)
     print_stats("By Trigger", by_trigger)
     print_stats("By 15m Bucket", by_bucket)
+
+    if scale_in_candidates:
+        print("\nFabio-Style Scale-In Study")
+        print("plan\tn\tw\twinRate\tpnlT2\tnetR")
+        for limit in (1, 2, 3, 5, 10):
+            selected = [row for row in scale_in_candidates if int(dec(row.get("ScaleInIndex", "0"))) <= limit]
+            wins = sum(dec(row.get("PnLT2", "0")) > 0 for row in selected)
+            pnl = sum(dec(row.get("PnLT2", "0")) for row in selected)
+            net_r = sum(dec(row.get("RMultiple", "0")) for row in selected)
+            win_rate = 100.0 * wins / len(selected) if selected else 0.0
+            print(f"first_{limit}_add_ons\t{len(selected)}\t{wins}\t{win_rate:.1f}%\t{pnl:.2f}\t{net_r:.2f}")
 
     print(f"\nTop {args.top} Candidates By PnLT2")
     print("PnLT2\tRR_T2\tType\tTrigger\tEntryTime\tEntryPrice\tVolume\tRisk\tOutcomeT2")

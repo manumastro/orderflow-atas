@@ -74,9 +74,10 @@ Regole operative:
 - sessione: London 08:00-16:00 London time, cioe' 09:00-17:00 italiane con ora legale;
 - nuove entry: fino a 15:30 London, cioe' 16:30 italiane con ora legale;
 - setup: sweep fuori `VAH/VAL` e close back inside;
-- entry: big cumulative trade nella direzione del ritorno verso POC;
-- target operativo: POC-only per trigger deboli, Target2 per POC reclaim/loss;
-- stop: high/low della rejection +/- offset in tick, protetto dopo POC sui trade Target2;
+- trigger operativo: solo POC reclaim/loss dopo rejection;
+- entry: big cumulative trade nella value area tra edge e POC;
+- target operativo: lato opposto della value area;
+- stop: high/low della rejection +/- offset in tick, protetto dopo POC;
 - storico: usa la stessa logica live sui cumulative trades del chart.
 
 Dettaglio completo: `models/LondonMeanReversionModel/LondonMeanReversionModel.md`.
@@ -126,7 +127,7 @@ Location:
 %APPDATA%\ATAS\Logs\FabioOrderFlow-study-historical.log
 ```
 
-Il file `FabioOrderFlow-study-historical.log` e' un dataset dedicato per studiare entry alternative e continuation sullo storico caricato.
+Il file `FabioOrderFlow-study-historical.log` e' un dataset dedicato per studiare entry alternative, continuation e scale-in Fabio-style sullo storico caricato.
 
 Parser:
 
@@ -148,6 +149,8 @@ Key tags:
 [MR_STUDY_TRIGGER]
 [MR_MISSED_OPPORTUNITY]
 [MR_STUDY_CONTINUATION_ENTRY]
+[DAY_STUDY_SCALE_IN_SUMMARY]
+[DAY_STUDY_SCALE_IN_CANDIDATE]
 ```
 
 `[MR_ENTRY]` include `EntryModel`, `ManagementMode`, `FinalTarget`, `StudyTarget2` e `StudyTrigger`:
