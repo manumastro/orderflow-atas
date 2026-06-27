@@ -29,6 +29,8 @@ namespace FabioOrderFlow
         private const int LateCutoffHour = 15;
         private const int LateCutoffMinute = 30;
         private const decimal MinRewardRiskToTarget2 = 1.0m;
+        private const decimal ScaleInMinExpansionAfterRiskFreePct = 0.25m;
+        private const int MaxScaleInsPerSetup = 1;
 
         private int _currentBar;
         private readonly List<BalanceSetup> _activeSetups = new();
@@ -64,6 +66,7 @@ namespace FabioOrderFlow
             public decimal StopPrice { get; set; }
             public decimal TargetPrice { get; set; }
             public bool AggressionConfirmed { get; set; }
+            public bool ScaleInConfirmed { get; set; }
             public bool Expired { get; set; }
             public bool StudyFollowThroughConfirmed { get; set; }
             public bool StudyPocTriggerConfirmed { get; set; }
@@ -88,6 +91,9 @@ namespace FabioOrderFlow
             public bool Target1Hit { get; set; }
             public int Target1HitBar { get; set; } = -1;
             public bool StopProtectedAfterTarget1 { get; set; }
+            public bool IsScaleIn { get; set; }
+            public int ScaleInIndex { get; set; }
+            public DateTime ExitTimeUtc { get; set; }
             public string ManagementMode { get; set; } = string.Empty;
             public string StudyTrigger { get; set; } = string.Empty;
             public decimal MaxFavorablePrice { get; set; }
@@ -298,6 +304,16 @@ namespace FabioOrderFlow
 
         private void ProcessAggressionTrade(CumulativeTrade trade, string entryModel, bool isHistorical)
         {
+            foreach (var setup in _activeSetups.Where(s => s.AggressionConfirmed && !s.ScaleInConfirmed && !s.Expired).ToList())
+            {
+                if (!IsScaleInEntry(setup, trade))
+                    continue;
+
+                setup.ScaleInConfirmed = true;
+                CreatePosition(setup, trade, entryModel, isHistorical, isScaleIn: true, scaleInIndex: 1);
+                break;
+            }
+
             foreach (var setup in _activeSetups.Where(s => !s.AggressionConfirmed && !s.Expired).ToList())
             {
                 if (!IsTradeInSetupWindow(setup, trade))
@@ -339,6 +355,35 @@ namespace FabioOrderFlow
                 return false;
 
             return GetRewardRiskToTarget2(setup, trade.Lastprice) >= MinRewardRiskToTarget2;
+        }
+
+        private bool IsScaleInEntry(BalanceSetup setup, CumulativeTrade trade)
+        {
+            if (!IsTradeInSetupWindow(setup, trade))
+                return false;
+
+            if (!IsAggressionEntry(setup, trade))
+                return false;
+
+            var existingScaleIns = _activePositions.Count(p => p.SetupId == setup.SetupId && p.IsScaleIn);
+            if (existingScaleIns >= MaxScaleInsPerSetup)
+                return false;
+
+            var basePosition = _activePositions
+                .Where(p => p.SetupId == setup.SetupId && !p.IsScaleIn)
+                .OrderBy(p => p.EntryTimeUtc)
+                .FirstOrDefault();
+            if (basePosition == null || !basePosition.Target1Hit)
+                return false;
+
+            var riskFreeTime = GetCandleEventTime(_getCandle(basePosition.Target1HitBar));
+            if (trade.Time <= riskFreeTime)
+                return false;
+
+            if (basePosition.Closed && trade.Time > basePosition.ExitTimeUtc)
+                return false;
+
+            return HasExpandedAfterRiskFree(setup, trade, riskFreeTime, ScaleInMinExpansionAfterRiskFreePct);
         }
 
         private static bool IsInEntryZone(BalanceSetup setup, CumulativeTrade trade)
@@ -437,7 +482,7 @@ namespace FabioOrderFlow
             }
         }
 
-        private void CreatePosition(BalanceSetup setup, CumulativeTrade entryTrade, string entryModel, bool isHistorical)
+        private void CreatePosition(BalanceSetup setup, CumulativeTrade entryTrade, string entryModel, bool isHistorical, bool isScaleIn = false, int scaleInIndex = 0)
         {
             var entryBar = FindBarByTime(entryTrade.Time, setup.RejectionBar);
             var studyTrigger = GetStudyTriggerLabel(setup);
@@ -458,7 +503,9 @@ namespace FabioOrderFlow
                 Target1Price = setup.POC,
                 Target2Price = target2,
                 UseTarget2 = useTarget2,
-                ManagementMode = "VALUE_REENTRY_TARGET2",
+                IsScaleIn = isScaleIn,
+                ScaleInIndex = scaleInIndex,
+                ManagementMode = isScaleIn ? "VALUE_REENTRY_TARGET2_SCALE_IN_EXPAND25" : "VALUE_REENTRY_TARGET2",
                 StudyTrigger = studyTrigger,
                 MaxFavorablePrice = entryTrade.Lastprice,
                 MaxAdversePrice = entryTrade.Lastprice
@@ -480,8 +527,8 @@ namespace FabioOrderFlow
                 : position.EntryPrice - position.TargetPrice;
 
             var rewardRiskToTarget2 = riskPoints > 0 ? rewardToTarget2 / riskPoints : 0;
-            _log($"[MR_ENTRY] SetupId={setup.SetupId}, EntryModel={entryModel}, Direction={setup.Direction}, Bar={entryBar}, {FormatTime(entryTrade.Time)}, EntryPrice={position.EntryPrice:F2}, Volume={entryTrade.Volume:F0}, TradeDirection={entryTrade.Direction}, Stop={position.StopPrice:F2}, TargetPOC={setup.TargetPrice:F2}, FinalTarget={position.TargetPrice:F2}, ManagementMode={position.ManagementMode}, StudyTarget2={target2:F2}, StudyTrigger={studyTrigger}, Risk={riskPoints:F2}, Reward={rewardPoints:F2}, RewardToTarget2={rewardToTarget2:F2}, RewardToFinalTarget={rewardToFinalTarget:F2}, RewardRiskToTarget2={rewardRiskToTarget2:F2}, MinRewardRiskToTarget2={MinRewardRiskToTarget2:F2}, SecondsAfterRejection={(entryTrade.Time - setup.RejectionTimeUtc).TotalSeconds:F1}", isHistorical);
-            StudyLog($"[DAY_STUDY_ACTUAL_ENTRY] SetupId={setup.SetupId}, EntryModel={entryModel}, Direction={setup.Direction}, Bar={entryBar}, {FormatTime(entryTrade.Time)}, EntryPrice={position.EntryPrice:F2}, Volume={entryTrade.Volume:F0}, TradeDirection={entryTrade.Direction}, Stop={position.StopPrice:F2}, TargetPOC={setup.TargetPrice:F2}, FinalTarget={position.TargetPrice:F2}, ManagementMode={position.ManagementMode}, StudyTarget2={target2:F2}, StudyTrigger={studyTrigger}, Risk={riskPoints:F2}, RewardToTarget2={rewardToTarget2:F2}, RewardToFinalTarget={rewardToFinalTarget:F2}, RewardRiskToTarget2={rewardRiskToTarget2:F2}, SecondsAfterRejection={(entryTrade.Time - setup.RejectionTimeUtc).TotalSeconds:F1}", entryTrade.Time);
+            _log($"[MR_ENTRY] SetupId={setup.SetupId}, EntryModel={entryModel}, Direction={setup.Direction}, Bar={entryBar}, {FormatTime(entryTrade.Time)}, EntryPrice={position.EntryPrice:F2}, Volume={entryTrade.Volume:F0}, TradeDirection={entryTrade.Direction}, Stop={position.StopPrice:F2}, TargetPOC={setup.TargetPrice:F2}, FinalTarget={position.TargetPrice:F2}, ManagementMode={position.ManagementMode}, IsScaleIn={position.IsScaleIn}, ScaleInIndex={position.ScaleInIndex}, StudyTarget2={target2:F2}, StudyTrigger={studyTrigger}, Risk={riskPoints:F2}, Reward={rewardPoints:F2}, RewardToTarget2={rewardToTarget2:F2}, RewardToFinalTarget={rewardToFinalTarget:F2}, RewardRiskToTarget2={rewardRiskToTarget2:F2}, MinRewardRiskToTarget2={MinRewardRiskToTarget2:F2}, SecondsAfterRejection={(entryTrade.Time - setup.RejectionTimeUtc).TotalSeconds:F1}", isHistorical);
+            StudyLog($"[DAY_STUDY_ACTUAL_ENTRY] SetupId={setup.SetupId}, EntryModel={entryModel}, Direction={setup.Direction}, Bar={entryBar}, {FormatTime(entryTrade.Time)}, EntryPrice={position.EntryPrice:F2}, Volume={entryTrade.Volume:F0}, TradeDirection={entryTrade.Direction}, Stop={position.StopPrice:F2}, TargetPOC={setup.TargetPrice:F2}, FinalTarget={position.TargetPrice:F2}, ManagementMode={position.ManagementMode}, IsScaleIn={position.IsScaleIn}, ScaleInIndex={position.ScaleInIndex}, StudyTarget2={target2:F2}, StudyTrigger={studyTrigger}, Risk={riskPoints:F2}, RewardToTarget2={rewardToTarget2:F2}, RewardToFinalTarget={rewardToFinalTarget:F2}, RewardRiskToTarget2={rewardRiskToTarget2:F2}, SecondsAfterRejection={(entryTrade.Time - setup.RejectionTimeUtc).TotalSeconds:F1}", entryTrade.Time);
 
             if (isHistorical)
                 ProcessHistoricalPositions(entryBar, Math.Max(entryBar, _currentBar - 1));
@@ -656,6 +703,7 @@ namespace FabioOrderFlow
             position.ExitReason = exitReason;
             position.ExitPrice = exitPrice;
             position.ExitBar = bar;
+            position.ExitTimeUtc = GetCandleEventTime(candle);
 
             var pnl = position.Direction == "Long"
                 ? exitPrice - position.EntryPrice
@@ -876,6 +924,40 @@ namespace FabioOrderFlow
                 .Where(c => HasExpandedAfterRiskFree(c, riskFreeTimeValue, plan.MinExpansionAfterRiskFreePct))
                 .OrderBy(c => c.EntryTimeUtc)
                 .Take(plan.MaxAddOns);
+        }
+
+        private bool HasExpandedAfterRiskFree(BalanceSetup setup, CumulativeTrade trade, DateTime riskFreeTimeUtc, decimal minExpansionPct)
+        {
+            if (minExpansionPct <= 0)
+                return true;
+
+            var target2 = GetStudyTarget2(setup);
+            var targetDistance = Math.Abs(target2 - setup.POC);
+            if (targetDistance <= 0)
+                return false;
+
+            var requiredExpansion = targetDistance * minExpansionPct;
+            var startBar = FindBarByTime(riskFreeTimeUtc, setup.RejectionBar);
+            var endBar = FindBarByTime(trade.Time, startBar);
+            var entryDay = DateOnly.FromDateTime(MarketTimeZones.ToItaly(trade.Time));
+            var bestExpansion = 0m;
+
+            for (var bar = startBar; bar <= endBar; bar++)
+            {
+                var candle = _getCandle(bar);
+                var eventTime = GetCandleEventTime(candle);
+                if (DateOnly.FromDateTime(MarketTimeZones.ToItaly(eventTime)) != entryDay)
+                    break;
+
+                if (!IsInLondonSession(eventTime))
+                    break;
+
+                bestExpansion = setup.Direction == "Long"
+                    ? Math.Max(bestExpansion, candle.High - setup.POC)
+                    : Math.Max(bestExpansion, setup.POC - candle.Low);
+            }
+
+            return bestExpansion >= requiredExpansion;
         }
 
         private bool HasExpandedAfterRiskFree(StudyCandidate candidate, DateTime riskFreeTimeUtc, decimal minExpansionPct)

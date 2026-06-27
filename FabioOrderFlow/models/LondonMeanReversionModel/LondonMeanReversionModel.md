@@ -54,14 +54,20 @@ Il modello quindi legge una balance in costruzione durante London, aspetta un'es
    - Target2 = VAH per long / VAL per short
 
 6. Management operativo
-   - ManagementMode = `VALUE_REENTRY_TARGET2`
+   - ManagementMode base = `VALUE_REENTRY_TARGET2`
    - quando il trade raggiunge il POC, lo stop viene protetto almeno a breakeven
    - nel backfill storico lo stop protetto diventa valido dalla barra successiva al POC, per evitare assunzioni intrabar false
    - exit operative: `TARGET2_HIT`, `PROTECTED_STOP_HIT`, `STOP_HIT`, `LONDON_CLOSE`
 
-7. Study leggero
+7. Scale-in operativo Fabio-style
+   - ManagementMode add-on = `VALUE_REENTRY_TARGET2_SCALE_IN_EXPAND25`
+   - massimo 1 add-on per setup
+   - solo dopo che la base ha raggiunto POC/risk-free
+   - add-on deve rispettare la stessa entry value-reentry e `RR_T2 >= 1.0`
+   - dopo risk-free, il prezzo deve aver espanso almeno il 25% del tratto `POC -> Target2`
+
+8. Study leggero
    - continuation oltre POC resta solo log study, non entry operativa
-   - scale-in Fabio-style resta solo log study: add-on solo dopo che la prima entry dello stesso setup ha raggiunto il POC/risk-free
    - il file historical study aiuta a confrontare candidati su tutto lo storico caricato
 ```
 

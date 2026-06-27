@@ -78,6 +78,7 @@ Regole operative:
 - entry: big cumulative trade nella value area tra edge e POC;
 - target operativo: lato opposto della value area;
 - stop: high/low della rejection +/- offset in tick, protetto dopo POC;
+- scale-in operativo: massimo 1 add-on `EXPAND25` dopo POC/risk-free della base;
 - storico: usa la stessa logica live sui cumulative trades del chart.
 
 Dettaglio completo: `models/LondonMeanReversionModel/LondonMeanReversionModel.md`.
