@@ -123,15 +123,15 @@ Location:
 
 ```text
 %APPDATA%\ATAS\Logs\FabioOrderFlow.log
-%APPDATA%\ATAS\Logs\FabioOrderFlow-study-2026-06-25.log
+%APPDATA%\ATAS\Logs\FabioOrderFlow-study-historical.log
 ```
 
-Il file `FabioOrderFlow-study-2026-06-25.log` e' un dataset dedicato per studiare entry alternative fuori dalla logica operativa corrente.
+Il file `FabioOrderFlow-study-historical.log` e' un dataset dedicato per studiare entry alternative e continuation sullo storico caricato.
 
 Parser:
 
 ```bash
-python FabioOrderFlow/tools/parse_day_study.py %APPDATA%/ATAS/Logs/FabioOrderFlow-study-2026-06-25.log
+python FabioOrderFlow/tools/parse_day_study.py %APPDATA%/ATAS/Logs/FabioOrderFlow-study-historical.log
 ```
 
 Key tags:
@@ -146,13 +146,7 @@ Key tags:
 [MR_TARGET1_HIT]
 [MR_EXIT]
 [MR_STUDY_TRIGGER]
-[MR_STUDY_ENTRY]
-[MR_STUDY_TARGET1_HIT]
-[MR_STUDY_CLOSE]
 [MR_MISSED_OPPORTUNITY]
-[MR_EXTENDED_CUTOFF_OPPORTUNITY]
-[MR_STUDY_PRICE_TOUCH_OPPORTUNITY]
-[MR_STUDY_SETUP_BAR_AGGRESSION]
 [MR_STUDY_CONTINUATION_ENTRY]
 ```
 

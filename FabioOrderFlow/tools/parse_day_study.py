@@ -3,7 +3,7 @@
 
 Usage:
   python FabioOrderFlow/tools/parse_day_study.py \
-    %APPDATA%/ATAS/Logs/FabioOrderFlow-study-2026-06-25.log
+    %APPDATA%/ATAS/Logs/FabioOrderFlow-study-historical.log
 """
 
 from __future__ import annotations
