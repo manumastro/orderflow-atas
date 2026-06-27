@@ -207,7 +207,7 @@ Day-study dedicato per analisi manuale/agent:
 [DAY_STUDY_CANDIDATE_ENTRY] candidate entry alternative con risk/reward, MFE/MAE, outcome POC e Target2
 [DAY_STUDY_SCALE_IN_SUMMARY] simulazione scale-in Fabio-style per setup, solo dopo POC/risk-free della prima entry
 [DAY_STUDY_SCALE_IN_CANDIDATE] add-on candidate successivi alla prima entry risk-free, con RR/RMultiple
-[DAY_STUDY_SCALE_PLAN] piani setup-level: base + max add-on, filtri volume/tempo, TotalPnL/TotalR/worst leg
+[DAY_STUDY_SCALE_PLAN] piani setup-level: base + max add-on, filtri volume/tempo/espansione post-POC, TotalPnL/TotalR/worst leg
 ```
 
 `EntryModel` distingue:

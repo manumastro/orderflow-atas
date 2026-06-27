@@ -822,15 +822,19 @@ namespace FabioOrderFlow
         {
             var plans = new[]
             {
-                new ScalePlan("NO_SCALE", 0, MinAggressionVolume, null),
-                new ScalePlan("SCALE_MAX_1", 1, MinAggressionVolume, null),
-                new ScalePlan("SCALE_MAX_2", 2, MinAggressionVolume, null),
-                new ScalePlan("SCALE_MAX_3", 3, MinAggressionVolume, null),
-                new ScalePlan("SCALE_MAX_1_VOL20", 1, 20m, null),
-                new ScalePlan("SCALE_MAX_2_VOL20", 2, 20m, null),
-                new ScalePlan("SCALE_MAX_1_WITHIN_3MIN", 1, MinAggressionVolume, 180),
-                new ScalePlan("SCALE_MAX_1_WITHIN_5MIN", 1, MinAggressionVolume, 300),
-                new ScalePlan("SCALE_MAX_2_WITHIN_5MIN", 2, MinAggressionVolume, 300)
+                new ScalePlan("NO_SCALE", 0, MinAggressionVolume, null, 0m),
+                new ScalePlan("SCALE_MAX_1", 1, MinAggressionVolume, null, 0m),
+                new ScalePlan("SCALE_MAX_2", 2, MinAggressionVolume, null, 0m),
+                new ScalePlan("SCALE_MAX_3", 3, MinAggressionVolume, null, 0m),
+                new ScalePlan("SCALE_MAX_1_VOL20", 1, 20m, null, 0m),
+                new ScalePlan("SCALE_MAX_2_VOL20", 2, 20m, null, 0m),
+                new ScalePlan("SCALE_MAX_1_WITHIN_3MIN", 1, MinAggressionVolume, 180, 0m),
+                new ScalePlan("SCALE_MAX_1_WITHIN_5MIN", 1, MinAggressionVolume, 300, 0m),
+                new ScalePlan("SCALE_MAX_2_WITHIN_5MIN", 2, MinAggressionVolume, 300, 0m),
+                new ScalePlan("SCALE_MAX_1_EXPAND25", 1, MinAggressionVolume, null, 0.25m),
+                new ScalePlan("SCALE_MAX_1_EXPAND50", 1, MinAggressionVolume, null, 0.50m),
+                new ScalePlan("SCALE_MAX_2_EXPAND25", 2, MinAggressionVolume, null, 0.25m),
+                new ScalePlan("SCALE_MAX_1_WITHIN_5MIN_EXPAND25", 1, MinAggressionVolume, 300, 0.25m)
             };
 
             var baseProtectedOutcome = EvaluateProtectedTarget2Outcome(baseCandidate.Direction, baseCandidate.EntryPrice, baseCandidate.Stop, baseCandidate.TargetPoc, baseCandidate.Target2, baseCandidate.EntryTimeUtc, setup.RejectionBar);
@@ -856,7 +860,7 @@ namespace FabioOrderFlow
                     worstLegR = Math.Min(worstLegR, addOnOutcome.RMultiple);
                 }
 
-                StudyLog($"[DAY_STUDY_SCALE_PLAN] SetupId={setup.SetupId}, Plan={plan.Name}, Trigger={trigger}, Direction={setup.Direction}, BaseEntryTime={FormatTime(baseCandidate.EntryTimeUtc)}, BaseEntryPrice={baseCandidate.EntryPrice:F2}, BaseExitReason={baseProtectedOutcome.ExitReason}, BasePnL={baseProtectedOutcome.Pnl:F2}, BaseR={baseProtectedOutcome.RMultiple:F2}R, BaseTarget1Hit={baseProtectedOutcome.Target1Hit}, RiskFreeTime={(riskFreeTime.HasValue ? FormatTime(riskFreeTime.Value) : "NA")}, AddOnCount={selectedAddOns.Count}, AddOnMinVolume={plan.MinVolume:F0}, AddOnMaxSecondsAfterRiskFree={(plan.MaxSecondsAfterRiskFree.HasValue ? plan.MaxSecondsAfterRiskFree.Value.ToString() : "ANY")}, Winners={winners}, Losers={losers}, TotalPnL={totalPnl:F2}, TotalR={totalR:F2}R, WorstLegR={worstLegR:F2}R, MaxOpenContracts={1 + selectedAddOns.Count}", setup.RejectionTimeUtc);
+                StudyLog($"[DAY_STUDY_SCALE_PLAN] SetupId={setup.SetupId}, Plan={plan.Name}, Trigger={trigger}, Direction={setup.Direction}, BaseEntryTime={FormatTime(baseCandidate.EntryTimeUtc)}, BaseEntryPrice={baseCandidate.EntryPrice:F2}, BaseExitReason={baseProtectedOutcome.ExitReason}, BasePnL={baseProtectedOutcome.Pnl:F2}, BaseR={baseProtectedOutcome.RMultiple:F2}R, BaseTarget1Hit={baseProtectedOutcome.Target1Hit}, RiskFreeTime={(riskFreeTime.HasValue ? FormatTime(riskFreeTime.Value) : "NA")}, AddOnCount={selectedAddOns.Count}, AddOnMinVolume={plan.MinVolume:F0}, AddOnMaxSecondsAfterRiskFree={(plan.MaxSecondsAfterRiskFree.HasValue ? plan.MaxSecondsAfterRiskFree.Value.ToString() : "ANY")}, AddOnMinExpansionAfterRiskFreePct={plan.MinExpansionAfterRiskFreePct:F2}, Winners={winners}, Losers={losers}, TotalPnL={totalPnl:F2}, TotalR={totalR:F2}R, WorstLegR={worstLegR:F2}R, MaxOpenContracts={1 + selectedAddOns.Count}", setup.RejectionTimeUtc);
             }
         }
 
@@ -869,8 +873,42 @@ namespace FabioOrderFlow
             return addOns
                 .Where(c => c.Volume >= plan.MinVolume)
                 .Where(c => !plan.MaxSecondsAfterRiskFree.HasValue || c.EntryTimeUtc <= riskFreeTimeValue.AddSeconds(plan.MaxSecondsAfterRiskFree.Value))
+                .Where(c => HasExpandedAfterRiskFree(c, riskFreeTimeValue, plan.MinExpansionAfterRiskFreePct))
                 .OrderBy(c => c.EntryTimeUtc)
                 .Take(plan.MaxAddOns);
+        }
+
+        private bool HasExpandedAfterRiskFree(StudyCandidate candidate, DateTime riskFreeTimeUtc, decimal minExpansionPct)
+        {
+            if (minExpansionPct <= 0)
+                return true;
+
+            var targetDistance = Math.Abs(candidate.Target2 - candidate.TargetPoc);
+            if (targetDistance <= 0)
+                return false;
+
+            var requiredExpansion = targetDistance * minExpansionPct;
+            var startBar = FindBarByTime(riskFreeTimeUtc, 0);
+            var endBar = FindBarByTime(candidate.EntryTimeUtc, startBar);
+            var entryDay = DateOnly.FromDateTime(MarketTimeZones.ToItaly(candidate.EntryTimeUtc));
+            var bestExpansion = 0m;
+
+            for (var bar = startBar; bar <= endBar; bar++)
+            {
+                var candle = _getCandle(bar);
+                var eventTime = GetCandleEventTime(candle);
+                if (DateOnly.FromDateTime(MarketTimeZones.ToItaly(eventTime)) != entryDay)
+                    break;
+
+                if (!IsInLondonSession(eventTime))
+                    break;
+
+                bestExpansion = candidate.Direction == "Long"
+                    ? Math.Max(bestExpansion, candle.High - candidate.TargetPoc)
+                    : Math.Max(bestExpansion, candidate.TargetPoc - candle.Low);
+            }
+
+            return bestExpansion >= requiredExpansion;
         }
 
         private StudyCandidate BuildStudyCandidate(BalanceSetup setup, CumulativeTrade trade, string trigger)
@@ -1130,7 +1168,7 @@ namespace FabioOrderFlow
         private sealed record StudyCandidate(string Direction, string CandidateType, DateTime EntryTimeUtc, decimal EntryPrice, decimal Volume, decimal Stop, decimal TargetPoc, decimal Target2, decimal Risk, decimal RewardPoc, decimal RewardT2);
         private sealed record StudyOutcome(string OutcomePoc, decimal PnlPoc, string OutcomeT2, decimal PnlT2, decimal Mfe, decimal Mae);
         private sealed record ProtectedStudyOutcome(string ExitReason, decimal Pnl, decimal RMultiple, bool Target1Hit);
-        private sealed record ScalePlan(string Name, int MaxAddOns, decimal MinVolume, int? MaxSecondsAfterRiskFree);
+        private sealed record ScalePlan(string Name, int MaxAddOns, decimal MinVolume, int? MaxSecondsAfterRiskFree, decimal MinExpansionAfterRiskFreePct);
 
         private bool IsStudyFollowThrough(BalanceSetup setup, IndicatorCandle candle)
         {
