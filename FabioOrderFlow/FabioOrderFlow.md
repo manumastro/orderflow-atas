@@ -99,8 +99,8 @@ Storico:
 
 ```text
 OnFinishRecalculate
-→ RequestForCumulativeTrades
-→ OnCumulativeTradesResponse
+→ RequestForCumulativeTrades in blocchi da massimo 7 giorni
+→ OnCumulativeTradesResponse batch completo
 → BalanceZoneTracker.OnHistoricalCumulativeTrades
 → LondonMeanReversionModule.OnHistoricalCumulativeTrades
 → [MR_ENTRY] con EntryModel=FootprintCumulativeTradeHistorical

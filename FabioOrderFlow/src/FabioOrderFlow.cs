@@ -8,7 +8,8 @@ public class FabioOrderFlow : Indicator
 {
     private BalanceZoneTracker? _balanceTracker;
     private LondonMeanReversionModule? _meanReversionModule;
-    private CumulativeTradesRequest? _cumulativeTradesRequest;
+    private readonly Dictionary<int, CumulativeTradesRequest> _pendingCumulativeTradeRequests = new();
+    private readonly List<CumulativeTrade> _historicalCumulativeTrades = new();
     private static readonly bool DetailedDebugLogs = false;
     private readonly object _logSync = new();
     private readonly string _logPath;
@@ -94,13 +95,30 @@ public class FabioOrderFlow : Indicator
             if (endTime <= startTime)
                 endTime = GetCandle(CurrentBar - 1).Time;
 
-            var maxLookbackStart = endTime.AddDays(-7);
-            if (startTime < maxLookbackStart)
-                startTime = maxLookbackStart;
+            _pendingCumulativeTradeRequests.Clear();
+            _historicalCumulativeTrades.Clear();
 
-            _cumulativeTradesRequest = new CumulativeTradesRequest(startTime, endTime, 0, 0);
-            Log($"[CUM_TRADES_REQUEST] BeginItaly={MarketTimeZones.ToItaly(startTime):yyyy-MM-dd HH:mm:ss}, BeginUtc={startTime:yyyy-MM-dd HH:mm:ss}, EndItaly={MarketTimeZones.ToItaly(endTime):yyyy-MM-dd HH:mm:ss}, EndUtc={endTime:yyyy-MM-dd HH:mm:ss}, CurrentBar={CurrentBar}");
-            RequestForCumulativeTrades(_cumulativeTradesRequest);
+            var requestStart = startTime;
+            var requestIndex = 0;
+            while (requestStart < endTime)
+            {
+                var requestEnd = requestStart.AddDays(7);
+                if (requestEnd > endTime)
+                    requestEnd = endTime;
+
+                var request = new CumulativeTradesRequest(requestStart, requestEnd, 0, 0);
+                _pendingCumulativeTradeRequests[request.RequestId] = request;
+                requestIndex++;
+                Log($"[CUM_TRADES_REQUEST] Index={requestIndex}, RequestId={request.RequestId}, BeginItaly={MarketTimeZones.ToItaly(requestStart):yyyy-MM-dd HH:mm:ss}, BeginUtc={requestStart:yyyy-MM-dd HH:mm:ss}, EndItaly={MarketTimeZones.ToItaly(requestEnd):yyyy-MM-dd HH:mm:ss}, EndUtc={requestEnd:yyyy-MM-dd HH:mm:ss}, CurrentBar={CurrentBar}");
+                RequestForCumulativeTrades(request);
+
+                if (requestEnd >= endTime)
+                    break;
+
+                requestStart = requestEnd.AddTicks(1);
+            }
+
+            Log($"[CUM_TRADES_REQUEST_BATCH] Requests={_pendingCumulativeTradeRequests.Count}, ChartBeginItaly={MarketTimeZones.ToItaly(startTime):yyyy-MM-dd HH:mm:ss}, ChartEndItaly={MarketTimeZones.ToItaly(endTime):yyyy-MM-dd HH:mm:ss}");
         }
         catch (Exception ex)
         {
@@ -110,15 +128,27 @@ public class FabioOrderFlow : Indicator
 
     protected override void OnCumulativeTradesResponse(CumulativeTradesRequest request, IEnumerable<CumulativeTrade> cumulativeTrades)
     {
-        if (_cumulativeTradesRequest == null || request != _cumulativeTradesRequest)
+        if (!_pendingCumulativeTradeRequests.Remove(request.RequestId))
             return;
 
         var trades = cumulativeTrades.ToList();
-        Log($"[CUM_TRADES_RESPONSE] Count={trades.Count}, RequestId={request.RequestId}");
-        _balanceTracker?.OnHistoricalCumulativeTrades(trades);
+        _historicalCumulativeTrades.AddRange(trades);
+        Log($"[CUM_TRADES_RESPONSE] Count={trades.Count}, RequestId={request.RequestId}, Pending={_pendingCumulativeTradeRequests.Count}, Accumulated={_historicalCumulativeTrades.Count}");
+
+        if (_pendingCumulativeTradeRequests.Count > 0)
+            return;
+
+        var allTrades = _historicalCumulativeTrades
+            .OrderBy(t => t.Time)
+            .ToList();
+
+        Log($"[CUM_TRADES_BATCH_COMPLETE] TotalCount={allTrades.Count}");
+        _balanceTracker?.OnHistoricalCumulativeTrades(allTrades);
         
         if (_meanReversionModule != null && CurrentBar > 0)
             _meanReversionModule.ProcessHistoricalPositions(0, CurrentBar - 1);
+
+        _historicalCumulativeTrades.Clear();
     }
 
     protected override void OnCumulativeTrade(CumulativeTrade trade)
