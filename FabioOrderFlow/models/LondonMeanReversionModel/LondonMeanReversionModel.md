@@ -36,16 +36,17 @@ Il modello quindi legge una balance in costruzione durante London, aspetta un'es
    - long: low rompe VAL, close torna sopra VAL
    - rejection minima: 10 tick dal punto estremo alla close
 
-3. Confirm POC acceptance
-   - long: serve `POC_RECLAIM_AFTER_LOW_REJECTION`
-   - short: serve `POC_LOSS_AFTER_HIGH_REJECTION`
-   - follow-through senza reclaim/loss non basta per l'entry operativa
-
-4. Wait for value re-entry big trade
+3. Wait for value re-entry big trade
    - long: cumulative trade Buy >= 10 contratti tra `VAL` e `POC`
    - short: cumulative trade Sell >= 10 contratti tra `VAH` e `POC`
-   - il trade deve arrivare dopo il trigger POC reclaim/loss, entro 1 ora dalla rejection
+   - il trade deve arrivare dopo la rejection, entro 1 ora
+   - non serve aspettare POC reclaim/loss: il POC diventa conferma/gestione, non prerequisito rigido
    - `RewardToTarget2 / Risk >= 1.0`
+
+4. POC acceptance / management
+   - long: `POC_RECLAIM_AFTER_LOW_REJECTION` conferma forza e abilita studio continuation
+   - short: `POC_LOSS_AFTER_HIGH_REJECTION` conferma forza e abilita studio continuation
+   - quando il prezzo arriva al POC, lo stop viene protetto
 
 5. Register entry
    - entry price = Lastprice del cumulative trade

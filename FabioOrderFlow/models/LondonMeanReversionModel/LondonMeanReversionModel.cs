@@ -344,12 +344,6 @@ namespace FabioOrderFlow
             if (trade.Volume < MinAggressionVolume)
                 return false;
 
-            if (!IsTarget2ManagementTrigger(GetStudyTriggerLabel(setup)))
-                return false;
-
-            if (!setup.StudyPocTriggerConfirmed || trade.Time <= setup.StudyTriggerTimeUtc)
-                return false;
-
             var expectedDirection = setup.Direction == "Long" ? TradeDirection.Buy : TradeDirection.Sell;
             if (trade.Direction != expectedDirection)
                 return false;
@@ -444,7 +438,6 @@ namespace FabioOrderFlow
                     .ToList();
 
                 var validRrEntryTrades = insideValueTrades
-                    .Where(t => IsTarget2ManagementTrigger(trigger))
                     .Where(t => GetRewardRiskToTarget2(setup, t.Lastprice) >= MinRewardRiskToTarget2)
                     .ToList();
 
@@ -452,17 +445,15 @@ namespace FabioOrderFlow
                     ? sameDirectionTrades.Where(t => IsBeyondPocContinuationEntry(setup, t)).ToList()
                     : new List<CumulativeTrade>();
 
-                var reason = trigger == "NONE" || !IsTarget2ManagementTrigger(trigger)
-                    ? "NO_POC_RECLAIM_OR_LOSS_TRIGGER"
-                    : operationalWindowTrades.Count == 0
-                        ? "NO_BIG_TRADE_IN_WINDOW"
-                        : sameDirectionTrades.Count == 0
-                            ? "NO_BIG_TRADE_IN_DIRECTION"
-                            : insideValueTrades.Count == 0
-                                ? "NO_BIG_TRADE_IN_ENTRY_ZONE"
-                                : validRrEntryTrades.Count == 0
-                                    ? "RR_TO_TARGET2_TOO_LOW"
-                                    : "UNKNOWN_NO_ENTRY";
+                var reason = operationalWindowTrades.Count == 0
+                    ? "NO_BIG_TRADE_IN_WINDOW"
+                    : sameDirectionTrades.Count == 0
+                        ? "NO_BIG_TRADE_IN_DIRECTION"
+                        : insideValueTrades.Count == 0
+                            ? "NO_BIG_TRADE_IN_ENTRY_ZONE"
+                            : validRrEntryTrades.Count == 0
+                                ? "RR_TO_TARGET2_TOO_LOW"
+                                : "UNKNOWN_NO_ENTRY";
 
                 var maxVolume = operationalWindowTrades.Count > 0 ? operationalWindowTrades.Max(t => t.Volume) : 0m;
                 var maxSameDirectionVolume = sameDirectionTrades.Count > 0 ? sameDirectionTrades.Max(t => t.Volume) : 0m;
@@ -816,7 +807,6 @@ namespace FabioOrderFlow
                 var candidates = _lastHistoricalTrades
                     .Where(t => t.Volume >= MinAggressionVolume)
                     .Where(t => t.Time > setup.RejectionTimeUtc && t.Time <= windowEnd)
-                    .Where(t => !IsTarget2ManagementTrigger(trigger) || t.Time > setup.StudyTriggerTimeUtc)
                     .Where(t => IsLondonTradeAllowed(t.Time))
                     .Where(t => setup.Direction == "Long" ? t.Direction == TradeDirection.Buy : t.Direction == TradeDirection.Sell)
                     .Select(t => BuildStudyCandidate(setup, t, trigger))
@@ -999,11 +989,8 @@ namespace FabioOrderFlow
 
         private StudyCandidate BuildStudyCandidate(BalanceSetup setup, CumulativeTrade trade, string trigger)
         {
-            if (!IsTarget2ManagementTrigger(trigger))
-                return new StudyCandidate(setup.Direction, "NOT_CANDIDATE", trade.Time, trade.Lastprice, trade.Volume, setup.StopPrice, setup.POC, GetStudyTarget2(setup), 0, 0, 0);
-
             var inEntryZone = IsInEntryZone(setup, trade);
-            var continuation = IsBeyondPocContinuationEntry(setup, trade);
+            var continuation = IsTarget2ManagementTrigger(trigger) && trade.Time > setup.StudyTriggerTimeUtc && IsBeyondPocContinuationEntry(setup, trade);
             var candidateType = inEntryZone
                 ? "VALUE_REENTRY_BIG_TRADE"
                 : continuation
