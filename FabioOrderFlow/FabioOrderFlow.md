@@ -83,6 +83,26 @@ Regole operative:
 
 Dettaglio completo: `models/LondonMeanReversionModel/LondonMeanReversionModel.md`.
 
+Stato ultimo reload analizzato:
+
+```text
+Entry operative: 13
+Base: 11
+Scale-in EXPAND25: 2
+PnL storico caricato: +123.25 punti
+Net R: +2.67R
+Current commit: cd72f7a Allow causal pre-POC value re-entry entries
+```
+
+Focus aperto:
+
+```text
+- filtrare meglio NONE / LOW_REJECTION_FOLLOW_THROUGH / follow-through deboli
+- studiare tempo massimo dalla rejection per evitare setup stanchi
+- studiare stop dinamici per non penalizzare trade buoni con stop tecnico enorme
+- mantenere PostLondonImpulse fuori scope
+```
+
 ---
 
 ## ATAS Data Flow

@@ -19,7 +19,7 @@ Dal transcript Fabio Valentino:
 - POC e' il punto di accettazione/protezione; il target operativo migliore e' il lato opposto della value area quando c'e' reclaim/loss del POC;
 - se il trade e' sbagliato deve essere sbagliato subito, con stop stretto.
 
-Il modello quindi legge una balance in costruzione durante London, aspetta un'escursione fuori `VAH/VAL`, richiede una rejection back inside, poi accetta entry solo se il prezzo conferma `POC_RECLAIM`/`POC_LOSS` e arriva un cumulative trade nella value area tra edge e POC con spazio sufficiente verso Target2.
+Il modello quindi legge una balance in costruzione durante London, aspetta un'escursione fuori `VAH/VAL`, richiede una rejection back inside, poi accetta una entry base quando arriva un cumulative trade nella value area tra edge e POC con spazio sufficiente verso Target2. `POC_RECLAIM`/`POC_LOSS` non e' prerequisito rigido per aprire la base: e' conferma di accettazione, gestione/risk-free, e filtro per continuation/scale-in.
 
 ---
 
@@ -82,10 +82,10 @@ Condizioni:
 2. Candle London fa nuovo low sotto `VAL`.
 3. Close torna sopra `VAL`.
 4. Distanza `Close - Low >= 10 tick`.
-5. Dopo la rejection deve arrivare `POC_RECLAIM_AFTER_LOW_REJECTION`.
-6. Dopo il reclaim arriva un cumulative trade `Buy` con volume `>= 10`.
-7. Il trade e' dentro value tra `VAL` e `POC`.
-8. `RewardToTarget2 / Risk >= 1.0`.
+5. Dopo la rejection arriva un cumulative trade `Buy` con volume `>= 10`.
+6. Il trade e' dentro value tra `VAL` e `POC`.
+7. `RewardToTarget2 / Risk >= 1.0`.
+8. `POC_RECLAIM_AFTER_LOW_REJECTION` resta conferma/gestione e abilita study continuation/scale-in, ma non blocca la base.
 
 Livelli:
 
@@ -106,10 +106,10 @@ Condizioni:
 2. Candle London fa nuovo high sopra `VAH`.
 3. Close torna sotto `VAH`.
 4. Distanza `High - Close >= 10 tick`.
-5. Dopo la rejection deve arrivare `POC_LOSS_AFTER_HIGH_REJECTION`.
-6. Dopo il POC loss arriva un cumulative trade `Sell` con volume `>= 10`.
-7. Il trade e' dentro value tra `VAH` e `POC`.
-8. `RewardToTarget2 / Risk >= 1.0`.
+5. Dopo la rejection arriva un cumulative trade `Sell` con volume `>= 10`.
+6. Il trade e' dentro value tra `VAH` e `POC`.
+7. `RewardToTarget2 / Risk >= 1.0`.
+8. `POC_LOSS_AFTER_HIGH_REJECTION` resta conferma/gestione e abilita study continuation/scale-in, ma non blocca la base.
 
 Livelli:
 
@@ -238,6 +238,7 @@ POC_LOSS_AFTER_HIGH_REJECTION
 
 ```text
 VALUE_REENTRY_TARGET2
+VALUE_REENTRY_TARGET2_SCALE_IN_EXPAND25
 ```
 
 ---
@@ -251,6 +252,77 @@ VALUE_REENTRY_TARGET2
 - Quando non arrivano big trades nella direzione del ritorno verso POC.
 
 ---
+
+## Current State
+
+Ultimo reload analizzato dopo `cd72f7a Allow causal pre-POC value re-entry entries`:
+
+```text
+MR_ENTRY: 13
+MR_EXIT: 13
+MR_TARGET1_HIT: 8
+DAY_STUDY_ACTUAL_ENTRY: 13
+DAY_STUDY_CANDIDATE_ENTRY: 817
+DAY_STUDY_SCALE_PLAN: 143
+```
+
+Risultato operativo su storico caricato:
+
+```text
+Totale entry: 13
+Base: 11
+Scale-in EXPAND25: 2
+PnL: +123.25 punti
+Net R: +2.67R
+Exit: 3 TARGET2_HIT, 5 PROTECTED_STOP_HIT, 5 STOP_HIT
+```
+
+Entry operative ultimo reload:
+
+```text
+2026-06-22 09:35:30 Short Base  30773.00 TARGET2_HIT        +13.75
+2026-06-22 10:25:57 Long  Base  30712.25 PROTECTED_STOP_HIT +15.25
+2026-06-22 15:35:12 Short Base  30802.25 STOP_HIT           -102.25
+2026-06-22 15:45:18 Short Base  30816.25 STOP_HIT           -111.00
+2026-06-22 16:15:00 Short Base  30906.75 TARGET2_HIT        +131.75
+2026-06-23 09:35:26 Long  Base  29996.00 STOP_HIT           -41.25
+2026-06-23 10:30:11 Long  Base  29809.75 PROTECTED_STOP_HIT +40.25
+2026-06-23 15:35:00 Long  Base  29753.75 PROTECTED_STOP_HIT +45.75
+2026-06-23 15:45:00 Long  Scale 29749.75 TARGET2_HIT        +185.25
+2026-06-24 10:37:02 Short Base  29823.25 STOP_HIT           -20.00
+2026-06-25 10:15:03 Short Base  30182.25 PROTECTED_STOP_HIT +1.75
+2026-06-25 10:28:53 Short Scale 30181.50 PROTECTED_STOP_HIT +1.00
+2026-06-26 14:55:33 Long  Base  29334.75 STOP_HIT           -37.00
+```
+
+Current known issues / next studies:
+
+```text
+1. NONE and LOW_REJECTION_FOLLOW_THROUGH are weak for operative entries:
+   - LOW_REJECTION_FOLLOW_THROUGH study was strongly negative.
+   - NONE should probably remain study-only.
+
+2. Some follow-through entries without POC reclaim/loss restore trade frequency but add noise.
+   Next filter candidate: allow base pre-POC only with stronger evidence, not simply any follow-through.
+
+3. 2026-06-24 10:37 short is formally valid but qualitatively weak:
+   - late/stale after rejection
+   - small volume
+   - setup family failed repeatedly
+   Next study: entry quality by seconds after rejection and trigger type.
+
+4. 2026-06-24 16:25 long looked visually interesting but RR_T2 was below 1.0 because stop was the full rejection low:
+   - Reward points were large.
+   - Risk was larger because technical stop was very far.
+   Next study: dynamic stop alternatives, not static RR exceptions.
+
+5. Dynamic stop study candidates:
+   - original rejection stop
+   - value edge stop with buffer
+   - POC reclaim/loss bar stop with buffer
+   - recent swing after reclaim/loss
+   - capped max risk by value-area width or point limit
+```
 
 ## Current Files
 
