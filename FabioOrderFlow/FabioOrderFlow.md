@@ -144,6 +144,7 @@ Key tags:
 [MR_EXTENDED_CUTOFF_OPPORTUNITY]
 [MR_STUDY_MIN_VOLUME_OPPORTUNITY]
 [MR_STUDY_PRICE_TOUCH_OPPORTUNITY]
+[MR_STUDY_SETUP_BAR_AGGRESSION]
 ```
 
 `[MR_ENTRY]` include `EntryModel`, `ManagementMode`, `FinalTarget`, `StudyTarget2` e `StudyTrigger`:

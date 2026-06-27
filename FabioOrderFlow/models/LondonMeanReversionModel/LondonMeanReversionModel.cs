@@ -385,6 +385,24 @@ namespace FabioOrderFlow
                     .Where(t => IsLondonTradeAllowed(t.Time))
                     .ToList();
 
+                var setupBarTrades = trades
+                    .Where(t => t.Time >= setup.BreakoutTimeUtc && t.Time <= setup.RejectionTimeUtc)
+                    .Where(t => IsInLondonSession(t.Time))
+                    .ToList();
+
+                var setupBarOperationalTrades = setupBarTrades
+                    .Where(t => IsLondonTradeAllowed(t.Time))
+                    .Where(t => t.Volume >= MinAggressionVolume)
+                    .ToList();
+
+                var setupBarSameDirectionTrades = setupBarOperationalTrades
+                    .Where(t => setup.Direction == "Long" ? t.Direction == TradeDirection.Buy : t.Direction == TradeDirection.Sell)
+                    .ToList();
+
+                var setupBarEntryZoneTrades = setupBarSameDirectionTrades
+                    .Where(t => IsInEntryZone(setup, t))
+                    .ToList();
+
                 var operationalWindowTrades = windowTrades
                     .Where(t => t.Volume >= MinAggressionVolume)
                     .ToList();
@@ -436,7 +454,13 @@ namespace FabioOrderFlow
                 var firstExtendedEntryZoneTrade = extendedEntryZoneTrades.Count > 0 ? extendedEntryZoneTrades[0] : null;
                 var extendedEntryZoneAfterCutoff = extendedEntryZoneTrades.Count(t => !IsLondonTradeAllowed(t.Time));
 
-                _log($"[MR_MISSED_OPPORTUNITY] SetupId={setup.SetupId}, Direction={setup.Direction}, StudyTrigger={trigger}, Reason={reason}, RejectionBar={setup.RejectionBar}, {FormatTime(setup.RejectionTimeUtc)}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}, Stop={setup.StopPrice:F2}, WindowBigTrades={operationalWindowTrades.Count}, SameDirectionBigTrades={sameDirectionTrades.Count}, EntryZoneBigTrades={insideValueTrades.Count}, TouchedEntryZoneBigTrades={touchedEntryZoneTrades.Count}, Study15WindowTrades={windowTrades.Count}, Study15SameDirectionTrades={study15SameDirectionTrades.Count}, Study15EntryZoneTrades={study15EntryZoneTrades.Count}, ExtendedWindowBigTrades={allWindowTrades.Count}, ExtendedSameDirectionBigTrades={extendedSameDirectionTrades.Count}, ExtendedEntryZoneBigTrades={extendedEntryZoneTrades.Count}, ExtendedEntryZoneAfterCutoff={extendedEntryZoneAfterCutoff}, MaxVolume={maxVolume:F0}, MaxSameDirectionVolume={maxSameDirectionVolume:F0}, FirstBigTrade={firstTradeTime}, FirstSameDirectionBigTrade={firstSameDirectionTime}, BestSameDirectionPrice={bestSameDirectionPrice}", true);
+                _log($"[MR_MISSED_OPPORTUNITY] SetupId={setup.SetupId}, Direction={setup.Direction}, StudyTrigger={trigger}, Reason={reason}, RejectionBar={setup.RejectionBar}, {FormatTime(setup.RejectionTimeUtc)}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}, Stop={setup.StopPrice:F2}, SetupBarBigTrades={setupBarOperationalTrades.Count}, SetupBarSameDirectionBigTrades={setupBarSameDirectionTrades.Count}, SetupBarEntryZoneBigTrades={setupBarEntryZoneTrades.Count}, WindowBigTrades={operationalWindowTrades.Count}, SameDirectionBigTrades={sameDirectionTrades.Count}, EntryZoneBigTrades={insideValueTrades.Count}, TouchedEntryZoneBigTrades={touchedEntryZoneTrades.Count}, Study15WindowTrades={windowTrades.Count}, Study15SameDirectionTrades={study15SameDirectionTrades.Count}, Study15EntryZoneTrades={study15EntryZoneTrades.Count}, ExtendedWindowBigTrades={allWindowTrades.Count}, ExtendedSameDirectionBigTrades={extendedSameDirectionTrades.Count}, ExtendedEntryZoneBigTrades={extendedEntryZoneTrades.Count}, ExtendedEntryZoneAfterCutoff={extendedEntryZoneAfterCutoff}, MaxVolume={maxVolume:F0}, MaxSameDirectionVolume={maxSameDirectionVolume:F0}, FirstBigTrade={firstTradeTime}, FirstSameDirectionBigTrade={firstSameDirectionTime}, BestSameDirectionPrice={bestSameDirectionPrice}", true);
+
+                if (insideValueTrades.Count == 0 && setupBarSameDirectionTrades.Count > 0)
+                {
+                    var bestSetupBarTrade = setupBarSameDirectionTrades.OrderByDescending(t => t.Volume).First();
+                    _log($"[MR_STUDY_SETUP_BAR_AGGRESSION] SetupId={setup.SetupId}, Direction={setup.Direction}, StudyTrigger={trigger}, Reason={reason}, RejectionBar={setup.RejectionBar}, SetupBarStart={FormatTime(setup.BreakoutTimeUtc)}, SetupBarEnd={FormatTime(setup.RejectionTimeUtc)}, SetupBarBigTrades={setupBarOperationalTrades.Count}, SetupBarSameDirectionBigTrades={setupBarSameDirectionTrades.Count}, SetupBarEntryZoneBigTrades={setupBarEntryZoneTrades.Count}, BestSetupBarTradeTime={FormatTime(bestSetupBarTrade.Time)}, BestSetupBarTradePrice={bestSetupBarTrade.Lastprice:F2}, BestSetupBarTradeVolume={bestSetupBarTrade.Volume:F0}, BestSetupBarTradeDirection={bestSetupBarTrade.Direction}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}, Stop={setup.StopPrice:F2}", true);
+                }
 
                 if (insideValueTrades.Count == 0 && touchedEntryZoneTrades.Count > 0)
                 {
