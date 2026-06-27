@@ -128,6 +128,12 @@ Location:
 
 Il file `FabioOrderFlow-study-2026-06-25.log` e' un dataset dedicato per studiare entry alternative fuori dalla logica operativa corrente.
 
+Parser:
+
+```bash
+python FabioOrderFlow/tools/parse_day_study.py %APPDATA%/ATAS/Logs/FabioOrderFlow-study-2026-06-25.log
+```
+
 Key tags:
 
 ```text
