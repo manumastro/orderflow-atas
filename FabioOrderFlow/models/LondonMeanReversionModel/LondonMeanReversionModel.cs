@@ -43,6 +43,7 @@ namespace FabioOrderFlow
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "ATAS", "Logs", $"FabioOrderFlow-study-{StudyDay:yyyy-MM-dd}.log");
         private bool _studyLogInitialized;
+        private bool _dayStudyCompleted;
 
         public class BalanceSetup
         {
@@ -184,6 +185,7 @@ namespace FabioOrderFlow
             var allTrades = cumulativeTrades.OrderBy(t => t.Time).ToList();
             _lastHistoricalTrades.Clear();
             _lastHistoricalTrades.AddRange(allTrades);
+            _dayStudyCompleted = false;
             ResetStudyLog();
             LogStudyCumulativeTrades(allTrades);
 
@@ -964,7 +966,7 @@ namespace FabioOrderFlow
 
         private void RunDayStudy()
         {
-            if (_lastHistoricalTrades.Count == 0)
+            if (_dayStudyCompleted || _lastHistoricalTrades.Count == 0)
                 return;
 
             var studySetups = _activeSetups
@@ -992,6 +994,8 @@ namespace FabioOrderFlow
                     StudyLog($"[DAY_STUDY_CANDIDATE_ENTRY] SetupId={setup.SetupId}, CandidateType={candidate.CandidateType}, Trigger={trigger}, Direction={candidate.Direction}, EntryTime={FormatTime(candidate.EntryTimeUtc)}, EntryPrice={candidate.EntryPrice:F2}, Volume={candidate.Volume:F0}, Stop={candidate.Stop:F2}, TargetPOC={candidate.TargetPoc:F2}, Target2={candidate.Target2:F2}, Risk={candidate.Risk:F2}, RewardPOC={candidate.RewardPoc:F2}, RewardT2={candidate.RewardT2:F2}, RR_POC={(candidate.Risk > 0 ? candidate.RewardPoc / candidate.Risk : 0):F2}, RR_T2={(candidate.Risk > 0 ? candidate.RewardT2 / candidate.Risk : 0):F2}, OutcomePOC={outcome.OutcomePoc}, PnLPOC={outcome.PnlPoc:F2}, OutcomeT2={outcome.OutcomeT2}, PnLT2={outcome.PnlT2:F2}, MFE={outcome.Mfe:F2}, MAE={outcome.Mae:F2}", candidate.EntryTimeUtc);
                 }
             }
+
+            _dayStudyCompleted = true;
         }
 
         private StudyCandidate BuildStudyCandidate(BalanceSetup setup, CumulativeTrade trade, string trigger)
