@@ -32,6 +32,7 @@ namespace FabioOrderFlow
         private const decimal MinRewardRiskToTarget2 = 1.0m;
         private const decimal DynamicStopMaxValueAreaRiskPct = 0.50m;
         private const decimal ScaleInMinExpansionAfterRiskFreePct = 0.25m;
+        private const decimal ScaleInMinRewardToTarget1Points = 4m;
         private const int MaxScaleInsPerSetup = 2;
         private static readonly bool EnableHistoricalIntrabarFromCumulativeTrades = true;
         private static readonly bool EnableDailyHistoricalDebugLogs = true;
@@ -581,7 +582,13 @@ namespace FabioOrderFlow
             if (!IsTradeInSetupWindow(setup, trade))
                 return false;
 
-            if (!IsAggressionEntry(setup, trade, enforceFreshness: false))
+            if (!IsAggressionEntry(setup, trade, enforceFreshness: true))
+                return false;
+
+            var rewardToTarget1 = setup.Direction == "Long"
+                ? setup.TargetPrice - trade.Lastprice
+                : trade.Lastprice - setup.TargetPrice;
+            if (rewardToTarget1 < ScaleInMinRewardToTarget1Points)
                 return false;
 
             var existingScaleIns = _activePositions.Count(p => p.SetupId == setup.SetupId && p.IsScaleIn);
@@ -1290,7 +1297,71 @@ namespace FabioOrderFlow
                 .Select(s => $"{s.SetupId[..Math.Min(8, s.SetupId.Length)]}:{s.SetupSource}:{s.Direction}")
                 .ToList();
 
-            StudyLog($"[DAY_STUDY_POTENTIAL_PREVIEW_REJECTION] Bar={snapshot.Bar}, {FormatTime(snapshot.EventTimeUtc)}, ShortRejection={shortRejection}, LongRejection={longRejection}, High={snapshot.High:F2}, Low={snapshot.Low:F2}, Close={snapshot.Close:F2}, PreviewPOC={snapshot.PreviewPOC:F2}, PreviewVAH={snapshot.PreviewVAH:F2}, PreviewVAL={snapshot.PreviewVAL:F2}, ShortRejectionTicks={shortRejectionDistance / _tickSize:F1}, LongRejectionTicks={longRejectionDistance / _tickSize:F1}, MatchingSetup={(matchingSetup.Count == 0 ? "NONE" : string.Join("|", matchingSetup))}, CloseLocation={snapshot.CloseLocation}, Delta={snapshot.Delta:F0}, TopLevels={snapshot.TopLevels}", snapshot.EventTimeUtc);
+            var matchingSetupLabel = matchingSetup.Count == 0 ? "NONE" : string.Join("|", matchingSetup);
+            StudyLog($"[DAY_STUDY_POTENTIAL_PREVIEW_REJECTION] Bar={snapshot.Bar}, {FormatTime(snapshot.EventTimeUtc)}, ShortRejection={shortRejection}, LongRejection={longRejection}, High={snapshot.High:F2}, Low={snapshot.Low:F2}, Close={snapshot.Close:F2}, PreviewPOC={snapshot.PreviewPOC:F2}, PreviewVAH={snapshot.PreviewVAH:F2}, PreviewVAL={snapshot.PreviewVAL:F2}, ShortRejectionTicks={shortRejectionDistance / _tickSize:F1}, LongRejectionTicks={longRejectionDistance / _tickSize:F1}, MatchingSetup={matchingSetupLabel}, CloseLocation={snapshot.CloseLocation}, Delta={snapshot.Delta:F0}, TopLevels={snapshot.TopLevels}", snapshot.EventTimeUtc);
+
+            if (matchingSetup.Count == 0)
+                LogPotentialPreviewRejectionOutcome(snapshot, shortRejection, longRejection);
+        }
+
+        private void LogPotentialPreviewRejectionOutcome(HistoricalBarSnapshot snapshot, bool shortRejection, bool longRejection)
+        {
+            if (shortRejection)
+                LogPotentialPreviewRejectionOutcome(snapshot, "Short");
+
+            if (longRejection)
+                LogPotentialPreviewRejectionOutcome(snapshot, "Long");
+        }
+
+        private void LogPotentialPreviewRejectionOutcome(HistoricalBarSnapshot snapshot, string direction)
+        {
+            var setup = new BalanceSetup
+            {
+                SetupId = $"PREVIEW-{snapshot.Bar}-{direction}",
+                Direction = direction,
+                POC = snapshot.PreviewPOC,
+                VAH = snapshot.PreviewVAH,
+                VAL = snapshot.PreviewVAL,
+                BreakoutBar = snapshot.Bar,
+                BreakoutTimeUtc = snapshot.EventTimeUtc,
+                BreakoutPrice = direction == "Long" ? snapshot.Low : snapshot.High,
+                RejectionBar = snapshot.Bar,
+                RejectionTimeUtc = snapshot.EventTimeUtc,
+                RejectionClose = snapshot.Close,
+                RejectionHigh = snapshot.High,
+                RejectionLow = snapshot.Low,
+                RejectionDelta = direction == "Long" ? snapshot.Close - snapshot.Low : snapshot.High - snapshot.Close,
+                StopPrice = direction == "Long" ? snapshot.Low - StopOffsetTicks * _tickSize : snapshot.High + StopOffsetTicks * _tickSize,
+                TargetPrice = snapshot.PreviewPOC,
+                SetupSource = "PreviewRejectionStudy"
+            };
+
+            var candidates = _lastHistoricalTrades
+                .Where(t => t.Volume >= MinAggressionVolume)
+                .Where(t => t.Time > setup.RejectionTimeUtc && t.Time <= setup.RejectionTimeUtc.AddSeconds(AggressionTimeoutSeconds))
+                .Where(t => IsLondonTradeAllowed(t.Time))
+                .Where(t => direction == "Long" ? t.Direction == TradeDirection.Buy : t.Direction == TradeDirection.Sell)
+                .ToList();
+
+            var zoneCandidates = candidates.Where(t => IsInEntryZone(setup, t)).ToList();
+            var validCandidates = zoneCandidates
+                .Where(t => (t.Time - setup.RejectionTimeUtc).TotalSeconds <= OperationalEntryTimeoutSeconds)
+                .Where(t => GetRewardRiskToTarget2(setup, t.Lastprice) >= MinRewardRiskToTarget2)
+                .ToList();
+            var firstValid = validCandidates.OrderBy(t => t.Time).FirstOrDefault();
+            var firstValidText = firstValid == null
+                ? "NONE"
+                : $"{FormatTime(firstValid.Time)}:Price={firstValid.Lastprice:F2}:Volume={firstValid.Volume:F0}:RR={GetRewardRiskToTarget2(setup, firstValid.Lastprice):F2}:Age={(firstValid.Time - setup.RejectionTimeUtc).TotalSeconds:F1}s";
+
+            var outcomeText = "NA";
+            if (firstValid != null)
+            {
+                var stop = GetOperationalStopPrice(setup, firstValid.Lastprice);
+                var outcome = EvaluateProtectedTarget2OutcomeFromTrades(direction, firstValid.Lastprice, stop, setup.TargetPrice, GetStudyTarget2(setup), firstValid.Time);
+                outcomeText = $"ExitReason={outcome.ExitReason}:PnL={outcome.Pnl:F2}:R={outcome.RMultiple:F2}:Target1Hit={outcome.Target1Hit}";
+            }
+
+            StudyLog($"[DAY_STUDY_PREVIEW_REJECTION_OUTCOME] Bar={snapshot.Bar}, Direction={direction}, {FormatTime(snapshot.EventTimeUtc)}, PreviewPOC={snapshot.PreviewPOC:F2}, PreviewVAH={snapshot.PreviewVAH:F2}, PreviewVAL={snapshot.PreviewVAL:F2}, Stop={setup.StopPrice:F2}, RejectionDelta={setup.RejectionDelta:F2}, SameDirectionTrades={candidates.Count}, InEntryZone={zoneCandidates.Count}, Valid={validCandidates.Count}, FirstValid={firstValidText}, Outcome={outcomeText}", snapshot.EventTimeUtc);
         }
 
         private void LogDailySetupCandidateSummaries(List<CumulativeTrade> trades)
@@ -1777,6 +1848,76 @@ namespace FabioOrderFlow
             }
 
             return new StudyOutcome(outcomePoc, pnlPoc, outcomeT2, pnlT2, mfe, mae);
+        }
+
+        private ProtectedStudyOutcome EvaluateProtectedTarget2OutcomeFromTrades(string direction, decimal entry, decimal stop, decimal targetPoc, decimal target2, DateTime entryTimeUtc)
+        {
+            var risk = Math.Abs(entry - stop);
+            if (risk <= 0)
+                return new ProtectedStudyOutcome("INVALID_RISK", 0, 0, false);
+
+            var target1Hit = false;
+            var protectedStop = stop;
+            var entryDay = DateOnly.FromDateTime(MarketTimeZones.ToItaly(entryTimeUtc));
+            var closePrice = entry;
+
+            foreach (var trade in _lastHistoricalTrades.Where(t => t.Time > entryTimeUtc).OrderBy(t => t.Time))
+            {
+                var eventDay = DateOnly.FromDateTime(MarketTimeZones.ToItaly(trade.Time));
+                if (eventDay != entryDay)
+                    break;
+
+                if (!IsLondonTradeAllowed(trade.Time))
+                    break;
+
+                var high = Math.Max(trade.FirstPrice, trade.Lastprice);
+                var low = Math.Min(trade.FirstPrice, trade.Lastprice);
+                closePrice = trade.Lastprice;
+
+                if (direction == "Long")
+                {
+                    if (!target1Hit && targetPoc > entry && high >= targetPoc)
+                    {
+                        target1Hit = true;
+                        protectedStop = Math.Max(entry, targetPoc - 2m * _tickSize);
+                    }
+
+                    if (target2 > entry && high >= target2)
+                    {
+                        var pnl = target2 - entry;
+                        return new ProtectedStudyOutcome("TARGET2_HIT", pnl, pnl / risk, target1Hit);
+                    }
+
+                    if (low <= protectedStop)
+                    {
+                        var pnl = protectedStop - entry;
+                        return new ProtectedStudyOutcome(target1Hit ? "PROTECTED_STOP_HIT" : "STOP_HIT", pnl, pnl / risk, target1Hit);
+                    }
+                }
+                else
+                {
+                    if (!target1Hit && targetPoc < entry && low <= targetPoc)
+                    {
+                        target1Hit = true;
+                        protectedStop = Math.Min(entry, targetPoc + 2m * _tickSize);
+                    }
+
+                    if (target2 < entry && low <= target2)
+                    {
+                        var pnl = entry - target2;
+                        return new ProtectedStudyOutcome("TARGET2_HIT", pnl, pnl / risk, target1Hit);
+                    }
+
+                    if (high >= protectedStop)
+                    {
+                        var pnl = entry - protectedStop;
+                        return new ProtectedStudyOutcome(target1Hit ? "PROTECTED_STOP_HIT" : "STOP_HIT", pnl, pnl / risk, target1Hit);
+                    }
+                }
+            }
+
+            var londonClosePnl = direction == "Long" ? closePrice - entry : entry - closePrice;
+            return new ProtectedStudyOutcome("LONDON_CLOSE", londonClosePnl, londonClosePnl / risk, target1Hit);
         }
 
         private ProtectedStudyOutcome EvaluateProtectedTarget2Outcome(string direction, decimal entry, decimal stop, decimal targetPoc, decimal target2, DateTime entryTimeUtc, int fallbackBar)

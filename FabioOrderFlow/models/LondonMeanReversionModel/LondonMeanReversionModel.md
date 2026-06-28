@@ -176,6 +176,7 @@ Questo significa che il chart mostra come sarebbe andata la logica live sui dati
 MinAggressionVolume = 10m
 MinRewardRiskToTarget2 = 1.0m
 DynamicStopMaxValueAreaRiskPct = 0.50m
+ScaleInMinRewardToTarget1Points = 4m
 MaxScaleInsPerSetup = 2
 EnableHistoricalIntrabarFromCumulativeTrades = true
 EnableDailyHistoricalDebugLogs = true
@@ -220,6 +221,7 @@ Ogni riga historical include `Source=Historical`, `Seq`, `WriteItaly/WriteUtc` e
 [DAY_STUDY_TRIGGER]         follow-through o POC reclaim/loss nello storico caricato
 [DAY_STUDY_BIG_TRADE]       ogni cumulative trade >= MinAggressionVolume nella London storica, con relazione a profilo/setup
 [DAY_STUDY_POTENTIAL_PREVIEW_REJECTION] barre London che rigettano preview VAH/VAL anche se non promosse a setup operativo
+[DAY_STUDY_PREVIEW_REJECTION_OUTCOME] studio non operativo delle preview rejection non promosse: prima bolla valida e outcome protetto con cumulative trades post-entry
 [DAY_STUDY_SETUP_CANDIDATE_SUMMARY] riepilogo per setup: bolle in finestra, direzione, entry zone, RR, stale, prima opportunita' valida
 [DAY_STUDY_HISTORICAL_POSITION_MODE] conferma che una posizione storica viene gestita trade-by-trade dopo entry
 [DAY_STUDY_ACTUAL_ENTRY]    entry operative effettivamente prese
