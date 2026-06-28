@@ -268,8 +268,13 @@ public class FabioOrderFlow : Indicator
 
     private static bool IsOnlineOperationalMessage(string message)
     {
-        return message.StartsWith("[MR_", StringComparison.Ordinal)
-            || message.StartsWith("[ONLINE_", StringComparison.Ordinal);
+        if (message.StartsWith("[ONLINE_", StringComparison.Ordinal))
+            return true;
+
+        if (!message.StartsWith("[MR_", StringComparison.Ordinal))
+            return false;
+
+        return message.Contains("EntryModel=FootprintCumulativeTradeLive", StringComparison.Ordinal);
     }
 
 }
