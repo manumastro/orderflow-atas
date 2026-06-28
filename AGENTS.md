@@ -90,6 +90,7 @@ dotnet build -c Release
 - `FabioOrderFlow-historical.log` — backfill/study da `RequestForCumulativeTrades`
 - `FabioOrderFlow-live.log` — callback online quando `OnlineMode=Live`
 - `FabioOrderFlow-replay.log` — callback online quando `OnlineMode=Replay`
+- `FabioOrderFlow-days/FabioOrderFlow-day-YYYY-MM-DD.log` — debug storico giornaliero per barre, setup, big trade, entry/exit e missed
 
 **Key tags:**
 - `[SESSION_START]` / `[SESSION_END]`

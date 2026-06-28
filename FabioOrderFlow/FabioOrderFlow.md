@@ -147,6 +147,7 @@ Location:
 %APPDATA%\ATAS\Logs\FabioOrderFlow-historical.log
 %APPDATA%\ATAS\Logs\FabioOrderFlow-live.log
 %APPDATA%\ATAS\Logs\FabioOrderFlow-replay.log
+%APPDATA%\ATAS\Logs\FabioOrderFlow-days\FabioOrderFlow-day-YYYY-MM-DD.log
 ```
 
 I log sono separati per sorgente dati osservata:
@@ -156,9 +157,10 @@ FabioOrderFlow.log             log generale compatto
 FabioOrderFlow-historical.log  backfill/study da RequestForCumulativeTrades
 FabioOrderFlow-live.log        callback online in modalita' Live
 FabioOrderFlow-replay.log      callback online quando OnlineMode=Replay
+FabioOrderFlow-days/           debug storico giornaliero, un file per giorno Italy del chart
 ```
 
-ATAS espone callback live/replay e request storiche, ma non un flag documentato affidabile per distinguere live reale da replay. La distinzione live/replay e' quindi una proprieta' manuale dell'indicatore (`OnlineMode`). Il file historical viene scritto solo durante il backfill/recalculation, non dagli aggiornamenti parziali del replay.
+ATAS espone callback live/replay e request storiche, ma non un flag documentato affidabile per distinguere live reale da replay. La distinzione live/replay e' quindi una proprieta' manuale dell'indicatore (`OnlineMode`). Il file historical viene scritto solo durante il backfill/recalculation, non dagli aggiornamenti parziali del replay. Con `EnableDailyHistoricalDebugLogs=true`, lo study aggregato pesante resta disattivato e i dettagli per barra/trade/setup vengono scritti nei file giornalieri.
 
 Parser:
 
@@ -201,6 +203,7 @@ Ogni riga dei nuovi log include prefissi ordinabili:
 ```text
 FootprintCumulativeTradeLive
 FootprintCumulativeTradeHistorical
+FootprintCumulativeTradeHistoricalIntrabar
 ```
 
 ---

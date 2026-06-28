@@ -166,7 +166,7 @@ Storico:
 - i trade storici passano dalla stessa logica di entry del live;
 - le posizioni storiche vengono processate dalla barra dell'entry in avanti, non da prima dell'entry.
 
-Questo significa che il chart mostra come sarebbe andata la logica live sui dati caricati, senza avere un motore storico separato.
+Questo significa che il chart mostra come sarebbe andata la logica live sui dati caricati. La modalita' storica corrente usa anche `HistoricalIntrabarFromCumulativeTrades` per avvicinare il timing delle rejection/entry al flusso live, mantenendo `EntryModel=FootprintCumulativeTradeHistoricalIntrabar` quando una entry nasce da questa ricostruzione.
 
 ---
 
@@ -177,6 +177,8 @@ MinAggressionVolume = 10m
 MinRewardRiskToTarget2 = 1.0m
 DynamicStopMaxValueAreaRiskPct = 0.50m
 MaxScaleInsPerSetup = 2
+EnableHistoricalIntrabarFromCumulativeTrades = true
+EnableDailyHistoricalDebugLogs = true
 AggressionTimeoutSeconds = 3600      // study / setup window
 OperationalEntryTimeoutSeconds = 1200 // entry operative base
 RejectionThresholdTicks = 10
@@ -209,10 +211,11 @@ Day-study dedicato per analisi manuale/agent:
 
 ```text
 %APPDATA%\ATAS\Logs\FabioOrderFlow-historical.log
+%APPDATA%\ATAS\Logs\FabioOrderFlow-days\FabioOrderFlow-day-YYYY-MM-DD.log
 
-Ogni riga historical include `Source=Historical`, `Seq`, `WriteItaly/WriteUtc` e, quando disponibile, `EventItaly/EventLondon/EventUtc`. `Seq` mantiene l'ordine di scrittura; `EventItaly` mantiene l'ordine di mercato.
+Ogni riga historical include `Source=Historical`, `Seq`, `WriteItaly/WriteUtc` e, quando disponibile, `EventItaly/EventLondon/EventUtc`. `Seq` mantiene l'ordine di scrittura; `EventItaly` mantiene l'ordine di mercato. Con `EnableDailyHistoricalDebugLogs=true`, lo study aggregato candidate/dynamic/scale-plan resta disattivato e il debug dettagliato viene scritto per giorno in `FabioOrderFlow-days`.
 
-[DAY_STUDY_BAR]             ogni barra London dello storico caricato con OHLC finale, volume, bid/ask/delta, POC/VAH/VAL preview e top price levels
+[DAY_STUDY_BAR]             ogni barra London dello storico caricato con OHLC finale, volume, bid/ask/delta, snapshot POC/VAH/VAL preview causale, diagnostica setup e top price levels
 [DAY_STUDY_SETUP]           ogni setup creato nello storico caricato
 [DAY_STUDY_TRIGGER]         follow-through o POC reclaim/loss nello storico caricato
 [DAY_STUDY_BIG_TRADE]       ogni cumulative trade >= MinAggressionVolume nella London storica, con relazione a profilo/setup

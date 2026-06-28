@@ -33,7 +33,8 @@ namespace FabioOrderFlow
         private const decimal DynamicStopMaxValueAreaRiskPct = 0.50m;
         private const decimal ScaleInMinExpansionAfterRiskFreePct = 0.25m;
         private const int MaxScaleInsPerSetup = 2;
-        private const bool EnableHistoricalIntrabarFromCumulativeTrades = true;
+        private static readonly bool EnableHistoricalIntrabarFromCumulativeTrades = true;
+        private static readonly bool EnableDailyHistoricalDebugLogs = true;
 
         private int _currentBar;
         private readonly List<BalanceSetup> _activeSetups = new();
@@ -44,14 +45,20 @@ namespace FabioOrderFlow
         private readonly Dictionary<string, decimal> _liveTradeMaxVolumeByKey = new();
         private readonly List<CumulativeTrade> _lastHistoricalTrades = new();
         private readonly HashSet<int> _studyLoggedBars = new();
+        private readonly Dictionary<int, HistoricalBarSnapshot> _historicalBarSnapshots = new();
         private readonly string _historicalLogPath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "ATAS", "Logs", "FabioOrderFlow-historical.log");
+        private readonly string _dailyHistoricalLogDirectory = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "ATAS", "Logs", "FabioOrderFlow-days");
         private bool _historicalLogInitialized;
         private bool _historicalStudyActive;
         private bool _processingHistoricalPositions;
         private bool _dayStudyCompleted;
         private long _historicalLogSequence;
+        private readonly HashSet<DateOnly> _initializedDailyLogs = new();
+        private readonly Dictionary<DateOnly, long> _dailyHistoricalLogSequences = new();
 
         public class BalanceSetup
         {
@@ -118,6 +125,25 @@ namespace FabioOrderFlow
         }
 
 
+        private sealed class HistoricalBarSnapshot
+        {
+            public int Bar { get; set; }
+            public DateTime EventTimeUtc { get; set; }
+            public decimal Open { get; set; }
+            public decimal High { get; set; }
+            public decimal Low { get; set; }
+            public decimal Close { get; set; }
+            public decimal Volume { get; set; }
+            public decimal Bid { get; set; }
+            public decimal Ask { get; set; }
+            public decimal Delta { get; set; }
+            public decimal PreviewPOC { get; set; }
+            public decimal PreviewVAH { get; set; }
+            public decimal PreviewVAL { get; set; }
+            public string CloseLocation { get; set; } = string.Empty;
+            public string TopLevels { get; set; } = string.Empty;
+        }
+
         public class TradeRecord
         {
             public string SetupId { get; set; } = string.Empty;
@@ -156,6 +182,7 @@ namespace FabioOrderFlow
         public void OnBarUpdate(int bar, int currentBar, IndicatorCandle candle)
         {
             _currentBar = currentBar;
+            CaptureHistoricalBarSnapshot(bar, candle);
             LogStudyBar(bar, candle);
             UpdateStudyTriggers(bar, candle);
             UpdateActivePositions(bar, candle);
@@ -182,6 +209,7 @@ namespace FabioOrderFlow
             _lastHistoricalTrades.AddRange(allTrades);
             _dayStudyCompleted = false;
             ResetStudyLog();
+            ResetDailyHistoricalDebugLogs();
             LogStudyCumulativeTrades(allTrades);
 
             var trades = allTrades
@@ -228,7 +256,8 @@ namespace FabioOrderFlow
                     UpdateActivePositions(bar, candle);
                 }
 
-                RunDayStudy();
+                if (!EnableDailyHistoricalDebugLogs)
+                    RunDayStudy();
             }
             finally
             {
@@ -668,7 +697,9 @@ namespace FabioOrderFlow
                 var bestSameDirectionPrice = sameDirectionTrades.Count > 0
                     ? sameDirectionTrades.OrderByDescending(t => t.Volume).First().Lastprice.ToString("F2")
                     : "NA";
-                _log($"[MR_MISSED_OPPORTUNITY] SetupId={setup.SetupId}, Direction={setup.Direction}, StudyTrigger={trigger}, Reason={reason}, RejectionBar={setup.RejectionBar}, {FormatTime(setup.RejectionTimeUtc)}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}, Stop={setup.StopPrice:F2}, DynamicStopMaxValueAreaRiskPct={DynamicStopMaxValueAreaRiskPct:F2}, OperationalEntryTimeoutSeconds={OperationalEntryTimeoutSeconds}, MinRewardRiskToTarget2={MinRewardRiskToTarget2:F2}, WindowBigTrades={operationalWindowTrades.Count}, SameDirectionBigTrades={sameDirectionTrades.Count}, EntryZoneBigTrades={insideValueTrades.Count}, FreshEntryZoneBigTrades={freshInsideValueTrades.Count}, ValidRrEntryTrades={validRrEntryTrades.Count}, ContinuationBigTrades={continuationTrades.Count}, MaxVolume={maxVolume:F0}, MaxSameDirectionVolume={maxSameDirectionVolume:F0}, FirstBigTrade={firstTradeTime}, FirstSameDirectionBigTrade={firstSameDirectionTime}, BestSameDirectionPrice={bestSameDirectionPrice}", true);
+                var missedMessage = $"[MR_MISSED_OPPORTUNITY] SetupId={setup.SetupId}, Direction={setup.Direction}, StudyTrigger={trigger}, Reason={reason}, RejectionBar={setup.RejectionBar}, {FormatTime(setup.RejectionTimeUtc)}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}, Stop={setup.StopPrice:F2}, DynamicStopMaxValueAreaRiskPct={DynamicStopMaxValueAreaRiskPct:F2}, OperationalEntryTimeoutSeconds={OperationalEntryTimeoutSeconds}, MinRewardRiskToTarget2={MinRewardRiskToTarget2:F2}, WindowBigTrades={operationalWindowTrades.Count}, SameDirectionBigTrades={sameDirectionTrades.Count}, EntryZoneBigTrades={insideValueTrades.Count}, FreshEntryZoneBigTrades={freshInsideValueTrades.Count}, ValidRrEntryTrades={validRrEntryTrades.Count}, ContinuationBigTrades={continuationTrades.Count}, MaxVolume={maxVolume:F0}, MaxSameDirectionVolume={maxSameDirectionVolume:F0}, FirstBigTrade={firstTradeTime}, FirstSameDirectionBigTrade={firstSameDirectionTime}, BestSameDirectionPrice={bestSameDirectionPrice}";
+                _log(missedMessage, true);
+                DailyHistoricalLog(missedMessage, setup.RejectionTimeUtc);
 
                 if (insideValueTrades.Count == 0 && continuationTrades.Count > 0)
                 {
@@ -730,9 +761,13 @@ namespace FabioOrderFlow
                 : position.EntryPrice - position.TargetPrice;
 
             var rewardRiskToTarget2 = riskPoints > 0 ? rewardToTarget2 / riskPoints : 0;
-            _log($"[MR_ENTRY] SetupId={setup.SetupId}, EntryModel={entryModel}, Direction={setup.Direction}, Bar={entryBar}, {FormatTime(entryTrade.Time)}, EntryPrice={position.EntryPrice:F2}, Volume={entryTrade.Volume:F0}, TradeDirection={entryTrade.Direction}, Stop={position.StopPrice:F2}, OriginalStop={setup.StopPrice:F2}, OperationalStopPlan={operationalStopPlan}, TargetPOC={setup.TargetPrice:F2}, FinalTarget={position.TargetPrice:F2}, ManagementMode={position.ManagementMode}, IsScaleIn={position.IsScaleIn}, ScaleInIndex={position.ScaleInIndex}, StudyTarget2={target2:F2}, StudyTrigger={studyTrigger}, TriggerAtEntry={triggerAtEntry}, Risk={riskPoints:F2}, Reward={rewardPoints:F2}, RewardToTarget2={rewardToTarget2:F2}, RewardToFinalTarget={rewardToFinalTarget:F2}, RewardRiskToTarget2={rewardRiskToTarget2:F2}, MinRewardRiskToTarget2={MinRewardRiskToTarget2:F2}, DynamicStopMaxValueAreaRiskPct={DynamicStopMaxValueAreaRiskPct:F2}, SecondsAfterRejection={(entryTrade.Time - setup.RejectionTimeUtc).TotalSeconds:F1}, OperationalEntryTimeoutSeconds={OperationalEntryTimeoutSeconds}", isHistorical);
+            var entryMessage = $"[MR_ENTRY] SetupId={setup.SetupId}, EntryModel={entryModel}, Direction={setup.Direction}, Bar={entryBar}, {FormatTime(entryTrade.Time)}, EntryPrice={position.EntryPrice:F2}, Volume={entryTrade.Volume:F0}, TradeDirection={entryTrade.Direction}, Stop={position.StopPrice:F2}, OriginalStop={setup.StopPrice:F2}, OperationalStopPlan={operationalStopPlan}, TargetPOC={setup.TargetPrice:F2}, FinalTarget={position.TargetPrice:F2}, ManagementMode={position.ManagementMode}, IsScaleIn={position.IsScaleIn}, ScaleInIndex={position.ScaleInIndex}, StudyTarget2={target2:F2}, StudyTrigger={studyTrigger}, TriggerAtEntry={triggerAtEntry}, Risk={riskPoints:F2}, Reward={rewardPoints:F2}, RewardToTarget2={rewardToTarget2:F2}, RewardToFinalTarget={rewardToFinalTarget:F2}, RewardRiskToTarget2={rewardRiskToTarget2:F2}, MinRewardRiskToTarget2={MinRewardRiskToTarget2:F2}, DynamicStopMaxValueAreaRiskPct={DynamicStopMaxValueAreaRiskPct:F2}, SecondsAfterRejection={(entryTrade.Time - setup.RejectionTimeUtc).TotalSeconds:F1}, OperationalEntryTimeoutSeconds={OperationalEntryTimeoutSeconds}";
+            _log(entryMessage, isHistorical);
             if (entryModel.Contains("Historical", StringComparison.Ordinal))
+            {
+                DailyHistoricalLog(entryMessage, entryTrade.Time);
                 StudyLog($"[DAY_STUDY_ACTUAL_ENTRY] SetupId={setup.SetupId}, EntryModel={entryModel}, Direction={setup.Direction}, Bar={entryBar}, {FormatTime(entryTrade.Time)}, EntryPrice={position.EntryPrice:F2}, Volume={entryTrade.Volume:F0}, TradeDirection={entryTrade.Direction}, Stop={position.StopPrice:F2}, OriginalStop={setup.StopPrice:F2}, OperationalStopPlan={operationalStopPlan}, TargetPOC={setup.TargetPrice:F2}, FinalTarget={position.TargetPrice:F2}, ManagementMode={position.ManagementMode}, IsScaleIn={position.IsScaleIn}, ScaleInIndex={position.ScaleInIndex}, StudyTarget2={target2:F2}, StudyTrigger={studyTrigger}, TriggerAtEntry={triggerAtEntry}, Risk={riskPoints:F2}, RewardToTarget2={rewardToTarget2:F2}, RewardToFinalTarget={rewardToFinalTarget:F2}, RewardRiskToTarget2={rewardRiskToTarget2:F2}, SecondsAfterRejection={(entryTrade.Time - setup.RejectionTimeUtc).TotalSeconds:F1}, OperationalEntryTimeoutSeconds={OperationalEntryTimeoutSeconds}", entryTrade.Time);
+            }
 
             if (isHistorical)
                 ProcessHistoricalPositions(entryBar, Math.Max(entryBar, _currentBar - 1));
@@ -756,7 +791,8 @@ namespace FabioOrderFlow
                     setup.StudyFollowThroughTimeUtc = eventTime;
                     setup.StudyTriggerBar = bar;
                     setup.StudyTriggerTimeUtc = eventTime;
-                    _log($"[MR_STUDY_TRIGGER] SetupId={setup.SetupId}, Direction={setup.Direction}, Trigger={GetFollowThroughLabel(setup)}, Bar={bar}, {FormatTime(eventTime)}, CandidateBar={setup.RejectionBar}, CandidateHigh={setup.RejectionHigh:F2}, CandidateLow={setup.RejectionLow:F2}, Close={candle.Close:F2}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}", IsHistoricalBar(bar));
+                    var triggerMessage = $"[MR_STUDY_TRIGGER] SetupId={setup.SetupId}, Direction={setup.Direction}, Trigger={GetFollowThroughLabel(setup)}, Bar={bar}, {FormatTime(eventTime)}, CandidateBar={setup.RejectionBar}, CandidateHigh={setup.RejectionHigh:F2}, CandidateLow={setup.RejectionLow:F2}, Close={candle.Close:F2}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}";
+                    _log(triggerMessage, IsHistoricalBar(bar));
                     StudyLog($"[DAY_STUDY_TRIGGER] SetupId={setup.SetupId}, Direction={setup.Direction}, Trigger={GetFollowThroughLabel(setup)}, Bar={bar}, {FormatTime(eventTime)}, CandidateBar={setup.RejectionBar}, CandidateHigh={setup.RejectionHigh:F2}, CandidateLow={setup.RejectionLow:F2}, Close={candle.Close:F2}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}", eventTime);
                 }
 
@@ -767,7 +803,8 @@ namespace FabioOrderFlow
                     setup.StudyPocTriggerTimeUtc = eventTime;
                     setup.StudyTriggerBar = bar;
                     setup.StudyTriggerTimeUtc = eventTime;
-                    _log($"[MR_STUDY_TRIGGER] SetupId={setup.SetupId}, Direction={setup.Direction}, Trigger={GetPocTriggerLabel(setup)}, Bar={bar}, {FormatTime(eventTime)}, CandidateBar={setup.RejectionBar}, Close={candle.Close:F2}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}", IsHistoricalBar(bar));
+                    var triggerMessage = $"[MR_STUDY_TRIGGER] SetupId={setup.SetupId}, Direction={setup.Direction}, Trigger={GetPocTriggerLabel(setup)}, Bar={bar}, {FormatTime(eventTime)}, CandidateBar={setup.RejectionBar}, Close={candle.Close:F2}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}";
+                    _log(triggerMessage, IsHistoricalBar(bar));
                     StudyLog($"[DAY_STUDY_TRIGGER] SetupId={setup.SetupId}, Direction={setup.Direction}, Trigger={GetPocTriggerLabel(setup)}, Bar={bar}, {FormatTime(eventTime)}, CandidateBar={setup.RejectionBar}, Close={candle.Close:F2}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}", eventTime);
                 }
             }
@@ -899,7 +936,10 @@ namespace FabioOrderFlow
                 ? position.Target1Price - position.EntryPrice
                 : position.EntryPrice - position.Target1Price;
 
-            _log($"[MR_TARGET1_HIT] SetupId={position.SetupId}, EntryModel={position.EntryModel}, Direction={position.Direction}, ManagementMode={position.ManagementMode}, StudyTrigger={position.StudyTrigger}, Bar={bar}, {FormatTime(GetCandleEventTime(candle))}, Entry={position.EntryPrice:F2}, Target1POC={position.Target1Price:F2}, Target2={position.Target2Price:F2}, RewardPoints={reward:F2}, OldStop={oldStop:F2}, ProtectedStop={position.StopPrice:F2}, MFE={position.MFE:F2}, MAE={position.MAE:F2}", IsHistoricalBar(bar));
+            var target1Message = $"[MR_TARGET1_HIT] SetupId={position.SetupId}, EntryModel={position.EntryModel}, Direction={position.Direction}, ManagementMode={position.ManagementMode}, StudyTrigger={position.StudyTrigger}, Bar={bar}, {FormatTime(GetCandleEventTime(candle))}, Entry={position.EntryPrice:F2}, Target1POC={position.Target1Price:F2}, Target2={position.Target2Price:F2}, RewardPoints={reward:F2}, OldStop={oldStop:F2}, ProtectedStop={position.StopPrice:F2}, MFE={position.MFE:F2}, MAE={position.MAE:F2}";
+            _log(target1Message, IsHistoricalBar(bar));
+            if (position.EntryModel.Contains("Historical", StringComparison.Ordinal))
+                DailyHistoricalLog(target1Message, GetCandleEventTime(candle));
         }
 
         private void ClosePosition(ActivePosition position, int bar, IndicatorCandle candle, string exitReason, decimal exitPrice)
@@ -921,10 +961,14 @@ namespace FabioOrderFlow
                 : position.InitialStopPrice - position.EntryPrice;
             var rMultiple = risk != 0 ? pnl / risk : 0;
 
-            _log($"[MR_EXIT] SetupId={position.SetupId}, EntryModel={position.EntryModel}, Direction={position.Direction}, ManagementMode={position.ManagementMode}, StudyTrigger={position.StudyTrigger}, Bar={bar}, {FormatTime(GetCandleEventTime(candle))}, Entry={position.EntryPrice:F2}, Exit={exitPrice:F2}, ExitReason={exitReason}, PnL={pnl:F2}, MFE={position.MFE:F2}, MAE={position.MAE:F2}, RMultiple={rMultiple:F2}R, Target1Hit={position.Target1Hit}, Target1POC={position.Target1Price:F2}, Target2={position.Target2Price:F2}, StopProtected={position.StopProtectedAfterTarget1}", IsHistoricalBar(bar));
+            var exitMessage = $"[MR_EXIT] SetupId={position.SetupId}, EntryModel={position.EntryModel}, Direction={position.Direction}, ManagementMode={position.ManagementMode}, StudyTrigger={position.StudyTrigger}, Bar={bar}, {FormatTime(GetCandleEventTime(candle))}, Entry={position.EntryPrice:F2}, Exit={exitPrice:F2}, ExitReason={exitReason}, PnL={pnl:F2}, MFE={position.MFE:F2}, MAE={position.MAE:F2}, RMultiple={rMultiple:F2}R, Target1Hit={position.Target1Hit}, Target1POC={position.Target1Price:F2}, Target2={position.Target2Price:F2}, StopProtected={position.StopProtectedAfterTarget1}";
+            _log(exitMessage, IsHistoricalBar(bar));
 
             if (position.EntryModel.Contains("Historical", StringComparison.Ordinal))
+            {
+                DailyHistoricalLog(exitMessage, GetCandleEventTime(candle));
                 StudyLog($"[DAY_STUDY_ACTUAL_EXIT] SetupId={position.SetupId}, EntryModel={position.EntryModel}, Direction={position.Direction}, ManagementMode={position.ManagementMode}, StudyTrigger={position.StudyTrigger}, Bar={bar}, {FormatTime(GetCandleEventTime(candle))}, Entry={position.EntryPrice:F2}, Exit={exitPrice:F2}, ExitReason={exitReason}, PnL={pnl:F2}, MFE={position.MFE:F2}, MAE={position.MAE:F2}, RMultiple={rMultiple:F2}R, Target1Hit={position.Target1Hit}, Target1POC={position.Target1Price:F2}, Target2={position.Target2Price:F2}, StopProtected={position.StopProtectedAfterTarget1}", GetCandleEventTime(candle));
+            }
 
             var setup = _activeSetups.FirstOrDefault(s => s.SetupId == position.SetupId);
             if (setup == null)
@@ -963,15 +1007,34 @@ namespace FabioOrderFlow
         {
             _studyLoggedBars.Clear();
             _historicalLogInitialized = false;
-            _historicalStudyActive = true;
+            _historicalStudyActive = !EnableDailyHistoricalDebugLogs;
             try
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(_historicalLogPath)!);
                 _historicalLogSequence = 0;
                 var writeUtc = DateTime.UtcNow;
                 var writeItaly = MarketTimeZones.ToItaly(writeUtc).ToString("yyyy-MM-dd HH:mm:ss.fff");
-                File.WriteAllText(_historicalLogPath, $"[Source=Historical] [Seq={++_historicalLogSequence}] [WriteItaly={writeItaly}] [WriteUtc={writeUtc:yyyy-MM-dd HH:mm:ss.fff}] [HISTORICAL_STUDY_START] MinAggressionVolume={MinAggressionVolume:F0}, MinRewardRiskToTarget2={MinRewardRiskToTarget2:F2}, DynamicStopMaxValueAreaRiskPct={DynamicStopMaxValueAreaRiskPct:F2}, OperationalEntryTimeoutSeconds={OperationalEntryTimeoutSeconds}, CreatedItaly={MarketTimeZones.ToItaly(DateTime.UtcNow):yyyy-MM-dd HH:mm:ss}{Environment.NewLine}");
+                var mode = EnableDailyHistoricalDebugLogs ? "DailyHistoricalDebug" : "AggregatedHistoricalStudy";
+                File.WriteAllText(_historicalLogPath, $"[Source=Historical] [Seq={++_historicalLogSequence}] [WriteItaly={writeItaly}] [WriteUtc={writeUtc:yyyy-MM-dd HH:mm:ss.fff}] [HISTORICAL_STUDY_START] Mode={mode}, AggregatedStudyEnabled={_historicalStudyActive}, DailyDebugEnabled={EnableDailyHistoricalDebugLogs}, HistoricalIntrabarEnabled={EnableHistoricalIntrabarFromCumulativeTrades}, MinAggressionVolume={MinAggressionVolume:F0}, MinRewardRiskToTarget2={MinRewardRiskToTarget2:F2}, DynamicStopMaxValueAreaRiskPct={DynamicStopMaxValueAreaRiskPct:F2}, OperationalEntryTimeoutSeconds={OperationalEntryTimeoutSeconds}, CreatedItaly={MarketTimeZones.ToItaly(DateTime.UtcNow):yyyy-MM-dd HH:mm:ss}{Environment.NewLine}");
                 _historicalLogInitialized = true;
+            }
+            catch
+            {
+            }
+        }
+
+        private void ResetDailyHistoricalDebugLogs()
+        {
+            _initializedDailyLogs.Clear();
+            _dailyHistoricalLogSequences.Clear();
+            if (!EnableDailyHistoricalDebugLogs)
+                return;
+
+            try
+            {
+                Directory.CreateDirectory(_dailyHistoricalLogDirectory);
+                foreach (var path in Directory.EnumerateFiles(_dailyHistoricalLogDirectory, "FabioOrderFlow-day-*.log"))
+                    File.Delete(path);
             }
             catch
             {
@@ -980,9 +1043,11 @@ namespace FabioOrderFlow
 
         private void StudyLog(string message, DateTime eventUtc)
         {
+            DailyHistoricalLog(message, eventUtc);
+
             try
             {
-                    if (!_historicalStudyActive)
+                if (!_historicalStudyActive)
                     return;
 
                 if (!_historicalLogInitialized)
@@ -992,6 +1057,38 @@ namespace FabioOrderFlow
                 var writeItaly = MarketTimeZones.ToItaly(writeUtc).ToString("yyyy-MM-dd HH:mm:ss.fff");
                 var line = $"[Source=Historical] [Seq={++_historicalLogSequence}] [WriteItaly={writeItaly}] [WriteUtc={writeUtc:yyyy-MM-dd HH:mm:ss.fff}] [EventItaly={MarketTimeZones.ToItaly(eventUtc):yyyy-MM-dd HH:mm:ss}] [EventLondon={MarketTimeZones.ToLondon(eventUtc):yyyy-MM-dd HH:mm:ss}] [EventUtc={eventUtc:yyyy-MM-dd HH:mm:ss}] {message}";
                 File.AppendAllText(_historicalLogPath, line + Environment.NewLine);
+            }
+            catch
+            {
+            }
+        }
+
+        private void DailyHistoricalLog(string message, DateTime eventUtc)
+        {
+            if (!EnableDailyHistoricalDebugLogs)
+                return;
+
+            try
+            {
+                var eventItaly = MarketTimeZones.ToItaly(eventUtc);
+                var day = DateOnly.FromDateTime(eventItaly);
+                Directory.CreateDirectory(_dailyHistoricalLogDirectory);
+                var path = Path.Combine(_dailyHistoricalLogDirectory, $"FabioOrderFlow-day-{day:yyyy-MM-dd}.log");
+                if (!_initializedDailyLogs.Contains(day))
+                {
+                    var headerUtc = DateTime.UtcNow;
+                    var headerItaly = MarketTimeZones.ToItaly(headerUtc).ToString("yyyy-MM-dd HH:mm:ss.fff");
+                    File.WriteAllText(path, $"[Source=HistoricalDaily] [Seq=1] [WriteItaly={headerItaly}] [WriteUtc={headerUtc:yyyy-MM-dd HH:mm:ss.fff}] [DAY_DEBUG_START] Day={day:yyyy-MM-dd}, HistoricalIntrabarEnabled={EnableHistoricalIntrabarFromCumulativeTrades}, AggregatedStudyEnabled={_historicalStudyActive}, MinAggressionVolume={MinAggressionVolume:F0}, MinRewardRiskToTarget2={MinRewardRiskToTarget2:F2}, OperationalEntryTimeoutSeconds={OperationalEntryTimeoutSeconds}{Environment.NewLine}");
+                    _initializedDailyLogs.Add(day);
+                    _dailyHistoricalLogSequences[day] = 1;
+                }
+
+                var writeUtc = DateTime.UtcNow;
+                var writeItaly = MarketTimeZones.ToItaly(writeUtc).ToString("yyyy-MM-dd HH:mm:ss.fff");
+                var seq = _dailyHistoricalLogSequences.TryGetValue(day, out var currentSeq) ? currentSeq + 1 : 2;
+                _dailyHistoricalLogSequences[day] = seq;
+                var line = $"[Source=HistoricalDaily] [Seq={seq}] [WriteItaly={writeItaly}] [WriteUtc={writeUtc:yyyy-MM-dd HH:mm:ss.fff}] [EventItaly={eventItaly:yyyy-MM-dd HH:mm:ss}] [EventLondon={MarketTimeZones.ToLondon(eventUtc):yyyy-MM-dd HH:mm:ss}] [EventUtc={eventUtc:yyyy-MM-dd HH:mm:ss}] {message}";
+                File.AppendAllText(path, line + Environment.NewLine);
             }
             catch
             {
@@ -1009,9 +1106,12 @@ namespace FabioOrderFlow
             if (!IsInLondonSession(candle.Time))
                 return;
 
-            var (bid, ask, delta, topLevels) = GetCandleVolumeDiagnostics(candle);
-            var relation = GetPriceLocation(candle.Close, _balanceTracker.LastPreviewPoc, _balanceTracker.LastPreviewVah, _balanceTracker.LastPreviewVal);
-            StudyLog($"[DAY_STUDY_BAR] Bar={bar}, {FormatTime(GetCandleEventTime(candle))}, Open={candle.Open:F2}, High={candle.High:F2}, Low={candle.Low:F2}, Close={candle.Close:F2}, Volume={candle.Volume:F0}, Bid={bid:F0}, Ask={ask:F0}, Delta={delta:F0}, PreviewPOC={_balanceTracker.LastPreviewPoc:F2}, PreviewVAH={_balanceTracker.LastPreviewVah:F2}, PreviewVAL={_balanceTracker.LastPreviewVal:F2}, CloseLocation={relation}, DistToPOC={candle.Close - _balanceTracker.LastPreviewPoc:F2}, DistToVAH={candle.Close - _balanceTracker.LastPreviewVah:F2}, DistToVAL={candle.Close - _balanceTracker.LastPreviewVal:F2}, TopLevels={topLevels}", GetCandleEventTime(candle));
+            var snapshot = _historicalBarSnapshots.TryGetValue(bar, out var captured)
+                ? captured
+                : CreateHistoricalBarSnapshot(bar, candle);
+            var candidateSetupState = GetBarSetupDiagnostics(snapshot);
+            var activeSetupState = GetActiveSetupDiagnostics(snapshot.EventTimeUtc);
+            StudyLog($"[DAY_STUDY_BAR] Bar={bar}, {FormatTime(snapshot.EventTimeUtc)}, Open={snapshot.Open:F2}, High={snapshot.High:F2}, Low={snapshot.Low:F2}, Close={snapshot.Close:F2}, Volume={snapshot.Volume:F0}, Bid={snapshot.Bid:F0}, Ask={snapshot.Ask:F0}, Delta={snapshot.Delta:F0}, PreviewPOC={snapshot.PreviewPOC:F2}, PreviewVAH={snapshot.PreviewVAH:F2}, PreviewVAL={snapshot.PreviewVAL:F2}, CloseLocation={snapshot.CloseLocation}, DistToPOC={snapshot.Close - snapshot.PreviewPOC:F2}, DistToVAH={snapshot.Close - snapshot.PreviewVAH:F2}, DistToVAL={snapshot.Close - snapshot.PreviewVAL:F2}, SetupDiagnostics={candidateSetupState}, ActiveSetupDiagnostics={activeSetupState}, TopLevels={snapshot.TopLevels}", snapshot.EventTimeUtc);
         }
 
         private void LogStudyCumulativeTrades(List<CumulativeTrade> trades)
@@ -1019,7 +1119,8 @@ namespace FabioOrderFlow
             foreach (var trade in trades.Where(t => t.Volume >= MinAggressionVolume && IsInLondonSession(t.Time)))
             {
                 var nearestSetup = FindNearestStudySetup(trade);
-                StudyLog($"[DAY_STUDY_BIG_TRADE] {FormatTime(trade.Time)}, Direction={trade.Direction}, Volume={trade.Volume:F0}, FirstPrice={trade.FirstPrice:F2}, LastPrice={trade.Lastprice:F2}, TickCount={trade.Ticks.Count}, Location={GetTradeLocation(trade.Lastprice)}, NearestSetupId={nearestSetup.SetupId}, NearestSetupDirection={nearestSetup.Direction}, SecondsAfterSetup={nearestSetup.SecondsAfter:F1}, SameDirectionAsSetup={nearestSetup.SameDirection}, InEntryZone={nearestSetup.InEntryZone}, ContinuationZone={nearestSetup.ContinuationZone}", trade.Time);
+                var candidateDiagnostics = GetTradeCandidateDiagnostics(trade);
+                StudyLog($"[DAY_STUDY_BIG_TRADE] {FormatTime(trade.Time)}, Direction={trade.Direction}, Volume={trade.Volume:F0}, FirstPrice={trade.FirstPrice:F2}, LastPrice={trade.Lastprice:F2}, TickCount={trade.Ticks.Count}, Location={GetTradeLocation(trade.Lastprice)}, NearestSetupId={nearestSetup.SetupId}, NearestSetupDirection={nearestSetup.Direction}, SecondsAfterSetup={nearestSetup.SecondsAfter:F1}, SameDirectionAsSetup={nearestSetup.SameDirection}, InEntryZone={nearestSetup.InEntryZone}, ContinuationZone={nearestSetup.ContinuationZone}, CandidateDiagnostics={candidateDiagnostics}", trade.Time);
             }
         }
 
@@ -1546,6 +1647,99 @@ namespace FabioOrderFlow
             }
 
             return null;
+        }
+
+        private void CaptureHistoricalBarSnapshot(int bar, IndicatorCandle candle)
+        {
+            if (!IsHistoricalBar(bar) || !IsInLondonSession(candle.Time))
+                return;
+
+            _historicalBarSnapshots[bar] = CreateHistoricalBarSnapshot(bar, candle);
+        }
+
+        private HistoricalBarSnapshot CreateHistoricalBarSnapshot(int bar, IndicatorCandle candle)
+        {
+            var (bid, ask, delta, topLevels) = GetCandleVolumeDiagnostics(candle);
+            var eventTime = GetCandleEventTime(candle);
+            var poc = _balanceTracker.LastPreviewPoc;
+            var vah = _balanceTracker.LastPreviewVah;
+            var val = _balanceTracker.LastPreviewVal;
+            return new HistoricalBarSnapshot
+            {
+                Bar = bar,
+                EventTimeUtc = eventTime,
+                Open = candle.Open,
+                High = candle.High,
+                Low = candle.Low,
+                Close = candle.Close,
+                Volume = candle.Volume,
+                Bid = bid,
+                Ask = ask,
+                Delta = delta,
+                PreviewPOC = poc,
+                PreviewVAH = vah,
+                PreviewVAL = val,
+                CloseLocation = GetPriceLocation(candle.Close, poc, vah, val),
+                TopLevels = topLevels
+            };
+        }
+
+        private string GetBarSetupDiagnostics(HistoricalBarSnapshot snapshot)
+        {
+            if (snapshot.PreviewPOC == 0 || snapshot.PreviewVAH == 0 || snapshot.PreviewVAL == 0)
+                return "NO_PROFILE";
+
+            var highBreak = snapshot.High > snapshot.PreviewVAH;
+            var lowBreak = snapshot.Low < snapshot.PreviewVAL;
+            var shortCloseBackInside = snapshot.Close < snapshot.PreviewVAH;
+            var longCloseBackInside = snapshot.Close > snapshot.PreviewVAL;
+            var shortRejectionTicks = (snapshot.High - snapshot.Close) / _tickSize;
+            var longRejectionTicks = (snapshot.Close - snapshot.Low) / _tickSize;
+            var shortReady = highBreak && shortCloseBackInside && shortRejectionTicks >= RejectionThresholdTicks;
+            var longReady = lowBreak && longCloseBackInside && longRejectionTicks >= RejectionThresholdTicks;
+
+            return $"HighBreakVAH={highBreak};LowBreakVAL={lowBreak};ShortCloseBackInside={shortCloseBackInside};LongCloseBackInside={longCloseBackInside};ShortRejectionTicks={shortRejectionTicks:F1};LongRejectionTicks={longRejectionTicks:F1};ShortSetupReady={shortReady};LongSetupReady={longReady}";
+        }
+
+        private string GetActiveSetupDiagnostics(DateTime eventUtc)
+        {
+            var candidates = _activeSetups
+                .Where(s => !s.Expired)
+                .Where(s => eventUtc >= s.RejectionTimeUtc && eventUtc <= s.RejectionTimeUtc.AddSeconds(AggressionTimeoutSeconds))
+                .OrderBy(s => s.RejectionTimeUtc)
+                .Select(s => $"{s.SetupId[..Math.Min(8, s.SetupId.Length)]}:{s.SetupSource}:{s.Direction}:Age={(eventUtc - s.RejectionTimeUtc).TotalSeconds:F0}s:Confirmed={s.AggressionConfirmed}:Trigger={GetStudyTriggerLabelAtTime(s, eventUtc)}")
+                .ToList();
+
+            return candidates.Count == 0 ? "NONE" : string.Join("|", candidates);
+        }
+
+        private string GetTradeCandidateDiagnostics(CumulativeTrade trade)
+        {
+            var candidates = _activeSetups
+                .Where(s => !s.Expired && !s.AggressionConfirmed)
+                .Where(s => trade.Time > s.RejectionTimeUtc && trade.Time <= s.RejectionTimeUtc.AddSeconds(AggressionTimeoutSeconds))
+                .OrderBy(s => Math.Abs((trade.Time - s.RejectionTimeUtc).TotalSeconds))
+                .Take(5)
+                .Select(s =>
+                {
+                    var sameDirection = s.Direction == "Long" ? trade.Direction == TradeDirection.Buy : trade.Direction == TradeDirection.Sell;
+                    var inEntryZone = IsInEntryZone(s, trade);
+                    var fresh = (trade.Time - s.RejectionTimeUtc).TotalSeconds <= OperationalEntryTimeoutSeconds;
+                    var rr = GetRewardRiskToTarget2(s, trade.Lastprice);
+                    var reason = !sameDirection
+                        ? "WRONG_DIRECTION"
+                        : !inEntryZone
+                            ? "OUTSIDE_ENTRY_ZONE"
+                            : !fresh
+                                ? "STALE"
+                                : rr < MinRewardRiskToTarget2
+                                    ? "RR_TOO_LOW"
+                                    : "VALID";
+                    return $"{s.SetupId[..Math.Min(8, s.SetupId.Length)]}:{s.SetupSource}:{s.Direction}:Reason={reason}:Age={(trade.Time - s.RejectionTimeUtc).TotalSeconds:F0}s:InZone={inEntryZone}:RR={rr:F2}:TriggerAtTrade={GetStudyTriggerLabelAtTime(s, trade.Time)}";
+                })
+                .ToList();
+
+            return candidates.Count == 0 ? "NO_ACTIVE_SETUP" : string.Join("|", candidates);
         }
 
         private (decimal Bid, decimal Ask, decimal Delta, string TopLevels) GetCandleVolumeDiagnostics(IndicatorCandle candle)
