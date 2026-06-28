@@ -846,6 +846,12 @@ namespace FabioOrderFlow
                 if (trade.Time <= position.EntryTimeUtc)
                     continue;
 
+                if (DateOnly.FromDateTime(MarketTimeZones.ToItaly(trade.Time)) != DateOnly.FromDateTime(MarketTimeZones.ToItaly(position.EntryTimeUtc)))
+                {
+                    CloseHistoricalPositionAtEntryDayLondonClose(position);
+                    continue;
+                }
+
                 if (!IsLondonTradeAllowed(trade.Time))
                     continue;
 
@@ -908,21 +914,29 @@ namespace FabioOrderFlow
         private void CloseOpenHistoricalPositionsAtSessionEnd()
         {
             foreach (var position in _activePositions.Where(p => !p.Closed && IsHistoricalCumulativeTradePosition(p)).ToList())
+                CloseHistoricalPositionAtEntryDayLondonClose(position);
+        }
+
+        private void CloseHistoricalPositionAtEntryDayLondonClose(ActivePosition position)
+        {
+            if (position.Closed)
+                return;
+
+            var entryDay = DateOnly.FromDateTime(MarketTimeZones.ToItaly(position.EntryTimeUtc));
+            var closeBar = position.EntryBar;
+            for (var bar = position.EntryBar; bar < _currentBar; bar++)
             {
-                var closeBar = Math.Min(Math.Max(position.EntryBar, _currentBar - 2), Math.Max(0, _currentBar - 1));
-                for (var bar = position.EntryBar; bar < _currentBar; bar++)
-                {
-                    var candle = _getCandle(bar);
-                    if (DateOnly.FromDateTime(MarketTimeZones.ToItaly(GetCandleEventTime(candle))) != DateOnly.FromDateTime(MarketTimeZones.ToItaly(position.EntryTimeUtc)))
-                        break;
+                var candle = _getCandle(bar);
+                var eventTime = GetCandleEventTime(candle);
+                if (DateOnly.FromDateTime(MarketTimeZones.ToItaly(eventTime)) != entryDay)
+                    break;
 
-                    if (IsInLondonSession(candle.Time))
-                        closeBar = bar;
-                }
-
-                var closeCandle = _getCandle(closeBar);
-                ClosePosition(position, closeBar, GetCandleEventTime(closeCandle), "LONDON_CLOSE", closeCandle.Close);
+                if (IsInLondonSession(candle.Time))
+                    closeBar = bar;
             }
+
+            var closeCandle = _getCandle(closeBar);
+            ClosePosition(position, closeBar, GetCandleEventTime(closeCandle), "LONDON_CLOSE", closeCandle.Close);
         }
 
         private void LogHistoricalPostEntryContext(ActivePosition position, CumulativeTrade entryTrade)
