@@ -85,12 +85,19 @@ dotnet build -c Release
 
 **Location:** `C:\Users\<User>\AppData\Roaming\ATAS\Logs\`
 
+**Files:**
+- `FabioOrderFlow.log` — log generale compatto
+- `FabioOrderFlow-historical.log` — backfill/study da `RequestForCumulativeTrades`
+- `FabioOrderFlow-live.log` — callback online quando `OnlineMode=Live`
+- `FabioOrderFlow-replay.log` — callback online quando `OnlineMode=Replay`
+
 **Key tags:**
 - `[SESSION_START]` / `[SESSION_END]`
-- `[PROFILE_PREVIEW]`
 - `[MR_SETUP_LONG]` / `[MR_SETUP_SHORT]`
 - `[MR_ENTRY]`
 - `[MR_MFE_UPDATE]` / `[MR_EXIT]`
+- `[DAY_STUDY_CANDIDATE_ENTRY]`
+- `[DAY_STUDY_DYNAMIC_STOP_CANDIDATE]`
 
 **Parsing guide:** [`docs/atas/log-reading.md`](docs/atas/log-reading.md)
 

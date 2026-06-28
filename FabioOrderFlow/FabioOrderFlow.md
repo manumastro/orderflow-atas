@@ -144,15 +144,26 @@ Location:
 
 ```text
 %APPDATA%\ATAS\Logs\FabioOrderFlow.log
-%APPDATA%\ATAS\Logs\FabioOrderFlow-study-historical.log
+%APPDATA%\ATAS\Logs\FabioOrderFlow-historical.log
+%APPDATA%\ATAS\Logs\FabioOrderFlow-live.log
+%APPDATA%\ATAS\Logs\FabioOrderFlow-replay.log
 ```
 
-Il file `FabioOrderFlow-study-historical.log` e' un dataset dedicato per studiare entry alternative, continuation e scale-in Fabio-style sullo storico caricato.
+I log sono separati per sorgente dati osservata:
+
+```text
+FabioOrderFlow.log             log generale compatto
+FabioOrderFlow-historical.log  backfill/study da RequestForCumulativeTrades
+FabioOrderFlow-live.log        callback online in modalita' Live
+FabioOrderFlow-replay.log      callback online quando OnlineMode=Replay
+```
+
+ATAS espone callback live/replay e request storiche, ma non un flag documentato affidabile per distinguere live reale da replay. La distinzione live/replay e' quindi una proprieta' manuale dell'indicatore (`OnlineMode`). Il file historical viene scritto solo durante il backfill/recalculation, non dagli aggiornamenti parziali del replay.
 
 Parser:
 
 ```bash
-python FabioOrderFlow/tools/parse_day_study.py %APPDATA%/ATAS/Logs/FabioOrderFlow-study-historical.log
+python FabioOrderFlow/tools/parse_day_study.py %APPDATA%/ATAS/Logs/FabioOrderFlow-historical.log
 ```
 
 Key tags:
@@ -173,6 +184,16 @@ Key tags:
 [DAY_STUDY_SCALE_IN_SUMMARY]
 [DAY_STUDY_SCALE_IN_CANDIDATE]
 [DAY_STUDY_SCALE_PLAN]
+```
+
+Ogni riga dei nuovi log include prefissi ordinabili:
+
+```text
+[Source=Historical|Live|Replay|General]
+[Seq=N]
+[WriteItaly=...]
+[WriteUtc=...]
+[EventItaly=...] quando disponibile
 ```
 
 `[MR_ENTRY]` include `EntryModel`, `ManagementMode`, `FinalTarget`, `StudyTarget2`, `StudyTrigger`, `TriggerAtEntry` e stop operativo dinamico:

@@ -3,7 +3,7 @@
 
 Usage:
   python FabioOrderFlow/tools/parse_day_study.py \
-    %APPDATA%/ATAS/Logs/FabioOrderFlow-study-historical.log
+    %APPDATA%/ATAS/Logs/FabioOrderFlow-historical.log
 """
 
 from __future__ import annotations
@@ -131,7 +131,7 @@ def print_stats(title: str, stats_by_key: dict[str, Stats]) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Parse FabioOrderFlow day-study logs")
-    parser.add_argument("log", type=Path, help="Path to FabioOrderFlow-study-YYYY-MM-DD.log")
+    parser.add_argument("log", type=Path, help="Path to FabioOrderFlow-historical.log")
     parser.add_argument("--top", type=int, default=15, help="Top candidates by PnLT2")
     args = parser.parse_args()
 
@@ -153,11 +153,10 @@ def main() -> int:
 
     with args.log.open("r", encoding="utf-8", errors="replace") as handle:
         for line in handle:
-            tag_match = re.search(r"\[([^\]]+)\]", line)
-            if not tag_match:
+            tags = re.findall(r"\[([^\]]+)\]", line)
+            tag = next((item for item in tags if "=" not in item), "")
+            if not tag:
                 continue
-
-            tag = tag_match.group(1)
             counts[tag] += 1
 
             if tag == "DAY_STUDY_SCALE_IN_CANDIDATE":

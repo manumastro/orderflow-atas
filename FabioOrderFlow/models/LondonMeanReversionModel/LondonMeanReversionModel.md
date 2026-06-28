@@ -208,9 +208,11 @@ Timeout entry           nessuna entry operativa base se il big trade arriva oltr
 Day-study dedicato per analisi manuale/agent:
 
 ```text
-%APPDATA%\ATAS\Logs\FabioOrderFlow-study-historical.log
+%APPDATA%\ATAS\Logs\FabioOrderFlow-historical.log
 
-[DAY_STUDY_BAR]             ogni barra London dello storico caricato con OHLC, volume, bid/ask/delta, POC/VAH/VAL preview e top price levels
+Ogni riga historical include `Source=Historical`, `Seq`, `WriteItaly/WriteUtc` e, quando disponibile, `EventItaly/EventLondon/EventUtc`. `Seq` mantiene l'ordine di scrittura; `EventItaly` mantiene l'ordine di mercato.
+
+[DAY_STUDY_BAR]             ogni barra London dello storico caricato con OHLC finale, volume, bid/ask/delta, POC/VAH/VAL preview e top price levels
 [DAY_STUDY_SETUP]           ogni setup creato nello storico caricato
 [DAY_STUDY_TRIGGER]         follow-through o POC reclaim/loss nello storico caricato
 [DAY_STUDY_BIG_TRADE]       ogni cumulative trade >= MinAggressionVolume nella London storica, con relazione a profilo/setup
@@ -228,6 +230,7 @@ Day-study dedicato per analisi manuale/agent:
 ```text
 FootprintCumulativeTradeLive
 FootprintCumulativeTradeHistorical
+FootprintCumulativeTradeHistoricalIntrabar
 ```
 
 `StudyTrigger` descrive il trigger finale osservato sul setup. `TriggerAtEntry` descrive il trigger noto al timestamp dell'entry, quindi e' il campo da usare per studi causali.
@@ -265,6 +268,10 @@ VALUE_REENTRY_TARGET2_SCALE_IN_EXPAND25
 Current operative profile:
 
 ```text
+Historical log: FabioOrderFlow-historical.log
+Live log: FabioOrderFlow-live.log
+Replay log: FabioOrderFlow-replay.log
+Replay/live split: manual OnlineMode property
 Base management: VALUE_REENTRY_TARGET2
 Scale management: VALUE_REENTRY_TARGET2_SCALE_IN_EXPAND25
 Base max age after rejection: 20 minutes
