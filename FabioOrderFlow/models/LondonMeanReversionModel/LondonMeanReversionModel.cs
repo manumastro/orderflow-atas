@@ -233,6 +233,7 @@ namespace FabioOrderFlow
                 UpdateHistoricalPositionsWithTrade(trade);
             }
 
+            UpdateOpenHistoricalPositionsWithCompletedBars();
             CloseOpenHistoricalPositionsAtSessionEnd();
             LogMissedOpportunities(allTrades);
         }
@@ -910,6 +911,30 @@ namespace FabioOrderFlow
 
                 if (high >= position.StopPrice && CanStopTrigger(position, bar))
                     ClosePosition(position, bar, trade.Time, position.StopProtectedAfterTarget1 ? "PROTECTED_STOP_HIT" : "STOP_HIT", position.StopPrice);
+            }
+        }
+
+        private void UpdateOpenHistoricalPositionsWithCompletedBars()
+        {
+            foreach (var position in _activePositions.Where(p => !p.Closed && IsHistoricalCumulativeTradePosition(p)).ToList())
+            {
+                var entryDay = DateOnly.FromDateTime(MarketTimeZones.ToItaly(position.EntryTimeUtc));
+                for (var bar = position.EntryBar + 1; bar < _currentBar; bar++)
+                {
+                    if (position.Closed)
+                        break;
+
+                    var candle = _getCandle(bar);
+                    var eventTime = GetCandleEventTime(candle);
+                    if (DateOnly.FromDateTime(MarketTimeZones.ToItaly(eventTime)) != entryDay)
+                        break;
+
+                    if (!IsInLondonSession(candle.Time))
+                        continue;
+
+                    UpdatePositionTracking(position, bar, candle);
+                    CheckPositionExit(position, bar, candle);
+                }
             }
         }
 
