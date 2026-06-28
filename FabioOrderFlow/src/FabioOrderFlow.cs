@@ -18,6 +18,7 @@ public class FabioOrderFlow : Indicator
     private static readonly bool DetailedDebugLogs = false;
     private readonly object _logSync = new();
     private readonly string _logPath;
+    private readonly string _historicalLogPath;
     private readonly string _liveLogPath;
     private readonly string _replayLogPath;
     private long _logSequence;
@@ -39,15 +40,18 @@ public class FabioOrderFlow : Indicator
 
         Directory.CreateDirectory(logDirectory);
         _logPath = Path.Combine(logDirectory, "FabioOrderFlow.log");
+        _historicalLogPath = Path.Combine(logDirectory, "FabioOrderFlow-historical.log");
         _liveLogPath = Path.Combine(logDirectory, "FabioOrderFlow-live.log");
         _replayLogPath = Path.Combine(logDirectory, "FabioOrderFlow-replay.log");
 
+        ResetAtasLogs(logDirectory);
         ResetLogFile(_logPath);
+        ResetLogFile(_historicalLogPath);
         ResetLogFile(_liveLogPath);
         ResetLogFile(_replayLogPath);
 
         Log("[INIT] FabioOrderFlow indicator created");
-        Log($"[LOGS] General={_logPath}, Historical={Path.Combine(logDirectory, "FabioOrderFlow-historical.log")}, Live={_liveLogPath}, Replay={_replayLogPath}");
+        Log($"[LOGS] General={_logPath}, Historical={_historicalLogPath}, Live={_liveLogPath}, Replay={_replayLogPath}");
     }
 
     protected override void OnCalculate(int bar, decimal value)
@@ -169,6 +173,18 @@ public class FabioOrderFlow : Indicator
         catch (Exception ex)
         {
             Log($"[CHART_SESSIONS] Error reading trading sessions: {ex.Message}");
+        }
+    }
+
+    private static void ResetAtasLogs(string logDirectory)
+    {
+        try
+        {
+            foreach (var path in Directory.EnumerateFiles(logDirectory, "*.log"))
+                ResetLogFile(path);
+        }
+        catch
+        {
         }
     }
 
