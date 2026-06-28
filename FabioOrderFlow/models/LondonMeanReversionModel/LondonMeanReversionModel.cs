@@ -33,6 +33,7 @@ namespace FabioOrderFlow
         private const decimal DynamicStopMaxValueAreaRiskPct = 0.50m;
         private const decimal ScaleInMinExpansionAfterRiskFreePct = 0.25m;
         private const int MaxScaleInsPerSetup = 2;
+        private const bool EnableHistoricalIntrabarFromCumulativeTrades = true;
 
         private int _currentBar;
         private readonly List<BalanceSetup> _activeSetups = new();
@@ -78,6 +79,7 @@ namespace FabioOrderFlow
             public DateTime StudyPocTriggerTimeUtc { get; set; }
             public int StudyTriggerBar { get; set; } = -1;
             public DateTime StudyTriggerTimeUtc { get; set; }
+            public string SetupSource { get; set; } = "BarClose";
         }
 
         public class ActivePosition
@@ -184,6 +186,9 @@ namespace FabioOrderFlow
                 .ToList();
 
             _log($"[MR_HISTORICAL_TRADES] Count={trades.Count}, MinAggressionVolume={MinAggressionVolume:F0}, ActiveSetups={_activeSetups.Count(s => !s.AggressionConfirmed && !s.Expired)}", false);
+
+            if (EnableHistoricalIntrabarFromCumulativeTrades)
+                AddHistoricalIntrabarSetups(allTrades);
 
             foreach (var trade in trades)
                 ProcessAggressionTrade(trade, "FootprintCumulativeTradeHistorical", true);
@@ -297,15 +302,141 @@ namespace FabioOrderFlow
             return true;
         }
 
-        private void AddSetup(BalanceSetup setup, string tag)
+        private void AddSetup(BalanceSetup setup, string tag, bool prepend = false)
         {
-            var key = $"{setup.Direction}:{setup.RejectionBar}:{setup.BreakoutPrice:F2}:{setup.POC:F2}";
+            var key = setup.SetupSource == "HistoricalIntrabar"
+                ? $"{setup.SetupSource}:{setup.Direction}:{setup.RejectionBar}:{setup.BreakoutPrice:F2}:{setup.POC:F2}:{setup.RejectionTimeUtc.Ticks}"
+                : $"{setup.SetupSource}:{setup.Direction}:{setup.RejectionBar}:{setup.BreakoutPrice:F2}:{setup.POC:F2}";
             if (!_setupKeys.Add(key))
                 return;
 
-            _activeSetups.Add(setup);
-            _log($"[{tag}] SetupId={setup.SetupId}, Bar={setup.RejectionBar}, {FormatTime(setup.RejectionTimeUtc)}, BreakoutPrice={setup.BreakoutPrice:F2}, RejectionClose={setup.RejectionClose:F2}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}, Stop={setup.StopPrice:F2}, TargetPOC={setup.TargetPrice:F2}", IsHistoricalBar(setup.RejectionBar));
-            StudyLog($"[DAY_STUDY_SETUP] SetupId={setup.SetupId}, Tag={tag}, Direction={setup.Direction}, Bar={setup.RejectionBar}, {FormatTime(setup.RejectionTimeUtc)}, BreakoutPrice={setup.BreakoutPrice:F2}, RejectionClose={setup.RejectionClose:F2}, RejectionHigh={setup.RejectionHigh:F2}, RejectionLow={setup.RejectionLow:F2}, RejectionDelta={setup.RejectionDelta:F2}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}, Stop={setup.StopPrice:F2}, TargetPOC={setup.TargetPrice:F2}", setup.RejectionTimeUtc);
+            if (prepend)
+                _activeSetups.Insert(0, setup);
+            else
+                _activeSetups.Add(setup);
+
+            _log($"[{tag}] SetupId={setup.SetupId}, Source={setup.SetupSource}, Bar={setup.RejectionBar}, {FormatTime(setup.RejectionTimeUtc)}, BreakoutPrice={setup.BreakoutPrice:F2}, RejectionClose={setup.RejectionClose:F2}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}, Stop={setup.StopPrice:F2}, TargetPOC={setup.TargetPrice:F2}", IsHistoricalBar(setup.RejectionBar));
+            StudyLog($"[DAY_STUDY_SETUP] SetupId={setup.SetupId}, Source={setup.SetupSource}, Tag={tag}, Direction={setup.Direction}, Bar={setup.RejectionBar}, {FormatTime(setup.RejectionTimeUtc)}, BreakoutPrice={setup.BreakoutPrice:F2}, RejectionClose={setup.RejectionClose:F2}, RejectionHigh={setup.RejectionHigh:F2}, RejectionLow={setup.RejectionLow:F2}, RejectionDelta={setup.RejectionDelta:F2}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}, Stop={setup.StopPrice:F2}, TargetPOC={setup.TargetPrice:F2}", setup.RejectionTimeUtc);
+        }
+
+        private void AddHistoricalIntrabarSetups(List<CumulativeTrade> allTrades)
+        {
+            var barCloseSetups = _activeSetups
+                .Where(s => s.SetupSource == "BarClose")
+                .OrderBy(s => s.RejectionTimeUtc)
+                .ToList();
+
+            foreach (var setup in barCloseSetups)
+            {
+                var candle = _getCandle(setup.RejectionBar);
+                var barEnd = GetCandleEventTime(candle);
+                var trades = allTrades
+                    .Where(t => t.Time >= candle.Time && t.Time <= barEnd)
+                    .OrderBy(t => t.Time)
+                    .ToList();
+
+                if (trades.Count == 0)
+                    continue;
+
+                var syntheticHigh = candle.Open;
+                var syntheticLow = candle.Open;
+
+                foreach (var trade in trades)
+                {
+                    syntheticHigh = Math.Max(syntheticHigh, Math.Max(trade.FirstPrice, trade.Lastprice));
+                    syntheticLow = Math.Min(syntheticLow, Math.Min(trade.FirstPrice, trade.Lastprice));
+                    var syntheticClose = trade.Lastprice;
+
+                    if (!TryCreateHistoricalIntrabarSetup(setup, trade.Time, syntheticHigh, syntheticLow, syntheticClose, out var intrabarSetup) || intrabarSetup == null)
+                        continue;
+
+                    AddSetup(intrabarSetup, "MR_HISTORICAL_INTRABAR_SETUP", prepend: true);
+                    break;
+                }
+            }
+        }
+
+        private bool TryCreateHistoricalIntrabarSetup(BalanceSetup source, DateTime eventTimeUtc, decimal syntheticHigh, decimal syntheticLow, decimal syntheticClose, out BalanceSetup? setup)
+        {
+            setup = null;
+
+            if (eventTimeUtc >= source.RejectionTimeUtc)
+                return false;
+
+            if (source.Direction == "Short")
+            {
+                if (syntheticHigh <= source.VAH || syntheticClose >= source.VAH)
+                    return false;
+
+                var rejectionDistance = syntheticHigh - syntheticClose;
+                if (rejectionDistance < RejectionThresholdTicks * _tickSize)
+                    return false;
+
+                setup = new BalanceSetup
+                {
+                    Direction = source.Direction,
+                    POC = source.POC,
+                    VAH = source.VAH,
+                    VAL = source.VAL,
+                    BreakoutBar = source.BreakoutBar,
+                    BreakoutTimeUtc = eventTimeUtc,
+                    BreakoutPrice = syntheticHigh,
+                    RejectionBar = source.RejectionBar,
+                    RejectionTimeUtc = eventTimeUtc,
+                    RejectionClose = syntheticClose,
+                    RejectionHigh = syntheticHigh,
+                    RejectionLow = syntheticLow,
+                    RejectionDelta = rejectionDistance,
+                    StopPrice = syntheticHigh + StopOffsetTicks * _tickSize,
+                    TargetPrice = source.POC,
+                    StudyFollowThroughConfirmed = source.StudyFollowThroughConfirmed,
+                    StudyFollowThroughBar = source.StudyFollowThroughBar,
+                    StudyFollowThroughTimeUtc = source.StudyFollowThroughTimeUtc,
+                    StudyPocTriggerConfirmed = source.StudyPocTriggerConfirmed,
+                    StudyPocTriggerBar = source.StudyPocTriggerBar,
+                    StudyPocTriggerTimeUtc = source.StudyPocTriggerTimeUtc,
+                    StudyTriggerBar = source.StudyTriggerBar,
+                    StudyTriggerTimeUtc = source.StudyTriggerTimeUtc,
+                    SetupSource = "HistoricalIntrabar"
+                };
+                return true;
+            }
+
+            if (syntheticLow >= source.VAL || syntheticClose <= source.VAL)
+                return false;
+
+            var lowRejectionDistance = syntheticClose - syntheticLow;
+            if (lowRejectionDistance < RejectionThresholdTicks * _tickSize)
+                return false;
+
+            setup = new BalanceSetup
+            {
+                Direction = source.Direction,
+                POC = source.POC,
+                VAH = source.VAH,
+                VAL = source.VAL,
+                BreakoutBar = source.BreakoutBar,
+                BreakoutTimeUtc = eventTimeUtc,
+                BreakoutPrice = syntheticLow,
+                RejectionBar = source.RejectionBar,
+                RejectionTimeUtc = eventTimeUtc,
+                RejectionClose = syntheticClose,
+                RejectionHigh = syntheticHigh,
+                RejectionLow = syntheticLow,
+                RejectionDelta = lowRejectionDistance,
+                StopPrice = syntheticLow - StopOffsetTicks * _tickSize,
+                TargetPrice = source.POC,
+                StudyFollowThroughConfirmed = source.StudyFollowThroughConfirmed,
+                StudyFollowThroughBar = source.StudyFollowThroughBar,
+                StudyFollowThroughTimeUtc = source.StudyFollowThroughTimeUtc,
+                StudyPocTriggerConfirmed = source.StudyPocTriggerConfirmed,
+                StudyPocTriggerBar = source.StudyPocTriggerBar,
+                StudyPocTriggerTimeUtc = source.StudyPocTriggerTimeUtc,
+                StudyTriggerBar = source.StudyTriggerBar,
+                StudyTriggerTimeUtc = source.StudyTriggerTimeUtc,
+                SetupSource = "HistoricalIntrabar"
+            };
+            return true;
         }
 
         private void ProcessAggressionTrade(CumulativeTrade trade, string entryModel, bool isHistorical)
@@ -330,8 +461,30 @@ namespace FabioOrderFlow
                     continue;
 
                 setup.AggressionConfirmed = true;
-                CreatePosition(setup, trade, entryModel, isHistorical);
+                var resolvedEntryModel = setup.SetupSource == "HistoricalIntrabar" && entryModel == "FootprintCumulativeTradeHistorical"
+                    ? "FootprintCumulativeTradeHistoricalIntrabar"
+                    : entryModel;
+                CreatePosition(setup, trade, resolvedEntryModel, isHistorical);
+                ExpireEquivalentBaseSetups(setup);
                 break;
+            }
+        }
+
+        private void ExpireEquivalentBaseSetups(BalanceSetup confirmedSetup)
+        {
+            foreach (var setup in _activeSetups.Where(s => s.SetupId != confirmedSetup.SetupId && !s.AggressionConfirmed && !s.Expired))
+            {
+                if (setup.Direction != confirmedSetup.Direction)
+                    continue;
+
+                if (setup.RejectionBar != confirmedSetup.RejectionBar)
+                    continue;
+
+                if (setup.POC != confirmedSetup.POC || setup.VAH != confirmedSetup.VAH || setup.VAL != confirmedSetup.VAL)
+                    continue;
+
+                setup.Expired = true;
+                StudyLog($"[DAY_STUDY_EQUIVALENT_SETUP_EXPIRED] SetupId={setup.SetupId}, KeptSetupId={confirmedSetup.SetupId}, Source={setup.SetupSource}, KeptSource={confirmedSetup.SetupSource}, Direction={setup.Direction}, Bar={setup.RejectionBar}, {FormatTime(setup.RejectionTimeUtc)}", setup.RejectionTimeUtc);
             }
         }
 
