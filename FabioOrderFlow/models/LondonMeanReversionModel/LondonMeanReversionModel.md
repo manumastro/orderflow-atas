@@ -200,7 +200,7 @@ Le soglie in tick usano `InstrumentInfo.TickSize`, quindi stop e rejection sono 
 [MR_ENTRY]               entry value re-entry confermata da big trade live/storico, include ManagementMode, FinalTarget, StudyTrigger e RR
 [MR_MFE_UPDATE]          nuova massima escursione favorevole
 [MR_TARGET1_HIT]         POC raggiunto; stop protetto
-[MR_EXIT]                uscita operativa a Target2, stop, protected stop o London close
+[MR_EXIT]                uscita operativa a Target2, stop, protected stop o London close. Le posizioni storiche da cumulative trades vengono gestite con cumulative trades successivi all'entry, non con l'intero high/low della candela di entry
 [MR_STUDY_TRIGGER]       follow-through o POC reclaim/loss osservato dopo rejection
 [MR_MISSED_OPPORTUNITY]  setup senza entry valida, con motivo esplicito
 [MR_STUDY_CONTINUATION_ENTRY] big trade oltre POC dopo reclaim/loss, solo studio continuation
@@ -219,6 +219,9 @@ Ogni riga historical include `Source=Historical`, `Seq`, `WriteItaly/WriteUtc` e
 [DAY_STUDY_SETUP]           ogni setup creato nello storico caricato
 [DAY_STUDY_TRIGGER]         follow-through o POC reclaim/loss nello storico caricato
 [DAY_STUDY_BIG_TRADE]       ogni cumulative trade >= MinAggressionVolume nella London storica, con relazione a profilo/setup
+[DAY_STUDY_POTENTIAL_PREVIEW_REJECTION] barre London che rigettano preview VAH/VAL anche se non promosse a setup operativo
+[DAY_STUDY_SETUP_CANDIDATE_SUMMARY] riepilogo per setup: bolle in finestra, direzione, entry zone, RR, stale, prima opportunita' valida
+[DAY_STUDY_HISTORICAL_POSITION_MODE] conferma che una posizione storica viene gestita trade-by-trade dopo entry
 [DAY_STUDY_ACTUAL_ENTRY]    entry operative effettivamente prese
 [DAY_STUDY_SETUP_SUMMARY]   riepilogo setup e numero candidati alternativi
 [DAY_STUDY_CANDIDATE_ENTRY] candidate entry alternative con risk/reward, MFE/MAE, outcome POC e Target2; include `TriggerAtEntry` per distinguere informazione live da trigger finale post-entry
