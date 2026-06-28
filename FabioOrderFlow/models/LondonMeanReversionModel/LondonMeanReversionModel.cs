@@ -210,7 +210,7 @@ namespace FabioOrderFlow
             _dayStudyCompleted = false;
             ResetStudyLog();
             ResetDailyHistoricalDebugLogs();
-            LogStudyCumulativeTrades(allTrades);
+            LogExistingHistoricalSetups();
 
             var trades = allTrades
                 .Where(t => t.Volume >= MinAggressionVolume)
@@ -220,6 +220,8 @@ namespace FabioOrderFlow
 
             if (EnableHistoricalIntrabarFromCumulativeTrades)
                 AddHistoricalIntrabarSetups(allTrades);
+
+            LogStudyCumulativeTrades(allTrades);
 
             foreach (var trade in trades)
                 ProcessAggressionTrade(trade, "FootprintCumulativeTradeHistorical", true);
@@ -359,6 +361,16 @@ namespace FabioOrderFlow
             _log($"[{tag}] SetupId={setup.SetupId}, Source={setup.SetupSource}, Bar={setup.RejectionBar}, {FormatTime(setup.RejectionTimeUtc)}, BreakoutPrice={setup.BreakoutPrice:F2}, RejectionClose={setup.RejectionClose:F2}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}, Stop={setup.StopPrice:F2}, TargetPOC={setup.TargetPrice:F2}", IsHistoricalBar(setup.RejectionBar));
             if (setup.SetupSource == "HistoricalIntrabar" || IsHistoricalBar(setup.RejectionBar))
                 StudyLog($"[DAY_STUDY_SETUP] SetupId={setup.SetupId}, Source={setup.SetupSource}, Tag={tag}, Direction={setup.Direction}, Bar={setup.RejectionBar}, {FormatTime(setup.RejectionTimeUtc)}, BreakoutPrice={setup.BreakoutPrice:F2}, RejectionClose={setup.RejectionClose:F2}, RejectionHigh={setup.RejectionHigh:F2}, RejectionLow={setup.RejectionLow:F2}, RejectionDelta={setup.RejectionDelta:F2}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}, Stop={setup.StopPrice:F2}, TargetPOC={setup.TargetPrice:F2}", setup.RejectionTimeUtc);
+        }
+
+        private void LogExistingHistoricalSetups()
+        {
+            foreach (var setup in _activeSetups
+                .Where(s => s.SetupSource != "HistoricalIntrabar" && IsHistoricalBar(s.RejectionBar))
+                .OrderBy(s => s.RejectionTimeUtc))
+            {
+                StudyLog($"[DAY_STUDY_SETUP] SetupId={setup.SetupId}, Source={setup.SetupSource}, Tag=MR_SETUP_RESTORED_AFTER_DAILY_RESET, Direction={setup.Direction}, Bar={setup.RejectionBar}, {FormatTime(setup.RejectionTimeUtc)}, BreakoutPrice={setup.BreakoutPrice:F2}, RejectionClose={setup.RejectionClose:F2}, RejectionHigh={setup.RejectionHigh:F2}, RejectionLow={setup.RejectionLow:F2}, RejectionDelta={setup.RejectionDelta:F2}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}, Stop={setup.StopPrice:F2}, TargetPOC={setup.TargetPrice:F2}, AggressionConfirmed={setup.AggressionConfirmed}, Expired={setup.Expired}", setup.RejectionTimeUtc);
+            }
         }
 
         private void AddHistoricalIntrabarSetups(List<CumulativeTrade> allTrades)
