@@ -225,9 +225,11 @@ namespace FabioOrderFlow
             LogStudyCumulativeTrades(allTrades);
             LogDailySetupCandidateSummaries(trades);
 
-            foreach (var trade in trades)
+            foreach (var trade in allTrades)
             {
-                ProcessAggressionTrade(trade, "FootprintCumulativeTradeHistorical", true);
+                if (trade.Volume >= MinAggressionVolume)
+                    ProcessAggressionTrade(trade, "FootprintCumulativeTradeHistorical", true);
+
                 UpdateHistoricalPositionsWithTrade(trade);
             }
 
@@ -941,7 +943,7 @@ namespace FabioOrderFlow
 
         private void LogHistoricalPostEntryContext(ActivePosition position, CumulativeTrade entryTrade)
         {
-            DailyHistoricalLog($"[DAY_STUDY_HISTORICAL_POSITION_MODE] SetupId={position.SetupId}, EntryModel={position.EntryModel}, {FormatTime(entryTrade.Time)}, Mode=CumulativeTradePostEntry, EntryBar={position.EntryBar}, EntryPrice={position.EntryPrice:F2}, Stop={position.StopPrice:F2}, Target1POC={position.Target1Price:F2}, Target2={position.Target2Price:F2}", entryTrade.Time);
+            DailyHistoricalLog($"[DAY_STUDY_HISTORICAL_POSITION_MODE] SetupId={position.SetupId}, EntryModel={position.EntryModel}, {FormatTime(entryTrade.Time)}, Mode=AllCumulativeTradesPostEntry, EntryBar={position.EntryBar}, EntryPrice={position.EntryPrice:F2}, Stop={position.StopPrice:F2}, Target1POC={position.Target1Price:F2}, Target2={position.Target2Price:F2}", entryTrade.Time);
         }
 
         private void UpdateActivePositions(int bar, IndicatorCandle candle)
