@@ -224,10 +224,8 @@ Ogni riga historical include `Source=Historical`, `Seq`, `WriteItaly/WriteUtc` e
 [DAY_STUDY_PREVIEW_REJECTION_OUTCOME] studio non operativo delle preview rejection non promosse: prima bolla valida e outcome protetto con cumulative trades post-entry
 [DAY_STUDY_PREVIEW_CONTINUATION_STUDY] studio non operativo della continuation post-POC delle preview rejection: protected exit vs hold-to-target2 e bolle post-POC
 [DAY_STUDY_DELAYED_RECLAIM_SETUP] studio non operativo dei nuovi setup delayed reclaim: escursione fuori value, close di rientro, prima bolla coerente e outcome protetto
-[DAY_STUDY_DELAYED_RECLAIM_CONFIRMATION] varianti filtrate del delayed reclaim: baseline, tenuta barra successiva, pressione 15m e combinazione tenuta+pressione
 [DAY_STUDY_DELAYED_RECLAIM_NARRATIVE] metriche non operative sul cambio di controllo: pressione pre/post reclaim, lato della bolla massima, accettazione inside value e candidato dopo shift di pressione
-[DAY_STUDY_STOPPED_SETUP_REALERT] studio non operativo dopo stop: re-alert same direction e opposite direction con primo big trade successivo
-[DAY_STUDY_STOPPED_SETUP_REARM_RULES] studio non operativo dopo stop: verifica se lo stesso setup avrebbe ripreso con regole originali, freshness dallo stop, o continuation zone
+[DAY_STUDY_DELAYED_RECLAIM_ACCEPTED] subset narrative accepted: accettazione inside value, PostNetVolume positivo, bolla massima coerente e candidato narrative presente
 [DAY_STUDY_SETUP_CANDIDATE_SUMMARY] riepilogo per setup: bolle in finestra, direzione, entry zone, RR, stale, prima opportunita' valida
 [DAY_STUDY_HISTORICAL_POSITION_MODE] conferma che una posizione storica viene gestita trade-by-trade dopo entry
 [DAY_STUDY_ACTUAL_ENTRY]    entry operative effettivamente prese

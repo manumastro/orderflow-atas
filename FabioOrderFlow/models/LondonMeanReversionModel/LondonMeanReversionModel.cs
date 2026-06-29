@@ -145,15 +145,6 @@ namespace FabioOrderFlow
             public string TopLevels { get; set; } = string.Empty;
         }
 
-        private readonly record struct DelayedReclaimPressureStats(
-            int SameDirectionTrades,
-            decimal SameDirectionVolume,
-            decimal MaxSameDirectionVolume,
-            int OppositeDirectionTrades,
-            decimal OppositeDirectionVolume,
-            decimal MaxOppositeDirectionVolume,
-            decimal PressureRatio);
-
         private readonly record struct DelayedReclaimNarrativeStats(
             int SameDirectionTrades,
             decimal SameDirectionVolume,
@@ -1197,15 +1188,9 @@ namespace FabioOrderFlow
                 StudyLog($"[DAY_STUDY_ACTUAL_EXIT] SetupId={position.SetupId}, EntryModel={position.EntryModel}, Direction={position.Direction}, ManagementMode={position.ManagementMode}, StudyTrigger={position.StudyTrigger}, Bar={bar}, {FormatTime(eventTimeUtc)}, Entry={position.EntryPrice:F2}, Exit={exitPrice:F2}, ExitReason={exitReason}, PnL={pnl:F2}, MFE={position.MFE:F2}, MAE={position.MAE:F2}, RMultiple={rMultiple:F2}R, Target1Hit={position.Target1Hit}, Target1POC={position.Target1Price:F2}, Target2={position.Target2Price:F2}, StopProtected={position.StopProtectedAfterTarget1}", eventTimeUtc);
             }
 
-            if (position.EntryModel.Contains("Historical", StringComparison.Ordinal) && exitReason == "STOP_HIT")
-                LogStoppedSetupRealertStudy(position, eventTimeUtc);
-
             var setup = _activeSetups.FirstOrDefault(s => s.SetupId == position.SetupId);
             if (setup == null)
                 return;
-
-            if (position.EntryModel.Contains("Historical", StringComparison.Ordinal) && exitReason == "STOP_HIT")
-                LogStoppedSetupRearmRulesStudy(setup, position, eventTimeUtc);
 
             _completedTrades.Add(new TradeRecord
             {
@@ -1433,22 +1418,6 @@ namespace FabioOrderFlow
 
             var activeSetupState = GetActiveSetupDiagnostics(snapshot.EventTimeUtc);
             StudyLog($"[DAY_STUDY_DELAYED_RECLAIM_SETUP] Bar={snapshot.Bar}, Direction={direction}, {FormatTime(snapshot.EventTimeUtc)}, PreviewPOC={snapshot.PreviewPOC:F2}, PreviewVAH={snapshot.PreviewVAH:F2}, PreviewVAL={snapshot.PreviewVAL:F2}, Close={snapshot.Close:F2}, Delta={snapshot.Delta:F0}, ExcursionLow={excursionLow:F2}, ExcursionHigh={excursionHigh:F2}, Stop={stop:F2}, ActiveSetupDiagnostics={activeSetupState}, CandidateCount={candidates.Count}, Valid={validCandidates.Count}, FirstValid={firstValidText}, Outcome={outcomeText}", snapshot.EventTimeUtc);
-            LogDelayedReclaimConfirmationStudy(snapshot, setup, validCandidates);
-        }
-
-        private void LogDelayedReclaimConfirmationStudy(HistoricalBarSnapshot snapshot, BalanceSetup setup, List<CumulativeTrade> validCandidates)
-        {
-            var nextBarHolds = IsDelayedReclaimHeldByNextBar(snapshot, setup.Direction);
-            var pressure = GetDelayedReclaimPressureStats(snapshot.EventTimeUtc, setup.Direction, minutes: 15);
-            var pressureConfirmed = pressure.SameDirectionTrades >= 3
-                && pressure.SameDirectionVolume >= 50m
-                && pressure.MaxSameDirectionVolume >= 20m
-                && pressure.SameDirectionVolume >= pressure.OppositeDirectionVolume * 0.75m;
-
-            LogDelayedReclaimConfirmationVariant(snapshot, setup, "BASELINE_FIRST", isEligible: true, validCandidates);
-            LogDelayedReclaimConfirmationVariant(snapshot, setup, "HOLD_NEXT_BAR", nextBarHolds, validCandidates);
-            LogDelayedReclaimConfirmationVariant(snapshot, setup, "PRESSURE_CONFIRMED", pressureConfirmed, validCandidates);
-            LogDelayedReclaimConfirmationVariant(snapshot, setup, "HOLD_AND_PRESSURE", nextBarHolds && pressureConfirmed, validCandidates);
             LogDelayedReclaimNarrativeStudy(snapshot, setup, validCandidates);
         }
 
@@ -1469,24 +1438,15 @@ namespace FabioOrderFlow
                 outcomeText = $"ExitReason={outcome.ExitReason}:PnL={outcome.Pnl:F2}:R={outcome.RMultiple:F2}:Target1Hit={outcome.Target1Hit}";
             }
 
-            StudyLog($"[DAY_STUDY_DELAYED_RECLAIM_NARRATIVE] Bar={snapshot.Bar}, Direction={setup.Direction}, {FormatTime(snapshot.EventTimeUtc)}, PreviewPOC={setup.POC:F2}, PreviewVAH={setup.VAH:F2}, PreviewVAL={setup.VAL:F2}, NextBarHolds={nextBarHolds}, AcceptedBarsNext3={acceptedInsideValue}, PreSameVolume15m={pre.SameDirectionVolume:F0}, PreOppositeVolume15m={pre.OppositeDirectionVolume:F0}, PreNetVolume15m={pre.NetVolume:F0}, PostSameVolume15m={post.SameDirectionVolume:F0}, PostOppositeVolume15m={post.OppositeDirectionVolume:F0}, PostNetVolume15m={post.NetVolume:F0}, PressureShift={post.PressureShift - pre.PressureShift:F2}, PostMaxBubbleSide={post.MaxBubbleSide}, PostMaxBubbleVolume={post.MaxBubbleVolume:F0}, Valid={validCandidates.Count}, NarrativeCandidate={candidateText}, Outcome={outcomeText}", snapshot.EventTimeUtc);
-        }
+            var narrativeAccepted = acceptedInsideValue >= 2
+                && post.NetVolume > 0
+                && post.MaxBubbleSide == "SAME"
+                && pressureCandidate != null;
 
-        private void LogDelayedReclaimConfirmationVariant(HistoricalBarSnapshot snapshot, BalanceSetup setup, string variant, bool isEligible, List<CumulativeTrade> validCandidates)
-        {
-            var pressure = GetDelayedReclaimPressureStats(snapshot.EventTimeUtc, setup.Direction, minutes: 15);
-            var firstValid = isEligible ? validCandidates.FirstOrDefault() : null;
-            var outcomeText = "NA";
-            var firstValidText = "NONE";
-            if (firstValid != null)
-            {
-                var stop = GetOperationalStopPrice(setup, firstValid.Lastprice);
-                var outcome = EvaluateProtectedTarget2OutcomeFromTrades(setup.Direction, firstValid.Lastprice, stop, setup.TargetPrice, GetStudyTarget2(setup), firstValid.Time);
-                outcomeText = $"ExitReason={outcome.ExitReason}:PnL={outcome.Pnl:F2}:R={outcome.RMultiple:F2}:Target1Hit={outcome.Target1Hit}";
-                firstValidText = $"{FormatTime(firstValid.Time)}:Price={firstValid.Lastprice:F2}:Volume={firstValid.Volume:F0}:RR={GetRewardRiskToTarget2(setup, firstValid.Lastprice):F2}:Age={(firstValid.Time - snapshot.EventTimeUtc).TotalSeconds:F1}s";
-            }
+            StudyLog($"[DAY_STUDY_DELAYED_RECLAIM_NARRATIVE] Bar={snapshot.Bar}, Direction={setup.Direction}, {FormatTime(snapshot.EventTimeUtc)}, PreviewPOC={setup.POC:F2}, PreviewVAH={setup.VAH:F2}, PreviewVAL={setup.VAL:F2}, NextBarHolds={nextBarHolds}, AcceptedBarsNext3={acceptedInsideValue}, PreSameVolume15m={pre.SameDirectionVolume:F0}, PreOppositeVolume15m={pre.OppositeDirectionVolume:F0}, PreNetVolume15m={pre.NetVolume:F0}, PostSameVolume15m={post.SameDirectionVolume:F0}, PostOppositeVolume15m={post.OppositeDirectionVolume:F0}, PostNetVolume15m={post.NetVolume:F0}, PressureShift={post.PressureShift - pre.PressureShift:F2}, PostMaxBubbleSide={post.MaxBubbleSide}, PostMaxBubbleVolume={post.MaxBubbleVolume:F0}, NarrativeAccepted={narrativeAccepted}, Valid={validCandidates.Count}, NarrativeCandidate={candidateText}, Outcome={outcomeText}", snapshot.EventTimeUtc);
 
-            StudyLog($"[DAY_STUDY_DELAYED_RECLAIM_CONFIRMATION] Variant={variant}, Eligible={isEligible}, Bar={snapshot.Bar}, Direction={setup.Direction}, {FormatTime(snapshot.EventTimeUtc)}, PreviewPOC={setup.POC:F2}, PreviewVAH={setup.VAH:F2}, PreviewVAL={setup.VAL:F2}, NextBarHolds={IsDelayedReclaimHeldByNextBar(snapshot, setup.Direction)}, SameDirectionTrades15m={pressure.SameDirectionTrades}, SameDirectionVolume15m={pressure.SameDirectionVolume:F0}, MaxSameDirectionVolume15m={pressure.MaxSameDirectionVolume:F0}, OppositeDirectionTrades15m={pressure.OppositeDirectionTrades}, OppositeDirectionVolume15m={pressure.OppositeDirectionVolume:F0}, MaxOppositeDirectionVolume15m={pressure.MaxOppositeDirectionVolume:F0}, PressureRatio15m={pressure.PressureRatio:F2}, Valid={validCandidates.Count}, FirstValid={firstValidText}, Outcome={outcomeText}", snapshot.EventTimeUtc);
+            if (narrativeAccepted)
+                StudyLog($"[DAY_STUDY_DELAYED_RECLAIM_ACCEPTED] Bar={snapshot.Bar}, Direction={setup.Direction}, {FormatTime(snapshot.EventTimeUtc)}, PreviewPOC={setup.POC:F2}, PreviewVAH={setup.VAH:F2}, PreviewVAL={setup.VAL:F2}, AcceptedBarsNext3={acceptedInsideValue}, PreNetVolume15m={pre.NetVolume:F0}, PostNetVolume15m={post.NetVolume:F0}, PressureShift={post.PressureShift - pre.PressureShift:F2}, PostMaxBubbleSide={post.MaxBubbleSide}, PostMaxBubbleVolume={post.MaxBubbleVolume:F0}, NarrativeCandidate={candidateText}, Outcome={outcomeText}", snapshot.EventTimeUtc);
         }
 
         private bool IsDelayedReclaimHeldByNextBar(HistoricalBarSnapshot snapshot, string direction)
@@ -1585,30 +1545,6 @@ namespace FabioOrderFlow
             }
 
             return null;
-        }
-
-        private DelayedReclaimPressureStats GetDelayedReclaimPressureStats(DateTime eventUtc, string direction, int minutes)
-        {
-            var expectedDirection = direction == "Long" ? TradeDirection.Buy : TradeDirection.Sell;
-            var oppositeDirection = direction == "Long" ? TradeDirection.Sell : TradeDirection.Buy;
-            var end = eventUtc.AddMinutes(minutes);
-            var trades = _lastHistoricalTrades
-                .Where(t => t.Time > eventUtc && t.Time <= end)
-                .Where(t => IsLondonTradeAllowed(t.Time))
-                .Where(t => t.Volume >= MinAggressionVolume)
-                .ToList();
-            var same = trades.Where(t => t.Direction == expectedDirection).ToList();
-            var opposite = trades.Where(t => t.Direction == oppositeDirection).ToList();
-            var sameVolume = same.Sum(t => t.Volume);
-            var oppositeVolume = opposite.Sum(t => t.Volume);
-            return new DelayedReclaimPressureStats(
-                same.Count,
-                sameVolume,
-                same.Count == 0 ? 0 : same.Max(t => t.Volume),
-                opposite.Count,
-                oppositeVolume,
-                opposite.Count == 0 ? 0 : opposite.Max(t => t.Volume),
-                oppositeVolume <= 0 ? sameVolume : sameVolume / oppositeVolume);
         }
 
         private bool IsDelayedReclaimEntryZone(BalanceSetup setup, CumulativeTrade trade)
@@ -2273,75 +2209,6 @@ namespace FabioOrderFlow
 
             var closePnl = direction == "Long" ? closePrice - entry : entry - closePrice;
             return new ProtectedStudyOutcome("LONDON_CLOSE", closePnl, closePnl / risk, false);
-        }
-
-        private void LogStoppedSetupRearmRulesStudy(BalanceSetup setup, ActivePosition stoppedPosition, DateTime stopTimeUtc)
-        {
-            var strict = FindStoppedSetupRearmCandidate(setup, stopTimeUtc, setup.RejectionTimeUtc, useBaseEntryZone: true);
-            var stopFresh = FindStoppedSetupRearmCandidate(setup, stopTimeUtc, stopTimeUtc, useBaseEntryZone: true);
-            var continuation = FindStoppedSetupRearmCandidate(setup, stopTimeUtc, stopTimeUtc, useBaseEntryZone: false);
-
-            StudyLog($"[DAY_STUDY_STOPPED_SETUP_REARM_RULES] SetupId={setup.SetupId}, Direction={setup.Direction}, StopTime={FormatTime(stopTimeUtc)}, RejectionTime={FormatTime(setup.RejectionTimeUtc)}, StrictOriginalTime={FormatRearmCandidate(setup, strict)}, StopFreshBaseZone={FormatRearmCandidate(setup, stopFresh)}, StopFreshContinuationZone={FormatRearmCandidate(setup, continuation)}", stopTimeUtc);
-        }
-
-        private CumulativeTrade? FindStoppedSetupRearmCandidate(BalanceSetup setup, DateTime stopTimeUtc, DateTime freshnessAnchorUtc, bool useBaseEntryZone)
-        {
-            var expectedDirection = setup.Direction == "Long" ? TradeDirection.Buy : TradeDirection.Sell;
-            return _lastHistoricalTrades
-                .Where(t => t.Time > stopTimeUtc && t.Time <= freshnessAnchorUtc.AddSeconds(OperationalEntryTimeoutSeconds))
-                .Where(t => IsLondonTradeAllowed(t.Time))
-                .Where(t => t.Volume >= MinAggressionVolume)
-                .Where(t => t.Direction == expectedDirection)
-                .Where(t => useBaseEntryZone ? IsInEntryZone(setup, t) : IsBeyondPocContinuationEntry(setup, t))
-                .Where(t => GetRewardRiskToTarget2(setup, t.Lastprice) >= MinRewardRiskToTarget2)
-                .OrderBy(t => t.Time)
-                .FirstOrDefault();
-        }
-
-        private string FormatRearmCandidate(BalanceSetup setup, CumulativeTrade? trade)
-        {
-            if (trade == null)
-                return "NONE";
-
-            var stop = GetOperationalStopPrice(setup, trade.Lastprice);
-            var outcome = EvaluateProtectedTarget2OutcomeFromTrades(setup.Direction, trade.Lastprice, stop, setup.TargetPrice, GetStudyTarget2(setup), trade.Time);
-            return $"{FormatTime(trade.Time)}:Price={trade.Lastprice:F2}:Volume={trade.Volume:F0}:RR={GetRewardRiskToTarget2(setup, trade.Lastprice):F2}:Outcome={outcome.ExitReason}:PnL={outcome.Pnl:F2}:R={outcome.RMultiple:F2}";
-        }
-
-        private void LogStoppedSetupRealertStudy(ActivePosition stoppedPosition, DateTime stopTimeUtc)
-        {
-            if (!IsHistoricalCumulativeTradePosition(stoppedPosition))
-                return;
-
-            LogStoppedSetupRealertStudy(stoppedPosition, stopTimeUtc, stoppedPosition.Direction, "SAME_DIRECTION");
-            LogStoppedSetupRealertStudy(stoppedPosition, stopTimeUtc, stoppedPosition.Direction == "Long" ? "Short" : "Long", "OPPOSITE_DIRECTION");
-        }
-
-        private void LogStoppedSetupRealertStudy(ActivePosition stoppedPosition, DateTime stopTimeUtc, string direction, string mode)
-        {
-            var expectedDirection = direction == "Long" ? TradeDirection.Buy : TradeDirection.Sell;
-            var entryDay = DateOnly.FromDateTime(MarketTimeZones.ToItaly(stoppedPosition.EntryTimeUtc));
-            var candidates = _lastHistoricalTrades
-                .Where(t => t.Time > stopTimeUtc && t.Time <= stopTimeUtc.AddSeconds(AggressionTimeoutSeconds))
-                .Where(t => DateOnly.FromDateTime(MarketTimeZones.ToItaly(t.Time)) == entryDay)
-                .Where(t => IsLondonTradeAllowed(t.Time))
-                .Where(t => t.Volume >= MinAggressionVolume)
-                .Where(t => t.Direction == expectedDirection)
-                .ToList();
-            var first = candidates.FirstOrDefault();
-            if (first == null)
-            {
-                StudyLog($"[DAY_STUDY_STOPPED_SETUP_REALERT] OriginalSetupId={stoppedPosition.SetupId}, Mode={mode}, Direction={direction}, StopTime={FormatTime(stopTimeUtc)}, CandidateCount=0, FirstCandidate=NONE, Outcome=NA", stopTimeUtc);
-                return;
-            }
-
-            var context = GetHistoricalContextAtTime(first.Time, stoppedPosition.EntryBar);
-            var targetPoc = context.POC;
-            var target2 = direction == "Long" ? context.VAH : context.VAL;
-            var stop = direction == "Long" ? first.Lastprice - Math.Abs(context.VAH - context.VAL) * DynamicStopMaxValueAreaRiskPct : first.Lastprice + Math.Abs(context.VAH - context.VAL) * DynamicStopMaxValueAreaRiskPct;
-            var rr = Math.Abs(target2 - first.Lastprice) / Math.Max(_tickSize, Math.Abs(first.Lastprice - stop));
-            var outcome = EvaluateProtectedTarget2OutcomeFromTrades(direction, first.Lastprice, stop, targetPoc, target2, first.Time);
-            StudyLog($"[DAY_STUDY_STOPPED_SETUP_REALERT] OriginalSetupId={stoppedPosition.SetupId}, Mode={mode}, Direction={direction}, StopTime={FormatTime(stopTimeUtc)}, CandidateCount={candidates.Count}, FirstCandidate={FormatTime(first.Time)}:Price={first.Lastprice:F2}:Volume={first.Volume:F0}, ContextPOC={context.POC:F2}, ContextVAH={context.VAH:F2}, ContextVAL={context.VAL:F2}, Stop={stop:F2}, TargetPoc={targetPoc:F2}, Target2={target2:F2}, RR={rr:F2}, Outcome={outcome.ExitReason}, PnL={outcome.Pnl:F2}, R={outcome.RMultiple:F2}, Target1Hit={outcome.Target1Hit}", stopTimeUtc);
         }
 
         private HistoricalContext GetHistoricalContextAtTime(DateTime eventUtc, int fallbackBar)
