@@ -154,6 +154,18 @@ namespace FabioOrderFlow
             decimal MaxOppositeDirectionVolume,
             decimal PressureRatio);
 
+        private readonly record struct DelayedReclaimNarrativeStats(
+            int SameDirectionTrades,
+            decimal SameDirectionVolume,
+            decimal MaxSameDirectionVolume,
+            int OppositeDirectionTrades,
+            decimal OppositeDirectionVolume,
+            decimal MaxOppositeDirectionVolume,
+            string MaxBubbleSide,
+            decimal MaxBubbleVolume,
+            decimal NetVolume,
+            decimal PressureShift);
+
         public class TradeRecord
         {
             public string SetupId { get; set; } = string.Empty;
@@ -1437,6 +1449,27 @@ namespace FabioOrderFlow
             LogDelayedReclaimConfirmationVariant(snapshot, setup, "HOLD_NEXT_BAR", nextBarHolds, validCandidates);
             LogDelayedReclaimConfirmationVariant(snapshot, setup, "PRESSURE_CONFIRMED", pressureConfirmed, validCandidates);
             LogDelayedReclaimConfirmationVariant(snapshot, setup, "HOLD_AND_PRESSURE", nextBarHolds && pressureConfirmed, validCandidates);
+            LogDelayedReclaimNarrativeStudy(snapshot, setup, validCandidates);
+        }
+
+        private void LogDelayedReclaimNarrativeStudy(HistoricalBarSnapshot snapshot, BalanceSetup setup, List<CumulativeTrade> validCandidates)
+        {
+            var pre = GetDelayedReclaimNarrativeStats(snapshot.EventTimeUtc.AddMinutes(-15), snapshot.EventTimeUtc, setup.Direction);
+            var post = GetDelayedReclaimNarrativeStats(snapshot.EventTimeUtc, snapshot.EventTimeUtc.AddMinutes(15), setup.Direction);
+            var nextBarHolds = IsDelayedReclaimHeldByNextBar(snapshot, setup.Direction);
+            var acceptedInsideValue = CountAcceptedBarsAfterReclaim(snapshot, setup.Direction, bars: 3);
+            var pressureCandidate = FindNarrativePressureCandidate(snapshot, setup, validCandidates);
+            var outcomeText = "NA";
+            var candidateText = "NONE";
+            if (pressureCandidate != null)
+            {
+                var stop = GetOperationalStopPrice(setup, pressureCandidate.Lastprice);
+                var outcome = EvaluateProtectedTarget2OutcomeFromTrades(setup.Direction, pressureCandidate.Lastprice, stop, setup.TargetPrice, GetStudyTarget2(setup), pressureCandidate.Time);
+                candidateText = $"{FormatTime(pressureCandidate.Time)}:Price={pressureCandidate.Lastprice:F2}:Volume={pressureCandidate.Volume:F0}:RR={GetRewardRiskToTarget2(setup, pressureCandidate.Lastprice):F2}:Age={(pressureCandidate.Time - snapshot.EventTimeUtc).TotalSeconds:F1}s";
+                outcomeText = $"ExitReason={outcome.ExitReason}:PnL={outcome.Pnl:F2}:R={outcome.RMultiple:F2}:Target1Hit={outcome.Target1Hit}";
+            }
+
+            StudyLog($"[DAY_STUDY_DELAYED_RECLAIM_NARRATIVE] Bar={snapshot.Bar}, Direction={setup.Direction}, {FormatTime(snapshot.EventTimeUtc)}, PreviewPOC={setup.POC:F2}, PreviewVAH={setup.VAH:F2}, PreviewVAL={setup.VAL:F2}, NextBarHolds={nextBarHolds}, AcceptedBarsNext3={acceptedInsideValue}, PreSameVolume15m={pre.SameDirectionVolume:F0}, PreOppositeVolume15m={pre.OppositeDirectionVolume:F0}, PreNetVolume15m={pre.NetVolume:F0}, PostSameVolume15m={post.SameDirectionVolume:F0}, PostOppositeVolume15m={post.OppositeDirectionVolume:F0}, PostNetVolume15m={post.NetVolume:F0}, PressureShift={post.PressureShift - pre.PressureShift:F2}, PostMaxBubbleSide={post.MaxBubbleSide}, PostMaxBubbleVolume={post.MaxBubbleVolume:F0}, Valid={validCandidates.Count}, NarrativeCandidate={candidateText}, Outcome={outcomeText}", snapshot.EventTimeUtc);
         }
 
         private void LogDelayedReclaimConfirmationVariant(HistoricalBarSnapshot snapshot, BalanceSetup setup, string variant, bool isEligible, List<CumulativeTrade> validCandidates)
@@ -1464,6 +1497,94 @@ namespace FabioOrderFlow
             return direction == "Long"
                 ? next.Close >= snapshot.PreviewVAL
                 : next.Close <= snapshot.PreviewVAH;
+        }
+
+        private int CountAcceptedBarsAfterReclaim(HistoricalBarSnapshot snapshot, string direction, int bars)
+        {
+            var count = 0;
+            for (var i = 1; i <= bars; i++)
+            {
+                if (!_historicalBarSnapshots.TryGetValue(snapshot.Bar + i, out var next))
+                    break;
+
+                var accepted = direction == "Long"
+                    ? next.Close >= snapshot.PreviewVAL
+                    : next.Close <= snapshot.PreviewVAH;
+                if (accepted)
+                    count++;
+            }
+
+            return count;
+        }
+
+        private DelayedReclaimNarrativeStats GetDelayedReclaimNarrativeStats(DateTime beginUtc, DateTime endUtc, string direction)
+        {
+            var expectedDirection = direction == "Long" ? TradeDirection.Buy : TradeDirection.Sell;
+            var oppositeDirection = direction == "Long" ? TradeDirection.Sell : TradeDirection.Buy;
+            var trades = _lastHistoricalTrades
+                .Where(t => t.Time > beginUtc && t.Time <= endUtc)
+                .Where(t => IsLondonTradeAllowed(t.Time))
+                .Where(t => t.Volume >= MinAggressionVolume)
+                .ToList();
+            var same = trades.Where(t => t.Direction == expectedDirection).ToList();
+            var opposite = trades.Where(t => t.Direction == oppositeDirection).ToList();
+            var maxSame = same.Count == 0 ? 0 : same.Max(t => t.Volume);
+            var maxOpposite = opposite.Count == 0 ? 0 : opposite.Max(t => t.Volume);
+            var sameVolume = same.Sum(t => t.Volume);
+            var oppositeVolume = opposite.Sum(t => t.Volume);
+            var maxSide = maxSame == 0 && maxOpposite == 0
+                ? "NONE"
+                : maxSame >= maxOpposite ? "SAME" : "OPPOSITE";
+            var maxVolume = Math.Max(maxSame, maxOpposite);
+            var netVolume = sameVolume - oppositeVolume;
+            var pressureShift = (sameVolume + oppositeVolume) <= 0
+                ? 0
+                : netVolume / (sameVolume + oppositeVolume);
+
+            return new DelayedReclaimNarrativeStats(
+                same.Count,
+                sameVolume,
+                maxSame,
+                opposite.Count,
+                oppositeVolume,
+                maxOpposite,
+                maxSide,
+                maxVolume,
+                netVolume,
+                pressureShift);
+        }
+
+        private CumulativeTrade? FindNarrativePressureCandidate(HistoricalBarSnapshot snapshot, BalanceSetup setup, List<CumulativeTrade> validCandidates)
+        {
+            var expectedDirection = setup.Direction == "Long" ? TradeDirection.Buy : TradeDirection.Sell;
+            var oppositeDirection = setup.Direction == "Long" ? TradeDirection.Sell : TradeDirection.Buy;
+            var validByTime = validCandidates.OrderBy(t => t.Time).ToList();
+            if (validByTime.Count == 0)
+                return null;
+
+            var sameVolume = 0m;
+            var oppositeVolume = 0m;
+            foreach (var trade in _lastHistoricalTrades
+                .Where(t => t.Time > snapshot.EventTimeUtc && t.Time <= snapshot.EventTimeUtc.AddMinutes(15))
+                .Where(t => IsLondonTradeAllowed(t.Time))
+                .Where(t => t.Volume >= MinAggressionVolume)
+                .OrderBy(t => t.Time))
+            {
+                if (trade.Direction == expectedDirection)
+                    sameVolume += trade.Volume;
+                else if (trade.Direction == oppositeDirection)
+                    oppositeVolume += trade.Volume;
+
+                var sameHasControl = sameVolume > 0 && sameVolume >= oppositeVolume;
+                if (!sameHasControl)
+                    continue;
+
+                var candidate = validByTime.FirstOrDefault(t => t.Time >= trade.Time);
+                if (candidate != null)
+                    return candidate;
+            }
+
+            return null;
         }
 
         private DelayedReclaimPressureStats GetDelayedReclaimPressureStats(DateTime eventUtc, string direction, int minutes)
