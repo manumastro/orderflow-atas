@@ -60,6 +60,7 @@ namespace FabioOrderFlow
         private bool _processingHistoricalPositions;
         private bool _dayStudyCompleted;
         private long _historicalLogSequence;
+        private DateTime _historicalFlowStartUtc;
         private readonly HashSet<DateOnly> _initializedDailyLogs = new();
         private readonly Dictionary<DateOnly, long> _dailyHistoricalLogSequences = new();
 
@@ -233,6 +234,7 @@ namespace FabioOrderFlow
 
         public void OnHistoricalCumulativeTrades(IEnumerable<CumulativeTrade> cumulativeTrades)
         {
+            _historicalFlowStartUtc = DateTime.UtcNow;
             var allTrades = cumulativeTrades.OrderBy(t => t.Time).ToList();
             _lastHistoricalTrades.Clear();
             _lastHistoricalTrades.AddRange(allTrades);
@@ -246,6 +248,7 @@ namespace FabioOrderFlow
                 .Where(t => t.Volume >= MinAggressionVolume)
                 .ToList();
 
+            _log($"[HISTORICAL_FLOW_TRADES_READY] AllTrades={allTrades.Count}, AggressionTrades={trades.Count}, BeginItaly={(allTrades.Count > 0 ? MarketTimeZones.ToItaly(allTrades.First().Time).ToString("yyyy-MM-dd HH:mm:ss") : "NA")}, EndItaly={(allTrades.Count > 0 ? MarketTimeZones.ToItaly(allTrades.Last().Time).ToString("yyyy-MM-dd HH:mm:ss") : "NA")}", false);
             _log($"[MR_HISTORICAL_TRADES] Count={trades.Count}, MinAggressionVolume={MinAggressionVolume:F0}, ActiveSetups={_activeSetups.Count(s => !s.AggressionConfirmed && !s.Expired)}", false);
 
             if (EnableHistoricalIntrabarFromCumulativeTrades)
@@ -273,8 +276,10 @@ namespace FabioOrderFlow
 
         public void ProcessHistoricalPositions(int startBar, int endBar)
         {
+            var processStartUtc = DateTime.UtcNow;
             var previousProcessingState = _processingHistoricalPositions;
             _processingHistoricalPositions = true;
+            _log($"[HISTORICAL_FLOW_PROCESS_START] StartBar={startBar}, EndBar={endBar}, StoredTrades={_lastHistoricalTrades.Count}, ExistingSnapshots={_historicalBarSnapshots.Count}, ExistingDelayedCandidates={_delayedReclaimCandidates.Count}", false);
             try
             {
                 for (var bar = startBar; bar <= endBar; bar++)
@@ -287,6 +292,8 @@ namespace FabioOrderFlow
                 }
 
                 ProcessStoredHistoricalTrades();
+
+                LogHistoricalFlowFinish(startBar, endBar, processStartUtc);
 
                 if (!EnableDailyHistoricalDebugLogs)
                     RunDayStudy();
@@ -313,6 +320,55 @@ namespace FabioOrderFlow
             UpdateOpenHistoricalPositionsWithCompletedBars();
             CloseOpenHistoricalPositionsAtSessionEnd();
             LogMissedOpportunities(_lastHistoricalTrades);
+        }
+
+        private void LogHistoricalFlowFinish(int startBar, int endBar, DateTime processStartUtc)
+        {
+            var completedUtc = DateTime.UtcNow;
+            var durationMs = (completedUtc - processStartUtc).TotalMilliseconds;
+            var flowDurationMs = _historicalFlowStartUtc == default ? 0 : (completedUtc - _historicalFlowStartUtc).TotalMilliseconds;
+            var historicalEntries = _completedTrades.Count(t => t.EntryModel.Contains("Historical", StringComparison.OrdinalIgnoreCase));
+            var delayedEntries = _completedTrades.Count(t => t.EntryModel.Contains("DelayedReclaim", StringComparison.OrdinalIgnoreCase));
+            var openPositions = _activePositions.Count;
+            _log($"[HISTORICAL_FLOW_FINISH] StartBar={startBar}, EndBar={endBar}, Snapshots={_historicalBarSnapshots.Count}, StoredTrades={_lastHistoricalTrades.Count}, CompletedHistoricalEntries={historicalEntries}, CompletedDelayedReclaimEntries={delayedEntries}, OpenPositions={openPositions}, ProcessDurationMs={durationMs:F0}, TotalFlowDurationMs={flowDurationMs:F0}", false);
+
+            if (!EnableDailyHistoricalDebugLogs)
+                return;
+
+            foreach (var day in _initializedDailyLogs.OrderBy(d => d))
+            {
+                var path = Path.Combine(_dailyHistoricalLogDirectory, $"FabioOrderFlow-day-{day:yyyy-MM-dd}.log");
+                if (!File.Exists(path))
+                    continue;
+
+                try
+                {
+                    var text = File.ReadAllText(path);
+                    var bars = CountOccurrences(text, "[DAY_STUDY_BAR]");
+                    var bigTrades = CountOccurrences(text, "[DAY_STUDY_BIG_TRADE]");
+                    var entries = CountOccurrences(text, "[MR_ENTRY]");
+                    var delayedEntriesForDay = CountOccurrences(text, "[MR_DELAYED_RECLAIM_ENTRY]");
+                    var exits = CountOccurrences(text, "[MR_EXIT]");
+                    var accepted = CountOccurrences(text, "[DAY_STUDY_DELAYED_RECLAIM_ACCEPTED]");
+                    DailyHistoricalLog($"[DAY_DEBUG_FINISH] Day={day:yyyy-MM-dd}, Bars={bars}, BigTrades={bigTrades}, Entries={entries}, DelayedReclaimEntries={delayedEntriesForDay}, Exits={exits}, DelayedReclaimAccepted={accepted}, CompletedItaly={MarketTimeZones.ToItaly(completedUtc):yyyy-MM-dd HH:mm:ss}", new DateTime(day.Year, day.Month, day.Day, 23, 59, 59, DateTimeKind.Utc));
+                }
+                catch
+                {
+                }
+            }
+        }
+
+        private static int CountOccurrences(string text, string token)
+        {
+            var count = 0;
+            var index = 0;
+            while ((index = text.IndexOf(token, index, StringComparison.Ordinal)) >= 0)
+            {
+                count++;
+                index += token.Length;
+            }
+
+            return count;
         }
 
         private bool TryCreateHighRejectionSetup(int bar, IndicatorCandle candle, out BalanceSetup? setup)

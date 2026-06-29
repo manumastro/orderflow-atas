@@ -162,6 +162,15 @@ FabioOrderFlow-days/           debug storico giornaliero, un file per giorno Ita
 
 ATAS espone callback live/replay e request storiche, ma non un flag documentato affidabile per distinguere live reale da replay. La distinzione live/replay e' quindi una proprieta' manuale dell'indicatore (`OnlineMode`). Il file historical viene scritto solo durante il backfill/recalculation, non dagli aggiornamenti parziali del replay. Con `EnableDailyHistoricalDebugLogs=true`, lo study aggregato pesante resta disattivato e i dettagli per barra/trade/setup vengono scritti nei file giornalieri.
 
+Per sapere se un reload storico ha finito, controllare:
+
+```text
+FabioOrderFlow.log            [HISTORICAL_FLOW_FINISH]
+FabioOrderFlow-day-YYYY-MM-DD.log  [DAY_DEBUG_FINISH]
+```
+
+`[HISTORICAL_FLOW_FINISH]` chiude il flusso complessivo barre + cumulative trades. `[DAY_DEBUG_FINISH]` chiude ogni file giornaliero e riporta conteggi di barre, big trade, entry, exit e delayed reclaim accepted.
+
 Parser:
 
 ```bash

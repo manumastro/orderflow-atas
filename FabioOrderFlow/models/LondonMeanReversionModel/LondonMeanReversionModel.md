@@ -222,6 +222,12 @@ Day-study dedicato per analisi manuale/agent:
 
 Ogni riga historical include `Source=Historical`, `Seq`, `WriteItaly/WriteUtc` e, quando disponibile, `EventItaly/EventLondon/EventUtc`. `Seq` mantiene l'ordine di scrittura; `EventItaly` mantiene l'ordine di mercato. Con `EnableDailyHistoricalDebugLogs=true`, lo study aggregato candidate/dynamic/scale-plan resta disattivato e il debug dettagliato viene scritto per giorno in `FabioOrderFlow-days`.
 
+Un reload storico e' completo quando `FabioOrderFlow.log` contiene `[HISTORICAL_FLOW_FINISH]` e ogni file giorno atteso contiene `[DAY_DEBUG_FINISH]`.
+
+[HISTORICAL_FLOW_TRADES_READY] cumulative trades storici ricevuti e filtrati
+[HISTORICAL_FLOW_PROCESS_START] inizio processamento barre + trades salvati
+[HISTORICAL_FLOW_FINISH] fine processamento storico complessivo, con conteggi snapshot/trades/entry/open positions
+[DAY_DEBUG_FINISH] fine file giornaliero, con conteggi barre, big trade, entry, exit e delayed reclaim accepted
 [DAY_STUDY_BAR]             ogni barra London dello storico caricato con OHLC finale, volume, bid/ask/delta, snapshot POC/VAH/VAL preview causale, diagnostica setup e top price levels
 [DAY_STUDY_SETUP]           ogni setup creato nello storico caricato
 [DAY_STUDY_TRIGGER]         follow-through o POC reclaim/loss nello storico caricato
