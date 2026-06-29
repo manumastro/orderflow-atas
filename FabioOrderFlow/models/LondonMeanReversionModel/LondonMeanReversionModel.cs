@@ -145,6 +145,15 @@ namespace FabioOrderFlow
             public string TopLevels { get; set; } = string.Empty;
         }
 
+        private readonly record struct DelayedReclaimPressureStats(
+            int SameDirectionTrades,
+            decimal SameDirectionVolume,
+            decimal MaxSameDirectionVolume,
+            int OppositeDirectionTrades,
+            decimal OppositeDirectionVolume,
+            decimal MaxOppositeDirectionVolume,
+            decimal PressureRatio);
+
         public class TradeRecord
         {
             public string SetupId { get; set; } = string.Empty;
@@ -1412,6 +1421,73 @@ namespace FabioOrderFlow
 
             var activeSetupState = GetActiveSetupDiagnostics(snapshot.EventTimeUtc);
             StudyLog($"[DAY_STUDY_DELAYED_RECLAIM_SETUP] Bar={snapshot.Bar}, Direction={direction}, {FormatTime(snapshot.EventTimeUtc)}, PreviewPOC={snapshot.PreviewPOC:F2}, PreviewVAH={snapshot.PreviewVAH:F2}, PreviewVAL={snapshot.PreviewVAL:F2}, Close={snapshot.Close:F2}, Delta={snapshot.Delta:F0}, ExcursionLow={excursionLow:F2}, ExcursionHigh={excursionHigh:F2}, Stop={stop:F2}, ActiveSetupDiagnostics={activeSetupState}, CandidateCount={candidates.Count}, Valid={validCandidates.Count}, FirstValid={firstValidText}, Outcome={outcomeText}", snapshot.EventTimeUtc);
+            LogDelayedReclaimConfirmationStudy(snapshot, setup, validCandidates);
+        }
+
+        private void LogDelayedReclaimConfirmationStudy(HistoricalBarSnapshot snapshot, BalanceSetup setup, List<CumulativeTrade> validCandidates)
+        {
+            var nextBarHolds = IsDelayedReclaimHeldByNextBar(snapshot, setup.Direction);
+            var pressure = GetDelayedReclaimPressureStats(snapshot.EventTimeUtc, setup.Direction, minutes: 15);
+            var pressureConfirmed = pressure.SameDirectionTrades >= 3
+                && pressure.SameDirectionVolume >= 50m
+                && pressure.MaxSameDirectionVolume >= 20m
+                && pressure.SameDirectionVolume >= pressure.OppositeDirectionVolume * 0.75m;
+
+            LogDelayedReclaimConfirmationVariant(snapshot, setup, "BASELINE_FIRST", isEligible: true, validCandidates);
+            LogDelayedReclaimConfirmationVariant(snapshot, setup, "HOLD_NEXT_BAR", nextBarHolds, validCandidates);
+            LogDelayedReclaimConfirmationVariant(snapshot, setup, "PRESSURE_CONFIRMED", pressureConfirmed, validCandidates);
+            LogDelayedReclaimConfirmationVariant(snapshot, setup, "HOLD_AND_PRESSURE", nextBarHolds && pressureConfirmed, validCandidates);
+        }
+
+        private void LogDelayedReclaimConfirmationVariant(HistoricalBarSnapshot snapshot, BalanceSetup setup, string variant, bool isEligible, List<CumulativeTrade> validCandidates)
+        {
+            var pressure = GetDelayedReclaimPressureStats(snapshot.EventTimeUtc, setup.Direction, minutes: 15);
+            var firstValid = isEligible ? validCandidates.FirstOrDefault() : null;
+            var outcomeText = "NA";
+            var firstValidText = "NONE";
+            if (firstValid != null)
+            {
+                var stop = GetOperationalStopPrice(setup, firstValid.Lastprice);
+                var outcome = EvaluateProtectedTarget2OutcomeFromTrades(setup.Direction, firstValid.Lastprice, stop, setup.TargetPrice, GetStudyTarget2(setup), firstValid.Time);
+                outcomeText = $"ExitReason={outcome.ExitReason}:PnL={outcome.Pnl:F2}:R={outcome.RMultiple:F2}:Target1Hit={outcome.Target1Hit}";
+                firstValidText = $"{FormatTime(firstValid.Time)}:Price={firstValid.Lastprice:F2}:Volume={firstValid.Volume:F0}:RR={GetRewardRiskToTarget2(setup, firstValid.Lastprice):F2}:Age={(firstValid.Time - snapshot.EventTimeUtc).TotalSeconds:F1}s";
+            }
+
+            StudyLog($"[DAY_STUDY_DELAYED_RECLAIM_CONFIRMATION] Variant={variant}, Eligible={isEligible}, Bar={snapshot.Bar}, Direction={setup.Direction}, {FormatTime(snapshot.EventTimeUtc)}, PreviewPOC={setup.POC:F2}, PreviewVAH={setup.VAH:F2}, PreviewVAL={setup.VAL:F2}, NextBarHolds={IsDelayedReclaimHeldByNextBar(snapshot, setup.Direction)}, SameDirectionTrades15m={pressure.SameDirectionTrades}, SameDirectionVolume15m={pressure.SameDirectionVolume:F0}, MaxSameDirectionVolume15m={pressure.MaxSameDirectionVolume:F0}, OppositeDirectionTrades15m={pressure.OppositeDirectionTrades}, OppositeDirectionVolume15m={pressure.OppositeDirectionVolume:F0}, MaxOppositeDirectionVolume15m={pressure.MaxOppositeDirectionVolume:F0}, PressureRatio15m={pressure.PressureRatio:F2}, Valid={validCandidates.Count}, FirstValid={firstValidText}, Outcome={outcomeText}", snapshot.EventTimeUtc);
+        }
+
+        private bool IsDelayedReclaimHeldByNextBar(HistoricalBarSnapshot snapshot, string direction)
+        {
+            if (!_historicalBarSnapshots.TryGetValue(snapshot.Bar + 1, out var next))
+                return false;
+
+            return direction == "Long"
+                ? next.Close >= snapshot.PreviewVAL
+                : next.Close <= snapshot.PreviewVAH;
+        }
+
+        private DelayedReclaimPressureStats GetDelayedReclaimPressureStats(DateTime eventUtc, string direction, int minutes)
+        {
+            var expectedDirection = direction == "Long" ? TradeDirection.Buy : TradeDirection.Sell;
+            var oppositeDirection = direction == "Long" ? TradeDirection.Sell : TradeDirection.Buy;
+            var end = eventUtc.AddMinutes(minutes);
+            var trades = _lastHistoricalTrades
+                .Where(t => t.Time > eventUtc && t.Time <= end)
+                .Where(t => IsLondonTradeAllowed(t.Time))
+                .Where(t => t.Volume >= MinAggressionVolume)
+                .ToList();
+            var same = trades.Where(t => t.Direction == expectedDirection).ToList();
+            var opposite = trades.Where(t => t.Direction == oppositeDirection).ToList();
+            var sameVolume = same.Sum(t => t.Volume);
+            var oppositeVolume = opposite.Sum(t => t.Volume);
+            return new DelayedReclaimPressureStats(
+                same.Count,
+                sameVolume,
+                same.Count == 0 ? 0 : same.Max(t => t.Volume),
+                opposite.Count,
+                oppositeVolume,
+                opposite.Count == 0 ? 0 : opposite.Max(t => t.Volume),
+                oppositeVolume <= 0 ? sameVolume : sameVolume / oppositeVolume);
         }
 
         private bool IsDelayedReclaimEntryZone(BalanceSetup setup, CumulativeTrade trade)
