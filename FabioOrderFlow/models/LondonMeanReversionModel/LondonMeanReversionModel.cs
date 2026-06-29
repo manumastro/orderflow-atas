@@ -1325,6 +1325,101 @@ namespace FabioOrderFlow
             var activeSetupState = GetActiveSetupDiagnostics(snapshot.EventTimeUtc);
             StudyLog($"[DAY_STUDY_BAR] Bar={bar}, {FormatTime(snapshot.EventTimeUtc)}, Open={snapshot.Open:F2}, High={snapshot.High:F2}, Low={snapshot.Low:F2}, Close={snapshot.Close:F2}, Volume={snapshot.Volume:F0}, Bid={snapshot.Bid:F0}, Ask={snapshot.Ask:F0}, Delta={snapshot.Delta:F0}, PreviewPOC={snapshot.PreviewPOC:F2}, PreviewVAH={snapshot.PreviewVAH:F2}, PreviewVAL={snapshot.PreviewVAL:F2}, CloseLocation={snapshot.CloseLocation}, DistToPOC={snapshot.Close - snapshot.PreviewPOC:F2}, DistToVAH={snapshot.Close - snapshot.PreviewVAH:F2}, DistToVAL={snapshot.Close - snapshot.PreviewVAL:F2}, SetupDiagnostics={candidateSetupState}, ActiveSetupDiagnostics={activeSetupState}, TopLevels={snapshot.TopLevels}", snapshot.EventTimeUtc);
             LogPotentialPreviewRejection(snapshot);
+            LogDelayedReclaimSetupStudy(snapshot);
+        }
+
+        private void LogDelayedReclaimSetupStudy(HistoricalBarSnapshot snapshot)
+        {
+            if (snapshot.PreviewPOC == 0 || snapshot.PreviewVAH == 0 || snapshot.PreviewVAL == 0)
+                return;
+
+            if (!_historicalBarSnapshots.TryGetValue(snapshot.Bar - 1, out var previous))
+                return;
+
+            if (previous.PreviewPOC == 0 || previous.PreviewVAH == 0 || previous.PreviewVAL == 0)
+                return;
+
+            var longReclaim = previous.Close < previous.PreviewVAL && snapshot.Close > snapshot.PreviewVAL;
+            var shortReclaim = previous.Close > previous.PreviewVAH && snapshot.Close < snapshot.PreviewVAH;
+
+            if (longReclaim)
+                LogDelayedReclaimSetupStudy(snapshot, "Long");
+
+            if (shortReclaim)
+                LogDelayedReclaimSetupStudy(snapshot, "Short");
+        }
+
+        private void LogDelayedReclaimSetupStudy(HistoricalBarSnapshot snapshot, string direction)
+        {
+            var lookbackBars = _historicalBarSnapshots.Values
+                .Where(s => s.Bar >= snapshot.Bar - 6 && s.Bar <= snapshot.Bar)
+                .OrderBy(s => s.Bar)
+                .ToList();
+            if (lookbackBars.Count == 0)
+                return;
+
+            var excursionLow = lookbackBars.Min(s => s.Low);
+            var excursionHigh = lookbackBars.Max(s => s.High);
+            var stop = direction == "Long"
+                ? excursionLow - StopOffsetTicks * _tickSize
+                : excursionHigh + StopOffsetTicks * _tickSize;
+            var setup = new BalanceSetup
+            {
+                SetupId = $"DELAYED-RECLAIM-{snapshot.Bar}-{direction}",
+                Direction = direction,
+                POC = snapshot.PreviewPOC,
+                VAH = snapshot.PreviewVAH,
+                VAL = snapshot.PreviewVAL,
+                BreakoutBar = snapshot.Bar,
+                BreakoutTimeUtc = snapshot.EventTimeUtc,
+                BreakoutPrice = direction == "Long" ? excursionLow : excursionHigh,
+                RejectionBar = snapshot.Bar,
+                RejectionTimeUtc = snapshot.EventTimeUtc,
+                RejectionClose = snapshot.Close,
+                RejectionHigh = snapshot.High,
+                RejectionLow = snapshot.Low,
+                RejectionDelta = snapshot.Delta,
+                StopPrice = stop,
+                TargetPrice = snapshot.PreviewPOC,
+                SetupSource = "DelayedReclaimStudy"
+            };
+
+            var expectedDirection = direction == "Long" ? TradeDirection.Buy : TradeDirection.Sell;
+            var candidates = _lastHistoricalTrades
+                .Where(t => t.Time > snapshot.EventTimeUtc && t.Time <= snapshot.EventTimeUtc.AddSeconds(OperationalEntryTimeoutSeconds))
+                .Where(t => IsLondonTradeAllowed(t.Time))
+                .Where(t => t.Volume >= MinAggressionVolume)
+                .Where(t => t.Direction == expectedDirection)
+                .Where(t => IsDelayedReclaimEntryZone(setup, t))
+                .OrderBy(t => t.Time)
+                .ToList();
+
+            var validCandidates = candidates
+                .Where(t => GetRewardRiskToTarget2(setup, t.Lastprice) >= MinRewardRiskToTarget2)
+                .ToList();
+            var firstValid = validCandidates.FirstOrDefault();
+            var firstValidText = firstValid == null
+                ? "NONE"
+                : $"{FormatTime(firstValid.Time)}:Price={firstValid.Lastprice:F2}:Volume={firstValid.Volume:F0}:RR={GetRewardRiskToTarget2(setup, firstValid.Lastprice):F2}:Age={(firstValid.Time - snapshot.EventTimeUtc).TotalSeconds:F1}s";
+
+            var outcomeText = "NA";
+            if (firstValid != null)
+            {
+                var operationalStop = GetOperationalStopPrice(setup, firstValid.Lastprice);
+                var outcome = EvaluateProtectedTarget2OutcomeFromTrades(direction, firstValid.Lastprice, operationalStop, setup.TargetPrice, GetStudyTarget2(setup), firstValid.Time);
+                outcomeText = $"ExitReason={outcome.ExitReason}:PnL={outcome.Pnl:F2}:R={outcome.RMultiple:F2}:Target1Hit={outcome.Target1Hit}";
+            }
+
+            var activeSetupState = GetActiveSetupDiagnostics(snapshot.EventTimeUtc);
+            StudyLog($"[DAY_STUDY_DELAYED_RECLAIM_SETUP] Bar={snapshot.Bar}, Direction={direction}, {FormatTime(snapshot.EventTimeUtc)}, PreviewPOC={snapshot.PreviewPOC:F2}, PreviewVAH={snapshot.PreviewVAH:F2}, PreviewVAL={snapshot.PreviewVAL:F2}, Close={snapshot.Close:F2}, Delta={snapshot.Delta:F0}, ExcursionLow={excursionLow:F2}, ExcursionHigh={excursionHigh:F2}, Stop={stop:F2}, ActiveSetupDiagnostics={activeSetupState}, CandidateCount={candidates.Count}, Valid={validCandidates.Count}, FirstValid={firstValidText}, Outcome={outcomeText}", snapshot.EventTimeUtc);
+        }
+
+        private bool IsDelayedReclaimEntryZone(BalanceSetup setup, CumulativeTrade trade)
+        {
+            var price = trade.Lastprice;
+            return setup.Direction == "Long"
+                ? price >= setup.VAL && price <= setup.POC
+                : price <= setup.VAH && price >= setup.POC;
         }
 
         private void LogPotentialPreviewRejection(HistoricalBarSnapshot snapshot)
