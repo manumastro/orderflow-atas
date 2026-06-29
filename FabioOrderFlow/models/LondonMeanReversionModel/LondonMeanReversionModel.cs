@@ -252,18 +252,6 @@ namespace FabioOrderFlow
 
             LogStudyCumulativeTrades(allTrades);
             LogDailySetupCandidateSummaries(trades);
-
-            foreach (var trade in allTrades)
-            {
-                if (trade.Volume >= MinAggressionVolume)
-                    ProcessAggressionTrade(trade, "FootprintCumulativeTradeHistorical", true);
-
-                UpdateHistoricalPositionsWithTrade(trade);
-            }
-
-            UpdateOpenHistoricalPositionsWithCompletedBars();
-            CloseOpenHistoricalPositionsAtSessionEnd();
-            LogMissedOpportunities(allTrades);
         }
 
         public void OnLiveCumulativeTrade(CumulativeTrade trade)
@@ -297,6 +285,8 @@ namespace FabioOrderFlow
                     UpdateActivePositions(bar, candle);
                 }
 
+                ProcessStoredHistoricalTrades();
+
                 if (!EnableDailyHistoricalDebugLogs)
                     RunDayStudy();
             }
@@ -304,6 +294,24 @@ namespace FabioOrderFlow
             {
                 _processingHistoricalPositions = previousProcessingState;
             }
+        }
+
+        private void ProcessStoredHistoricalTrades()
+        {
+            if (_lastHistoricalTrades.Count == 0)
+                return;
+
+            foreach (var trade in _lastHistoricalTrades)
+            {
+                if (trade.Volume >= MinAggressionVolume)
+                    ProcessAggressionTrade(trade, "FootprintCumulativeTradeHistorical", true);
+
+                UpdateHistoricalPositionsWithTrade(trade);
+            }
+
+            UpdateOpenHistoricalPositionsWithCompletedBars();
+            CloseOpenHistoricalPositionsAtSessionEnd();
+            LogMissedOpportunities(_lastHistoricalTrades);
         }
 
         private bool TryCreateHighRejectionSetup(int bar, IndicatorCandle candle, out BalanceSetup? setup)
