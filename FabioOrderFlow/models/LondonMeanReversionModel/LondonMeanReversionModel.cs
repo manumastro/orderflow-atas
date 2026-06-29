@@ -347,7 +347,8 @@ namespace FabioOrderFlow
                     var bars = CountOccurrences(text, "[DAY_STUDY_BAR]");
                     var bigTrades = CountOccurrences(text, "[DAY_STUDY_BIG_TRADE]");
                     var entries = CountOccurrences(text, "[MR_ENTRY]");
-                    var delayedEntriesForDay = CountOccurrences(text, "[MR_DELAYED_RECLAIM_ENTRY]");
+                    var delayedEntriesForDay = CountOccurrences(text, "EntryModel=FootprintCumulativeTradeHistoricalDelayedReclaim")
+                        + CountOccurrences(text, "EntryModel=FootprintCumulativeTradeLiveDelayedReclaim");
                     var exits = CountOccurrences(text, "[MR_EXIT]");
                     var accepted = CountOccurrences(text, "[DAY_STUDY_DELAYED_RECLAIM_ACCEPTED]");
                     DailyHistoricalLog($"[DAY_DEBUG_FINISH] Day={day:yyyy-MM-dd}, Bars={bars}, BigTrades={bigTrades}, Entries={entries}, DelayedReclaimEntries={delayedEntriesForDay}, Exits={exits}, DelayedReclaimAccepted={accepted}, CompletedItaly={MarketTimeZones.ToItaly(completedUtc):yyyy-MM-dd HH:mm:ss}", new DateTime(day.Year, day.Month, day.Day, 23, 59, 59, DateTimeKind.Utc));

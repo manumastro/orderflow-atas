@@ -165,8 +165,22 @@ ATAS espone callback live/replay e request storiche, ma non un flag documentato 
 Per sapere se un reload storico ha finito, controllare:
 
 ```text
-FabioOrderFlow.log            [HISTORICAL_FLOW_FINISH]
+FabioOrderFlow.log                 [HISTORICAL_FLOW_FINISH]
 FabioOrderFlow-day-YYYY-MM-DD.log  [DAY_DEBUG_FINISH]
+```
+
+Git Bash:
+
+```bash
+grep "HISTORICAL_FLOW_FINISH" "$APPDATA/ATAS/Logs/FabioOrderFlow.log"
+grep "DAY_DEBUG_FINISH" "$APPDATA/ATAS/Logs/FabioOrderFlow-days"/FabioOrderFlow-day-*.log
+```
+
+PowerShell:
+
+```powershell
+Select-String "HISTORICAL_FLOW_FINISH" "$env:APPDATA\ATAS\Logs\FabioOrderFlow.log"
+Select-String "DAY_DEBUG_FINISH" "$env:APPDATA\ATAS\Logs\FabioOrderFlow-days\FabioOrderFlow-day-*.log"
 ```
 
 `[HISTORICAL_FLOW_FINISH]` chiude il flusso complessivo barre + cumulative trades. `[DAY_DEBUG_FINISH]` chiude ogni file giornaliero e riporta conteggi di barre, big trade, entry, exit e delayed reclaim accepted.

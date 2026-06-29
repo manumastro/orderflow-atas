@@ -224,6 +224,20 @@ Ogni riga historical include `Source=Historical`, `Seq`, `WriteItaly/WriteUtc` e
 
 Un reload storico e' completo quando `FabioOrderFlow.log` contiene `[HISTORICAL_FLOW_FINISH]` e ogni file giorno atteso contiene `[DAY_DEBUG_FINISH]`.
 
+Git Bash:
+
+```bash
+grep "HISTORICAL_FLOW_FINISH" "$APPDATA/ATAS/Logs/FabioOrderFlow.log"
+grep "DAY_DEBUG_FINISH" "$APPDATA/ATAS/Logs/FabioOrderFlow-days"/FabioOrderFlow-day-*.log
+```
+
+PowerShell:
+
+```powershell
+Select-String "HISTORICAL_FLOW_FINISH" "$env:APPDATA\ATAS\Logs\FabioOrderFlow.log"
+Select-String "DAY_DEBUG_FINISH" "$env:APPDATA\ATAS\Logs\FabioOrderFlow-days\FabioOrderFlow-day-*.log"
+```
+
 [HISTORICAL_FLOW_TRADES_READY] cumulative trades storici ricevuti e filtrati
 [HISTORICAL_FLOW_PROCESS_START] inizio processamento barre + trades salvati
 [HISTORICAL_FLOW_FINISH] fine processamento storico complessivo, con conteggi snapshot/trades/entry/open positions
