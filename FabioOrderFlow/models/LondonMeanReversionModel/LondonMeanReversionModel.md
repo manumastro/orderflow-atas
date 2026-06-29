@@ -64,7 +64,7 @@ Il modello quindi legge una balance in costruzione durante London, aspetta un'es
 
 7. Delayed reclaim operativo
    - dopo escursione fuori value e close di rientro, il setup resta in osservazione come `DelayedReclaimAccepted`
-   - entry solo dopo accettazione confermata da almeno 2 barre successive dentro value
+   - entry su big cumulative trade narrativo dopo reclaim e cambio controllo same-direction
    - richiede cambio controllo: volume cumulato same-direction > opposite-direction e bolla massima nella direzione del trade
    - entry sulla prima bolla coerente in zona `VAL -> POC` per long o `VAH -> POC` per short, con `RR_T2 >= 1.0`
 

@@ -34,6 +34,7 @@ namespace FabioOrderFlow
         private const decimal ScaleInMinExpansionAfterRiskFreePct = 0.25m;
         private const decimal ScaleInMinRewardToTarget1Points = 4m;
         private const int MaxScaleInsPerSetup = 2;
+        private const decimal DelayedReclaimNarrativeMinBubbleMultiplier = 5m;
         private static readonly bool EnableHistoricalIntrabarFromCumulativeTrades = true;
         private static readonly bool EnableDailyHistoricalDebugLogs = true;
 
@@ -1687,11 +1688,12 @@ namespace FabioOrderFlow
                 return false;
 
             acceptedBars = CountAcceptedBarsBeforeTime(setup, trade.Time, 3);
-            if (acceptedBars < 2)
-                return false;
 
             var expectedDirection = setup.Direction == "Long" ? TradeDirection.Buy : TradeDirection.Sell;
             if (trade.Direction != expectedDirection)
+                return false;
+
+            if (trade.Volume < MinAggressionVolume * DelayedReclaimNarrativeMinBubbleMultiplier)
                 return false;
 
             if (!IsDelayedReclaimEntryZone(setup, trade))
