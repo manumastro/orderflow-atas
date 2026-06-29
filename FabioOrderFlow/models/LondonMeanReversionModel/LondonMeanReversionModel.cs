@@ -2552,6 +2552,9 @@ namespace FabioOrderFlow
             if (!IsInLondonSession(candle.Time))
                 return;
 
+            if (_historicalBarSnapshots.ContainsKey(bar))
+                return;
+
             _historicalBarSnapshots[bar] = CreateHistoricalBarSnapshot(bar, candle);
         }
 
