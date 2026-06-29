@@ -1645,10 +1645,10 @@ namespace FabioOrderFlow
 
         private bool TryProcessDelayedReclaimEntry(CumulativeTrade trade, string entryModel, bool isHistorical)
         {
-            foreach (var candidate in _delayedReclaimCandidates.Where(c => c.OperationallyReady && !c.EntryConfirmed && !c.Setup.Expired).ToList())
+            foreach (var candidate in _delayedReclaimCandidates.Where(c => !c.EntryConfirmed && !c.Setup.Expired).ToList())
             {
                 var setup = candidate.Setup;
-                if (!IsDelayedReclaimTradeCandidate(candidate, trade))
+                if (!IsDelayedReclaimTradeCandidate(candidate, trade, out var acceptedBars, out var sameVolume, out var oppositeVolume, out var maxSameVolume, out var maxOppositeVolume))
                     continue;
 
                 candidate.EntryConfirmed = true;
@@ -1657,15 +1657,28 @@ namespace FabioOrderFlow
                     ? "FootprintCumulativeTradeHistoricalDelayedReclaim"
                     : "FootprintCumulativeTradeLiveDelayedReclaim";
                 CreatePosition(setup, trade, resolvedEntryModel, isHistorical);
-                _log($"[MR_DELAYED_RECLAIM_ENTRY] SetupId={setup.SetupId}, EntryModel={resolvedEntryModel}, Direction={setup.Direction}, {FormatTime(trade.Time)}, EntryPrice={trade.Lastprice:F2}, Volume={trade.Volume:F0}, AcceptedBars={candidate.AcceptedBars}, SameDirectionVolume={candidate.SameDirectionVolume:F0}, OppositeDirectionVolume={candidate.OppositeDirectionVolume:F0}, MaxSameDirectionVolume={candidate.MaxSameDirectionVolume:F0}, MaxOppositeDirectionVolume={candidate.MaxOppositeDirectionVolume:F0}", isHistorical);
+                _log($"[MR_DELAYED_RECLAIM_ENTRY] SetupId={setup.SetupId}, EntryModel={resolvedEntryModel}, Direction={setup.Direction}, {FormatTime(trade.Time)}, EntryPrice={trade.Lastprice:F2}, Volume={trade.Volume:F0}, AcceptedBars={acceptedBars}, SameDirectionVolume={sameVolume:F0}, OppositeDirectionVolume={oppositeVolume:F0}, MaxSameDirectionVolume={maxSameVolume:F0}, MaxOppositeDirectionVolume={maxOppositeVolume:F0}", isHistorical);
                 return true;
             }
 
             return false;
         }
 
-        private bool IsDelayedReclaimTradeCandidate(DelayedReclaimCandidate candidate, CumulativeTrade trade)
+        private bool IsDelayedReclaimTradeCandidate(
+            DelayedReclaimCandidate candidate,
+            CumulativeTrade trade,
+            out int acceptedBars,
+            out decimal sameDirectionVolume,
+            out decimal oppositeDirectionVolume,
+            out decimal maxSameDirectionVolume,
+            out decimal maxOppositeDirectionVolume)
         {
+            acceptedBars = 0;
+            sameDirectionVolume = 0;
+            oppositeDirectionVolume = 0;
+            maxSameDirectionVolume = 0;
+            maxOppositeDirectionVolume = 0;
+
             var setup = candidate.Setup;
             if (trade.Time <= setup.RejectionTimeUtc || trade.Time > setup.RejectionTimeUtc.AddSeconds(OperationalEntryTimeoutSeconds))
                 return false;
@@ -1673,32 +1686,77 @@ namespace FabioOrderFlow
             if (!IsLondonTradeAllowed(trade.Time) || trade.Volume < MinAggressionVolume)
                 return false;
 
-            var expectedDirection = setup.Direction == "Long" ? TradeDirection.Buy : TradeDirection.Sell;
-            var oppositeDirection = setup.Direction == "Long" ? TradeDirection.Sell : TradeDirection.Buy;
-            if (trade.Direction == expectedDirection)
-            {
-                candidate.SameDirectionVolume += trade.Volume;
-                candidate.MaxSameDirectionVolume = Math.Max(candidate.MaxSameDirectionVolume, trade.Volume);
-            }
-            else if (trade.Direction == oppositeDirection)
-            {
-                candidate.OppositeDirectionVolume += trade.Volume;
-                candidate.MaxOppositeDirectionVolume = Math.Max(candidate.MaxOppositeDirectionVolume, trade.Volume);
-            }
+            acceptedBars = CountAcceptedBarsBeforeTime(setup, trade.Time, 3);
+            if (acceptedBars < 2)
+                return false;
 
+            var expectedDirection = setup.Direction == "Long" ? TradeDirection.Buy : TradeDirection.Sell;
             if (trade.Direction != expectedDirection)
                 return false;
 
             if (!IsDelayedReclaimEntryZone(setup, trade))
                 return false;
 
-            if (candidate.SameDirectionVolume <= candidate.OppositeDirectionVolume)
+            GetDelayedReclaimPressureBeforeTime(candidate, trade, out sameDirectionVolume, out oppositeDirectionVolume, out maxSameDirectionVolume, out maxOppositeDirectionVolume);
+            if (sameDirectionVolume <= oppositeDirectionVolume)
                 return false;
 
-            if (candidate.MaxSameDirectionVolume < candidate.MaxOppositeDirectionVolume)
+            if (maxSameDirectionVolume < maxOppositeDirectionVolume)
                 return false;
 
             return GetRewardRiskToTarget2(setup, trade.Lastprice) >= MinRewardRiskToTarget2;
+        }
+
+        private int CountAcceptedBarsBeforeTime(BalanceSetup setup, DateTime tradeTimeUtc, int maxBars)
+        {
+            var accepted = 0;
+            foreach (var snapshot in _historicalBarSnapshots.Values
+                .Where(s => s.EventTimeUtc > setup.RejectionTimeUtc && s.EventTimeUtc < tradeTimeUtc)
+                .OrderBy(s => s.Bar)
+                .Take(maxBars))
+            {
+                var inside = setup.Direction == "Long"
+                    ? snapshot.Close >= setup.VAL
+                    : snapshot.Close <= setup.VAH;
+                if (inside)
+                    accepted++;
+            }
+
+            return accepted;
+        }
+
+        private void GetDelayedReclaimPressureBeforeTime(
+            DelayedReclaimCandidate candidate,
+            CumulativeTrade trade,
+            out decimal sameDirectionVolume,
+            out decimal oppositeDirectionVolume,
+            out decimal maxSameDirectionVolume,
+            out decimal maxOppositeDirectionVolume)
+        {
+            sameDirectionVolume = 0;
+            oppositeDirectionVolume = 0;
+            maxSameDirectionVolume = 0;
+            maxOppositeDirectionVolume = 0;
+            var setup = candidate.Setup;
+            var expectedDirection = setup.Direction == "Long" ? TradeDirection.Buy : TradeDirection.Sell;
+            var oppositeDirection = setup.Direction == "Long" ? TradeDirection.Sell : TradeDirection.Buy;
+            var source = _lastHistoricalTrades.Count > 0
+                ? _lastHistoricalTrades.Where(t => t.Time > setup.RejectionTimeUtc && t.Time <= trade.Time && t.Volume >= MinAggressionVolume)
+                : new[] { trade }.Where(t => t.Time > setup.RejectionTimeUtc && t.Time <= trade.Time && t.Volume >= MinAggressionVolume);
+
+            foreach (var t in source)
+            {
+                if (t.Direction == expectedDirection)
+                {
+                    sameDirectionVolume += t.Volume;
+                    maxSameDirectionVolume = Math.Max(maxSameDirectionVolume, t.Volume);
+                }
+                else if (t.Direction == oppositeDirection)
+                {
+                    oppositeDirectionVolume += t.Volume;
+                    maxOppositeDirectionVolume = Math.Max(maxOppositeDirectionVolume, t.Volume);
+                }
+            }
         }
 
         private bool IsDelayedReclaimEntryZone(BalanceSetup setup, CumulativeTrade trade)
