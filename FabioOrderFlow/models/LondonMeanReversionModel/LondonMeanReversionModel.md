@@ -224,6 +224,7 @@ Ogni riga historical include `Source=Historical`, `Seq`, `WriteItaly/WriteUtc` e
 [DAY_STUDY_PREVIEW_REJECTION_OUTCOME] studio non operativo delle preview rejection non promosse: prima bolla valida e outcome protetto con cumulative trades post-entry
 [DAY_STUDY_PREVIEW_CONTINUATION_STUDY] studio non operativo della continuation post-POC delle preview rejection: protected exit vs hold-to-target2 e bolle post-POC
 [DAY_STUDY_STOPPED_SETUP_REALERT] studio non operativo dopo stop: re-alert same direction e opposite direction con primo big trade successivo
+[DAY_STUDY_STOPPED_SETUP_REARM_RULES] studio non operativo dopo stop: verifica se lo stesso setup avrebbe ripreso con regole originali, freshness dallo stop, o continuation zone
 [DAY_STUDY_SETUP_CANDIDATE_SUMMARY] riepilogo per setup: bolle in finestra, direzione, entry zone, RR, stale, prima opportunita' valida
 [DAY_STUDY_HISTORICAL_POSITION_MODE] conferma che una posizione storica viene gestita trade-by-trade dopo entry
 [DAY_STUDY_ACTUAL_ENTRY]    entry operative effettivamente prese

@@ -1183,6 +1183,9 @@ namespace FabioOrderFlow
             if (setup == null)
                 return;
 
+            if (position.EntryModel.Contains("Historical", StringComparison.Ordinal) && exitReason == "STOP_HIT")
+                LogStoppedSetupRearmRulesStudy(setup, position, eventTimeUtc);
+
             _completedTrades.Add(new TradeRecord
             {
                 SetupId = position.SetupId,
@@ -1978,6 +1981,39 @@ namespace FabioOrderFlow
 
             var closePnl = direction == "Long" ? closePrice - entry : entry - closePrice;
             return new ProtectedStudyOutcome("LONDON_CLOSE", closePnl, closePnl / risk, false);
+        }
+
+        private void LogStoppedSetupRearmRulesStudy(BalanceSetup setup, ActivePosition stoppedPosition, DateTime stopTimeUtc)
+        {
+            var strict = FindStoppedSetupRearmCandidate(setup, stopTimeUtc, setup.RejectionTimeUtc, useBaseEntryZone: true);
+            var stopFresh = FindStoppedSetupRearmCandidate(setup, stopTimeUtc, stopTimeUtc, useBaseEntryZone: true);
+            var continuation = FindStoppedSetupRearmCandidate(setup, stopTimeUtc, stopTimeUtc, useBaseEntryZone: false);
+
+            StudyLog($"[DAY_STUDY_STOPPED_SETUP_REARM_RULES] SetupId={setup.SetupId}, Direction={setup.Direction}, StopTime={FormatTime(stopTimeUtc)}, RejectionTime={FormatTime(setup.RejectionTimeUtc)}, StrictOriginalTime={FormatRearmCandidate(setup, strict)}, StopFreshBaseZone={FormatRearmCandidate(setup, stopFresh)}, StopFreshContinuationZone={FormatRearmCandidate(setup, continuation)}", stopTimeUtc);
+        }
+
+        private CumulativeTrade? FindStoppedSetupRearmCandidate(BalanceSetup setup, DateTime stopTimeUtc, DateTime freshnessAnchorUtc, bool useBaseEntryZone)
+        {
+            var expectedDirection = setup.Direction == "Long" ? TradeDirection.Buy : TradeDirection.Sell;
+            return _lastHistoricalTrades
+                .Where(t => t.Time > stopTimeUtc && t.Time <= freshnessAnchorUtc.AddSeconds(OperationalEntryTimeoutSeconds))
+                .Where(t => IsLondonTradeAllowed(t.Time))
+                .Where(t => t.Volume >= MinAggressionVolume)
+                .Where(t => t.Direction == expectedDirection)
+                .Where(t => useBaseEntryZone ? IsInEntryZone(setup, t) : IsBeyondPocContinuationEntry(setup, t))
+                .Where(t => GetRewardRiskToTarget2(setup, t.Lastprice) >= MinRewardRiskToTarget2)
+                .OrderBy(t => t.Time)
+                .FirstOrDefault();
+        }
+
+        private string FormatRearmCandidate(BalanceSetup setup, CumulativeTrade? trade)
+        {
+            if (trade == null)
+                return "NONE";
+
+            var stop = GetOperationalStopPrice(setup, trade.Lastprice);
+            var outcome = EvaluateProtectedTarget2OutcomeFromTrades(setup.Direction, trade.Lastprice, stop, setup.TargetPrice, GetStudyTarget2(setup), trade.Time);
+            return $"{FormatTime(trade.Time)}:Price={trade.Lastprice:F2}:Volume={trade.Volume:F0}:RR={GetRewardRiskToTarget2(setup, trade.Lastprice):F2}:Outcome={outcome.ExitReason}:PnL={outcome.Pnl:F2}:R={outcome.RMultiple:F2}";
         }
 
         private void LogStoppedSetupRealertStudy(ActivePosition stoppedPosition, DateTime stopTimeUtc)
