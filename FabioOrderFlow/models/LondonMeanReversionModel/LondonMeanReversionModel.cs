@@ -1628,7 +1628,7 @@ namespace FabioOrderFlow
             if (snapshot.EventTimeUtc <= setup.RejectionTimeUtc)
                 return;
 
-            if (snapshot.EventTimeUtc > setup.RejectionTimeUtc.AddSeconds(AggressionTimeoutSeconds))
+            if (!_processingHistoricalPositions && snapshot.EventTimeUtc > setup.RejectionTimeUtc.AddSeconds(AggressionTimeoutSeconds))
             {
                 setup.Expired = true;
                 return;
