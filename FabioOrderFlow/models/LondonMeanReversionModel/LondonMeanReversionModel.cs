@@ -40,6 +40,7 @@ namespace FabioOrderFlow
         private int _currentBar;
         private readonly List<BalanceSetup> _activeSetups = new();
         private readonly List<ActivePosition> _activePositions = new();
+        private readonly List<DelayedReclaimCandidate> _delayedReclaimCandidates = new();
 
         private readonly List<TradeRecord> _completedTrades = new();
         private readonly HashSet<string> _setupKeys = new();
@@ -145,6 +146,19 @@ namespace FabioOrderFlow
             public string TopLevels { get; set; } = string.Empty;
         }
 
+        private sealed class DelayedReclaimCandidate
+        {
+            public BalanceSetup Setup { get; set; } = new();
+            public int AcceptedBars { get; set; }
+            public bool OperationallyReady { get; set; }
+            public bool EntryConfirmed { get; set; }
+            public decimal SameDirectionVolume { get; set; }
+            public decimal OppositeDirectionVolume { get; set; }
+            public decimal MaxSameDirectionVolume { get; set; }
+            public decimal MaxOppositeDirectionVolume { get; set; }
+            public DateTime LastUpdatedUtc { get; set; }
+        }
+
         private readonly record struct DelayedReclaimNarrativeStats(
             int SameDirectionTrades,
             decimal SameDirectionVolume,
@@ -197,6 +211,7 @@ namespace FabioOrderFlow
             _currentBar = currentBar;
             CaptureHistoricalBarSnapshot(bar, candle);
             LogStudyBar(bar, candle);
+            UpdateDelayedReclaimCandidates(bar, candle);
             UpdateStudyTriggers(bar, candle);
             UpdateActivePositions(bar, candle);
         }
@@ -221,6 +236,7 @@ namespace FabioOrderFlow
             _lastHistoricalTrades.Clear();
             _lastHistoricalTrades.AddRange(allTrades);
             _dayStudyCompleted = false;
+            _delayedReclaimCandidates.Clear();
             ResetStudyLog();
             ResetDailyHistoricalDebugLogs();
             LogExistingHistoricalSetups();
@@ -516,6 +532,9 @@ namespace FabioOrderFlow
 
         private void ProcessAggressionTrade(CumulativeTrade trade, string entryModel, bool isHistorical)
         {
+            if (TryProcessDelayedReclaimEntry(trade, entryModel, isHistorical))
+                return;
+
             foreach (var setup in _activeSetups.Where(s => s.AggressionConfirmed && !s.Expired).ToList())
             {
                 if (!IsScaleInEntry(setup, trade))
@@ -1336,59 +1355,19 @@ namespace FabioOrderFlow
 
         private void LogDelayedReclaimSetupStudy(HistoricalBarSnapshot snapshot)
         {
-            if (snapshot.PreviewPOC == 0 || snapshot.PreviewVAH == 0 || snapshot.PreviewVAL == 0)
-                return;
-
-            if (!_historicalBarSnapshots.TryGetValue(snapshot.Bar - 1, out var previous))
-                return;
-
-            if (previous.PreviewPOC == 0 || previous.PreviewVAH == 0 || previous.PreviewVAL == 0)
-                return;
-
-            var longReclaim = previous.Close < previous.PreviewVAL && snapshot.Close > snapshot.PreviewVAL;
-            var shortReclaim = previous.Close > previous.PreviewVAH && snapshot.Close < snapshot.PreviewVAH;
-
-            if (longReclaim)
-                LogDelayedReclaimSetupStudy(snapshot, "Long");
-
-            if (shortReclaim)
-                LogDelayedReclaimSetupStudy(snapshot, "Short");
+            foreach (var direction in GetDelayedReclaimDirections(snapshot))
+                LogDelayedReclaimSetupStudy(snapshot, direction);
         }
 
         private void LogDelayedReclaimSetupStudy(HistoricalBarSnapshot snapshot, string direction)
         {
-            var lookbackBars = _historicalBarSnapshots.Values
-                .Where(s => s.Bar >= snapshot.Bar - 6 && s.Bar <= snapshot.Bar)
-                .OrderBy(s => s.Bar)
-                .ToList();
-            if (lookbackBars.Count == 0)
+            var setup = CreateDelayedReclaimSetup(snapshot, direction, "DelayedReclaimStudy");
+            if (setup == null)
                 return;
 
-            var excursionLow = lookbackBars.Min(s => s.Low);
-            var excursionHigh = lookbackBars.Max(s => s.High);
-            var stop = direction == "Long"
-                ? excursionLow - StopOffsetTicks * _tickSize
-                : excursionHigh + StopOffsetTicks * _tickSize;
-            var setup = new BalanceSetup
-            {
-                SetupId = $"DELAYED-RECLAIM-{snapshot.Bar}-{direction}",
-                Direction = direction,
-                POC = snapshot.PreviewPOC,
-                VAH = snapshot.PreviewVAH,
-                VAL = snapshot.PreviewVAL,
-                BreakoutBar = snapshot.Bar,
-                BreakoutTimeUtc = snapshot.EventTimeUtc,
-                BreakoutPrice = direction == "Long" ? excursionLow : excursionHigh,
-                RejectionBar = snapshot.Bar,
-                RejectionTimeUtc = snapshot.EventTimeUtc,
-                RejectionClose = snapshot.Close,
-                RejectionHigh = snapshot.High,
-                RejectionLow = snapshot.Low,
-                RejectionDelta = snapshot.Delta,
-                StopPrice = stop,
-                TargetPrice = snapshot.PreviewPOC,
-                SetupSource = "DelayedReclaimStudy"
-            };
+            var excursionLow = setup.Direction == "Long" ? setup.BreakoutPrice : _historicalBarSnapshots.Values.Where(s => s.Bar >= snapshot.Bar - 6 && s.Bar <= snapshot.Bar).Max(s => s.Low);
+            var excursionHigh = setup.Direction == "Short" ? setup.BreakoutPrice : _historicalBarSnapshots.Values.Where(s => s.Bar >= snapshot.Bar - 6 && s.Bar <= snapshot.Bar).Max(s => s.High);
+            var stop = setup.StopPrice;
 
             var expectedDirection = direction == "Long" ? TradeDirection.Buy : TradeDirection.Sell;
             var candidates = _lastHistoricalTrades
@@ -1545,6 +1524,171 @@ namespace FabioOrderFlow
             }
 
             return null;
+        }
+
+        private IEnumerable<string> GetDelayedReclaimDirections(HistoricalBarSnapshot snapshot)
+        {
+            if (snapshot.PreviewPOC == 0 || snapshot.PreviewVAH == 0 || snapshot.PreviewVAL == 0)
+                yield break;
+
+            if (!_historicalBarSnapshots.TryGetValue(snapshot.Bar - 1, out var previous))
+                yield break;
+
+            if (previous.PreviewPOC == 0 || previous.PreviewVAH == 0 || previous.PreviewVAL == 0)
+                yield break;
+
+            if (previous.Close < previous.PreviewVAL && snapshot.Close > snapshot.PreviewVAL)
+                yield return "Long";
+
+            if (previous.Close > previous.PreviewVAH && snapshot.Close < snapshot.PreviewVAH)
+                yield return "Short";
+        }
+
+        private BalanceSetup? CreateDelayedReclaimSetup(HistoricalBarSnapshot snapshot, string direction, string source)
+        {
+            var lookbackBars = _historicalBarSnapshots.Values
+                .Where(s => s.Bar >= snapshot.Bar - 6 && s.Bar <= snapshot.Bar)
+                .OrderBy(s => s.Bar)
+                .ToList();
+            if (lookbackBars.Count == 0)
+                return null;
+
+            var excursionLow = lookbackBars.Min(s => s.Low);
+            var excursionHigh = lookbackBars.Max(s => s.High);
+            var stop = direction == "Long"
+                ? excursionLow - StopOffsetTicks * _tickSize
+                : excursionHigh + StopOffsetTicks * _tickSize;
+
+            return new BalanceSetup
+            {
+                SetupId = $"DELAYED-RECLAIM-{snapshot.Bar}-{direction}",
+                Direction = direction,
+                POC = snapshot.PreviewPOC,
+                VAH = snapshot.PreviewVAH,
+                VAL = snapshot.PreviewVAL,
+                BreakoutBar = snapshot.Bar,
+                BreakoutTimeUtc = snapshot.EventTimeUtc,
+                BreakoutPrice = direction == "Long" ? excursionLow : excursionHigh,
+                RejectionBar = snapshot.Bar,
+                RejectionTimeUtc = snapshot.EventTimeUtc,
+                RejectionClose = snapshot.Close,
+                RejectionHigh = snapshot.High,
+                RejectionLow = snapshot.Low,
+                RejectionDelta = snapshot.Delta,
+                StopPrice = stop,
+                TargetPrice = snapshot.PreviewPOC,
+                SetupSource = source
+            };
+        }
+
+        private void UpdateDelayedReclaimCandidates(int bar, IndicatorCandle candle)
+        {
+            if (!IsInLondonSession(candle.Time))
+                return;
+
+            var snapshot = _historicalBarSnapshots.TryGetValue(bar, out var captured)
+                ? captured
+                : CreateHistoricalBarSnapshot(bar, candle);
+
+            foreach (var direction in GetDelayedReclaimDirections(snapshot))
+            {
+                var setup = CreateDelayedReclaimSetup(snapshot, direction, "DelayedReclaimAccepted");
+                if (setup == null)
+                    continue;
+
+                if (_delayedReclaimCandidates.Any(c => c.Setup.SetupId == setup.SetupId))
+                    continue;
+
+                _delayedReclaimCandidates.Add(new DelayedReclaimCandidate
+                {
+                    Setup = setup,
+                    LastUpdatedUtc = snapshot.EventTimeUtc
+                });
+                _log($"[MR_DELAYED_RECLAIM_SETUP] SetupId={setup.SetupId}, Direction={setup.Direction}, Bar={setup.RejectionBar}, {FormatTime(setup.RejectionTimeUtc)}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}, Stop={setup.StopPrice:F2}, TargetPOC={setup.TargetPrice:F2}", IsHistoricalBar(bar));
+            }
+
+            foreach (var candidate in _delayedReclaimCandidates.Where(c => !c.EntryConfirmed && !c.Setup.Expired).ToList())
+                UpdateDelayedReclaimCandidateAcceptance(candidate, snapshot);
+        }
+
+        private void UpdateDelayedReclaimCandidateAcceptance(DelayedReclaimCandidate candidate, HistoricalBarSnapshot snapshot)
+        {
+            var setup = candidate.Setup;
+            if (snapshot.EventTimeUtc <= setup.RejectionTimeUtc)
+                return;
+
+            if (snapshot.EventTimeUtc > setup.RejectionTimeUtc.AddSeconds(AggressionTimeoutSeconds))
+            {
+                setup.Expired = true;
+                return;
+            }
+
+            var accepted = setup.Direction == "Long"
+                ? snapshot.Close >= setup.VAL
+                : snapshot.Close <= setup.VAH;
+            if (accepted)
+                candidate.AcceptedBars++;
+
+            candidate.OperationallyReady = candidate.AcceptedBars >= 2;
+            candidate.LastUpdatedUtc = snapshot.EventTimeUtc;
+        }
+
+        private bool TryProcessDelayedReclaimEntry(CumulativeTrade trade, string entryModel, bool isHistorical)
+        {
+            foreach (var candidate in _delayedReclaimCandidates.Where(c => c.OperationallyReady && !c.EntryConfirmed && !c.Setup.Expired).ToList())
+            {
+                var setup = candidate.Setup;
+                if (!IsDelayedReclaimTradeCandidate(candidate, trade))
+                    continue;
+
+                candidate.EntryConfirmed = true;
+                setup.AggressionConfirmed = true;
+                var resolvedEntryModel = isHistorical
+                    ? "FootprintCumulativeTradeHistoricalDelayedReclaim"
+                    : "FootprintCumulativeTradeLiveDelayedReclaim";
+                CreatePosition(setup, trade, resolvedEntryModel, isHistorical);
+                _log($"[MR_DELAYED_RECLAIM_ENTRY] SetupId={setup.SetupId}, EntryModel={resolvedEntryModel}, Direction={setup.Direction}, {FormatTime(trade.Time)}, EntryPrice={trade.Lastprice:F2}, Volume={trade.Volume:F0}, AcceptedBars={candidate.AcceptedBars}, SameDirectionVolume={candidate.SameDirectionVolume:F0}, OppositeDirectionVolume={candidate.OppositeDirectionVolume:F0}, MaxSameDirectionVolume={candidate.MaxSameDirectionVolume:F0}, MaxOppositeDirectionVolume={candidate.MaxOppositeDirectionVolume:F0}", isHistorical);
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool IsDelayedReclaimTradeCandidate(DelayedReclaimCandidate candidate, CumulativeTrade trade)
+        {
+            var setup = candidate.Setup;
+            if (trade.Time <= setup.RejectionTimeUtc || trade.Time > setup.RejectionTimeUtc.AddSeconds(OperationalEntryTimeoutSeconds))
+                return false;
+
+            if (!IsLondonTradeAllowed(trade.Time) || trade.Volume < MinAggressionVolume)
+                return false;
+
+            var expectedDirection = setup.Direction == "Long" ? TradeDirection.Buy : TradeDirection.Sell;
+            var oppositeDirection = setup.Direction == "Long" ? TradeDirection.Sell : TradeDirection.Buy;
+            if (trade.Direction == expectedDirection)
+            {
+                candidate.SameDirectionVolume += trade.Volume;
+                candidate.MaxSameDirectionVolume = Math.Max(candidate.MaxSameDirectionVolume, trade.Volume);
+            }
+            else if (trade.Direction == oppositeDirection)
+            {
+                candidate.OppositeDirectionVolume += trade.Volume;
+                candidate.MaxOppositeDirectionVolume = Math.Max(candidate.MaxOppositeDirectionVolume, trade.Volume);
+            }
+
+            if (trade.Direction != expectedDirection)
+                return false;
+
+            if (!IsDelayedReclaimEntryZone(setup, trade))
+                return false;
+
+            if (candidate.SameDirectionVolume <= candidate.OppositeDirectionVolume)
+                return false;
+
+            if (candidate.MaxSameDirectionVolume < candidate.MaxOppositeDirectionVolume)
+                return false;
+
+            return GetRewardRiskToTarget2(setup, trade.Lastprice) >= MinRewardRiskToTarget2;
         }
 
         private bool IsDelayedReclaimEntryZone(BalanceSetup setup, CumulativeTrade trade)
@@ -2403,7 +2547,7 @@ namespace FabioOrderFlow
 
         private void CaptureHistoricalBarSnapshot(int bar, IndicatorCandle candle)
         {
-            if (!IsHistoricalBar(bar) || !IsInLondonSession(candle.Time))
+            if (!IsInLondonSession(candle.Time))
                 return;
 
             _historicalBarSnapshots[bar] = CreateHistoricalBarSnapshot(bar, candle);

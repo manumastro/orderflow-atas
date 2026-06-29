@@ -74,7 +74,8 @@ Regole operative:
 - sessione: London 08:00-16:00 London time, cioe' 09:00-17:00 italiane con ora legale;
 - nuove entry: fino a 15:30 London, cioe' 16:30 italiane con ora legale;
 - setup: sweep fuori `VAH/VAL` e close back inside;
-- entry operativa: big cumulative trade nella value area tra edge e POC entro 20 minuti dalla rejection;
+- entry operativa value-reentry: big cumulative trade nella value area tra edge e POC entro 20 minuti dalla rejection;
+- entry operativa delayed reclaim: dopo escursione fuori value e reclaim accettato, big cumulative trade coerente dopo cambio controllo;
 - POC reclaim/loss: conferma e gestione, non prerequisito rigido per aprire la base;
 - target operativo: lato opposto della value area;
 - stop: high/low della rejection +/- offset in tick, con cap dinamico a 0.5 value-area width quando il rischio tecnico e' eccessivo;

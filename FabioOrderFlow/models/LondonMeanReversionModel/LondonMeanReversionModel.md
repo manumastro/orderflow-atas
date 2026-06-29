@@ -62,14 +62,20 @@ Il modello quindi legge una balance in costruzione durante London, aspetta un'es
    - nel backfill storico lo stop protetto diventa valido dalla barra successiva al POC, per evitare assunzioni intrabar false
    - exit operative: `TARGET2_HIT`, `PROTECTED_STOP_HIT`, `STOP_HIT`, `LONDON_CLOSE`
 
-7. Scale-in operativo Fabio-style
+7. Delayed reclaim operativo
+   - dopo escursione fuori value e close di rientro, il setup resta in osservazione come `DelayedReclaimAccepted`
+   - entry solo dopo accettazione confermata da almeno 2 barre successive dentro value
+   - richiede cambio controllo: volume cumulato same-direction > opposite-direction e bolla massima nella direzione del trade
+   - entry sulla prima bolla coerente in zona `VAL -> POC` per long o `VAH -> POC` per short, con `RR_T2 >= 1.0`
+
+8. Scale-in operativo Fabio-style
    - ManagementMode add-on = `VALUE_REENTRY_TARGET2_SCALE_IN_EXPAND25`
    - massimo 2 add-on per setup
    - solo dopo che la base ha raggiunto POC/risk-free
    - add-on deve rispettare la stessa entry value-reentry e `RR_T2 >= 1.0` con stop dinamico operativo
    - dopo risk-free, il prezzo deve aver espanso almeno il 25% del tratto `POC -> Target2`
 
-8. Study leggero
+9. Study leggero
    - continuation oltre POC resta solo log study, non entry operativa
    - il file historical study aiuta a confrontare candidati su tutto lo storico caricato
 ```
@@ -223,9 +229,9 @@ Ogni riga historical include `Source=Historical`, `Seq`, `WriteItaly/WriteUtc` e
 [DAY_STUDY_POTENTIAL_PREVIEW_REJECTION] barre London che rigettano preview VAH/VAL anche se non promosse a setup operativo
 [DAY_STUDY_PREVIEW_REJECTION_OUTCOME] studio non operativo delle preview rejection non promosse: prima bolla valida e outcome protetto con cumulative trades post-entry
 [DAY_STUDY_PREVIEW_CONTINUATION_STUDY] studio non operativo della continuation post-POC delle preview rejection: protected exit vs hold-to-target2 e bolle post-POC
-[DAY_STUDY_DELAYED_RECLAIM_SETUP] studio non operativo dei nuovi setup delayed reclaim: escursione fuori value, close di rientro, prima bolla coerente e outcome protetto
-[DAY_STUDY_DELAYED_RECLAIM_NARRATIVE] metriche non operative sul cambio di controllo: pressione pre/post reclaim, lato della bolla massima, accettazione inside value e candidato dopo shift di pressione
-[DAY_STUDY_DELAYED_RECLAIM_ACCEPTED] subset narrative accepted: accettazione inside value, PostNetVolume positivo, bolla massima coerente e candidato narrative presente
+[DAY_STUDY_DELAYED_RECLAIM_SETUP] diagnostica dei setup delayed reclaim: escursione fuori value, close di rientro, prima bolla coerente e outcome protetto
+[DAY_STUDY_DELAYED_RECLAIM_NARRATIVE] metriche sul cambio di controllo: pressione pre/post reclaim, lato della bolla massima, accettazione inside value e candidato dopo shift di pressione
+[DAY_STUDY_DELAYED_RECLAIM_ACCEPTED] subset accepted: accettazione inside value, PostNetVolume positivo, bolla massima coerente e candidato narrative presente
 [DAY_STUDY_SETUP_CANDIDATE_SUMMARY] riepilogo per setup: bolle in finestra, direzione, entry zone, RR, stale, prima opportunita' valida
 [DAY_STUDY_HISTORICAL_POSITION_MODE] conferma che una posizione storica viene gestita trade-by-trade dopo entry
 [DAY_STUDY_ACTUAL_ENTRY]    entry operative effettivamente prese
@@ -243,6 +249,8 @@ Ogni riga historical include `Source=Historical`, `Seq`, `WriteItaly/WriteUtc` e
 FootprintCumulativeTradeLive
 FootprintCumulativeTradeHistorical
 FootprintCumulativeTradeHistoricalIntrabar
+FootprintCumulativeTradeLiveDelayedReclaim
+FootprintCumulativeTradeHistoricalDelayedReclaim
 ```
 
 `StudyTrigger` descrive il trigger finale osservato sul setup. `TriggerAtEntry` descrive il trigger noto al timestamp dell'entry, quindi e' il campo da usare per studi causali.
