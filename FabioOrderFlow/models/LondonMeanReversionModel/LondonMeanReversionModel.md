@@ -301,33 +301,21 @@ Scale-ins: max 2 add-ons after POC/risk-free and EXPAND25
 Continuation beyond POC: study-only
 ```
 
-Reference reload on the currently loaded historical window:
+Current reload metrics are read from the daily debug logs for the loaded chart window:
 
 ```text
-MR_ENTRY: 13
-MR_EXIT: 13
-MR_TARGET1_HIT: 9
-DAY_STUDY_ACTUAL_ENTRY: 13
-DAY_STUDY_DYNAMIC_STOP_CANDIDATE: 3132
-DAY_STUDY_SCALE_PLAN: 143
+%APPDATA%/ATAS/Logs/FabioOrderFlow-days/FabioOrderFlow-day-YYYY-MM-DD.log
 ```
 
-Reference performance on the loaded historical window:
+Operational entry families:
 
 ```text
-Entry: 13 total, 11 base, 2 scale-in
-PnL: +397.74 points
-Net R: +6.18R
-Exit mix: 4 TARGET2_HIT, 5 PROTECTED_STOP_HIT, 4 STOP_HIT
+Value re-entry base
+Delayed reclaim accepted
+Scale-in EXPAND25 after POC/risk-free
 ```
 
-Scale-in study aligned to current dynamic RR logic:
-
-```text
-NO_SCALE:             +212.49 points, +4.20R
-SCALE_MAX_1_EXPAND25: +399.49 points, +6.20R
-SCALE_MAX_2_EXPAND25: +586.24 points, +8.19R
-```
+Scale-in remains active with max 2 add-ons, but entries depend on live/storico market response after POC.
 
 Operational validation examples:
 

@@ -291,6 +291,8 @@ namespace FabioOrderFlow
                 for (var bar = startBar; bar <= endBar; bar++)
                 {
                     var candle = _getCandle(bar);
+                    CaptureHistoricalBarSnapshot(bar, candle);
+                    UpdateDelayedReclaimCandidates(bar, candle);
                     LogStudyBar(bar, candle);
                     UpdateActivePositions(bar, candle);
                 }

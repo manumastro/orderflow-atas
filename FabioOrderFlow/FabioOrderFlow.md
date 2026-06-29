@@ -87,20 +87,19 @@ Dettaglio completo: `models/LondonMeanReversionModel/LondonMeanReversionModel.md
 Stato corrente:
 
 ```text
-Entry operative reference: 13
-Base: 11
-Scale-in EXPAND25: 2 nel reload di riferimento
-PnL storico caricato: +397.74 punti
-Net R: +6.18R
+Modello operativo: London Mean Reversion live-first
+Entry families: value re-entry, delayed reclaim accepted, scale-in EXPAND25
+Management: POC come Target1/protezione, Target2 al lato opposto della value area
+Historical debug: daily logs per giorno caricato
+PostLondonImpulse: fuori scope
 ```
 
 Focus aperto:
 
 ```text
-- valutare qualita' causale delle entry senza usare final trigger label come filtro diretto
-- confermare timeout operativo 20 minuti e CAP_VALUE_WIDTH_50 su nuove sessioni
-- monitorare max 2 scale-in EXPAND25 dopo reload
-- mantenere PostLondonImpulse fuori scope
+- monitorare qualita' causale delle delayed reclaim operative dopo reload/live
+- monitorare max 2 scale-in EXPAND25 quando il mercato espande dopo POC
+- mantenere continuation oltre POC come study separato finche' non confermata su piu' giorni
 ```
 
 ---
@@ -125,7 +124,7 @@ OnFinishRecalculate
 → OnCumulativeTradesResponse
 → BalanceZoneTracker.OnHistoricalCumulativeTrades
 → LondonMeanReversionModule.OnHistoricalCumulativeTrades
-→ [MR_ENTRY] con EntryModel=FootprintCumulativeTradeHistorical
+→ [MR_ENTRY] con EntryModel storico/intrabar/delayed reclaim secondo la famiglia entry
 ```
 
 ---
