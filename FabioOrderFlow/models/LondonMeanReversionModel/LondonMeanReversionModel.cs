@@ -69,6 +69,7 @@ namespace FabioOrderFlow
             "ATAS", "Logs", HistoricalStudyDebugMarkerFile);
         private readonly bool _historicalStudyDebugEnabled;
         private readonly bool _dailyHistoricalDebugLogsEnabled;
+        private readonly DateOnly? _historicalStudyDebugDay;
         private bool _historicalLogInitialized;
         private bool _historicalStudyActive;
         private bool _processingHistoricalPositions;
@@ -218,15 +219,19 @@ namespace FabioOrderFlow
             BalanceZoneTracker balanceTracker,
             Action<string, bool> log,
             Func<int, IndicatorCandle> getCandle,
-            decimal tickSize)
+            decimal tickSize,
+            bool enableHistoricalStudyDebug = false,
+            string historicalStudyDebugDay = "")
         {
             _balanceTracker = balanceTracker ?? throw new ArgumentNullException(nameof(balanceTracker));
             _log = log ?? throw new ArgumentNullException(nameof(log));
             _getCandle = getCandle ?? throw new ArgumentNullException(nameof(getCandle));
             _tickSize = tickSize > 0 ? tickSize : 1m;
-            _historicalStudyDebugEnabled = File.Exists(_historicalStudyDebugMarkerPath);
+            _historicalStudyDebugEnabled = enableHistoricalStudyDebug || File.Exists(_historicalStudyDebugMarkerPath);
             _dailyHistoricalDebugLogsEnabled = true;
-            _log($"[HISTORICAL_STUDY_DEBUG] Enabled={_historicalStudyDebugEnabled}, DailyLogs={_dailyHistoricalDebugLogsEnabled}, Marker={_historicalStudyDebugMarkerPath}", false);
+            if (DateOnly.TryParse(historicalStudyDebugDay, out var parsedDebugDay))
+                _historicalStudyDebugDay = parsedDebugDay;
+            _log($"[HISTORICAL_STUDY_DEBUG] Enabled={_historicalStudyDebugEnabled}, DailyLogs={_dailyHistoricalDebugLogsEnabled}, DebugDay={(_historicalStudyDebugDay.HasValue ? _historicalStudyDebugDay.Value.ToString("yyyy-MM-dd") : "ALL")}, Marker={_historicalStudyDebugMarkerPath}", false);
         }
 
         public void OnBarUpdate(int bar, int currentBar, IndicatorCandle candle)
@@ -505,6 +510,7 @@ namespace FabioOrderFlow
         {
             foreach (var setup in _activeSetups
                 .Where(s => s.SetupSource != "HistoricalIntrabar" && IsHistoricalBar(s.RejectionBar))
+                .Where(s => ShouldDebugHistoricalDay(s.RejectionTimeUtc))
                 .OrderBy(s => s.RejectionTimeUtc))
             {
                 StudyLog($"[DAY_STUDY_SETUP] SetupId={setup.SetupId}, Source={setup.SetupSource}, Tag=MR_SETUP_RESTORED_AFTER_DAILY_RESET, Direction={setup.Direction}, Bar={setup.RejectionBar}, {FormatTime(setup.RejectionTimeUtc)}, BreakoutPrice={setup.BreakoutPrice:F2}, RejectionClose={setup.RejectionClose:F2}, RejectionHigh={setup.RejectionHigh:F2}, RejectionLow={setup.RejectionLow:F2}, RejectionDelta={setup.RejectionDelta:F2}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}, Stop={setup.StopPrice:F2}, TargetPOC={setup.TargetPrice:F2}, AggressionConfirmed={setup.AggressionConfirmed}, Expired={setup.Expired}", setup.RejectionTimeUtc);
@@ -797,7 +803,7 @@ namespace FabioOrderFlow
 
         private void LogMissedOpportunities(List<CumulativeTrade> trades)
         {
-            foreach (var setup in _activeSetups.Where(s => !s.AggressionConfirmed && !s.Expired))
+            foreach (var setup in _activeSetups.Where(s => !s.AggressionConfirmed && !s.Expired).Where(s => ShouldDebugHistoricalDay(s.RejectionTimeUtc)))
             {
                 var trigger = GetStudyTriggerLabel(setup);
                 if (trigger == "NONE")
@@ -1455,7 +1461,7 @@ namespace FabioOrderFlow
 
         private void StudyLog(string message, DateTime eventUtc)
         {
-            if (!_historicalStudyDebugEnabled)
+            if (!_historicalStudyDebugEnabled || !ShouldDebugHistoricalDay(eventUtc))
                 return;
 
             DailyHistoricalLog(message, eventUtc);
@@ -1519,6 +1525,9 @@ namespace FabioOrderFlow
                 return;
 
             if (!IsInLondonSession(candle.Time))
+                return;
+
+            if (!ShouldDebugHistoricalDay(GetCandleEventTime(candle)))
                 return;
 
             var snapshot = _historicalBarSnapshots.TryGetValue(bar, out var captured)
@@ -2077,7 +2086,7 @@ namespace FabioOrderFlow
 
         private void LogDailySetupCandidateSummaries(List<CumulativeTrade> trades)
         {
-            foreach (var setup in _activeSetups.OrderBy(s => s.RejectionTimeUtc))
+            foreach (var setup in _activeSetups.Where(s => ShouldDebugHistoricalDay(s.RejectionTimeUtc)).OrderBy(s => s.RejectionTimeUtc))
             {
                 var windowTrades = trades
                     .Where(t => t.Time > setup.RejectionTimeUtc && t.Time <= setup.RejectionTimeUtc.AddSeconds(AggressionTimeoutSeconds))
@@ -2139,7 +2148,7 @@ namespace FabioOrderFlow
 
         private void LogStudyCumulativeTrades(List<CumulativeTrade> trades)
         {
-            foreach (var trade in trades.Where(t => t.Volume >= MinAggressionVolume && IsInLondonSession(t.Time)))
+            foreach (var trade in trades.Where(t => t.Volume >= MinAggressionVolume && IsInLondonSession(t.Time) && ShouldDebugHistoricalDay(t.Time)))
             {
                 var nearestSetup = FindNearestStudySetup(trade);
                 var candidateDiagnostics = GetTradeCandidateDiagnostics(trade);
@@ -2152,7 +2161,7 @@ namespace FabioOrderFlow
             if (_dayStudyCompleted || _lastHistoricalTrades.Count == 0)
                 return;
 
-            var studySetups = _activeSetups.ToList();
+            var studySetups = _activeSetups.Where(s => ShouldDebugHistoricalDay(s.RejectionTimeUtc)).ToList();
 
             foreach (var setup in studySetups)
             {
@@ -2892,6 +2901,14 @@ namespace FabioOrderFlow
                 .ToList();
 
             return candidates.Count == 0 ? "NONE" : string.Join("|", candidates);
+        }
+
+        private bool ShouldDebugHistoricalDay(DateTime eventUtc)
+        {
+            if (!_historicalStudyDebugDay.HasValue)
+                return true;
+
+            return DateOnly.FromDateTime(MarketTimeZones.ToItaly(eventUtc)) == _historicalStudyDebugDay.Value;
         }
 
         private string GetTradeCandidateDiagnostics(CumulativeTrade trade)
