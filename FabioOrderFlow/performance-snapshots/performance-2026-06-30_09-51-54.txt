@@ -1,0 +1,31 @@
+FabioOrderFlow performance snapshot 2026-06-30_09-51-54
+Logs: C:\Users\emanu\AppData\Roaming\ATAS\Logs
+
+Reload:
+  EffectiveBeginItaly=2026-06-23 09:32:25
+  EndItaly=2026-06-30 09:32:25
+  AllTrades=1535967
+  AggressionTrades=29439
+  OpenPositions=19
+  ClosedPositions=
+  PositionRecords=
+
+Total:
+  exits=19 current70_30=362.76 poc100=391.04 fullRunnerBE=296.75 deltaPoc=28.28
+
+By day:
+  2026-06-23: exits=5 current70_30=80.79 poc100=128.27 fullRunnerBE=-30.00 deltaPoc=47.48
+  2026-06-24: exits=4 current70_30=174.50 poc100=127.25 fullRunnerBE=284.75 deltaPoc=-47.25
+  2026-06-25: exits=3 current70_30=15.23 poc100=21.76 fullRunnerBE=0.00 deltaPoc=6.53
+  2026-06-26: exits=3 current70_30=30.06 poc100=52.26 fullRunnerBE=-21.75 deltaPoc=22.20
+  2026-06-29: exits=4 current70_30=62.18 poc100=61.50 fullRunnerBE=63.75 deltaPoc=-0.68
+
+By exit reason:
+  LONDON_CLOSE: exits=1 current70_30=121.90 poc100=65.50 fullRunnerBE=253.50 deltaPoc=-56.40
+  PROTECTED_STOP_HIT: exits=10 current70_30=202.33 poc100=289.04 fullRunnerBE=0.00 deltaPoc=86.71
+  STOP_HIT: exits=5 current70_30=-81.25 poc100=-81.25 fullRunnerBE=-81.25 deltaPoc=0.00
+  TARGET2_HIT: exits=3 current70_30=119.78 poc100=117.75 fullRunnerBE=124.50 deltaPoc=-2.03
+
+Interpretation:
+  Positive deltaPoc means full exit at POC beat current 70/30 on this log set.
+  Use this as Fabio-style management evidence, not as final production proof.

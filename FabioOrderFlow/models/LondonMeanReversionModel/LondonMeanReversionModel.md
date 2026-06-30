@@ -1,372 +1,350 @@
 # London Mean Reversion Model
 
-**Strategy:** mean reversion live durante London su value area dinamica  
-**Market State:** balance/compression, fakeout, POC reclaim/loss, rientro verso lato opposto della value area  
-**Session:** London 08:00-15:30 London time per nuove entry, gestione fino a 16:00 London time  
-**Timeframe operativo:** chart M5 consigliato; entry da cumulative big trades live/storici  
-**Implementation:** live-first con backfill storico sul chart
+Modello attivo di `FabioOrderFlow`. Implementa una versione live-first del modello mean reverting descritto da Fabio Valentino per London sugli indici: mercato in consolidamento, falsa escursione fuori value area, rientro in balance e conferma tramite cumulative big trades.
 
----
+## Sintesi Strategica
 
-## Core Concept
-
-Dal transcript Fabio Valentino:
-
-- durante London sugli indici il mercato tende spesso a fare `out of balance -> back inside balance`;
-- non si prende il primo movimento fuori dalla value area;
-- dopo il fakeout si aspetta il rientro dentro la balance;
-- l'entry non e' solo price action: serve la mano dei big players, cioe' big trades/bubbles;
-- POC e' il punto di accettazione/protezione; il target operativo migliore e' il lato opposto della value area quando c'e' reclaim/loss del POC;
-- se il trade e' sbagliato deve essere sbagliato subito, con stop stretto.
-
-Il modello quindi legge una balance in costruzione durante London, aspetta un'escursione fuori `VAH/VAL`, richiede una rejection back inside, poi accetta una entry base quando arriva un cumulative trade nella value area tra edge e POC con spazio sufficiente verso Target2. `POC_RECLAIM`/`POC_LOSS` non e' prerequisito rigido per aprire la base: e' conferma di accettazione, gestione/risk-free, e filtro per continuation/scale-in.
-
----
-
-## Trading Flow
+Fabio distingue due modelli:
 
 ```text
-1. Build London profile
-   - aggrega i price levels delle candele London
-   - calcola preview dinamico di POC, VAH, VAL
-   - aggiorna lo snapshot della candela corrente senza duplicare volume
-
-2. Detect fakeout/rejection
-   - short: high rompe VAH, close torna sotto VAH
-   - long: low rompe VAL, close torna sopra VAL
-   - rejection minima: 10 tick dal punto estremo alla close
-
-3. Wait for value re-entry big trade
-   - long: cumulative trade Buy >= 10 contratti tra `VAL` e `POC`
-   - short: cumulative trade Sell >= 10 contratti tra `VAH` e `POC`
-   - il trade deve arrivare dopo la rejection, entro 20 minuti operativi
-   - lo study resta a 1 ora per analisi dei setup tardivi
-   - non serve aspettare POC reclaim/loss: il POC diventa conferma/gestione, non prerequisito rigido
-   - `RewardToTarget2 / Risk >= 1.0`, con risk operativo dinamico
-
-4. POC acceptance / management
-   - long: `POC_RECLAIM_AFTER_LOW_REJECTION` conferma forza e abilita studio continuation
-   - short: `POC_LOSS_AFTER_HIGH_REJECTION` conferma forza e abilita studio continuation
-   - quando il prezzo arriva al POC, lo stop viene protetto
-
-5. Register entry
-   - entry price = Lastprice del cumulative trade
-   - stop originale = high/low della rejection +/- 2 tick
-   - stop operativo = stop originale cappato a massimo `0.5 * (VAH - VAL)` di rischio quando lo stop tecnico e' troppo lontano
-   - Target1 = POC solo per protezione stop
-   - Target2 = VAH per long / VAL per short
-
-6. Management operativo
-   - ManagementMode base = `VALUE_REENTRY_TARGET2`
-   - quando il trade raggiunge il POC, lo stop viene protetto almeno a breakeven
-   - nel backfill storico lo stop protetto diventa valido dalla barra successiva al POC, per evitare assunzioni intrabar false
-   - exit operative: `TARGET2_HIT`, `PROTECTED_STOP_HIT`, `STOP_HIT`, `LONDON_CLOSE`
-
-7. Delayed reclaim operativo
-   - dopo escursione fuori value e close di rientro, il setup resta in osservazione come `DelayedReclaimAccepted`
-   - entry su big cumulative trade narrativo dopo reclaim e cambio controllo same-direction
-   - richiede cambio controllo: volume cumulato same-direction > opposite-direction e bolla massima nella direzione del trade
-   - entry sulla prima bolla coerente in zona `VAL -> POC` per long o `VAH -> POC` per short, con `RR_T2 >= 1.0`
-
-8. Scale-in operativo Fabio-style
-   - ManagementMode add-on = `VALUE_REENTRY_TARGET2_SCALE_IN_EXPAND25`
-   - massimo 2 add-on per setup
-   - solo dopo che la base ha raggiunto POC/risk-free
-   - add-on deve rispettare la stessa entry value-reentry e `RR_T2 >= 1.0` con stop dinamico operativo
-   - dopo risk-free, il prezzo deve aver espanso almeno il 25% del tratto `POC -> Target2`
-
-9. Study leggero
-   - continuation oltre POC resta solo log study, non entry operativa
-   - il file historical study aiuta a confrontare candidati su tutto lo storico caricato
+Trend following: mercato out of balance, tipicamente New York, target verso nuova/precedente area di balance.
+Mean reversion: mercato in balance/compressione, tipicamente London, target verso bulk of auction/POC.
 ```
 
----
+Questo file documenta solo il secondo.
 
-## Long Setup
-
-Condizioni:
-
-1. `LastPreviewPoc/Vah/Val` validi.
-2. Candle London fa nuovo low sotto `VAL`.
-3. Close torna sopra `VAL`.
-4. Distanza `Close - Low >= 10 tick`.
-5. Dopo la rejection arriva un cumulative trade `Buy` con volume `>= 10`.
-6. Il trade e' dentro value tra `VAL` e `POC`.
-7. `RewardToTarget2 / Risk >= 1.0`.
-8. `POC_RECLAIM_AFTER_LOW_REJECTION` resta conferma/gestione e abilita study continuation/scale-in, ma non blocca la base.
-
-Livelli:
+Riferimenti transcript principali:
 
 ```text
-Entry   = trade.Lastprice
-Stop    = min(rejection.Low - 2 tick, cap risk a 0.5 value width) per long
-Target1 = setup.POC per protezione stop
-Target2 = setup.VAH operativo
+17:01-19:56   London: fakeout, mean reversion, target POC, big trades, break-even
+42:56-44:45   modello mean reverting: non primo swing, target bulk of auction, stop stretto
+46:11-48:28   target probabile, consolidamento, delta per price level
+1:08:43-1:14:31 esempio London: non accettazione sotto value, big trades, secondo drive
+2:21:07-2:23:38 parziali, break-even, riuso profitto per nuovi trade
 ```
 
----
+Tesi del modello:
 
-## Short Setup
+- durante London sugli indici e' frequente vedere `out of balance -> back inside balance`;
+- il primo spike fuori value area non va anticipato;
+- dopo la falsa rottura serve una conferma di rientro e partecipazione dei big players;
+- POC/bulk of auction e' il target a probabilita' piu' alta;
+- VAH/VAL opposta e' estensione, non il target primario;
+- se il trade e' sbagliato deve fallire presto, con stop piccolo;
+- dopo POC il rischio va tolto o ridotto drasticamente.
 
-Condizioni:
-
-1. `LastPreviewPoc/Vah/Val` validi.
-2. Candle London fa nuovo high sopra `VAH`.
-3. Close torna sotto `VAH`.
-4. Distanza `High - Close >= 10 tick`.
-5. Dopo la rejection arriva un cumulative trade `Sell` con volume `>= 10`.
-6. Il trade e' dentro value tra `VAH` e `POC`.
-7. `RewardToTarget2 / Risk >= 1.0`.
-8. `POC_LOSS_AFTER_HIGH_REJECTION` resta conferma/gestione e abilita study continuation/scale-in, ma non blocca la base.
-
-Livelli:
+## Fonte E Implementazione
 
 ```text
-Entry   = trade.Lastprice
-Stop    = max(rejection.High + 2 tick, cap risk a 0.5 value width) per short
-Target1 = setup.POC per protezione stop
-Target2 = setup.VAL operativo
+Transcript Fabio: transcription.txt
+Codice:          LondonMeanReversionModel.cs
+Livelli:         BalanceZoneTracker.LastPreviewPoc/Vah/Val
+Entry trigger:   ATAS CumulativeTrade live/storici
 ```
 
----
-
-## Orari Operativi
-
-Il codice usa timezone London:
+Il codice non e' una trascrizione discrezionale completa del trading live di Fabio. E' un modello meccanico che codifica una parte verificabile del playbook:
 
 ```text
-Profilo/setup London: 08:00-16:00 London time
-Nuove entry: 08:00-15:30 London time
-Gestione posizioni: fino a 16:00 London time
+profilo London dinamico -> sweep/reclaim -> big trade coerente -> POC partial -> runner protetto
 ```
 
-Con l'ora legale europea, in Italia corrisponde a:
+Mappa funzioni principali:
 
 ```text
-Profilo/setup London: 09:00-17:00 Italy time
-Nuove entry: 09:00-16:30 Italy time
-Gestione posizioni: fino a 17:00 Italy time
+OnNewSessionHigh/Low                 crea setup sweep + rejection
+OnBarUpdate                          aggiorna snapshot, delayed reclaim, trigger study, posizioni
+OnLiveCumulativeTrade                filtra/deduplica cumulative trades live
+OnHistoricalCumulativeTrades         prepara backfill e study storico
+ProcessHistoricalPositions           processa snapshot, trade storici, exit e day logs
+ProcessAggressionTrade               ordine decisionale: delayed reclaim, scale-in, base entry
+TryProcessDelayedReclaimEntry        delayed reclaim operativo causale
+CreatePosition                       crea posizione o scarta duplicato base
+ProtectStopAfterTarget1              POC partial + protezione runner
+ClosePosition                        MR_EXIT con PnL blended
 ```
 
-Quando cambia l'ora legale, la conversione resta gestita da `MarketTimeZones`.
+## Sessione E Timeframe
 
----
+```text
+Sessione profilo:        London 08:00-16:00
+Nuove entry operative:   London 08:00-16:00
+Gestione posizioni:      fino a London 16:00
+Timeframe chart:         M5 consigliato
+Trigger order flow:      CumulativeTrade ATAS
+```
 
-## Live vs Storico
+Le conversioni passano da `MarketTimeZones`; in estate London 08:00-16:00 corrisponde a Italy 09:00-17:00.
 
-Il sistema deve funzionare prima in live.
+## Livelli Di Mercato
+
+`BalanceZoneTracker` costruisce durante London un volume profile dinamico sui price levels ATAS.
+
+```text
+POC = prezzo con volume massimo
+VAH = limite alto della value area 70%
+VAL = limite basso della value area 70%
+```
+
+Il modello usa i livelli preview del momento, non solo i livelli congelati a fine sessione. Questo e' necessario per lavorare live durante London.
+
+## Setup Base: Value Re-Entry
+
+Long:
+
+```text
+1. price fa low sotto VAL
+2. la candela chiude di nuovo sopra VAL
+3. distanza close-low >= 10 tick
+4. arriva cumulative Buy >= 10 contratti
+5. prezzo del trade tra VAL e POC
+6. trade entro 20 minuti dalla rejection
+7. Reward/Risk verso Target2 >= 1.0
+```
+
+Short:
+
+```text
+1. price fa high sopra VAH
+2. la candela chiude di nuovo sotto VAH
+3. distanza high-close >= 10 tick
+4. arriva cumulative Sell >= 10 contratti
+5. prezzo del trade tra VAH e POC
+6. trade entro 20 minuti dalla rejection
+7. Reward/Risk verso Target2 >= 1.0
+```
+
+Il setup nasce da nuovi high/low London notificati dal tracker. In storico, se abilitato, il modello crea anche setup `HistoricalIntrabar` ricostruiti dai cumulative trades dentro la candela per avvicinare il timing live.
+
+## Delayed Reclaim
+
+Il delayed reclaim copre i casi in cui il mercato esce dalla value, poi rientra in modo piu' tardivo. Serve a non perdere reclaim buoni, ma deve restare causale e non usare lookahead.
+
+Creazione candidato:
+
+```text
+Long:  close precedente sotto VAL, close corrente sopra VAL
+Short: close precedente sopra VAH, close corrente sotto VAH
+Stop:  estremo degli ultimi 6 bar +/- 2 tick
+```
+
+Entry delayed valida:
+
+```text
+trade entro 20 minuti dal reclaim
+volume >= 10 * 5 = 50
+prezzo tra edge e POC, inclusivo
+same-direction volume > opposite-direction volume
+max same bubble >= max opposite bubble
+risk operativo <= 120 punti
+RR verso Target2 >= 1.0
+AcceptanceMode valido
+```
+
+`AcceptanceMode` ammessi:
+
+```text
+CONFIRMED_ACCEPTANCE          almeno 2 barre gia' chiuse accettate inside value
+IMMEDIATE_DOMINANT_PRESSURE  entro 120s e maxSame >= 2 * maxOpposite
+EARLY_ACCEPTED_PRESSURE      almeno 1 barra accettata, maxSame dominante, same/opposite >= 1.50
+```
+
+Non usare direttamente come filtro operativo diagnostiche future/study tipo `PostNetVolume15m` o `NextBarHolds`.
+
+## Stop, Target E Gestione
+
+Alla entry:
+
+```text
+Stop tecnico long  = rejection low - 2 tick
+Stop tecnico short = rejection high + 2 tick
+Stop operativo     = stop tecnico cappato a 0.5 * width(VAH-VAL) se troppo lontano
+Target1            = POC
+Target2 long       = VAH
+Target2 short      = VAL
+```
+
+Gestione corrente:
+
+```text
+al POC: chiusura simulata 70%
+runner: 30% verso Target2
+stop runner dopo POC: breakeven entry
+exit: TARGET2_HIT, PROTECTED_STOP_HIT, STOP_HIT, LONDON_CLOSE
+```
+
+Nota importante: Fabio nel transcript non definisce una percentuale fissa `70/30` per questo setup. Dice che nel mean reverting model il bulk of auction/POC e' il target a probabilita' piu' alta, mentre puntare direttamente all'estremo opposto della value area e' meno probabile. Il runner fisso e' quindi una scelta di studio/gestione corrente, non la versione piu' pura del metodo Fabio.
+
+Ipotesi Fabio-style da validare:
+
+```text
+1. uscita completa o quasi completa al POC/bulk of auction;
+2. rischio tolto quando il mercato conferma con nuovo breakout/accettazione, non meccanicamente sempre al primo touch;
+3. estensione oltre POC solo con nuova informazione order-flow: big trades, CVD/delta coerente, assorbimento opposto fallito;
+4. eventuale seconda operazione finanziata dal profitto, non runner passivo lasciato sempre aperto;
+5. se il setup perde tempo o torna in compressione, prendere profitto e non restituire il movimento.
+```
+
+## Scale-In
+
+Scale-in operativo corrente:
+
+```text
+ManagementMode = VALUE_REENTRY_TARGET2_SCALE_IN_EXPAND25
+max add-on = 2
+solo dopo base arrivata a POC/risk-free
+entry add-on deve rispettare value re-entry, RR_T2 >= 1.0 e freshness
+prezzo deve aver espanso almeno 25% del tratto POC -> Target2 dopo risk-free
+```
+
+Gli scale-in sono esclusi dal blocco duplicati base.
+
+## Blocco Duplicati Base
+
+Una nuova base entry non scale-in viene scartata se esiste gia' una posizione base aperta:
+
+```text
+stessa direzione
+stesso giorno Italy
+Target1/POC entro 4 punti
+Target2/value edge entro 8 punti
+```
+
+Log:
+
+```text
+[MR_ENTRY_SKIPPED] Reason=DUPLICATE_BASE_POSITION
+```
+
+## Parametri Correnti
+
+```text
+MinAggressionVolume = 10
+AggressionTimeoutSeconds = 3600              study/missed window
+OperationalEntryTimeoutSeconds = 1200        entry operativa
+RejectionThresholdTicks = 10
+StopOffsetTicks = 2
+LateCutoff = 16:00 London
+MinRewardRiskToTarget2 = 1.0
+DynamicStopMaxValueAreaRiskPct = 0.50
+PocPartialExitPct = 0.70
+RunnerExitPct = 0.30
+ScaleInMinExpansionAfterRiskFreePct = 0.25
+ScaleInMinRewardToTarget1Points = 4
+MaxScaleInsPerSetup = 2
+DelayedReclaimNarrativeMinBubbleMultiplier = 5
+DelayedReclaimMinAcceptedBars = 2
+DelayedReclaimImmediateMaxSeconds = 120
+DelayedReclaimDominantBubbleMultiplier = 2
+DelayedReclaimEarlyPressureVolumeRatio = 1.50
+DelayedReclaimMaxOperationalRiskPoints = 120
+DuplicateBasePositionPocTolerancePoints = 4
+DuplicateBasePositionValueEdgeTolerancePoints = 8
+EnableHistoricalIntrabarFromCumulativeTrades = true
+HistoricalStudyDebugMarker = %APPDATA%/ATAS/Logs/FabioOrderFlow-enable-historical-study-debug.flag
+DailyHistoricalDebugLogs = only when marker exists
+```
+
+## Live E Storico
 
 Live:
 
-- ATAS chiama `OnCumulativeTrade(CumulativeTrade trade)` quando nasce un big trade aggregato.
-- ATAS chiama `OnUpdateCumulativeTrade(CumulativeTrade trade)` quando quel trade viene aggiornato.
-- `FabioOrderFlow` inoltra entrambi a `BalanceZoneTracker.OnLiveCumulativeTrade()`.
-- Il tracker inoltra a `LondonMeanReversionModule.OnLiveCumulativeTrade()`.
-- Il modulo deduplica gli update dello stesso cumulative trade con una chiave stabile basata su tempo, direzione e `FirstPrice`.
-- Il trade viene valutato quando il volume aggregato supera `MinAggressionVolume`; non sommiamo gli update, perche' il big trade e' un trigger e non un indicatore delta cumulativo.
+```text
+OnCumulativeTrade / OnUpdateCumulativeTrade
+-> dedupe per Time + Direction + FirstPrice
+-> valuta solo nuovi massimi di volume per la stessa chiave
+-> EntryModel=FootprintCumulativeTradeLive
+```
 
 Storico:
 
-- dopo il ricalcolo, `OnFinishRecalculate()` richiede i cumulative trades degli ultimi 7 giorni del chart, limite imposto da ATAS per una singola request;
-- `OnCumulativeTradesResponse()` inoltra i trade storici al modulo;
-- i trade storici passano dalla stessa logica di entry del live;
-- le posizioni storiche vengono processate dalla barra dell'entry in avanti, non da prima dell'entry.
-
-Questo significa che il chart mostra come sarebbe andata la logica live sui dati caricati. La modalita' storica corrente usa anche `HistoricalIntrabarFromCumulativeTrades` per avvicinare il timing delle rejection/entry al flusso live, mantenendo `EntryModel=FootprintCumulativeTradeHistoricalIntrabar` quando una entry nasce da questa ricostruzione.
-
----
-
-## Configuration Corrente
-
-```csharp
-MinAggressionVolume = 10m
-MinRewardRiskToTarget2 = 1.0m
-DynamicStopMaxValueAreaRiskPct = 0.50m
-ScaleInMinRewardToTarget1Points = 4m
-MaxScaleInsPerSetup = 2
-EnableHistoricalIntrabarFromCumulativeTrades = true
-EnableDailyHistoricalDebugLogs = true
-AggressionTimeoutSeconds = 3600      // study / setup window
-OperationalEntryTimeoutSeconds = 1200 // entry operative base
-RejectionThresholdTicks = 10
-StopOffsetTicks = 2
-LateCutoffHour = 15
-LateCutoffMinute = 30
+```text
+OnFinishRecalculate richiede cumulative trades ultimi 7 giorni effettivi
+OnHistoricalCumulativeTrades salva tutti i trade e filtra volume >= 10
+ProcessStoredHistoricalTrades valuta entry con lo stesso core di live: ProcessAggressionTrade
+UpdateHistoricalPositionsWithTrade aggiorna posizioni con trade successivi
+posizioni ancora aperte vengono chiuse a London close del giorno entry
 ```
 
-Le soglie in tick usano `InstrumentInfo.TickSize`, quindi stop e rejection sono coerenti con lo strumento.
+Reload normale = operativo veloce: niente dump `[DAY_STUDY_*]` massivi.
+Debug profondo = creare il marker `%APPDATA%/ATAS/Logs/FabioOrderFlow-enable-historical-study-debug.flag` prima del reload.
 
----
+Se un giorno non ha entry/exit, prima ipotesi da verificare: `CUM_TRADES_LOOKBACK` non include la sessione London di quel giorno.
 
-## Log Tags
+## Log Operativi
+
+Tag operativi reali del modello:
 
 ```text
-[MR_SETUP_LONG]          low sweep + rejection sopra VAL
-[MR_SETUP_SHORT]         high sweep + rejection sotto VAH
-[MR_HISTORICAL_TRADES]   backfill cumulative trades ricevuto
-[MR_ENTRY]               entry value re-entry confermata da big trade live/storico, include ManagementMode, FinalTarget, StudyTrigger e RR
-[MR_MFE_UPDATE]          nuova massima escursione favorevole
-[MR_TARGET1_HIT]         POC raggiunto; stop protetto
-[MR_EXIT]                uscita operativa a Target2, stop, protected stop o London close. Le posizioni storiche da cumulative trades vengono gestite con cumulative trades successivi all'entry, non con l'intero high/low della candela di entry
-[MR_STUDY_TRIGGER]       follow-through o POC reclaim/loss osservato dopo rejection
-[MR_MISSED_OPPORTUNITY]  setup senza entry valida, con motivo esplicito
-[MR_STUDY_CONTINUATION_ENTRY] big trade oltre POC dopo reclaim/loss, solo studio continuation
-Timeout entry           nessuna entry operativa base se il big trade arriva oltre 20 minuti dalla rejection; study window a 1 ora
+[MR_SETUP_LONG]                  setup long da sweep sotto VAL + close back inside
+[MR_SETUP_SHORT]                 setup short da sweep sopra VAH + close back inside
+[MR_HISTORICAL_TRADES]           cumulative trades storici filtrati
+[MR_ENTRY]                       posizione creata
+[MR_DELAYED_RECLAIM_SETUP]       candidato delayed reclaim
+[MR_DELAYED_RECLAIM_ENTRY]       delayed realmente creata, include AcceptanceMode
+[MR_ENTRY_SKIPPED]               entry scartata
+[MR_TARGET1_HIT]                 POC raggiunto, stop runner protetto
+[MR_PARTIAL_EXIT]                70% simulato chiuso al POC
+[MR_MFE_UPDATE]                  nuovo massimo favorevole
+[MR_EXIT]                        exit finale; PnL blended se POC raggiunto
+[MR_MISSED_OPPORTUNITY]          setup non entrato con motivo, solo debug profondo
+[MR_STUDY_TRIGGER]               follow-through/POC reclaim solo diagnostico
+[MR_STUDY_CONTINUATION_ENTRY]    continuation oltre POC solo study
 ```
 
-Day-study dedicato per analisi manuale/agent:
+Tag reload/studio principali:
 
 ```text
-%APPDATA%\ATAS\Logs\FabioOrderFlow-historical.log
-%APPDATA%\ATAS\Logs\FabioOrderFlow-days\FabioOrderFlow-day-YYYY-MM-DD.log
+[CUM_TRADES_LOOKBACK]                  range storico richiesto ad ATAS
+[CUM_TRADES_REQUEST]                   request ATAS inviata
+[CUM_TRADES_RESPONSE]                  risposta ATAS ricevuta
+[HISTORICAL_FLOW_TRADES_READY]         trade ricevuti e filtrati
+[HISTORICAL_FLOW_PROCESS_START]        inizio processing storico
+[HISTORICAL_FLOW_FINISH]               processo storico completato
+[DAY_DEBUG_START] / [DAY_DEBUG_FINISH] day log operativo minimo
+[DAY_STUDY_ACTUAL_ENTRY]               copia study di entry reale, solo debug profondo
+[DAY_STUDY_ACTUAL_EXIT]                copia study di exit reale, solo debug profondo
+[DAY_STUDY_POC_MANAGEMENT]             confronto POC all-out / 70-30 / full runner protetto, solo debug profondo
+```
 
-Ogni riga historical include `Source=Historical`, `Seq`, `WriteItaly/WriteUtc` e, quando disponibile, `EventItaly/EventLondon/EventUtc`. `Seq` mantiene l'ordine di scrittura; `EventItaly` mantiene l'ordine di mercato. Con `EnableDailyHistoricalDebugLogs=true`, lo study aggregato candidate/dynamic/scale-plan resta disattivato e il debug dettagliato viene scritto per giorno in `FabioOrderFlow-days`.
+## PnL E Parser
 
-Un reload storico e' completo quando `FabioOrderFlow.log` contiene `[HISTORICAL_FLOW_FINISH]` e ogni file giorno atteso contiene `[DAY_DEBUG_FINISH]`.
-
-Git Bash:
+Per risultati storici usare solo `[MR_EXIT]`. `DAY_STUDY_ACTUAL_EXIT` duplica informazione study e non va sommato.
 
 ```bash
-grep "HISTORICAL_FLOW_FINISH" "$APPDATA/ATAS/Logs/FabioOrderFlow.log"
-grep "DAY_DEBUG_FINISH" "$APPDATA/ATAS/Logs/FabioOrderFlow-days"/FabioOrderFlow-day-*.log
+perl -ne 'next unless /\[MR_EXIT\]/; if(/, PnL=([-]?[0-9]+,[0-9]+), RunnerPnL=/){$p=$1;$d="?"; if($ARGV=~/day-(\d{4}-\d{2}-\d{2})\.log/){$d=$1} $p=~s/,/./; $s{$d}+=$p; $n{$d}++} END{for $d (sort keys %s){printf "%s exits=%d pnl=%.2f\n",$d,$n{$d},$s{$d}}}' "$APPDATA/ATAS/Logs/FabioOrderFlow-days"/FabioOrderFlow-day-2026-06-*.log
 ```
 
-PowerShell:
+Snapshot persistente e confronto gestione POC:
 
-```powershell
-Select-String "HISTORICAL_FLOW_FINISH" "$env:APPDATA\ATAS\Logs\FabioOrderFlow.log"
-Select-String "DAY_DEBUG_FINISH" "$env:APPDATA\ATAS\Logs\FabioOrderFlow-days\FabioOrderFlow-day-*.log"
+```bash
+python FabioOrderFlow/tools/snapshot_performance.py
+python FabioOrderFlow/tools/study_poc_management.py --archive-logs
 ```
 
-[HISTORICAL_FLOW_TRADES_READY] cumulative trades storici ricevuti e filtrati
-[HISTORICAL_FLOW_PROCESS_START] inizio processamento barre + trades salvati
-[HISTORICAL_FLOW_FINISH] fine processamento storico complessivo, con conteggi snapshot/trades/entry/open positions
-[DAY_DEBUG_FINISH] fine file giornaliero, con conteggi barre, big trade, entry, exit e delayed reclaim accepted
-[DAY_STUDY_BAR]             ogni barra London dello storico caricato con OHLC finale, volume, bid/ask/delta, snapshot POC/VAH/VAL preview causale, diagnostica setup e top price levels
-[DAY_STUDY_SETUP]           ogni setup creato nello storico caricato
-[DAY_STUDY_TRIGGER]         follow-through o POC reclaim/loss nello storico caricato
-[DAY_STUDY_BIG_TRADE]       ogni cumulative trade >= MinAggressionVolume nella London storica, con relazione a profilo/setup
-[DAY_STUDY_POTENTIAL_PREVIEW_REJECTION] barre London che rigettano preview VAH/VAL anche se non promosse a setup operativo
-[DAY_STUDY_PREVIEW_REJECTION_OUTCOME] studio non operativo delle preview rejection non promosse: prima bolla valida e outcome protetto con cumulative trades post-entry
-[DAY_STUDY_PREVIEW_CONTINUATION_STUDY] studio non operativo della continuation post-POC delle preview rejection: protected exit vs hold-to-target2 e bolle post-POC
-[DAY_STUDY_DELAYED_RECLAIM_SETUP] diagnostica dei setup delayed reclaim: escursione fuori value, close di rientro, prima bolla coerente e outcome protetto
-[DAY_STUDY_DELAYED_RECLAIM_NARRATIVE] metriche sul cambio di controllo: pressione pre/post reclaim, lato della bolla massima, accettazione inside value e candidato dopo shift di pressione
-[DAY_STUDY_DELAYED_RECLAIM_ACCEPTED] subset accepted: accettazione inside value, PostNetVolume positivo, bolla massima coerente e candidato narrative presente
-[DAY_STUDY_SETUP_CANDIDATE_SUMMARY] riepilogo per setup: bolle in finestra, direzione, entry zone, RR, stale, prima opportunita' valida
-[DAY_STUDY_HISTORICAL_POSITION_MODE] conferma che una posizione storica viene gestita trade-by-trade dopo entry
-[DAY_STUDY_ACTUAL_ENTRY]    entry operative effettivamente prese
-[DAY_STUDY_SETUP_SUMMARY]   riepilogo setup e numero candidati alternativi
-[DAY_STUDY_CANDIDATE_ENTRY] candidate entry alternative con risk/reward, MFE/MAE, outcome POC e Target2; include `TriggerAtEntry` per distinguere informazione live da trigger finale post-entry
-[DAY_STUDY_DYNAMIC_STOP_CANDIDATE] studio non operativo degli stop alternativi per value-reentry: RR, outcome protetto, bucket temporale e riduzione rischio; include `TriggerAtEntry`
-[DAY_STUDY_SCALE_IN_SUMMARY] simulazione scale-in Fabio-style per setup, solo dopo POC/risk-free della prima entry; ora usa stop/RR dinamici operativi e timeout base 20 minuti
-[DAY_STUDY_SCALE_IN_CANDIDATE] add-on candidate successivi alla prima entry risk-free, con RR/RMultiple dinamici
-[DAY_STUDY_SCALE_PLAN] piani setup-level: base + max add-on, filtri volume/tempo/espansione post-POC, TotalPnL/TotalR/worst leg usando logica operativa corrente
-```
+`snapshot_performance.py` confronta `current70_30`, `poc100` e `fullRunnerBE` usando solo `[MR_EXIT]`. `study_poc_management.py` richiede debug profondo attivo per avere day log completi (`DAY_STUDY_BIG_TRADE`, `DAY_STUDY_BAR`, `DAY_STUDY_POC_MANAGEMENT`) e testare regole causali post-POC: uscire 100% al POC salvo conferma runner entro una finestra definita.
 
-`EntryModel` distingue:
+## Cosa Non E' Ancora Codificato
+
+Dal transcript restano aspetti discrezionali non pienamente meccanizzati:
 
 ```text
-FootprintCumulativeTradeLive
-FootprintCumulativeTradeHistorical
-FootprintCumulativeTradeHistoricalIntrabar
-FootprintCumulativeTradeLiveDelayedReclaim
-FootprintCumulativeTradeHistoricalDelayedReclaim
+lettura completa di delta per price level come supply/demand reale
+CVD come conferma/gestione avanzata
+low-volume node su swing custom disegnato manualmente
+news/macro/regime day filter
+distinzione fine tra compressione buona e chop da evitare
+parziali/live order execution reale invece di simulazione loggata
 ```
 
-`StudyTrigger` descrive il trigger finale osservato sul setup. `TriggerAtEntry` descrive il trigger noto al timestamp dell'entry, quindi e' il campo da usare per studi causali.
+Questi punti possono guidare study futuri, ma non vanno descritti come regole operative gia' implementate.
 
-```text
-NONE
-LOW_REJECTION_FOLLOW_THROUGH
-HIGH_REJECTION_FOLLOW_THROUGH
-POC_RECLAIM_AFTER_LOW_REJECTION
-POC_LOSS_AFTER_HIGH_REJECTION
-```
+## Checklist Per Agenti
 
-`ManagementMode` distingue:
-
-```text
-VALUE_REENTRY_TARGET2
-VALUE_REENTRY_TARGET2_SCALE_IN_EXPAND25
-```
-
----
-
-## When Not To Trade
-
-- Prima parte di London senza contesto sufficiente.
-- Dopo 15:30 London per nuove entry.
-- Strong trend con breakout e nessun rientro in value.
-- Compressione strettissima con fakeout ripetuti e target POC troppo vicino.
-- Quando non arrivano big trades nella direzione del ritorno verso POC.
-- Quando la prima entry arriva oltre 20 minuti dalla rejection.
-
----
-
-## Current State
-
-Current operative profile:
-
-```text
-Historical log: FabioOrderFlow-historical.log
-Live log: FabioOrderFlow-live.log
-Replay log: FabioOrderFlow-replay.log
-Replay/live split: manual OnlineMode property
-Base management: VALUE_REENTRY_TARGET2
-Scale management: VALUE_REENTRY_TARGET2_SCALE_IN_EXPAND25
-Base max age after rejection: 20 minutes
-Study/setup window: 1 hour
-Risk model: ORIGINAL_REJECTION capped to 0.5 value-area width
-Scale-ins: max 2 add-ons after POC/risk-free and EXPAND25
-Continuation beyond POC: study-only
-```
-
-Current reload metrics are read from the daily debug logs for the loaded chart window:
-
-```text
-%APPDATA%/ATAS/Logs/FabioOrderFlow-days/FabioOrderFlow-day-YYYY-MM-DD.log
-```
-
-Operational entry families:
-
-```text
-Value re-entry base
-Delayed reclaim accepted
-Scale-in EXPAND25 after POC/risk-free
-```
-
-Scale-in remains active with max 2 add-ons, but entries depend on live/storico market response after POC.
-
-Operational validation examples:
-
-```text
-2026-06-24 10:37 short: filtered by 20-minute base-entry timeout.
-2026-06-24 16:25 long: accepted by dynamic risk cap, TARGET2_HIT +125.00 points.
-```
-
-Notes for future studies:
-
-```text
-- `StudyTrigger` is final setup context; `TriggerAtEntry` is the causal entry-time context.
-- In the reference reload all base entries had `TriggerAtEntry=NONE`; filtering `NONE` directly would remove the model.
-- Weak entries should be studied through causal quality fields such as rejection quality, value-area geometry, volume, distance to POC/edge, and early response, not by final trigger label alone.
-- Dynamic stop alternatives remain in study logs; operational risk currently uses only ORIGINAL_REJECTION or CAP_VALUE_WIDTH_50.
-```
-
-## Current Files
-
-```text
-FabioOrderFlow/models/LondonMeanReversionModel/
-├── LondonMeanReversionModel.cs
-└── LondonMeanReversionModel.md
-```
-
-Non mantenere copie `.old` del modello nella stessa directory: il progetto include `../models/**/*.cs` e la directory deve avere una sola implementazione attiva.
-
----
-
-## References
-
-- `transcription.txt`, Fabio Valentino @ Chart Fanatics
-- `ricerca-order-flow-completa.md`, sezione cumulative trades live/storici ATAS
-- `docs/atas/guides/md_DataFeedsCore_2Docs_2en_20025__ReceivingProcessingData.md`
+1. Leggi `CHANGELOG-AGENT.md` prima di interpretare performance.
+2. Controlla `CUM_TRADES_LOOKBACK` prima di dire che un giorno e' valido o mancante.
+3. Dopo modifiche C#: build Release e deploy DLL.
+4. Dopo reload: attendi `[HISTORICAL_FLOW_FINISH]`.
+5. Per PnL: somma solo `[MR_EXIT]` nei day log.
+6. Per gestione POC: usa snapshot e studio POC, archiviando i log del reload.
+7. Verifica delayed reclaim con `AcceptanceMode` e `MR_ENTRY_SKIPPED`.
+8. Aggiorna il changelog con decisione, reload e numeri essenziali.

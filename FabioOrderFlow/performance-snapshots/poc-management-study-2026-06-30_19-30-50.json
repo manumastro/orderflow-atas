@@ -1,0 +1,803 @@
+{
+  "createdLocal": "2026-06-30_19-30-50",
+  "reloadBeginItaly": "2026-06-23 10:28:25",
+  "reloadEndItaly": "2026-06-30 10:28:25",
+  "windows": [
+    60,
+    120,
+    300,
+    600,
+    900,
+    1800
+  ],
+  "sourceLogs": [
+    "C:\\Users\\emanu\\AppData\\Roaming\\ATAS\\Logs\\FabioOrderFlow-days\\FabioOrderFlow-day-2026-06-23.log",
+    "C:\\Users\\emanu\\AppData\\Roaming\\ATAS\\Logs\\FabioOrderFlow-days\\FabioOrderFlow-day-2026-06-24.log",
+    "C:\\Users\\emanu\\AppData\\Roaming\\ATAS\\Logs\\FabioOrderFlow-days\\FabioOrderFlow-day-2026-06-25.log",
+    "C:\\Users\\emanu\\AppData\\Roaming\\ATAS\\Logs\\FabioOrderFlow-days\\FabioOrderFlow-day-2026-06-26.log",
+    "C:\\Users\\emanu\\AppData\\Roaming\\ATAS\\Logs\\FabioOrderFlow-days\\FabioOrderFlow-day-2026-06-29.log",
+    "C:\\Users\\emanu\\AppData\\Roaming\\ATAS\\Logs\\FabioOrderFlow-days\\FabioOrderFlow-day-2026-06-30.log"
+  ],
+  "allReload": {
+    "baseline": {
+      "trades": 18,
+      "current70_30": 384.01,
+      "poc100": 408.5,
+      "fullRunnerBE": 326.75,
+      "target1Hits": 14
+    },
+    "rules": [
+      {
+        "name": "PRESSURE_EXTENSION25",
+        "window_seconds": 60,
+        "trades": 18,
+        "runner_kept": 2,
+        "pnl": 465.95,
+        "delta_vs_current": 81.94,
+        "delta_vs_poc100": 57.44999999999999
+      },
+      {
+        "name": "FABIO_CANDIDATE",
+        "window_seconds": 60,
+        "trades": 18,
+        "runner_kept": 2,
+        "pnl": 465.95,
+        "delta_vs_current": 81.94,
+        "delta_vs_poc100": 57.44999999999999
+      },
+      {
+        "name": "FABIO_CANDIDATE",
+        "window_seconds": 600,
+        "trades": 18,
+        "runner_kept": 2,
+        "pnl": 465.95,
+        "delta_vs_current": 81.94,
+        "delta_vs_poc100": 57.44999999999999
+      },
+      {
+        "name": "FABIO_CANDIDATE",
+        "window_seconds": 1800,
+        "trades": 18,
+        "runner_kept": 2,
+        "pnl": 465.95,
+        "delta_vs_current": 81.94,
+        "delta_vs_poc100": 57.44999999999999
+      },
+      {
+        "name": "PRESSURE_EXTENSION25",
+        "window_seconds": 300,
+        "trades": 18,
+        "runner_kept": 3,
+        "pnl": 465.65,
+        "delta_vs_current": 81.63999999999999,
+        "delta_vs_poc100": 57.14999999999998
+      },
+      {
+        "name": "FABIO_CANDIDATE",
+        "window_seconds": 300,
+        "trades": 18,
+        "runner_kept": 3,
+        "pnl": 465.65,
+        "delta_vs_current": 81.63999999999999,
+        "delta_vs_poc100": 57.14999999999998
+      },
+      {
+        "name": "PRESSURE_EXTENSION25",
+        "window_seconds": 600,
+        "trades": 18,
+        "runner_kept": 3,
+        "pnl": 460.93,
+        "delta_vs_current": 76.92000000000002,
+        "delta_vs_poc100": 52.43000000000001
+      },
+      {
+        "name": "PRESSURE",
+        "window_seconds": 1800,
+        "trades": 18,
+        "runner_kept": 3,
+        "pnl": 460.93,
+        "delta_vs_current": 76.92000000000002,
+        "delta_vs_poc100": 52.43000000000001
+      },
+      {
+        "name": "DOMINANT_PRESSURE",
+        "window_seconds": 1800,
+        "trades": 18,
+        "runner_kept": 3,
+        "pnl": 460.93,
+        "delta_vs_current": 76.92000000000002,
+        "delta_vs_poc100": 52.43000000000001
+      },
+      {
+        "name": "PRESSURE_EXTENSION25",
+        "window_seconds": 1800,
+        "trades": 18,
+        "runner_kept": 3,
+        "pnl": 460.93,
+        "delta_vs_current": 76.92000000000002,
+        "delta_vs_poc100": 52.43000000000001
+      },
+      {
+        "name": "PRESSURE_ACCEPTANCE",
+        "window_seconds": 600,
+        "trades": 18,
+        "runner_kept": 2,
+        "pnl": 459.88,
+        "delta_vs_current": 75.87,
+        "delta_vs_poc100": 51.379999999999995
+      },
+      {
+        "name": "PRESSURE_ACCEPTANCE",
+        "window_seconds": 1800,
+        "trades": 18,
+        "runner_kept": 2,
+        "pnl": 459.88,
+        "delta_vs_current": 75.87,
+        "delta_vs_poc100": 51.379999999999995
+      },
+      {
+        "name": "PRESSURE",
+        "window_seconds": 60,
+        "trades": 18,
+        "runner_kept": 4,
+        "pnl": 457.48,
+        "delta_vs_current": 73.47000000000003,
+        "delta_vs_poc100": 48.98000000000002
+      },
+      {
+        "name": "DOMINANT_PRESSURE",
+        "window_seconds": 60,
+        "trades": 18,
+        "runner_kept": 4,
+        "pnl": 457.48,
+        "delta_vs_current": 73.47000000000003,
+        "delta_vs_poc100": 48.98000000000002
+      },
+      {
+        "name": "EXTENSION25",
+        "window_seconds": 60,
+        "trades": 18,
+        "runner_kept": 4,
+        "pnl": 455.45,
+        "delta_vs_current": 71.44,
+        "delta_vs_poc100": 46.94999999999999
+      },
+      {
+        "name": "PRESSURE",
+        "window_seconds": 600,
+        "trades": 18,
+        "runner_kept": 4,
+        "pnl": 453.66,
+        "delta_vs_current": 69.65000000000003,
+        "delta_vs_poc100": 45.160000000000025
+      },
+      {
+        "name": "EXTENSION25",
+        "window_seconds": 120,
+        "trades": 18,
+        "runner_kept": 5,
+        "pnl": 451.84999999999997,
+        "delta_vs_current": 67.83999999999997,
+        "delta_vs_poc100": 43.349999999999966
+      },
+      {
+        "name": "ACCEPTANCE",
+        "window_seconds": 600,
+        "trades": 18,
+        "runner_kept": 4,
+        "pnl": 450.43,
+        "delta_vs_current": 66.42000000000002,
+        "delta_vs_poc100": 41.93000000000001
+      },
+      {
+        "name": "PRESSURE",
+        "window_seconds": 300,
+        "trades": 18,
+        "runner_kept": 6,
+        "pnl": 441.14000000000004,
+        "delta_vs_current": 57.13000000000005,
+        "delta_vs_poc100": 32.64000000000004
+      },
+      {
+        "name": "ACCEPTANCE",
+        "window_seconds": 1800,
+        "trades": 18,
+        "runner_kept": 5,
+        "pnl": 438.21,
+        "delta_vs_current": 54.19999999999999,
+        "delta_vs_poc100": 29.70999999999998
+      },
+      {
+        "name": "EXTENSION25",
+        "window_seconds": 300,
+        "trades": 18,
+        "runner_kept": 7,
+        "pnl": 436.62999999999994,
+        "delta_vs_current": 52.61999999999995,
+        "delta_vs_poc100": 28.12999999999994
+      },
+      {
+        "name": "EXTENSION25",
+        "window_seconds": 600,
+        "trades": 18,
+        "runner_kept": 8,
+        "pnl": 431.60999999999996,
+        "delta_vs_current": 47.599999999999966,
+        "delta_vs_poc100": 23.109999999999957
+      },
+      {
+        "name": "EXTENSION25",
+        "window_seconds": 900,
+        "trades": 18,
+        "runner_kept": 9,
+        "pnl": 424.34,
+        "delta_vs_current": 40.329999999999984,
+        "delta_vs_poc100": 15.839999999999975
+      },
+      {
+        "name": "EXTENSION25",
+        "window_seconds": 1800,
+        "trades": 18,
+        "runner_kept": 9,
+        "pnl": 424.34,
+        "delta_vs_current": 40.329999999999984,
+        "delta_vs_poc100": 15.839999999999975
+      },
+      {
+        "name": "PRESSURE_EXTENSION25",
+        "window_seconds": 120,
+        "trades": 18,
+        "runner_kept": 1,
+        "pnl": 409.55,
+        "delta_vs_current": 25.54000000000002,
+        "delta_vs_poc100": 1.0500000000000114
+      },
+      {
+        "name": "FABIO_CANDIDATE",
+        "window_seconds": 900,
+        "trades": 18,
+        "runner_kept": 1,
+        "pnl": 409.55,
+        "delta_vs_current": 25.54000000000002,
+        "delta_vs_poc100": 1.0500000000000114
+      },
+      {
+        "name": "ACCEPTANCE",
+        "window_seconds": 60,
+        "trades": 18,
+        "runner_kept": 0,
+        "pnl": 408.5,
+        "delta_vs_current": 24.49000000000001,
+        "delta_vs_poc100": 0.0
+      },
+      {
+        "name": "PRESSURE_ACCEPTANCE",
+        "window_seconds": 60,
+        "trades": 18,
+        "runner_kept": 0,
+        "pnl": 408.5,
+        "delta_vs_current": 24.49000000000001,
+        "delta_vs_poc100": 0.0
+      },
+      {
+        "name": "ACCEPTANCE",
+        "window_seconds": 120,
+        "trades": 18,
+        "runner_kept": 0,
+        "pnl": 408.5,
+        "delta_vs_current": 24.49000000000001,
+        "delta_vs_poc100": 0.0
+      },
+      {
+        "name": "PRESSURE_ACCEPTANCE",
+        "window_seconds": 120,
+        "trades": 18,
+        "runner_kept": 0,
+        "pnl": 408.5,
+        "delta_vs_current": 24.49000000000001,
+        "delta_vs_poc100": 0.0
+      },
+      {
+        "name": "PRESSURE_ACCEPTANCE",
+        "window_seconds": 300,
+        "trades": 18,
+        "runner_kept": 1,
+        "pnl": 408.2,
+        "delta_vs_current": 24.189999999999998,
+        "delta_vs_poc100": -0.30000000000001137
+      },
+      {
+        "name": "FABIO_CANDIDATE",
+        "window_seconds": 120,
+        "trades": 18,
+        "runner_kept": 2,
+        "pnl": 404.53000000000003,
+        "delta_vs_current": 20.52000000000004,
+        "delta_vs_poc100": -3.9699999999999704
+      },
+      {
+        "name": "DOMINANT_PRESSURE",
+        "window_seconds": 600,
+        "trades": 18,
+        "runner_kept": 2,
+        "pnl": 404.53000000000003,
+        "delta_vs_current": 20.52000000000004,
+        "delta_vs_poc100": -3.9699999999999704
+      },
+      {
+        "name": "PRESSURE",
+        "window_seconds": 900,
+        "trades": 18,
+        "runner_kept": 2,
+        "pnl": 404.53000000000003,
+        "delta_vs_current": 20.52000000000004,
+        "delta_vs_poc100": -3.9699999999999704
+      },
+      {
+        "name": "DOMINANT_PRESSURE",
+        "window_seconds": 900,
+        "trades": 18,
+        "runner_kept": 2,
+        "pnl": 404.53000000000003,
+        "delta_vs_current": 20.52000000000004,
+        "delta_vs_poc100": -3.9699999999999704
+      },
+      {
+        "name": "PRESSURE_EXTENSION25",
+        "window_seconds": 900,
+        "trades": 18,
+        "runner_kept": 2,
+        "pnl": 404.53000000000003,
+        "delta_vs_current": 20.52000000000004,
+        "delta_vs_poc100": -3.9699999999999704
+      },
+      {
+        "name": "PRESSURE_ACCEPTANCE",
+        "window_seconds": 900,
+        "trades": 18,
+        "runner_kept": 1,
+        "pnl": 403.48,
+        "delta_vs_current": 19.470000000000027,
+        "delta_vs_poc100": -5.019999999999982
+      },
+      {
+        "name": "ACCEPTANCE",
+        "window_seconds": 300,
+        "trades": 18,
+        "runner_kept": 2,
+        "pnl": 399.04999999999995,
+        "delta_vs_current": 15.039999999999964,
+        "delta_vs_poc100": -9.450000000000045
+      },
+      {
+        "name": "PRESSURE",
+        "window_seconds": 120,
+        "trades": 18,
+        "runner_kept": 4,
+        "pnl": 396.06000000000006,
+        "delta_vs_current": 12.050000000000068,
+        "delta_vs_poc100": -12.43999999999994
+      },
+      {
+        "name": "DOMINANT_PRESSURE",
+        "window_seconds": 120,
+        "trades": 18,
+        "runner_kept": 4,
+        "pnl": 396.06000000000006,
+        "delta_vs_current": 12.050000000000068,
+        "delta_vs_poc100": -12.43999999999994
+      },
+      {
+        "name": "DOMINANT_PRESSURE",
+        "window_seconds": 300,
+        "trades": 18,
+        "runner_kept": 5,
+        "pnl": 384.74,
+        "delta_vs_current": 0.7300000000000182,
+        "delta_vs_poc100": -23.75999999999999
+      },
+      {
+        "name": "ACCEPTANCE",
+        "window_seconds": 900,
+        "trades": 18,
+        "runner_kept": 4,
+        "pnl": 381.81,
+        "delta_vs_current": -2.1999999999999886,
+        "delta_vs_poc100": -26.689999999999998
+      }
+    ]
+  },
+  "completeDaysOnly": {
+    "baseline": {
+      "trades": 14,
+      "current70_30": 281.97,
+      "poc100": 262.75,
+      "fullRunnerBE": 326.75,
+      "target1Hits": 10
+    },
+    "rules": [
+      {
+        "name": "PRESSURE_EXTENSION25",
+        "window_seconds": 60,
+        "trades": 14,
+        "runner_kept": 2,
+        "pnl": 320.2,
+        "delta_vs_current": 38.22999999999996,
+        "delta_vs_poc100": 57.44999999999999
+      },
+      {
+        "name": "FABIO_CANDIDATE",
+        "window_seconds": 60,
+        "trades": 14,
+        "runner_kept": 2,
+        "pnl": 320.2,
+        "delta_vs_current": 38.22999999999996,
+        "delta_vs_poc100": 57.44999999999999
+      },
+      {
+        "name": "FABIO_CANDIDATE",
+        "window_seconds": 600,
+        "trades": 14,
+        "runner_kept": 2,
+        "pnl": 320.2,
+        "delta_vs_current": 38.22999999999996,
+        "delta_vs_poc100": 57.44999999999999
+      },
+      {
+        "name": "FABIO_CANDIDATE",
+        "window_seconds": 1800,
+        "trades": 14,
+        "runner_kept": 2,
+        "pnl": 320.2,
+        "delta_vs_current": 38.22999999999996,
+        "delta_vs_poc100": 57.44999999999999
+      },
+      {
+        "name": "PRESSURE_EXTENSION25",
+        "window_seconds": 300,
+        "trades": 14,
+        "runner_kept": 3,
+        "pnl": 319.90000000000003,
+        "delta_vs_current": 37.93000000000001,
+        "delta_vs_poc100": 57.150000000000034
+      },
+      {
+        "name": "FABIO_CANDIDATE",
+        "window_seconds": 300,
+        "trades": 14,
+        "runner_kept": 3,
+        "pnl": 319.90000000000003,
+        "delta_vs_current": 37.93000000000001,
+        "delta_vs_poc100": 57.150000000000034
+      },
+      {
+        "name": "PRESSURE_EXTENSION25",
+        "window_seconds": 600,
+        "trades": 14,
+        "runner_kept": 3,
+        "pnl": 315.18,
+        "delta_vs_current": 33.20999999999998,
+        "delta_vs_poc100": 52.43000000000001
+      },
+      {
+        "name": "PRESSURE",
+        "window_seconds": 1800,
+        "trades": 14,
+        "runner_kept": 3,
+        "pnl": 315.18,
+        "delta_vs_current": 33.20999999999998,
+        "delta_vs_poc100": 52.43000000000001
+      },
+      {
+        "name": "DOMINANT_PRESSURE",
+        "window_seconds": 1800,
+        "trades": 14,
+        "runner_kept": 3,
+        "pnl": 315.18,
+        "delta_vs_current": 33.20999999999998,
+        "delta_vs_poc100": 52.43000000000001
+      },
+      {
+        "name": "PRESSURE_EXTENSION25",
+        "window_seconds": 1800,
+        "trades": 14,
+        "runner_kept": 3,
+        "pnl": 315.18,
+        "delta_vs_current": 33.20999999999998,
+        "delta_vs_poc100": 52.43000000000001
+      },
+      {
+        "name": "PRESSURE_ACCEPTANCE",
+        "window_seconds": 600,
+        "trades": 14,
+        "runner_kept": 2,
+        "pnl": 314.13,
+        "delta_vs_current": 32.15999999999997,
+        "delta_vs_poc100": 51.379999999999995
+      },
+      {
+        "name": "PRESSURE_ACCEPTANCE",
+        "window_seconds": 1800,
+        "trades": 14,
+        "runner_kept": 2,
+        "pnl": 314.13,
+        "delta_vs_current": 32.15999999999997,
+        "delta_vs_poc100": 51.379999999999995
+      },
+      {
+        "name": "PRESSURE",
+        "window_seconds": 60,
+        "trades": 14,
+        "runner_kept": 4,
+        "pnl": 311.73,
+        "delta_vs_current": 29.75999999999999,
+        "delta_vs_poc100": 48.98000000000002
+      },
+      {
+        "name": "DOMINANT_PRESSURE",
+        "window_seconds": 60,
+        "trades": 14,
+        "runner_kept": 4,
+        "pnl": 311.73,
+        "delta_vs_current": 29.75999999999999,
+        "delta_vs_poc100": 48.98000000000002
+      },
+      {
+        "name": "EXTENSION25",
+        "window_seconds": 60,
+        "trades": 14,
+        "runner_kept": 4,
+        "pnl": 309.7,
+        "delta_vs_current": 27.72999999999996,
+        "delta_vs_poc100": 46.94999999999999
+      },
+      {
+        "name": "EXTENSION25",
+        "window_seconds": 120,
+        "trades": 14,
+        "runner_kept": 4,
+        "pnl": 309.7,
+        "delta_vs_current": 27.72999999999996,
+        "delta_vs_poc100": 46.94999999999999
+      },
+      {
+        "name": "PRESSURE",
+        "window_seconds": 600,
+        "trades": 14,
+        "runner_kept": 4,
+        "pnl": 307.90999999999997,
+        "delta_vs_current": 25.93999999999994,
+        "delta_vs_poc100": 45.15999999999997
+      },
+      {
+        "name": "PRESSURE",
+        "window_seconds": 300,
+        "trades": 14,
+        "runner_kept": 5,
+        "pnl": 307.60999999999996,
+        "delta_vs_current": 25.63999999999993,
+        "delta_vs_poc100": 44.85999999999996
+      },
+      {
+        "name": "ACCEPTANCE",
+        "window_seconds": 600,
+        "trades": 14,
+        "runner_kept": 4,
+        "pnl": 304.67999999999995,
+        "delta_vs_current": 22.709999999999923,
+        "delta_vs_poc100": 41.92999999999995
+      },
+      {
+        "name": "ACCEPTANCE",
+        "window_seconds": 1800,
+        "trades": 14,
+        "runner_kept": 4,
+        "pnl": 304.67999999999995,
+        "delta_vs_current": 22.709999999999923,
+        "delta_vs_poc100": 41.92999999999995
+      },
+      {
+        "name": "EXTENSION25",
+        "window_seconds": 300,
+        "trades": 14,
+        "runner_kept": 6,
+        "pnl": 294.48,
+        "delta_vs_current": 12.509999999999991,
+        "delta_vs_poc100": 31.730000000000018
+      },
+      {
+        "name": "EXTENSION25",
+        "window_seconds": 600,
+        "trades": 14,
+        "runner_kept": 7,
+        "pnl": 289.46000000000004,
+        "delta_vs_current": 7.490000000000009,
+        "delta_vs_poc100": 26.710000000000036
+      },
+      {
+        "name": "EXTENSION25",
+        "window_seconds": 900,
+        "trades": 14,
+        "runner_kept": 8,
+        "pnl": 282.18999999999994,
+        "delta_vs_current": 0.2199999999999136,
+        "delta_vs_poc100": 19.43999999999994
+      },
+      {
+        "name": "EXTENSION25",
+        "window_seconds": 1800,
+        "trades": 14,
+        "runner_kept": 8,
+        "pnl": 282.18999999999994,
+        "delta_vs_current": 0.2199999999999136,
+        "delta_vs_poc100": 19.43999999999994
+      },
+      {
+        "name": "PRESSURE_EXTENSION25",
+        "window_seconds": 120,
+        "trades": 14,
+        "runner_kept": 1,
+        "pnl": 263.8,
+        "delta_vs_current": -18.170000000000016,
+        "delta_vs_poc100": 1.0500000000000114
+      },
+      {
+        "name": "FABIO_CANDIDATE",
+        "window_seconds": 900,
+        "trades": 14,
+        "runner_kept": 1,
+        "pnl": 263.8,
+        "delta_vs_current": -18.170000000000016,
+        "delta_vs_poc100": 1.0500000000000114
+      },
+      {
+        "name": "ACCEPTANCE",
+        "window_seconds": 60,
+        "trades": 14,
+        "runner_kept": 0,
+        "pnl": 262.75,
+        "delta_vs_current": -19.220000000000027,
+        "delta_vs_poc100": 0.0
+      },
+      {
+        "name": "PRESSURE_ACCEPTANCE",
+        "window_seconds": 60,
+        "trades": 14,
+        "runner_kept": 0,
+        "pnl": 262.75,
+        "delta_vs_current": -19.220000000000027,
+        "delta_vs_poc100": 0.0
+      },
+      {
+        "name": "ACCEPTANCE",
+        "window_seconds": 120,
+        "trades": 14,
+        "runner_kept": 0,
+        "pnl": 262.75,
+        "delta_vs_current": -19.220000000000027,
+        "delta_vs_poc100": 0.0
+      },
+      {
+        "name": "PRESSURE_ACCEPTANCE",
+        "window_seconds": 120,
+        "trades": 14,
+        "runner_kept": 0,
+        "pnl": 262.75,
+        "delta_vs_current": -19.220000000000027,
+        "delta_vs_poc100": 0.0
+      },
+      {
+        "name": "PRESSURE_ACCEPTANCE",
+        "window_seconds": 300,
+        "trades": 14,
+        "runner_kept": 1,
+        "pnl": 262.45,
+        "delta_vs_current": -19.52000000000004,
+        "delta_vs_poc100": -0.30000000000001137
+      },
+      {
+        "name": "FABIO_CANDIDATE",
+        "window_seconds": 120,
+        "trades": 14,
+        "runner_kept": 2,
+        "pnl": 258.78,
+        "delta_vs_current": -23.190000000000055,
+        "delta_vs_poc100": -3.9700000000000273
+      },
+      {
+        "name": "DOMINANT_PRESSURE",
+        "window_seconds": 600,
+        "trades": 14,
+        "runner_kept": 2,
+        "pnl": 258.78,
+        "delta_vs_current": -23.190000000000055,
+        "delta_vs_poc100": -3.9700000000000273
+      },
+      {
+        "name": "PRESSURE",
+        "window_seconds": 900,
+        "trades": 14,
+        "runner_kept": 2,
+        "pnl": 258.78,
+        "delta_vs_current": -23.190000000000055,
+        "delta_vs_poc100": -3.9700000000000273
+      },
+      {
+        "name": "DOMINANT_PRESSURE",
+        "window_seconds": 900,
+        "trades": 14,
+        "runner_kept": 2,
+        "pnl": 258.78,
+        "delta_vs_current": -23.190000000000055,
+        "delta_vs_poc100": -3.9700000000000273
+      },
+      {
+        "name": "PRESSURE_EXTENSION25",
+        "window_seconds": 900,
+        "trades": 14,
+        "runner_kept": 2,
+        "pnl": 258.78,
+        "delta_vs_current": -23.190000000000055,
+        "delta_vs_poc100": -3.9700000000000273
+      },
+      {
+        "name": "PRESSURE_ACCEPTANCE",
+        "window_seconds": 900,
+        "trades": 14,
+        "runner_kept": 1,
+        "pnl": 257.73,
+        "delta_vs_current": -24.24000000000001,
+        "delta_vs_poc100": -5.019999999999982
+      },
+      {
+        "name": "ACCEPTANCE",
+        "window_seconds": 300,
+        "trades": 14,
+        "runner_kept": 2,
+        "pnl": 253.3,
+        "delta_vs_current": -28.670000000000016,
+        "delta_vs_poc100": -9.449999999999989
+      },
+      {
+        "name": "DOMINANT_PRESSURE",
+        "window_seconds": 300,
+        "trades": 14,
+        "runner_kept": 4,
+        "pnl": 251.20999999999998,
+        "delta_vs_current": -30.760000000000048,
+        "delta_vs_poc100": -11.54000000000002
+      },
+      {
+        "name": "PRESSURE",
+        "window_seconds": 120,
+        "trades": 14,
+        "runner_kept": 4,
+        "pnl": 250.31,
+        "delta_vs_current": -31.660000000000025,
+        "delta_vs_poc100": -12.439999999999998
+      },
+      {
+        "name": "DOMINANT_PRESSURE",
+        "window_seconds": 120,
+        "trades": 14,
+        "runner_kept": 4,
+        "pnl": 250.31,
+        "delta_vs_current": -31.660000000000025,
+        "delta_vs_poc100": -12.439999999999998
+      },
+      {
+        "name": "ACCEPTANCE",
+        "window_seconds": 900,
+        "trades": 14,
+        "runner_kept": 3,
+        "pnl": 248.27999999999997,
+        "delta_vs_current": -33.690000000000055,
+        "delta_vs_poc100": -14.470000000000027
+      }
+    ]
+  },
+  "notes": [
+    "A conditional rule keeps the current 30% runner only when the rule is true after POC; otherwise it exits 100% at POC.",
+    "Rules are causal within the selected post-POC window, but still require more samples before production use."
+  ]
+}

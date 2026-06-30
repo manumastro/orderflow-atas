@@ -4,12 +4,6 @@ using ATAS.Indicators;
 
 namespace FabioOrderFlow;
 
-public enum OnlineDataMode
-{
-    Live,
-    Replay
-}
-
 public class FabioOrderFlow : Indicator
 {
     private BalanceZoneTracker? _balanceTracker;
@@ -20,15 +14,11 @@ public class FabioOrderFlow : Indicator
     private readonly string _logPath;
     private readonly string _historicalLogPath;
     private readonly string _liveLogPath;
-    private readonly string _replayLogPath;
     private long _logSequence;
     
     // Module parameters
     public bool EnableLondonMeanReversion { get; set; } = true;
     public bool EnablePostLondonImpulse { get; set; } = false;
-    public OnlineDataMode OnlineMode { get; set; } = OnlineDataMode.Live;
-    public bool EnableOnlineTickDiagnostics { get; set; } = false;
-    public decimal OnlineDiagnosticsMinVolume { get; set; } = 10m;
 
     public FabioOrderFlow()
     {
@@ -42,16 +32,14 @@ public class FabioOrderFlow : Indicator
         _logPath = Path.Combine(logDirectory, "FabioOrderFlow.log");
         _historicalLogPath = Path.Combine(logDirectory, "FabioOrderFlow-historical.log");
         _liveLogPath = Path.Combine(logDirectory, "FabioOrderFlow-live.log");
-        _replayLogPath = Path.Combine(logDirectory, "FabioOrderFlow-replay.log");
 
         ResetAtasLogs(logDirectory);
         ResetLogFile(_logPath);
         ResetLogFile(_historicalLogPath);
         ResetLogFile(_liveLogPath);
-        ResetLogFile(_replayLogPath);
 
         Log("[INIT] FabioOrderFlow indicator created");
-        Log($"[LOGS] General={_logPath}, Historical={_historicalLogPath}, Live={_liveLogPath}, Replay={_replayLogPath}");
+        Log($"[LOGS] General={_logPath}, Historical={_historicalLogPath}, Live={_liveLogPath}");
     }
 
     protected override void OnCalculate(int bar, decimal value)
@@ -60,7 +48,7 @@ public class FabioOrderFlow : Indicator
         {
             Log($"[ONCALCULATE] Bar 0 - Initializing BalanceZoneTracker");
             Log($"[INSTRUMENT] Name: {InstrumentInfo?.Instrument}, TickSize: {InstrumentInfo?.TickSize}, Exchange: {InstrumentInfo?.Exchange}, InstrumentTimeZone={InstrumentInfo?.TimeZone}");
-            Log($"[CHART] CurrentBar={CurrentBar}, ChartType={ChartInfo?.ChartType}, OnlineMode={OnlineMode}");
+            Log($"[CHART] CurrentBar={CurrentBar}, ChartType={ChartInfo?.ChartType}");
             LogChartTradingSessions();
             _balanceTracker = new BalanceZoneTracker(this, Log, Rectangles, HorizontalLinesTillTouch, GetCandle);
             
@@ -129,22 +117,18 @@ public class FabioOrderFlow : Indicator
 
     protected override void OnCumulativeTrade(CumulativeTrade trade)
     {
-        LogOnlineCumulativeTrade("OnCumulativeTrade", trade);
         _balanceTracker?.OnLiveCumulativeTrade(trade);
     }
 
     protected override void OnUpdateCumulativeTrade(CumulativeTrade trade)
     {
-        LogOnlineCumulativeTrade("OnUpdateCumulativeTrade", trade);
         _balanceTracker?.OnLiveCumulativeTrade(trade);
     }
 
     protected override void OnNewTrade(MarketDataArg trade)
     {
-        if (!EnableOnlineTickDiagnostics || trade.Volume < OnlineDiagnosticsMinVolume)
-            return;
-
-        LogOnline($"[ONLINE_TICK] Callback=OnNewTrade, {FormatEventTime(trade.Time)}, Direction={trade.Direction}, Price={trade.Price:F2}, Volume={trade.Volume:F0}, DataType={trade.DataType}, IsAsk={trade.IsAsk}, IsBid={trade.IsBid}");
+        // Tick diagnostics are intentionally disabled in the production indicator.
+        // Live behavior is debugged through operational MR logs and historical replay.
     }
     
     private void LogChartTradingSessions()
@@ -209,29 +193,6 @@ public class FabioOrderFlow : Indicator
         }
     }
 
-    private void LogOnlineCumulativeTrade(string callback, CumulativeTrade trade)
-    {
-        if (trade.Volume < OnlineDiagnosticsMinVolume)
-            return;
-
-        LogOnline($"[ONLINE_CUMULATIVE_TRADE] Callback={callback}, {FormatEventTime(trade.Time)}, Direction={trade.Direction}, Volume={trade.Volume:F0}, FirstPrice={trade.FirstPrice:F2}, LastPrice={trade.Lastprice:F2}, TickCount={trade.Ticks.Count}");
-    }
-
-    private void LogOnline(string message)
-    {
-        try
-        {
-            lock (_logSync)
-            {
-                var line = FormatLogLine(message, OnlineMode == OnlineDataMode.Replay ? "Replay" : "Live");
-                File.AppendAllText(OnlineMode == OnlineDataMode.Replay ? _replayLogPath : _liveLogPath, line + Environment.NewLine);
-            }
-        }
-        catch
-        {
-        }
-    }
-
     private void Log(string message, bool isHistorical = false)
     {
         try
@@ -242,10 +203,10 @@ public class FabioOrderFlow : Indicator
                 var line = FormatLogLine(message, source);
                 File.AppendAllText(_logPath, line + Environment.NewLine);
 
-                if (!isHistorical && IsOnlineOperationalMessage(message))
+                if (!isHistorical && IsLiveOperationalMessage(message))
                 {
-                    var onlineLine = FormatLogLine(message, OnlineMode == OnlineDataMode.Replay ? "Replay" : "Live");
-                    File.AppendAllText(OnlineMode == OnlineDataMode.Replay ? _replayLogPath : _liveLogPath, onlineLine + Environment.NewLine);
+                    var onlineLine = FormatLogLine(message, "Live");
+                    File.AppendAllText(_liveLogPath, onlineLine + Environment.NewLine);
                 }
             }
         }
@@ -261,16 +222,8 @@ public class FabioOrderFlow : Indicator
         return $"[Source={source}] [Seq={++_logSequence}] [WriteItaly={writeItaly}] [WriteUtc={writeUtc:yyyy-MM-dd HH:mm:ss.fff}] {message}";
     }
 
-    private static string FormatEventTime(DateTime utc)
+    private static bool IsLiveOperationalMessage(string message)
     {
-        return $"EventItaly={MarketTimeZones.ToItaly(utc):yyyy-MM-dd HH:mm:ss}, EventLondon={MarketTimeZones.ToLondon(utc):yyyy-MM-dd HH:mm:ss}, EventUtc={utc:yyyy-MM-dd HH:mm:ss}";
-    }
-
-    private static bool IsOnlineOperationalMessage(string message)
-    {
-        if (message.StartsWith("[ONLINE_", StringComparison.Ordinal))
-            return true;
-
         if (!message.StartsWith("[MR_", StringComparison.Ordinal))
             return false;
 
