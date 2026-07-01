@@ -279,6 +279,7 @@ Tag operativi reali del modello:
 ```text
 [MR_SETUP_LONG]                  setup long da sweep sotto VAL + close back inside
 [MR_SETUP_SHORT]                 setup short da sweep sopra VAH + close back inside
+[MR_FOLLOW_THROUGH_RECLAIM_CONTINUATION] setup operativo: sweep fuori value, reclaim successivo, entry continuation oltre POC
 [MR_HISTORICAL_TRADES]           cumulative trades storici filtrati
 [MR_ENTRY]                       posizione creata
 [MR_DELAYED_RECLAIM_SETUP]       candidato delayed reclaim
@@ -301,13 +302,46 @@ Tag reload/studio principali:
 [CUM_TRADES_RESPONSE]                  risposta ATAS ricevuta
 [HISTORICAL_FLOW_TRADES_READY]         trade ricevuti e filtrati
 [HISTORICAL_FLOW_PROCESS_START]        inizio processing storico
+[HISTORICAL_STUDY_PROGRESS]            avanzamento completo Start/Bars/Trades/Finish durante debug storico
 [HISTORICAL_FLOW_FINISH]               processo storico completato
 [DAY_DEBUG_START] / [DAY_DEBUG_FINISH] day log operativo minimo
 [DAY_STUDY_ACTUAL_ENTRY]               copia study di entry reale, solo debug profondo
 [DAY_STUDY_ACTUAL_EXIT]                copia study di exit reale, solo debug profondo
 [DAY_STUDY_POC_MANAGEMENT]             confronto POC all-out / 70-30 / full runner protetto, solo debug profondo
 [DAY_STUDY_BIG_TRADE]                  big trades London diagnostici, solo debug profondo e filtrabili per giorno
+[DAY_STUDY_SETUP_BLOCKED]              barra setup-ready ma bloccata dal gating attuale
+[DAY_STUDY_FOLLOWTHROUGH_RECLAIM]      studio sweep su barra precedente + reclaim su barra successiva, con confronto entry zone vs continuation zone
 ```
+
+## Famiglia Entry: Follow-Through Reclaim Continuation
+
+Seconda famiglia operativa separata dalla mean reversion base.
+
+```text
+SetupSource = FollowThroughReclaimContinuation
+Setup log   = [MR_FOLLOW_THROUGH_RECLAIM_CONTINUATION]
+Trigger     = FOLLOW_THROUGH_RECLAIM_CONTINUATION_LONG/SHORT
+Entry zone  = continuation oltre POC
+Long        = POC <= entry <= VAH
+Short       = POC >= entry >= VAL
+Target1     = POC
+Target2     = VAH per Long, VAL per Short
+Stop        = sweep low/high +/- StopOffsetTicks
+```
+
+Contratto:
+
+```text
+1. una barra fa sweep fuori value e chiude ancora fuori value;
+2. una barra successiva reclaima dentro value;
+3. il setup viene creato sul reclaim;
+4. l'entry avviene solo con cumulative trade nella direzione del setup, in continuation zone, RR >= MinRewardRiskToTarget2;
+5. gestione posizione e PnL restano nel core standard: [MR_ENTRY], [MR_TARGET1_HIT], [MR_EXIT].
+```
+
+Gli outcome di questa famiglia si leggono da `[MR_EXIT]` su tutti i giorni del lookback, senza attivare debug giornaliero. Il debug giornaliero serve solo per i dettagli `DAY_STUDY_*`.
+
+Nota aperta: questa famiglia usa ancora gestione e target standard del core. Sul caso 2026-06-30 15:30 il setup ha preso `TARGET2_HIT` rapidamente a VAH, ma non studia ancora una cattura continuation piu' lunga. Entry quality, target extension, trailing e gestione post-VAH restano da esplorare prima di considerarla definitiva.
 
 ## PnL E Parser
 

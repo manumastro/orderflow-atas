@@ -45,13 +45,16 @@ namespace FabioOrderFlow
         private const decimal DuplicateBasePositionPocTolerancePoints = 4m;
         private const decimal DuplicateBasePositionValueEdgeTolerancePoints = 8m;
         private const bool EnableHistoricalIntrabarFromCumulativeTrades = true;
-        private static readonly DateOnly? HistoricalStudyDebugDay = null;
+        private const int HistoricalStudyProgressBarStep = 100;
+        private const int HistoricalStudyProgressTradeStep = 50000;
+        private static readonly DateOnly? HistoricalStudyDebugDay = new DateOnly(2026, 6, 30);
         private const string HistoricalStudyDebugMarkerFile = "FabioOrderFlow-enable-historical-study-debug.flag";
 
         private int _currentBar;
         private readonly List<BalanceSetup> _activeSetups = new();
         private readonly List<ActivePosition> _activePositions = new();
         private readonly List<DelayedReclaimCandidate> _delayedReclaimCandidates = new();
+        private readonly Dictionary<string, FollowThroughSweepContext> _followThroughSweepContexts = new();
 
         private readonly List<TradeRecord> _completedTrades = new();
         private readonly HashSet<string> _setupKeys = new();
@@ -164,6 +167,8 @@ namespace FabioOrderFlow
             public decimal PreviewPOC { get; set; }
             public decimal PreviewVAH { get; set; }
             public decimal PreviewVAL { get; set; }
+            public decimal PreviousSessionHigh { get; set; }
+            public decimal PreviousSessionLow { get; set; }
             public string CloseLocation { get; set; } = string.Empty;
             public string TopLevels { get; set; } = string.Empty;
         }
@@ -192,6 +197,17 @@ namespace FabioOrderFlow
             decimal MaxBubbleVolume,
             decimal NetVolume,
             decimal PressureShift);
+
+        private record FollowThroughSweepContext(
+            string Direction,
+            int SweepBar,
+            DateTime SweepTimeUtc,
+            decimal SweepLow,
+            decimal SweepHigh,
+            decimal POC,
+            decimal VAH,
+            decimal VAL,
+            decimal StopPrice);
 
         public class TradeRecord
         {
@@ -264,6 +280,7 @@ namespace FabioOrderFlow
             _lastHistoricalTrades.AddRange(allTrades);
             _dayStudyCompleted = false;
             _delayedReclaimCandidates.Clear();
+            _followThroughSweepContexts.Clear();
             _studyLoggedBars.Clear();
             _historicalStudyActive = false;
             ResetDailyHistoricalDebugLogs();
@@ -312,16 +329,26 @@ namespace FabioOrderFlow
             var previousProcessingState = _processingHistoricalPositions;
             _processingHistoricalPositions = true;
             _log($"[HISTORICAL_FLOW_PROCESS_START] StartBar={startBar}, EndBar={endBar}, StoredTrades={_lastHistoricalTrades.Count}, ExistingSnapshots={_historicalBarSnapshots.Count}, ExistingDelayedCandidates={_delayedReclaimCandidates.Count}", false);
+            if (_historicalStudyDebugEnabled)
+                _log($"[HISTORICAL_STUDY_PROGRESS] Phase=Start, StartBar={startBar}, EndBar={endBar}, StoredTrades={_lastHistoricalTrades.Count}, ExistingSnapshots={_historicalBarSnapshots.Count}, ExistingDelayedCandidates={_delayedReclaimCandidates.Count}, DebugDay={(_historicalStudyDebugDay.HasValue ? _historicalStudyDebugDay.Value.ToString("yyyy-MM-dd") : "ALL")}", false);
             try
             {
+                var totalBars = Math.Max(1, endBar - startBar + 1);
                 for (var bar = startBar; bar <= endBar; bar++)
                 {
                     var candle = _getCandle(bar);
                     CaptureHistoricalBarSnapshot(bar, candle);
+                    UpdateFollowThroughReclaimSetups(bar, candle);
                     UpdateDelayedReclaimCandidates(bar, candle);
                     if (_historicalStudyDebugEnabled)
                         LogStudyBar(bar, candle);
                     UpdateActivePositions(bar, candle);
+
+                    if (_historicalStudyDebugEnabled && ((bar - startBar + 1) % HistoricalStudyProgressBarStep == 0 || bar == endBar))
+                    {
+                        var processedBars = bar - startBar + 1;
+                        _log($"[HISTORICAL_STUDY_PROGRESS] Phase=Bars, Processed={processedBars}, Total={totalBars}, Percent={(decimal)processedBars * 100m / totalBars:F1}, CurrentBar={bar}, EventItaly={MarketTimeZones.ToItaly(GetCandleEventTime(candle)):yyyy-MM-dd HH:mm:ss}", false);
+                    }
                 }
 
                 ProcessStoredHistoricalTrades();
@@ -342,12 +369,20 @@ namespace FabioOrderFlow
             if (_lastHistoricalTrades.Count == 0)
                 return;
 
-            foreach (var trade in _lastHistoricalTrades)
+            var totalTrades = _lastHistoricalTrades.Count;
+            for (var i = 0; i < _lastHistoricalTrades.Count; i++)
             {
+                var trade = _lastHistoricalTrades[i];
                 if (trade.Volume >= MinAggressionVolume)
                     ProcessAggressionTrade(trade, "FootprintCumulativeTradeHistorical", true);
 
                 UpdateHistoricalPositionsWithTrade(trade);
+
+                if (_historicalStudyDebugEnabled && (((i + 1) % HistoricalStudyProgressTradeStep) == 0 || i == _lastHistoricalTrades.Count - 1))
+                {
+                    var processedTrades = i + 1;
+                    _log($"[HISTORICAL_STUDY_PROGRESS] Phase=Trades, Processed={processedTrades}, Total={totalTrades}, Percent={(decimal)processedTrades * 100m / totalTrades:F1}, EventItaly={MarketTimeZones.ToItaly(trade.Time):yyyy-MM-dd HH:mm:ss}", false);
+                }
             }
 
             UpdateOpenHistoricalPositionsWithCompletedBars();
@@ -367,6 +402,8 @@ namespace FabioOrderFlow
             var closedPositions = _activePositions.Count(p => p.Closed);
             var positionRecords = _activePositions.Count;
             _log($"[HISTORICAL_FLOW_FINISH] StartBar={startBar}, EndBar={endBar}, Snapshots={_historicalBarSnapshots.Count}, StoredTrades={_lastHistoricalTrades.Count}, CompletedHistoricalEntries={historicalEntries}, CompletedDelayedReclaimEntries={delayedEntries}, OpenPositions={openPositions}, ClosedPositions={closedPositions}, PositionRecords={positionRecords}, ProcessDurationMs={durationMs:F0}, TotalFlowDurationMs={flowDurationMs:F0}", false);
+            if (_historicalStudyDebugEnabled)
+                _log($"[HISTORICAL_STUDY_PROGRESS] Phase=Finish, StartBar={startBar}, EndBar={endBar}, Snapshots={_historicalBarSnapshots.Count}, StoredTrades={_lastHistoricalTrades.Count}, CompletedHistoricalEntries={historicalEntries}, CompletedDelayedReclaimEntries={delayedEntries}, OpenPositions={openPositions}, ClosedPositions={closedPositions}, PositionRecords={positionRecords}, ProcessDurationMs={durationMs:F0}, TotalFlowDurationMs={flowDurationMs:F0}", false);
 
             if (!_dailyHistoricalDebugLogsEnabled)
                 return;
@@ -707,7 +744,7 @@ namespace FabioOrderFlow
             if (trade.Direction != expectedDirection)
                 return false;
 
-            if (!IsInEntryZone(setup, trade))
+            if (!IsOperationalEntryZone(setup, trade))
                 return false;
 
             if (enforceFreshness && (trade.Time - setup.RejectionTimeUtc).TotalSeconds > OperationalEntryTimeoutSeconds)
@@ -756,6 +793,18 @@ namespace FabioOrderFlow
             return setup.Direction == "Long"
                 ? trade.Lastprice >= setup.VAL && trade.Lastprice < setup.POC
                 : trade.Lastprice <= setup.VAH && trade.Lastprice > setup.POC;
+        }
+
+        private static bool IsOperationalEntryZone(BalanceSetup setup, CumulativeTrade trade)
+        {
+            return IsFollowThroughContinuationSetup(setup)
+                ? IsBeyondPocContinuationEntry(setup, trade)
+                : IsInEntryZone(setup, trade);
+        }
+
+        private static bool IsFollowThroughContinuationSetup(BalanceSetup setup)
+        {
+            return setup.SetupSource == "FollowThroughReclaimContinuation";
         }
 
         private static bool IsBeyondPocContinuationEntry(BalanceSetup setup, CumulativeTrade trade)
@@ -1534,8 +1583,241 @@ namespace FabioOrderFlow
             var candidateSetupState = GetBarSetupDiagnostics(snapshot);
             var activeSetupState = GetActiveSetupDiagnostics(snapshot.EventTimeUtc);
             StudyLog($"[DAY_STUDY_BAR] Bar={bar}, {FormatTime(snapshot.EventTimeUtc)}, Open={snapshot.Open:F2}, High={snapshot.High:F2}, Low={snapshot.Low:F2}, Close={snapshot.Close:F2}, Volume={snapshot.Volume:F0}, Bid={snapshot.Bid:F0}, Ask={snapshot.Ask:F0}, Delta={snapshot.Delta:F0}, PreviewPOC={snapshot.PreviewPOC:F2}, PreviewVAH={snapshot.PreviewVAH:F2}, PreviewVAL={snapshot.PreviewVAL:F2}, CloseLocation={snapshot.CloseLocation}, DistToPOC={snapshot.Close - snapshot.PreviewPOC:F2}, DistToVAH={snapshot.Close - snapshot.PreviewVAH:F2}, DistToVAL={snapshot.Close - snapshot.PreviewVAL:F2}, SetupDiagnostics={candidateSetupState}, ActiveSetupDiagnostics={activeSetupState}, TopLevels={snapshot.TopLevels}", snapshot.EventTimeUtc);
+            LogBlockedSetupStudy(snapshot);
             LogPotentialPreviewRejection(snapshot);
+            LogFollowThroughReclaimStudy(snapshot);
             LogDelayedReclaimSetupStudy(snapshot);
+        }
+
+        private void UpdateFollowThroughReclaimSetups(int bar, IndicatorCandle candle)
+        {
+            var eventTimeUtc = GetCandleEventTime(candle);
+            if (!IsInLondonSession(eventTimeUtc))
+                return;
+
+            if (!_historicalBarSnapshots.TryGetValue(bar, out var snapshot))
+                snapshot = CreateHistoricalBarSnapshot(bar, candle);
+
+            if (snapshot.PreviewPOC == 0 || snapshot.PreviewVAH == 0 || snapshot.PreviewVAL == 0)
+                return;
+
+            var day = DateOnly.FromDateTime(MarketTimeZones.ToItaly(snapshot.EventTimeUtc));
+            var longKey = $"{day:yyyy-MM-dd}:Long";
+            var shortKey = $"{day:yyyy-MM-dd}:Short";
+
+            if (snapshot.Low < snapshot.PreviewVAL && snapshot.Close <= snapshot.PreviewVAL)
+            {
+                _followThroughSweepContexts[longKey] = new FollowThroughSweepContext(
+                    "Long",
+                    snapshot.Bar,
+                    snapshot.EventTimeUtc,
+                    snapshot.Low,
+                    snapshot.High,
+                    snapshot.PreviewPOC,
+                    snapshot.PreviewVAH,
+                    snapshot.PreviewVAL,
+                    snapshot.Low - StopOffsetTicks * _tickSize);
+            }
+            else if (_followThroughSweepContexts.TryGetValue(longKey, out var lowSweep)
+                && snapshot.Bar > lowSweep.SweepBar
+                && snapshot.Low < snapshot.PreviewVAL
+                && snapshot.Close > snapshot.PreviewVAL)
+            {
+                if (TryCreateFollowThroughReclaimSetup(snapshot, lowSweep, out var setup) && setup != null)
+                    AddSetup(setup, "MR_FOLLOW_THROUGH_RECLAIM_CONTINUATION");
+
+                _followThroughSweepContexts.Remove(longKey);
+            }
+
+            if (snapshot.High > snapshot.PreviewVAH && snapshot.Close >= snapshot.PreviewVAH)
+            {
+                _followThroughSweepContexts[shortKey] = new FollowThroughSweepContext(
+                    "Short",
+                    snapshot.Bar,
+                    snapshot.EventTimeUtc,
+                    snapshot.Low,
+                    snapshot.High,
+                    snapshot.PreviewPOC,
+                    snapshot.PreviewVAH,
+                    snapshot.PreviewVAL,
+                    snapshot.High + StopOffsetTicks * _tickSize);
+            }
+            else if (_followThroughSweepContexts.TryGetValue(shortKey, out var highSweep)
+                && snapshot.Bar > highSweep.SweepBar
+                && snapshot.High > snapshot.PreviewVAH
+                && snapshot.Close < snapshot.PreviewVAH)
+            {
+                if (TryCreateFollowThroughReclaimSetup(snapshot, highSweep, out var setup) && setup != null)
+                    AddSetup(setup, "MR_FOLLOW_THROUGH_RECLAIM_CONTINUATION");
+
+                _followThroughSweepContexts.Remove(shortKey);
+            }
+        }
+
+        private bool TryCreateFollowThroughReclaimSetup(HistoricalBarSnapshot reclaimSnapshot, FollowThroughSweepContext sweep, out BalanceSetup? setup)
+        {
+            setup = null;
+            var delta = sweep.Direction == "Long"
+                ? reclaimSnapshot.Close - reclaimSnapshot.Low
+                : reclaimSnapshot.High - reclaimSnapshot.Close;
+            if (delta < RejectionThresholdTicks * _tickSize)
+                return false;
+
+            setup = new BalanceSetup
+            {
+                Direction = sweep.Direction,
+                POC = reclaimSnapshot.PreviewPOC,
+                VAH = reclaimSnapshot.PreviewVAH,
+                VAL = reclaimSnapshot.PreviewVAL,
+                BreakoutBar = sweep.SweepBar,
+                BreakoutTimeUtc = sweep.SweepTimeUtc,
+                BreakoutPrice = sweep.Direction == "Long" ? sweep.SweepLow : sweep.SweepHigh,
+                RejectionBar = reclaimSnapshot.Bar,
+                RejectionTimeUtc = reclaimSnapshot.EventTimeUtc,
+                RejectionClose = reclaimSnapshot.Close,
+                RejectionHigh = reclaimSnapshot.High,
+                RejectionLow = reclaimSnapshot.Low,
+                RejectionDelta = delta,
+                StopPrice = sweep.StopPrice,
+                TargetPrice = reclaimSnapshot.PreviewPOC,
+                StudyFollowThroughConfirmed = true,
+                StudyFollowThroughBar = reclaimSnapshot.Bar,
+                StudyFollowThroughTimeUtc = reclaimSnapshot.EventTimeUtc,
+                SetupSource = "FollowThroughReclaimContinuation"
+            };
+            return true;
+        }
+
+        private void LogBlockedSetupStudy(HistoricalBarSnapshot snapshot)
+        {
+            if (snapshot.PreviewPOC == 0 || snapshot.PreviewVAH == 0 || snapshot.PreviewVAL == 0)
+                return;
+
+            var longBreakVal = snapshot.Low < snapshot.PreviewVAL;
+            var longCloseBackInside = snapshot.Close > snapshot.PreviewVAL;
+            var longRejectionTicks = (snapshot.Close - snapshot.Low) / _tickSize;
+            var longReady = longBreakVal && longCloseBackInside && longRejectionTicks >= RejectionThresholdTicks;
+            var isNewSessionLow = snapshot.Low < snapshot.PreviousSessionLow;
+
+            if (longReady && !isNewSessionLow)
+            {
+                StudyLog($"[DAY_STUDY_SETUP_BLOCKED] Direction=Long, Bar={snapshot.Bar}, {FormatTime(snapshot.EventTimeUtc)}, Reason=NOT_NEW_SESSION_LOW, Low={snapshot.Low:F2}, Close={snapshot.Close:F2}, PreviewVAL={snapshot.PreviewVAL:F2}, PreviousSessionLow={snapshot.PreviousSessionLow:F2}, RejectionTicks={longRejectionTicks:F1}, CloseLocation={snapshot.CloseLocation}", snapshot.EventTimeUtc);
+            }
+
+            var shortBreakVah = snapshot.High > snapshot.PreviewVAH;
+            var shortCloseBackInside = snapshot.Close < snapshot.PreviewVAH;
+            var shortRejectionTicks = (snapshot.High - snapshot.Close) / _tickSize;
+            var shortReady = shortBreakVah && shortCloseBackInside && shortRejectionTicks >= RejectionThresholdTicks;
+            var isNewSessionHigh = snapshot.High > snapshot.PreviousSessionHigh;
+
+            if (shortReady && !isNewSessionHigh)
+            {
+                StudyLog($"[DAY_STUDY_SETUP_BLOCKED] Direction=Short, Bar={snapshot.Bar}, {FormatTime(snapshot.EventTimeUtc)}, Reason=NOT_NEW_SESSION_HIGH, High={snapshot.High:F2}, Close={snapshot.Close:F2}, PreviewVAH={snapshot.PreviewVAH:F2}, PreviousSessionHigh={snapshot.PreviousSessionHigh:F2}, RejectionTicks={shortRejectionTicks:F1}, CloseLocation={snapshot.CloseLocation}", snapshot.EventTimeUtc);
+            }
+        }
+
+        private void LogFollowThroughReclaimStudy(HistoricalBarSnapshot snapshot)
+        {
+            if (snapshot.PreviewPOC == 0 || snapshot.PreviewVAH == 0 || snapshot.PreviewVAL == 0)
+                return;
+
+            var recentLowSweep = _historicalBarSnapshots.Values
+                .Where(s => s.Bar < snapshot.Bar)
+                .Where(s => ShouldDebugHistoricalDay(s.EventTimeUtc))
+                .Where(s => IsInLondonSession(s.EventTimeUtc))
+                .Where(s => snapshot.EventTimeUtc > s.EventTimeUtc)
+                .Where(s => s.Low < s.PreviewVAL && s.Close <= s.PreviewVAL)
+                .OrderByDescending(s => s.EventTimeUtc)
+                .FirstOrDefault();
+
+            var longReclaimNow = snapshot.Low < snapshot.PreviewVAL && snapshot.Close > snapshot.PreviewVAL;
+            if (recentLowSweep != null && longReclaimNow)
+            {
+                LogFollowThroughReclaimStudy(snapshot, recentLowSweep, "Long");
+            }
+
+            var recentHighSweep = _historicalBarSnapshots.Values
+                .Where(s => s.Bar < snapshot.Bar)
+                .Where(s => ShouldDebugHistoricalDay(s.EventTimeUtc))
+                .Where(s => IsInLondonSession(s.EventTimeUtc))
+                .Where(s => snapshot.EventTimeUtc > s.EventTimeUtc)
+                .Where(s => s.High > s.PreviewVAH && s.Close >= s.PreviewVAH)
+                .OrderByDescending(s => s.EventTimeUtc)
+                .FirstOrDefault();
+
+            var shortReclaimNow = snapshot.High > snapshot.PreviewVAH && snapshot.Close < snapshot.PreviewVAH;
+            if (recentHighSweep != null && shortReclaimNow)
+            {
+                LogFollowThroughReclaimStudy(snapshot, recentHighSweep, "Short");
+            }
+        }
+
+        private void LogFollowThroughReclaimStudy(HistoricalBarSnapshot reclaimSnapshot, HistoricalBarSnapshot sweepSnapshot, string direction)
+        {
+            var setup = new BalanceSetup
+            {
+                SetupId = $"FOLLOWTHROUGH-{sweepSnapshot.Bar}-{reclaimSnapshot.Bar}-{direction}",
+                Direction = direction,
+                POC = reclaimSnapshot.PreviewPOC,
+                VAH = reclaimSnapshot.PreviewVAH,
+                VAL = reclaimSnapshot.PreviewVAL,
+                BreakoutBar = sweepSnapshot.Bar,
+                BreakoutTimeUtc = sweepSnapshot.EventTimeUtc,
+                BreakoutPrice = direction == "Long" ? sweepSnapshot.Low : sweepSnapshot.High,
+                RejectionBar = reclaimSnapshot.Bar,
+                RejectionTimeUtc = reclaimSnapshot.EventTimeUtc,
+                RejectionClose = reclaimSnapshot.Close,
+                RejectionHigh = reclaimSnapshot.High,
+                RejectionLow = reclaimSnapshot.Low,
+                RejectionDelta = direction == "Long" ? reclaimSnapshot.Close - reclaimSnapshot.Low : reclaimSnapshot.High - reclaimSnapshot.Close,
+                StopPrice = direction == "Long" ? sweepSnapshot.Low - StopOffsetTicks * _tickSize : sweepSnapshot.High + StopOffsetTicks * _tickSize,
+                TargetPrice = reclaimSnapshot.PreviewPOC,
+                SetupSource = "FollowThroughReclaimStudy"
+            };
+
+            var candidates = _lastHistoricalTrades
+                .Where(t => t.Volume >= MinAggressionVolume)
+                .Where(t => t.Time > setup.RejectionTimeUtc && t.Time <= setup.RejectionTimeUtc.AddSeconds(AggressionTimeoutSeconds))
+                .Where(t => IsLondonTradeAllowed(t.Time))
+                .Where(t => direction == "Long" ? t.Direction == TradeDirection.Buy : t.Direction == TradeDirection.Sell)
+                .ToList();
+
+            var zoneCandidates = candidates.Where(t => IsInEntryZone(setup, t)).ToList();
+            var continuationCandidates = candidates.Where(t => IsBeyondPocContinuationEntry(setup, t)).ToList();
+            var validCandidates = zoneCandidates
+                .Where(t => (t.Time - setup.RejectionTimeUtc).TotalSeconds <= OperationalEntryTimeoutSeconds)
+                .Where(t => GetRewardRiskToTarget2(setup, t.Lastprice) >= MinRewardRiskToTarget2)
+                .ToList();
+            var continuationValidCandidates = continuationCandidates
+                .Where(t => (t.Time - setup.RejectionTimeUtc).TotalSeconds <= OperationalEntryTimeoutSeconds)
+                .Where(t => GetRewardRiskToTarget2(setup, t.Lastprice) >= MinRewardRiskToTarget2)
+                .ToList();
+            var firstValid = validCandidates.OrderBy(t => t.Time).FirstOrDefault();
+            var firstContinuationValid = continuationValidCandidates.OrderBy(t => t.Time).FirstOrDefault();
+            var firstValidText = firstValid == null
+                ? "NONE"
+                : $"{FormatTime(firstValid.Time)}:Price={firstValid.Lastprice:F2}:Volume={firstValid.Volume:F0}:RR={GetRewardRiskToTarget2(setup, firstValid.Lastprice):F2}:Age={(firstValid.Time - setup.RejectionTimeUtc).TotalSeconds:F1}s";
+            var firstContinuationValidText = firstContinuationValid == null
+                ? "NONE"
+                : $"{FormatTime(firstContinuationValid.Time)}:Price={firstContinuationValid.Lastprice:F2}:Volume={firstContinuationValid.Volume:F0}:RR={GetRewardRiskToTarget2(setup, firstContinuationValid.Lastprice):F2}:Age={(firstContinuationValid.Time - setup.RejectionTimeUtc).TotalSeconds:F1}s";
+
+            var outcomeText = "NA";
+            if (firstValid != null)
+            {
+                var stop = GetOperationalStopPrice(setup, firstValid.Lastprice);
+                var outcome = EvaluateProtectedTarget2OutcomeFromTrades(direction, firstValid.Lastprice, stop, setup.TargetPrice, GetStudyTarget2(setup), firstValid.Time);
+                outcomeText = $"ExitReason={outcome.ExitReason}:PnL={outcome.Pnl:F2}:R={outcome.RMultiple:F2}:Target1Hit={outcome.Target1Hit}";
+            }
+
+            var continuationOutcomeText = "NA";
+            if (firstContinuationValid != null)
+            {
+                var stop = GetOperationalStopPrice(setup, firstContinuationValid.Lastprice);
+                var outcome = EvaluateProtectedTarget2OutcomeFromTrades(direction, firstContinuationValid.Lastprice, stop, setup.TargetPrice, GetStudyTarget2(setup), firstContinuationValid.Time);
+                continuationOutcomeText = $"ExitReason={outcome.ExitReason}:PnL={outcome.Pnl:F2}:R={outcome.RMultiple:F2}:Target1Hit={outcome.Target1Hit}";
+            }
+
+            StudyLog($"[DAY_STUDY_FOLLOWTHROUGH_RECLAIM] Direction={direction}, SweepBar={sweepSnapshot.Bar}, ReclaimBar={reclaimSnapshot.Bar}, SweepTime={FormatTime(sweepSnapshot.EventTimeUtc)}, ReclaimTime={FormatTime(reclaimSnapshot.EventTimeUtc)}, SweepLow={sweepSnapshot.Low:F2}, SweepHigh={sweepSnapshot.High:F2}, ReclaimClose={reclaimSnapshot.Close:F2}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}, Stop={setup.StopPrice:F2}, ReclaimTicks={setup.RejectionDelta / _tickSize:F1}, SameDirectionTrades={candidates.Count}, InEntryZone={zoneCandidates.Count}, Valid={validCandidates.Count}, FirstValid={firstValidText}, Outcome={outcomeText}, ContinuationZone={continuationCandidates.Count}, ContinuationValid={continuationValidCandidates.Count}, FirstContinuationValid={firstContinuationValidText}, ContinuationOutcome={continuationOutcomeText}", reclaimSnapshot.EventTimeUtc);
         }
 
         private void LogDelayedReclaimSetupStudy(HistoricalBarSnapshot snapshot)
@@ -2867,6 +3149,8 @@ namespace FabioOrderFlow
                 PreviewPOC = poc,
                 PreviewVAH = vah,
                 PreviewVAL = val,
+                PreviousSessionHigh = _balanceTracker.CurrentZone?.High ?? 0,
+                PreviousSessionLow = _balanceTracker.CurrentZone?.Low ?? 0,
                 CloseLocation = GetPriceLocation(candle.Close, poc, vah, val),
                 TopLevels = topLevels
             };
@@ -2920,18 +3204,20 @@ namespace FabioOrderFlow
                 {
                     var sameDirection = s.Direction == "Long" ? trade.Direction == TradeDirection.Buy : trade.Direction == TradeDirection.Sell;
                     var inEntryZone = IsInEntryZone(s, trade);
+                    var continuationZone = IsBeyondPocContinuationEntry(s, trade);
+                    var operationalZone = IsOperationalEntryZone(s, trade);
                     var fresh = (trade.Time - s.RejectionTimeUtc).TotalSeconds <= OperationalEntryTimeoutSeconds;
                     var rr = GetRewardRiskToTarget2(s, trade.Lastprice);
                     var reason = !sameDirection
                         ? "WRONG_DIRECTION"
-                        : !inEntryZone
+                        : !operationalZone
                             ? "OUTSIDE_ENTRY_ZONE"
                             : !fresh
                                 ? "STALE"
                                 : rr < MinRewardRiskToTarget2
                                     ? "RR_TOO_LOW"
                                     : "VALID";
-                    return $"{s.SetupId[..Math.Min(8, s.SetupId.Length)]}:{s.SetupSource}:{s.Direction}:Reason={reason}:Age={(trade.Time - s.RejectionTimeUtc).TotalSeconds:F0}s:InZone={inEntryZone}:RR={rr:F2}:TriggerAtTrade={GetStudyTriggerLabelAtTime(s, trade.Time)}";
+                    return $"{s.SetupId[..Math.Min(8, s.SetupId.Length)]}:{s.SetupSource}:{s.Direction}:Reason={reason}:Age={(trade.Time - s.RejectionTimeUtc).TotalSeconds:F0}s:InZone={inEntryZone}:ContinuationZone={continuationZone}:OperationalZone={operationalZone}:RR={rr:F2}:TriggerAtTrade={GetStudyTriggerLabelAtTime(s, trade.Time)}";
                 })
                 .ToList();
 
@@ -3032,6 +3318,13 @@ namespace FabioOrderFlow
 
         private static string GetFollowThroughLabel(BalanceSetup setup)
         {
+            if (IsFollowThroughContinuationSetup(setup))
+            {
+                return setup.Direction == "Long"
+                    ? "FOLLOW_THROUGH_RECLAIM_CONTINUATION_LONG"
+                    : "FOLLOW_THROUGH_RECLAIM_CONTINUATION_SHORT";
+            }
+
             return setup.Direction == "Long"
                 ? "LOW_REJECTION_FOLLOW_THROUGH"
                 : "HIGH_REJECTION_FOLLOW_THROUGH";
@@ -3052,7 +3345,9 @@ namespace FabioOrderFlow
         private static bool IsTarget2ManagementTrigger(string studyTrigger)
         {
             return studyTrigger == "POC_RECLAIM_AFTER_LOW_REJECTION"
-                || studyTrigger == "POC_LOSS_AFTER_HIGH_REJECTION";
+                || studyTrigger == "POC_LOSS_AFTER_HIGH_REJECTION"
+                || studyTrigger == "FOLLOW_THROUGH_RECLAIM_CONTINUATION_LONG"
+                || studyTrigger == "FOLLOW_THROUGH_RECLAIM_CONTINUATION_SHORT";
         }
 
         private int FindBarByTime(DateTime timeUtc, int fallbackBar)

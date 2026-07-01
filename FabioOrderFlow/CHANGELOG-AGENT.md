@@ -37,6 +37,28 @@ Da quel punto il modello e' stato trasformato in implementazione live-first ATAS
    - Log reload con CUM_TRADES_LOOKBACK e HISTORICAL_FLOW_FINISH.
 ```
 
+## Update 2026-07-01 15:55
+
+```text
+Decisione operativa:
+- introdotta seconda famiglia entry nel core: FollowThroughReclaimContinuation.
+- Serve a catturare casi Fabio-style in cui lo sweep fuori value e il reclaim dentro value avvengono su barre successive.
+- Non usa finestra breve hardcoded: mantiene un contesto sweep per direzione/giorno e crea setup al reclaim successivo.
+
+Contratto:
+- Long: sweep sotto VAL con close ancora sotto/pari VAL, poi reclaim sopra VAL.
+- Short: sweep sopra VAH con close ancora sopra/pari VAH, poi reclaim sotto VAH.
+- Entry operativa in continuation zone: Long POC..VAH, Short POC..VAL.
+- Entry, exit e PnL passano dal core standard ProcessAggressionTrade/CreatePosition.
+- Outcome leggibili da [MR_ENTRY]/[MR_EXIT] su tutti i giorni del lookback, senza debug giornaliero.
+- Fix immediato: setup FollowThroughReclaimContinuation creati solo dentro London session.
+- Punto aperto: sul 2026-06-30 15:30 la entry long cattura TARGET2_HIT rapido a VAH (+54,50), ma non esplora ancora continuation estesa; management/target della nuova famiglia resta da studiare.
+
+Debug/log:
+- [HISTORICAL_STUDY_PROGRESS] ora copre Start/Bars/Trades/Finish, quindi grep PROGRESS basta per seguire lo stato reload.
+- [DAY_STUDY_FOLLOWTHROUGH_RECLAIM] resta study diagnostico, non fonte PnL.
+```
+
 ## Update 2026-06-30 20:37
 
 ```text
