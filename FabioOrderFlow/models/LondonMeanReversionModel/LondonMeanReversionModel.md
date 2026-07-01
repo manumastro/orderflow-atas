@@ -311,6 +311,7 @@ Tag reload/studio principali:
 [DAY_STUDY_BIG_TRADE]                  big trades London diagnostici, solo debug profondo e filtrabili per giorno
 [DAY_STUDY_SETUP_BLOCKED]              barra setup-ready ma bloccata dal gating attuale
 [DAY_STUDY_FOLLOWTHROUGH_RECLAIM]      studio sweep su barra precedente + reclaim su barra successiva, con confronto entry zone vs continuation zone
+[FOLLOWTHROUGH_TARGET_DECISION_STUDY]  studio compatto post-VAH/VAL per continuation Fabio-style
 ```
 
 ## Famiglia Entry: Follow-Through Reclaim Continuation
@@ -342,6 +343,29 @@ Contratto:
 Gli outcome di questa famiglia si leggono da `[MR_EXIT]` su tutti i giorni del lookback, senza attivare debug giornaliero. Il debug giornaliero serve solo per i dettagli `DAY_STUDY_*`.
 
 Nota aperta: questa famiglia usa ancora gestione e target standard del core. Sul caso 2026-06-30 15:30 il setup ha preso `TARGET2_HIT` rapidamente a VAH, ma non studia ancora una cattura continuation piu' lunga. Entry quality, target extension, trailing e gestione post-VAH restano da esplorare prima di considerarla definitiva.
+
+### Study Post-Target Fabio-Style
+
+`[FOLLOWTHROUGH_TARGET_DECISION_STUDY]` viene scritto per le exit storiche della famiglia `FollowThroughReclaimContinuation`.
+
+Scopo: trattare VAH/VAL come area decisionale, non come target finale fisso. Lo study non cambia il trading live.
+
+Campi principali:
+
+```text
+DecisionTime                 momento in cui VAH/VAL viene colpita
+MfeAfterDecision/MaeAfterDecision
+Same60/Opp60, Same120/Opp120, Same300/Opp300
+CloseBeyond*/CloseBackInside*
+Accept60/Accept120/Accept300
+RunnerStopDecisionOutcome    runner da VAH/VAL con stop subito dietro decision area
+RunnerStopPocOutcome         runner da VAH/VAL con stop dietro POC
+ReentryCandidate             true se esiste una seconda gamba causale entro 5m dopo acceptance oltre VAH/VAL
+Reentry                      dettagli e outcome osservazionale della seconda gamba
+FabioBias                    SECOND_LEG_CANDIDATE se ReentryCandidate=true, altrimenti TAKE_TARGET_NO_SECOND_LEG
+```
+
+Interpretazione: Fabio-style significa prendere/rendere risk-free sul target veloce, poi seconda gamba solo con nuova conferma order-flow oltre VAH/VAL.
 
 ## PnL E Parser
 

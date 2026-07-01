@@ -37,6 +37,25 @@ Da quel punto il modello e' stato trasformato in implementazione live-first ATAS
    - Log reload con CUM_TRADES_LOOKBACK e HISTORICAL_FLOW_FINISH.
 ```
 
+## Update 2026-07-01 16:55
+
+```text
+Studio aggiunto:
+- [FOLLOWTHROUGH_TARGET_DECISION_STUDY] per ogni exit storica FollowThroughReclaimContinuation.
+- Tratta VAH/VAL come area decisionale Fabio-style: target veloce/risk-free, poi seconda gamba solo con nuova conferma.
+- Misura pressione same/opposite a 60/120/300s, acceptance oltre VAH/VAL, MFE/MAE post decision area.
+- Simula runner con stop dietro decision area, runner con stop dietro POC e prima re-entry entro 5m se acceptance + big trade coerente.
+- Non modifica entry, target o gestione live.
+
+Reload verificato 19:11:
+- [HISTORICAL_FLOW_FINISH] ClosedPositions=27, OpenPositions=0, StoredTrades=1432921.
+- PnL reale modello corrente da [MR_EXIT]: +349,04.
+- FollowThroughReclaimContinuation reale: Long +54,50 su 3 exit, Short +65,49 su 11 exit, totale +119,99.
+- Study post-target: 13 righe; CurrentPnL=+191,74; runner passivo stop decision area=+5,50; runner passivo stop POC=-10,00.
+- ReentryCandidate=2: short 2026-06-30 14:25:33 = -15,75; long 2026-06-30 15:35:01 = +41,13; totale +25,38.
+- Lettura: non lasciare correre sempre; la continuation piu' Fabio-style sembra seconda gamba selettiva. Serve distinguere il long buono 15:35 dal falso positivo short 14:25.
+```
+
 ## Update 2026-07-01 15:55
 
 ```text

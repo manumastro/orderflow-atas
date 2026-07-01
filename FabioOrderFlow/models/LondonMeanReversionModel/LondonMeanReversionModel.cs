@@ -807,6 +807,12 @@ namespace FabioOrderFlow
             return setup.SetupSource == "FollowThroughReclaimContinuation";
         }
 
+        private static bool IsFollowThroughContinuationTrigger(string studyTrigger)
+        {
+            return studyTrigger == "FOLLOW_THROUGH_RECLAIM_CONTINUATION_LONG"
+                || studyTrigger == "FOLLOW_THROUGH_RECLAIM_CONTINUATION_SHORT";
+        }
+
         private static bool IsBeyondPocContinuationEntry(BalanceSetup setup, CumulativeTrade trade)
         {
             return setup.Direction == "Long"
@@ -1396,6 +1402,7 @@ namespace FabioOrderFlow
                 DailyHistoricalLog(exitMessage, eventTimeUtc);
                 StudyLog($"[DAY_STUDY_ACTUAL_EXIT] SetupId={position.SetupId}, EntryModel={position.EntryModel}, Direction={position.Direction}, ManagementMode={position.ManagementMode}, StudyTrigger={position.StudyTrigger}, Bar={bar}, {FormatTime(eventTimeUtc)}, Entry={position.EntryPrice:F2}, Exit={exitPrice:F2}, ExitReason={exitReason}, PnL={blendedPnl:F2}, RunnerPnL={runnerPnl:F2}, FullRunnerPnL={pnl:F2}, RealizedPocPnL={position.RealizedPocPnL:F2}, Target1ExitPct={position.RealizedPocExitPct:F2}, RunnerPct={position.RunnerExitPct:F2}, MFE={position.MFE:F2}, MAE={position.MAE:F2}, RMultiple={rMultiple:F2}R, Target1Hit={position.Target1Hit}, Target1POC={position.Target1Price:F2}, Target2={position.Target2Price:F2}, StopProtected={position.StopProtectedAfterTarget1}", eventTimeUtc);
                 LogPocManagementStudy(position, bar, eventTimeUtc, exitReason, exitPrice, blendedPnl, pnl);
+                LogFollowThroughTargetDecisionStudy(position, eventTimeUtc, exitReason, exitPrice, blendedPnl);
             }
 
             var setup = _activeSetups.FirstOrDefault(s => s.SetupId == position.SetupId);
@@ -1439,6 +1446,42 @@ namespace FabioOrderFlow
             var secondsAfterPoc = position.Target1Hit ? (eventTimeUtc - position.Target1HitTimeUtc).TotalSeconds : 0;
 
             StudyLog($"[DAY_STUDY_POC_MANAGEMENT] SetupId={position.SetupId}, EntryModel={position.EntryModel}, Direction={position.Direction}, ManagementMode={position.ManagementMode}, StudyTrigger={position.StudyTrigger}, Bar={bar}, {FormatTime(eventTimeUtc)}, Entry={position.EntryPrice:F2}, Exit={exitPrice:F2}, ExitReason={exitReason}, Target1Hit={position.Target1Hit}, Target1Time={(position.Target1Hit ? FormatTime(position.Target1HitTimeUtc) : "NA")}, Target1POC={position.Target1Price:F2}, Target2={position.Target2Price:F2}, Current70_30PnL={currentPnl:F2}, PocAllOutPnL={pocAllOutPnl:F2}, FullRunnerProtectedPnL={fullRunnerProtectedPnl:F2}, DeltaPocAllOutVsCurrent={pocAllOutPnl - currentPnl:F2}, DeltaFullRunnerVsCurrent={fullRunnerProtectedPnl - currentPnl:F2}, SecondsAfterPoc={secondsAfterPoc:F1}, PostPocSameTrades={pressure.SameTrades}, PostPocSameVolume={pressure.SameVolume:F0}, PostPocMaxSameVolume={pressure.MaxSameVolume:F0}, PostPocOppositeTrades={pressure.OppositeTrades}, PostPocOppositeVolume={pressure.OppositeVolume:F0}, PostPocMaxOppositeVolume={pressure.MaxOppositeVolume:F0}, PostPocContinuationConfirmed={continuationConfirmed}, FabioStyleHypothesis=POC_PRIMARY_EXIT_THEN_REENTER_ON_NEW_CONFIRMATION", eventTimeUtc);
+        }
+
+        private void LogFollowThroughTargetDecisionStudy(ActivePosition position, DateTime currentExitTimeUtc, string currentExitReason, decimal currentExitPrice, decimal currentPnl)
+        {
+            if (!IsFollowThroughContinuationTrigger(position.StudyTrigger) || !IsHistoricalCumulativeTradePosition(position))
+                return;
+
+            var targetTouchTime = IsDecisionAreaExit(position, currentExitReason, currentExitPrice)
+                ? currentExitTimeUtc
+                : FindDecisionAreaTouchTime(position.Direction, position.EntryTimeUtc, position.Target2Price, position.EntryBar);
+            if (!targetTouchTime.HasValue)
+                return;
+
+            var decisionTime = targetTouchTime.Value;
+            var stopLong = position.Direction == "Long" ? position.Target2Price - 2m * _tickSize : position.Target2Price + 2m * _tickSize;
+            var stopPoc = position.Direction == "Long" ? position.Target1Price - 2m * _tickSize : position.Target1Price + 2m * _tickSize;
+            var currentDelta = GetPostDecisionStats(position, decisionTime, null);
+            var stats60 = GetPostDecisionStats(position, decisionTime, TimeSpan.FromSeconds(60));
+            var stats120 = GetPostDecisionStats(position, decisionTime, TimeSpan.FromSeconds(120));
+            var stats300 = GetPostDecisionStats(position, decisionTime, TimeSpan.FromSeconds(300));
+            var reentry = FindFabioStyleContinuationReentry(position, decisionTime);
+            var reentryOutcome = reentry == null
+                ? new ProtectedStudyOutcome("NO_REENTRY", 0, 0, false)
+                : EvaluateFollowThroughSecondLegOutcome(position.Direction, reentry.Lastprice, GetContinuationReentryStop(position, reentry.Lastprice), decisionTime, reentry.Time);
+            var runnerStopVahOutcome = EvaluateFollowThroughSecondLegOutcome(position.Direction, position.Target2Price, stopLong, decisionTime, decisionTime);
+            var runnerStopPocOutcome = EvaluateFollowThroughSecondLegOutcome(position.Direction, position.Target2Price, stopPoc, decisionTime, decisionTime);
+            var reentryCandidate = reentry != null;
+            var reentryText = reentry == null
+                ? "NONE"
+                : $"{FormatTime(reentry.Time)}:Price={reentry.Lastprice:F2}:Volume={reentry.Volume:F0}:Stop={GetContinuationReentryStop(position, reentry.Lastprice):F2}:OutcomeR={reentryOutcome.RMultiple:F2}:Outcome={reentryOutcome.ExitReason}:PnL={reentryOutcome.Pnl:F2}";
+            var acceptance60 = IsDecisionAcceptanceConfirmed(stats60);
+            var acceptance120 = IsDecisionAcceptanceConfirmed(stats120);
+            var acceptance300 = IsDecisionAcceptanceConfirmed(stats300);
+            var fabioBias = reentryCandidate ? "SECOND_LEG_CANDIDATE" : "TAKE_TARGET_NO_SECOND_LEG";
+
+            DailyHistoricalLog($"[FOLLOWTHROUGH_TARGET_DECISION_STUDY] SetupId={position.SetupId}, Direction={position.Direction}, StudyTrigger={position.StudyTrigger}, EntryTime={FormatTime(position.EntryTimeUtc)}, DecisionTime={FormatTime(decisionTime)}, Entry={position.EntryPrice:F2}, DecisionPrice={position.Target2Price:F2}, POC={position.Target1Price:F2}, CurrentExitTime={FormatTime(currentExitTimeUtc)}, CurrentExitReason={currentExitReason}, CurrentExitPrice={currentExitPrice:F2}, CurrentPnL={currentPnl:F2}, MfeAfterDecision={currentDelta.Mfe:F2}, MaeAfterDecision={currentDelta.Mae:F2}, MaxFavorablePrice={currentDelta.MaxFavorablePrice:F2}, MaxAdversePrice={currentDelta.MaxAdversePrice:F2}, Same60={stats60.SameTrades}/{stats60.SameVolume:F0}/Max{stats60.MaxSameVolume:F0}, Opp60={stats60.OppositeTrades}/{stats60.OppositeVolume:F0}/Max{stats60.MaxOppositeVolume:F0}, CloseBeyond60={stats60.ClosesBeyondDecision}, CloseBackInside60={stats60.ClosesBackInsideDecision}, Accept60={acceptance60}, Same120={stats120.SameTrades}/{stats120.SameVolume:F0}/Max{stats120.MaxSameVolume:F0}, Opp120={stats120.OppositeTrades}/{stats120.OppositeVolume:F0}/Max{stats120.MaxOppositeVolume:F0}, CloseBeyond120={stats120.ClosesBeyondDecision}, CloseBackInside120={stats120.ClosesBackInsideDecision}, Accept120={acceptance120}, Same300={stats300.SameTrades}/{stats300.SameVolume:F0}/Max{stats300.MaxSameVolume:F0}, Opp300={stats300.OppositeTrades}/{stats300.OppositeVolume:F0}/Max{stats300.MaxOppositeVolume:F0}, CloseBeyond300={stats300.ClosesBeyondDecision}, CloseBackInside300={stats300.ClosesBackInsideDecision}, Accept300={acceptance300}, RunnerStopDecisionOutcome={runnerStopVahOutcome.ExitReason}, RunnerStopDecisionPnL={runnerStopVahOutcome.Pnl:F2}, RunnerStopDecisionR={runnerStopVahOutcome.RMultiple:F2}, RunnerStopPocOutcome={runnerStopPocOutcome.ExitReason}, RunnerStopPocPnL={runnerStopPocOutcome.Pnl:F2}, RunnerStopPocR={runnerStopPocOutcome.RMultiple:F2}, ReentryCandidate={reentryCandidate}, Reentry={reentryText}, FabioBias={fabioBias}", decisionTime);
         }
 
         private PocManagementPressureStats GetPostPocPressureStats(ActivePosition position, DateTime fromUtc, DateTime toUtc)
@@ -2935,6 +2978,237 @@ namespace FabioOrderFlow
             return new HistoricalContext(_balanceTracker.LastPreviewPoc, _balanceTracker.LastPreviewVah, _balanceTracker.LastPreviewVal);
         }
 
+        private bool IsDecisionAreaExit(ActivePosition position, string exitReason, decimal exitPrice)
+        {
+            return exitReason == "TARGET2_HIT" && Math.Abs(exitPrice - position.Target2Price) <= _tickSize;
+        }
+
+        private DateTime? FindDecisionAreaTouchTime(string direction, DateTime entryTimeUtc, decimal decisionPrice, int fallbackBar)
+        {
+            var entryBar = FindBarByTime(entryTimeUtc, fallbackBar);
+            var entryDay = DateOnly.FromDateTime(MarketTimeZones.ToItaly(entryTimeUtc));
+
+            for (var bar = entryBar; bar <= Math.Max(0, _currentBar - 1); bar++)
+            {
+                var candle = _getCandle(bar);
+                var eventTime = GetCandleEventTime(candle);
+                if (DateOnly.FromDateTime(MarketTimeZones.ToItaly(eventTime)) != entryDay)
+                    break;
+
+                if (!IsInLondonSession(eventTime))
+                    break;
+
+                if (direction == "Long" ? candle.High >= decisionPrice : candle.Low <= decisionPrice)
+                    return eventTime;
+            }
+
+            return null;
+        }
+
+        private PostDecisionContinuationStats GetPostDecisionStats(ActivePosition position, DateTime decisionTimeUtc, TimeSpan? window)
+        {
+            var expectedDirection = position.Direction == "Long" ? TradeDirection.Buy : TradeDirection.Sell;
+            var oppositeDirection = position.Direction == "Long" ? TradeDirection.Sell : TradeDirection.Buy;
+            var endTime = window.HasValue ? decisionTimeUtc.Add(window.Value) : GetLondonSessionEndUtc(decisionTimeUtc);
+            var trades = _lastHistoricalTrades
+                .Where(t => t.Time > decisionTimeUtc && t.Time <= endTime)
+                .Where(t => t.Volume >= MinAggressionVolume)
+                .Where(t => IsLondonTradeAllowed(t.Time))
+                .ToList();
+            var same = trades.Where(t => t.Direction == expectedDirection).ToList();
+            var opposite = trades.Where(t => t.Direction == oppositeDirection).ToList();
+            var closesBeyond = 0;
+            var closesBackInside = 0;
+            var mfe = 0m;
+            var mae = 0m;
+            var maxFavorablePrice = position.Target2Price;
+            var maxAdversePrice = position.Target2Price;
+            var entryDay = DateOnly.FromDateTime(MarketTimeZones.ToItaly(decisionTimeUtc));
+            var startBar = FindBarByTime(decisionTimeUtc, position.EntryBar);
+
+            for (var bar = startBar; bar <= Math.Max(0, _currentBar - 1); bar++)
+            {
+                var candle = _getCandle(bar);
+                var eventTime = GetCandleEventTime(candle);
+                if (eventTime <= decisionTimeUtc)
+                    continue;
+                if (eventTime > endTime)
+                    break;
+                if (DateOnly.FromDateTime(MarketTimeZones.ToItaly(eventTime)) != entryDay)
+                    break;
+                if (!IsInLondonSession(eventTime))
+                    break;
+
+                if (position.Direction == "Long")
+                {
+                    maxFavorablePrice = Math.Max(maxFavorablePrice, candle.High);
+                    maxAdversePrice = Math.Min(maxAdversePrice, candle.Low);
+                    mfe = Math.Max(mfe, candle.High - position.Target2Price);
+                    mae = Math.Max(mae, position.Target2Price - candle.Low);
+                    if (candle.Close > position.Target2Price)
+                        closesBeyond++;
+                    if (candle.Close < position.Target2Price)
+                        closesBackInside++;
+                }
+                else
+                {
+                    maxFavorablePrice = Math.Min(maxFavorablePrice, candle.Low);
+                    maxAdversePrice = Math.Max(maxAdversePrice, candle.High);
+                    mfe = Math.Max(mfe, position.Target2Price - candle.Low);
+                    mae = Math.Max(mae, candle.High - position.Target2Price);
+                    if (candle.Close < position.Target2Price)
+                        closesBeyond++;
+                    if (candle.Close > position.Target2Price)
+                        closesBackInside++;
+                }
+            }
+
+            return new PostDecisionContinuationStats(
+                same.Count,
+                same.Sum(t => t.Volume),
+                same.Count > 0 ? same.Max(t => t.Volume) : 0,
+                opposite.Count,
+                opposite.Sum(t => t.Volume),
+                opposite.Count > 0 ? opposite.Max(t => t.Volume) : 0,
+                closesBeyond,
+                closesBackInside,
+                mfe,
+                mae,
+                maxFavorablePrice,
+                maxAdversePrice);
+        }
+
+        private bool IsDecisionAcceptanceConfirmed(PostDecisionContinuationStats stats)
+        {
+            return stats.ClosesBeyondDecision > 0
+                && stats.SameTrades > 0
+                && stats.SameVolume > stats.OppositeVolume
+                && stats.MaxSameVolume >= stats.MaxOppositeVolume;
+        }
+
+        private CumulativeTrade? FindFabioStyleContinuationReentry(ActivePosition position, DateTime decisionTimeUtc)
+        {
+            var endTime = decisionTimeUtc.AddMinutes(5);
+            var expectedDirection = position.Direction == "Long" ? TradeDirection.Buy : TradeDirection.Sell;
+            return _lastHistoricalTrades
+                .Where(t => t.Time > decisionTimeUtc && t.Time <= endTime)
+                .Where(t => IsLondonTradeAllowed(t.Time))
+                .Where(t => t.Volume >= MinAggressionVolume)
+                .Where(t => t.Direction == expectedDirection)
+                .Where(t => IsBeyondDecisionArea(position.Direction, t.Lastprice, position.Target2Price))
+                .Where(t => HasDecisionAcceptanceBefore(position, decisionTimeUtc, t.Time))
+                .OrderBy(t => t.Time)
+                .FirstOrDefault();
+        }
+
+        private bool HasDecisionAcceptanceBefore(ActivePosition position, DateTime decisionTimeUtc, DateTime tradeTimeUtc)
+        {
+            var entryDay = DateOnly.FromDateTime(MarketTimeZones.ToItaly(decisionTimeUtc));
+            var startBar = FindBarByTime(decisionTimeUtc, position.EntryBar);
+            for (var bar = startBar; bar <= Math.Max(0, _currentBar - 1); bar++)
+            {
+                var candle = _getCandle(bar);
+                var eventTime = GetCandleEventTime(candle);
+                if (eventTime <= decisionTimeUtc)
+                    continue;
+                if (eventTime >= tradeTimeUtc)
+                    break;
+                if (DateOnly.FromDateTime(MarketTimeZones.ToItaly(eventTime)) != entryDay)
+                    break;
+                if (!IsInLondonSession(eventTime))
+                    break;
+
+                if (position.Direction == "Long" ? candle.Close > position.Target2Price : candle.Close < position.Target2Price)
+                    return true;
+            }
+
+            return false;
+        }
+
+        private decimal GetContinuationReentryStop(ActivePosition position, decimal reentryPrice)
+        {
+            var decisionStop = position.Direction == "Long"
+                ? position.Target2Price - 2m * _tickSize
+                : position.Target2Price + 2m * _tickSize;
+            var maxRisk = Math.Abs(position.Target2Price - position.Target1Price) * 0.5m;
+            if (maxRisk <= 0)
+                return decisionStop;
+
+            return position.Direction == "Long"
+                ? Math.Max(decisionStop, reentryPrice - maxRisk)
+                : Math.Min(decisionStop, reentryPrice + maxRisk);
+        }
+
+        private ProtectedStudyOutcome EvaluateFollowThroughSecondLegOutcome(string direction, decimal entry, decimal stop, DateTime decisionTimeUtc, DateTime entryTimeUtc)
+        {
+            var risk = Math.Abs(entry - stop);
+            if (risk <= 0)
+                return new ProtectedStudyOutcome("INVALID_RISK", 0, 0, false);
+
+            var entryDay = DateOnly.FromDateTime(MarketTimeZones.ToItaly(entryTimeUtc));
+            var startBar = FindBarByTime(entryTimeUtc, 0);
+            var closePrice = entry;
+            var extension50 = Math.Abs(entry - stop);
+            var target = direction == "Long" ? entry + extension50 : entry - extension50;
+
+            for (var bar = startBar; bar <= Math.Max(0, _currentBar - 1); bar++)
+            {
+                var candle = _getCandle(bar);
+                var eventTime = GetCandleEventTime(candle);
+                if (eventTime <= entryTimeUtc)
+                    continue;
+                if (DateOnly.FromDateTime(MarketTimeZones.ToItaly(eventTime)) != entryDay)
+                    break;
+                if (!IsInLondonSession(eventTime))
+                    break;
+
+                closePrice = candle.Close;
+                if (direction == "Long")
+                {
+                    if (candle.High >= target)
+                    {
+                        var pnl = target - entry;
+                        return new ProtectedStudyOutcome("EXTENSION_1R_HIT", pnl, pnl / risk, false);
+                    }
+
+                    if (candle.Low <= stop)
+                    {
+                        var pnl = stop - entry;
+                        return new ProtectedStudyOutcome("DECISION_STOP_HIT", pnl, pnl / risk, false);
+                    }
+                }
+                else
+                {
+                    if (candle.Low <= target)
+                    {
+                        var pnl = entry - target;
+                        return new ProtectedStudyOutcome("EXTENSION_1R_HIT", pnl, pnl / risk, false);
+                    }
+
+                    if (candle.High >= stop)
+                    {
+                        var pnl = entry - stop;
+                        return new ProtectedStudyOutcome("DECISION_STOP_HIT", pnl, pnl / risk, false);
+                    }
+                }
+            }
+
+            var closePnl = direction == "Long" ? closePrice - entry : entry - closePrice;
+            return new ProtectedStudyOutcome("LONDON_CLOSE", closePnl, closePnl / risk, false);
+        }
+
+        private DateTime GetLondonSessionEndUtc(DateTime eventUtc)
+        {
+            var london = MarketTimeZones.ToLondon(eventUtc);
+            var londonEnd = new DateTime(london.Year, london.Month, london.Day, LondonSessionEndHour, LondonSessionEndMinute, 0, DateTimeKind.Unspecified);
+            return TimeZoneInfo.ConvertTimeToUtc(londonEnd, MarketTimeZones.London);
+        }
+
+        private static bool IsBeyondDecisionArea(string direction, decimal price, decimal decisionPrice)
+        {
+            return direction == "Long" ? price >= decisionPrice : price <= decisionPrice;
+        }
+
         private ProtectedStudyOutcome EvaluateProtectedTarget2OutcomeFromTrades(string direction, decimal entry, decimal stop, decimal targetPoc, decimal target2, DateTime entryTimeUtc)
         {
             var risk = Math.Abs(entry - stop);
@@ -3276,6 +3550,7 @@ namespace FabioOrderFlow
         private sealed record ProtectedStudyOutcome(string ExitReason, decimal Pnl, decimal RMultiple, bool Target1Hit);
         private sealed record StudyContinuationStats(int Count, decimal Volume, string FirstTrade);
         private sealed record PocManagementPressureStats(int SameTrades, decimal SameVolume, decimal MaxSameVolume, int OppositeTrades, decimal OppositeVolume, decimal MaxOppositeVolume);
+        private sealed record PostDecisionContinuationStats(int SameTrades, decimal SameVolume, decimal MaxSameVolume, int OppositeTrades, decimal OppositeVolume, decimal MaxOppositeVolume, int ClosesBeyondDecision, int ClosesBackInsideDecision, decimal Mfe, decimal Mae, decimal MaxFavorablePrice, decimal MaxAdversePrice);
         private sealed record HistoricalContext(decimal POC, decimal VAH, decimal VAL);
         private sealed record DynamicStopPlan(string Name, decimal Stop);
         private sealed record ScalePlan(string Name, int MaxAddOns, decimal MinVolume, int? MaxSecondsAfterRiskFree, decimal MinExpansionAfterRiskFreePct);
