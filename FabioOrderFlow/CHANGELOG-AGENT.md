@@ -42,17 +42,16 @@ Da quel punto il modello e' stato trasformato in implementazione live-first ATAS
 ```text
 Decisione operativa:
 - il debug storico pesante non deve richiedere dump di tutte le giornate;
-- aggiunti input ATAS minimi per debug mirato di una sola data, senza toccare il core trading.
+- niente input ATAS per il debug giornaliero, perche' la scelta del giorno deve esistere gia' all'inizializzazione del modulo.
 
 Implementazione:
-- EnableHistoricalStudyDebug = true/false
-- HistoricalStudyDebugDay = yyyy-MM-dd, vuoto = tutte le giornate
-- il dump study pesante viene filtrato da ShouldDebugHistoricalDay;
+- HistoricalStudyDebugDay = DateOnly? costante interna nel codice; null = debug spento
+- se valorizzata a yyyy-MM-dd, il dump study pesante viene filtrato da ShouldDebugHistoricalDay;
 - marker file storico resta supportato come fallback.
 
 Uso:
-- reload normale: input spenti, day log minimi e reload veloce;
-- debug 2026-06-30: EnableHistoricalStudyDebug=true, HistoricalStudyDebugDay=2026-06-30.
+- reload normale: HistoricalStudyDebugDay = null, day log minimi e reload veloce;
+- debug 2026-06-30: impostare in codice HistoricalStudyDebugDay = new DateOnly(2026, 6, 30), rebuild, deploy, reload.
 
 Validazione:
 - build Release completata senza errori.

@@ -45,6 +45,7 @@ namespace FabioOrderFlow
         private const decimal DuplicateBasePositionPocTolerancePoints = 4m;
         private const decimal DuplicateBasePositionValueEdgeTolerancePoints = 8m;
         private const bool EnableHistoricalIntrabarFromCumulativeTrades = true;
+        private static readonly DateOnly? HistoricalStudyDebugDay = null;
         private const string HistoricalStudyDebugMarkerFile = "FabioOrderFlow-enable-historical-study-debug.flag";
 
         private int _currentBar;
@@ -219,19 +220,16 @@ namespace FabioOrderFlow
             BalanceZoneTracker balanceTracker,
             Action<string, bool> log,
             Func<int, IndicatorCandle> getCandle,
-            decimal tickSize,
-            bool enableHistoricalStudyDebug = false,
-            string historicalStudyDebugDay = "")
+            decimal tickSize)
         {
             _balanceTracker = balanceTracker ?? throw new ArgumentNullException(nameof(balanceTracker));
             _log = log ?? throw new ArgumentNullException(nameof(log));
             _getCandle = getCandle ?? throw new ArgumentNullException(nameof(getCandle));
             _tickSize = tickSize > 0 ? tickSize : 1m;
-            _historicalStudyDebugEnabled = enableHistoricalStudyDebug || File.Exists(_historicalStudyDebugMarkerPath);
+            _historicalStudyDebugDay = HistoricalStudyDebugDay;
+            _historicalStudyDebugEnabled = _historicalStudyDebugDay.HasValue || File.Exists(_historicalStudyDebugMarkerPath);
             _dailyHistoricalDebugLogsEnabled = true;
-            if (DateOnly.TryParse(historicalStudyDebugDay, out var parsedDebugDay))
-                _historicalStudyDebugDay = parsedDebugDay;
-            _log($"[HISTORICAL_STUDY_DEBUG] Enabled={_historicalStudyDebugEnabled}, DailyLogs={_dailyHistoricalDebugLogsEnabled}, DebugDay={(_historicalStudyDebugDay.HasValue ? _historicalStudyDebugDay.Value.ToString("yyyy-MM-dd") : "ALL")}, Marker={_historicalStudyDebugMarkerPath}", false);
+            _log($"[HISTORICAL_STUDY_DEBUG] Enabled={_historicalStudyDebugEnabled}, DailyLogs={_dailyHistoricalDebugLogsEnabled}, DebugDay={(_historicalStudyDebugDay.HasValue ? _historicalStudyDebugDay.Value.ToString("yyyy-MM-dd") : "NONE")}, Marker={_historicalStudyDebugMarkerPath}", false);
         }
 
         public void OnBarUpdate(int bar, int currentBar, IndicatorCandle candle)

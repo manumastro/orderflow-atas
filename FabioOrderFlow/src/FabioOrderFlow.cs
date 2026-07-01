@@ -19,8 +19,6 @@ public class FabioOrderFlow : Indicator
     // Module parameters
     public bool EnableLondonMeanReversion { get; set; } = true;
     public bool EnablePostLondonImpulse { get; set; } = false;
-    public bool EnableHistoricalStudyDebug { get; set; } = false;
-    public string HistoricalStudyDebugDay { get; set; } = string.Empty;
 
     public FabioOrderFlow()
     {
@@ -50,7 +48,7 @@ public class FabioOrderFlow : Indicator
         {
             Log($"[ONCALCULATE] Bar 0 - Initializing BalanceZoneTracker");
             Log($"[INSTRUMENT] Name: {InstrumentInfo?.Instrument}, TickSize: {InstrumentInfo?.TickSize}, Exchange: {InstrumentInfo?.Exchange}, InstrumentTimeZone={InstrumentInfo?.TimeZone}");
-            Log($"[CHART] CurrentBar={CurrentBar}, ChartType={ChartInfo?.ChartType}, HistoricalStudyDebug={EnableHistoricalStudyDebug}, HistoricalStudyDebugDay={HistoricalStudyDebugDay}");
+            Log($"[CHART] CurrentBar={CurrentBar}, ChartType={ChartInfo?.ChartType}");
             LogChartTradingSessions();
             _balanceTracker = new BalanceZoneTracker(this, Log, Rectangles, HorizontalLinesTillTouch, GetCandle);
             
@@ -58,7 +56,7 @@ public class FabioOrderFlow : Indicator
             if (EnableLondonMeanReversion)
             {
                 var tickSize = InstrumentInfo?.TickSize ?? 1m;
-                _meanReversionModule = new LondonMeanReversionModule(_balanceTracker, Log, GetCandle, tickSize, EnableHistoricalStudyDebug, HistoricalStudyDebugDay);
+                _meanReversionModule = new LondonMeanReversionModule(_balanceTracker, Log, GetCandle, tickSize);
                 _balanceTracker.SetMeanReversionModule(_meanReversionModule);
                 Log($"[MODULE] London Mean Reversion module initialized (Live-first, TickSize={tickSize})");
             }
