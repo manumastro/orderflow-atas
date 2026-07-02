@@ -47,7 +47,12 @@ namespace FabioOrderFlow
         private const bool EnableHistoricalIntrabarFromCumulativeTrades = true;
         private const int HistoricalStudyProgressBarStep = 100;
         private const int HistoricalStudyProgressTradeStep = 50000;
-        private static readonly DateOnly? HistoricalStudyDebugDay = new DateOnly(2026, 6, 30);
+        private static readonly DateOnly[] HistoricalStudyDebugDays =
+        {
+            new(2026, 6, 29),
+            new(2026, 6, 30),
+            new(2026, 7, 1),
+        };
         private const string HistoricalStudyDebugMarkerFile = "FabioOrderFlow-enable-historical-study-debug.flag";
 
         private int _currentBar;
@@ -73,7 +78,7 @@ namespace FabioOrderFlow
             "ATAS", "Logs", HistoricalStudyDebugMarkerFile);
         private readonly bool _historicalStudyDebugEnabled;
         private readonly bool _dailyHistoricalDebugLogsEnabled;
-        private readonly DateOnly? _historicalStudyDebugDay;
+        private readonly HashSet<DateOnly> _historicalStudyDebugDays;
         private bool _historicalLogInitialized;
         private bool _historicalStudyActive;
         private bool _processingHistoricalPositions;
@@ -242,10 +247,10 @@ namespace FabioOrderFlow
             _log = log ?? throw new ArgumentNullException(nameof(log));
             _getCandle = getCandle ?? throw new ArgumentNullException(nameof(getCandle));
             _tickSize = tickSize > 0 ? tickSize : 1m;
-            _historicalStudyDebugDay = HistoricalStudyDebugDay;
-            _historicalStudyDebugEnabled = _historicalStudyDebugDay.HasValue || File.Exists(_historicalStudyDebugMarkerPath);
+            _historicalStudyDebugDays = HistoricalStudyDebugDays.ToHashSet();
+            _historicalStudyDebugEnabled = _historicalStudyDebugDays.Count > 0 || File.Exists(_historicalStudyDebugMarkerPath);
             _dailyHistoricalDebugLogsEnabled = true;
-            _log($"[HISTORICAL_STUDY_DEBUG] Enabled={_historicalStudyDebugEnabled}, DailyLogs={_dailyHistoricalDebugLogsEnabled}, DebugDay={(_historicalStudyDebugDay.HasValue ? _historicalStudyDebugDay.Value.ToString("yyyy-MM-dd") : "NONE")}, Marker={_historicalStudyDebugMarkerPath}", false);
+            _log($"[HISTORICAL_STUDY_DEBUG] Enabled={_historicalStudyDebugEnabled}, DailyLogs={_dailyHistoricalDebugLogsEnabled}, DebugDays={FormatHistoricalStudyDebugDays()}, Marker={_historicalStudyDebugMarkerPath}", false);
         }
 
         public void OnBarUpdate(int bar, int currentBar, IndicatorCandle candle)
@@ -330,7 +335,7 @@ namespace FabioOrderFlow
             _processingHistoricalPositions = true;
             _log($"[HISTORICAL_FLOW_PROCESS_START] StartBar={startBar}, EndBar={endBar}, StoredTrades={_lastHistoricalTrades.Count}, ExistingSnapshots={_historicalBarSnapshots.Count}, ExistingDelayedCandidates={_delayedReclaimCandidates.Count}", false);
             if (_historicalStudyDebugEnabled)
-                _log($"[HISTORICAL_STUDY_PROGRESS] Phase=Start, StartBar={startBar}, EndBar={endBar}, StoredTrades={_lastHistoricalTrades.Count}, ExistingSnapshots={_historicalBarSnapshots.Count}, ExistingDelayedCandidates={_delayedReclaimCandidates.Count}, DebugDay={(_historicalStudyDebugDay.HasValue ? _historicalStudyDebugDay.Value.ToString("yyyy-MM-dd") : "ALL")}", false);
+                _log($"[HISTORICAL_STUDY_PROGRESS] Phase=Start, StartBar={startBar}, EndBar={endBar}, StoredTrades={_lastHistoricalTrades.Count}, ExistingSnapshots={_historicalBarSnapshots.Count}, ExistingDelayedCandidates={_delayedReclaimCandidates.Count}, DebugDays={FormatHistoricalStudyDebugDays()}", false);
             try
             {
                 var totalBars = Math.Max(1, endBar - startBar + 1);
@@ -3461,10 +3466,17 @@ namespace FabioOrderFlow
 
         private bool ShouldDebugHistoricalDay(DateTime eventUtc)
         {
-            if (!_historicalStudyDebugDay.HasValue)
+            if (_historicalStudyDebugDays.Count == 0)
                 return true;
 
-            return DateOnly.FromDateTime(MarketTimeZones.ToItaly(eventUtc)) == _historicalStudyDebugDay.Value;
+            return _historicalStudyDebugDays.Contains(DateOnly.FromDateTime(MarketTimeZones.ToItaly(eventUtc)));
+        }
+
+        private string FormatHistoricalStudyDebugDays()
+        {
+            return _historicalStudyDebugDays.Count == 0
+                ? "ALL"
+                : string.Join("|", _historicalStudyDebugDays.OrderBy(d => d).Select(d => d.ToString("yyyy-MM-dd")));
         }
 
         private string GetTradeCandidateDiagnostics(CumulativeTrade trade)

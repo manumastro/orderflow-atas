@@ -240,7 +240,7 @@ DelayedReclaimMaxOperationalRiskPoints = 120
 DuplicateBasePositionPocTolerancePoints = 4
 DuplicateBasePositionValueEdgeTolerancePoints = 8
 EnableHistoricalIntrabarFromCumulativeTrades = true
-HistoricalStudyDebugDay = null              costante interna codice; yyyy-MM-dd attiva debug singolo giorno
+HistoricalStudyDebugDays = []              costante interna codice; lista yyyy-MM-dd per debug profondo multi-day
 HistoricalStudyDebugMarker = %APPDATA%/ATAS/Logs/FabioOrderFlow-enable-historical-study-debug.flag
 DailyHistoricalDebugLogs = day log operativo minimo sempre attivo
 ```
@@ -267,8 +267,8 @@ posizioni ancora aperte vengono chiuse a London close del giorno entry
 ```
 
 Reload normale = operativo veloce: niente dump `[DAY_STUDY_*]` massivi.
-Debug profondo = valorizzare nel codice la costante interna `HistoricalStudyDebugDay` con `yyyy-MM-dd`; il dump pesante viene limitato a quella sola giornata e deve essere deciso prima dell'inizializzazione del modulo.
-In alternativa resta disponibile il marker `%APPDATA%/ATAS/Logs/FabioOrderFlow-enable-historical-study-debug.flag`.
+Debug profondo = valorizzare nel codice la costante interna `HistoricalStudyDebugDays` con una o piu' date `yyyy-MM-dd`; il dump pesante viene limitato a quei giorni e deve essere deciso prima dell'inizializzazione del modulo.
+In alternativa resta disponibile il marker `%APPDATA%/ATAS/Logs/FabioOrderFlow-enable-historical-study-debug.flag`; con lista giorni vuota il marker abilita lo study su tutti i giorni.
 
 Se un giorno non ha entry/exit, prima ipotesi da verificare: `CUM_TRADES_LOOKBACK` non include la sessione London di quel giorno.
 
@@ -382,7 +382,7 @@ python FabioOrderFlow/tools/snapshot_performance.py
 python FabioOrderFlow/tools/study_poc_management.py --archive-logs
 ```
 
-`snapshot_performance.py` confronta `current70_30`, `poc100` e `fullRunnerBE` usando solo `[MR_EXIT]`. `study_poc_management.py` richiede debug profondo attivo per avere day log completi (`DAY_STUDY_BIG_TRADE`, `DAY_STUDY_BAR`, `DAY_STUDY_POC_MANAGEMENT`) e testare regole causali post-POC: uscire 100% al POC salvo conferma runner entro una finestra definita. Se `HistoricalStudyDebugDay` e' valorizzato nel codice, il dataset study viene prodotto solo per quel giorno.
+`snapshot_performance.py` confronta `current70_30`, `poc100` e `fullRunnerBE` usando solo `[MR_EXIT]`. `study_poc_management.py` richiede debug profondo attivo per avere day log completi (`DAY_STUDY_BIG_TRADE`, `DAY_STUDY_BAR`, `DAY_STUDY_POC_MANAGEMENT`) e testare regole causali post-POC: uscire 100% al POC salvo conferma runner entro una finestra definita. Se `HistoricalStudyDebugDays` contiene date nel codice, il dataset study profondo viene prodotto solo per quei giorni. Lista vuota + marker file significa debug su tutti i giorni.
 
 ## Cosa Non E' Ancora Codificato
 

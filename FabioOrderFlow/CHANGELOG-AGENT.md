@@ -37,6 +37,24 @@ Da quel punto il modello e' stato trasformato in implementazione live-first ATAS
    - Log reload con CUM_TRADES_LOOKBACK e HISTORICAL_FLOW_FINISH.
 ```
 
+## Update 2026-07-02 09:20
+
+```text
+Studio storico multi-day:
+- HistoricalStudyDebugDay singolo sostituito da HistoricalStudyDebugDays.
+- Giorni attivi per debug profondo: 2026-06-29, 2026-06-30, 2026-07-01.
+- ShouldDebugHistoricalDay ora filtra tramite HashSet<DateOnly>.
+- Lista vuota mantiene compatibilita' con marker file: se il marker abilita lo study e la lista e' vuota, il debug vale per tutti i giorni.
+- Obiettivo: studiare continuation e second-leg Fabio-style su piu' giornate prima di riorganizzare regole/documentazione.
+
+Reload verificato 09:31:
+- [HISTORICAL_FLOW_FINISH] ClosedPositions=10, OpenPositions=0, StoredTrades=547246.
+- DebugDays=2026-06-29|2026-06-30|2026-07-01 configurati.
+- CUM_TRADES_LOOKBACK BeginItaly=2026-06-30, quindi 29/06 non disponibile nel dataset.
+- Day log pesanti prodotti: 2026-06-30 (1.4MB, 1873 DAY_STUDY lines), 2026-07-01 (1.3MB, 1862 DAY_STUDY lines).
+- Logica multi-day funziona correttamente: processa tutti i giorni richiesti presenti nel lookback.
+```
+
 ## Update 2026-07-01 16:55
 
 ```text
