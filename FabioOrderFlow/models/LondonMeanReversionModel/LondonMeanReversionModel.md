@@ -285,6 +285,7 @@ Tag operativi reali del modello:
 [MR_SECOND_LEG_AUCTION_ARMED]    prima gamba follow-through ha preso VAH/VAL e arma seconda gamba
 [MR_FOLLOW_THROUGH_SECOND_LEG_AUCTION] setup operativo seconda gamba auction
 [MR_SECOND_LEG_AUCTION_CONFIRMED] entry seconda gamba confermata da auction relativa
+[LIVE_FLOW_HEARTBEAT]              heartbeat leggero: primo trade live valido, poi ogni 25 trade validi o almeno ogni 60s
 [MR_HISTORICAL_TRADES]           cumulative trades storici filtrati
 [MR_ENTRY]                       posizione creata
 [MR_DELAYED_RECLAIM_SETUP]       candidato delayed reclaim

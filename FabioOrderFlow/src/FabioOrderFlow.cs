@@ -224,6 +224,9 @@ public class FabioOrderFlow : Indicator
 
     private static bool IsLiveOperationalMessage(string message)
     {
+        if (message.StartsWith("[LIVE_FLOW_HEARTBEAT]", StringComparison.Ordinal))
+            return true;
+
         if (!message.StartsWith("[MR_", StringComparison.Ordinal))
             return false;
 

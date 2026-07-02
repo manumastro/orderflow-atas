@@ -47,6 +47,8 @@ namespace FabioOrderFlow
         private const bool EnableHistoricalIntrabarFromCumulativeTrades = true;
         private const int HistoricalStudyProgressBarStep = 100;
         private const int HistoricalStudyProgressTradeStep = 50000;
+        private const int LiveHeartbeatTradeStep = 25;
+        private const int LiveHeartbeatMinSeconds = 60;
         private static readonly bool EnableFollowThroughStudyLogs = false;
         private const int SecondLegImmediateMaxSeconds = 300;
         private const decimal SecondLegMinDecisionWindowVolumeRankPct = 0.90m;
@@ -68,6 +70,8 @@ namespace FabioOrderFlow
         private readonly List<TradeRecord> _completedTrades = new();
         private readonly HashSet<string> _setupKeys = new();
         private readonly Dictionary<string, decimal> _liveTradeMaxVolumeByKey = new();
+        private long _liveAcceptedTradeCount;
+        private DateTime _lastLiveHeartbeatUtc = DateTime.MinValue;
         private readonly List<CumulativeTrade> _lastHistoricalTrades = new();
         private readonly HashSet<int> _studyLoggedBars = new();
         private readonly Dictionary<int, HistoricalBarSnapshot> _historicalBarSnapshots = new();
@@ -341,7 +345,28 @@ namespace FabioOrderFlow
                 return;
 
             _liveTradeMaxVolumeByKey[key] = trade.Volume;
+            LogLiveFlowHeartbeat(trade);
             ProcessAggressionTrade(trade, "FootprintCumulativeTradeLive", false);
+        }
+
+        private void LogLiveFlowHeartbeat(CumulativeTrade trade)
+        {
+            _liveAcceptedTradeCount++;
+            var writeUtc = DateTime.UtcNow;
+            var elapsedSeconds = _lastLiveHeartbeatUtc == DateTime.MinValue
+                ? LiveHeartbeatMinSeconds
+                : (writeUtc - _lastLiveHeartbeatUtc).TotalSeconds;
+            var shouldLog = _liveAcceptedTradeCount == 1
+                || _liveAcceptedTradeCount % LiveHeartbeatTradeStep == 0
+                || elapsedSeconds >= LiveHeartbeatMinSeconds;
+            if (!shouldLog)
+                return;
+
+            _lastLiveHeartbeatUtc = writeUtc;
+            var activeSetups = _activeSetups.Count(s => !s.Expired && !s.AggressionConfirmed);
+            var openPositions = _activePositions.Count(p => !p.Closed);
+            var pendingSecondLegs = _pendingSecondLegAuctionContexts.Count(c => !c.Consumed);
+            _log($"[LIVE_FLOW_HEARTBEAT] EntryModel=FootprintCumulativeTradeLive, AcceptedTrades={_liveAcceptedTradeCount}, TradeTime={FormatTime(trade.Time)}, Direction={trade.Direction}, Price={trade.Lastprice:F2}, Volume={trade.Volume:F0}, ActiveSetups={activeSetups}, OpenPositions={openPositions}, PendingSecondLegAuction={pendingSecondLegs}, MinAggressionVolume={MinAggressionVolume:F0}, Step={LiveHeartbeatTradeStep}, MinSeconds={LiveHeartbeatMinSeconds}", false);
         }
 
         public void ProcessHistoricalPositions(int startBar, int endBar)

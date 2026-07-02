@@ -37,6 +37,17 @@ Da quel punto il modello e' stato trasformato in implementazione live-first ATAS
    - Log reload con CUM_TRADES_LOOKBACK e HISTORICAL_FLOW_FINISH.
 ```
 
+## Update 2026-07-02 13:55
+
+```text
+Live monitoring:
+- Aggiunto [LIVE_FLOW_HEARTBEAT] per distinguere live assente da live presente senza setup.
+- Emissione: primo cumulative trade live valido, poi ogni 25 trade validi o almeno ogni 60 secondi.
+- Il heartbeat contiene EntryModel=FootprintCumulativeTradeLive, AcceptedTrades, trade time, direzione, prezzo, volume, active setups, posizioni aperte, pending second-leg.
+- Routing: scritto sia nel log generale sia in FabioOrderFlow-live.log.
+- Storico reload 2026-07-02: una entry short FollowThroughReclaimContinuation alle 10:00:10, exit STOP_HIT alle 10:05:09, PnL=-33,50.
+```
+
 ## Update 2026-07-02 12:10
 
 ```text
