@@ -37,6 +37,17 @@ Da quel punto il modello e' stato trasformato in implementazione live-first ATAS
    - Log reload con CUM_TRADES_LOOKBACK e HISTORICAL_FLOW_FINISH.
 ```
 
+## Update 2026-07-02 15:45
+
+```text
+Follow-up reload post filtro acceptance:
+- Il filtro 12% ha pulito lo stato live: ActiveSetups da 64 a 0/2, PendingSecondLegAuction=0.
+- Lo storico e' passato a 18 exit, PnL +441,19; trigger FollowThroughReclaimContinuationShort ora +38,87.
+- Il trade perso 2026-07-02 non entra piu' alle 10:00, ma il setup restava vivo e rientrava alle 10:16:57, ancora stop -33,50.
+- Nuovo intervento live: se una trade coerente entra in continuation zone ma non raggiunge l'acceptance minima, il setup follow-through viene marcato Expired subito.
+- Nuovo log: [MR_FOLLOW_THROUGH_CONTINUATION_WEAK_ACCEPTANCE_EXPIRED].
+```
+
 ## Update 2026-07-02 15:25
 
 ```text

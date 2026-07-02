@@ -753,6 +753,9 @@ namespace FabioOrderFlow
                 if (!IsTradeInSetupWindow(setup, trade))
                     continue;
 
+                if (TryExpireWeakFollowThroughContinuationAcceptance(setup, trade, isHistorical))
+                    continue;
+
                 if (!IsAggressionEntry(setup, trade))
                     continue;
 
@@ -764,6 +767,26 @@ namespace FabioOrderFlow
                 ExpireEquivalentBaseSetups(setup);
                 break;
             }
+        }
+
+        private bool TryExpireWeakFollowThroughContinuationAcceptance(BalanceSetup setup, CumulativeTrade trade, bool isHistorical)
+        {
+            if (!IsFollowThroughContinuationSetup(setup))
+                return false;
+
+            var expectedDirection = setup.Direction == "Long" ? TradeDirection.Buy : TradeDirection.Sell;
+            if (trade.Direction != expectedDirection || !IsBeyondPocContinuationEntry(setup, trade))
+                return false;
+
+            if (HasFollowThroughContinuationAcceptance(setup, trade.Lastprice))
+                return false;
+
+            setup.Expired = true;
+            var targetDistance = setup.Direction == "Long" ? setup.VAH - setup.POC : setup.POC - setup.VAL;
+            var progressBeyondPoc = setup.Direction == "Long" ? trade.Lastprice - setup.POC : setup.POC - trade.Lastprice;
+            var progressPct = targetDistance > 0 ? progressBeyondPoc / targetDistance : 0;
+            _log($"[MR_FOLLOW_THROUGH_CONTINUATION_WEAK_ACCEPTANCE_EXPIRED] SetupId={setup.SetupId}, Direction={setup.Direction}, TradeTime={FormatTime(trade.Time)}, TradePrice={trade.Lastprice:F2}, Volume={trade.Volume:F0}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}, ProgressPct={progressPct:F2}, MinProgressPct={FollowThroughContinuationMinAcceptanceProgressPct:F2}", isHistorical);
+            return true;
         }
 
         private void TrackProcessedAggressionTrade(CumulativeTrade trade)

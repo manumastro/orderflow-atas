@@ -286,6 +286,7 @@ Tag operativi reali del modello:
 [MR_FOLLOW_THROUGH_SECOND_LEG_AUCTION] setup operativo seconda gamba auction
 [MR_SECOND_LEG_AUCTION_CONFIRMED] entry seconda gamba confermata da auction relativa
 [LIVE_FLOW_HEARTBEAT]              heartbeat leggero: primo trade live valido, poi ogni 25 trade validi o almeno ogni 60s; conta setup/pending gia' ripuliti da scadenza
+[MR_FOLLOW_THROUGH_CONTINUATION_WEAK_ACCEPTANCE_EXPIRED] setup follow-through scartato dopo poke in continuation zone senza acceptance minima
 [MR_HISTORICAL_TRADES]           cumulative trades storici filtrati
 [MR_ENTRY]                       posizione creata
 [MR_DELAYED_RECLAIM_SETUP]       candidato delayed reclaim
@@ -350,7 +351,8 @@ Contratto:
 3. il setup viene creato sul reclaim;
 4. l'entry avviene solo con cumulative trade nella direzione del setup, in continuation zone, RR >= MinRewardRiskToTarget2;
 5. per la prima gamba follow-through l'entry deve mostrare acceptance oltre POC: almeno 12% della distanza POC->VAH/VAL verso il target;
-6. gestione posizione e PnL restano nel core standard: [MR_ENTRY], [MR_TARGET1_HIT], [MR_EXIT].
+6. se una trade coerente entra in continuation zone ma non raggiunge questa acceptance minima, il setup viene scartato con `[MR_FOLLOW_THROUGH_CONTINUATION_WEAK_ACCEPTANCE_EXPIRED]`;
+7. gestione posizione e PnL restano nel core standard: [MR_ENTRY], [MR_TARGET1_HIT], [MR_EXIT].
 ```
 
 Gli outcome di questa famiglia si leggono da `[MR_EXIT]` su tutti i giorni del lookback, senza attivare debug giornaliero. Il debug giornaliero serve solo per i dettagli `DAY_STUDY_*`.
