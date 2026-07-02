@@ -37,6 +37,14 @@ Da quel punto il modello e' stato trasformato in implementazione live-first ATAS
    - Log reload con CUM_TRADES_LOOKBACK e HISTORICAL_FLOW_FINISH.
 ```
 
+## Update 2026-07-02 11:10
+
+```text
+Configurazione study:
+- HistoricalStudyDebugDays esteso a 6 giorni disponibili nel lookback corrente: 2026-06-25, 2026-06-26, 2026-06-29, 2026-06-30, 2026-07-01, 2026-07-02.
+- Obiettivo: produrre day study profondi anche sugli altri giorni per confrontare continuation/auction read oltre al caso 30/06.
+```
+
 ## Update 2026-07-02 10:55
 
 ```text

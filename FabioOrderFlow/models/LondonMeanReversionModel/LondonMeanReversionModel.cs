@@ -52,9 +52,12 @@ namespace FabioOrderFlow
         private const decimal SecondLegMaxInitialMaeRiskMultiple = 0.75m;
         private static readonly DateOnly[] HistoricalStudyDebugDays =
         {
+            new(2026, 6, 25),
+            new(2026, 6, 26),
             new(2026, 6, 29),
             new(2026, 6, 30),
             new(2026, 7, 1),
+            new(2026, 7, 2),
         };
         private const string HistoricalStudyDebugMarkerFile = "FabioOrderFlow-enable-historical-study-debug.flag";
 

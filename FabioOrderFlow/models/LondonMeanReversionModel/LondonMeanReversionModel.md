@@ -240,7 +240,7 @@ DelayedReclaimMaxOperationalRiskPoints = 120
 DuplicateBasePositionPocTolerancePoints = 4
 DuplicateBasePositionValueEdgeTolerancePoints = 8
 EnableHistoricalIntrabarFromCumulativeTrades = true
-HistoricalStudyDebugDays = []              costante interna codice; lista yyyy-MM-dd per debug profondo multi-day
+HistoricalStudyDebugDays = []              costante interna codice; lista yyyy-MM-dd per debug profondo multi-day; attuale study esteso: 2026-06-25, 2026-06-26, 2026-06-29, 2026-06-30, 2026-07-01, 2026-07-02
 HistoricalStudyDebugMarker = %APPDATA%/ATAS/Logs/FabioOrderFlow-enable-historical-study-debug.flag
 DailyHistoricalDebugLogs = day log operativo minimo sempre attivo
 ```
