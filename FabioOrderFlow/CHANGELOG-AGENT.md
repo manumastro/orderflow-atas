@@ -37,6 +37,17 @@ Da quel punto il modello e' stato trasformato in implementazione live-first ATAS
    - Log reload con CUM_TRADES_LOOKBACK e HISTORICAL_FLOW_FINISH.
 ```
 
+## Update 2026-07-02 19:10
+
+```text
+Reload validation:
+- Reload storico completato: 1.392.921 trade processati, 16 posizioni chiuse, 0 aperte.
+- Weak follow-through 2026-07-02 10:00:10 ora scade con [MR_FOLLOW_THROUGH_CONTINUATION_WEAK_ACCEPTANCE_EXPIRED] e non produce piu' la loss successiva.
+- Delayed reclaim 2026-07-02 16:08 viene catturato nello storico: short 30198,75, exit protetta 30198,75, PnL +34,13.
+- Trovato bug di pulizia daily log: DailyHistoricalLog scriveva anche giorni non inclusi in HistoricalStudyDebugDays quando chiamato direttamente da log operativi storici.
+- Fix: DailyHistoricalLog ora applica ShouldDebugHistoricalDay(eventUtc), quindi con HistoricalStudyDebugDays=[2026-07-02] i file daily debug vengono prodotti solo per oggi.
+```
+
 ## Update 2026-07-02 19:00
 
 ```text

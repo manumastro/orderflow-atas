@@ -2393,7 +2393,7 @@ namespace FabioOrderFlow
 
         private void DailyHistoricalLog(string message, DateTime eventUtc)
         {
-            if (!_dailyHistoricalDebugLogsEnabled)
+            if (!_dailyHistoricalDebugLogsEnabled || !ShouldDebugHistoricalDay(eventUtc))
                 return;
 
             try
