@@ -37,12 +37,73 @@ Da quel punto il modello e' stato trasformato in implementazione live-first ATAS
    - Log reload con CUM_TRADES_LOOKBACK e HISTORICAL_FLOW_FINISH.
 ```
 
+## Update 2026-07-02 12:10
+
+```text
+Promozione live e cleanup:
+- Promossa nel core solo la seconda gamba immediata NEW_AUCTION_ACCEPTED, non le forme alternative pullback-hold.
+- Nuovo setup operativo: FollowThroughSecondLegAuction.
+- Log operativi: [MR_SECOND_LEG_AUCTION_ARMED], [MR_FOLLOW_THROUGH_SECOND_LEG_AUCTION], [MR_SECOND_LEG_AUCTION_CONFIRMED], normali [MR_ENTRY]/[MR_EXIT].
+- Trigger: FOLLOW_THROUGH_SECOND_LEG_AUCTION_LONG/SHORT.
+- Entry causale: prima gamba FollowThroughReclaimContinuation chiude a TARGET2_HIT su VAH/VAL; pullback-hold su barra chiusa; entro 5 minuti trade coerente oltre decision area; volume forte relativo al decision window (rank >= 0,90 e >= 2x mediana window).
+- Gestione live: no target futuro/final POC; stop dietro decision area cappato su distanza old POC/decision area; exit su stop o London close.
+- Study follow-through post-target spenti di default con EnableFollowThroughStudyLogs=false.
+- HistoricalStudyDebugDays ora vuoto: reload pulito senza dump multi-day, salvo marker file esterno.
+- Fix post-reload: daily debug log non e' piu' forzato a true; viene acceso solo quando e' acceso historical study debug. ResetDailyHistoricalDebugLogs elimina comunque i vecchi day log per evitare grep sporchi.
+- Progress reload separato dallo study: nuovo tag sempre attivo [HISTORICAL_RELOAD_PROGRESS] con Phase=Start/Bars/Trades/Finish, quindi `grep PROGRESS` resta utile anche con debug spento.
+```
+
+## Update 2026-07-02 11:45
+
+```text
+Studio aggiunto:
+- [FOLLOWTHROUGH_ALTERNATIVE_SECOND_LEG_STUDY] per OpportunityReason=ALTERNATIVE_SECOND_LEG_FORM.
+- Simula tre ingressi osservazionali: PullbackEntry, PocMigrationEntry, BestSameTradeEntry.
+- Per ogni ingresso misura ReachedFinalPOC, PnlToFinalPOC, LondonClosePnL, MFE, MAE e BestAlternativeMode.
+- Obiettivo: capire se le 5 forme alternative pullback-hold/POC migration sono realmente tradeabili, invece di limitarci alla re-entry immediata.
+- Non modifica live/core.
+
+Reload verificato 11:47:
+- Alternative study prodotto 5 righe: 2026-06-26=1, 2026-07-01=4.
+- BestAlternativeMode=PULLBACK_HOLD in 5/5 casi.
+- PullbackEntry: 5 casi, PnlToFinalPOC totale=+38,00.
+- PocMigrationEntry: 5 casi, PnlToFinalPOC totale=-351,50; conferma troppo tardiva.
+- BestSameTradeEntry: 2 casi, PnlToFinalPOC totale=-5,00; meno affidabile del pullback-hold.
+- Dettaglio: 2026-06-26 short pullback=-33,00; 2026-07-01 short pullback +10,00/+41,00/+10,00/+10,00.
+- Lettura: le forme alternative esistono, ma sono molto meno forti del caso immediato 2026-06-30 long. Se diventano live, la forma piu' promettente e' pullback-hold verso final/developing POC, non POC migration tardiva.
+```
+
+## Update 2026-07-02 11:25
+
+```text
+Studio aggiunto:
+- [FOLLOWTHROUGH_POST_TARGET_OPPORTUNITY_STUDY] per ogni follow-through che raggiunge la decision area VAH/VAL.
+- Obiettivo: spiegare le 11 non-candidate su 13 casi post-target e capire se la seconda gamba e' rara o solo cercata troppo stretta.
+- Classifica opportunity mode: IMMEDIATE_BIG_TRADE, PULLBACK_HOLD_AND_POC_MIGRATION, POC_MIGRATION_CONFIRMATION, BREAKOUT_ACCEPTANCE_NO_REENTRY, PRESSURE_EXTENSION_NO_STRUCTURE, MFE_ONLY_NO_CONFIRMATION, NO_SECOND_LEG.
+- Misura first close beyond decision, pullback-hold, POC migration, best same-direction trade entro 15m, pressione same/opposite e reason di mancata candidatura.
+- Non modifica live/core.
+
+Reload verificato 11:35:
+- Opportunity study prodotto 13 righe, come target decision study.
+- Modalita': IMMEDIATE_BIG_TRADE=2, PULLBACK_HOLD_AND_POC_MIGRATION=7, POC_MIGRATION_CONFIRMATION=1, BREAKOUT_ACCEPTANCE_NO_REENTRY=2, NO_SECOND_LEG=1.
+- Reason: ALTERNATIVE_SECOND_LEG_FORM=5, EXISTING_REENTRY_DETECTED=2, SAME_PRESSURE_NOT_DOMINANT=3, NO_POC_MIGRATION=2, NO_CLOSE_BEYOND_DECISION_AREA=1.
+- Lettura: la seconda gamba non e' solo rara; la detection immediata era stretta. Ci sono 5 casi alternativi con pullback-hold/POC migration e pressione same dominante che meritano uno study auction dedicato.
+```
+
 ## Update 2026-07-02 11:10
 
 ```text
 Configurazione study:
 - HistoricalStudyDebugDays esteso a 6 giorni disponibili nel lookback corrente: 2026-06-25, 2026-06-26, 2026-06-29, 2026-06-30, 2026-07-01, 2026-07-02.
 - Obiettivo: produrre day study profondi anche sugli altri giorni per confrontare continuation/auction read oltre al caso 30/06.
+
+Reload verificato 11:09:
+- DebugDays corretti su tutti e 6 i giorni; day log pesanti prodotti per 25/26/29/30/01/02.
+- [HISTORICAL_FLOW_FINISH] ClosedPositions=26, StoredTrades=1380942, PnL reale modello corrente=+283,84.
+- FollowThrough reale: Long +54,50 su 3 exit; Short +0,99 su 11 exit.
+- FOLLOWTHROUGH_TARGET_DECISION_STUDY: 13 righe; ReentryCandidate=2; MFE>=50 in 12/13; MFE>=100 in 10/13; avgMFE=228,33; avgMAE=205,79.
+- FOLLOWTHROUGH_SECOND_LEG_AUCTION_STUDY: 2 righe, entrambe 2026-06-30; NEW_AUCTION_ACCEPTED=1, OPPOSITE_AUCTION_ACCEPTED=1.
+- Nessun altro giorno genera ReentryCandidate con la logica attuale; molti casi hanno MFE post-target ma non nuova auction/re-entry causale.
 ```
 
 ## Update 2026-07-02 10:55

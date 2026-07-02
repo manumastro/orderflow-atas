@@ -240,7 +240,9 @@ DelayedReclaimMaxOperationalRiskPoints = 120
 DuplicateBasePositionPocTolerancePoints = 4
 DuplicateBasePositionValueEdgeTolerancePoints = 8
 EnableHistoricalIntrabarFromCumulativeTrades = true
-HistoricalStudyDebugDays = []              costante interna codice; lista yyyy-MM-dd per debug profondo multi-day; attuale study esteso: 2026-06-25, 2026-06-26, 2026-06-29, 2026-06-30, 2026-07-01, 2026-07-02
+HistoricalStudyDebugDays = []              costante interna codice; lista vuota = debug profondo spento se non c'e' marker file
+Daily historical logs                     attivi solo quando e' attivo historical study debug
+EnableFollowThroughStudyLogs = false       study follow-through post-target spenti di default
 HistoricalStudyDebugMarker = %APPDATA%/ATAS/Logs/FabioOrderFlow-enable-historical-study-debug.flag
 DailyHistoricalDebugLogs = day log operativo minimo sempre attivo
 ```
@@ -280,6 +282,9 @@ Tag operativi reali del modello:
 [MR_SETUP_LONG]                  setup long da sweep sotto VAL + close back inside
 [MR_SETUP_SHORT]                 setup short da sweep sopra VAH + close back inside
 [MR_FOLLOW_THROUGH_RECLAIM_CONTINUATION] setup operativo: sweep fuori value, reclaim successivo, entry continuation oltre POC
+[MR_SECOND_LEG_AUCTION_ARMED]    prima gamba follow-through ha preso VAH/VAL e arma seconda gamba
+[MR_FOLLOW_THROUGH_SECOND_LEG_AUCTION] setup operativo seconda gamba auction
+[MR_SECOND_LEG_AUCTION_CONFIRMED] entry seconda gamba confermata da auction relativa
 [MR_HISTORICAL_TRADES]           cumulative trades storici filtrati
 [MR_ENTRY]                       posizione creata
 [MR_DELAYED_RECLAIM_SETUP]       candidato delayed reclaim
@@ -302,7 +307,8 @@ Tag reload/studio principali:
 [CUM_TRADES_RESPONSE]                  risposta ATAS ricevuta
 [HISTORICAL_FLOW_TRADES_READY]         trade ricevuti e filtrati
 [HISTORICAL_FLOW_PROCESS_START]        inizio processing storico
-[HISTORICAL_STUDY_PROGRESS]            avanzamento completo Start/Bars/Trades/Finish durante debug storico
+[HISTORICAL_RELOAD_PROGRESS]           avanzamento Start/Bars/Trades/Finish sempre attivo, visibile con grep PROGRESS
+[HISTORICAL_STUDY_PROGRESS]            tag legacy non piu' usato nel reload pulito
 [HISTORICAL_FLOW_FINISH]               processo storico completato
 [DAY_DEBUG_START] / [DAY_DEBUG_FINISH] day log operativo minimo
 [DAY_STUDY_ACTUAL_ENTRY]               copia study di entry reale, solo debug profondo
@@ -314,6 +320,8 @@ Tag reload/studio principali:
 [FOLLOWTHROUGH_TARGET_DECISION_STUDY]  studio compatto post-VAH/VAL per continuation Fabio-style
 [FOLLOWTHROUGH_SECOND_LEG_STRUCTURE_STUDY] studio osservazionale su seconda gamba e developing POC/nuova struttura
 [FOLLOWTHROUGH_SECOND_LEG_FILTER_STUDY] filtro osservazionale live-candidate per seconda gamba Fabio-style
+[FOLLOWTHROUGH_POST_TARGET_OPPORTUNITY_STUDY] classifica tutte le occasioni post-target, anche senza re-entry candidate
+[FOLLOWTHROUGH_ALTERNATIVE_SECOND_LEG_STUDY] simula ingressi alternativi su pullback hold / POC migration / best same trade
 [FOLLOWTHROUGH_SECOND_LEG_AUCTION_STUDY] lettura dinamica relativa di auction acceptance per seconda gamba
 ```
 
@@ -345,13 +353,41 @@ Contratto:
 
 Gli outcome di questa famiglia si leggono da `[MR_EXIT]` su tutti i giorni del lookback, senza attivare debug giornaliero. Il debug giornaliero serve solo per i dettagli `DAY_STUDY_*`.
 
-Nota aperta: questa famiglia usa ancora gestione e target standard del core. Sul caso 2026-06-30 15:30 il setup ha preso `TARGET2_HIT` rapidamente a VAH, ma non studia ancora una cattura continuation piu' lunga. Entry quality, target extension, trailing e gestione post-VAH restano da esplorare prima di considerarla definitiva.
+### Seconda Gamba Live: Auction
+
+La seconda gamba immediata e' ora parte del core operativo.
+
+```text
+SetupSource = FollowThroughSecondLegAuction
+Setup log   = [MR_FOLLOW_THROUGH_SECOND_LEG_AUCTION]
+Trigger     = FOLLOW_THROUGH_SECOND_LEG_AUCTION_LONG/SHORT
+Management  = FOLLOW_THROUGH_SECOND_LEG_AUCTION
+Entry       = trade coerente oltre VAH/VAL entro 5 minuti dalla prima exit target2
+Conferme    = pullback-hold su barra chiusa + volume forte relativo al decision window
+Stop        = dietro decision area, cappato al 50% della distanza decision area/old POC
+Exit        = stop/invalidation oppure London close
+```
+
+Criteri causali principali:
+
+```text
+1. prima gamba FollowThroughReclaimContinuation chiude a TARGET2_HIT su VAH/VAL;
+2. si arma [MR_SECOND_LEG_AUCTION_ARMED];
+3. una barra chiusa mostra pullback-hold della decision area;
+4. entro 5 minuti arriva cumulative trade coerente oltre decision area;
+5. il trade deve essere forte rispetto al decision window: volume rank >= 0,90 e volume >= 2x mediana window;
+6. entry reale [MR_ENTRY] con trigger FOLLOW_THROUGH_SECOND_LEG_AUCTION_*.
+```
+
+Non sono live: runner passivo, ingresso su sola POC migration, best same trade generico, pullback-hold alternativo. Restano ipotesi study.
 
 ### Study Post-Target Fabio-Style
 
-`[FOLLOWTHROUGH_TARGET_DECISION_STUDY]` viene scritto per le exit storiche della famiglia `FollowThroughReclaimContinuation`.
+Gli study follow-through post-target sono disabilitati di default con `EnableFollowThroughStudyLogs=false`.
 
-Scopo: trattare VAH/VAL come area decisionale, non come target finale fisso. Lo study non cambia il trading live.
+`[FOLLOWTHROUGH_TARGET_DECISION_STUDY]` viene scritto per le exit storiche della famiglia `FollowThroughReclaimContinuation` solo quando gli study sono riattivati.
+
+Scopo: trattare VAH/VAL come area decisionale, non come target finale fisso.
 
 Campi principali:
 
@@ -407,6 +443,32 @@ FilterFailures            motivi di scarto
 
 Questo tag non apre trade live. Serve a validare quando la seconda gamba puo' diventare una regola operativa.
 
+`[FOLLOWTHROUGH_POST_TARGET_OPPORTUNITY_STUDY]` viene scritto per ogni follow-through che raggiunge VAH/VAL e serve a spiegare perche' molte estensioni post-target non diventano `ReentryCandidate`.
+
+Classificazioni principali:
+
+```text
+IMMEDIATE_BIG_TRADE                    re-entry candidate gia' rilevata
+PULLBACK_HOLD_AND_POC_MIGRATION         pullback tiene decision area e poi POC migra
+POC_MIGRATION_CONFIRMATION              POC migra senza re-entry immediata
+BREAKOUT_ACCEPTANCE_NO_REENTRY          close oltre decision area ma niente re-entry
+PRESSURE_EXTENSION_NO_STRUCTURE         pressione favorevole e MFE, ma senza struttura
+MFE_ONLY_NO_CONFIRMATION                estensione senza conferme di auction
+NO_SECOND_LEG                           nessuna estensione utile
+```
+
+Campi principali: `FirstCloseBeyondDecision`, `FirstPullbackHold`, `FirstPocMigration`, `BestSameTrade`, pressione same/opposite e `OpportunityReason`.
+
+`[FOLLOWTHROUGH_ALTERNATIVE_SECOND_LEG_STUDY]` viene scritto per `OpportunityReason=ALTERNATIVE_SECOND_LEG_FORM` e simula tre ingressi osservazionali:
+
+```text
+PullbackEntry        ingresso alla close della barra che testa e tiene la decision area
+PocMigrationEntry    ingresso alla close della barra in cui il POC migra nella direzione
+BestSameTradeEntry   ingresso sul miglior big trade coerente entro 15m
+```
+
+Per ogni ingresso misura `ReachedFinalPOC`, `PnlToFinalPOC`, `LondonClosePnL`, `MFE`, `MAE` e `BestAlternativeMode`. Non e' live.
+
 `[FOLLOWTHROUGH_SECOND_LEG_AUCTION_STUDY]` affianca il filtro statico con metriche relative al contesto, piu' vicine a una lettura Fabio-style:
 
 ```text
@@ -444,7 +506,7 @@ python FabioOrderFlow/tools/snapshot_performance.py
 python FabioOrderFlow/tools/study_poc_management.py --archive-logs
 ```
 
-`snapshot_performance.py` confronta `current70_30`, `poc100` e `fullRunnerBE` usando solo `[MR_EXIT]`. `study_poc_management.py` richiede debug profondo attivo per avere day log completi (`DAY_STUDY_BIG_TRADE`, `DAY_STUDY_BAR`, `DAY_STUDY_POC_MANAGEMENT`) e testare regole causali post-POC: uscire 100% al POC salvo conferma runner entro una finestra definita. Se `HistoricalStudyDebugDays` contiene date nel codice, il dataset study profondo viene prodotto solo per quei giorni. Lista vuota + marker file significa debug su tutti i giorni.
+`snapshot_performance.py` confronta `current70_30`, `poc100` e `fullRunnerBE` usando solo `[MR_EXIT]`. `study_poc_management.py` richiede debug profondo attivo per avere day log completi (`DAY_STUDY_BIG_TRADE`, `DAY_STUDY_BAR`, `DAY_STUDY_POC_MANAGEMENT`) e testare regole causali post-POC: uscire 100% al POC salvo conferma runner entro una finestra definita. Se `HistoricalStudyDebugDays` contiene date nel codice, il dataset study profondo viene prodotto solo per quei giorni. Lista vuota + marker file significa debug su tutti i giorni, quindi per reload puliti rimuovere il marker.
 
 ## Cosa Non E' Ancora Codificato
 
