@@ -47,6 +47,9 @@ namespace FabioOrderFlow
         private const bool EnableHistoricalIntrabarFromCumulativeTrades = true;
         private const int HistoricalStudyProgressBarStep = 100;
         private const int HistoricalStudyProgressTradeStep = 50000;
+        private const decimal SecondLegStrongReentryVolume = 30m;
+        private const int SecondLegInitialMaeBars = 3;
+        private const decimal SecondLegMaxInitialMaeRiskMultiple = 0.75m;
         private static readonly DateOnly[] HistoricalStudyDebugDays =
         {
             new(2026, 6, 29),
@@ -1487,6 +1490,281 @@ namespace FabioOrderFlow
             var fabioBias = reentryCandidate ? "SECOND_LEG_CANDIDATE" : "TAKE_TARGET_NO_SECOND_LEG";
 
             DailyHistoricalLog($"[FOLLOWTHROUGH_TARGET_DECISION_STUDY] SetupId={position.SetupId}, Direction={position.Direction}, StudyTrigger={position.StudyTrigger}, EntryTime={FormatTime(position.EntryTimeUtc)}, DecisionTime={FormatTime(decisionTime)}, Entry={position.EntryPrice:F2}, DecisionPrice={position.Target2Price:F2}, POC={position.Target1Price:F2}, CurrentExitTime={FormatTime(currentExitTimeUtc)}, CurrentExitReason={currentExitReason}, CurrentExitPrice={currentExitPrice:F2}, CurrentPnL={currentPnl:F2}, MfeAfterDecision={currentDelta.Mfe:F2}, MaeAfterDecision={currentDelta.Mae:F2}, MaxFavorablePrice={currentDelta.MaxFavorablePrice:F2}, MaxAdversePrice={currentDelta.MaxAdversePrice:F2}, Same60={stats60.SameTrades}/{stats60.SameVolume:F0}/Max{stats60.MaxSameVolume:F0}, Opp60={stats60.OppositeTrades}/{stats60.OppositeVolume:F0}/Max{stats60.MaxOppositeVolume:F0}, CloseBeyond60={stats60.ClosesBeyondDecision}, CloseBackInside60={stats60.ClosesBackInsideDecision}, Accept60={acceptance60}, Same120={stats120.SameTrades}/{stats120.SameVolume:F0}/Max{stats120.MaxSameVolume:F0}, Opp120={stats120.OppositeTrades}/{stats120.OppositeVolume:F0}/Max{stats120.MaxOppositeVolume:F0}, CloseBeyond120={stats120.ClosesBeyondDecision}, CloseBackInside120={stats120.ClosesBackInsideDecision}, Accept120={acceptance120}, Same300={stats300.SameTrades}/{stats300.SameVolume:F0}/Max{stats300.MaxSameVolume:F0}, Opp300={stats300.OppositeTrades}/{stats300.OppositeVolume:F0}/Max{stats300.MaxOppositeVolume:F0}, CloseBeyond300={stats300.ClosesBeyondDecision}, CloseBackInside300={stats300.ClosesBackInsideDecision}, Accept300={acceptance300}, RunnerStopDecisionOutcome={runnerStopVahOutcome.ExitReason}, RunnerStopDecisionPnL={runnerStopVahOutcome.Pnl:F2}, RunnerStopDecisionR={runnerStopVahOutcome.RMultiple:F2}, RunnerStopPocOutcome={runnerStopPocOutcome.ExitReason}, RunnerStopPocPnL={runnerStopPocOutcome.Pnl:F2}, RunnerStopPocR={runnerStopPocOutcome.RMultiple:F2}, ReentryCandidate={reentryCandidate}, Reentry={reentryText}, FabioBias={fabioBias}", decisionTime);
+            if (reentry != null)
+                LogFollowThroughSecondLegStructureStudy(position, decisionTime, reentry, reentryOutcome);
+        }
+
+        private void LogFollowThroughSecondLegStructureStudy(ActivePosition position, DateTime decisionTimeUtc, CumulativeTrade reentry, ProtectedStudyOutcome reentryOutcome)
+        {
+            var path = GetLondonSessionSnapshotsAfter(reentry.Time, position.EntryBar);
+            if (path.Count == 0)
+                return;
+
+            var maxFavorablePrice = reentry.Lastprice;
+            var maxAdversePrice = reentry.Lastprice;
+            var mfe = 0m;
+            var mae = 0m;
+            var closesBeyondOldDecision = 0;
+            var closesBackInsideOldDecision = 0;
+            var wicksBackInsideOldDecision = 0;
+            HistoricalBarSnapshot? firstMigratedPoc = null;
+
+            foreach (var snapshot in path)
+            {
+                if (position.Direction == "Long")
+                {
+                    maxFavorablePrice = Math.Max(maxFavorablePrice, snapshot.High);
+                    maxAdversePrice = Math.Min(maxAdversePrice, snapshot.Low);
+                    mfe = Math.Max(mfe, snapshot.High - reentry.Lastprice);
+                    mae = Math.Max(mae, reentry.Lastprice - snapshot.Low);
+                    if (snapshot.Close > position.Target2Price)
+                        closesBeyondOldDecision++;
+                    if (snapshot.Close < position.Target2Price)
+                        closesBackInsideOldDecision++;
+                    if (snapshot.Low < position.Target2Price)
+                        wicksBackInsideOldDecision++;
+                    if (firstMigratedPoc == null && snapshot.PreviewPOC > position.Target2Price)
+                        firstMigratedPoc = snapshot;
+                }
+                else
+                {
+                    maxFavorablePrice = Math.Min(maxFavorablePrice, snapshot.Low);
+                    maxAdversePrice = Math.Max(maxAdversePrice, snapshot.High);
+                    mfe = Math.Max(mfe, reentry.Lastprice - snapshot.Low);
+                    mae = Math.Max(mae, snapshot.High - reentry.Lastprice);
+                    if (snapshot.Close < position.Target2Price)
+                        closesBeyondOldDecision++;
+                    if (snapshot.Close > position.Target2Price)
+                        closesBackInsideOldDecision++;
+                    if (snapshot.High > position.Target2Price)
+                        wicksBackInsideOldDecision++;
+                    if (firstMigratedPoc == null && snapshot.PreviewPOC < position.Target2Price)
+                        firstMigratedPoc = snapshot;
+                }
+            }
+
+            var finalSnapshot = path[^1];
+            var finalPoc = finalSnapshot.PreviewPOC;
+            var finalVah = finalSnapshot.PreviewVAH;
+            var finalVal = finalSnapshot.PreviewVAL;
+            var finalPocTouch = finalPoc == 0 ? null : FindFirstTouch(path, position.Direction, finalPoc);
+            var finalVahTouch = finalVah == 0 ? null : FindFirstTouch(path, position.Direction, finalVah);
+            var finalValTouch = finalVal == 0 ? null : FindFirstTouch(path, position.Direction, finalVal);
+            var pnlToFinalPoc = finalPoc == 0 ? 0 : GetDirectionalPnl(position.Direction, reentry.Lastprice, finalPoc);
+            var pnlToFinalVah = finalVah == 0 ? 0 : GetDirectionalPnl(position.Direction, reentry.Lastprice, finalVah);
+            var pnlToFinalVal = finalVal == 0 ? 0 : GetDirectionalPnl(position.Direction, reentry.Lastprice, finalVal);
+            var londonClosePnl = GetDirectionalPnl(position.Direction, reentry.Lastprice, finalSnapshot.Close);
+            var firstMigratedPocText = firstMigratedPoc == null
+                ? "NONE"
+                : $"{FormatTime(firstMigratedPoc.EventTimeUtc)}:POC={firstMigratedPoc.PreviewPOC:F2}:VAH={firstMigratedPoc.PreviewVAH:F2}:VAL={firstMigratedPoc.PreviewVAL:F2}";
+            var finalPocTouchText = finalPocTouch == null ? "NONE" : FormatTime(finalPocTouch.EventTimeUtc);
+            var finalVahTouchText = finalVahTouch == null ? "NONE" : FormatTime(finalVahTouch.EventTimeUtc);
+            var finalValTouchText = finalValTouch == null ? "NONE" : FormatTime(finalValTouch.EventTimeUtc);
+            var reentryStop = GetContinuationReentryStop(position, reentry.Lastprice);
+            var reentryRisk = Math.Abs(reentry.Lastprice - reentryStop);
+            var initialMae = GetSecondLegMae(position.Direction, reentry.Lastprice, path.Take(SecondLegInitialMaeBars));
+            var strongReentryVolume = reentry.Volume >= SecondLegStrongReentryVolume;
+            var oldDecisionHolds = closesBackInsideOldDecision == 0 && wicksBackInsideOldDecision == 0;
+            var initialMaeContained = reentryRisk > 0 && initialMae <= reentryRisk * SecondLegMaxInitialMaeRiskMultiple;
+            var pocMigrated = firstMigratedPoc != null;
+            var structureTargetReached = finalPocTouch != null;
+            var passesStructureFilter = strongReentryVolume && oldDecisionHolds && initialMaeContained && pocMigrated && structureTargetReached && pnlToFinalPoc > 0;
+            var filterFailures = GetSecondLegFilterFailures(strongReentryVolume, oldDecisionHolds, initialMaeContained, pocMigrated, structureTargetReached, pnlToFinalPoc);
+
+            DailyHistoricalLog($"[FOLLOWTHROUGH_SECOND_LEG_STRUCTURE_STUDY] SetupId={position.SetupId}, Direction={position.Direction}, StudyTrigger={position.StudyTrigger}, DecisionTime={FormatTime(decisionTimeUtc)}, ReentryTime={FormatTime(reentry.Time)}, ReentryPrice={reentry.Lastprice:F2}, ReentryVolume={reentry.Volume:F0}, ReentryOutcome={reentryOutcome.ExitReason}, ReentryOutcomePnL={reentryOutcome.Pnl:F2}, ReentryOutcomeR={reentryOutcome.RMultiple:F2}, OldDecisionPrice={position.Target2Price:F2}, OldPOC={position.Target1Price:F2}, BarsAfterReentry={path.Count}, MfeAfterReentry={mfe:F2}, MaeAfterReentry={mae:F2}, InitialMaeBars={SecondLegInitialMaeBars}, InitialMae={initialMae:F2}, ReentryStop={reentryStop:F2}, ReentryRisk={reentryRisk:F2}, MaxFavorablePrice={maxFavorablePrice:F2}, MaxAdversePrice={maxAdversePrice:F2}, ClosesBeyondOldDecision={closesBeyondOldDecision}, ClosesBackInsideOldDecision={closesBackInsideOldDecision}, WicksBackInsideOldDecision={wicksBackInsideOldDecision}, FirstMigratedPoc={firstMigratedPocText}, FinalStructureTime={FormatTime(finalSnapshot.EventTimeUtc)}, FinalPOC={finalPoc:F2}, FinalVAH={finalVah:F2}, FinalVAL={finalVal:F2}, ReachedFinalPOC={finalPocTouch != null}, FinalPOCTouchTime={finalPocTouchText}, PnlToFinalPOC={pnlToFinalPoc:F2}, ReachedFinalVAH={finalVahTouch != null}, FinalVAHTouchTime={finalVahTouchText}, PnlToFinalVAH={pnlToFinalVah:F2}, ReachedFinalVAL={finalValTouch != null}, FinalVALTouchTime={finalValTouchText}, PnlToFinalVAL={pnlToFinalVal:F2}, LondonClose={finalSnapshot.Close:F2}, LondonClosePnL={londonClosePnl:F2}", reentry.Time);
+            DailyHistoricalLog($"[FOLLOWTHROUGH_SECOND_LEG_FILTER_STUDY] SetupId={position.SetupId}, Direction={position.Direction}, ReentryTime={FormatTime(reentry.Time)}, ReentryPrice={reentry.Lastprice:F2}, ReentryVolume={reentry.Volume:F0}, StrongReentryVolume={strongReentryVolume}, MinStrongReentryVolume={SecondLegStrongReentryVolume:F0}, OldDecisionHolds={oldDecisionHolds}, ClosesBackInsideOldDecision={closesBackInsideOldDecision}, WicksBackInsideOldDecision={wicksBackInsideOldDecision}, InitialMaeContained={initialMaeContained}, InitialMae={initialMae:F2}, MaxInitialMae={reentryRisk * SecondLegMaxInitialMaeRiskMultiple:F2}, PocMigrated={pocMigrated}, FirstMigratedPoc={firstMigratedPocText}, StructureTarget=FINAL_POC, StructureTargetPrice={finalPoc:F2}, StructureTargetReached={structureTargetReached}, StructureTargetTouchTime={finalPocTouchText}, StructureTargetPnL={pnlToFinalPoc:F2}, PassesStructureFilter={passesStructureFilter}, FilterFailures={filterFailures}", reentry.Time);
+            LogFollowThroughSecondLegAuctionStudy(position, decisionTimeUtc, reentry, path, firstMigratedPoc, initialMae, mfe, mae, closesBeyondOldDecision, closesBackInsideOldDecision, wicksBackInsideOldDecision, finalPoc, finalPocTouch, pnlToFinalPoc, finalSnapshot);
+        }
+
+        private void LogFollowThroughSecondLegAuctionStudy(ActivePosition position, DateTime decisionTimeUtc, CumulativeTrade reentry, List<HistoricalBarSnapshot> path, HistoricalBarSnapshot? firstMigratedPoc, decimal initialMae, decimal mfe, decimal mae, int closesBeyondOldDecision, int closesBackInsideOldDecision, int wicksBackInsideOldDecision, decimal finalPoc, HistoricalBarSnapshot? finalPocTouch, decimal pnlToFinalPoc, HistoricalBarSnapshot finalSnapshot)
+        {
+            var direction = position.Direction;
+            var impulseFromDecision = Math.Abs(reentry.Lastprice - position.Target2Price);
+            var pullbackVsImpulse = impulseFromDecision > 0 ? initialMae / impulseFromDecision : 0;
+            var dayTradesToReentry = GetAggressionTradesForDayUntil(reentry.Time);
+            var decisionToReentryTrades = GetAggressionTradesBetween(decisionTimeUtc, reentry.Time);
+            var migrationEnd = firstMigratedPoc?.EventTimeUtc ?? finalSnapshot.EventTimeUtc;
+            var postReentryTrades = GetAggressionTradesBetween(reentry.Time, migrationEnd);
+            var decisionPressure = GetAuctionPressure(direction, decisionToReentryTrades);
+            var postPressure = GetAuctionPressure(direction, postReentryTrades);
+            var dayRank = GetVolumeRankPct(reentry.Volume, dayTradesToReentry);
+            var decisionRank = GetVolumeRankPct(reentry.Volume, decisionToReentryTrades);
+            var reentryVsDecisionMedian = GetVolumeRatioToMedian(reentry.Volume, decisionToReentryTrades);
+            var barsToPocMigration = firstMigratedPoc == null ? -1 : Math.Max(0, firstMigratedPoc.Bar - FindBarByTime(reentry.Time, position.EntryBar));
+            var pocMigrationDistanceFromOldDecision = firstMigratedPoc == null ? 0 : GetDirectionalPnl(direction, position.Target2Price, firstMigratedPoc.PreviewPOC);
+            var pocMigrationDistanceFromOldPoc = firstMigratedPoc == null ? 0 : GetDirectionalPnl(direction, position.Target1Price, firstMigratedPoc.PreviewPOC);
+            var volumeBeyondOldDecision = path.Where(s => IsBeyondDecisionClose(direction, s.Close, position.Target2Price)).Sum(s => s.Volume);
+            var volumeBackInsideOldDecision = path.Where(s => !IsBeyondDecisionClose(direction, s.Close, position.Target2Price)).Sum(s => s.Volume);
+            var holdScore = path.Count == 0 ? 0 : (decimal)(path.Count - closesBackInsideOldDecision) / path.Count;
+            var wickHoldScore = path.Count == 0 ? 0 : (decimal)(path.Count - wicksBackInsideOldDecision) / path.Count;
+            var pullbackScore = impulseFromDecision + initialMae == 0 ? 0 : impulseFromDecision / (impulseFromDecision + initialMae);
+            var samePressureShare = postPressure.TotalVolume == 0 ? 0 : postPressure.SameVolume / postPressure.TotalVolume;
+            var pocMigrationScore = firstMigratedPoc == null ? 0 : 1m / (1m + Math.Max(0, barsToPocMigration));
+            var auctionScore = (dayRank + decisionRank + holdScore + wickHoldScore + pullbackScore + samePressureShare + pocMigrationScore) / 7m;
+            var auctionRead = GetAuctionRead(firstMigratedPoc != null, closesBeyondOldDecision, closesBackInsideOldDecision, wicksBackInsideOldDecision, postPressure, pnlToFinalPoc);
+            var finalPocTouchText = finalPocTouch == null ? "NONE" : FormatTime(finalPocTouch.EventTimeUtc);
+
+            DailyHistoricalLog($"[FOLLOWTHROUGH_SECOND_LEG_AUCTION_STUDY] SetupId={position.SetupId}, Direction={direction}, ReentryTime={FormatTime(reentry.Time)}, ReentryPrice={reentry.Lastprice:F2}, ReentryVolume={reentry.Volume:F0}, DayVolumeRankPct={dayRank:F2}, DecisionWindowVolumeRankPct={decisionRank:F2}, ReentryVsDecisionMedian={reentryVsDecisionMedian:F2}, DecisionSame={decisionPressure.SameTrades}/{decisionPressure.SameVolume:F0}/Max{decisionPressure.MaxSameVolume:F0}, DecisionOpp={decisionPressure.OppositeTrades}/{decisionPressure.OppositeVolume:F0}/Max{decisionPressure.MaxOppositeVolume:F0}, PostSame={postPressure.SameTrades}/{postPressure.SameVolume:F0}/Max{postPressure.MaxSameVolume:F0}, PostOpp={postPressure.OppositeTrades}/{postPressure.OppositeVolume:F0}/Max{postPressure.MaxOppositeVolume:F0}, PostSameShare={samePressureShare:F2}, ImpulseFromDecision={impulseFromDecision:F2}, InitialMae={initialMae:F2}, PullbackVsImpulse={pullbackVsImpulse:F2}, MfeAfterReentry={mfe:F2}, MaeAfterReentry={mae:F2}, ClosesBeyondOldDecision={closesBeyondOldDecision}, ClosesBackInsideOldDecision={closesBackInsideOldDecision}, WicksBackInsideOldDecision={wicksBackInsideOldDecision}, HoldScore={holdScore:F2}, WickHoldScore={wickHoldScore:F2}, VolumeBeyondOldDecision={volumeBeyondOldDecision:F0}, VolumeBackInsideOldDecision={volumeBackInsideOldDecision:F0}, PocMigrated={firstMigratedPoc != null}, BarsToPocMigration={barsToPocMigration}, PocMigrationDistanceFromOldDecision={pocMigrationDistanceFromOldDecision:F2}, PocMigrationDistanceFromOldPoc={pocMigrationDistanceFromOldPoc:F2}, PocMigrationScore={pocMigrationScore:F2}, StructureTarget=FINAL_POC, StructureTargetPrice={finalPoc:F2}, StructureTargetTouchTime={finalPocTouchText}, StructureTargetPnL={pnlToFinalPoc:F2}, AuctionScore={auctionScore:F2}, AuctionRead={auctionRead}", reentry.Time);
+        }
+
+        private List<CumulativeTrade> GetAggressionTradesForDayUntil(DateTime toUtc)
+        {
+            var day = DateOnly.FromDateTime(MarketTimeZones.ToItaly(toUtc));
+            return _lastHistoricalTrades
+                .Where(t => t.Time <= toUtc)
+                .Where(t => DateOnly.FromDateTime(MarketTimeZones.ToItaly(t.Time)) == day)
+                .Where(t => t.Volume >= MinAggressionVolume)
+                .Where(t => IsLondonTradeAllowed(t.Time))
+                .ToList();
+        }
+
+        private List<CumulativeTrade> GetAggressionTradesBetween(DateTime fromUtc, DateTime toUtc)
+        {
+            return _lastHistoricalTrades
+                .Where(t => t.Time >= fromUtc && t.Time <= toUtc)
+                .Where(t => t.Volume >= MinAggressionVolume)
+                .Where(t => IsLondonTradeAllowed(t.Time))
+                .ToList();
+        }
+
+        private static AuctionPressureStats GetAuctionPressure(string direction, List<CumulativeTrade> trades)
+        {
+            var sameDirection = direction == "Long" ? TradeDirection.Buy : TradeDirection.Sell;
+            var same = trades.Where(t => t.Direction == sameDirection).ToList();
+            var opposite = trades.Where(t => t.Direction != sameDirection).ToList();
+            var sameVolume = same.Sum(t => t.Volume);
+            var oppositeVolume = opposite.Sum(t => t.Volume);
+            return new AuctionPressureStats(
+                same.Count,
+                sameVolume,
+                same.Count > 0 ? same.Max(t => t.Volume) : 0,
+                opposite.Count,
+                oppositeVolume,
+                opposite.Count > 0 ? opposite.Max(t => t.Volume) : 0,
+                sameVolume + oppositeVolume);
+        }
+
+        private static decimal GetVolumeRankPct(decimal volume, List<CumulativeTrade> trades)
+        {
+            if (trades.Count == 0)
+                return 0;
+
+            var lessOrEqual = trades.Count(t => t.Volume <= volume);
+            return (decimal)lessOrEqual / trades.Count;
+        }
+
+        private static decimal GetVolumeRatioToMedian(decimal volume, List<CumulativeTrade> trades)
+        {
+            if (trades.Count == 0)
+                return 0;
+
+            var ordered = trades.Select(t => t.Volume).OrderBy(v => v).ToList();
+            var middle = ordered.Count / 2;
+            var median = ordered.Count % 2 == 0
+                ? (ordered[middle - 1] + ordered[middle]) / 2m
+                : ordered[middle];
+            return median <= 0 ? 0 : volume / median;
+        }
+
+        private static bool IsBeyondDecisionClose(string direction, decimal close, decimal decisionPrice)
+        {
+            return direction == "Long" ? close > decisionPrice : close < decisionPrice;
+        }
+
+        private static string GetAuctionRead(bool pocMigrated, int closesBeyondOldDecision, int closesBackInsideOldDecision, int wicksBackInsideOldDecision, AuctionPressureStats postPressure, decimal structureTargetPnl)
+        {
+            if (!pocMigrated)
+                return "NO_POC_MIGRATION";
+            if (structureTargetPnl <= 0)
+                return "OPPOSITE_AUCTION_ACCEPTED";
+            if (wicksBackInsideOldDecision > closesBeyondOldDecision || closesBackInsideOldDecision > closesBeyondOldDecision)
+                return "WEAK_BREAK_NO_ACCEPTANCE";
+            if (postPressure.OppositeVolume > postPressure.SameVolume && postPressure.MaxOppositeVolume >= postPressure.MaxSameVolume)
+                return "OPPOSITE_ABSORPTION";
+            if (postPressure.SameVolume > postPressure.OppositeVolume && closesBeyondOldDecision > 0)
+                return "NEW_AUCTION_ACCEPTED";
+
+            return "MIXED_AUCTION";
+        }
+
+        private static decimal GetSecondLegMae(string direction, decimal entry, IEnumerable<HistoricalBarSnapshot> path)
+        {
+            var mae = 0m;
+            foreach (var snapshot in path)
+            {
+                mae = direction == "Long"
+                    ? Math.Max(mae, entry - snapshot.Low)
+                    : Math.Max(mae, snapshot.High - entry);
+            }
+
+            return mae;
+        }
+
+        private static string GetSecondLegFilterFailures(bool strongReentryVolume, bool oldDecisionHolds, bool initialMaeContained, bool pocMigrated, bool structureTargetReached, decimal structureTargetPnl)
+        {
+            var failures = new List<string>();
+            if (!strongReentryVolume)
+                failures.Add("WEAK_REENTRY_VOLUME");
+            if (!oldDecisionHolds)
+                failures.Add("OLD_DECISION_FAILED");
+            if (!initialMaeContained)
+                failures.Add("INITIAL_MAE_TOO_HIGH");
+            if (!pocMigrated)
+                failures.Add("POC_NOT_MIGRATED");
+            if (!structureTargetReached)
+                failures.Add("STRUCTURE_TARGET_NOT_REACHED");
+            if (structureTargetPnl <= 0)
+                failures.Add("STRUCTURE_TARGET_NOT_PROFITABLE");
+
+            return failures.Count == 0 ? "NONE" : string.Join("|", failures);
+        }
+
+        private List<HistoricalBarSnapshot> GetLondonSessionSnapshotsAfter(DateTime fromUtc, int fallbackBar)
+        {
+            var result = new List<HistoricalBarSnapshot>();
+            var day = DateOnly.FromDateTime(MarketTimeZones.ToItaly(fromUtc));
+            var startBar = FindBarByTime(fromUtc, fallbackBar);
+            for (var bar = startBar; bar <= Math.Max(0, _currentBar - 1); bar++)
+            {
+                var candle = _getCandle(bar);
+                var eventTime = GetCandleEventTime(candle);
+                if (eventTime <= fromUtc)
+                    continue;
+                if (DateOnly.FromDateTime(MarketTimeZones.ToItaly(eventTime)) != day)
+                    break;
+                if (!IsInLondonSession(eventTime))
+                    break;
+
+                var snapshot = _historicalBarSnapshots.TryGetValue(bar, out var captured)
+                    ? captured
+                    : CreateHistoricalBarSnapshot(bar, candle);
+                result.Add(snapshot);
+            }
+
+            return result;
+        }
+
+        private HistoricalBarSnapshot? FindFirstTouch(List<HistoricalBarSnapshot> path, string direction, decimal price)
+        {
+            foreach (var snapshot in path)
+            {
+                if (direction == "Long")
+                {
+                    if (snapshot.High >= price)
+                        return snapshot;
+                }
+                else if (snapshot.Low <= price)
+                {
+                    return snapshot;
+                }
+            }
+
+            return null;
+        }
+
+        private static decimal GetDirectionalPnl(string direction, decimal entry, decimal exit)
+        {
+            return direction == "Long" ? exit - entry : entry - exit;
         }
 
         private PocManagementPressureStats GetPostPocPressureStats(ActivePosition position, DateTime fromUtc, DateTime toUtc)
@@ -3562,6 +3840,7 @@ namespace FabioOrderFlow
         private sealed record ProtectedStudyOutcome(string ExitReason, decimal Pnl, decimal RMultiple, bool Target1Hit);
         private sealed record StudyContinuationStats(int Count, decimal Volume, string FirstTrade);
         private sealed record PocManagementPressureStats(int SameTrades, decimal SameVolume, decimal MaxSameVolume, int OppositeTrades, decimal OppositeVolume, decimal MaxOppositeVolume);
+        private sealed record AuctionPressureStats(int SameTrades, decimal SameVolume, decimal MaxSameVolume, int OppositeTrades, decimal OppositeVolume, decimal MaxOppositeVolume, decimal TotalVolume);
         private sealed record PostDecisionContinuationStats(int SameTrades, decimal SameVolume, decimal MaxSameVolume, int OppositeTrades, decimal OppositeVolume, decimal MaxOppositeVolume, int ClosesBeyondDecision, int ClosesBackInsideDecision, decimal Mfe, decimal Mae, decimal MaxFavorablePrice, decimal MaxAdversePrice);
         private sealed record HistoricalContext(decimal POC, decimal VAH, decimal VAL);
         private sealed record DynamicStopPlan(string Name, decimal Stop);

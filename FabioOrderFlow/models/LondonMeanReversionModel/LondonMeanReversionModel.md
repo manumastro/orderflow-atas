@@ -312,6 +312,9 @@ Tag reload/studio principali:
 [DAY_STUDY_SETUP_BLOCKED]              barra setup-ready ma bloccata dal gating attuale
 [DAY_STUDY_FOLLOWTHROUGH_RECLAIM]      studio sweep su barra precedente + reclaim su barra successiva, con confronto entry zone vs continuation zone
 [FOLLOWTHROUGH_TARGET_DECISION_STUDY]  studio compatto post-VAH/VAL per continuation Fabio-style
+[FOLLOWTHROUGH_SECOND_LEG_STRUCTURE_STUDY] studio osservazionale su seconda gamba e developing POC/nuova struttura
+[FOLLOWTHROUGH_SECOND_LEG_FILTER_STUDY] filtro osservazionale live-candidate per seconda gamba Fabio-style
+[FOLLOWTHROUGH_SECOND_LEG_AUCTION_STUDY] lettura dinamica relativa di auction acceptance per seconda gamba
 ```
 
 ## Famiglia Entry: Follow-Through Reclaim Continuation
@@ -366,6 +369,65 @@ FabioBias                    SECOND_LEG_CANDIDATE se ReentryCandidate=true, altr
 ```
 
 Interpretazione: Fabio-style significa prendere/rendere risk-free sul target veloce, poi seconda gamba solo con nuova conferma order-flow oltre VAH/VAL.
+
+### Study Seconda Gamba Strutturale
+
+`[FOLLOWTHROUGH_SECOND_LEG_STRUCTURE_STUDY]` viene scritto solo quando lo study precedente trova `ReentryCandidate=True`.
+
+Scopo: capire se la seconda gamba punta a una nuova struttura, non solo a `1R`. Questo e' osservazionale e non modifica il live.
+
+Campi principali:
+
+```text
+ReentryTime/ReentryPrice/ReentryVolume
+OldDecisionPrice/OldPOC
+MfeAfterReentry/MaeAfterReentry
+ClosesBeyondOldDecision/ClosesBackInsideOldDecision/WicksBackInsideOldDecision
+FirstMigratedPoc          primo momento in cui il developing POC migra nella direzione della continuation
+FinalPOC/FinalVAH/FinalVAL struttura finale osservata entro London session
+ReachedFinalPOC/FinalPOCTouchTime/PnlToFinalPOC
+ReachedFinalVAH/PnlToFinalVAH
+ReachedFinalVAL/PnlToFinalVAL
+LondonClose/LondonClosePnL
+```
+
+Uso: distinguere una seconda gamba che punta a nuova distribuzione/developing POC da una semplice estensione breve. Sul 2026-06-30 il caso atteso e' re-entry long sopra VAH con successiva migrazione POC verso area 30350.
+
+`[FOLLOWTHROUGH_SECOND_LEG_FILTER_STUDY]` applica un filtro osservazionale alla seconda gamba:
+
+```text
+StrongReentryVolume       ReentryVolume >= 30
+OldDecisionHolds          nessun close/wick torna dentro la vecchia decision area
+InitialMaeContained       MAE prime 3 barre <= 0,75R della re-entry
+PocMigrated               developing POC migra nella direzione della continuation
+StructureTarget           FINAL_POC osservazionale
+PassesStructureFilter     true solo se tutti i criteri passano e il target strutturale e' profittevole
+FilterFailures            motivi di scarto
+```
+
+Questo tag non apre trade live. Serve a validare quando la seconda gamba puo' diventare una regola operativa.
+
+`[FOLLOWTHROUGH_SECOND_LEG_AUCTION_STUDY]` affianca il filtro statico con metriche relative al contesto, piu' vicine a una lettura Fabio-style:
+
+```text
+DayVolumeRankPct              rank del volume re-entry tra i big trade della giornata fino alla re-entry
+DecisionWindowVolumeRankPct   rank del volume re-entry tra i big trade tra decision area e re-entry
+ReentryVsDecisionMedian       rapporto volume re-entry / mediana del decision window
+DecisionSame/DecisionOpp      pressione tra decision area e re-entry
+PostSame/PostOpp              pressione tra re-entry e prima migrazione POC o fine sessione
+PostSameShare                 quota volume coerente post re-entry
+ImpulseFromDecision           distanza decision area -> re-entry
+PullbackVsImpulse             MAE iniziale / impulso
+HoldScore/WickHoldScore       tenuta relativa della vecchia decision area
+VolumeBeyondOldDecision       volume barre chiuse oltre decision area
+VolumeBackInsideOldDecision   volume barre tornate dentro
+BarsToPocMigration            rapidita' della migrazione POC
+PocMigrationDistance*         distanza POC migrato rispetto a old decision/old POC
+AuctionScore                  score continuo 0..1, non regola live
+AuctionRead                   NEW_AUCTION_ACCEPTED, WEAK_BREAK_NO_ACCEPTANCE, OPPOSITE_ABSORPTION, NO_POC_MIGRATION, OPPOSITE_AUCTION_ACCEPTED, MIXED_AUCTION
+```
+
+Uso: studiare evidenze relative, non soglie assolute. Questo e' il candidato principale per capire come trasformare la seconda gamba in regola live non arbitraria.
 
 ## PnL E Parser
 

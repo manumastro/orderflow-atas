@@ -37,6 +37,57 @@ Da quel punto il modello e' stato trasformato in implementazione live-first ATAS
    - Log reload con CUM_TRADES_LOOKBACK e HISTORICAL_FLOW_FINISH.
 ```
 
+## Update 2026-07-02 10:55
+
+```text
+Studio dinamico aggiunto:
+- [FOLLOWTHROUGH_SECOND_LEG_AUCTION_STUDY] affianca il filtro statico con metriche relative di auction acceptance.
+- Non usa soglie di ingresso live; misura rank volume re-entry, rapporto con mediana decision window, pressione same/opposite, tenuta old decision area, pullback vs impulso, volume costruito oltre decision area, velocita'/distanza migrazione POC.
+- Produce AuctionScore continuo e AuctionRead qualitativo: NEW_AUCTION_ACCEPTED, WEAK_BREAK_NO_ACCEPTANCE, OPPOSITE_ABSORPTION, NO_POC_MIGRATION, OPPOSITE_AUCTION_ACCEPTED, MIXED_AUCTION.
+- Obiettivo: capire come Fabio distinguerebbe nuova auction accettata da breakout debole senza fissare soglie statiche premature.
+
+Reload verificato 10:55:
+- Auction study prodotto 2 righe, entrambe 2026-06-30.
+- Short 14:25:33: AuctionScore=0,45, AuctionRead=OPPOSITE_AUCTION_ACCEPTED, ReentryVolume=10, DayRank=0,32, PostSameShare=0,49, PullbackVsImpulse=1,11, HoldScore=0,42, WickHoldScore=0,39, BarsToPocMigration=12, TargetPnL=-298,50.
+- Long 15:35:01: AuctionScore=0,89, AuctionRead=NEW_AUCTION_ACCEPTED, ReentryVolume=49, DayRank=0,96, DecisionRank=0,97, ReentryVsDecisionMedian=4,08, PostSameShare=0,59, PullbackVsImpulse=0,34, HoldScore=1,00, WickHoldScore=1,00, BarsToPocMigration=0, TargetPnL=+178,75.
+- Lettura: la separazione dinamica conferma il pattern Fabio-style senza dipendere da una singola soglia statica.
+```
+
+## Update 2026-07-02 10:35
+
+```text
+Filtro study aggiunto:
+- [FOLLOWTHROUGH_SECOND_LEG_FILTER_STUDY] applica la regola candidata alla seconda gamba, senza modificarla in live.
+- Criteri: ReentryVolume >= 30; old decision area tiene senza close/wick back inside; MAE prime 3 barre <= 0,75R; developing POC migra nella direzione; target strutturale FINAL_POC raggiunto e profittevole.
+- Output: PassesStructureFilter e FilterFailures.
+- Obiettivo: confermare che il long 2026-06-30 15:35 passa e il falso short 14:25 viene scartato prima di promuovere la regola nel core.
+
+Reload verificato 10:26:
+- ClosedPositions=27, StoredTrades=1379750, PnL reale modello corrente=+314,84.
+- Filter study prodotto 2 righe.
+- Short 2026-06-30 14:25:33: PassesStructureFilter=False; failures=WEAK_REENTRY_VOLUME|OLD_DECISION_FAILED|INITIAL_MAE_TOO_HIGH|STRUCTURE_TARGET_NOT_PROFITABLE; StructureTargetPnL=-298,50.
+- Long 2026-06-30 15:35:01: PassesStructureFilter=True; ReentryVolume=49; OldDecisionHolds=True; InitialMae=21,00 <= MaxInitialMae=30,84; POC migrated at 15:39:59; StructureTarget FINAL_POC=30350,00 reached at 15:59:59; StructureTargetPnL=+178,75.
+- Lettura: la regola candidata distingue correttamente il falso positivo dallo scenario Fabio-style valido nel dataset corrente.
+```
+
+## Update 2026-07-02 10:05
+
+```text
+Studio aggiunto:
+- [FOLLOWTHROUGH_SECOND_LEG_STRUCTURE_STUDY] per ogni ReentryCandidate=True dello study continuation.
+- Misura seconda gamba come movimento verso nuova struttura/developing POC, non solo come estensione 1R.
+- Campi: MFE/MAE dopo re-entry, tenuta vecchia decision area, primo POC migrato, FinalPOC/VAH/VAL entro London session, touch e PnL potenziale verso FinalPOC/VAH/VAL, LondonClosePnL.
+- Non modifica live/core; serve a studiare casi come 2026-06-30 long 15:35 verso POC sviluppato area 30350.
+
+Reload verificato 10:14:
+- ClosedPositions=27, StoredTrades=1379640, PnL reale modello corrente=+314,84.
+- FollowThrough reale: Long +54,50 su 3 exit; Short +31,99 su 12 exit.
+- Second-leg structure study prodotto 2 righe, entrambe 2026-06-30.
+- Short falso 14:25:33: ReentryPrice=30051,50, Volume=10, MFE=54,50, MAE=391,00, FinalPOC=30350,00, PnlToFinalPOC=-298,50, LondonClosePnL=-253,75.
+- Long buono 15:35:01: ReentryPrice=30171,25, Volume=49, MFE=271,25, MAE=21,00, FinalPOC=30350,00, ReachedFinalPOC=True at 15:59:59, PnlToFinalPOC=+178,75, FinalVAH=30440,25, PnlToFinalVAH=+269,00, LondonClosePnL=+134,00.
+- Lettura: il long conferma la tesi del target strutturale/developing POC; il filtro deve eliminare re-entry deboli con volume basso e MAE/ritorni dentro decision area elevati.
+```
+
 ## Update 2026-07-02 09:20
 
 ```text
