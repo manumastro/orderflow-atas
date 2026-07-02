@@ -240,7 +240,7 @@ DelayedReclaimMaxOperationalRiskPoints = 120
 DuplicateBasePositionPocTolerancePoints = 4
 DuplicateBasePositionValueEdgeTolerancePoints = 8
 EnableHistoricalIntrabarFromCumulativeTrades = true
-HistoricalStudyDebugDays = []              costante interna codice; lista vuota = debug profondo spento se non c'e' marker file
+HistoricalStudyDebugDays = [2026-07-02]    debug profondo limitato alla giornata odierna; svuotare dopo studio
 Daily historical logs                     attivi solo quando e' attivo historical study debug
 EnableFollowThroughStudyLogs = false       study follow-through post-target spenti di default
 HistoricalStudyDebugMarker = %APPDATA%/ATAS/Logs/FabioOrderFlow-enable-historical-study-debug.flag
@@ -285,7 +285,7 @@ Tag operativi reali del modello:
 [MR_SECOND_LEG_AUCTION_ARMED]    prima gamba follow-through ha preso VAH/VAL e arma seconda gamba
 [MR_FOLLOW_THROUGH_SECOND_LEG_AUCTION] setup operativo seconda gamba auction
 [MR_SECOND_LEG_AUCTION_CONFIRMED] entry seconda gamba confermata da auction relativa
-[LIVE_FLOW_HEARTBEAT]              heartbeat leggero: primo trade live valido, poi ogni 25 trade validi o almeno ogni 60s; conta setup/pending gia' ripuliti da scadenza
+[LIVE_FLOW_HEARTBEAT]              heartbeat leggero: primo trade live valido, poi ogni 25 trade validi o almeno ogni 60s; include diagnostica setup/delayed quando attivi
 [MR_FOLLOW_THROUGH_CONTINUATION_WEAK_ACCEPTANCE_EXPIRED] setup follow-through scartato dopo poke in continuation zone senza acceptance minima
 [MR_HISTORICAL_TRADES]           cumulative trades storici filtrati
 [MR_ENTRY]                       posizione creata

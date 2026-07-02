@@ -37,6 +37,17 @@ Da quel punto il modello e' stato trasformato in implementazione live-first ATAS
    - Log reload con CUM_TRADES_LOOKBACK e HISTORICAL_FLOW_FINISH.
 ```
 
+## Update 2026-07-02 19:00
+
+```text
+Live hardening e debug oggi:
+- Salvati log reference in FabioOrderFlow-live-reference-logs-20260702-190018/ prima del reload successivo.
+- Review live-safe: altri usi di _lastHistoricalTrades letti risultano study-only o storici; il punto live-capable corretto era delayed reclaim pressure.
+- Heartbeat live reso piu' chiaro: quando ci sono setup/candidati attivi aggiunge SetupDiagnostics e DelayedDiagnostics con motivo sintetico di mancata entry.
+- Heartbeat ora viene scritto dopo ProcessAggressionTrade, cosi' diagnostica e contatori includono anche il trade corrente gia' processato.
+- Debug profondo limitato a 2026-07-02 via HistoricalStudyDebugDays=[2026-07-02].
+```
+
 ## Update 2026-07-02 17:20
 
 ```text
