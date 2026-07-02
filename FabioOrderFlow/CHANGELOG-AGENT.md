@@ -37,6 +37,16 @@ Da quel punto il modello e' stato trasformato in implementazione live-first ATAS
    - Log reload con CUM_TRADES_LOOKBACK e HISTORICAL_FLOW_FINISH.
 ```
 
+## Update 2026-07-02 17:20
+
+```text
+Live delayed reclaim pressure fix:
+- Log live osservati senza reload della patch successiva: 9875 cumulative trade live validi fino alle 16:59:39 Italy, OpenPositions=0, PendingSecondLegAuction=0.
+- Un setup live delayed short e' nato alle 16:00:00 (POC=30150, VAH=30263, VAL=30021,25), ma non ha aperto nonostante molti sell in zona.
+- Causa trovata: GetDelayedReclaimPressureBeforeTime usava _lastHistoricalTrades quando lo storico era caricato; in live post-reload questo escludeva i trade live dal calcolo pressione delayed.
+- Fix: pressione delayed calcolata su _processedAggressionTrades, cioe' feed causale storico/live gia' processato.
+```
+
 ## Update 2026-07-02 15:45
 
 ```text

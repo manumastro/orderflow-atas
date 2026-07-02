@@ -290,7 +290,7 @@ Tag operativi reali del modello:
 [MR_HISTORICAL_TRADES]           cumulative trades storici filtrati
 [MR_ENTRY]                       posizione creata
 [MR_DELAYED_RECLAIM_SETUP]       candidato delayed reclaim
-[MR_DELAYED_RECLAIM_ENTRY]       delayed realmente creata, include AcceptanceMode
+[MR_DELAYED_RECLAIM_ENTRY]       delayed realmente creata, include AcceptanceMode; pressione calcolata sui trade processati causalmente storico/live
 [MR_ENTRY_SKIPPED]               entry scartata
 [MR_TARGET1_HIT]                 POC raggiunto, stop runner protetto
 [MR_PARTIAL_EXIT]                70% simulato chiuso al POC

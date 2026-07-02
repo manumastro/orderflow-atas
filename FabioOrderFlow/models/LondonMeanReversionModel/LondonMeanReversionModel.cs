@@ -3057,9 +3057,11 @@ namespace FabioOrderFlow
             var setup = candidate.Setup;
             var expectedDirection = setup.Direction == "Long" ? TradeDirection.Buy : TradeDirection.Sell;
             var oppositeDirection = setup.Direction == "Long" ? TradeDirection.Sell : TradeDirection.Buy;
-            var source = _lastHistoricalTrades.Count > 0
-                ? _lastHistoricalTrades.Where(t => t.Time > setup.RejectionTimeUtc && t.Time <= trade.Time && t.Volume >= MinAggressionVolume)
-                : new[] { trade }.Where(t => t.Time > setup.RejectionTimeUtc && t.Time <= trade.Time && t.Volume >= MinAggressionVolume);
+            var source = _processedAggressionTrades
+                .Where(t => t.Time > setup.RejectionTimeUtc && t.Time <= trade.Time && t.Volume >= MinAggressionVolume)
+                .ToList();
+            if (source.Count == 0 && trade.Time > setup.RejectionTimeUtc && trade.Volume >= MinAggressionVolume)
+                source.Add(trade);
 
             foreach (var t in source)
             {
