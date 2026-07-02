@@ -49,6 +49,7 @@ namespace FabioOrderFlow
         private const int HistoricalStudyProgressTradeStep = 50000;
         private const int LiveHeartbeatTradeStep = 25;
         private const int LiveHeartbeatMinSeconds = 60;
+        private const decimal FollowThroughContinuationMinAcceptanceProgressPct = 0.12m;
         private static readonly bool EnableFollowThroughStudyLogs = false;
         private const int SecondLegImmediateMaxSeconds = 300;
         private const decimal SecondLegMinDecisionWindowVolumeRankPct = 0.90m;
@@ -345,8 +346,17 @@ namespace FabioOrderFlow
                 return;
 
             _liveTradeMaxVolumeByKey[key] = trade.Volume;
+            ExpireStaleOperationalState(trade.Time);
             LogLiveFlowHeartbeat(trade);
             ProcessAggressionTrade(trade, "FootprintCumulativeTradeLive", false);
+        }
+
+        private void ExpireStaleOperationalState(DateTime eventTimeUtc)
+        {
+            foreach (var setup in _activeSetups.Where(s => !s.Expired && eventTimeUtc > s.RejectionTimeUtc.AddSeconds(AggressionTimeoutSeconds)).ToList())
+                setup.Expired = true;
+
+            _pendingSecondLegAuctionContexts.RemoveAll(c => c.Consumed || eventTimeUtc > c.DecisionTimeUtc.AddSeconds(SecondLegImmediateMaxSeconds));
         }
 
         private void LogLiveFlowHeartbeat(CumulativeTrade trade)
@@ -718,6 +728,7 @@ namespace FabioOrderFlow
 
         private void ProcessAggressionTrade(CumulativeTrade trade, string entryModel, bool isHistorical)
         {
+            ExpireStaleOperationalState(trade.Time);
             TrackProcessedAggressionTrade(trade);
 
             if (TryProcessDelayedReclaimEntry(trade, entryModel, isHistorical))
@@ -949,6 +960,9 @@ namespace FabioOrderFlow
             if (!IsOperationalEntryZone(setup, trade))
                 return false;
 
+            if (!HasFollowThroughContinuationAcceptance(setup, trade.Lastprice))
+                return false;
+
             if (enforceFreshness && (trade.Time - setup.RejectionTimeUtc).TotalSeconds > OperationalEntryTimeoutSeconds)
                 return false;
 
@@ -1002,6 +1016,23 @@ namespace FabioOrderFlow
             return IsFollowThroughContinuationSetup(setup)
                 ? IsBeyondPocContinuationEntry(setup, trade)
                 : IsInEntryZone(setup, trade);
+        }
+
+        private static bool HasFollowThroughContinuationAcceptance(BalanceSetup setup, decimal entryPrice)
+        {
+            if (!IsFollowThroughContinuationSetup(setup))
+                return true;
+
+            var targetDistance = setup.Direction == "Long"
+                ? setup.VAH - setup.POC
+                : setup.POC - setup.VAL;
+            if (targetDistance <= 0)
+                return false;
+
+            var progressBeyondPoc = setup.Direction == "Long"
+                ? entryPrice - setup.POC
+                : setup.POC - entryPrice;
+            return progressBeyondPoc / targetDistance >= FollowThroughContinuationMinAcceptanceProgressPct;
         }
 
         private static bool IsFollowThroughContinuationSetup(BalanceSetup setup)

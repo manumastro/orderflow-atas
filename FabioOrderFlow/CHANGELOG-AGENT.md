@@ -37,6 +37,17 @@ Da quel punto il modello e' stato trasformato in implementazione live-first ATAS
    - Log reload con CUM_TRADES_LOOKBACK e HISTORICAL_FLOW_FINISH.
 ```
 
+## Update 2026-07-02 15:25
+
+```text
+Intervento live su prima gamba follow-through:
+- Problema osservato: FOLLOW_THROUGH_RECLAIM_CONTINUATION_SHORT e' quasi flat nello storico disponibile (+0,99 su 11 trade) e il trade perso 2026-07-02 10:00 era una entry short troppo vicina al POC.
+- Aggiunto filtro dinamico di acceptance: per FollowThroughReclaimContinuation l'entry deve aver percorso almeno il 12% della distanza POC->VAH/VAL oltre il POC verso il target.
+- Esempio trade filtrato: 2026-07-02 short entry 29880, POC 29884,50, VAL 29836,25; progress 4,50/48,25 = 9,3%, sotto soglia 12%.
+- Seconda gamba FollowThroughSecondLegAuction invariata.
+- Pulizia stato live: setup scaduti marcati Expired e pending second-leg oltre 5 minuti rimossi, cosi' LIVE_FLOW_HEARTBEAT non mostra piu' pending storici sporchi.
+```
+
 ## Update 2026-07-02 13:55
 
 ```text
