@@ -57,7 +57,12 @@ namespace FabioOrderFlow
         private const decimal SecondLegStrongReentryVolume = 30m;
         private const int SecondLegInitialMaeBars = 3;
         private const decimal SecondLegMaxInitialMaeRiskMultiple = 0.75m;
-        private static readonly DateOnly[] HistoricalStudyDebugDays = Array.Empty<DateOnly>();
+        private static readonly DateOnly[] HistoricalStudyDebugDays =
+        {
+            new(2026, 7, 1),
+            new(2026, 7, 2),
+            new(2026, 7, 3),
+        };
         private const string HistoricalStudyDebugMarkerFile = "FabioOrderFlow-enable-historical-study-debug.flag";
 
         private int _currentBar;

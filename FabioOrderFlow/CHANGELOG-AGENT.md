@@ -37,6 +37,15 @@ Da quel punto il modello e' stato trasformato in implementazione live-first ATAS
    - Log reload con CUM_TRADES_LOOKBACK e HISTORICAL_FLOW_FINISH.
 ```
 
+## Update 2026-07-05 20:55
+
+```text
+Nuovo study mirato ultimi 3 giorni:
+- HistoricalStudyDebugDays impostato a 2026-07-01, 2026-07-02, 2026-07-03.
+- Obiettivo: produrre day log profondi solo per gli ultimi 3 giorni evento, con focus sul 2026-07-03.
+- Study follow-through post-target resta spento; si riattivano solo i day log/debug storici per quei tre giorni.
+```
+
 ## Update 2026-07-05 20:35
 
 ```text
