@@ -37,6 +37,15 @@ Da quel punto il modello e' stato trasformato in implementazione live-first ATAS
    - Log reload con CUM_TRADES_LOOKBACK e HISTORICAL_FLOW_FINISH.
 ```
 
+## Update 2026-07-05 20:35
+
+```text
+Cleanup debug:
+- HistoricalStudyDebugDays riportato a [] per reload/live puliti.
+- Marker file FabioOrderFlow-enable-historical-study-debug.flag verificato assente in %APPDATA%/ATAS/Logs.
+- Con questa configurazione [HISTORICAL_STUDY_DEBUG] deve risultare Enabled=False, DailyLogs=False, DebugDays=OFF al prossimo reload.
+```
+
 ## Update 2026-07-02 19:10
 
 ```text
