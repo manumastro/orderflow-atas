@@ -42,6 +42,8 @@ namespace FabioOrderFlow
             public string SetupId { get; set; } = string.Empty;
             public string Direction { get; set; } = string.Empty;
             public string EntryModel { get; set; } = string.Empty;
+            public string SetupSource { get; set; } = string.Empty;
+            public string LiveParity { get; set; } = string.Empty;
             public decimal EntryPrice { get; set; }
             public int EntryBar { get; set; }
             public DateTime EntryTimeUtc { get; set; }

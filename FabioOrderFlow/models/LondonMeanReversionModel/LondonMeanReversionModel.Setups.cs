@@ -99,7 +99,8 @@ namespace FabioOrderFlow
             else
                 _activeSetups.Add(setup);
 
-            _log($"[{tag}] SetupId={setup.SetupId}, Source={setup.SetupSource}, Bar={setup.RejectionBar}, {FormatTime(setup.RejectionTimeUtc)}, BreakoutPrice={setup.BreakoutPrice:F2}, RejectionClose={setup.RejectionClose:F2}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}, Stop={setup.StopPrice:F2}, TargetPOC={setup.TargetPrice:F2}", IsHistoricalBar(setup.RejectionBar));
+            var isHistorical = IsHistoricalBar(setup.RejectionBar);
+            _log($"[{tag}] SetupId={setup.SetupId}, ExecutionMode={(isHistorical ? "HISTORICAL_REPLAY" : "LIVE")}, LogicPath={LogicPathOperational}, StudyOnly=False, Source={setup.SetupSource}, LiveParity={GetLiveParityForSetupSource(setup.SetupSource)}, Bar={setup.RejectionBar}, {FormatTime(setup.RejectionTimeUtc)}, BreakoutPrice={setup.BreakoutPrice:F2}, RejectionClose={setup.RejectionClose:F2}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}, Stop={setup.StopPrice:F2}, TargetPOC={setup.TargetPrice:F2}", isHistorical);
             if (setup.SetupSource == "HistoricalIntrabar" || IsHistoricalBar(setup.RejectionBar))
                 StudyLog($"[DAY_STUDY_SETUP] SetupId={setup.SetupId}, Source={setup.SetupSource}, Tag={tag}, Direction={setup.Direction}, Bar={setup.RejectionBar}, {FormatTime(setup.RejectionTimeUtc)}, BreakoutPrice={setup.BreakoutPrice:F2}, RejectionClose={setup.RejectionClose:F2}, RejectionHigh={setup.RejectionHigh:F2}, RejectionLow={setup.RejectionLow:F2}, RejectionDelta={setup.RejectionDelta:F2}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}, Stop={setup.StopPrice:F2}, TargetPOC={setup.TargetPrice:F2}", setup.RejectionTimeUtc);
         }

@@ -310,6 +310,8 @@ Il codice operativo non contiene piu' famiglie follow-through/seconda-gamba/auct
 Tag operativi reali del modello:
 
 ```text
+[MR_LOG_CONTRACT]                contratto log: MR_* operativo/replay, DAY_STUDY_* studio
+[MR_REPLAY_CONTRACT]             mapping live/replay/study dei SetupSource
 [MR_OPERATIONAL_MODE]            stato core-only e trigger ammessi
 [MR_SETUP_LONG]                  setup long da sweep sotto VAL + close back inside
 [MR_SETUP_SHORT]                 setup short da sweep sopra VAH + close back inside
@@ -326,6 +328,29 @@ Tag operativi reali del modello:
 [MR_MISSED_OPPORTUNITY]          setup non entrato con motivo, solo debug profondo
 [MR_STUDY_TRIGGER]               POC reclaim/loss trigger diagnostico
 ```
+
+Contratto live/storico/studio:
+
+```text
+MR_*                  log operativo. ExecutionMode=LIVE e' live; ExecutionMode=HISTORICAL_REPLAY e' replay storico della stessa logica operativa.
+DAY_STUDY_*           log di studio/debug. Non genera entry operative.
+PnL valido            solo [MR_EXIT].
+Study outcome         puo' usare valutazioni ex-post e serve solo per ricerca.
+StudyOnly=False       presente sui log MR_* operativi di setup/entry/exit.
+MirrorsOperational    sui DAY_STUDY_ACTUAL_* indica copia giornaliera di un evento MR_* reale/replay.
+```
+
+Mapping `SetupSource`:
+
+```text
+BarClose                LIVE_SAME_BAR_UPDATE_PATH
+DelayedReclaimAccepted  LIVE_SAME_DELAYED_RECLAIM_PATH
+HistoricalIntrabar      LIVE_INTRABAR_REPLAY_EMULATION
+PreviewRejectionStudy   STUDY_ONLY_NOT_TRADED
+DelayedReclaimStudy     STUDY_ONLY_NOT_TRADED
+```
+
+Regola per fase 1/2: una nuova idea deve prima comparire come `DAY_STUDY_*` o log study dichiarato; diventa `MR_*` solo quando esiste la stessa logica causale live.
 
 Tag reload/studio principali:
 

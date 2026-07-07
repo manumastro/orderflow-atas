@@ -259,7 +259,7 @@ namespace FabioOrderFlow
                     Setup = setup,
                     LastUpdatedUtc = snapshot.EventTimeUtc
                 });
-                _log($"[MR_DELAYED_RECLAIM_SETUP] SetupId={setup.SetupId}, Direction={setup.Direction}, Bar={setup.RejectionBar}, {FormatTime(setup.RejectionTimeUtc)}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}, Stop={setup.StopPrice:F2}, TargetPOC={setup.TargetPrice:F2}", IsHistoricalBar(bar));
+                _log($"[MR_DELAYED_RECLAIM_SETUP] SetupId={setup.SetupId}, ExecutionMode={(IsHistoricalBar(bar) ? "HISTORICAL_REPLAY" : "LIVE")}, LogicPath={LogicPathOperational}, StudyOnly=False, SetupSource={setup.SetupSource}, LiveParity={GetLiveParityForSetupSource(setup.SetupSource)}, Direction={setup.Direction}, Bar={setup.RejectionBar}, {FormatTime(setup.RejectionTimeUtc)}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}, Stop={setup.StopPrice:F2}, TargetPOC={setup.TargetPrice:F2}", IsHistoricalBar(bar));
             }
 
             foreach (var candidate in _delayedReclaimCandidates.Where(c => !c.EntryConfirmed && !c.Setup.Expired).ToList())
@@ -302,7 +302,7 @@ namespace FabioOrderFlow
                     ? "FootprintCumulativeTradeHistoricalDelayedReclaim"
                     : "FootprintCumulativeTradeLiveDelayedReclaim";
                 if (CreatePosition(setup, trade, resolvedEntryModel, isHistorical))
-                    _log($"[MR_DELAYED_RECLAIM_ENTRY] SetupId={setup.SetupId}, EntryModel={resolvedEntryModel}, Direction={setup.Direction}, {FormatTime(trade.Time)}, EntryPrice={trade.Lastprice:F2}, Volume={trade.Volume:F0}, AcceptedBars={acceptedBars}, AcceptanceMode={acceptanceMode}, SameDirectionVolume={sameVolume:F0}, OppositeDirectionVolume={oppositeVolume:F0}, MaxSameDirectionVolume={maxSameVolume:F0}, MaxOppositeDirectionVolume={maxOppositeVolume:F0}", isHistorical);
+                    _log($"[MR_DELAYED_RECLAIM_ENTRY] SetupId={setup.SetupId}, EntryModel={resolvedEntryModel}, {GetLogContractFields(isHistorical, setup)}, Direction={setup.Direction}, {FormatTime(trade.Time)}, EntryPrice={trade.Lastprice:F2}, Volume={trade.Volume:F0}, AcceptedBars={acceptedBars}, AcceptanceMode={acceptanceMode}, SameDirectionVolume={sameVolume:F0}, OppositeDirectionVolume={oppositeVolume:F0}, MaxSameDirectionVolume={maxSameVolume:F0}, MaxOppositeDirectionVolume={maxOppositeVolume:F0}", isHistorical);
                 return true;
             }
 

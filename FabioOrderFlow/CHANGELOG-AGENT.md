@@ -37,6 +37,18 @@ Da quel punto il modello e' stato trasformato in implementazione live-first ATAS
    - Log reload con CUM_TRADES_LOOKBACK e HISTORICAL_FLOW_FINISH.
 ```
 
+## Update 2026-07-07 18:45
+
+```text
+Chiarito contratto live/storico/studio prima di fase 1/2:
+- Aggiunti startup log [MR_LOG_CONTRACT] e [MR_REPLAY_CONTRACT].
+- I log MR_* di setup/entry/exit ora espongono ExecutionMode, LogicPath, StudyOnly, SetupSource e LiveParity.
+- DAY_STUDY_ACTUAL_ENTRY/EXIT marcano MirrorsOperational=True per distinguere copia giornaliera da study-only puro.
+- Contratto documentato: MR_* = operativo/live o historical replay; DAY_STUDY_* = ricerca/debug, non deve tradare; PnL valido solo da [MR_EXIT].
+- Nessuna modifica a parametri, entry, exit o gestione posizione.
+- Build Release: 0 warning / 0 errori.
+```
+
 ## Update 2026-07-07 18:20
 
 ```text
