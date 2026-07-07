@@ -37,6 +37,31 @@ Da quel punto il modello e' stato trasformato in implementazione live-first ATAS
    - Log reload con CUM_TRADES_LOOKBACK e HISTORICAL_FLOW_FINISH.
 ```
 
+## Update 2026-07-07 16:55
+
+```text
+Debug storico esteso a multi-day chart:
+- HistoricalStudyDebugDays impostato a 2026-06-29, 2026-06-30, 2026-07-01, 2026-07-02, 2026-07-03, 2026-07-06, 2026-07-07.
+- Obiettivo: produrre day log profondi per i 7 giorni caricati sul chart, saltando solo weekend/non sessioni.
+- Nota vincolo ATAS: l'ultimo reload disponibile prima del cambio mostrava CUM_TRADES_LOOKBACK EffectiveBeginItaly=2026-06-30 16:42:52, quindi 2026-06-29 e gran parte del 2026-06-30 potrebbero non avere cumulative trades storici completi anche se il chart parte dal 29/06.
+- Nessuna logica entry/exit cambiata: solo ampliamento del perimetro debug/study.
+```
+
+## Update 2026-07-07 11:05
+
+```text
+Nuovo focus debug storico:
+- HistoricalStudyDebugDays spostato a 2026-07-03, 2026-07-06, 2026-07-07.
+- Obiettivo: studiare in profondita' il 03/07, il 06/07 e la sessione live di oggi, invece del vecchio cluster 01/02/03.
+- Nessuna logica entry/exit cambiata in questo passaggio: e' solo rifocalizzazione del debug profondo/day logs.
+
+Osservazione iniziale su oggi 2026-07-07:
+- Il long base delle 10:04:14 (POC_RECLAIM_AFTER_LOW_REJECTION, entry 29646,25) ha preso il POC alle 10:04:17 e poi e' uscito a breakeven del runner alle 10:07:19 con [MR_EXIT] PROTECTED_STOP_HIT +2,63.
+- Con la logica corrente questo e' atteso: il setup base mean reversion fa partial 70% al POC e protegge il runner a breakeven; non ha ancora una continuation dedicata oltre POC.
+- Il possibile follow-through long successivo e' stato poi scartato alle 10:14:09 con [MR_FOLLOW_THROUGH_CONTINUATION_WEAK_ACCEPTANCE_EXPIRED], perche' il trade oltre POC aveva ProgressPct=0,05 sotto MinProgressPct=0,12.
+- Da verificare con i nuovi day log se oggi serva una continuation long meno stretta o una gestione post-POC diversa.
+```
+
 ## Update 2026-07-05 20:55
 
 ```text

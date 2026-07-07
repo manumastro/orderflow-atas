@@ -240,7 +240,7 @@ DelayedReclaimMaxOperationalRiskPoints = 120
 DuplicateBasePositionPocTolerancePoints = 4
 DuplicateBasePositionValueEdgeTolerancePoints = 8
 EnableHistoricalIntrabarFromCumulativeTrades = true
-HistoricalStudyDebugDays = [2026-07-01, 2026-07-02, 2026-07-03]  day log/study profondo limitato agli ultimi 3 giorni evento
+HistoricalStudyDebugDays = [2026-06-29, 2026-06-30, 2026-07-01, 2026-07-02, 2026-07-03, 2026-07-06, 2026-07-07]  day log/study profondo limitato ai 7 giorni chart sotto review
 Daily historical logs                     attivi solo quando e' attivo historical study debug
 EnableFollowThroughStudyLogs = false       study follow-through post-target spenti di default
 HistoricalStudyDebugMarker = %APPDATA%/ATAS/Logs/FabioOrderFlow-enable-historical-study-debug.flag
