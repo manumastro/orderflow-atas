@@ -18,7 +18,7 @@ CHANGELOG-AGENT.md                                     baseline, decisioni, relo
 ```text
 ATAS OnCalculate
 -> BalanceZoneTracker aggiorna profilo London e preview POC/VAH/VAL
--> LondonMeanReversionModel valuta setup, gestione posizioni e study storico
+-> LondonMeanReversionModel valuta setup e gestione posizioni
 
 ATAS OnCumulativeTrade / OnUpdateCumulativeTrade
 -> BalanceZoneTracker.OnLiveCumulativeTrade
@@ -27,7 +27,7 @@ ATAS OnCumulativeTrade / OnUpdateCumulativeTrade
 ATAS OnFinishRecalculate
 -> RequestForCumulativeTrades ultimi 7 giorni effettivi
 -> LondonMeanReversionModel.OnHistoricalCumulativeTrades
--> LondonMeanReversionModel.ProcessHistoricalPositions
+-> LondonMeanReversionModel.ProcessHistoricalPositions con le stesse regole live
 ```
 
 `BalanceZoneTracker` non decide entry, stop o target. Pubblica i livelli e notifica nuovi high/low London. La strategia sta nel `.md` e nel `.cs` del modello specifico.
@@ -48,16 +48,13 @@ models/shared/BalanceZoneTracker/BalanceZoneTracker.md       contratto del profi
 %APPDATA%/ATAS/Logs/FabioOrderFlow-historical.log
 %APPDATA%/ATAS/Logs/FabioOrderFlow-live.log
 %APPDATA%/ATAS/Logs/FabioOrderFlow-replay.log
-%APPDATA%/ATAS/Logs/FabioOrderFlow-days/FabioOrderFlow-day-YYYY-MM-DD.log
 ```
 
 Regole:
 
 - reload storico completo solo dopo `[HISTORICAL_FLOW_FINISH]`;
 - controllare sempre `[CUM_TRADES_LOOKBACK]`, perche' ATAS limita la request agli ultimi 7 giorni effettivi;
-- PnL storico valido: sommare solo `[MR_EXIT]`, non `DAY_STUDY_ACTUAL_EXIT`;
-- snapshot performance persistente: `python FabioOrderFlow/tools/snapshot_performance.py`;
-- studio POC runner con archiviazione log: `python FabioOrderFlow/tools/study_poc_management.py --archive-logs`;
+- PnL storico valido: sommare solo `[MR_EXIT]`;
 - usare `docs/atas/log-reading.md` prima di interpretare nuovi log.
 
 ## Build E Deploy
@@ -67,7 +64,7 @@ cd FabioOrderFlow/src && dotnet build -c Release
 cp -f bin/Release/net10.0-windows/FabioOrderFlow.dll "$APPDATA/ATAS/Indicators/FabioOrderFlow.dll"
 ```
 
-Dopo deploy: ricaricare ATAS/indicatore, attendere `[HISTORICAL_FLOW_FINISH]`, validare i day log e aggiornare `CHANGELOG-AGENT.md` con poche righe.
+Dopo deploy: ricaricare ATAS/indicatore, attendere `[HISTORICAL_FLOW_FINISH]`, validare `[MR_ENTRY]` / `[MR_EXIT]` e aggiornare `CHANGELOG-AGENT.md` con poche righe.
 
 ## Regole Di Documentazione
 
