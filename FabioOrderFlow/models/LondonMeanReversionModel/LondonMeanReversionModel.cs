@@ -45,6 +45,10 @@ namespace FabioOrderFlow
         private const decimal DuplicateBasePositionPocTolerancePoints = 4m;
         private const decimal DuplicateBasePositionValueEdgeTolerancePoints = 8m;
         private const bool EnableHistoricalIntrabarFromCumulativeTrades = true;
+        private static readonly bool OperationalCoreMeanReversionOnly = true;
+        private static readonly bool EnableOperationalFollowThroughTriggers = false;
+        private static readonly bool EnableOperationalFollowThroughContinuation = false;
+        private static readonly bool EnableOperationalFollowThroughSecondLegAuction = false;
         private const int HistoricalStudyProgressBarStep = 100;
         private const int HistoricalStudyProgressTradeStep = 50000;
         private const int LiveHeartbeatTradeStep = 25;
@@ -279,6 +283,7 @@ namespace FabioOrderFlow
             _historicalStudyDebugEnabled = _historicalStudyDebugDays.Count > 0 || File.Exists(_historicalStudyDebugMarkerPath);
             _dailyHistoricalDebugLogsEnabled = _historicalStudyDebugEnabled;
             _log($"[HISTORICAL_STUDY_DEBUG] Enabled={_historicalStudyDebugEnabled}, DailyLogs={_dailyHistoricalDebugLogsEnabled}, DebugDays={FormatHistoricalStudyDebugDays()}, Marker={_historicalStudyDebugMarkerPath}", false);
+            _log($"[MR_OPERATIONAL_MODE] CoreMeanReversionOnly={OperationalCoreMeanReversionOnly}, FollowThroughTriggers={EnableOperationalFollowThroughTriggers}, FollowThroughContinuation={EnableOperationalFollowThroughContinuation}, SecondLegAuction={EnableOperationalFollowThroughSecondLegAuction}, UnclassifiedNormalEntries=False", false);
         }
 
         public void OnBarUpdate(int bar, int currentBar, IndicatorCandle candle)
@@ -786,7 +791,7 @@ namespace FabioOrderFlow
             if (TryProcessDelayedReclaimEntry(trade, entryModel, isHistorical))
                 return;
 
-            if (TryProcessFollowThroughSecondLegAuctionEntry(trade, entryModel, isHistorical))
+            if (EnableOperationalFollowThroughSecondLegAuction && TryProcessFollowThroughSecondLegAuctionEntry(trade, entryModel, isHistorical))
                 return;
 
             foreach (var setup in _activeSetups.Where(s => s.AggressionConfirmed && !s.Expired).ToList())
@@ -803,6 +808,9 @@ namespace FabioOrderFlow
             foreach (var setup in _activeSetups.Where(s => !s.AggressionConfirmed && !s.Expired).ToList())
             {
                 if (!IsTradeInSetupWindow(setup, trade))
+                    continue;
+
+                if (!IsOperationalSetupEnabled(setup, trade))
                     continue;
 
                 if (TryExpireWeakFollowThroughContinuationAcceptance(setup, trade, isHistorical))
@@ -1021,6 +1029,27 @@ namespace FabioOrderFlow
                 return false;
 
             return IsLondonTradeAllowed(trade.Time);
+        }
+
+        private bool IsOperationalSetupEnabled(BalanceSetup setup, CumulativeTrade trade)
+        {
+            if (!OperationalCoreMeanReversionOnly)
+                return true;
+
+            if (IsFollowThroughContinuationSetup(setup))
+                return EnableOperationalFollowThroughContinuation;
+
+            if (IsFollowThroughSecondLegAuctionSetup(setup))
+                return EnableOperationalFollowThroughSecondLegAuction;
+
+            var trigger = GetStudyTriggerLabelAtTime(setup, trade.Time);
+            if (trigger == "POC_RECLAIM_AFTER_LOW_REJECTION" || trigger == "POC_LOSS_AFTER_HIGH_REJECTION")
+                return true;
+
+            if (trigger == "LOW_REJECTION_FOLLOW_THROUGH" || trigger == "HIGH_REJECTION_FOLLOW_THROUGH")
+                return EnableOperationalFollowThroughTriggers;
+
+            return false;
         }
 
         private bool IsAggressionEntry(BalanceSetup setup, CumulativeTrade trade, bool enforceFreshness = true)
@@ -2457,6 +2486,9 @@ namespace FabioOrderFlow
 
         private void UpdateFollowThroughReclaimSetups(int bar, IndicatorCandle candle)
         {
+            if (!EnableOperationalFollowThroughContinuation)
+                return;
+
             var eventTimeUtc = GetCandleEventTime(candle);
             if (!IsInLondonSession(eventTimeUtc))
                 return;

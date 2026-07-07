@@ -37,6 +37,18 @@ Da quel punto il modello e' stato trasformato in implementazione live-first ATAS
    - Log reload con CUM_TRADES_LOOKBACK e HISTORICAL_FLOW_FINISH.
 ```
 
+## Update 2026-07-07 17:20
+
+```text
+Checkpoint e semplificazione modello:
+- Creato checkpoint git d876bf3 e tag checkpoint-london-before-core-only per tornare allo stato multi-day debug prima della semplificazione.
+- Modalita' operativa portata a CoreMeanReversionOnly=true.
+- Operativo ON solo per POC_RECLAIM_AFTER_LOW_REJECTION, POC_LOSS_AFTER_HIGH_REJECTION e delayed reclaim esplicito.
+- Operativo OFF per LOW/HIGH_REJECTION_FOLLOW_THROUGH, FOLLOW_THROUGH_RECLAIM_CONTINUATION e FOLLOW_THROUGH_SECOND_LEG_AUCTION.
+- Bloccate entry normali con StudyTrigger=NONE; resta consentito il delayed reclaim tramite path dedicato.
+- Obiettivo: un solo modello coerente London mean reversion; eventuali modelli London alternativi andranno riattivati come moduli separati/study con contratto esplicito.
+```
+
 ## Update 2026-07-07 16:55
 
 ```text

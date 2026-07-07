@@ -240,6 +240,10 @@ DelayedReclaimMaxOperationalRiskPoints = 120
 DuplicateBasePositionPocTolerancePoints = 4
 DuplicateBasePositionValueEdgeTolerancePoints = 8
 EnableHistoricalIntrabarFromCumulativeTrades = true
+OperationalCoreMeanReversionOnly = true
+EnableOperationalFollowThroughTriggers = false
+EnableOperationalFollowThroughContinuation = false
+EnableOperationalFollowThroughSecondLegAuction = false
 HistoricalStudyDebugDays = [2026-06-29, 2026-06-30, 2026-07-01, 2026-07-02, 2026-07-03, 2026-07-06, 2026-07-07]  day log/study profondo limitato ai 7 giorni chart sotto review
 Daily historical logs                     attivi solo quando e' attivo historical study debug
 EnableFollowThroughStudyLogs = false       study follow-through post-target spenti di default
@@ -274,19 +278,36 @@ In alternativa resta disponibile il marker `%APPDATA%/ATAS/Logs/FabioOrderFlow-e
 
 Se un giorno non ha entry/exit, prima ipotesi da verificare: `CUM_TRADES_LOOKBACK` non include la sessione London di quel giorno.
 
+## Modalita' Operativa Corrente: Core Mean Reversion Only
+
+Il modello operativo live/storico deve essere uno solo e coerente con la mean reversion London:
+
+```text
+ON  POC_RECLAIM_AFTER_LOW_REJECTION
+ON  POC_LOSS_AFTER_HIGH_REJECTION
+ON  DelayedReclaim esplicito e confermato
+OFF LOW/HIGH_REJECTION_FOLLOW_THROUGH come entry operativa autonoma
+OFF FOLLOW_THROUGH_RECLAIM_CONTINUATION come entry operativa autonoma
+OFF FOLLOW_THROUGH_SECOND_LEG_AUCTION come entry operativa autonoma
+OFF entry normale con StudyTrigger=NONE
+```
+
+`FOLLOW_THROUGH_*` resta materiale di studio/debug, non modello operativo. Se verra' reintrodotto, dovra' essere documentato come modello separato o come re-entry post-POC con regole dinamiche esplicite.
+
 ## Log Operativi
 
 Tag operativi reali del modello:
 
 ```text
+[MR_OPERATIONAL_MODE]            stato feature gate: CoreMeanReversionOnly, follow-through OFF/ON
 [MR_SETUP_LONG]                  setup long da sweep sotto VAL + close back inside
 [MR_SETUP_SHORT]                 setup short da sweep sopra VAH + close back inside
-[MR_FOLLOW_THROUGH_RECLAIM_CONTINUATION] setup operativo: sweep fuori value, reclaim successivo, entry continuation oltre POC
-[MR_SECOND_LEG_AUCTION_ARMED]    prima gamba follow-through ha preso VAH/VAL e arma seconda gamba
-[MR_FOLLOW_THROUGH_SECOND_LEG_AUCTION] setup operativo seconda gamba auction
-[MR_SECOND_LEG_AUCTION_CONFIRMED] entry seconda gamba confermata da auction relativa
-[LIVE_FLOW_HEARTBEAT]              heartbeat leggero: primo trade live valido, poi ogni 25 trade validi o almeno ogni 60s; include diagnostica setup/delayed quando attivi
-[MR_FOLLOW_THROUGH_CONTINUATION_WEAK_ACCEPTANCE_EXPIRED] setup follow-through scartato dopo poke in continuation zone senza acceptance minima
+[LIVE_FLOW_HEARTBEAT]            heartbeat leggero: primo trade live valido, poi ogni 25 trade validi o almeno ogni 60s; include diagnostica setup/delayed quando attivi
+[MR_FOLLOW_THROUGH_RECLAIM_CONTINUATION] setup follow-through solo se riabilitato; attualmente OFF operativo
+[MR_SECOND_LEG_AUCTION_ARMED]    diagnostica/contesto seconda gamba; attualmente OFF operativo
+[MR_FOLLOW_THROUGH_SECOND_LEG_AUCTION] setup seconda gamba solo se riabilitato; attualmente OFF operativo
+[MR_SECOND_LEG_AUCTION_CONFIRMED] entry seconda gamba solo se riabilitata; attualmente OFF operativo
+[MR_FOLLOW_THROUGH_CONTINUATION_WEAK_ACCEPTANCE_EXPIRED] setup follow-through scartato dopo poke in continuation zone senza acceptance minima; non atteso in core-only salvo riabilitazione
 [MR_HISTORICAL_TRADES]           cumulative trades storici filtrati
 [MR_ENTRY]                       posizione creata
 [MR_DELAYED_RECLAIM_SETUP]       candidato delayed reclaim
