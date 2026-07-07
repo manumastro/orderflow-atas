@@ -241,12 +241,8 @@ DuplicateBasePositionPocTolerancePoints = 4
 DuplicateBasePositionValueEdgeTolerancePoints = 8
 EnableHistoricalIntrabarFromCumulativeTrades = true
 OperationalCoreMeanReversionOnly = true
-EnableOperationalFollowThroughTriggers = false
-EnableOperationalFollowThroughContinuation = false
-EnableOperationalFollowThroughSecondLegAuction = false
 HistoricalStudyDebugDays = [2026-06-29, 2026-06-30, 2026-07-01, 2026-07-02, 2026-07-03, 2026-07-06, 2026-07-07]  day log/study profondo limitato ai 7 giorni chart sotto review
 Daily historical logs                     attivi solo quando e' attivo historical study debug
-EnableFollowThroughStudyLogs = false       study follow-through post-target spenti di default
 HistoricalStudyDebugMarker = %APPDATA%/ATAS/Logs/FabioOrderFlow-enable-historical-study-debug.flag
 DailyHistoricalDebugLogs = day log operativo minimo sempre attivo
 ```
@@ -286,28 +282,20 @@ Il modello operativo live/storico deve essere uno solo e coerente con la mean re
 ON  POC_RECLAIM_AFTER_LOW_REJECTION
 ON  POC_LOSS_AFTER_HIGH_REJECTION
 ON  DelayedReclaim esplicito e confermato
-OFF LOW/HIGH_REJECTION_FOLLOW_THROUGH come entry operativa autonoma
-OFF FOLLOW_THROUGH_RECLAIM_CONTINUATION come entry operativa autonoma
-OFF FOLLOW_THROUGH_SECOND_LEG_AUCTION come entry operativa autonoma
 OFF entry normale con StudyTrigger=NONE
 ```
 
-`FOLLOW_THROUGH_*` resta materiale di studio/debug, non modello operativo. Se verra' reintrodotto, dovra' essere documentato come modello separato o come re-entry post-POC con regole dinamiche esplicite.
+Il codice operativo non contiene piu' famiglie follow-through/seconda-gamba/auction. Quelle idee sono parcheggiate fuori da questo modello: se verranno riprese, dovranno nascere come modello separato con contratto, log e validazione propri.
 
 ## Log Operativi
 
 Tag operativi reali del modello:
 
 ```text
-[MR_OPERATIONAL_MODE]            stato feature gate: CoreMeanReversionOnly, follow-through OFF/ON
+[MR_OPERATIONAL_MODE]            stato core-only e trigger ammessi
 [MR_SETUP_LONG]                  setup long da sweep sotto VAL + close back inside
 [MR_SETUP_SHORT]                 setup short da sweep sopra VAH + close back inside
 [LIVE_FLOW_HEARTBEAT]            heartbeat leggero: primo trade live valido, poi ogni 25 trade validi o almeno ogni 60s; include diagnostica setup/delayed quando attivi
-[MR_FOLLOW_THROUGH_RECLAIM_CONTINUATION] setup follow-through solo se riabilitato; attualmente OFF operativo
-[MR_SECOND_LEG_AUCTION_ARMED]    diagnostica/contesto seconda gamba; attualmente OFF operativo
-[MR_FOLLOW_THROUGH_SECOND_LEG_AUCTION] setup seconda gamba solo se riabilitato; attualmente OFF operativo
-[MR_SECOND_LEG_AUCTION_CONFIRMED] entry seconda gamba solo se riabilitata; attualmente OFF operativo
-[MR_FOLLOW_THROUGH_CONTINUATION_WEAK_ACCEPTANCE_EXPIRED] setup follow-through scartato dopo poke in continuation zone senza acceptance minima; non atteso in core-only salvo riabilitazione
 [MR_HISTORICAL_TRADES]           cumulative trades storici filtrati
 [MR_ENTRY]                       posizione creata
 [MR_DELAYED_RECLAIM_SETUP]       candidato delayed reclaim
@@ -318,8 +306,7 @@ Tag operativi reali del modello:
 [MR_MFE_UPDATE]                  nuovo massimo favorevole
 [MR_EXIT]                        exit finale; PnL blended se POC raggiunto
 [MR_MISSED_OPPORTUNITY]          setup non entrato con motivo, solo debug profondo
-[MR_STUDY_TRIGGER]               follow-through/POC reclaim solo diagnostico
-[MR_STUDY_CONTINUATION_ENTRY]    continuation oltre POC solo study
+[MR_STUDY_TRIGGER]               POC reclaim/loss trigger diagnostico
 ```
 
 Tag reload/studio principali:
@@ -339,182 +326,28 @@ Tag reload/studio principali:
 [DAY_STUDY_POC_MANAGEMENT]             confronto POC all-out / 70-30 / full runner protetto, solo debug profondo
 [DAY_STUDY_BIG_TRADE]                  big trades London diagnostici, solo debug profondo e filtrabili per giorno
 [DAY_STUDY_SETUP_BLOCKED]              barra setup-ready ma bloccata dal gating attuale
-[DAY_STUDY_FOLLOWTHROUGH_RECLAIM]      studio sweep su barra precedente + reclaim su barra successiva, con confronto entry zone vs continuation zone
-[FOLLOWTHROUGH_TARGET_DECISION_STUDY]  studio compatto post-VAH/VAL per continuation Fabio-style
-[FOLLOWTHROUGH_SECOND_LEG_STRUCTURE_STUDY] studio osservazionale su seconda gamba e developing POC/nuova struttura
-[FOLLOWTHROUGH_SECOND_LEG_FILTER_STUDY] filtro osservazionale live-candidate per seconda gamba Fabio-style
-[FOLLOWTHROUGH_POST_TARGET_OPPORTUNITY_STUDY] classifica tutte le occasioni post-target, anche senza re-entry candidate
-[FOLLOWTHROUGH_ALTERNATIVE_SECOND_LEG_STUDY] simula ingressi alternativi su pullback hold / POC migration / best same trade
-[FOLLOWTHROUGH_SECOND_LEG_AUCTION_STUDY] lettura dinamica relativa di auction acceptance per seconda gamba
 ```
 
-## Famiglia Entry: Follow-Through Reclaim Continuation
+## Modelli Parcheggiati Fuori Dal Core
 
-Seconda famiglia operativa separata dalla mean reversion base.
+La semplificazione core-only ha rimosso dal codice operativo e dagli study interni le famiglie precedenti di follow-through, seconda gamba e auction continuation.
+
+Motivo:
 
 ```text
-SetupSource = FollowThroughReclaimContinuation
-Setup log   = [MR_FOLLOW_THROUGH_RECLAIM_CONTINUATION]
-Trigger     = FOLLOW_THROUGH_RECLAIM_CONTINUATION_LONG/SHORT
-Entry zone  = continuation oltre POC
-Long        = POC <= entry <= VAH
-Short       = POC >= entry >= VAL
-Target1     = POC
-Target2     = VAH per Long, VAL per Short
-Stop        = sweep low/high +/- StopOffsetTicks
+- il 2026-06-30 quelle logiche hanno catturato profitti importanti;
+- dopo il 2026-06-30 hanno generato loss e comportamento misto;
+- mescolare mean reversion e continuation nello stesso modello rende il codice e la validazione ambigui.
 ```
 
-Contratto:
+Checkpoint utili:
 
 ```text
-1. una barra fa sweep fuori value e chiude ancora fuori value;
-2. una barra successiva reclaima dentro value;
-3. il setup viene creato sul reclaim;
-4. l'entry avviene solo con cumulative trade nella direzione del setup, in continuation zone, RR >= MinRewardRiskToTarget2;
-5. per la prima gamba follow-through l'entry deve mostrare acceptance oltre POC: almeno 12% della distanza POC->VAH/VAL verso il target;
-6. se una trade coerente entra in continuation zone ma non raggiunge questa acceptance minima, il setup viene scartato con `[MR_FOLLOW_THROUGH_CONTINUATION_WEAK_ACCEPTANCE_EXPIRED]`;
-7. gestione posizione e PnL restano nel core standard: [MR_ENTRY], [MR_TARGET1_HIT], [MR_EXIT].
+checkpoint-london-before-core-only  stato pre-semplificazione/study multi-day
+london-core-only                    baseline operativa core-only
 ```
 
-Gli outcome di questa famiglia si leggono da `[MR_EXIT]` su tutti i giorni del lookback, senza attivare debug giornaliero. Il debug giornaliero serve solo per i dettagli `DAY_STUDY_*`.
-
-### Seconda Gamba Live: Auction
-
-La seconda gamba immediata e' ora parte del core operativo.
-
-```text
-SetupSource = FollowThroughSecondLegAuction
-Setup log   = [MR_FOLLOW_THROUGH_SECOND_LEG_AUCTION]
-Trigger     = FOLLOW_THROUGH_SECOND_LEG_AUCTION_LONG/SHORT
-Management  = FOLLOW_THROUGH_SECOND_LEG_AUCTION
-Entry       = trade coerente oltre VAH/VAL entro 5 minuti dalla prima exit target2
-Conferme    = pullback-hold su barra chiusa + volume forte relativo al decision window
-Stop        = dietro decision area, cappato al 50% della distanza decision area/old POC
-Exit        = stop/invalidation oppure London close
-```
-
-Criteri causali principali:
-
-```text
-1. prima gamba FollowThroughReclaimContinuation chiude a TARGET2_HIT su VAH/VAL;
-2. si arma [MR_SECOND_LEG_AUCTION_ARMED];
-3. una barra chiusa mostra pullback-hold della decision area;
-4. entro 5 minuti arriva cumulative trade coerente oltre decision area;
-5. il trade deve essere forte rispetto al decision window: volume rank >= 0,90 e volume >= 2x mediana window;
-6. entry reale [MR_ENTRY] con trigger FOLLOW_THROUGH_SECOND_LEG_AUCTION_*.
-```
-
-Non sono live: runner passivo, ingresso su sola POC migration, best same trade generico, pullback-hold alternativo. Restano ipotesi study.
-
-### Study Post-Target Fabio-Style
-
-Gli study follow-through post-target sono disabilitati di default con `EnableFollowThroughStudyLogs=false`.
-
-`[FOLLOWTHROUGH_TARGET_DECISION_STUDY]` viene scritto per le exit storiche della famiglia `FollowThroughReclaimContinuation` solo quando gli study sono riattivati.
-
-Scopo: trattare VAH/VAL come area decisionale, non come target finale fisso.
-
-Campi principali:
-
-```text
-DecisionTime                 momento in cui VAH/VAL viene colpita
-MfeAfterDecision/MaeAfterDecision
-Same60/Opp60, Same120/Opp120, Same300/Opp300
-CloseBeyond*/CloseBackInside*
-Accept60/Accept120/Accept300
-RunnerStopDecisionOutcome    runner da VAH/VAL con stop subito dietro decision area
-RunnerStopPocOutcome         runner da VAH/VAL con stop dietro POC
-ReentryCandidate             true se esiste una seconda gamba causale entro 5m dopo acceptance oltre VAH/VAL
-Reentry                      dettagli e outcome osservazionale della seconda gamba
-FabioBias                    SECOND_LEG_CANDIDATE se ReentryCandidate=true, altrimenti TAKE_TARGET_NO_SECOND_LEG
-```
-
-Interpretazione: Fabio-style significa prendere/rendere risk-free sul target veloce, poi seconda gamba solo con nuova conferma order-flow oltre VAH/VAL.
-
-### Study Seconda Gamba Strutturale
-
-`[FOLLOWTHROUGH_SECOND_LEG_STRUCTURE_STUDY]` viene scritto solo quando lo study precedente trova `ReentryCandidate=True`.
-
-Scopo: capire se la seconda gamba punta a una nuova struttura, non solo a `1R`. Questo e' osservazionale e non modifica il live.
-
-Campi principali:
-
-```text
-ReentryTime/ReentryPrice/ReentryVolume
-OldDecisionPrice/OldPOC
-MfeAfterReentry/MaeAfterReentry
-ClosesBeyondOldDecision/ClosesBackInsideOldDecision/WicksBackInsideOldDecision
-FirstMigratedPoc          primo momento in cui il developing POC migra nella direzione della continuation
-FinalPOC/FinalVAH/FinalVAL struttura finale osservata entro London session
-ReachedFinalPOC/FinalPOCTouchTime/PnlToFinalPOC
-ReachedFinalVAH/PnlToFinalVAH
-ReachedFinalVAL/PnlToFinalVAL
-LondonClose/LondonClosePnL
-```
-
-Uso: distinguere una seconda gamba che punta a nuova distribuzione/developing POC da una semplice estensione breve. Sul 2026-06-30 il caso atteso e' re-entry long sopra VAH con successiva migrazione POC verso area 30350.
-
-`[FOLLOWTHROUGH_SECOND_LEG_FILTER_STUDY]` applica un filtro osservazionale alla seconda gamba:
-
-```text
-StrongReentryVolume       ReentryVolume >= 30
-OldDecisionHolds          nessun close/wick torna dentro la vecchia decision area
-InitialMaeContained       MAE prime 3 barre <= 0,75R della re-entry
-PocMigrated               developing POC migra nella direzione della continuation
-StructureTarget           FINAL_POC osservazionale
-PassesStructureFilter     true solo se tutti i criteri passano e il target strutturale e' profittevole
-FilterFailures            motivi di scarto
-```
-
-Questo tag non apre trade live. Serve a validare quando la seconda gamba puo' diventare una regola operativa.
-
-`[FOLLOWTHROUGH_POST_TARGET_OPPORTUNITY_STUDY]` viene scritto per ogni follow-through che raggiunge VAH/VAL e serve a spiegare perche' molte estensioni post-target non diventano `ReentryCandidate`.
-
-Classificazioni principali:
-
-```text
-IMMEDIATE_BIG_TRADE                    re-entry candidate gia' rilevata
-PULLBACK_HOLD_AND_POC_MIGRATION         pullback tiene decision area e poi POC migra
-POC_MIGRATION_CONFIRMATION              POC migra senza re-entry immediata
-BREAKOUT_ACCEPTANCE_NO_REENTRY          close oltre decision area ma niente re-entry
-PRESSURE_EXTENSION_NO_STRUCTURE         pressione favorevole e MFE, ma senza struttura
-MFE_ONLY_NO_CONFIRMATION                estensione senza conferme di auction
-NO_SECOND_LEG                           nessuna estensione utile
-```
-
-Campi principali: `FirstCloseBeyondDecision`, `FirstPullbackHold`, `FirstPocMigration`, `BestSameTrade`, pressione same/opposite e `OpportunityReason`.
-
-`[FOLLOWTHROUGH_ALTERNATIVE_SECOND_LEG_STUDY]` viene scritto per `OpportunityReason=ALTERNATIVE_SECOND_LEG_FORM` e simula tre ingressi osservazionali:
-
-```text
-PullbackEntry        ingresso alla close della barra che testa e tiene la decision area
-PocMigrationEntry    ingresso alla close della barra in cui il POC migra nella direzione
-BestSameTradeEntry   ingresso sul miglior big trade coerente entro 15m
-```
-
-Per ogni ingresso misura `ReachedFinalPOC`, `PnlToFinalPOC`, `LondonClosePnL`, `MFE`, `MAE` e `BestAlternativeMode`. Non e' live.
-
-`[FOLLOWTHROUGH_SECOND_LEG_AUCTION_STUDY]` affianca il filtro statico con metriche relative al contesto, piu' vicine a una lettura Fabio-style:
-
-```text
-DayVolumeRankPct              rank del volume re-entry tra i big trade della giornata fino alla re-entry
-DecisionWindowVolumeRankPct   rank del volume re-entry tra i big trade tra decision area e re-entry
-ReentryVsDecisionMedian       rapporto volume re-entry / mediana del decision window
-DecisionSame/DecisionOpp      pressione tra decision area e re-entry
-PostSame/PostOpp              pressione tra re-entry e prima migrazione POC o fine sessione
-PostSameShare                 quota volume coerente post re-entry
-ImpulseFromDecision           distanza decision area -> re-entry
-PullbackVsImpulse             MAE iniziale / impulso
-HoldScore/WickHoldScore       tenuta relativa della vecchia decision area
-VolumeBeyondOldDecision       volume barre chiuse oltre decision area
-VolumeBackInsideOldDecision   volume barre tornate dentro
-BarsToPocMigration            rapidita' della migrazione POC
-PocMigrationDistance*         distanza POC migrato rispetto a old decision/old POC
-AuctionScore                  score continuo 0..1, non regola live
-AuctionRead                   NEW_AUCTION_ACCEPTED, WEAK_BREAK_NO_ACCEPTANCE, OPPOSITE_ABSORPTION, NO_POC_MIGRATION, OPPOSITE_AUCTION_ACCEPTED, MIXED_AUCTION
-```
-
-Uso: studiare evidenze relative, non soglie assolute. Questo e' il candidato principale per capire come trasformare la seconda gamba in regola live non arbitraria.
+Per recuperare il tema 30/06 non riabilitare codice dentro `LondonMeanReversionModel`: creare un modello separato, per esempio `LondonAuctionContinuationModel`, con trigger, gestione, log e parser PnL dedicati.
 
 ## PnL E Parser
 

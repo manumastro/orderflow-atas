@@ -37,6 +37,18 @@ Da quel punto il modello e' stato trasformato in implementazione live-first ATAS
    - Log reload con CUM_TRADES_LOOKBACK e HISTORICAL_FLOW_FINISH.
 ```
 
+## Update 2026-07-07 18:10
+
+```text
+Cleanup core-only post semplificazione:
+- Rimosso dal codice LondonMeanReversionModel il layer follow-through / seconda gamba / auction continuation rimasto parcheggiato dopo core-only.
+- Rimossi flag e contesti non piu' operativi: EnableOperationalFollowThrough*, EnableFollowThroughStudyLogs, FollowThroughSweepContext, PendingSecondLegAuction.
+- Rimossi trigger/setup/log non piu' parte del modello: LOW/HIGH_REJECTION_FOLLOW_THROUGH, FOLLOW_THROUGH_RECLAIM_CONTINUATION, FOLLOW_THROUGH_SECOND_LEG_AUCTION, MR_STUDY_CONTINUATION_ENTRY e study post-target correlati.
+- IsOperationalSetupEnabled ora ammette solo POC_RECLAIM_AFTER_LOW_REJECTION e POC_LOSS_AFTER_HIGH_REJECTION; delayed reclaim resta sul path dedicato.
+- Documentazione modello aggiornata: il recupero dei profitti 30/06 andra' fatto in un modello separato, non reinserendo continuation nel core mean reversion.
+- Build Release completata con 0 warning / 0 errori.
+```
+
 ## Update 2026-07-07 17:20
 
 ```text
