@@ -42,6 +42,8 @@ namespace FabioOrderFlow
         private readonly List<TradeRecord> _completedTrades = new();
         private readonly HashSet<string> _setupKeys = new();
         private readonly Dictionary<string, decimal> _liveTradeMaxVolumeByKey = new();
+        private readonly Dictionary<string, int> _entryRejectCounts = new();
+        private readonly Dictionary<string, int> _setupExpirationCounts = new();
         private long _liveAcceptedTradeCount;
         private DateTime _lastLiveHeartbeatUtc = DateTime.MinValue;
         private bool _processingHistoricalReplay;
@@ -100,10 +102,16 @@ namespace FabioOrderFlow
             _processingHistoricalReplay = true;
             _completedTrades.Clear();
             _activePositions.Clear();
+            _entryRejectCounts.Clear();
+            _setupExpirationCounts.Clear();
             foreach (var setup in _activeSetups)
+            {
                 setup.AggressionConfirmed = false;
+                setup.Expired = false;
+                setup.PocTouched = false;
+            }
 
-            _log($"[HISTORICAL_FLOW_PROCESS_START] Model=FabioLondonMeanReversionCore, StartBar={startBar}, EndBar={endBar}, StoredTrades={_historicalTrades.Count}, ActiveSetups={_activeSetups.Count}", false);
+            _log($"[HISTORICAL_FLOW_PROCESS_START] Model=FabioLondonMeanReversionCore, StartBar={startBar}, EndBar={endBar}, StoredTrades={_historicalTrades.Count}, ActiveSetups={_activeSetups.Count}, ReplayStateReset=True", false);
 
             try
             {
@@ -115,11 +123,13 @@ namespace FabioOrderFlow
                     if (trade.Volume >= LondonBigTradeVolume)
                         ProcessAggressionTrade(trade, "Historical", true);
 
+                    ExpireSetupsOnPocTouchFromTrade(trade, true);
                     UpdateOpenPositionsFromTrade(trade, true);
                 }
 
                 CloseOpenPositionsAtLondonClose();
                 var durationMs = (DateTime.UtcNow - startedUtc).TotalMilliseconds;
+                LogReplayAudit();
                 _log($"[HISTORICAL_FLOW_FINISH] Model=FabioLondonMeanReversionCore, StartBar={startBar}, EndBar={endBar}, StoredTrades={_historicalTrades.Count}, Entries={_activePositions.Count}, ClosedPositions={_activePositions.Count(p => p.Closed)}, OpenPositions={_activePositions.Count(p => !p.Closed)}, CompletedTrades={_completedTrades.Count}, ProcessDurationMs={durationMs:F0}", false);
             }
             finally
@@ -259,6 +269,7 @@ namespace FabioOrderFlow
                 {
                     setup.PocTouched = true;
                     setup.Expired = true;
+                    RecordSetupExpiration("POC_TOUCHED_BY_BAR");
                     _log($"[MR_SETUP_EXPIRED] ExecutionMode={GetExecutionMode(IsHistoricalContext(bar))}, SetupId={setup.SetupId}, Reason=POC_TOUCHED_BEFORE_ENTRY, Direction={setup.Direction}, Bar={bar}, {FormatTime(eventTime)}, POC={setup.POC:F2}", IsHistoricalContext(bar));
                 }
             }
@@ -274,7 +285,11 @@ namespace FabioOrderFlow
                 .ToList())
             {
                 if (!IsEntryCandidate(setup, trade, out var reason, out var risk, out var reward, out var rr))
+                {
+                    if (reason != "TRADE_BEFORE_REJECTION")
+                        RecordEntryReject(reason);
                     continue;
+                }
 
                 setup.AggressionConfirmed = true;
                 CreatePosition(setup, trade, mode, isHistorical, risk, reward, rr);
@@ -299,6 +314,7 @@ namespace FabioOrderFlow
             {
                 reason = "SETUP_STALE";
                 setup.Expired = true;
+                RecordSetupExpiration("TIMEOUT_BY_TRADE");
                 return false;
             }
 
@@ -479,7 +495,71 @@ namespace FabioOrderFlow
         private void ExpireSetups(DateTime eventTimeUtc)
         {
             foreach (var setup in _activeSetups.Where(s => !s.Expired && !s.AggressionConfirmed && eventTimeUtc > s.RejectionTimeUtc.AddSeconds(EntryTimeoutSeconds)))
+            {
                 setup.Expired = true;
+                RecordSetupExpiration("TIMEOUT");
+            }
+        }
+
+        private void ExpireSetupsOnPocTouchFromTrade(CumulativeTrade trade, bool isHistorical)
+        {
+            var high = Math.Max(trade.FirstPrice, trade.Lastprice);
+            var low = Math.Min(trade.FirstPrice, trade.Lastprice);
+            foreach (var setup in _activeSetups.Where(s => !s.Expired && !s.PocTouched && !s.AggressionConfirmed).ToList())
+            {
+                if (trade.Time <= setup.RejectionTimeUtc)
+                    continue;
+
+                if (!HasTouchedPoc(setup, high, low))
+                    continue;
+
+                setup.PocTouched = true;
+                setup.Expired = true;
+                RecordSetupExpiration("POC_TOUCHED_BY_TRADE");
+                _log($"[MR_SETUP_EXPIRED] ExecutionMode={GetExecutionMode(isHistorical)}, SetupId={setup.SetupId}, Reason=POC_TOUCHED_BEFORE_ENTRY_BY_TRADE, Direction={setup.Direction}, Bar={FindBarByTime(trade.Time, setup.RejectionBar)}, {FormatTime(trade.Time)}, POC={setup.POC:F2}, TradeFirst={trade.FirstPrice:F2}, TradeLast={trade.Lastprice:F2}, Volume={trade.Volume:F0}", isHistorical);
+            }
+        }
+
+        private void RecordEntryReject(string reason)
+        {
+            if (!_processingHistoricalReplay)
+                return;
+
+            _entryRejectCounts.TryGetValue(reason, out var count);
+            _entryRejectCounts[reason] = count + 1;
+        }
+
+        private void RecordSetupExpiration(string reason)
+        {
+            if (!_processingHistoricalReplay)
+                return;
+
+            _setupExpirationCounts.TryGetValue(reason, out var count);
+            _setupExpirationCounts[reason] = count + 1;
+        }
+
+        private void LogReplayAudit()
+        {
+            _log($"[MR_REPLAY_AUDIT] ActiveSetups={_activeSetups.Count}, Entries={_activePositions.Count}, ClosedPositions={_activePositions.Count(p => p.Closed)}, OpenPositions={_activePositions.Count(p => !p.Closed)}, EntryRejects={FormatCounts(_entryRejectCounts)}, Expirations={FormatCounts(_setupExpirationCounts)}", false);
+
+            foreach (var setup in _activeSetups.OrderBy(s => s.RejectionTimeUtc))
+            {
+                if (setup.AggressionConfirmed)
+                    continue;
+
+                var finalState = setup.Expired
+                    ? setup.PocTouched ? "EXPIRED_POC_TOUCHED" : "EXPIRED_TIMEOUT"
+                    : "NO_VALID_BIG_TRADE";
+                _log($"[MR_SETUP_NO_ENTRY] SetupId={setup.SetupId}, Direction={setup.Direction}, Source={setup.Source}, Bar={setup.RejectionBar}, {FormatTime(setup.RejectionTimeUtc)}, FinalState={finalState}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}, Stop={setup.StopPrice:F2}, TargetPOC={setup.TargetPrice:F2}", true);
+            }
+        }
+
+        private static string FormatCounts(Dictionary<string, int> counts)
+        {
+            if (counts.Count == 0)
+                return "none";
+
+            return string.Join("|", counts.OrderByDescending(kv => kv.Value).ThenBy(kv => kv.Key).Select(kv => $"{kv.Key}:{kv.Value}"));
         }
 
         private void UpdatePositionTracking(ActivePosition position, decimal high, decimal low)

@@ -1,5 +1,21 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Fix 2026-07-07 - Historical replay setup state
+
+```text
+Analisi dopo reload core pulito:
+- I setup venivano creati durante la scansione barre storiche.
+- Alcuni setup venivano poi marcati Expired/PocTouched da barre future prima che arrivasse il replay dei cumulative trades.
+- Quando OnCumulativeTradesResponse processava i trade storici, trovava quindi setup gia' scaduti.
+- In live invece i cumulative trades arrivano temporalmente prima delle barre future.
+
+Fix:
+- ProcessHistoricalPositions ora resetta AggressionConfirmed/Expired/PocTouched prima del replay.
+- Il replay storico scorre poi i cumulative trades in ordine temporale.
+- Aggiunta invalidazione POC da trade durante replay: POC_TOUCHED_BEFORE_ENTRY_BY_TRADE.
+- Aggiunto audit pulito: [MR_REPLAY_AUDIT] e [MR_SETUP_NO_ENTRY] per capire perche' un setup non entra.
+```
+
 ## Reload 2026-07-07 19:19 - Core Clean Validated
 
 ```text
