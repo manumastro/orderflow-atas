@@ -1,5 +1,19 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Reload 2026-07-07 19:19 - Core Clean Validated
+
+```text
+Reload dopo reset Fabio core:
+- [MR_MODE] presente: Model=FabioLondonMeanReversionCore, Modes=LIVE|HISTORICAL, BigTradeVolume=20, Target=POC_FULL_EXIT.
+- [CUM_TRADES_RESPONSE] Count=1.346.471.
+- [MR_HISTORICAL_TRADES] Count=1.346.471, BeginItaly=2026-06-30 00:00:00, EndItaly=2026-07-07 19:19:34.
+- [HISTORICAL_FLOW_FINISH] Entries=0, ClosedPositions=0, OpenPositions=0, CompletedTrades=0.
+- Setup trovati: 10 long, 15 short; 21 scaduti per POC toccato prima di entry.
+- Nessun log residuo di DAY_STUDY, delayed reclaim, secondary rejection, pressure gate, historical intrabar, follow-through, second-leg, target2, scale-in.
+- PnL da [MR_EXIT]: 0,00 perche' non ci sono entry valide nel core pulito.
+- Rimossi dal filesystem i vecchi file FabioOrderFlow-days, ormai obsoleti e confondenti.
+```
+
 ## Baseline 2026-07-07 - Fabio London Mean Reversion Core Clean
 
 Decisione operativa richiesta: ripulire completamente `LondonMeanReversionModel` e lasciare una sola tipologia di entry, coerente con il transcript Fabio.
