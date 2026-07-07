@@ -37,6 +37,17 @@ Da quel punto il modello e' stato trasformato in implementazione live-first ATAS
    - Log reload con CUM_TRADES_LOOKBACK e HISTORICAL_FLOW_FINISH.
 ```
 
+## Update 2026-07-07 19:10
+
+```text
+Fase 1/2 attivate direttamente nel path operativo live/replay:
+- Fase 1: aggiunto MR_PRESSURE_GATE sulle entry base, causale e calcolato sui cumulative trades gia' processati tra rejection e candidate trade.
+- Gate blocca solo pressione opposta chiaramente dominante: OppositeVolume >= SameVolume * 1,25 e MaxOpposite >= MaxSame con almeno 30 contratti osservati.
+- Fase 2: aggiunto SetupSource=SecondaryValueRejection con log MR_SECONDARY_VALUE_REJECTION_SETUP.
+- SecondaryValueRejection usa lo stesso path live/bar-update e historical replay; non dipende da outcome study.
+- Entry secondarie restano vincolate a POC reclaim/loss, entry zone, RR, duplicate guard e pressure gate.
+```
+
 ## Update 2026-07-07 19:00
 
 ```text

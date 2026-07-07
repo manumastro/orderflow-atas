@@ -30,6 +30,10 @@ namespace FabioOrderFlow
         private const decimal DelayedReclaimMaxOperationalRiskPoints = 120m;
         private const decimal DuplicateBasePositionPocTolerancePoints = 4m;
         private const decimal DuplicateBasePositionValueEdgeTolerancePoints = 8m;
+        private static readonly bool EnableOperationalPressureGate = true;
+        private const decimal PressureGateMinObservedVolume = 30m;
+        private const decimal PressureGateOppositeDominanceRatio = 1.25m;
+        private static readonly bool EnableOperationalSecondaryValueRejection = true;
         private static readonly bool EnableHistoricalIntrabarFromCumulativeTrades = false;
         private static readonly bool OperationalCoreMeanReversionOnly = true;
         private const int HistoricalStudyProgressBarStep = 100;

@@ -38,6 +38,9 @@ namespace FabioOrderFlow
                 if (!IsAggressionEntry(setup, trade))
                     continue;
 
+                if (!PassOperationalPressureGate(setup, trade, entryModel, isHistorical))
+                    continue;
+
                 setup.AggressionConfirmed = true;
                 var resolvedEntryModel = setup.SetupSource == "HistoricalIntrabar" && entryModel == "FootprintCumulativeTradeHistorical"
                     ? "FootprintCumulativeTradeHistoricalIntrabar"
@@ -102,6 +105,47 @@ namespace FabioOrderFlow
                 return false;
 
             return IsLondonTradeAllowed(trade.Time);
+        }
+
+        private bool PassOperationalPressureGate(BalanceSetup setup, CumulativeTrade trade, string entryModel, bool isHistorical)
+        {
+            if (!EnableOperationalPressureGate)
+                return true;
+
+            var expectedDirection = setup.Direction == "Long" ? TradeDirection.Buy : TradeDirection.Sell;
+            var oppositeDirection = setup.Direction == "Long" ? TradeDirection.Sell : TradeDirection.Buy;
+            var source = _processedAggressionTrades
+                .Where(t => t.Time > setup.RejectionTimeUtc && t.Time <= trade.Time)
+                .Where(t => t.Volume >= MinAggressionVolume)
+                .ToList();
+
+            if (source.Count == 0)
+                source.Add(trade);
+
+            var same = source.Where(t => t.Direction == expectedDirection).ToList();
+            var opposite = source.Where(t => t.Direction == oppositeDirection).ToList();
+            var sameVolume = same.Sum(t => t.Volume);
+            var oppositeVolume = opposite.Sum(t => t.Volume);
+            var maxSame = same.Count == 0 ? 0 : same.Max(t => t.Volume);
+            var maxOpposite = opposite.Count == 0 ? 0 : opposite.Max(t => t.Volume);
+            var observedVolume = sameVolume + oppositeVolume;
+            var hasEnoughSample = observedVolume >= PressureGateMinObservedVolume;
+            var oppositeDominates = hasEnoughSample
+                && oppositeVolume >= sameVolume * PressureGateOppositeDominanceRatio
+                && maxOpposite >= maxSame;
+            var decision = oppositeDominates ? "BLOCK" : "PASS";
+            var reason = !hasEnoughSample
+                ? "INSUFFICIENT_SAMPLE"
+                : oppositeDominates
+                    ? "OPPOSITE_PRESSURE_DOMINANT"
+                    : "PRESSURE_OK";
+
+            var message = $"[MR_PRESSURE_GATE] SetupId={setup.SetupId}, EntryModel={entryModel}, {GetLogContractFields(isHistorical, setup)}, Decision={decision}, Reason={reason}, Direction={setup.Direction}, {FormatTime(trade.Time)}, EntryPrice={trade.Lastprice:F2}, TradeVolume={trade.Volume:F0}, SameTrades={same.Count}, SameVolume={sameVolume:F0}, MaxSameVolume={maxSame:F0}, OppositeTrades={opposite.Count}, OppositeVolume={oppositeVolume:F0}, MaxOppositeVolume={maxOpposite:F0}, ObservedVolume={observedVolume:F0}, MinObservedVolume={PressureGateMinObservedVolume:F0}, OppositeDominanceRatio={PressureGateOppositeDominanceRatio:F2}";
+            _log(message, isHistorical);
+            if (entryModel.Contains("Historical", StringComparison.Ordinal))
+                DailyHistoricalLog(message, trade.Time);
+
+            return !oppositeDominates;
         }
 
         private bool IsOperationalSetupEnabled(BalanceSetup setup, CumulativeTrade trade)

@@ -105,6 +105,46 @@ namespace FabioOrderFlow
                 StudyLog($"[DAY_STUDY_SETUP] SetupId={setup.SetupId}, Source={setup.SetupSource}, Tag={tag}, Direction={setup.Direction}, Bar={setup.RejectionBar}, {FormatTime(setup.RejectionTimeUtc)}, BreakoutPrice={setup.BreakoutPrice:F2}, RejectionClose={setup.RejectionClose:F2}, RejectionHigh={setup.RejectionHigh:F2}, RejectionLow={setup.RejectionLow:F2}, RejectionDelta={setup.RejectionDelta:F2}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}, Stop={setup.StopPrice:F2}, TargetPOC={setup.TargetPrice:F2}", setup.RejectionTimeUtc);
         }
 
+        private void DetectSecondaryValueRejectionSetups(int bar, IndicatorCandle candle)
+        {
+            if (!EnableOperationalSecondaryValueRejection || !IsInLondonSession(candle.Time))
+                return;
+
+            if (TryCreateSecondaryHighRejectionSetup(bar, candle, out var shortSetup) && shortSetup != null)
+                AddSetup(shortSetup, "MR_SECONDARY_VALUE_REJECTION_SETUP");
+
+            if (TryCreateSecondaryLowRejectionSetup(bar, candle, out var longSetup) && longSetup != null)
+                AddSetup(longSetup, "MR_SECONDARY_VALUE_REJECTION_SETUP");
+        }
+
+        private bool TryCreateSecondaryHighRejectionSetup(int bar, IndicatorCandle candle, out BalanceSetup? setup)
+        {
+            setup = null;
+            if (_activeSetups.Any(s => s.RejectionBar == bar && s.Direction == "Short"))
+                return false;
+
+            if (!TryCreateHighRejectionSetup(bar, candle, out var created) || created == null)
+                return false;
+
+            created.SetupSource = "SecondaryValueRejection";
+            setup = created;
+            return true;
+        }
+
+        private bool TryCreateSecondaryLowRejectionSetup(int bar, IndicatorCandle candle, out BalanceSetup? setup)
+        {
+            setup = null;
+            if (_activeSetups.Any(s => s.RejectionBar == bar && s.Direction == "Long"))
+                return false;
+
+            if (!TryCreateLowRejectionSetup(bar, candle, out var created) || created == null)
+                return false;
+
+            created.SetupSource = "SecondaryValueRejection";
+            setup = created;
+            return true;
+        }
+
         private void LogExistingHistoricalSetups()
         {
             foreach (var setup in _activeSetups

@@ -72,8 +72,8 @@ namespace FabioOrderFlow
             _dailyHistoricalDebugLogsEnabled = _historicalStudyDebugEnabled;
             _log($"[HISTORICAL_STUDY_DEBUG] Enabled={_historicalStudyDebugEnabled}, DailyLogs={_dailyHistoricalDebugLogsEnabled}, DebugDays={FormatHistoricalStudyDebugDays()}, Marker={_historicalStudyDebugMarkerPath}", false);
             _log("[MR_LOG_CONTRACT] OperationalLogs=MR_*, StudyLogs=DAY_STUDY_*, HistoricalReplayUsesOperationalEntryPath=True, StudyLogsCanUseFutureOutcome=True, StudyLogsDoNotTrade=True, PnLSource=MR_EXIT_ONLY", false);
-            _log($"[MR_REPLAY_CONTRACT] BarClose=LIVE_SAME_BAR_UPDATE_PATH, DelayedReclaimAccepted=LIVE_SAME_DELAYED_RECLAIM_PATH, HistoricalIntrabar=HISTORICAL_ONLY_DISABLED_BY_LIVE_PARITY, HistoricalIntrabarEnabled={EnableHistoricalIntrabarFromCumulativeTrades}, PreviewRejectionStudy=STUDY_ONLY_NOT_TRADED, DelayedReclaimStudy=STUDY_ONLY_NOT_TRADED", false);
-            _log($"[MR_OPERATIONAL_MODE] CoreMeanReversionOnly={OperationalCoreMeanReversionOnly}, AllowedTriggers=POC_RECLAIM_AFTER_LOW_REJECTION|POC_LOSS_AFTER_HIGH_REJECTION|DELAYED_RECLAIM, UnclassifiedNormalEntries=False", false);
+            _log($"[MR_REPLAY_CONTRACT] BarClose=LIVE_SAME_BAR_UPDATE_PATH, DelayedReclaimAccepted=LIVE_SAME_DELAYED_RECLAIM_PATH, HistoricalIntrabar=HISTORICAL_ONLY_DISABLED_BY_LIVE_PARITY, HistoricalIntrabarEnabled={EnableHistoricalIntrabarFromCumulativeTrades}, SecondaryValueRejection=LIVE_SAME_BAR_UPDATE_PATH, PreviewRejectionStudy=STUDY_ONLY_NOT_TRADED, DelayedReclaimStudy=STUDY_ONLY_NOT_TRADED", false);
+            _log($"[MR_OPERATIONAL_MODE] CoreMeanReversionOnly={OperationalCoreMeanReversionOnly}, AllowedTriggers=POC_RECLAIM_AFTER_LOW_REJECTION|POC_LOSS_AFTER_HIGH_REJECTION|DELAYED_RECLAIM|SECONDARY_VALUE_REJECTION_AFTER_POC_TRIGGER, PressureGate={EnableOperationalPressureGate}, SecondaryValueRejection={EnableOperationalSecondaryValueRejection}, UnclassifiedNormalEntries=False", false);
         }
 
         public void OnBarUpdate(int bar, int currentBar, IndicatorCandle candle)
@@ -82,6 +82,7 @@ namespace FabioOrderFlow
             CaptureHistoricalBarSnapshot(bar, candle);
             LogStudyBar(bar, candle);
             UpdateDelayedReclaimCandidates(bar, candle);
+            DetectSecondaryValueRejectionSetups(bar, candle);
             UpdateStudyTriggers(bar, candle);
             UpdateActivePositions(bar, candle);
         }

@@ -300,6 +300,8 @@ Il modello operativo live/storico deve essere uno solo e coerente con la mean re
 ON  POC_RECLAIM_AFTER_LOW_REJECTION
 ON  POC_LOSS_AFTER_HIGH_REJECTION
 ON  DelayedReclaim esplicito e confermato
+ON  SecondaryValueRejection dopo POC trigger, con stesso path live/replay
+ON  PressureGate operativo sulle entry base
 OFF entry normale con StudyTrigger=NONE
 ```
 
@@ -320,6 +322,8 @@ Tag operativi reali del modello:
 [MR_ENTRY]                       posizione creata
 [MR_DELAYED_RECLAIM_SETUP]       candidato delayed reclaim
 [MR_DELAYED_RECLAIM_ENTRY]       delayed realmente creata, include AcceptanceMode; pressione calcolata sui trade processati causalmente storico/live
+[MR_SECONDARY_VALUE_REJECTION_SETUP] setup secondario live/replay da rejection non necessariamente nuovo high/low London
+[MR_PRESSURE_GATE]               gate causale live/replay: blocca solo pressione opposta dominante
 [MR_ENTRY_SKIPPED]               entry scartata
 [MR_TARGET1_HIT]                 POC raggiunto, stop runner protetto
 [MR_PARTIAL_EXIT]                70% simulato chiuso al POC
@@ -345,12 +349,17 @@ Mapping `SetupSource`:
 ```text
 BarClose                LIVE_SAME_BAR_UPDATE_PATH
 DelayedReclaimAccepted  LIVE_SAME_DELAYED_RECLAIM_PATH
+SecondaryValueRejection LIVE_SAME_BAR_UPDATE_PATH
 HistoricalIntrabar      HISTORICAL_ONLY_DISABLED_BY_LIVE_PARITY
 PreviewRejectionStudy   STUDY_ONLY_NOT_TRADED
 DelayedReclaimStudy     STUDY_ONLY_NOT_TRADED
 ```
 
 Regola per fase 1/2: una nuova idea puo' essere studiata con `DAY_STUDY_*`, ma se deve influire sul risultato deve diventare subito `MR_*` con logica causale live/replay identica. In sviluppo, `ExecutionMode=HISTORICAL_REPLAY` e' il nostro ambiente live simulato.
+
+Fase 1 attiva: `MR_PRESSURE_GATE` e' operativo sulle entry base. Usa solo cumulative trades gia' processati tra rejection e candidate trade; passa se il campione e' insufficiente o se la pressione opposta non domina chiaramente. Blocca solo quando `OppositeVolume >= SameVolume * 1.25` e `MaxOppositeVolume >= MaxSameVolume` con almeno 30 contratti osservati.
+
+Fase 2 attiva: `SecondaryValueRejection` crea setup operativi su barre che fanno rejection di VAH/VAL anche se non sono nuovo high/low assoluto London. La entry resta subordinata a POC reclaim/loss, entry zone, RR, duplicate guard e pressure gate.
 
 Nota legacy: alcuni campi mantengono il nome `StudyTrigger` per compatibilita' parser/log; il campo equivalente chiaro e' `OperationalTrigger`.
 
