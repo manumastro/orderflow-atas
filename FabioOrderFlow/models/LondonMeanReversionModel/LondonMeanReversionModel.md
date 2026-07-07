@@ -37,7 +37,7 @@ Tesi del modello:
 
 ```text
 Transcript Fabio: transcription.txt
-Codice:          LondonMeanReversionModel.cs
+Codice:          LondonMeanReversionModel*.cs partial, separati per responsabilita'
 Livelli:         BalanceZoneTracker.LastPreviewPoc/Vah/Val
 Entry trigger:   ATAS CumulativeTrade live/storici
 ```
@@ -48,7 +48,25 @@ Il codice non e' una trascrizione discrezionale completa del trading live di Fab
 profilo London dinamico -> sweep/reclaim -> big trade coerente -> POC partial -> runner protetto
 ```
 
-Mappa funzioni principali:
+Mappa file principali:
+
+```text
+LondonMeanReversionModel.cs                 orchestratore/stato/entrypoint ATAS
+LondonMeanReversionModel.Config.cs          parametri core
+LondonMeanReversionModel.Types.cs           tipi interni e record study
+LondonMeanReversionModel.Session.cs         London session, time helper, bar lookup
+LondonMeanReversionModel.Setups.cs          sweep/rejection/setup creation
+LondonMeanReversionModel.Entry.cs           entry validation, RR, duplicate guard, CreatePosition
+LondonMeanReversionModel.DelayedReclaim.cs  delayed reclaim causale
+LondonMeanReversionModel.Positions.cs       gestione posizioni, POC partial, exit, PnL
+LondonMeanReversionModel.Historical.cs      historical replay/reload flow
+LondonMeanReversionModel.Live.cs            live heartbeat e diagnostiche live
+LondonMeanReversionModel.Study*.cs          study/debug storico e outcome simulati
+LondonMeanReversionModel.Logging.cs         log storico/day log
+LondonMeanReversionModel.Diagnostics.cs     diagnostiche setup/trade/bar
+```
+
+Mappa flusso principale:
 
 ```text
 OnNewSessionHigh/Low                 crea setup sweep + rejection

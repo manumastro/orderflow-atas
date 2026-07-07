@@ -37,6 +37,21 @@ Da quel punto il modello e' stato trasformato in implementazione live-first ATAS
    - Log reload con CUM_TRADES_LOOKBACK e HISTORICAL_FLOW_FINISH.
 ```
 
+## Update 2026-07-07 18:20
+
+```text
+Reload post-cleanup validato e refactor partial completato:
+- Reload ATAS dopo cleanup: [MR_OPERATIONAL_MODE] mostra CoreMeanReversionOnly=True e AllowedTriggers=POC_RECLAIM_AFTER_LOW_REJECTION|POC_LOSS_AFTER_HIGH_REJECTION|DELAYED_RECLAIM.
+- [HISTORICAL_FLOW_FINISH] presente: StoredTrades=1.316.095, ClosedPositions=5, OpenPositions=0.
+- PnL da [MR_EXIT]: 5 exit, totale +60,44.
+  - NONE delayed reclaim: 2 trade, +65,81.
+  - POC_LOSS_AFTER_HIGH_REJECTION: 2 trade, -17,77.
+  - POC_RECLAIM_AFTER_LOW_REJECTION: 1 trade, +12,40.
+- Nessun residuo log/code di FollowThrough/SecondLeg/FOLLOW_THROUGH/SECOND_LEG/MR_STUDY_CONTINUATION_ENTRY nei file modello/documentazione core.
+- Refactor meccanico senza cambio comportamento: LondonMeanReversionModule trasformato in partial e separato in file per responsabilita' (Config, Types, Session, Setups, Entry, DelayedReclaim, Positions, Historical, Live, Logging, Diagnostics, Study, StudyOutcomes, ScaleStudy, Risk, Triggers).
+- Build Release post-refactor completata con 0 warning / 0 errori e DLL deployata in %APPDATA%/ATAS/Indicators/FabioOrderFlow.dll.
+```
+
 ## Update 2026-07-07 18:10
 
 ```text
