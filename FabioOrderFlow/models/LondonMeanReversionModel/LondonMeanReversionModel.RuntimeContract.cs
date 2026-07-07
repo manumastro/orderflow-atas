@@ -29,7 +29,7 @@ namespace FabioOrderFlow
             {
                 "BarClose" => "LIVE_SAME_BAR_UPDATE_PATH",
                 "DelayedReclaimAccepted" => "LIVE_SAME_DELAYED_RECLAIM_PATH",
-                "HistoricalIntrabar" => "LIVE_INTRABAR_REPLAY_EMULATION",
+                "HistoricalIntrabar" => "HISTORICAL_ONLY_DISABLED_BY_LIVE_PARITY",
                 "DelayedReclaimStudy" => "STUDY_ONLY_NOT_TRADED",
                 "PreviewRejectionStudy" => "STUDY_ONLY_NOT_TRADED",
                 _ => "UNKNOWN"

@@ -72,7 +72,7 @@ namespace FabioOrderFlow
             _dailyHistoricalDebugLogsEnabled = _historicalStudyDebugEnabled;
             _log($"[HISTORICAL_STUDY_DEBUG] Enabled={_historicalStudyDebugEnabled}, DailyLogs={_dailyHistoricalDebugLogsEnabled}, DebugDays={FormatHistoricalStudyDebugDays()}, Marker={_historicalStudyDebugMarkerPath}", false);
             _log("[MR_LOG_CONTRACT] OperationalLogs=MR_*, StudyLogs=DAY_STUDY_*, HistoricalReplayUsesOperationalEntryPath=True, StudyLogsCanUseFutureOutcome=True, StudyLogsDoNotTrade=True, PnLSource=MR_EXIT_ONLY", false);
-            _log("[MR_REPLAY_CONTRACT] BarClose=LIVE_SAME_BAR_UPDATE_PATH, DelayedReclaimAccepted=LIVE_SAME_DELAYED_RECLAIM_PATH, HistoricalIntrabar=LIVE_INTRABAR_REPLAY_EMULATION, PreviewRejectionStudy=STUDY_ONLY_NOT_TRADED, DelayedReclaimStudy=STUDY_ONLY_NOT_TRADED", false);
+            _log($"[MR_REPLAY_CONTRACT] BarClose=LIVE_SAME_BAR_UPDATE_PATH, DelayedReclaimAccepted=LIVE_SAME_DELAYED_RECLAIM_PATH, HistoricalIntrabar=HISTORICAL_ONLY_DISABLED_BY_LIVE_PARITY, HistoricalIntrabarEnabled={EnableHistoricalIntrabarFromCumulativeTrades}, PreviewRejectionStudy=STUDY_ONLY_NOT_TRADED, DelayedReclaimStudy=STUDY_ONLY_NOT_TRADED", false);
             _log($"[MR_OPERATIONAL_MODE] CoreMeanReversionOnly={OperationalCoreMeanReversionOnly}, AllowedTriggers=POC_RECLAIM_AFTER_LOW_REJECTION|POC_LOSS_AFTER_HIGH_REJECTION|DELAYED_RECLAIM, UnclassifiedNormalEntries=False", false);
         }
 

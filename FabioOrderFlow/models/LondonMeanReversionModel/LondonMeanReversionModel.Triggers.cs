@@ -26,7 +26,7 @@ namespace FabioOrderFlow
                     setup.StudyPocTriggerTimeUtc = eventTime;
                     setup.StudyTriggerBar = bar;
                     setup.StudyTriggerTimeUtc = eventTime;
-                    var triggerMessage = $"[MR_STUDY_TRIGGER] SetupId={setup.SetupId}, Direction={setup.Direction}, Trigger={GetPocTriggerLabel(setup)}, Bar={bar}, {FormatTime(eventTime)}, CandidateBar={setup.RejectionBar}, Close={candle.Close:F2}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}";
+                    var triggerMessage = $"[MR_POC_TRIGGER] SetupId={setup.SetupId}, ExecutionMode={(IsHistoricalBar(bar) ? "HISTORICAL_REPLAY" : "LIVE")}, LogicPath={LogicPathOperational}, StudyOnly=False, SetupSource={setup.SetupSource}, LiveParity={GetLiveParityForSetupSource(setup.SetupSource)}, Direction={setup.Direction}, Trigger={GetPocTriggerLabel(setup)}, Bar={bar}, {FormatTime(eventTime)}, CandidateBar={setup.RejectionBar}, Close={candle.Close:F2}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}";
                     _log(triggerMessage, IsHistoricalBar(bar));
                     StudyLog($"[DAY_STUDY_TRIGGER] SetupId={setup.SetupId}, Direction={setup.Direction}, Trigger={GetPocTriggerLabel(setup)}, Bar={bar}, {FormatTime(eventTime)}, CandidateBar={setup.RejectionBar}, Close={candle.Close:F2}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}", eventTime);
                 }

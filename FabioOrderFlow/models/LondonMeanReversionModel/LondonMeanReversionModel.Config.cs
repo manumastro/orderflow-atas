@@ -30,7 +30,7 @@ namespace FabioOrderFlow
         private const decimal DelayedReclaimMaxOperationalRiskPoints = 120m;
         private const decimal DuplicateBasePositionPocTolerancePoints = 4m;
         private const decimal DuplicateBasePositionValueEdgeTolerancePoints = 8m;
-        private const bool EnableHistoricalIntrabarFromCumulativeTrades = true;
+        private static readonly bool EnableHistoricalIntrabarFromCumulativeTrades = false;
         private static readonly bool OperationalCoreMeanReversionOnly = true;
         private const int HistoricalStudyProgressBarStep = 100;
         private const int HistoricalStudyProgressTradeStep = 50000;

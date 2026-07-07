@@ -1,6 +1,6 @@
 # London Mean Reversion Model
 
-Modello attivo di `FabioOrderFlow`. Implementa una versione live-first del modello mean reverting descritto da Fabio Valentino per London sugli indici: mercato in consolidamento, falsa escursione fuori value area, rientro in balance e conferma tramite cumulative big trades.
+Modello attivo di `FabioOrderFlow`. `MR` significa `Mean Reversion`: tutti i tag `MR_*` sono log operativi del modello mean-reversion, live o replay storico della stessa logica. Implementa una versione live-first del modello mean reverting descritto da Fabio Valentino per London sugli indici: mercato in consolidamento, falsa escursione fuori value area, rientro in balance e conferma tramite cumulative big trades.
 
 ## Sintesi Strategica
 
@@ -257,7 +257,7 @@ DelayedReclaimEarlyPressureVolumeRatio = 1.50
 DelayedReclaimMaxOperationalRiskPoints = 120
 DuplicateBasePositionPocTolerancePoints = 4
 DuplicateBasePositionValueEdgeTolerancePoints = 8
-EnableHistoricalIntrabarFromCumulativeTrades = true
+EnableHistoricalIntrabarFromCumulativeTrades = false       disabilitato: era replay storico senza identico path live
 OperationalCoreMeanReversionOnly = true
 HistoricalStudyDebugDays = [2026-06-29, 2026-06-30, 2026-07-01, 2026-07-02, 2026-07-03, 2026-07-06, 2026-07-07]  day log/study profondo limitato ai 7 giorni chart sotto review
 Daily historical logs                     attivi solo quando e' attivo historical study debug
@@ -326,7 +326,7 @@ Tag operativi reali del modello:
 [MR_MFE_UPDATE]                  nuovo massimo favorevole
 [MR_EXIT]                        exit finale; PnL blended se POC raggiunto
 [MR_MISSED_OPPORTUNITY]          setup non entrato con motivo, solo debug profondo
-[MR_STUDY_TRIGGER]               POC reclaim/loss trigger diagnostico
+[MR_POC_TRIGGER]                 POC reclaim/loss trigger operativo/replay
 ```
 
 Contratto live/storico/studio:
@@ -345,12 +345,14 @@ Mapping `SetupSource`:
 ```text
 BarClose                LIVE_SAME_BAR_UPDATE_PATH
 DelayedReclaimAccepted  LIVE_SAME_DELAYED_RECLAIM_PATH
-HistoricalIntrabar      LIVE_INTRABAR_REPLAY_EMULATION
+HistoricalIntrabar      HISTORICAL_ONLY_DISABLED_BY_LIVE_PARITY
 PreviewRejectionStudy   STUDY_ONLY_NOT_TRADED
 DelayedReclaimStudy     STUDY_ONLY_NOT_TRADED
 ```
 
-Regola per fase 1/2: una nuova idea deve prima comparire come `DAY_STUDY_*` o log study dichiarato; diventa `MR_*` solo quando esiste la stessa logica causale live.
+Regola per fase 1/2: una nuova idea puo' essere studiata con `DAY_STUDY_*`, ma se deve influire sul risultato deve diventare subito `MR_*` con logica causale live/replay identica. In sviluppo, `ExecutionMode=HISTORICAL_REPLAY` e' il nostro ambiente live simulato.
+
+Nota legacy: alcuni campi mantengono il nome `StudyTrigger` per compatibilita' parser/log; il campo equivalente chiaro e' `OperationalTrigger`.
 
 Tag reload/studio principali:
 

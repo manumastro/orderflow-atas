@@ -37,6 +37,18 @@ Da quel punto il modello e' stato trasformato in implementazione live-first ATAS
    - Log reload con CUM_TRADES_LOOKBACK e HISTORICAL_FLOW_FINISH.
 ```
 
+## Update 2026-07-07 19:00
+
+```text
+Live/historical parity cleanup prima di fase 1/2:
+- Chiarito che MR = Mean Reversion; MR_* e' operativo live o replay storico operativo.
+- Disabilitato EnableHistoricalIntrabarFromCumulativeTrades: era un replay storico intrabar senza path live identico.
+- [MR_REPLAY_CONTRACT] ora dichiara HistoricalIntrabar=HISTORICAL_ONLY_DISABLED_BY_LIVE_PARITY.
+- Rinominato log operativo ambiguo [MR_STUDY_TRIGGER] in [MR_POC_TRIGGER].
+- Aggiunto OperationalTrigger nei log entry/exit/target mantenendo StudyTrigger come alias legacy per compatibilita'.
+- Nessun follow-through/second-leg/auction reintrodotto.
+```
+
 ## Update 2026-07-07 18:45
 
 ```text
