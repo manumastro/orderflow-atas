@@ -79,8 +79,8 @@ namespace FabioOrderFlow
             var completedUtc = DateTime.UtcNow;
             var durationMs = (completedUtc - processStartUtc).TotalMilliseconds;
             var flowDurationMs = _historicalFlowStartUtc == default ? 0 : (completedUtc - _historicalFlowStartUtc).TotalMilliseconds;
-            var historicalEntries = _completedTrades.Count(t => t.EntryModel.Contains("Historical", StringComparison.OrdinalIgnoreCase));
-            var delayedEntries = _completedTrades.Count(t => t.EntryModel.Contains("DelayedReclaim", StringComparison.OrdinalIgnoreCase));
+            var historicalEntries = _activePositions.Count(p => p.Closed && p.EntryModel.Contains("Historical", StringComparison.OrdinalIgnoreCase));
+            var delayedEntries = _activePositions.Count(p => p.Closed && p.EntryModel.Contains("DelayedReclaim", StringComparison.OrdinalIgnoreCase));
             var openPositions = _activePositions.Count(p => !p.Closed);
             var closedPositions = _activePositions.Count(p => p.Closed);
             var positionRecords = _activePositions.Count;

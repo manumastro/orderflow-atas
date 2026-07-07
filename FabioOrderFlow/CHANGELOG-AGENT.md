@@ -37,6 +37,20 @@ Da quel punto il modello e' stato trasformato in implementazione live-first ATAS
    - Log reload con CUM_TRADES_LOOKBACK e HISTORICAL_FLOW_FINISH.
 ```
 
+## Update 2026-07-07 19:15
+
+```text
+Reload post fase 1/2 validato:
+- Nuovi contract log presenti: [MR_LOG_CONTRACT], [MR_REPLAY_CONTRACT], [MR_OPERATIONAL_MODE].
+- HistoricalIntrabarEnabled=False confermato; nessuna entry HistoricalIntrabar.
+- [MR_STUDY_TRIGGER] assente; [MR_POC_TRIGGER] presente.
+- Entry 6, Exit 6, PnL da [MR_EXIT] +91,84.
+- Breakdown: NONE/delayed 2 trade +65,81; POC_LOSS_AFTER_HIGH_REJECTION 2 trade -24,52; POC_RECLAIM_AFTER_LOW_REJECTION 2 trade +50,55.
+- Pressure gate: 12 valutazioni, 7 BLOCK, 5 PASS; ha bloccato il vecchio loser 2026-07-06 13:18 short.
+- SecondaryValueRejection: 2 entry operative/replay; una loser 2026-07-02 10:22 -25,75, una winner 2026-07-06 15:37 +38,15.
+- Corretto counter [HISTORICAL_FLOW_FINISH] per contare le entry chiuse da _activePositions invece di _completedTrades, cosi' i delayed synthetic setup non risultano piu' a zero nel riepilogo.
+```
+
 ## Update 2026-07-07 19:10
 
 ```text
