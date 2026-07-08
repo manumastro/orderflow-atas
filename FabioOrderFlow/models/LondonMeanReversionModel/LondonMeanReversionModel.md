@@ -98,13 +98,16 @@ Versione semplice:  usare il previous day profile / previous balance area.
 Versione avanzata: identificare la compressione/dealing range che il mercato costruisce durante la sessione e plottare il profilo su quella zona.
 ```
 
-Per non sporcare la baseline, il modello usa una diagnostica unica:
+Per non sporcare la baseline, il modello usa una diagnostica unica e poco invasiva:
 
 ```text
 Marker:       [MR_PROFILE_CONTEXT]
 Uso:          DIAGNOSTIC_ONLY
+Livello log:  ENTRY_ONLY
 Entry/target: invariati, sempre PreviousDayProfile/PreviousLondonProfile completati
 ```
+
+I profili vengono comunque agganciati anche al setup per audit interno; il marker dedicato viene emesso solo sull'entry per evitare ingombro nel log live/replay.
 
 Ogni riga espone `ProfileSource`, cosi' le diagnostiche restano separate senza usare marker diversi:
 
@@ -131,6 +134,81 @@ ProfileUse=DIAGNOSTIC_ONLY
 ```
 
 Serve per studiare casi come il 2026-07-06. Questa diagnostica non blocca trade e non cambia PnL; eventuali filtri futuri dovranno essere validati contro la baseline `london-ny-close-baseline`.
+
+## Potenziali Passi Successivi
+
+Questa sezione e' solo roadmap. Nessuna voce e' operativa finche' non appare nei log come entry reale e non viene validata con reload.
+
+### Fabio-style local profile filter
+
+Principio non derivato solo dai dati raccolti, ma dalla logica di Fabio:
+
+```text
+Location prima del trigger.
+Non basta vedere un big trade: devo sapere se sto entrando da una zona di edge o se sto inseguendo dentro value.
+```
+
+Lettura candidata:
+
+```text
+Long con entry sotto LocalRotation VAL = fragile.
+```
+
+Motivo Fabio-style:
+
+```text
+Se per un long il prezzo e' ancora sotto la VAL del profilo locale, il mercato non ha ancora riaccettato la rotazione locale.
+Il buy puo' essere solo un tentativo anticipato; Fabio aspetterebbe reclaim/accettazione e aggressione, oppure un retest della value recuperata.
+```
+
+Lettura simmetrica:
+
+```text
+Short con entry gia' sotto LocalRotation POC = fragile.
+```
+
+Motivo Fabio-style:
+
+```text
+Per uno short mean-reversion la location migliore e' premium / upper value / fuori VAH che rientra.
+Se entro short sotto il POC locale, sto vendendo nella meta' bassa della rotazione, non da un edge. Quello assomiglia piu' a continuation/acceptance lower, quindi richiede un modello separato.
+```
+
+Queste non sono ancora regole operative. Devono essere validate su piu' sessioni, soprattutto contro il 2026-07-02, per evitare overfitting.
+
+### MR_RETEST_ENTRY
+
+Possibile nuova tipologia esplicita, separata dall'entry attuale:
+
+```text
+1. Setup failed auction su PreviousDayProfile/PreviousLondonProfile.
+2. Big trade nella direzione mean-reversion conferma il setup.
+3. Non entro subito sul big trade.
+4. Aspetto retest della reference edge recuperata: VAL per long, VAH per short.
+5. Entro solo se il retest tiene e compare nuova risposta/aggressione coerente.
+6. Stop vicino all'estremo fallito; target reference POC.
+```
+
+Non deve coesistere in modo silenzioso con l'entry immediata. Modalita' possibili:
+
+```text
+AggressionOnly              baseline attuale
+RetestOnly                  futura modalita' operativa alternativa
+AggressionWithRetestShadow  baseline operativa + log candidate retest senza PnL
+```
+
+### MR_LOCAL_PROFILE_ENTRY
+
+Possibile modello/entry separata dove il profilo locale diventa sorgente di setup o di filtro primario.
+
+Da definire prima di renderla live:
+
+```text
+EntryProfileSource=LocalRotationProfile
+TargetProfileSource=PreviousDayProfile/PreviousLondonProfile oppure LocalRotationProfile
+Regole di acceptance/retest
+Regole anti-doppia entry rispetto a MR_AGGRESSION_ENTRY
+```
 
 ### Nota visuale su POC
 

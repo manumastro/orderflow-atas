@@ -71,7 +71,7 @@ Regole:
 - controllare sempre `[CUM_TRADES_LOOKBACK]`, perche' ATAS limita la request agli ultimi 7 giorni effettivi;
 - PnL storico valido: sommare solo `[MR_EXIT]`;
 - leggere il target operativo da `[MR_ENTRY] TargetPOC`, non dal POC visuale se l'indicatore volume profile e' impostato su `Current Day`;
-- `[MR_PROFILE_CONTEXT]` e' solo diagnostica sui profili intraday (`ProfileSource=CurrentLondonSessionProfile|LocalRotationProfile`), non modifica entry/exit/PnL;
+- `[MR_PROFILE_CONTEXT]` e' solo diagnostica ENTRY_ONLY sui profili intraday (`ProfileSource=CurrentLondonSessionProfile|LocalRotationProfile`), non modifica entry/exit/PnL;
 - le entry sono London, ma la massima durata trade e' fino a New York regular close 16:00 New York;
 - usare `docs/atas/log-reading.md` prima di interpretare nuovi log.
 

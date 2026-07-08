@@ -1,5 +1,38 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Decisione 2026-07-08 - Roadmap local profile / nuove entry
+
+```text
+Analisi salvata come potenziali passi successivi, non operativi.
+
+Diagnostica:
+- Manteniamo un solo marker [MR_PROFILE_CONTEXT].
+- ProfileSource distingue CurrentLondonSessionProfile e LocalRotationProfile.
+- Per ridurre ingombro il marker diventa ENTRY_ONLY.
+- I profili restano agganciati ai setup per audit/no-entry, ma senza righe dedicate per ogni setup.
+
+Interpretazione Fabio-style, non overfit sui soli dati:
+- Location prima del trigger: il big trade serve solo dopo aver definito dove siamo rispetto alla value.
+- Long con entry sotto LocalRotation VAL = fragile perche' il prezzo non ha ancora riaccettato la rotazione locale; Fabio aspetterebbe reclaim/acceptance o retest della value recuperata.
+- Short con entry gia' sotto LocalRotation POC = fragile perche' non si sta piu' vendendo da premium/upper value ma nella meta' bassa della rotazione; se e' continuation va trattato come modello separato.
+
+Nuove entry possibili:
+- MR_RETEST_ENTRY: stesso setup previous reference, big trade come conferma, entry solo su retest della VAL/VAH recuperata; deve essere RetestOnly oppure Shadow, non doppia entry silenziosa.
+- MR_LOCAL_PROFILE_ENTRY: possibile entry/modello separato basato su LocalRotationProfile; richiede contratto dedicato prima di live operativo.
+
+Decisione operativa:
+- Non attivare ancora filtri o nuove entry con PnL.
+- Se si aggiungono subito, farlo prima come shadow/candidate live-equivalent, non come trade operativo, per proteggere la baseline london-ny-close-baseline.
+```
+
+## Implementazione 2026-07-08 - Reduce profile diagnostics clutter
+
+```text
+- [MR_PROFILE_CONTEXT] resta diagnostica unica, ma passa a ProfileDiagnosticsLevel=ENTRY_ONLY.
+- Nessun cambio entry/exit/target/stop.
+- Obiettivo: mantenere la diagnostica utile senza ingombrare il log con due righe per ogni setup.
+```
+
 ## Reload 2026-07-08 13:15 - Unified profile diagnostics validated
 
 ```text

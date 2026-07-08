@@ -38,6 +38,8 @@ namespace FabioOrderFlow
         private const int LiveHeartbeatTradeStep = 25;
         private const int LiveHeartbeatMinSeconds = 60;
         private const int LocalRotationMinimumBars = 3;
+        private static readonly bool LogProfileDiagnosticsForSetups = false;
+        private static readonly bool LogProfileDiagnosticsForEntries = true;
         private const string CurrentLondonSessionProfileSource = "CurrentLondonSessionProfile";
         private const string LocalRotationProfileSource = "LocalRotationProfile";
 
@@ -72,7 +74,7 @@ namespace FabioOrderFlow
             _getCandle = getCandle ?? throw new ArgumentNullException(nameof(getCandle));
             _tickSize = tickSize > 0 ? tickSize : 1m;
 
-            _log($"[MR_MODE] Model=FabioLondonMeanReversionCore, Modes=LIVE|HISTORICAL, ReferenceProfiles=PreviousDayProfile|PreviousLondonProfile, ProfileDiagnostics={CurrentLondonSessionProfileSource}|{LocalRotationProfileSource}, ProfileDiagnosticsUse=DIAGNOSTIC_ONLY, BigTradeVolume={LondonBigTradeVolume:F0}, Target=REFERENCE_POC_FULL_EXIT, Entry=FAILED_AUCTION_BACK_INSIDE_REFERENCE_VALUE_PLUS_BIG_TRADE, BreakEvenTrigger={BreakEvenTriggerR:F2}R, MaxHold=NEW_YORK_REGULAR_CLOSE_16:00", false);
+            _log($"[MR_MODE] Model=FabioLondonMeanReversionCore, Modes=LIVE|HISTORICAL, ReferenceProfiles=PreviousDayProfile|PreviousLondonProfile, ProfileDiagnostics={CurrentLondonSessionProfileSource}|{LocalRotationProfileSource}, ProfileDiagnosticsUse=DIAGNOSTIC_ONLY, ProfileDiagnosticsLevel={(LogProfileDiagnosticsForSetups ? "SETUP_AND_ENTRY" : "ENTRY_ONLY")}, BigTradeVolume={LondonBigTradeVolume:F0}, Target=REFERENCE_POC_FULL_EXIT, Entry=FAILED_AUCTION_BACK_INSIDE_REFERENCE_VALUE_PLUS_BIG_TRADE, BreakEvenTrigger={BreakEvenTriggerR:F2}R, MaxHold=NEW_YORK_REGULAR_CLOSE_16:00", false);
         }
 
         public IReadOnlyList<TradeRecord> CompletedTrades => _completedTrades;
@@ -413,7 +415,8 @@ namespace FabioOrderFlow
             _activeSetups.Add(setup);
             var isHistorical = IsHistoricalContext(setup.RejectionBar);
             _log($"[{tag}] ExecutionMode={GetExecutionMode(isHistorical)}, SetupId={setup.SetupId}, Source={setup.Source}, Pattern={setup.Pattern}, ReferenceLabel={setup.ReferenceLabel}, Direction={setup.Direction}, Bar={setup.RejectionBar}, {FormatTime(setup.RejectionTimeUtc)}, BreakoutPrice={setup.BreakoutPrice:F2}, RejectionClose={setup.RejectionClose:F2}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}, Stop={setup.StopPrice:F2}, TargetPOC={setup.TargetPrice:F2}", isHistorical);
-            LogProfileDiagnosticsContext(setup, "SETUP", setup.RejectionBar, setup.RejectionTimeUtc, isHistorical, null);
+            if (LogProfileDiagnosticsForSetups)
+                LogProfileDiagnosticsContext(setup, "SETUP", setup.RejectionBar, setup.RejectionTimeUtc, isHistorical, null);
         }
 
         private void AttachProfileDiagnostics(BalanceSetup setup)
@@ -804,7 +807,8 @@ namespace FabioOrderFlow
             _activePositions.Add(position);
 
             _log($"[MR_ENTRY] ExecutionMode={GetExecutionMode(isHistorical)}, SetupId={setup.SetupId}, EntryModel={mode}, Source={setup.Source}, Pattern={setup.Pattern}, ReferenceLabel={setup.ReferenceLabel}, Direction={setup.Direction}, Bar={position.EntryBar}, {FormatTime(trade.Time)}, EntryPrice={position.EntryPrice:F2}, Volume={trade.Volume:F0}, TradeDirection={trade.Direction}, Stop={position.StopPrice:F2}, TargetPOC={position.TargetPrice:F2}, Risk={risk:F2}, RewardToPOC={reward:F2}, RewardRiskToPOC={rr:F2}, BreakEvenTrigger={BreakEvenTriggerR:F2}R, MaxHoldUntil={FormatTime(position.SessionCloseTimeUtc)}, BigTradeVolume={LondonBigTradeVolume:F0}, SecondsAfterRejection={(trade.Time - setup.RejectionTimeUtc).TotalSeconds:F1}", isHistorical);
-            LogProfileDiagnosticsContext(setup, "ENTRY", position.EntryBar, trade.Time, isHistorical, position.EntryPrice);
+            if (LogProfileDiagnosticsForEntries)
+                LogProfileDiagnosticsContext(setup, "ENTRY", position.EntryBar, trade.Time, isHistorical, position.EntryPrice);
         }
 
         private void UpdateOpenPositionsFromBar(int bar, IndicatorCandle candle)
