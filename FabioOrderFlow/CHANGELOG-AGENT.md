@@ -1,5 +1,33 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Implementazione 2026-07-08 - Reference complete + breakeven
+
+```text
+Decisione utente:
+- Implementare entrambe le reference coerenti con Fabio:
+  1. PreviousDayProfile
+  2. PreviousLondonProfile
+- Entrambe devono essere live/replay, non study.
+- Poi aggiungere gestione risk-free/breakeven dopo movimento favorevole sufficiente.
+
+Implementato:
+- LondonMeanReversionModel non usa piu' il developing POC/VAH/VAL della London corrente per generare entry.
+- Il modello costruisce internamente due reference complete da barre ATAS:
+  - PreviousDayProfile = giorno italiano precedente completo.
+  - PreviousLondonProfile = London session precedente completa.
+- Setup operativi creati solo su sweep e close back inside di una reference completa.
+- Log [MR_REFERENCE_READY] per ogni reference completata.
+- [MR_SETUP_LONG]/[MR_SETUP_SHORT] includono Source e ReferenceLabel.
+- Entry sempre su cumulative big trade >=20 nella direzione mean-reversion.
+- Target full position al reference POC.
+- Break-even operativo: a MFE >= 1.0R, stop spostato a entry; log [MR_BREAKEVEN].
+- Replay storico continua a usare la stessa logica live.
+
+Nota:
+- I setup duplicati tra PreviousDayProfile e PreviousLondonProfile possono coesistere come reference diverse.
+- Se una entry viene confermata su una reference, gli overlap stesso bar/direzione vengono scaduti per evitare doppia posizione sullo stesso evento.
+```
+
 ## Reload 2026-07-08 09:08 - No-entry audit validated
 
 ```text

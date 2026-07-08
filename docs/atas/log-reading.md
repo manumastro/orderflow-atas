@@ -31,13 +31,15 @@ Marker principali:
 
 ```text
 [MR_MODE]                    configurazione del modello pulito
-[MR_SETUP_LONG]              sweep sotto VAL e close back inside value
-[MR_SETUP_SHORT]             sweep sopra VAH e close back inside value
+[MR_REFERENCE_READY]         reference completa disponibile: PreviousDayProfile o PreviousLondonProfile
+[MR_SETUP_LONG]              sweep sotto reference VAL e close back inside value
+[MR_SETUP_SHORT]             sweep sopra reference VAH e close back inside value
 [MR_SETUP_EXPIRED]           setup scaduto o POC toccato prima dell'entry
 [MR_HISTORICAL_TRADES]       cumulative trades storici ricevuti
 [HISTORICAL_FLOW_PROCESS_START]
 [HISTORICAL_FLOW_FINISH]
 [MR_ENTRY]                   entry su big trade nella direzione mean-reversion
+[MR_BREAKEVEN]               stop portato a breakeven dopo MFE >= 1R
 [MR_EXIT]                    exit finale e PnL valido
 [MR_LIVE_HEARTBEAT]          heartbeat live leggero
 [MR_REPLAY_AUDIT]            riepilogo storico: reject reasons e scadenze setup
@@ -47,13 +49,14 @@ Marker principali:
 ## Come leggere un trade
 
 1. Trova `[MR_SETUP_LONG]` o `[MR_SETUP_SHORT]`.
-2. Verifica `POC`, `VAH`, `VAL`, `Stop`, `TargetPOC`.
+2. Verifica `Source`, `ReferenceLabel`, `POC`, `VAH`, `VAL`, `Stop`, `TargetPOC`.
 3. Trova `[MR_ENTRY]` con lo stesso `SetupId`.
 4. Controlla `ExecutionMode`:
    - `LIVE` = evento real-time;
    - `HISTORICAL` = replay di dati passati con le stesse regole.
-5. Trova `[MR_EXIT]` con lo stesso `SetupId`.
-6. Usa solo il campo `PnL` di `[MR_EXIT]`.
+5. Se presente, leggi `[MR_BREAKEVEN]` con lo stesso `SetupId`.
+6. Trova `[MR_EXIT]` con lo stesso `SetupId`.
+7. Usa solo il campo `PnL` di `[MR_EXIT]`.
 
 ## Barre
 

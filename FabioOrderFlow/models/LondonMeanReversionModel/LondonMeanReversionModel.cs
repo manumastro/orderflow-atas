@@ -9,18 +9,18 @@ namespace FabioOrderFlow
     /// Fabio London mean-reversion model.
     ///
     /// One playbook only:
-    /// 1. London is building/holding a value area.
-    /// 2. Price sweeps outside VAH/VAL and closes back inside value.
-    /// 3. After the failed auction, a large cumulative trade appears in the mean-reversion direction.
-    /// 4. Enter toward the bulk of auction / POC.
-    /// 5. Exit full position at POC, or stop quickly near the failed extreme.
+    /// 1. Use completed reference value areas, not the developing micro-POC of the current London session.
+    /// 2. During London, wait for a sweep outside a completed reference VAH/VAL.
+    /// 3. Require the candle to close back inside reference value.
+    /// 4. Enter only when a large cumulative trade appears in the mean-reversion direction.
+    /// 5. Target the reference POC / bulk of auction.
+    /// 6. If price moves at least 1R in favor, move stop to breakeven.
     ///
-    /// The same methods are used for live data and for historical replay. Historical means only
+    /// The same methods are used for live data and historical replay. Historical means only
     /// "past data processed through the live rules".
     /// </summary>
     internal sealed class LondonMeanReversionModule
     {
-        private readonly BalanceZoneTracker _balanceTracker;
         private readonly Action<string, bool> _log;
         private readonly Func<int, IndicatorCandle> _getCandle;
         private readonly decimal _tickSize;
@@ -30,6 +30,8 @@ namespace FabioOrderFlow
         private const int StopInsideFailedExtremeTicks = 2;
         private const int EntryTimeoutSeconds = 1200;
         private const decimal MinRewardRiskToPoc = 1.0m;
+        private const decimal BreakEvenTriggerR = 1.0m;
+        private const int BreakEvenOffsetTicks = 0;
         private const int LondonSessionStartHour = 8;
         private const int LondonSessionEndHour = 16;
         private const int LiveHeartbeatTradeStep = 25;
@@ -44,6 +46,13 @@ namespace FabioOrderFlow
         private readonly Dictionary<string, decimal> _liveTradeMaxVolumeByKey = new();
         private readonly Dictionary<string, int> _entryRejectCounts = new();
         private readonly Dictionary<string, int> _setupExpirationCounts = new();
+        private readonly ProfileAccumulator _currentDayProfile = new();
+        private readonly ProfileAccumulator _currentLondonProfile = new();
+        private DateOnly? _currentDayItaly;
+        private DateOnly? _currentLondonDay;
+        private bool _currentLondonProfileActive;
+        private ReferenceValueArea? _previousDayReference;
+        private ReferenceValueArea? _previousLondonReference;
         private long _liveAcceptedTradeCount;
         private DateTime _lastLiveHeartbeatUtc = DateTime.MinValue;
         private bool _processingHistoricalReplay;
@@ -54,12 +63,12 @@ namespace FabioOrderFlow
             Func<int, IndicatorCandle> getCandle,
             decimal tickSize)
         {
-            _balanceTracker = balanceTracker ?? throw new ArgumentNullException(nameof(balanceTracker));
+            _ = balanceTracker ?? throw new ArgumentNullException(nameof(balanceTracker));
             _log = log ?? throw new ArgumentNullException(nameof(log));
             _getCandle = getCandle ?? throw new ArgumentNullException(nameof(getCandle));
             _tickSize = tickSize > 0 ? tickSize : 1m;
 
-            _log($"[MR_MODE] Model=FabioLondonMeanReversionCore, Modes=LIVE|HISTORICAL, BigTradeVolume={LondonBigTradeVolume:F0}, Target=POC_FULL_EXIT, Entry=FAILED_AUCTION_BACK_INSIDE_VALUE_PLUS_BIG_TRADE", false);
+            _log($"[MR_MODE] Model=FabioLondonMeanReversionCore, Modes=LIVE|HISTORICAL, ReferenceProfiles=PreviousDayProfile|PreviousLondonProfile, BigTradeVolume={LondonBigTradeVolume:F0}, Target=REFERENCE_POC_FULL_EXIT, Entry=FAILED_AUCTION_BACK_INSIDE_REFERENCE_VALUE_PLUS_BIG_TRADE, BreakEvenTrigger={BreakEvenTriggerR:F2}R", false);
         }
 
         public IReadOnlyList<TradeRecord> CompletedTrades => _completedTrades;
@@ -69,7 +78,9 @@ namespace FabioOrderFlow
         public void OnBarUpdate(int bar, int currentBar, IndicatorCandle candle)
         {
             _currentBar = currentBar;
+            UpdateReferenceProfiles(bar, candle);
             ExpireSetups(GetCandleEventTime(candle));
+            DetectReferenceRejectionSetups(bar, candle);
             UpdatePocTouches(bar, candle);
             UpdateOpenPositionsFromBar(bar, candle);
         }
@@ -77,15 +88,11 @@ namespace FabioOrderFlow
         public void OnNewSessionHigh(int bar, IndicatorCandle candle, decimal previousHigh)
         {
             _currentBar = Math.Max(_currentBar, bar + 1);
-            if (TryCreateFailedHighSetup(bar, candle, out var setup) && setup != null)
-                AddSetup(setup, "MR_SETUP_SHORT");
         }
 
         public void OnNewSessionLow(int bar, IndicatorCandle candle, decimal previousLow)
         {
             _currentBar = Math.Max(_currentBar, bar + 1);
-            if (TryCreateFailedLowSetup(bar, candle, out var setup) && setup != null)
-                AddSetup(setup, "MR_SETUP_LONG");
         }
 
         public void OnHistoricalCumulativeTrades(IEnumerable<CumulativeTrade> cumulativeTrades)
@@ -104,6 +111,7 @@ namespace FabioOrderFlow
             _activePositions.Clear();
             _entryRejectCounts.Clear();
             _setupExpirationCounts.Clear();
+
             var firstTradeTime = _historicalTrades.Count > 0 ? _historicalTrades.First().Time : DateTime.MaxValue;
             var lastTradeTime = _historicalTrades.Count > 0 ? _historicalTrades.Last().Time : DateTime.MinValue;
             foreach (var setup in _activeSetups)
@@ -140,36 +148,170 @@ namespace FabioOrderFlow
 
         public void OnLiveCumulativeTrade(CumulativeTrade trade)
         {
-            if (trade.Volume < LondonBigTradeVolume)
-                return;
-
             if (!IsLondonTradeAllowed(trade.Time))
                 return;
 
-            var key = GetLiveTradeKey(trade);
-            if (_liveTradeMaxVolumeByKey.TryGetValue(key, out var seenVolume) && trade.Volume <= seenVolume)
-                return;
+            ExpireSetups(trade.Time);
 
-            _liveTradeMaxVolumeByKey[key] = trade.Volume;
-            ProcessAggressionTrade(trade, "Live", false);
+            var acceptedBigTrade = false;
+            if (trade.Volume >= LondonBigTradeVolume)
+            {
+                var key = GetLiveTradeKey(trade);
+                if (!_liveTradeMaxVolumeByKey.TryGetValue(key, out var seenVolume) || trade.Volume > seenVolume)
+                {
+                    _liveTradeMaxVolumeByKey[key] = trade.Volume;
+                    ProcessAggressionTrade(trade, "Live", false);
+                    acceptedBigTrade = true;
+                }
+            }
+
+            ExpireSetupsOnPocTouchFromTrade(trade, false);
             UpdateOpenPositionsFromTrade(trade, false);
-            LogLiveHeartbeat(trade);
+
+            if (acceptedBigTrade)
+                LogLiveHeartbeat(trade);
         }
 
-        private bool TryCreateFailedHighSetup(int bar, IndicatorCandle candle, out BalanceSetup? setup)
+        private void UpdateReferenceProfiles(int bar, IndicatorCandle candle)
+        {
+            UpdatePreviousDayReference(bar, candle);
+            UpdatePreviousLondonReference(bar, candle);
+        }
+
+        private void UpdatePreviousDayReference(int bar, IndicatorCandle candle)
+        {
+            var italyDay = DateOnly.FromDateTime(MarketTimeZones.ToItaly(candle.Time));
+            if (_currentDayItaly == null)
+            {
+                _currentDayItaly = italyDay;
+                _currentDayProfile.Reset();
+            }
+            else if (_currentDayItaly.Value != italyDay)
+            {
+                FinalizePreviousDayReference(bar, _currentDayItaly.Value);
+                _currentDayProfile.Reset();
+                _currentDayItaly = italyDay;
+            }
+
+            _currentDayProfile.ReplaceContribution(bar, candle);
+        }
+
+        private void UpdatePreviousLondonReference(int bar, IndicatorCandle candle)
+        {
+            var londonTime = MarketTimeZones.ToLondon(candle.Time);
+            var londonDay = DateOnly.FromDateTime(londonTime);
+            var inLondon = IsInLondonSession(candle.Time);
+
+            if (inLondon)
+            {
+                if (!_currentLondonProfileActive || _currentLondonDay != londonDay)
+                {
+                    if (_currentLondonProfileActive && _currentLondonDay.HasValue)
+                        FinalizePreviousLondonReference(bar, _currentLondonDay.Value);
+
+                    _currentLondonProfile.Reset();
+                    _currentLondonDay = londonDay;
+                    _currentLondonProfileActive = true;
+                }
+
+                _currentLondonProfile.ReplaceContribution(bar, candle);
+                return;
+            }
+
+            if (_currentLondonProfileActive && _currentLondonDay.HasValue)
+            {
+                FinalizePreviousLondonReference(bar, _currentLondonDay.Value);
+                _currentLondonProfile.Reset();
+                _currentLondonProfileActive = false;
+                _currentLondonDay = null;
+            }
+        }
+
+        private void FinalizePreviousDayReference(int bar, DateOnly day)
+        {
+            if (!TryBuildReference("PreviousDayProfile", day.ToString("yyyy-MM-dd"), _currentDayProfile, out var reference) || reference == null)
+                return;
+
+            _previousDayReference = reference;
+            LogReferenceReady(reference, bar);
+        }
+
+        private void FinalizePreviousLondonReference(int bar, DateOnly londonDay)
+        {
+            if (!TryBuildReference("PreviousLondonProfile", londonDay.ToString("yyyy-MM-dd"), _currentLondonProfile, out var reference) || reference == null)
+                return;
+
+            _previousLondonReference = reference;
+            LogReferenceReady(reference, bar);
+        }
+
+        private bool TryBuildReference(string source, string label, ProfileAccumulator accumulator, out ReferenceValueArea? reference)
+        {
+            reference = null;
+            if (accumulator.Profile.Count == 0 || accumulator.TotalVolume <= 0)
+                return false;
+
+            if (!TryCalculateValueArea(accumulator.Profile, accumulator.TotalVolume, out var poc, out var vah, out var val, out var valueAreaVolume, out var maxVolume))
+                return false;
+
+            reference = new ReferenceValueArea
+            {
+                Source = source,
+                Label = label,
+                POC = poc,
+                VAH = vah,
+                VAL = val,
+                High = accumulator.High,
+                Low = accumulator.Low,
+                TotalVolume = accumulator.TotalVolume,
+                ValueAreaVolume = valueAreaVolume,
+                MaxLevelVolume = maxVolume,
+                StartBar = accumulator.StartBar,
+                EndBar = accumulator.EndBar,
+                BeginTimeUtc = accumulator.BeginTimeUtc,
+                EndTimeUtc = accumulator.EndTimeUtc,
+                Bars = accumulator.BarCount
+            };
+            return true;
+        }
+
+        private void LogReferenceReady(ReferenceValueArea reference, int bar)
+        {
+            var isHistorical = IsHistoricalContext(bar);
+            _log($"[MR_REFERENCE_READY] ExecutionMode={GetExecutionMode(isHistorical)}, Source={reference.Source}, Label={reference.Label}, StartBar={reference.StartBar}, EndBar={reference.EndBar}, Begin={FormatTime(reference.BeginTimeUtc)}, End={FormatTime(reference.EndTimeUtc)}, POC={reference.POC:F2}, VAH={reference.VAH:F2}, VAL={reference.VAL:F2}, High={reference.High:F2}, Low={reference.Low:F2}, Bars={reference.Bars}, TotalVolume={reference.TotalVolume:F0}, ValueAreaVolume={reference.ValueAreaVolume:F0}, MaxLevelVolume={reference.MaxLevelVolume:F0}", isHistorical);
+        }
+
+        private void DetectReferenceRejectionSetups(int bar, IndicatorCandle candle)
+        {
+            if (!IsInLondonSession(candle.Time))
+                return;
+
+            foreach (var reference in GetActiveReferences())
+            {
+                if (TryCreateFailedHighSetup(bar, candle, reference, out var shortSetup) && shortSetup != null)
+                    AddSetup(shortSetup, "MR_SETUP_SHORT");
+
+                if (TryCreateFailedLowSetup(bar, candle, reference, out var longSetup) && longSetup != null)
+                    AddSetup(longSetup, "MR_SETUP_LONG");
+            }
+        }
+
+        private IEnumerable<ReferenceValueArea> GetActiveReferences()
+        {
+            if (_previousDayReference?.IsValid == true)
+                yield return _previousDayReference;
+
+            if (_previousLondonReference?.IsValid == true)
+                yield return _previousLondonReference;
+        }
+
+        private bool TryCreateFailedHighSetup(int bar, IndicatorCandle candle, ReferenceValueArea reference, out BalanceSetup? setup)
         {
             setup = null;
-            var poc = _balanceTracker.LastPreviewPoc;
-            var vah = _balanceTracker.LastPreviewVah;
-            var val = _balanceTracker.LastPreviewVal;
-
-            if (poc <= 0 || vah <= 0 || val <= 0)
+            if (!reference.IsValid)
                 return false;
 
-            if (!IsInLondonSession(candle.Time))
-                return false;
-
-            if (candle.High <= vah || candle.Close >= vah)
+            if (candle.High <= reference.VAH || candle.Close >= reference.VAH)
                 return false;
 
             var rejection = candle.High - candle.Close;
@@ -177,44 +319,41 @@ namespace FabioOrderFlow
                 return false;
 
             var stop = candle.High - StopInsideFailedExtremeTicks * _tickSize;
-            if (stop <= poc)
+            if (stop <= reference.POC)
                 return false;
 
             setup = new BalanceSetup
             {
                 SetupId = Guid.NewGuid().ToString(),
                 Direction = "Short",
-                Source = "FailedHighBackInsideValue",
+                Source = reference.Source,
+                Pattern = "FailedHighBackInsideReferenceValue",
+                ReferenceLabel = reference.Label,
+                ReferenceStartBar = reference.StartBar,
+                ReferenceEndBar = reference.EndBar,
                 RejectionBar = bar,
                 RejectionTimeUtc = GetCandleEventTime(candle),
                 BreakoutPrice = candle.High,
                 RejectionClose = candle.Close,
                 RejectionHigh = candle.High,
                 RejectionLow = candle.Low,
-                POC = poc,
-                VAH = vah,
-                VAL = val,
+                POC = reference.POC,
+                VAH = reference.VAH,
+                VAL = reference.VAL,
                 StopPrice = stop,
-                TargetPrice = poc
+                TargetPrice = reference.POC
             };
 
             return true;
         }
 
-        private bool TryCreateFailedLowSetup(int bar, IndicatorCandle candle, out BalanceSetup? setup)
+        private bool TryCreateFailedLowSetup(int bar, IndicatorCandle candle, ReferenceValueArea reference, out BalanceSetup? setup)
         {
             setup = null;
-            var poc = _balanceTracker.LastPreviewPoc;
-            var vah = _balanceTracker.LastPreviewVah;
-            var val = _balanceTracker.LastPreviewVal;
-
-            if (poc <= 0 || vah <= 0 || val <= 0)
+            if (!reference.IsValid)
                 return false;
 
-            if (!IsInLondonSession(candle.Time))
-                return false;
-
-            if (candle.Low >= val || candle.Close <= val)
+            if (candle.Low >= reference.VAL || candle.Close <= reference.VAL)
                 return false;
 
             var rejection = candle.Close - candle.Low;
@@ -222,25 +361,29 @@ namespace FabioOrderFlow
                 return false;
 
             var stop = candle.Low + StopInsideFailedExtremeTicks * _tickSize;
-            if (stop >= poc)
+            if (stop >= reference.POC)
                 return false;
 
             setup = new BalanceSetup
             {
                 SetupId = Guid.NewGuid().ToString(),
                 Direction = "Long",
-                Source = "FailedLowBackInsideValue",
+                Source = reference.Source,
+                Pattern = "FailedLowBackInsideReferenceValue",
+                ReferenceLabel = reference.Label,
+                ReferenceStartBar = reference.StartBar,
+                ReferenceEndBar = reference.EndBar,
                 RejectionBar = bar,
                 RejectionTimeUtc = GetCandleEventTime(candle),
                 BreakoutPrice = candle.Low,
                 RejectionClose = candle.Close,
                 RejectionHigh = candle.High,
                 RejectionLow = candle.Low,
-                POC = poc,
-                VAH = vah,
-                VAL = val,
+                POC = reference.POC,
+                VAH = reference.VAH,
+                VAL = reference.VAL,
                 StopPrice = stop,
-                TargetPrice = poc
+                TargetPrice = reference.POC
             };
 
             return true;
@@ -248,13 +391,13 @@ namespace FabioOrderFlow
 
         private void AddSetup(BalanceSetup setup, string tag)
         {
-            var key = $"{setup.Direction}:{setup.RejectionBar}:{setup.BreakoutPrice:F2}:{setup.POC:F2}";
+            var key = $"{setup.Source}:{setup.ReferenceLabel}:{setup.Direction}:{setup.RejectionBar}:{setup.BreakoutPrice:F2}:{setup.POC:F2}";
             if (!_setupKeys.Add(key))
                 return;
 
             _activeSetups.Add(setup);
             var isHistorical = IsHistoricalContext(setup.RejectionBar);
-            _log($"[{tag}] ExecutionMode={GetExecutionMode(isHistorical)}, SetupId={setup.SetupId}, Source={setup.Source}, Direction={setup.Direction}, Bar={setup.RejectionBar}, {FormatTime(setup.RejectionTimeUtc)}, BreakoutPrice={setup.BreakoutPrice:F2}, RejectionClose={setup.RejectionClose:F2}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}, Stop={setup.StopPrice:F2}, TargetPOC={setup.TargetPrice:F2}", isHistorical);
+            _log($"[{tag}] ExecutionMode={GetExecutionMode(isHistorical)}, SetupId={setup.SetupId}, Source={setup.Source}, Pattern={setup.Pattern}, ReferenceLabel={setup.ReferenceLabel}, Direction={setup.Direction}, Bar={setup.RejectionBar}, {FormatTime(setup.RejectionTimeUtc)}, BreakoutPrice={setup.BreakoutPrice:F2}, RejectionClose={setup.RejectionClose:F2}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}, Stop={setup.StopPrice:F2}, TargetPOC={setup.TargetPrice:F2}", isHistorical);
         }
 
         private void UpdatePocTouches(int bar, IndicatorCandle candle)
@@ -268,6 +411,8 @@ namespace FabioOrderFlow
                 if (HasTouchedPoc(setup, candle.High, candle.Low))
                 {
                     setup.PocTouched = true;
+                    setup.FirstPocTouchTimeUtc = eventTime;
+                    setup.FirstPocTouchPrice = setup.POC;
                     setup.Expired = true;
                     RecordSetupExpiration("POC_TOUCHED_BY_BAR");
                     _log($"[MR_SETUP_EXPIRED] ExecutionMode={GetExecutionMode(IsHistoricalContext(bar))}, SetupId={setup.SetupId}, Reason=POC_TOUCHED_BEFORE_ENTRY, Direction={setup.Direction}, Bar={bar}, {FormatTime(eventTime)}, POC={setup.POC:F2}", IsHistoricalContext(bar));
@@ -282,6 +427,7 @@ namespace FabioOrderFlow
             foreach (var setup in _activeSetups
                 .Where(s => !s.Expired && !s.AggressionConfirmed)
                 .OrderBy(s => s.RejectionTimeUtc)
+                .ThenBy(s => s.Source)
                 .ToList())
             {
                 if (!IsEntryCandidate(setup, trade, out var reason, out var risk, out var reward, out var rr))
@@ -289,14 +435,27 @@ namespace FabioOrderFlow
                     if (reason != "TRADE_BEFORE_REJECTION")
                     {
                         RecordEntryReject(reason);
-                        TrackRejectedEntryCandidate(setup, trade, reason, risk, reward, rr);
+                        TrackRejectedEntryCandidate(setup, trade, reason, rr);
                     }
                     continue;
                 }
 
                 setup.AggressionConfirmed = true;
                 CreatePosition(setup, trade, mode, isHistorical, risk, reward, rr);
+                ExpireOverlappingSetupsOnEntry(setup);
                 return;
+            }
+        }
+
+        private void ExpireOverlappingSetupsOnEntry(BalanceSetup confirmedSetup)
+        {
+            foreach (var setup in _activeSetups.Where(s => s.SetupId != confirmedSetup.SetupId && !s.Expired && !s.AggressionConfirmed))
+            {
+                if (setup.Direction != confirmedSetup.Direction || setup.RejectionBar != confirmedSetup.RejectionBar)
+                    continue;
+
+                setup.Expired = true;
+                RecordSetupExpiration("OVERLAPPING_REFERENCE_ENTRY");
             }
         }
 
@@ -380,14 +539,16 @@ namespace FabioOrderFlow
                 EntryTimeUtc = trade.Time,
                 EntryPrice = trade.Lastprice,
                 StopPrice = setup.StopPrice,
+                OriginalStopPrice = setup.StopPrice,
                 TargetPrice = setup.TargetPrice,
+                InitialRisk = risk,
                 MaxFavorablePrice = trade.Lastprice,
                 MaxAdversePrice = trade.Lastprice
             };
 
             _activePositions.Add(position);
 
-            _log($"[MR_ENTRY] ExecutionMode={GetExecutionMode(isHistorical)}, SetupId={setup.SetupId}, EntryModel={mode}, Source={setup.Source}, Direction={setup.Direction}, Bar={position.EntryBar}, {FormatTime(trade.Time)}, EntryPrice={position.EntryPrice:F2}, Volume={trade.Volume:F0}, TradeDirection={trade.Direction}, Stop={position.StopPrice:F2}, TargetPOC={position.TargetPrice:F2}, Risk={risk:F2}, RewardToPOC={reward:F2}, RewardRiskToPOC={rr:F2}, BigTradeVolume={LondonBigTradeVolume:F0}, SecondsAfterRejection={(trade.Time - setup.RejectionTimeUtc).TotalSeconds:F1}", isHistorical);
+            _log($"[MR_ENTRY] ExecutionMode={GetExecutionMode(isHistorical)}, SetupId={setup.SetupId}, EntryModel={mode}, Source={setup.Source}, Pattern={setup.Pattern}, ReferenceLabel={setup.ReferenceLabel}, Direction={setup.Direction}, Bar={position.EntryBar}, {FormatTime(trade.Time)}, EntryPrice={position.EntryPrice:F2}, Volume={trade.Volume:F0}, TradeDirection={trade.Direction}, Stop={position.StopPrice:F2}, TargetPOC={position.TargetPrice:F2}, Risk={risk:F2}, RewardToPOC={reward:F2}, RewardRiskToPOC={rr:F2}, BreakEvenTrigger={BreakEvenTriggerR:F2}R, BigTradeVolume={LondonBigTradeVolume:F0}, SecondsAfterRejection={(trade.Time - setup.RejectionTimeUtc).TotalSeconds:F1}", isHistorical);
         }
 
         private void UpdateOpenPositionsFromBar(int bar, IndicatorCandle candle)
@@ -399,6 +560,7 @@ namespace FabioOrderFlow
             foreach (var position in _activePositions.Where(p => !p.Closed).ToList())
             {
                 UpdatePositionTracking(position, candle.High, candle.Low);
+                TryActivateBreakEven(position, bar, eventTime, IsHistoricalContext(bar));
                 CheckPositionExit(position, bar, eventTime, candle.High, candle.Low, IsHistoricalContext(bar));
             }
         }
@@ -410,8 +572,30 @@ namespace FabioOrderFlow
             foreach (var position in _activePositions.Where(p => !p.Closed).ToList())
             {
                 UpdatePositionTracking(position, high, low);
-                CheckPositionExit(position, FindBarByTime(trade.Time, position.EntryBar), trade.Time, high, low, isHistorical);
+                var bar = FindBarByTime(trade.Time, position.EntryBar);
+                TryActivateBreakEven(position, bar, trade.Time, isHistorical);
+                CheckPositionExit(position, bar, trade.Time, high, low, isHistorical);
             }
+        }
+
+        private void TryActivateBreakEven(ActivePosition position, int bar, DateTime eventTimeUtc, bool isHistorical)
+        {
+            if (position.Closed || position.BreakEvenActivated || position.InitialRisk <= 0)
+                return;
+
+            var trigger = position.InitialRisk * BreakEvenTriggerR;
+            if (position.MFE < trigger)
+                return;
+
+            var oldStop = position.StopPrice;
+            var offset = BreakEvenOffsetTicks * _tickSize;
+            position.StopPrice = position.Direction == "Long"
+                ? position.EntryPrice + offset
+                : position.EntryPrice - offset;
+            position.BreakEvenActivated = true;
+            position.BreakEvenTimeUtc = eventTimeUtc;
+
+            _log($"[MR_BREAKEVEN] ExecutionMode={GetExecutionMode(isHistorical)}, SetupId={position.SetupId}, EntryModel={position.EntryModel}, Direction={position.Direction}, Bar={bar}, {FormatTime(eventTimeUtc)}, Entry={position.EntryPrice:F2}, OldStop={oldStop:F2}, NewStop={position.StopPrice:F2}, MFE={position.MFE:F2}, InitialRisk={position.InitialRisk:F2}, TriggerR={BreakEvenTriggerR:F2}R", isHistorical);
         }
 
         private void CheckPositionExit(ActivePosition position, int bar, DateTime eventTimeUtc, decimal high, decimal low, bool isHistorical)
@@ -455,9 +639,11 @@ namespace FabioOrderFlow
             position.ExitPrice = exitPrice;
 
             var pnl = GetDirectionalPnl(position.Direction, position.EntryPrice, exitPrice);
-            var risk = position.Direction == "Long"
-                ? position.EntryPrice - position.StopPrice
-                : position.StopPrice - position.EntryPrice;
+            var risk = position.InitialRisk > 0
+                ? position.InitialRisk
+                : position.Direction == "Long"
+                    ? position.EntryPrice - position.OriginalStopPrice
+                    : position.OriginalStopPrice - position.EntryPrice;
             var rMultiple = risk > 0 ? pnl / risk : 0;
 
             _completedTrades.Add(new TradeRecord
@@ -473,10 +659,11 @@ namespace FabioOrderFlow
                 PnL = pnl,
                 MFE = position.MFE,
                 MAE = position.MAE,
-                RMultiple = rMultiple
+                RMultiple = rMultiple,
+                BreakEvenActivated = position.BreakEvenActivated
             });
 
-            _log($"[MR_EXIT] ExecutionMode={GetExecutionMode(isHistorical)}, SetupId={position.SetupId}, EntryModel={position.EntryModel}, Direction={position.Direction}, Bar={bar}, {FormatTime(eventTimeUtc)}, Entry={position.EntryPrice:F2}, Exit={exitPrice:F2}, ExitReason={exitReason}, PnL={pnl:F2}, MFE={position.MFE:F2}, MAE={position.MAE:F2}, RMultiple={rMultiple:F2}R, TargetPOC={position.TargetPrice:F2}, Stop={position.StopPrice:F2}", isHistorical);
+            _log($"[MR_EXIT] ExecutionMode={GetExecutionMode(isHistorical)}, SetupId={position.SetupId}, EntryModel={position.EntryModel}, Direction={position.Direction}, Bar={bar}, {FormatTime(eventTimeUtc)}, Entry={position.EntryPrice:F2}, Exit={exitPrice:F2}, ExitReason={exitReason}, PnL={pnl:F2}, MFE={position.MFE:F2}, MAE={position.MAE:F2}, RMultiple={rMultiple:F2}R, BreakEvenActivated={position.BreakEvenActivated}, TargetPOC={position.TargetPrice:F2}, Stop={position.StopPrice:F2}, OriginalStop={position.OriginalStopPrice:F2}", isHistorical);
         }
 
         private void CloseOpenPositionsAtLondonClose()
@@ -552,7 +739,7 @@ namespace FabioOrderFlow
             }
         }
 
-        private void TrackRejectedEntryCandidate(BalanceSetup setup, CumulativeTrade trade, string reason, decimal risk, decimal reward, decimal rr)
+        private void TrackRejectedEntryCandidate(BalanceSetup setup, CumulativeTrade trade, string reason, decimal rr)
         {
             if (!_processingHistoricalReplay)
                 return;
@@ -599,7 +786,7 @@ namespace FabioOrderFlow
         {
             _log($"[MR_REPLAY_AUDIT] ActiveSetups={_activeSetups.Count}, Entries={_activePositions.Count}, ClosedPositions={_activePositions.Count(p => p.Closed)}, OpenPositions={_activePositions.Count(p => !p.Closed)}, EntryRejects={FormatCounts(_entryRejectCounts)}, Expirations={FormatCounts(_setupExpirationCounts)}", false);
 
-            foreach (var setup in _activeSetups.OrderBy(s => s.RejectionTimeUtc))
+            foreach (var setup in _activeSetups.OrderBy(s => s.RejectionTimeUtc).ThenBy(s => s.Source))
             {
                 if (setup.AggressionConfirmed)
                     continue;
@@ -609,7 +796,7 @@ namespace FabioOrderFlow
                     : setup.Expired
                         ? setup.PocTouched ? "EXPIRED_POC_TOUCHED" : "EXPIRED_TIMEOUT"
                         : "NO_VALID_BIG_TRADE";
-                _log($"[MR_SETUP_NO_ENTRY] SetupId={setup.SetupId}, Direction={setup.Direction}, Source={setup.Source}, Bar={setup.RejectionBar}, {FormatTime(setup.RejectionTimeUtc)}, FinalState={finalState}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}, Stop={setup.StopPrice:F2}, TargetPOC={setup.TargetPrice:F2}, {FormatSetupAudit(setup)}", true);
+                _log($"[MR_SETUP_NO_ENTRY] SetupId={setup.SetupId}, Direction={setup.Direction}, Source={setup.Source}, Pattern={setup.Pattern}, ReferenceLabel={setup.ReferenceLabel}, Bar={setup.RejectionBar}, {FormatTime(setup.RejectionTimeUtc)}, FinalState={finalState}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}, Stop={setup.StopPrice:F2}, TargetPOC={setup.TargetPrice:F2}, {FormatSetupAudit(setup)}", true);
             }
         }
 
@@ -744,11 +931,79 @@ namespace FabioOrderFlow
             _log($"[MR_LIVE_HEARTBEAT] AcceptedBigTrades={_liveAcceptedTradeCount}, TradeTime={FormatTime(trade.Time)}, Direction={trade.Direction}, Price={trade.Lastprice:F2}, Volume={trade.Volume:F0}, OpenSetups={_activeSetups.Count(s => !s.Expired && !s.AggressionConfirmed)}, OpenPositions={_activePositions.Count(p => !p.Closed)}", false);
         }
 
+        private static bool TryCalculateValueArea(
+            IReadOnlyDictionary<decimal, decimal> profile,
+            decimal totalVolume,
+            out decimal poc,
+            out decimal vah,
+            out decimal val,
+            out decimal valueAreaVolume,
+            out decimal maxVolume)
+        {
+            poc = 0;
+            vah = 0;
+            val = 0;
+            valueAreaVolume = 0;
+            maxVolume = 0;
+
+            if (profile.Count == 0 || totalVolume <= 0)
+                return false;
+
+            foreach (var kvp in profile)
+            {
+                if (kvp.Value > maxVolume || (kvp.Value == maxVolume && (poc == 0 || kvp.Key < poc)))
+                {
+                    maxVolume = kvp.Value;
+                    poc = kvp.Key;
+                }
+            }
+
+            var sortedLevels = profile.OrderBy(kv => kv.Key).ToList();
+            var resolvedPoc = poc;
+            var pocIndex = sortedLevels.FindIndex(kv => kv.Key == resolvedPoc);
+            if (pocIndex < 0)
+                return false;
+
+            var targetVolume = totalVolume * 0.70m;
+            valueAreaVolume = sortedLevels[pocIndex].Value;
+            var lowerIndex = pocIndex;
+            var upperIndex = pocIndex;
+
+            while (valueAreaVolume < targetVolume && (lowerIndex > 0 || upperIndex < sortedLevels.Count - 1))
+            {
+                var lowerVolume = lowerIndex > 0 ? sortedLevels[lowerIndex - 1].Value : 0;
+                var upperVolume = upperIndex < sortedLevels.Count - 1 ? sortedLevels[upperIndex + 1].Value : 0;
+
+                if (lowerVolume >= upperVolume && lowerIndex > 0)
+                {
+                    lowerIndex--;
+                    valueAreaVolume += sortedLevels[lowerIndex].Value;
+                }
+                else if (upperIndex < sortedLevels.Count - 1)
+                {
+                    upperIndex++;
+                    valueAreaVolume += sortedLevels[upperIndex].Value;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            val = sortedLevels[lowerIndex].Key;
+            vah = sortedLevels[upperIndex].Key;
+            return true;
+        }
+
         public sealed class BalanceSetup
         {
             public string SetupId { get; set; } = string.Empty;
             public string Direction { get; set; } = string.Empty;
             public string Source { get; set; } = string.Empty;
+            public string Pattern { get; set; } = string.Empty;
+            public string ReferenceLabel { get; set; } = string.Empty;
+            public int ReferenceStartBar { get; set; }
+            public int ReferenceEndBar { get; set; }
             public int RejectionBar { get; set; }
             public DateTime RejectionTimeUtc { get; set; }
             public decimal BreakoutPrice { get; set; }
@@ -786,11 +1041,15 @@ namespace FabioOrderFlow
             public DateTime EntryTimeUtc { get; set; }
             public decimal EntryPrice { get; set; }
             public decimal StopPrice { get; set; }
+            public decimal OriginalStopPrice { get; set; }
             public decimal TargetPrice { get; set; }
+            public decimal InitialRisk { get; set; }
             public decimal MaxFavorablePrice { get; set; }
             public decimal MaxAdversePrice { get; set; }
             public decimal MFE { get; set; }
             public decimal MAE { get; set; }
+            public bool BreakEvenActivated { get; set; }
+            public DateTime BreakEvenTimeUtc { get; set; }
             public bool Closed { get; set; }
             public int ExitBar { get; set; }
             public DateTime ExitTimeUtc { get; set; }
@@ -812,6 +1071,95 @@ namespace FabioOrderFlow
             public decimal MFE { get; set; }
             public decimal MAE { get; set; }
             public decimal RMultiple { get; set; }
+            public bool BreakEvenActivated { get; set; }
+        }
+
+        private sealed class ReferenceValueArea
+        {
+            public string Source { get; set; } = string.Empty;
+            public string Label { get; set; } = string.Empty;
+            public decimal POC { get; set; }
+            public decimal VAH { get; set; }
+            public decimal VAL { get; set; }
+            public decimal High { get; set; }
+            public decimal Low { get; set; }
+            public decimal TotalVolume { get; set; }
+            public decimal ValueAreaVolume { get; set; }
+            public decimal MaxLevelVolume { get; set; }
+            public int StartBar { get; set; }
+            public int EndBar { get; set; }
+            public DateTime BeginTimeUtc { get; set; }
+            public DateTime EndTimeUtc { get; set; }
+            public int Bars { get; set; }
+            public bool IsValid => POC > 0 && VAH > 0 && VAL > 0 && VAH > VAL;
+        }
+
+        private sealed class ProfileAccumulator
+        {
+            private readonly Dictionary<int, Dictionary<decimal, decimal>> _barVolumes = new();
+
+            public Dictionary<decimal, decimal> Profile { get; } = new();
+            public decimal TotalVolume { get; private set; }
+            public int StartBar { get; private set; } = -1;
+            public int EndBar { get; private set; } = -1;
+            public DateTime BeginTimeUtc { get; private set; }
+            public DateTime EndTimeUtc { get; private set; }
+            public decimal High { get; private set; }
+            public decimal Low { get; private set; }
+            public int BarCount => _barVolumes.Count;
+
+            public void Reset()
+            {
+                _barVolumes.Clear();
+                Profile.Clear();
+                TotalVolume = 0;
+                StartBar = -1;
+                EndBar = -1;
+                BeginTimeUtc = default;
+                EndTimeUtc = default;
+                High = 0;
+                Low = 0;
+            }
+
+            public void ReplaceContribution(int bar, IndicatorCandle candle)
+            {
+                if (_barVolumes.TryGetValue(bar, out var previousLevels))
+                {
+                    foreach (var previous in previousLevels)
+                    {
+                        if (!Profile.TryGetValue(previous.Key, out var current))
+                            continue;
+
+                        var next = current - previous.Value;
+                        if (next <= 0)
+                            Profile.Remove(previous.Key);
+                        else
+                            Profile[previous.Key] = next;
+                    }
+                }
+
+                var nextLevels = candle.GetAllPriceLevels()
+                    .GroupBy(level => level.Price)
+                    .ToDictionary(group => group.Key, group => group.Sum(level => level.Volume));
+
+                foreach (var next in nextLevels)
+                {
+                    if (Profile.ContainsKey(next.Key))
+                        Profile[next.Key] += next.Value;
+                    else
+                        Profile[next.Key] = next.Value;
+                }
+
+                _barVolumes[bar] = nextLevels;
+                TotalVolume = Profile.Values.Sum();
+                StartBar = StartBar < 0 ? bar : Math.Min(StartBar, bar);
+                EndBar = Math.Max(EndBar, bar);
+                BeginTimeUtc = BeginTimeUtc == default || candle.Time < BeginTimeUtc ? candle.Time : BeginTimeUtc;
+                var end = GetCandleEventTime(candle);
+                EndTimeUtc = EndTimeUtc == default || end > EndTimeUtc ? end : EndTimeUtc;
+                High = High == 0 ? candle.High : Math.Max(High, candle.High);
+                Low = Low == 0 ? candle.Low : Math.Min(Low, candle.Low);
+            }
         }
     }
 }

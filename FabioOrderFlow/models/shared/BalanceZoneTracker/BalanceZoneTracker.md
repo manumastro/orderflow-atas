@@ -1,6 +1,6 @@
 # BalanceZoneTracker
 
-Modulo shared che costruisce le reference di volume profile usate dai modelli. Per il modello attivo London MR pubblica POC/VAH/VAL preview durante London e inoltra eventi/trade al modello.
+Modulo shared che costruisce il volume profile London per visual/context e inoltra eventi/trade ai modelli. Il modello attivo London MR ora costruisce internamente le reference operative complete `PreviousDayProfile` e `PreviousLondonProfile`.
 
 ## Responsabilita'
 
@@ -12,6 +12,7 @@ Modulo shared che costruisce le reference di volume profile usate dai modelli. P
 5. notificare al LondonMeanReversionModel nuovi high/low London
 6. inoltrare cumulative trades live/storici al modello
 7. congelare/disegnare la balance zone a fine London
+8. fornire il flusso barre/trade necessario al modello MR
 ```
 
 Non decide entry, stop, target, PnL o filtri di big trade. Quelle regole stanno nel modello specifico.
@@ -39,13 +40,15 @@ Durante London il tracker mantiene un profilo in costruzione:
 candele London -> price levels ATAS -> volume per prezzo -> POC/VAH/VAL preview
 ```
 
-Valori pubblici usati dal modello:
+Valori pubblici ancora esposti dal tracker:
 
 ```csharp
 LastPreviewPoc
 LastPreviewVah
 LastPreviewVal
 ```
+
+Nota: il modello operativo London MR non usa piu' questi developing levels per generare entry. Usa solo reference complete precedenti.
 
 ## Calcolo Livelli
 
@@ -109,7 +112,7 @@ Il tracker mantiene anche una state machine utile a modelli futuri/post-London:
 NoZone -> BuildingSessionProfile -> BalanceReady -> BreakoutPending -> OutOfBalance
 ```
 
-Per London MR la fase critica e' `BuildingSessionProfile`, perche' il modello lavora sulla value area preview mentre London e' ancora aperta.
+Per London MR il tracker resta importante per sessioni, visual e inoltro dati. La logica entry non dipende piu' dalla value area preview della London corrente.
 
 ## Visual
 

@@ -17,7 +17,8 @@ CHANGELOG-AGENT.md                                     baseline, decisioni, relo
 
 ```text
 ATAS OnCalculate
--> BalanceZoneTracker aggiorna profilo London e preview POC/VAH/VAL
+-> BalanceZoneTracker aggiorna profilo London e inoltra il flusso barre
+-> LondonMeanReversionModel costruisce reference complete PreviousDayProfile/PreviousLondonProfile
 -> LondonMeanReversionModel valuta setup e gestione posizioni
 
 ATAS OnCumulativeTrade / OnUpdateCumulativeTrade
@@ -30,7 +31,7 @@ ATAS OnFinishRecalculate
 -> LondonMeanReversionModel.ProcessHistoricalPositions con le stesse regole live
 ```
 
-`BalanceZoneTracker` non decide entry, stop o target. Pubblica i livelli e notifica nuovi high/low London. La strategia sta nel `.md` e nel `.cs` del modello specifico.
+`BalanceZoneTracker` non decide entry, stop o target. Pubblica/visualizza i livelli London e inoltra barre/trade al modello. La strategia sta nel `.md` e nel `.cs` del modello specifico.
 
 ## Documenti Obbligatori
 
