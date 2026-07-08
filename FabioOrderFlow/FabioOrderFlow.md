@@ -5,14 +5,15 @@ Indicatore ATAS modulare per order flow su NQ/ES. Il progetto contiene l'orchest
 ## Baseline Corrente
 
 ```text
-Baseline: 2026-07-08 reference + breakeven
-Commit:   6a0a3a6
-Tag:      london-reference-breakeven
-Reload:   2026-07-08 09:34
-Risultato storico: 19 trade chiusi, PnL [MR_EXIT] +493,50
+Baseline:        2026-07-08 London MR reference + breakeven + NY close hold
+Code commit:     f20ec7b
+Validation docs: 26b17f5
+Tag stabile:     london-ny-close-hold
+Reload:          2026-07-08 10:40
+Risultato:       20 trade chiusi, PnL [MR_EXIT] +634,25
 ```
 
-Questa e' la baseline di partenza. Subito dopo e' stata aggiunta la regola di massima durata fino a New York regular close, da ricaricare e rivalidare.
+Questa e' la baseline operativa fissa di partenza. Modifiche future devono essere confrontate contro questo risultato e devono avere un nuovo tag/checkpoint.
 
 ## Mappa Progetto
 

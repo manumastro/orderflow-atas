@@ -48,12 +48,14 @@ Implementazione:
 - OnLiveCumulativeTrade gestisce posizioni aperte anche fuori London, senza generare nuove entry fuori London.
 ```
 
-## Baseline 2026-07-08 - Nuovo punto di partenza operativo
+## Baseline 2026-07-08 - Punto fisso operativo
 
 ```text
-Baseline ufficiale: london-reference-breakeven
-Commit:             6a0a3a6
-Reload validato:    2026-07-08 09:34
+Baseline ufficiale: london-ny-close-hold
+Code commit:        f20ec7b
+Validation docs:    26b17f5
+Reload validato:    2026-07-08 10:40
+PnL validato:       +634,25 da [MR_EXIT]
 Docs aggiornate:    FabioOrderFlow.md, LondonMeanReversionModel.md, BalanceZoneTracker.md, log-reading.md
 ```
 
@@ -63,7 +65,7 @@ Contratto baseline:
 MR = Mean Reversion operativo.
 Reference attive = PreviousDayProfile + PreviousLondonProfile.
 Target operativo = reference POC loggato in [MR_ENTRY] TargetPOC.
-Gestione = full target al POC, stop, breakeven a MFE >= 1R.
+Gestione = full target al POC, stop, breakeven a MFE >= 1R, max hold a New York regular close 16:00 NY.
 PnL valido = solo [MR_EXIT].
 ```
 

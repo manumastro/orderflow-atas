@@ -7,10 +7,11 @@ Modello attivo di `FabioOrderFlow`.
 ## Baseline corrente
 
 ```text
-Baseline: 2026-07-08 reference + breakeven
-Commit:   6a0a3a6
-Tag:      london-reference-breakeven
-Reload:   2026-07-08 09:34
+Baseline:        2026-07-08 reference + breakeven + NY close hold
+Code commit:     f20ec7b
+Validation docs: 26b17f5
+Tag stabile:     london-ny-close-hold
+Reload:          2026-07-08 10:40
 ```
 
 Risultato storico validato dal reload:
@@ -18,14 +19,17 @@ Risultato storico validato dal reload:
 ```text
 Reference disponibili: PreviousDayProfile + PreviousLondonProfile
 MR_REFERENCE_READY:    12
-MR_ENTRY historical:   19
-MR_EXIT historical:    19
-MR_BREAKEVEN:          10
-PnL da MR_EXIT:        +493,50
+MR_ENTRY historical:   20
+MR_EXIT historical:    20
+MR_BREAKEVEN:          12
+MR_REPLAY_OPEN:        0
+NEW_YORK_CLOSE:        0
+LONDON_CLOSE:          0
+PnL da MR_EXIT:        +634,25
 Open historical:       0
 ```
 
-Questa baseline e' il nuovo punto di partenza. Modifiche future devono confrontarsi con questo stato.
+Questa baseline e' il punto fisso di partenza. Modifiche future devono confrontarsi con questo stato e avere un nuovo checkpoint/tag.
 
 ## Tesi Fabio
 
