@@ -1,5 +1,32 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Reload 2026-07-08 13:15 - Unified profile diagnostics validated
+
+```text
+Reload dopo implementazione [MR_PROFILE_CONTEXT]:
+- [MR_MODE] corretto: ProfileDiagnostics=CurrentLondonSessionProfile|LocalRotationProfile, ProfileDiagnosticsUse=DIAGNOSTIC_ONLY.
+- [CUM_TRADES_RESPONSE] Count=1.249.803.
+- [HISTORICAL_FLOW_FINISH]: Entries=20, ClosedPositions=20, OpenPositions=0, CompletedTrades=20.
+- [MR_PROFILE_CONTEXT]: 342 totali = 171 CurrentLondonSessionProfile + 171 LocalRotationProfile.
+- Per source/context: 151 SETUP + 20 ENTRY per ciascun ProfileSource.
+- [MR_ACTIVE_PROFILE_CONTEXT]: 0, sostituito correttamente dal marker unico.
+- [MR_BREAKEVEN]: 12.
+- [MR_REPLAY_OPEN]: 0.
+- PnL storico invariato da [MR_EXIT]: +634,25.
+
+Caso guida 2026-07-06, entry:
+- 10:00 long: LocalRotationProfile POC=29860,00 VAH=29863,75 VAL=29824,00; Target=29885,00 sopra VAH; exit -9,00.
+- 15:35 short: LocalRotationProfile POC=29856,25 VAH=29895,00 VAL=29826,50; Target=29885,00 tra POC e VAH; exit +29,00.
+- 15:50 short: LocalRotationProfile POC=29900,00 VAH=29936,75 VAL=29849,00; Target=29900,00 esattamente POC locale; exit -17,25.
+- 16:02 short: LocalRotationProfile POC=29971,25 VAH=29985,00 VAL=29869,00; Entry=29948,25 sotto POC locale, Target=29900,00 tra VAL e POC; exit -39,50.
+
+Conclusione:
+- La diagnostica unica funziona e resta solo diagnostica.
+- Sul 06/07 il LocalRotationProfile non conferma una semplice protezione "short contro VAL corrente" per il 15:50: quel trade era verso il POC locale e fallisce per whipsaw.
+- Il 16:02 appare piu' fragile: entry gia' sotto POC della rotazione locale e target verso lower value, quindi possibile candidato studio per filtro futuro.
+- Nessun filtro operativo va attivato ancora; servono piu' sessioni e confronto contro il 02/07 prima di trasformare la diagnostica in regola.
+```
+
 ## Implementazione 2026-07-08 - Unified profile diagnostics + LocalRotationProfile
 
 ```text
