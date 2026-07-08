@@ -1,5 +1,32 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Reload 2026-07-08 10:40 - NY close hold validated
+
+```text
+Reload dopo fix MaxHold=NEW_YORK_REGULAR_CLOSE_16:00:
+- [MR_MODE] corretto: MaxHold=NEW_YORK_REGULAR_CLOSE_16:00.
+- [CUM_TRADES_RESPONSE] Count=1.232.418.
+- [MR_HISTORICAL_TRADES] EndItaly=2026-07-08 10:40:07.
+- [HISTORICAL_FLOW_FINISH]: Entries=20, ClosedPositions=20, OpenPositions=0, CompletedTrades=20.
+- [MR_BREAKEVEN]: 12.
+- [MR_REPLAY_OPEN]: 0.
+- ExitReason=NEW_YORK_CLOSE: 0.
+- ExitReason=LONDON_CLOSE: 0.
+- PnL storico da [MR_EXIT]: +634,25.
+
+Breakdown:
+- POC_TARGET_HIT: 9 trade, +913,50.
+- STOP_HIT: 11 trade, -279,25.
+- Per giorno entry: 2026-07-01 +100,50; 2026-07-02 +634,50; 2026-07-06 -36,75; 2026-07-08 -64,00.
+- Per source: PreviousDayProfile 10 trade +314,75; PreviousLondonProfile 10 trade +319,50.
+- BreakEvenActivated=True: 12 trade +913,50; False: 8 trade -279,25.
+
+Conferme importanti:
+- Il vecchio trade 2026-07-01 15:50 non va piu' overnight: ora chiude a POC_TARGET_HIT il 2026-07-01 17:31:51, +120,25.
+- Il vecchio LONDON_CLOSE del 2026-07-08 non esiste piu': il trade 09:25 arriva a breakeven e chiude a 0,00 alle 10:07:50.
+- Il live stop news-shock 2026-07-08 e' incluso nel replay come trade 09:34:58, STOP_HIT -64,00.
+```
+
 ## Fix 2026-07-08 - Max hold fino a New York close
 
 ```text
