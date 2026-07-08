@@ -2,6 +2,18 @@
 
 Indicatore ATAS modulare per order flow su NQ/ES. Il progetto contiene l'orchestrator, il tracker del volume profile e modelli indipendenti. Il modello operativo corrente e' `LondonMeanReversionModel`.
 
+## Baseline Corrente
+
+```text
+Baseline: 2026-07-08 reference + breakeven
+Commit:   6a0a3a6
+Tag:      london-reference-breakeven
+Reload:   2026-07-08 09:34
+Risultato storico: 19 trade chiusi, PnL [MR_EXIT] +493,50
+```
+
+Questa e' la baseline di partenza per le prossime modifiche.
+
 ## Mappa Progetto
 
 ```text
@@ -56,6 +68,7 @@ Regole:
 - reload storico completo solo dopo `[HISTORICAL_FLOW_FINISH]`;
 - controllare sempre `[CUM_TRADES_LOOKBACK]`, perche' ATAS limita la request agli ultimi 7 giorni effettivi;
 - PnL storico valido: sommare solo `[MR_EXIT]`;
+- leggere il target operativo da `[MR_ENTRY] TargetPOC`, non dal POC visuale se l'indicatore volume profile e' impostato su `Current Day`;
 - usare `docs/atas/log-reading.md` prima di interpretare nuovi log.
 
 ## Build E Deploy

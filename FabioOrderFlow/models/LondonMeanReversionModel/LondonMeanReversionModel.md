@@ -4,6 +4,29 @@ Modello attivo di `FabioOrderFlow`.
 
 `MR` significa **Mean Reversion**. Tutti i log `MR_*` appartengono al modello operativo, sia live sia historical replay.
 
+## Baseline corrente
+
+```text
+Baseline: 2026-07-08 reference + breakeven
+Commit:   6a0a3a6
+Tag:      london-reference-breakeven
+Reload:   2026-07-08 09:34
+```
+
+Risultato storico validato dal reload:
+
+```text
+Reference disponibili: PreviousDayProfile + PreviousLondonProfile
+MR_REFERENCE_READY:    12
+MR_ENTRY historical:   19
+MR_EXIT historical:    19
+MR_BREAKEVEN:          10
+PnL da MR_EXIT:        +493,50
+Open historical:       0
+```
+
+Questa baseline e' il nuovo punto di partenza. Modifiche future devono confrontarsi con questo stato.
+
 ## Tesi Fabio
 
 Fonte: `transcription.txt`.
@@ -56,10 +79,29 @@ PreviousLondonProfile    profilo completo della London session precedente
 Regola importante:
 
 ```text
-Non si usa il developing POC della London corrente per generare entry.
+Non si usa il developing POC della London/current day corrente per generare entry.
 ```
 
 Motivo: il developing POC della sessione corrente era troppo vicino al fakeout e produceva target minuscoli, touch immediati e poche entry.
+
+### Nota visuale su POC
+
+Se sull'indicatore ATAS il volume profile e' impostato su `Current Day`, il POC visuale puo' essere diverso dal target del modello.
+
+Esempio del reload/live 2026-07-08:
+
+```text
+POC visuale Current Day: circa 29500
+Target modello:          29540
+Perche':                 Source=PreviousDayProfile, ReferenceLabel=2026-07-07
+```
+
+Questo e' corretto: Fabio nella versione semplice parla di `last day profile / previous balance area`. Il target operativo va letto sempre da:
+
+```text
+[MR_REFERENCE_READY] Source=... ReferenceLabel=... POC=...
+[MR_ENTRY] TargetPOC=...
+```
 
 ## Entry Operativa
 

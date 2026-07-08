@@ -50,6 +50,8 @@ LastPreviewVal
 
 Nota: il modello operativo London MR non usa piu' questi developing levels per generare entry. Usa solo reference complete precedenti.
 
+Se il POC visuale sul chart e' impostato su `Current Day`, puo' non coincidere con il `TargetPOC` del modello. Questo e' atteso: il tracker/indicatore visualizza il contesto scelto sul chart, mentre il modello legge `PreviousDayProfile` o `PreviousLondonProfile`.
+
 ## Calcolo Livelli
 
 ```text

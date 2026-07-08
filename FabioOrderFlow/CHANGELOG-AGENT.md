@@ -1,5 +1,32 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Baseline 2026-07-08 - Nuovo punto di partenza operativo
+
+```text
+Baseline ufficiale: london-reference-breakeven
+Commit:             6a0a3a6
+Reload validato:    2026-07-08 09:34
+Docs aggiornate:    FabioOrderFlow.md, LondonMeanReversionModel.md, BalanceZoneTracker.md, log-reading.md
+```
+
+Contratto baseline:
+
+```text
+MR = Mean Reversion operativo.
+Reference attive = PreviousDayProfile + PreviousLondonProfile.
+Target operativo = reference POC loggato in [MR_ENTRY] TargetPOC.
+Gestione = full target al POC, stop, breakeven a MFE >= 1R.
+PnL valido = solo [MR_EXIT].
+```
+
+Chiarimento POC:
+
+```text
+Se il volume profile visuale ATAS e' impostato su Current Day, puo' mostrare un POC diverso dal target modello.
+Esempio live 2026-07-08: visual POC circa 29500, ma [MR_ENTRY] TargetPOC=29540.
+Questo e' corretto perche' il trade ha Source=PreviousDayProfile e ReferenceLabel=2026-07-07.
+```
+
 ## Reload 2026-07-08 09:34 - Reference complete + breakeven validated
 
 ```text

@@ -48,15 +48,38 @@ Marker principali:
 
 ## Come leggere un trade
 
-1. Trova `[MR_SETUP_LONG]` o `[MR_SETUP_SHORT]`.
-2. Verifica `Source`, `ReferenceLabel`, `POC`, `VAH`, `VAL`, `Stop`, `TargetPOC`.
-3. Trova `[MR_ENTRY]` con lo stesso `SetupId`.
-4. Controlla `ExecutionMode`:
+1. Trova `[MR_REFERENCE_READY]` per capire quale reference e' disponibile.
+2. Trova `[MR_SETUP_LONG]` o `[MR_SETUP_SHORT]`.
+3. Verifica `Source`, `ReferenceLabel`, `POC`, `VAH`, `VAL`, `Stop`, `TargetPOC`.
+4. Trova `[MR_ENTRY]` con lo stesso `SetupId`.
+5. Controlla `ExecutionMode`:
    - `LIVE` = evento real-time;
    - `HISTORICAL` = replay di dati passati con le stesse regole.
-5. Se presente, leggi `[MR_BREAKEVEN]` con lo stesso `SetupId`.
-6. Trova `[MR_EXIT]` con lo stesso `SetupId`.
-7. Usa solo il campo `PnL` di `[MR_EXIT]`.
+6. Se presente, leggi `[MR_BREAKEVEN]` con lo stesso `SetupId`.
+7. Trova `[MR_EXIT]` con lo stesso `SetupId`.
+8. Usa solo il campo `PnL` di `[MR_EXIT]`.
+
+## POC visuale vs TargetPOC
+
+Il POC disegnato da un indicatore volume profile ATAS dipende dalla sua impostazione.
+
+Se il profile visuale e' impostato su `Current Day`, puo' mostrare il developing POC corrente. Il modello London MR invece usa reference complete:
+
+```text
+PreviousDayProfile
+PreviousLondonProfile
+```
+
+Quindi il POC visuale puo' differire da `[MR_ENTRY] TargetPOC`.
+
+Esempio:
+
+```text
+Visual current-day POC circa 29500
+[MR_ENTRY] TargetPOC=29540, Source=PreviousDayProfile, ReferenceLabel=2026-07-07
+```
+
+In caso di dubbio, il target operativo e' sempre quello loggato in `[MR_ENTRY] TargetPOC` e confermato da `[MR_REFERENCE_READY] POC`.
 
 ## Barre
 
