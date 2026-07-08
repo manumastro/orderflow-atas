@@ -1,5 +1,30 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Reload 2026-07-08 11:58 - Active London profile diagnostics validated
+
+```text
+Reload dopo implementazione [MR_ACTIVE_PROFILE_CONTEXT]:
+- [MR_MODE] corretto: ActiveProfileDiagnostics=CurrentLondonSessionProfile_DIAGNOSTIC_ONLY.
+- [CUM_TRADES_RESPONSE] Count=1.243.317.
+- [HISTORICAL_FLOW_FINISH]: Entries=20, ClosedPositions=20, OpenPositions=0, CompletedTrades=20.
+- [MR_ACTIVE_PROFILE_CONTEXT]: 171 totali = 151 SETUP + 20 ENTRY.
+- [MR_BREAKEVEN]: 12.
+- [MR_REPLAY_OPEN]: 0.
+- PnL storico invariato da [MR_EXIT]: +634,25.
+
+Caso guida 2026-07-06:
+- Il profilo finale del 06/07, disponibile solo dopo la sessione, ha London VAL=29887,00 e Day VAL=29895,25.
+- La diagnostica live-equivalente CurrentLondonSessionProfile al momento dei trade non mostra invece 29887/29895 come VAL.
+- Entry short 15:35: ActivePOC=29860,00; ActiveVAH=29901,50; ActiveVAL=29831,00; TargetPOC=29885,00.
+- Entry short 15:50: ActivePOC=29880,00; ActiveVAH=29922,25; ActiveVAL=29839,25; TargetPOC=29900,00.
+- Entry short 16:02: ActivePOC=29880,00; ActiveVAH=29935,00; ActiveVAL=29833,50; TargetPOC=29900,00.
+
+Conclusione:
+- La lettura "VAL del giorno" vista a posteriori sul 06/07 usa il profilo finale e sarebbe lookahead se usata in live.
+- Il CurrentLondonSessionProfile diagnostico conferma che quei target erano dentro la value corrente / vicino al POC-upper value, non sulla VAL corrente live-equivalente.
+- Se si vuole una protection Fabio-style, il prossimo passo non e' un filtro statico ne' il profilo finale, ma un vero ActiveBalanceProfile/compression profile intraday da validare prima in diagnostica.
+```
+
 ## Implementazione 2026-07-08 - Active London profile diagnostics
 
 ```text
