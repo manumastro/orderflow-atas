@@ -37,6 +37,7 @@ namespace FabioOrderFlow
         private const int NewYorkSessionEndHour = 16;
         private const int LiveHeartbeatTradeStep = 25;
         private const int LiveHeartbeatMinSeconds = 60;
+        private const string ActiveLondonProfileSource = "CurrentLondonSessionProfile";
 
         private int _currentBar;
         private readonly List<BalanceSetup> _activeSetups = new();
@@ -69,7 +70,7 @@ namespace FabioOrderFlow
             _getCandle = getCandle ?? throw new ArgumentNullException(nameof(getCandle));
             _tickSize = tickSize > 0 ? tickSize : 1m;
 
-            _log($"[MR_MODE] Model=FabioLondonMeanReversionCore, Modes=LIVE|HISTORICAL, ReferenceProfiles=PreviousDayProfile|PreviousLondonProfile, BigTradeVolume={LondonBigTradeVolume:F0}, Target=REFERENCE_POC_FULL_EXIT, Entry=FAILED_AUCTION_BACK_INSIDE_REFERENCE_VALUE_PLUS_BIG_TRADE, BreakEvenTrigger={BreakEvenTriggerR:F2}R, MaxHold=NEW_YORK_REGULAR_CLOSE_16:00", false);
+            _log($"[MR_MODE] Model=FabioLondonMeanReversionCore, Modes=LIVE|HISTORICAL, ReferenceProfiles=PreviousDayProfile|PreviousLondonProfile, ActiveProfileDiagnostics={ActiveLondonProfileSource}_DIAGNOSTIC_ONLY, BigTradeVolume={LondonBigTradeVolume:F0}, Target=REFERENCE_POC_FULL_EXIT, Entry=FAILED_AUCTION_BACK_INSIDE_REFERENCE_VALUE_PLUS_BIG_TRADE, BreakEvenTrigger={BreakEvenTriggerR:F2}R, MaxHold=NEW_YORK_REGULAR_CLOSE_16:00", false);
         }
 
         public IReadOnlyList<TradeRecord> CompletedTrades => _completedTrades;
@@ -406,9 +407,58 @@ namespace FabioOrderFlow
             if (!_setupKeys.Add(key))
                 return;
 
+            AttachActiveLondonProfileContext(setup);
             _activeSetups.Add(setup);
             var isHistorical = IsHistoricalContext(setup.RejectionBar);
             _log($"[{tag}] ExecutionMode={GetExecutionMode(isHistorical)}, SetupId={setup.SetupId}, Source={setup.Source}, Pattern={setup.Pattern}, ReferenceLabel={setup.ReferenceLabel}, Direction={setup.Direction}, Bar={setup.RejectionBar}, {FormatTime(setup.RejectionTimeUtc)}, BreakoutPrice={setup.BreakoutPrice:F2}, RejectionClose={setup.RejectionClose:F2}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}, Stop={setup.StopPrice:F2}, TargetPOC={setup.TargetPrice:F2}", isHistorical);
+            LogActiveLondonProfileContext(setup, "SETUP", setup.RejectionBar, setup.RejectionTimeUtc, isHistorical, null);
+        }
+
+        private void AttachActiveLondonProfileContext(BalanceSetup setup)
+        {
+            if (!TryBuildActiveLondonProfileSnapshot(out var activeProfile) || activeProfile == null)
+                return;
+
+            setup.HasActiveLondonProfileContext = true;
+            setup.ActiveLondonProfileLabel = activeProfile.Label;
+            setup.ActiveLondonProfileStartBar = activeProfile.StartBar;
+            setup.ActiveLondonProfileEndBar = activeProfile.EndBar;
+            setup.ActiveLondonProfileBeginTimeUtc = activeProfile.BeginTimeUtc;
+            setup.ActiveLondonProfileEndTimeUtc = activeProfile.EndTimeUtc;
+            setup.ActiveLondonProfileBars = activeProfile.Bars;
+            setup.ActiveLondonPOC = activeProfile.POC;
+            setup.ActiveLondonVAH = activeProfile.VAH;
+            setup.ActiveLondonVAL = activeProfile.VAL;
+            setup.ActiveLondonHigh = activeProfile.High;
+            setup.ActiveLondonLow = activeProfile.Low;
+            setup.ActiveLondonTotalVolume = activeProfile.TotalVolume;
+            setup.ActiveLondonValueAreaVolume = activeProfile.ValueAreaVolume;
+            setup.ActiveLondonMaxLevelVolume = activeProfile.MaxLevelVolume;
+        }
+
+        private bool TryBuildActiveLondonProfileSnapshot(out ReferenceValueArea? activeProfile)
+        {
+            activeProfile = null;
+            if (!_currentLondonProfileActive || !_currentLondonDay.HasValue)
+                return false;
+
+            return TryBuildReference(ActiveLondonProfileSource, _currentLondonDay.Value.ToString("yyyy-MM-dd"), _currentLondonProfile, out activeProfile);
+        }
+
+        private void LogActiveLondonProfileContext(BalanceSetup setup, string context, int bar, DateTime eventTimeUtc, bool isHistorical, decimal? candidateEntry)
+        {
+            if (!setup.HasActiveLondonProfileContext)
+                return;
+
+            var valueWidth = setup.ActiveLondonVAH - setup.ActiveLondonVAL;
+            var targetVsVal = setup.TargetPrice - setup.ActiveLondonVAL;
+            var targetVsPoc = setup.TargetPrice - setup.ActiveLondonPOC;
+            var targetVsVah = setup.TargetPrice - setup.ActiveLondonVAH;
+            var entryPart = candidateEntry.HasValue
+                ? $"CandidateEntry={candidateEntry.Value:F2}, EntryVsActiveVAL={candidateEntry.Value - setup.ActiveLondonVAL:F2}, EntryVsActivePOC={candidateEntry.Value - setup.ActiveLondonPOC:F2}, EntryVsActiveVAH={candidateEntry.Value - setup.ActiveLondonVAH:F2}"
+                : "CandidateEntry=NA, EntryVsActiveVAL=NA, EntryVsActivePOC=NA, EntryVsActiveVAH=NA";
+
+            _log($"[MR_ACTIVE_PROFILE_CONTEXT] ExecutionMode={GetExecutionMode(isHistorical)}, Context={context}, SetupId={setup.SetupId}, Direction={setup.Direction}, Source={setup.Source}, ReferenceLabel={setup.ReferenceLabel}, Bar={bar}, {FormatTime(eventTimeUtc)}, ActiveSource={ActiveLondonProfileSource}, ActiveLabel={setup.ActiveLondonProfileLabel}, ActiveStartBar={setup.ActiveLondonProfileStartBar}, ActiveEndBar={setup.ActiveLondonProfileEndBar}, ActiveBegin={FormatTime(setup.ActiveLondonProfileBeginTimeUtc)}, ActiveEnd={FormatTime(setup.ActiveLondonProfileEndTimeUtc)}, ActiveBars={setup.ActiveLondonProfileBars}, ActivePOC={setup.ActiveLondonPOC:F2}, ActiveVAH={setup.ActiveLondonVAH:F2}, ActiveVAL={setup.ActiveLondonVAL:F2}, ActiveValueWidth={valueWidth:F2}, ActiveHigh={setup.ActiveLondonHigh:F2}, ActiveLow={setup.ActiveLondonLow:F2}, ActiveTotalVolume={setup.ActiveLondonTotalVolume:F0}, ActiveValueAreaVolume={setup.ActiveLondonValueAreaVolume:F0}, ActiveMaxLevelVolume={setup.ActiveLondonMaxLevelVolume:F0}, CandidateTargetPOC={setup.TargetPrice:F2}, TargetVsActiveVAL={targetVsVal:F2}, TargetVsActivePOC={targetVsPoc:F2}, TargetVsActiveVAH={targetVsVah:F2}, {entryPart}, ProfileUse=DIAGNOSTIC_ONLY", isHistorical);
         }
 
         private void UpdatePocTouches(int bar, IndicatorCandle candle)
@@ -563,6 +613,7 @@ namespace FabioOrderFlow
             _activePositions.Add(position);
 
             _log($"[MR_ENTRY] ExecutionMode={GetExecutionMode(isHistorical)}, SetupId={setup.SetupId}, EntryModel={mode}, Source={setup.Source}, Pattern={setup.Pattern}, ReferenceLabel={setup.ReferenceLabel}, Direction={setup.Direction}, Bar={position.EntryBar}, {FormatTime(trade.Time)}, EntryPrice={position.EntryPrice:F2}, Volume={trade.Volume:F0}, TradeDirection={trade.Direction}, Stop={position.StopPrice:F2}, TargetPOC={position.TargetPrice:F2}, Risk={risk:F2}, RewardToPOC={reward:F2}, RewardRiskToPOC={rr:F2}, BreakEvenTrigger={BreakEvenTriggerR:F2}R, MaxHoldUntil={FormatTime(position.SessionCloseTimeUtc)}, BigTradeVolume={LondonBigTradeVolume:F0}, SecondsAfterRejection={(trade.Time - setup.RejectionTimeUtc).TotalSeconds:F1}", isHistorical);
+            LogActiveLondonProfileContext(setup, "ENTRY", position.EntryBar, trade.Time, isHistorical, position.EntryPrice);
         }
 
         private void UpdateOpenPositionsFromBar(int bar, IndicatorCandle candle)
@@ -845,7 +896,10 @@ namespace FabioOrderFlow
             var poc = setup.FirstPocTouchTimeUtc.HasValue
                 ? $"FirstPocTouch={FormatTime(setup.FirstPocTouchTimeUtc.Value)}, PocTouchPrice={setup.FirstPocTouchPrice:F2}, PocTouchVolume={setup.FirstPocTouchVolume:F0}"
                 : "FirstPocTouch=none";
-            return $"{same}, {opposite}, {poc}";
+            var active = setup.HasActiveLondonProfileContext
+                ? $"ActiveSource={ActiveLondonProfileSource}, ActiveLabel={setup.ActiveLondonProfileLabel}, ActivePOC={setup.ActiveLondonPOC:F2}, ActiveVAH={setup.ActiveLondonVAH:F2}, ActiveVAL={setup.ActiveLondonVAL:F2}, ActiveValueWidth={setup.ActiveLondonVAH - setup.ActiveLondonVAL:F2}, TargetVsActiveVAL={setup.TargetPrice - setup.ActiveLondonVAL:F2}, TargetVsActivePOC={setup.TargetPrice - setup.ActiveLondonPOC:F2}, TargetVsActiveVAH={setup.TargetPrice - setup.ActiveLondonVAH:F2}, ActiveBars={setup.ActiveLondonProfileBars}"
+                : "ActiveSource=none";
+            return $"{same}, {opposite}, {poc}, {active}";
         }
 
         private static string FormatCounts(Dictionary<string, int> counts)
@@ -1070,6 +1124,21 @@ namespace FabioOrderFlow
             public DateTime? FirstPocTouchTimeUtc { get; set; }
             public decimal FirstPocTouchPrice { get; set; }
             public decimal FirstPocTouchVolume { get; set; }
+            public bool HasActiveLondonProfileContext { get; set; }
+            public string ActiveLondonProfileLabel { get; set; } = string.Empty;
+            public int ActiveLondonProfileStartBar { get; set; }
+            public int ActiveLondonProfileEndBar { get; set; }
+            public DateTime ActiveLondonProfileBeginTimeUtc { get; set; }
+            public DateTime ActiveLondonProfileEndTimeUtc { get; set; }
+            public int ActiveLondonProfileBars { get; set; }
+            public decimal ActiveLondonPOC { get; set; }
+            public decimal ActiveLondonVAH { get; set; }
+            public decimal ActiveLondonVAL { get; set; }
+            public decimal ActiveLondonHigh { get; set; }
+            public decimal ActiveLondonLow { get; set; }
+            public decimal ActiveLondonTotalVolume { get; set; }
+            public decimal ActiveLondonValueAreaVolume { get; set; }
+            public decimal ActiveLondonMaxLevelVolume { get; set; }
         }
 
         public sealed class ActivePosition

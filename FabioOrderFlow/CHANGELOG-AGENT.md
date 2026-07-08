@@ -1,5 +1,25 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Implementazione 2026-07-08 - Active London profile diagnostics
+
+```text
+Obiettivo:
+- Studiare la lettura Fabio avanzata del profilo costruito durante London, senza modificare la baseline operativa.
+- Caso guida: 2026-07-06, dove dopo il target short sul POC precedente il mercato ha risposto dall'area lower value della London corrente.
+
+Implementato:
+- Nuovo log [MR_ACTIVE_PROFILE_CONTEXT].
+- Source diagnostica: CurrentLondonSessionProfile.
+- Snapshot al momento del setup e dell'entry.
+- Campi principali: ActivePOC, ActiveVAH, ActiveVAL, ActiveValueWidth, ActiveHigh/Low, CandidateTargetPOC, distanze target/entry da ActiveVAL/POC/VAH.
+- Uso dichiarato: DIAGNOSTIC_ONLY.
+- Nessun blocco entry, nessun cambio target, nessun cambio PnL.
+
+Validazione:
+- Build Release OK, Avvisi 0, Errori 0.
+- Da ricaricare in ATAS e confrontare i nuovi log contro la baseline london-ny-close-baseline.
+```
+
 ## Reload 2026-07-08 10:40 - NY close hold validated
 
 ```text

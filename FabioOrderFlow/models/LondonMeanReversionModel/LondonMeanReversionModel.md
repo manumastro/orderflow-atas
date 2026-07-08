@@ -89,6 +89,38 @@ Non si usa il developing POC della London/current day corrente per generare entr
 
 Motivo: il developing POC della sessione corrente era troppo vicino al fakeout e produceva target minuscoli, touch immediati e poche entry.
 
+## Active London Profile Diagnostics
+
+Fabio distingue tra versione semplice e versione avanzata:
+
+```text
+Versione semplice:  usare il previous day profile / previous balance area.
+Versione avanzata: identificare la compressione/dealing range che il mercato costruisce durante la sessione e plottare il profilo su quella zona.
+```
+
+Per non sporcare la baseline, il modello ora logga solo diagnostica sul profilo London corrente:
+
+```text
+Source diagnostica: CurrentLondonSessionProfile
+Uso:                DIAGNOSTIC_ONLY
+Entry/target:       invariati, sempre PreviousDayProfile/PreviousLondonProfile completati
+```
+
+La diagnostica fotografa, al momento del setup e dell'entry, il profilo London sviluppato fino a quel punto:
+
+```text
+ActivePOC
+ActiveVAH
+ActiveVAL
+ActiveValueWidth
+ActiveHigh / ActiveLow
+CandidateTargetPOC
+TargetVsActiveVAL / TargetVsActivePOC / TargetVsActiveVAH
+EntryVsActiveVAL / EntryVsActivePOC / EntryVsActiveVAH
+```
+
+Serve per studiare casi come il 2026-07-06, dove il primo short ha targettato il POC precedente in area che coincideva con la lower value corrente, poi il mercato ha risposto long. Questa diagnostica non blocca trade e non cambia PnL; eventuali filtri futuri dovranno essere validati contro la baseline `london-ny-close-baseline`.
+
 ### Nota visuale su POC
 
 Se sull'indicatore ATAS il volume profile e' impostato su `Current Day`, il POC visuale puo' essere diverso dal target del modello.
@@ -179,6 +211,7 @@ Massima durata trade:   fino a New York regular close 16:00 New York
 [MR_REFERENCE_READY]         reference profile completato e disponibile
 [MR_SETUP_LONG]              failed auction sotto reference VAL, rientro in value
 [MR_SETUP_SHORT]             failed auction sopra reference VAH, rientro in value
+[MR_ACTIVE_PROFILE_CONTEXT]  diagnostica CurrentLondonSessionProfile al setup/entry; non blocca e non genera PnL
 [MR_SETUP_EXPIRED]           setup scaduto o POC gia' toccato prima dell'entry
 [MR_HISTORICAL_TRADES]       cumulative trades storici ricevuti
 [HISTORICAL_FLOW_PROCESS_START]
