@@ -37,11 +37,10 @@ namespace FabioOrderFlow
         private const int NewYorkSessionEndHour = 16;
         private const int LiveHeartbeatTradeStep = 25;
         private const int LiveHeartbeatMinSeconds = 60;
-        private const int LocalRotationMinimumBars = 3;
+        private const int LocalCompressionMinimumBars = 3;
         private static readonly bool LogProfileDiagnosticsForSetups = false;
         private static readonly bool LogProfileDiagnosticsForEntries = true;
-        private const string CurrentLondonSessionProfileSource = "CurrentLondonSessionProfile";
-        private const string LocalRotationProfileSource = "LocalRotationProfile";
+        private const string ActiveCompressionProfileSource = "ActiveCompressionProfile";
 
         private int _currentBar;
         private readonly List<BalanceSetup> _activeSetups = new();
@@ -74,7 +73,7 @@ namespace FabioOrderFlow
             _getCandle = getCandle ?? throw new ArgumentNullException(nameof(getCandle));
             _tickSize = tickSize > 0 ? tickSize : 1m;
 
-            _log($"[MR_MODE] Model=FabioLondonMeanReversionCore, Modes=LIVE|HISTORICAL, ReferenceProfiles=PreviousDayProfile|PreviousLondonProfile, ProfileDiagnostics={CurrentLondonSessionProfileSource}|{LocalRotationProfileSource}, ProfileDiagnosticsUse=DIAGNOSTIC_ONLY, ProfileDiagnosticsLevel={(LogProfileDiagnosticsForSetups ? "SETUP_AND_ENTRY" : "ENTRY_ONLY")}, BigTradeVolume={LondonBigTradeVolume:F0}, Target=REFERENCE_POC_FULL_EXIT, Entry=FAILED_AUCTION_BACK_INSIDE_REFERENCE_VALUE_PLUS_BIG_TRADE, BreakEvenTrigger={BreakEvenTriggerR:F2}R, MaxHold=NEW_YORK_REGULAR_CLOSE_16:00", false);
+            _log($"[MR_MODE] Model=FabioLondonMeanReversionCore, Modes=LIVE|HISTORICAL, ReferenceProfiles=PreviousDayProfile|PreviousLondonProfile, ProfileDiagnostics={ActiveCompressionProfileSource}, ProfileDiagnosticsUse=DIAGNOSTIC_ONLY, ProfileDiagnosticsLevel={(LogProfileDiagnosticsForSetups ? "SETUP_AND_ENTRY" : "ENTRY_ONLY")}, BigTradeVolume={LondonBigTradeVolume:F0}, Target=REFERENCE_POC_FULL_EXIT, Entry=FAILED_AUCTION_BACK_INSIDE_REFERENCE_VALUE_PLUS_BIG_TRADE, BreakEvenTrigger={BreakEvenTriggerR:F2}R, MaxHold=NEW_YORK_REGULAR_CLOSE_16:00", false);
         }
 
         public IReadOnlyList<TradeRecord> CompletedTrades => _completedTrades;
@@ -421,103 +420,85 @@ namespace FabioOrderFlow
 
         private void AttachProfileDiagnostics(BalanceSetup setup)
         {
-            if (TryBuildCurrentLondonSessionProfileSnapshot(out var sessionProfile) && sessionProfile != null)
-                AttachCurrentLondonSessionProfile(setup, sessionProfile);
-
-            if (TryBuildLocalRotationProfileSnapshot(setup, out var localProfile) && localProfile != null)
-                AttachLocalRotationProfile(setup, localProfile);
+            if (TryBuildActiveCompressionProfileSnapshot(setup.RejectionBar, out var compressionProfile) && compressionProfile != null)
+                AttachActiveCompressionProfile(setup, compressionProfile);
         }
 
-        private void AttachCurrentLondonSessionProfile(BalanceSetup setup, ReferenceValueArea profile)
+        private void AttachActiveCompressionProfile(BalanceSetup setup, ReferenceValueArea profile)
         {
-            setup.HasActiveLondonProfileContext = true;
-            setup.ActiveLondonProfileLabel = profile.Label;
-            setup.ActiveLondonProfileStartBar = profile.StartBar;
-            setup.ActiveLondonProfileEndBar = profile.EndBar;
-            setup.ActiveLondonProfileBeginTimeUtc = profile.BeginTimeUtc;
-            setup.ActiveLondonProfileEndTimeUtc = profile.EndTimeUtc;
-            setup.ActiveLondonProfileBars = profile.Bars;
-            setup.ActiveLondonPOC = profile.POC;
-            setup.ActiveLondonVAH = profile.VAH;
-            setup.ActiveLondonVAL = profile.VAL;
-            setup.ActiveLondonHigh = profile.High;
-            setup.ActiveLondonLow = profile.Low;
-            setup.ActiveLondonTotalVolume = profile.TotalVolume;
-            setup.ActiveLondonValueAreaVolume = profile.ValueAreaVolume;
-            setup.ActiveLondonMaxLevelVolume = profile.MaxLevelVolume;
+            setup.HasActiveCompressionProfileContext = true;
+            setup.ActiveCompressionProfileLabel = profile.Label;
+            setup.ActiveCompressionProfileStartBar = profile.StartBar;
+            setup.ActiveCompressionProfileEndBar = profile.EndBar;
+            setup.ActiveCompressionProfileBeginTimeUtc = profile.BeginTimeUtc;
+            setup.ActiveCompressionProfileEndTimeUtc = profile.EndTimeUtc;
+            setup.ActiveCompressionProfileBars = profile.Bars;
+            setup.ActiveCompressionPOC = profile.POC;
+            setup.ActiveCompressionVAH = profile.VAH;
+            setup.ActiveCompressionVAL = profile.VAL;
+            setup.ActiveCompressionHigh = profile.High;
+            setup.ActiveCompressionLow = profile.Low;
+            setup.ActiveCompressionTotalVolume = profile.TotalVolume;
+            setup.ActiveCompressionValueAreaVolume = profile.ValueAreaVolume;
+            setup.ActiveCompressionMaxLevelVolume = profile.MaxLevelVolume;
         }
 
-        private void AttachLocalRotationProfile(BalanceSetup setup, ReferenceValueArea profile)
+        private bool TryBuildActiveCompressionProfileSnapshot(int endBar, out ReferenceValueArea? compressionProfile)
         {
-            setup.HasLocalRotationProfileContext = true;
-            setup.LocalRotationProfileLabel = profile.Label;
-            setup.LocalRotationProfileStartBar = profile.StartBar;
-            setup.LocalRotationProfileEndBar = profile.EndBar;
-            setup.LocalRotationProfileBeginTimeUtc = profile.BeginTimeUtc;
-            setup.LocalRotationProfileEndTimeUtc = profile.EndTimeUtc;
-            setup.LocalRotationProfileBars = profile.Bars;
-            setup.LocalRotationPOC = profile.POC;
-            setup.LocalRotationVAH = profile.VAH;
-            setup.LocalRotationVAL = profile.VAL;
-            setup.LocalRotationHigh = profile.High;
-            setup.LocalRotationLow = profile.Low;
-            setup.LocalRotationTotalVolume = profile.TotalVolume;
-            setup.LocalRotationValueAreaVolume = profile.ValueAreaVolume;
-            setup.LocalRotationMaxLevelVolume = profile.MaxLevelVolume;
-        }
-
-        private bool TryBuildCurrentLondonSessionProfileSnapshot(out ReferenceValueArea? sessionProfile)
-        {
-            sessionProfile = null;
+            compressionProfile = null;
             if (!_currentLondonProfileActive || !_currentLondonDay.HasValue)
                 return false;
 
-            return TryBuildReference(CurrentLondonSessionProfileSource, _currentLondonDay.Value.ToString("yyyy-MM-dd"), _currentLondonProfile, out sessionProfile);
-        }
-
-        private bool TryBuildLocalRotationProfileSnapshot(BalanceSetup setup, out ReferenceValueArea? localProfile)
-        {
-            localProfile = null;
-            if (!_currentLondonProfileActive || !_currentLondonDay.HasValue)
+            var bars = _currentLondonProfile.GetContributionsUpTo(endBar);
+            if (bars.Count < LocalCompressionMinimumBars)
                 return false;
 
-            var bars = _currentLondonProfile.GetContributionsUpTo(setup.RejectionBar);
-            if (bars.Count < LocalRotationMinimumBars)
+            var endIndex = bars.FindLastIndex(b => b.Bar <= endBar);
+            if (endIndex < LocalCompressionMinimumBars - 1)
                 return false;
 
-            var endIndex = bars.FindLastIndex(b => b.Bar <= setup.RejectionBar);
-            if (endIndex < LocalRotationMinimumBars - 1)
-                return false;
-
-            var startIndex = FindLocalRotationStartIndex(bars, endIndex, setup.Direction);
-            if (startIndex < 0 || endIndex - startIndex + 1 < LocalRotationMinimumBars)
+            var startIndex = FindActiveCompressionStartIndex(bars, endIndex);
+            if (startIndex < 0 || endIndex - startIndex + 1 < LocalCompressionMinimumBars)
                 return false;
 
             var selectedBars = bars.Skip(startIndex).Take(endIndex - startIndex + 1).ToList();
-            var algorithm = setup.Direction == "Short" ? "LatestSwingLowToRejection" : "LatestSwingHighToRejection";
-            var label = $"{_currentLondonDay.Value:yyyy-MM-dd}:{selectedBars.First().Bar}-{selectedBars.Last().Bar}:{algorithm}";
-            return TryBuildReferenceFromContributions(LocalRotationProfileSource, label, selectedBars, out localProfile);
+            var label = $"{_currentLondonDay.Value:yyyy-MM-dd}:{selectedBars.First().Bar}-{selectedBars.Last().Bar}:LatestSwingPairToSetup";
+            return TryBuildReferenceFromContributions(ActiveCompressionProfileSource, label, selectedBars, out compressionProfile);
         }
 
-        private static int FindLocalRotationStartIndex(IReadOnlyList<ProfileAccumulator.BarContribution> bars, int endIndex, string direction)
+        private static int FindActiveCompressionStartIndex(IReadOnlyList<ProfileAccumulator.BarContribution> bars, int endIndex)
         {
-            for (var i = endIndex - 1; i >= 1; i--)
-            {
-                if (endIndex - i + 1 < LocalRotationMinimumBars)
-                    continue;
+            var swingHighs = new List<int>();
+            var swingLows = new List<int>();
 
+            for (var i = 1; i < endIndex; i++)
+            {
                 var previous = bars[i - 1];
                 var current = bars[i];
                 var next = bars[i + 1];
 
-                if (direction == "Short" && current.Low <= previous.Low && current.Low <= next.Low)
-                    return i;
+                if (current.High >= previous.High && current.High >= next.High)
+                    swingHighs.Add(i);
 
-                if (direction == "Long" && current.High >= previous.High && current.High >= next.High)
-                    return i;
+                if (current.Low <= previous.Low && current.Low <= next.Low)
+                    swingLows.Add(i);
             }
 
-            return Math.Max(0, endIndex - LocalRotationMinimumBars + 1);
+            var bestStart = -1;
+            foreach (var highIndex in swingHighs)
+            {
+                foreach (var lowIndex in swingLows)
+                {
+                    var start = Math.Min(highIndex, lowIndex);
+                    if (endIndex - start + 1 < LocalCompressionMinimumBars)
+                        continue;
+
+                    if (start > bestStart)
+                        bestStart = start;
+                }
+            }
+
+            return bestStart;
         }
 
         private bool TryBuildReferenceFromContributions(string source, string label, IReadOnlyList<ProfileAccumulator.BarContribution> bars, out ReferenceValueArea? reference)
@@ -568,57 +549,31 @@ namespace FabioOrderFlow
 
         private void LogProfileDiagnosticsContext(BalanceSetup setup, string context, int bar, DateTime eventTimeUtc, bool isHistorical, decimal? candidateEntry)
         {
-            if (setup.HasActiveLondonProfileContext)
-            {
-                LogProfileContextLine(
-                    setup,
-                    context,
-                    bar,
-                    eventTimeUtc,
-                    isHistorical,
-                    candidateEntry,
-                    CurrentLondonSessionProfileSource,
-                    setup.ActiveLondonProfileLabel,
-                    setup.ActiveLondonProfileStartBar,
-                    setup.ActiveLondonProfileEndBar,
-                    setup.ActiveLondonProfileBeginTimeUtc,
-                    setup.ActiveLondonProfileEndTimeUtc,
-                    setup.ActiveLondonProfileBars,
-                    setup.ActiveLondonPOC,
-                    setup.ActiveLondonVAH,
-                    setup.ActiveLondonVAL,
-                    setup.ActiveLondonHigh,
-                    setup.ActiveLondonLow,
-                    setup.ActiveLondonTotalVolume,
-                    setup.ActiveLondonValueAreaVolume,
-                    setup.ActiveLondonMaxLevelVolume);
-            }
+            if (!setup.HasActiveCompressionProfileContext)
+                return;
 
-            if (setup.HasLocalRotationProfileContext)
-            {
-                LogProfileContextLine(
-                    setup,
-                    context,
-                    bar,
-                    eventTimeUtc,
-                    isHistorical,
-                    candidateEntry,
-                    LocalRotationProfileSource,
-                    setup.LocalRotationProfileLabel,
-                    setup.LocalRotationProfileStartBar,
-                    setup.LocalRotationProfileEndBar,
-                    setup.LocalRotationProfileBeginTimeUtc,
-                    setup.LocalRotationProfileEndTimeUtc,
-                    setup.LocalRotationProfileBars,
-                    setup.LocalRotationPOC,
-                    setup.LocalRotationVAH,
-                    setup.LocalRotationVAL,
-                    setup.LocalRotationHigh,
-                    setup.LocalRotationLow,
-                    setup.LocalRotationTotalVolume,
-                    setup.LocalRotationValueAreaVolume,
-                    setup.LocalRotationMaxLevelVolume);
-            }
+            LogProfileContextLine(
+                setup,
+                context,
+                bar,
+                eventTimeUtc,
+                isHistorical,
+                candidateEntry,
+                ActiveCompressionProfileSource,
+                setup.ActiveCompressionProfileLabel,
+                setup.ActiveCompressionProfileStartBar,
+                setup.ActiveCompressionProfileEndBar,
+                setup.ActiveCompressionProfileBeginTimeUtc,
+                setup.ActiveCompressionProfileEndTimeUtc,
+                setup.ActiveCompressionProfileBars,
+                setup.ActiveCompressionPOC,
+                setup.ActiveCompressionVAH,
+                setup.ActiveCompressionVAL,
+                setup.ActiveCompressionHigh,
+                setup.ActiveCompressionLow,
+                setup.ActiveCompressionTotalVolume,
+                setup.ActiveCompressionValueAreaVolume,
+                setup.ActiveCompressionMaxLevelVolume);
         }
 
         private void LogProfileContextLine(
@@ -1091,13 +1046,10 @@ namespace FabioOrderFlow
             var poc = setup.FirstPocTouchTimeUtc.HasValue
                 ? $"FirstPocTouch={FormatTime(setup.FirstPocTouchTimeUtc.Value)}, PocTouchPrice={setup.FirstPocTouchPrice:F2}, PocTouchVolume={setup.FirstPocTouchVolume:F0}"
                 : "FirstPocTouch=none";
-            var session = setup.HasActiveLondonProfileContext
-                ? $"SessionProfileSource={CurrentLondonSessionProfileSource}, SessionProfileLabel={setup.ActiveLondonProfileLabel}, SessionProfilePOC={setup.ActiveLondonPOC:F2}, SessionProfileVAH={setup.ActiveLondonVAH:F2}, SessionProfileVAL={setup.ActiveLondonVAL:F2}, SessionProfileValueWidth={setup.ActiveLondonVAH - setup.ActiveLondonVAL:F2}, TargetVsSessionVAL={setup.TargetPrice - setup.ActiveLondonVAL:F2}, TargetVsSessionPOC={setup.TargetPrice - setup.ActiveLondonPOC:F2}, TargetVsSessionVAH={setup.TargetPrice - setup.ActiveLondonVAH:F2}, SessionProfileBars={setup.ActiveLondonProfileBars}"
-                : "SessionProfileSource=none";
-            var local = setup.HasLocalRotationProfileContext
-                ? $"LocalProfileSource={LocalRotationProfileSource}, LocalProfileLabel={setup.LocalRotationProfileLabel}, LocalProfilePOC={setup.LocalRotationPOC:F2}, LocalProfileVAH={setup.LocalRotationVAH:F2}, LocalProfileVAL={setup.LocalRotationVAL:F2}, LocalProfileValueWidth={setup.LocalRotationVAH - setup.LocalRotationVAL:F2}, TargetVsLocalVAL={setup.TargetPrice - setup.LocalRotationVAL:F2}, TargetVsLocalPOC={setup.TargetPrice - setup.LocalRotationPOC:F2}, TargetVsLocalVAH={setup.TargetPrice - setup.LocalRotationVAH:F2}, LocalProfileBars={setup.LocalRotationProfileBars}"
-                : "LocalProfileSource=none";
-            return $"{same}, {opposite}, {poc}, {session}, {local}";
+            var compression = setup.HasActiveCompressionProfileContext
+                ? $"CompressionProfileSource={ActiveCompressionProfileSource}, CompressionProfileLabel={setup.ActiveCompressionProfileLabel}, CompressionProfilePOC={setup.ActiveCompressionPOC:F2}, CompressionProfileVAH={setup.ActiveCompressionVAH:F2}, CompressionProfileVAL={setup.ActiveCompressionVAL:F2}, CompressionProfileValueWidth={setup.ActiveCompressionVAH - setup.ActiveCompressionVAL:F2}, TargetVsCompressionVAL={setup.TargetPrice - setup.ActiveCompressionVAL:F2}, TargetVsCompressionPOC={setup.TargetPrice - setup.ActiveCompressionPOC:F2}, TargetVsCompressionVAH={setup.TargetPrice - setup.ActiveCompressionVAH:F2}, CompressionProfileBars={setup.ActiveCompressionProfileBars}"
+                : "CompressionProfileSource=none";
+            return $"{same}, {opposite}, {poc}, {compression}";
         }
 
         private static string FormatCounts(Dictionary<string, int> counts)
@@ -1322,36 +1274,21 @@ namespace FabioOrderFlow
             public DateTime? FirstPocTouchTimeUtc { get; set; }
             public decimal FirstPocTouchPrice { get; set; }
             public decimal FirstPocTouchVolume { get; set; }
-            public bool HasActiveLondonProfileContext { get; set; }
-            public string ActiveLondonProfileLabel { get; set; } = string.Empty;
-            public int ActiveLondonProfileStartBar { get; set; }
-            public int ActiveLondonProfileEndBar { get; set; }
-            public DateTime ActiveLondonProfileBeginTimeUtc { get; set; }
-            public DateTime ActiveLondonProfileEndTimeUtc { get; set; }
-            public int ActiveLondonProfileBars { get; set; }
-            public decimal ActiveLondonPOC { get; set; }
-            public decimal ActiveLondonVAH { get; set; }
-            public decimal ActiveLondonVAL { get; set; }
-            public decimal ActiveLondonHigh { get; set; }
-            public decimal ActiveLondonLow { get; set; }
-            public decimal ActiveLondonTotalVolume { get; set; }
-            public decimal ActiveLondonValueAreaVolume { get; set; }
-            public decimal ActiveLondonMaxLevelVolume { get; set; }
-            public bool HasLocalRotationProfileContext { get; set; }
-            public string LocalRotationProfileLabel { get; set; } = string.Empty;
-            public int LocalRotationProfileStartBar { get; set; }
-            public int LocalRotationProfileEndBar { get; set; }
-            public DateTime LocalRotationProfileBeginTimeUtc { get; set; }
-            public DateTime LocalRotationProfileEndTimeUtc { get; set; }
-            public int LocalRotationProfileBars { get; set; }
-            public decimal LocalRotationPOC { get; set; }
-            public decimal LocalRotationVAH { get; set; }
-            public decimal LocalRotationVAL { get; set; }
-            public decimal LocalRotationHigh { get; set; }
-            public decimal LocalRotationLow { get; set; }
-            public decimal LocalRotationTotalVolume { get; set; }
-            public decimal LocalRotationValueAreaVolume { get; set; }
-            public decimal LocalRotationMaxLevelVolume { get; set; }
+            public bool HasActiveCompressionProfileContext { get; set; }
+            public string ActiveCompressionProfileLabel { get; set; } = string.Empty;
+            public int ActiveCompressionProfileStartBar { get; set; }
+            public int ActiveCompressionProfileEndBar { get; set; }
+            public DateTime ActiveCompressionProfileBeginTimeUtc { get; set; }
+            public DateTime ActiveCompressionProfileEndTimeUtc { get; set; }
+            public int ActiveCompressionProfileBars { get; set; }
+            public decimal ActiveCompressionPOC { get; set; }
+            public decimal ActiveCompressionVAH { get; set; }
+            public decimal ActiveCompressionVAL { get; set; }
+            public decimal ActiveCompressionHigh { get; set; }
+            public decimal ActiveCompressionLow { get; set; }
+            public decimal ActiveCompressionTotalVolume { get; set; }
+            public decimal ActiveCompressionValueAreaVolume { get; set; }
+            public decimal ActiveCompressionMaxLevelVolume { get; set; }
         }
 
         public sealed class ActivePosition

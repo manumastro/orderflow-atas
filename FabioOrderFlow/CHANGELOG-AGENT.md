@@ -1,5 +1,30 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Implementazione 2026-07-08 - Focus unico ActiveCompressionProfile
+
+```text
+Decisione:
+- Stop a nuovi rami: niente retest, niente filtri, niente nuove entry in questo ciclo.
+- Scopo unico: verificare come Fabio disegna il profilo locale reale della compressione/dealing range.
+
+Transcript Fabio:
+- Previous day profile = versione semplice e oggettiva.
+- Modalita' reale/avanzata = identificare la consolidation/compression/dealing range e plottare il volume profile su quella zona.
+- Il profilo deve nascere prima dell'entry, non essere costruito a posteriori sull'entry.
+
+Implementato:
+- [MR_PROFILE_CONTEXT] ora usa solo ProfileSource=ActiveCompressionProfile.
+- CurrentLondonSessionProfile e LocalRotationProfile sono parcheggiati per evitare confusione.
+- ActiveCompressionProfile non e' direzionale: cerca nella London corrente l'ultima coppia swing high/swing low gia' formata e profila da quel primo estremo alla candela di setup.
+- Log dedicato resta ENTRY_ONLY e DIAGNOSTIC_ONLY.
+- Nessun cambio entry/exit/target/stop/PnL.
+
+Da validare al prossimo reload:
+- [MR_MODE] deve mostrare ProfileDiagnostics=ActiveCompressionProfile.
+- [MR_PROFILE_CONTEXT] deve mostrare ProfileSource=ActiveCompressionProfile.
+- Controllare se ProfileBegin/ProfileEnd/ProfileHigh/ProfileLow corrispondono davvero alla compressione che Fabio avrebbe disegnato sul chart.
+```
+
 ## Decisione 2026-07-08 - Roadmap local profile / nuove entry
 
 ```text
