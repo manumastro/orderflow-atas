@@ -37,7 +37,9 @@ namespace FabioOrderFlow
         private const int NewYorkSessionEndHour = 16;
         private const int LiveHeartbeatTradeStep = 25;
         private const int LiveHeartbeatMinSeconds = 60;
-        private const string ActiveLondonProfileSource = "CurrentLondonSessionProfile";
+        private const int LocalRotationMinimumBars = 3;
+        private const string CurrentLondonSessionProfileSource = "CurrentLondonSessionProfile";
+        private const string LocalRotationProfileSource = "LocalRotationProfile";
 
         private int _currentBar;
         private readonly List<BalanceSetup> _activeSetups = new();
@@ -70,7 +72,7 @@ namespace FabioOrderFlow
             _getCandle = getCandle ?? throw new ArgumentNullException(nameof(getCandle));
             _tickSize = tickSize > 0 ? tickSize : 1m;
 
-            _log($"[MR_MODE] Model=FabioLondonMeanReversionCore, Modes=LIVE|HISTORICAL, ReferenceProfiles=PreviousDayProfile|PreviousLondonProfile, ActiveProfileDiagnostics={ActiveLondonProfileSource}_DIAGNOSTIC_ONLY, BigTradeVolume={LondonBigTradeVolume:F0}, Target=REFERENCE_POC_FULL_EXIT, Entry=FAILED_AUCTION_BACK_INSIDE_REFERENCE_VALUE_PLUS_BIG_TRADE, BreakEvenTrigger={BreakEvenTriggerR:F2}R, MaxHold=NEW_YORK_REGULAR_CLOSE_16:00", false);
+            _log($"[MR_MODE] Model=FabioLondonMeanReversionCore, Modes=LIVE|HISTORICAL, ReferenceProfiles=PreviousDayProfile|PreviousLondonProfile, ProfileDiagnostics={CurrentLondonSessionProfileSource}|{LocalRotationProfileSource}, ProfileDiagnosticsUse=DIAGNOSTIC_ONLY, BigTradeVolume={LondonBigTradeVolume:F0}, Target=REFERENCE_POC_FULL_EXIT, Entry=FAILED_AUCTION_BACK_INSIDE_REFERENCE_VALUE_PLUS_BIG_TRADE, BreakEvenTrigger={BreakEvenTriggerR:F2}R, MaxHold=NEW_YORK_REGULAR_CLOSE_16:00", false);
         }
 
         public IReadOnlyList<TradeRecord> CompletedTrades => _completedTrades;
@@ -407,58 +409,247 @@ namespace FabioOrderFlow
             if (!_setupKeys.Add(key))
                 return;
 
-            AttachActiveLondonProfileContext(setup);
+            AttachProfileDiagnostics(setup);
             _activeSetups.Add(setup);
             var isHistorical = IsHistoricalContext(setup.RejectionBar);
             _log($"[{tag}] ExecutionMode={GetExecutionMode(isHistorical)}, SetupId={setup.SetupId}, Source={setup.Source}, Pattern={setup.Pattern}, ReferenceLabel={setup.ReferenceLabel}, Direction={setup.Direction}, Bar={setup.RejectionBar}, {FormatTime(setup.RejectionTimeUtc)}, BreakoutPrice={setup.BreakoutPrice:F2}, RejectionClose={setup.RejectionClose:F2}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}, Stop={setup.StopPrice:F2}, TargetPOC={setup.TargetPrice:F2}", isHistorical);
-            LogActiveLondonProfileContext(setup, "SETUP", setup.RejectionBar, setup.RejectionTimeUtc, isHistorical, null);
+            LogProfileDiagnosticsContext(setup, "SETUP", setup.RejectionBar, setup.RejectionTimeUtc, isHistorical, null);
         }
 
-        private void AttachActiveLondonProfileContext(BalanceSetup setup)
+        private void AttachProfileDiagnostics(BalanceSetup setup)
         {
-            if (!TryBuildActiveLondonProfileSnapshot(out var activeProfile) || activeProfile == null)
-                return;
+            if (TryBuildCurrentLondonSessionProfileSnapshot(out var sessionProfile) && sessionProfile != null)
+                AttachCurrentLondonSessionProfile(setup, sessionProfile);
 
+            if (TryBuildLocalRotationProfileSnapshot(setup, out var localProfile) && localProfile != null)
+                AttachLocalRotationProfile(setup, localProfile);
+        }
+
+        private void AttachCurrentLondonSessionProfile(BalanceSetup setup, ReferenceValueArea profile)
+        {
             setup.HasActiveLondonProfileContext = true;
-            setup.ActiveLondonProfileLabel = activeProfile.Label;
-            setup.ActiveLondonProfileStartBar = activeProfile.StartBar;
-            setup.ActiveLondonProfileEndBar = activeProfile.EndBar;
-            setup.ActiveLondonProfileBeginTimeUtc = activeProfile.BeginTimeUtc;
-            setup.ActiveLondonProfileEndTimeUtc = activeProfile.EndTimeUtc;
-            setup.ActiveLondonProfileBars = activeProfile.Bars;
-            setup.ActiveLondonPOC = activeProfile.POC;
-            setup.ActiveLondonVAH = activeProfile.VAH;
-            setup.ActiveLondonVAL = activeProfile.VAL;
-            setup.ActiveLondonHigh = activeProfile.High;
-            setup.ActiveLondonLow = activeProfile.Low;
-            setup.ActiveLondonTotalVolume = activeProfile.TotalVolume;
-            setup.ActiveLondonValueAreaVolume = activeProfile.ValueAreaVolume;
-            setup.ActiveLondonMaxLevelVolume = activeProfile.MaxLevelVolume;
+            setup.ActiveLondonProfileLabel = profile.Label;
+            setup.ActiveLondonProfileStartBar = profile.StartBar;
+            setup.ActiveLondonProfileEndBar = profile.EndBar;
+            setup.ActiveLondonProfileBeginTimeUtc = profile.BeginTimeUtc;
+            setup.ActiveLondonProfileEndTimeUtc = profile.EndTimeUtc;
+            setup.ActiveLondonProfileBars = profile.Bars;
+            setup.ActiveLondonPOC = profile.POC;
+            setup.ActiveLondonVAH = profile.VAH;
+            setup.ActiveLondonVAL = profile.VAL;
+            setup.ActiveLondonHigh = profile.High;
+            setup.ActiveLondonLow = profile.Low;
+            setup.ActiveLondonTotalVolume = profile.TotalVolume;
+            setup.ActiveLondonValueAreaVolume = profile.ValueAreaVolume;
+            setup.ActiveLondonMaxLevelVolume = profile.MaxLevelVolume;
         }
 
-        private bool TryBuildActiveLondonProfileSnapshot(out ReferenceValueArea? activeProfile)
+        private void AttachLocalRotationProfile(BalanceSetup setup, ReferenceValueArea profile)
         {
-            activeProfile = null;
+            setup.HasLocalRotationProfileContext = true;
+            setup.LocalRotationProfileLabel = profile.Label;
+            setup.LocalRotationProfileStartBar = profile.StartBar;
+            setup.LocalRotationProfileEndBar = profile.EndBar;
+            setup.LocalRotationProfileBeginTimeUtc = profile.BeginTimeUtc;
+            setup.LocalRotationProfileEndTimeUtc = profile.EndTimeUtc;
+            setup.LocalRotationProfileBars = profile.Bars;
+            setup.LocalRotationPOC = profile.POC;
+            setup.LocalRotationVAH = profile.VAH;
+            setup.LocalRotationVAL = profile.VAL;
+            setup.LocalRotationHigh = profile.High;
+            setup.LocalRotationLow = profile.Low;
+            setup.LocalRotationTotalVolume = profile.TotalVolume;
+            setup.LocalRotationValueAreaVolume = profile.ValueAreaVolume;
+            setup.LocalRotationMaxLevelVolume = profile.MaxLevelVolume;
+        }
+
+        private bool TryBuildCurrentLondonSessionProfileSnapshot(out ReferenceValueArea? sessionProfile)
+        {
+            sessionProfile = null;
             if (!_currentLondonProfileActive || !_currentLondonDay.HasValue)
                 return false;
 
-            return TryBuildReference(ActiveLondonProfileSource, _currentLondonDay.Value.ToString("yyyy-MM-dd"), _currentLondonProfile, out activeProfile);
+            return TryBuildReference(CurrentLondonSessionProfileSource, _currentLondonDay.Value.ToString("yyyy-MM-dd"), _currentLondonProfile, out sessionProfile);
         }
 
-        private void LogActiveLondonProfileContext(BalanceSetup setup, string context, int bar, DateTime eventTimeUtc, bool isHistorical, decimal? candidateEntry)
+        private bool TryBuildLocalRotationProfileSnapshot(BalanceSetup setup, out ReferenceValueArea? localProfile)
         {
-            if (!setup.HasActiveLondonProfileContext)
-                return;
+            localProfile = null;
+            if (!_currentLondonProfileActive || !_currentLondonDay.HasValue)
+                return false;
 
-            var valueWidth = setup.ActiveLondonVAH - setup.ActiveLondonVAL;
-            var targetVsVal = setup.TargetPrice - setup.ActiveLondonVAL;
-            var targetVsPoc = setup.TargetPrice - setup.ActiveLondonPOC;
-            var targetVsVah = setup.TargetPrice - setup.ActiveLondonVAH;
+            var bars = _currentLondonProfile.GetContributionsUpTo(setup.RejectionBar);
+            if (bars.Count < LocalRotationMinimumBars)
+                return false;
+
+            var endIndex = bars.FindLastIndex(b => b.Bar <= setup.RejectionBar);
+            if (endIndex < LocalRotationMinimumBars - 1)
+                return false;
+
+            var startIndex = FindLocalRotationStartIndex(bars, endIndex, setup.Direction);
+            if (startIndex < 0 || endIndex - startIndex + 1 < LocalRotationMinimumBars)
+                return false;
+
+            var selectedBars = bars.Skip(startIndex).Take(endIndex - startIndex + 1).ToList();
+            var algorithm = setup.Direction == "Short" ? "LatestSwingLowToRejection" : "LatestSwingHighToRejection";
+            var label = $"{_currentLondonDay.Value:yyyy-MM-dd}:{selectedBars.First().Bar}-{selectedBars.Last().Bar}:{algorithm}";
+            return TryBuildReferenceFromContributions(LocalRotationProfileSource, label, selectedBars, out localProfile);
+        }
+
+        private static int FindLocalRotationStartIndex(IReadOnlyList<ProfileAccumulator.BarContribution> bars, int endIndex, string direction)
+        {
+            for (var i = endIndex - 1; i >= 1; i--)
+            {
+                if (endIndex - i + 1 < LocalRotationMinimumBars)
+                    continue;
+
+                var previous = bars[i - 1];
+                var current = bars[i];
+                var next = bars[i + 1];
+
+                if (direction == "Short" && current.Low <= previous.Low && current.Low <= next.Low)
+                    return i;
+
+                if (direction == "Long" && current.High >= previous.High && current.High >= next.High)
+                    return i;
+            }
+
+            return Math.Max(0, endIndex - LocalRotationMinimumBars + 1);
+        }
+
+        private bool TryBuildReferenceFromContributions(string source, string label, IReadOnlyList<ProfileAccumulator.BarContribution> bars, out ReferenceValueArea? reference)
+        {
+            reference = null;
+            if (bars.Count == 0)
+                return false;
+
+            var profile = new Dictionary<decimal, decimal>();
+            foreach (var bar in bars)
+            {
+                foreach (var level in bar.Levels)
+                {
+                    if (profile.ContainsKey(level.Key))
+                        profile[level.Key] += level.Value;
+                    else
+                        profile[level.Key] = level.Value;
+                }
+            }
+
+            var totalVolume = profile.Values.Sum();
+            if (totalVolume <= 0)
+                return false;
+
+            if (!TryCalculateValueArea(profile, totalVolume, out var poc, out var vah, out var val, out var valueAreaVolume, out var maxVolume))
+                return false;
+
+            reference = new ReferenceValueArea
+            {
+                Source = source,
+                Label = label,
+                POC = poc,
+                VAH = vah,
+                VAL = val,
+                High = bars.Max(b => b.High),
+                Low = bars.Min(b => b.Low),
+                TotalVolume = totalVolume,
+                ValueAreaVolume = valueAreaVolume,
+                MaxLevelVolume = maxVolume,
+                StartBar = bars.Min(b => b.Bar),
+                EndBar = bars.Max(b => b.Bar),
+                BeginTimeUtc = bars.Min(b => b.BeginTimeUtc),
+                EndTimeUtc = bars.Max(b => b.EndTimeUtc),
+                Bars = bars.Count
+            };
+            return true;
+        }
+
+        private void LogProfileDiagnosticsContext(BalanceSetup setup, string context, int bar, DateTime eventTimeUtc, bool isHistorical, decimal? candidateEntry)
+        {
+            if (setup.HasActiveLondonProfileContext)
+            {
+                LogProfileContextLine(
+                    setup,
+                    context,
+                    bar,
+                    eventTimeUtc,
+                    isHistorical,
+                    candidateEntry,
+                    CurrentLondonSessionProfileSource,
+                    setup.ActiveLondonProfileLabel,
+                    setup.ActiveLondonProfileStartBar,
+                    setup.ActiveLondonProfileEndBar,
+                    setup.ActiveLondonProfileBeginTimeUtc,
+                    setup.ActiveLondonProfileEndTimeUtc,
+                    setup.ActiveLondonProfileBars,
+                    setup.ActiveLondonPOC,
+                    setup.ActiveLondonVAH,
+                    setup.ActiveLondonVAL,
+                    setup.ActiveLondonHigh,
+                    setup.ActiveLondonLow,
+                    setup.ActiveLondonTotalVolume,
+                    setup.ActiveLondonValueAreaVolume,
+                    setup.ActiveLondonMaxLevelVolume);
+            }
+
+            if (setup.HasLocalRotationProfileContext)
+            {
+                LogProfileContextLine(
+                    setup,
+                    context,
+                    bar,
+                    eventTimeUtc,
+                    isHistorical,
+                    candidateEntry,
+                    LocalRotationProfileSource,
+                    setup.LocalRotationProfileLabel,
+                    setup.LocalRotationProfileStartBar,
+                    setup.LocalRotationProfileEndBar,
+                    setup.LocalRotationProfileBeginTimeUtc,
+                    setup.LocalRotationProfileEndTimeUtc,
+                    setup.LocalRotationProfileBars,
+                    setup.LocalRotationPOC,
+                    setup.LocalRotationVAH,
+                    setup.LocalRotationVAL,
+                    setup.LocalRotationHigh,
+                    setup.LocalRotationLow,
+                    setup.LocalRotationTotalVolume,
+                    setup.LocalRotationValueAreaVolume,
+                    setup.LocalRotationMaxLevelVolume);
+            }
+        }
+
+        private void LogProfileContextLine(
+            BalanceSetup setup,
+            string context,
+            int bar,
+            DateTime eventTimeUtc,
+            bool isHistorical,
+            decimal? candidateEntry,
+            string profileSource,
+            string profileLabel,
+            int profileStartBar,
+            int profileEndBar,
+            DateTime profileBeginTimeUtc,
+            DateTime profileEndTimeUtc,
+            int profileBars,
+            decimal profilePoc,
+            decimal profileVah,
+            decimal profileVal,
+            decimal profileHigh,
+            decimal profileLow,
+            decimal profileTotalVolume,
+            decimal profileValueAreaVolume,
+            decimal profileMaxLevelVolume)
+        {
+            var valueWidth = profileVah - profileVal;
+            var targetVsVal = setup.TargetPrice - profileVal;
+            var targetVsPoc = setup.TargetPrice - profilePoc;
+            var targetVsVah = setup.TargetPrice - profileVah;
             var entryPart = candidateEntry.HasValue
-                ? $"CandidateEntry={candidateEntry.Value:F2}, EntryVsActiveVAL={candidateEntry.Value - setup.ActiveLondonVAL:F2}, EntryVsActivePOC={candidateEntry.Value - setup.ActiveLondonPOC:F2}, EntryVsActiveVAH={candidateEntry.Value - setup.ActiveLondonVAH:F2}"
-                : "CandidateEntry=NA, EntryVsActiveVAL=NA, EntryVsActivePOC=NA, EntryVsActiveVAH=NA";
+                ? $"CandidateEntry={candidateEntry.Value:F2}, EntryVsProfileVAL={candidateEntry.Value - profileVal:F2}, EntryVsProfilePOC={candidateEntry.Value - profilePoc:F2}, EntryVsProfileVAH={candidateEntry.Value - profileVah:F2}"
+                : "CandidateEntry=NA, EntryVsProfileVAL=NA, EntryVsProfilePOC=NA, EntryVsProfileVAH=NA";
 
-            _log($"[MR_ACTIVE_PROFILE_CONTEXT] ExecutionMode={GetExecutionMode(isHistorical)}, Context={context}, SetupId={setup.SetupId}, Direction={setup.Direction}, Source={setup.Source}, ReferenceLabel={setup.ReferenceLabel}, Bar={bar}, {FormatTime(eventTimeUtc)}, ActiveSource={ActiveLondonProfileSource}, ActiveLabel={setup.ActiveLondonProfileLabel}, ActiveStartBar={setup.ActiveLondonProfileStartBar}, ActiveEndBar={setup.ActiveLondonProfileEndBar}, ActiveBegin={FormatTime(setup.ActiveLondonProfileBeginTimeUtc)}, ActiveEnd={FormatTime(setup.ActiveLondonProfileEndTimeUtc)}, ActiveBars={setup.ActiveLondonProfileBars}, ActivePOC={setup.ActiveLondonPOC:F2}, ActiveVAH={setup.ActiveLondonVAH:F2}, ActiveVAL={setup.ActiveLondonVAL:F2}, ActiveValueWidth={valueWidth:F2}, ActiveHigh={setup.ActiveLondonHigh:F2}, ActiveLow={setup.ActiveLondonLow:F2}, ActiveTotalVolume={setup.ActiveLondonTotalVolume:F0}, ActiveValueAreaVolume={setup.ActiveLondonValueAreaVolume:F0}, ActiveMaxLevelVolume={setup.ActiveLondonMaxLevelVolume:F0}, CandidateTargetPOC={setup.TargetPrice:F2}, TargetVsActiveVAL={targetVsVal:F2}, TargetVsActivePOC={targetVsPoc:F2}, TargetVsActiveVAH={targetVsVah:F2}, {entryPart}, ProfileUse=DIAGNOSTIC_ONLY", isHistorical);
+            _log($"[MR_PROFILE_CONTEXT] ExecutionMode={GetExecutionMode(isHistorical)}, Context={context}, SetupId={setup.SetupId}, Direction={setup.Direction}, Source={setup.Source}, ReferenceLabel={setup.ReferenceLabel}, Bar={bar}, {FormatTime(eventTimeUtc)}, ProfileSource={profileSource}, ProfileLabel={profileLabel}, ProfileStartBar={profileStartBar}, ProfileEndBar={profileEndBar}, ProfileBegin={FormatTime(profileBeginTimeUtc)}, ProfileEnd={FormatTime(profileEndTimeUtc)}, ProfileBars={profileBars}, ProfilePOC={profilePoc:F2}, ProfileVAH={profileVah:F2}, ProfileVAL={profileVal:F2}, ProfileValueWidth={valueWidth:F2}, ProfileHigh={profileHigh:F2}, ProfileLow={profileLow:F2}, ProfileTotalVolume={profileTotalVolume:F0}, ProfileValueAreaVolume={profileValueAreaVolume:F0}, ProfileMaxLevelVolume={profileMaxLevelVolume:F0}, CandidateTargetPOC={setup.TargetPrice:F2}, TargetVsProfileVAL={targetVsVal:F2}, TargetVsProfilePOC={targetVsPoc:F2}, TargetVsProfileVAH={targetVsVah:F2}, {entryPart}, ProfileUse=DIAGNOSTIC_ONLY", isHistorical);
         }
 
         private void UpdatePocTouches(int bar, IndicatorCandle candle)
@@ -613,7 +804,7 @@ namespace FabioOrderFlow
             _activePositions.Add(position);
 
             _log($"[MR_ENTRY] ExecutionMode={GetExecutionMode(isHistorical)}, SetupId={setup.SetupId}, EntryModel={mode}, Source={setup.Source}, Pattern={setup.Pattern}, ReferenceLabel={setup.ReferenceLabel}, Direction={setup.Direction}, Bar={position.EntryBar}, {FormatTime(trade.Time)}, EntryPrice={position.EntryPrice:F2}, Volume={trade.Volume:F0}, TradeDirection={trade.Direction}, Stop={position.StopPrice:F2}, TargetPOC={position.TargetPrice:F2}, Risk={risk:F2}, RewardToPOC={reward:F2}, RewardRiskToPOC={rr:F2}, BreakEvenTrigger={BreakEvenTriggerR:F2}R, MaxHoldUntil={FormatTime(position.SessionCloseTimeUtc)}, BigTradeVolume={LondonBigTradeVolume:F0}, SecondsAfterRejection={(trade.Time - setup.RejectionTimeUtc).TotalSeconds:F1}", isHistorical);
-            LogActiveLondonProfileContext(setup, "ENTRY", position.EntryBar, trade.Time, isHistorical, position.EntryPrice);
+            LogProfileDiagnosticsContext(setup, "ENTRY", position.EntryBar, trade.Time, isHistorical, position.EntryPrice);
         }
 
         private void UpdateOpenPositionsFromBar(int bar, IndicatorCandle candle)
@@ -896,10 +1087,13 @@ namespace FabioOrderFlow
             var poc = setup.FirstPocTouchTimeUtc.HasValue
                 ? $"FirstPocTouch={FormatTime(setup.FirstPocTouchTimeUtc.Value)}, PocTouchPrice={setup.FirstPocTouchPrice:F2}, PocTouchVolume={setup.FirstPocTouchVolume:F0}"
                 : "FirstPocTouch=none";
-            var active = setup.HasActiveLondonProfileContext
-                ? $"ActiveSource={ActiveLondonProfileSource}, ActiveLabel={setup.ActiveLondonProfileLabel}, ActivePOC={setup.ActiveLondonPOC:F2}, ActiveVAH={setup.ActiveLondonVAH:F2}, ActiveVAL={setup.ActiveLondonVAL:F2}, ActiveValueWidth={setup.ActiveLondonVAH - setup.ActiveLondonVAL:F2}, TargetVsActiveVAL={setup.TargetPrice - setup.ActiveLondonVAL:F2}, TargetVsActivePOC={setup.TargetPrice - setup.ActiveLondonPOC:F2}, TargetVsActiveVAH={setup.TargetPrice - setup.ActiveLondonVAH:F2}, ActiveBars={setup.ActiveLondonProfileBars}"
-                : "ActiveSource=none";
-            return $"{same}, {opposite}, {poc}, {active}";
+            var session = setup.HasActiveLondonProfileContext
+                ? $"SessionProfileSource={CurrentLondonSessionProfileSource}, SessionProfileLabel={setup.ActiveLondonProfileLabel}, SessionProfilePOC={setup.ActiveLondonPOC:F2}, SessionProfileVAH={setup.ActiveLondonVAH:F2}, SessionProfileVAL={setup.ActiveLondonVAL:F2}, SessionProfileValueWidth={setup.ActiveLondonVAH - setup.ActiveLondonVAL:F2}, TargetVsSessionVAL={setup.TargetPrice - setup.ActiveLondonVAL:F2}, TargetVsSessionPOC={setup.TargetPrice - setup.ActiveLondonPOC:F2}, TargetVsSessionVAH={setup.TargetPrice - setup.ActiveLondonVAH:F2}, SessionProfileBars={setup.ActiveLondonProfileBars}"
+                : "SessionProfileSource=none";
+            var local = setup.HasLocalRotationProfileContext
+                ? $"LocalProfileSource={LocalRotationProfileSource}, LocalProfileLabel={setup.LocalRotationProfileLabel}, LocalProfilePOC={setup.LocalRotationPOC:F2}, LocalProfileVAH={setup.LocalRotationVAH:F2}, LocalProfileVAL={setup.LocalRotationVAL:F2}, LocalProfileValueWidth={setup.LocalRotationVAH - setup.LocalRotationVAL:F2}, TargetVsLocalVAL={setup.TargetPrice - setup.LocalRotationVAL:F2}, TargetVsLocalPOC={setup.TargetPrice - setup.LocalRotationPOC:F2}, TargetVsLocalVAH={setup.TargetPrice - setup.LocalRotationVAH:F2}, LocalProfileBars={setup.LocalRotationProfileBars}"
+                : "LocalProfileSource=none";
+            return $"{same}, {opposite}, {poc}, {session}, {local}";
         }
 
         private static string FormatCounts(Dictionary<string, int> counts)
@@ -1139,6 +1333,21 @@ namespace FabioOrderFlow
             public decimal ActiveLondonTotalVolume { get; set; }
             public decimal ActiveLondonValueAreaVolume { get; set; }
             public decimal ActiveLondonMaxLevelVolume { get; set; }
+            public bool HasLocalRotationProfileContext { get; set; }
+            public string LocalRotationProfileLabel { get; set; } = string.Empty;
+            public int LocalRotationProfileStartBar { get; set; }
+            public int LocalRotationProfileEndBar { get; set; }
+            public DateTime LocalRotationProfileBeginTimeUtc { get; set; }
+            public DateTime LocalRotationProfileEndTimeUtc { get; set; }
+            public int LocalRotationProfileBars { get; set; }
+            public decimal LocalRotationPOC { get; set; }
+            public decimal LocalRotationVAH { get; set; }
+            public decimal LocalRotationVAL { get; set; }
+            public decimal LocalRotationHigh { get; set; }
+            public decimal LocalRotationLow { get; set; }
+            public decimal LocalRotationTotalVolume { get; set; }
+            public decimal LocalRotationValueAreaVolume { get; set; }
+            public decimal LocalRotationMaxLevelVolume { get; set; }
         }
 
         public sealed class ActivePosition
@@ -1209,6 +1418,7 @@ namespace FabioOrderFlow
         private sealed class ProfileAccumulator
         {
             private readonly Dictionary<int, Dictionary<decimal, decimal>> _barVolumes = new();
+            private readonly Dictionary<int, BarContribution> _barContributions = new();
 
             public Dictionary<decimal, decimal> Profile { get; } = new();
             public decimal TotalVolume { get; private set; }
@@ -1220,9 +1430,18 @@ namespace FabioOrderFlow
             public decimal Low { get; private set; }
             public int BarCount => _barVolumes.Count;
 
+            public List<BarContribution> GetContributionsUpTo(int endBar)
+            {
+                return _barContributions.Values
+                    .Where(contribution => contribution.Bar <= endBar)
+                    .OrderBy(contribution => contribution.Bar)
+                    .ToList();
+            }
+
             public void Reset()
             {
                 _barVolumes.Clear();
+                _barContributions.Clear();
                 Profile.Clear();
                 TotalVolume = 0;
                 StartBar = -1;
@@ -1262,15 +1481,34 @@ namespace FabioOrderFlow
                         Profile[next.Key] = next.Value;
                 }
 
+                var end = GetCandleEventTime(candle);
                 _barVolumes[bar] = nextLevels;
+                _barContributions[bar] = new BarContribution
+                {
+                    Bar = bar,
+                    BeginTimeUtc = candle.Time,
+                    EndTimeUtc = end,
+                    High = candle.High,
+                    Low = candle.Low,
+                    Levels = nextLevels
+                };
                 TotalVolume = Profile.Values.Sum();
                 StartBar = StartBar < 0 ? bar : Math.Min(StartBar, bar);
                 EndBar = Math.Max(EndBar, bar);
                 BeginTimeUtc = BeginTimeUtc == default || candle.Time < BeginTimeUtc ? candle.Time : BeginTimeUtc;
-                var end = GetCandleEventTime(candle);
                 EndTimeUtc = EndTimeUtc == default || end > EndTimeUtc ? end : EndTimeUtc;
                 High = High == 0 ? candle.High : Math.Max(High, candle.High);
                 Low = Low == 0 ? candle.Low : Math.Min(Low, candle.Low);
+            }
+
+            public sealed class BarContribution
+            {
+                public int Bar { get; set; }
+                public DateTime BeginTimeUtc { get; set; }
+                public DateTime EndTimeUtc { get; set; }
+                public decimal High { get; set; }
+                public decimal Low { get; set; }
+                public IReadOnlyDictionary<decimal, decimal> Levels { get; set; } = new Dictionary<decimal, decimal>();
             }
         }
     }

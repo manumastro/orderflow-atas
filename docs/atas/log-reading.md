@@ -34,6 +34,7 @@ Marker principali:
 [MR_REFERENCE_READY]         reference completa disponibile: PreviousDayProfile o PreviousLondonProfile
 [MR_SETUP_LONG]              sweep sotto reference VAL e close back inside value
 [MR_SETUP_SHORT]             sweep sopra reference VAH e close back inside value
+[MR_PROFILE_CONTEXT]         diagnostica profili intraday; ProfileSource=CurrentLondonSessionProfile o LocalRotationProfile; DIAGNOSTIC_ONLY
 [MR_SETUP_EXPIRED]           setup scaduto o POC toccato prima dell'entry
 [MR_HISTORICAL_TRADES]       cumulative trades storici ricevuti
 [HISTORICAL_FLOW_PROCESS_START]
@@ -81,6 +82,18 @@ Visual current-day POC circa 29500
 ```
 
 In caso di dubbio, il target operativo e' sempre quello loggato in `[MR_ENTRY] TargetPOC` e confermato da `[MR_REFERENCE_READY] POC`.
+
+## Diagnostica profili intraday
+
+`[MR_PROFILE_CONTEXT]` non genera segnali e non modifica il PnL. Serve solo a confrontare il setup operativo con i profili che si stanno formando durante London.
+
+```text
+ProfileSource=CurrentLondonSessionProfile  profilo da inizio London fino al setup
+ProfileSource=LocalRotationProfile         profilo locale dalla rotazione/pivot piu' recente fino al setup
+ProfileUse=DIAGNOSTIC_ONLY
+```
+
+Per analisi PnL ignorare sempre `[MR_PROFILE_CONTEXT]`; usare solo `[MR_EXIT]`.
 
 ## Durata massima trade
 

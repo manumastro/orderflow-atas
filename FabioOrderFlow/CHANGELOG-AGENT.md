@@ -1,5 +1,26 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Implementazione 2026-07-08 - Unified profile diagnostics + LocalRotationProfile
+
+```text
+Obiettivo:
+- Separare meglio le diagnostiche intraday senza creare marker/log diversi e confusi.
+- Aggiungere una diagnostica piu' vicina alla lettura Fabio avanzata del profilo su compressione/rotazione intraday.
+
+Implementato:
+- Nuovo marker unico [MR_PROFILE_CONTEXT].
+- Ogni riga distingue la diagnostica con ProfileSource.
+- ProfileSource=CurrentLondonSessionProfile: profilo broad da inizio London al setup.
+- ProfileSource=LocalRotationProfile: profilo locale direzionale dalla rotazione/pivot piu' recente al setup.
+- Il vecchio marker [MR_ACTIVE_PROFILE_CONTEXT] viene sostituito dal marker unico [MR_PROFILE_CONTEXT].
+- Uso dichiarato: ProfileUse=DIAGNOSTIC_ONLY.
+- Nessun blocco entry, nessun cambio target, nessun cambio PnL.
+
+Validazione:
+- Build Release OK, Avvisi 0, Errori 0.
+- DLL deployata; da ricaricare in ATAS.
+```
+
 ## Reload 2026-07-08 11:58 - Active London profile diagnostics validated
 
 ```text
