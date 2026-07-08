@@ -41,7 +41,8 @@ Playbook unico:
 5. Si attende un cumulative big trade nella direzione di rientro.
 6. Target = POC / bulk dell'asta della reference area.
 7. Se il trade va a favore almeno 1R, stop a breakeven.
-8. Se e' sbagliato, stop piccolo vicino all'estremo fallito.
+8. Se il target non arriva, il tempo massimo operativo e' la chiusura regular New York: 16:00 New York.
+9. Se e' sbagliato, stop piccolo vicino all'estremo fallito.
 ```
 
 Frasi chiave dal transcript:
@@ -126,6 +127,7 @@ Gestione:
 - Stop vicino all'estremo fallito: high - 2 tick.
 - Target full position al reference POC.
 - A MFE >= 1R: stop a breakeven.
+- Se ancora aperto, flat massimo a New York regular close 16:00 New York.
 ```
 
 ### Long mean reversion
@@ -149,6 +151,7 @@ Gestione:
 - Stop vicino all'estremo fallito: low + 2 tick.
 - Target full position al reference POC.
 - A MFE >= 1R: stop a breakeven.
+- Se ancora aperto, flat massimo a New York regular close 16:00 New York.
 ```
 
 ## Parametri
@@ -161,7 +164,8 @@ Entry timeout:          1200 secondi
 Min RR verso POC:       1.0
 Breakeven trigger:      1.0R
 Breakeven offset:       0 tick
-Sessione operativa:     London 08:00-16:00
+Sessione entry:         London 08:00-16:00
+Massima durata trade:   fino a New York regular close 16:00 New York
 ```
 
 ## Log
@@ -178,6 +182,7 @@ Sessione operativa:     London 08:00-16:00
 [MR_SETUP_NO_ENTRY]          diagnostica setup senza entry
 [MR_ENTRY]                   posizione creata
 [MR_BREAKEVEN]               stop portato a breakeven dopo MFE >= 1R
+[MR_REPLAY_OPEN]             posizione storica ancora aperta a fine dati replay; PnL non contato
 [MR_EXIT]                    exit finale; PnL valido
 [MR_LIVE_HEARTBEAT]          heartbeat leggero live
 [HISTORICAL_FLOW_FINISH]

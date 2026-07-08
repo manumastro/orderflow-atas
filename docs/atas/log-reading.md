@@ -40,6 +40,7 @@ Marker principali:
 [HISTORICAL_FLOW_FINISH]
 [MR_ENTRY]                   entry su big trade nella direzione mean-reversion
 [MR_BREAKEVEN]               stop portato a breakeven dopo MFE >= 1R
+[MR_REPLAY_OPEN]             posizione storica aperta a fine dati; non sommare nel PnL
 [MR_EXIT]                    exit finale e PnL valido
 [MR_LIVE_HEARTBEAT]          heartbeat live leggero
 [MR_REPLAY_AUDIT]            riepilogo storico: reject reasons e scadenze setup
@@ -80,6 +81,25 @@ Visual current-day POC circa 29500
 ```
 
 In caso di dubbio, il target operativo e' sempre quello loggato in `[MR_ENTRY] TargetPOC` e confermato da `[MR_REFERENCE_READY] POC`.
+
+## Durata massima trade
+
+Le entry sono London, ma non vanno chiuse automaticamente a fine London. Un setup valido puo' nascere vicino alla chiusura London e avere bisogno della sessione US per completare il rientro al POC.
+
+Regola operativa:
+
+```text
+Entry window: London 08:00-16:00 London
+Max hold:     New York regular close 16:00 New York
+```
+
+Nel periodo estivo normale questo corrisponde circa a:
+
+```text
+16:00 New York = 22:00 Italia = 20:00 UTC
+```
+
+Il codice usa `MarketTimeZones.NewYork`, quindi gestisce i cambi DST tramite timezone.
 
 ## Barre
 

@@ -34,6 +34,7 @@ namespace FabioOrderFlow
         private const int BreakEvenOffsetTicks = 0;
         private const int LondonSessionStartHour = 8;
         private const int LondonSessionEndHour = 16;
+        private const int NewYorkSessionEndHour = 16;
         private const int LiveHeartbeatTradeStep = 25;
         private const int LiveHeartbeatMinSeconds = 60;
 
@@ -68,7 +69,7 @@ namespace FabioOrderFlow
             _getCandle = getCandle ?? throw new ArgumentNullException(nameof(getCandle));
             _tickSize = tickSize > 0 ? tickSize : 1m;
 
-            _log($"[MR_MODE] Model=FabioLondonMeanReversionCore, Modes=LIVE|HISTORICAL, ReferenceProfiles=PreviousDayProfile|PreviousLondonProfile, BigTradeVolume={LondonBigTradeVolume:F0}, Target=REFERENCE_POC_FULL_EXIT, Entry=FAILED_AUCTION_BACK_INSIDE_REFERENCE_VALUE_PLUS_BIG_TRADE, BreakEvenTrigger={BreakEvenTriggerR:F2}R", false);
+            _log($"[MR_MODE] Model=FabioLondonMeanReversionCore, Modes=LIVE|HISTORICAL, ReferenceProfiles=PreviousDayProfile|PreviousLondonProfile, BigTradeVolume={LondonBigTradeVolume:F0}, Target=REFERENCE_POC_FULL_EXIT, Entry=FAILED_AUCTION_BACK_INSIDE_REFERENCE_VALUE_PLUS_BIG_TRADE, BreakEvenTrigger={BreakEvenTriggerR:F2}R, MaxHold=NEW_YORK_REGULAR_CLOSE_16:00", false);
         }
 
         public IReadOnlyList<TradeRecord> CompletedTrades => _completedTrades;
@@ -123,19 +124,23 @@ namespace FabioOrderFlow
             {
                 foreach (var trade in _historicalTrades)
                 {
+                    ClosePositionsPastNewYorkClose(trade.Time, true);
                     ExpireSetups(trade.Time);
 
-                    if (!IsLondonTradeAllowed(trade.Time))
-                        continue;
+                    if (IsLondonTradeAllowed(trade.Time))
+                    {
+                        if (trade.Volume >= LondonBigTradeVolume)
+                            ProcessAggressionTrade(trade, "Historical", true);
 
-                    if (trade.Volume >= LondonBigTradeVolume)
-                        ProcessAggressionTrade(trade, "Historical", true);
+                        ExpireSetupsOnPocTouchFromTrade(trade, true);
+                    }
 
-                    ExpireSetupsOnPocTouchFromTrade(trade, true);
                     UpdateOpenPositionsFromTrade(trade, true);
+                    ClosePositionsPastNewYorkClose(trade.Time, true);
                 }
 
-                CloseOpenPositionsAtLondonClose();
+                ClosePositionsPastNewYorkClose(lastTradeTime, true);
+                CloseOpenReplayPositionsWithoutPnl(lastTradeTime);
                 var durationMs = (DateTime.UtcNow - startedUtc).TotalMilliseconds;
                 LogReplayAudit();
                 _log($"[HISTORICAL_FLOW_FINISH] Model=FabioLondonMeanReversionCore, StartBar={startBar}, EndBar={endBar}, StoredTrades={_historicalTrades.Count}, Entries={_activePositions.Count}, ClosedPositions={_activePositions.Count(p => p.Closed)}, OpenPositions={_activePositions.Count(p => !p.Closed)}, CompletedTrades={_completedTrades.Count}, ProcessDurationMs={durationMs:F0}", false);
@@ -148,13 +153,16 @@ namespace FabioOrderFlow
 
         public void OnLiveCumulativeTrade(CumulativeTrade trade)
         {
-            if (!IsLondonTradeAllowed(trade.Time))
+            var inLondon = IsLondonTradeAllowed(trade.Time);
+            var hasOpenPosition = _activePositions.Any(p => !p.Closed);
+            if (!inLondon && !hasOpenPosition)
                 return;
 
+            ClosePositionsPastNewYorkClose(trade.Time, false);
             ExpireSetups(trade.Time);
 
             var acceptedBigTrade = false;
-            if (trade.Volume >= LondonBigTradeVolume)
+            if (inLondon && trade.Volume >= LondonBigTradeVolume)
             {
                 var key = GetLiveTradeKey(trade);
                 if (!_liveTradeMaxVolumeByKey.TryGetValue(key, out var seenVolume) || trade.Volume > seenVolume)
@@ -165,8 +173,11 @@ namespace FabioOrderFlow
                 }
             }
 
-            ExpireSetupsOnPocTouchFromTrade(trade, false);
+            if (inLondon)
+                ExpireSetupsOnPocTouchFromTrade(trade, false);
+
             UpdateOpenPositionsFromTrade(trade, false);
+            ClosePositionsPastNewYorkClose(trade.Time, false);
 
             if (acceptedBigTrade)
                 LogLiveHeartbeat(trade);
@@ -543,12 +554,15 @@ namespace FabioOrderFlow
                 TargetPrice = setup.TargetPrice,
                 InitialRisk = risk,
                 MaxFavorablePrice = trade.Lastprice,
-                MaxAdversePrice = trade.Lastprice
+                MaxAdversePrice = trade.Lastprice,
+                LastObservedPrice = trade.Lastprice,
+                LastObservedTimeUtc = trade.Time,
+                SessionCloseTimeUtc = GetNewYorkSessionEndUtc(trade.Time)
             };
 
             _activePositions.Add(position);
 
-            _log($"[MR_ENTRY] ExecutionMode={GetExecutionMode(isHistorical)}, SetupId={setup.SetupId}, EntryModel={mode}, Source={setup.Source}, Pattern={setup.Pattern}, ReferenceLabel={setup.ReferenceLabel}, Direction={setup.Direction}, Bar={position.EntryBar}, {FormatTime(trade.Time)}, EntryPrice={position.EntryPrice:F2}, Volume={trade.Volume:F0}, TradeDirection={trade.Direction}, Stop={position.StopPrice:F2}, TargetPOC={position.TargetPrice:F2}, Risk={risk:F2}, RewardToPOC={reward:F2}, RewardRiskToPOC={rr:F2}, BreakEvenTrigger={BreakEvenTriggerR:F2}R, BigTradeVolume={LondonBigTradeVolume:F0}, SecondsAfterRejection={(trade.Time - setup.RejectionTimeUtc).TotalSeconds:F1}", isHistorical);
+            _log($"[MR_ENTRY] ExecutionMode={GetExecutionMode(isHistorical)}, SetupId={setup.SetupId}, EntryModel={mode}, Source={setup.Source}, Pattern={setup.Pattern}, ReferenceLabel={setup.ReferenceLabel}, Direction={setup.Direction}, Bar={position.EntryBar}, {FormatTime(trade.Time)}, EntryPrice={position.EntryPrice:F2}, Volume={trade.Volume:F0}, TradeDirection={trade.Direction}, Stop={position.StopPrice:F2}, TargetPOC={position.TargetPrice:F2}, Risk={risk:F2}, RewardToPOC={reward:F2}, RewardRiskToPOC={rr:F2}, BreakEvenTrigger={BreakEvenTriggerR:F2}R, MaxHoldUntil={FormatTime(position.SessionCloseTimeUtc)}, BigTradeVolume={LondonBigTradeVolume:F0}, SecondsAfterRejection={(trade.Time - setup.RejectionTimeUtc).TotalSeconds:F1}", isHistorical);
         }
 
         private void UpdateOpenPositionsFromBar(int bar, IndicatorCandle candle)
@@ -559,6 +573,14 @@ namespace FabioOrderFlow
             var eventTime = GetCandleEventTime(candle);
             foreach (var position in _activePositions.Where(p => !p.Closed).ToList())
             {
+                if (eventTime >= position.SessionCloseTimeUtc)
+                {
+                    UpdatePositionLastObserved(position, eventTime, candle.Close);
+                    ClosePosition(position, bar, position.SessionCloseTimeUtc, "NEW_YORK_CLOSE", candle.Close, IsHistoricalContext(bar));
+                    continue;
+                }
+
+                UpdatePositionLastObserved(position, eventTime, candle.Close);
                 UpdatePositionTracking(position, candle.High, candle.Low);
                 TryActivateBreakEven(position, bar, eventTime, IsHistoricalContext(bar));
                 CheckPositionExit(position, bar, eventTime, candle.High, candle.Low, IsHistoricalContext(bar));
@@ -571,6 +593,10 @@ namespace FabioOrderFlow
             var low = Math.Min(trade.FirstPrice, trade.Lastprice);
             foreach (var position in _activePositions.Where(p => !p.Closed).ToList())
             {
+                if (trade.Time >= position.SessionCloseTimeUtc)
+                    continue;
+
+                UpdatePositionLastObserved(position, trade.Time, trade.Lastprice);
                 UpdatePositionTracking(position, high, low);
                 var bar = FindBarByTime(trade.Time, position.EntryBar);
                 TryActivateBreakEven(position, bar, trade.Time, isHistorical);
@@ -666,19 +692,27 @@ namespace FabioOrderFlow
             _log($"[MR_EXIT] ExecutionMode={GetExecutionMode(isHistorical)}, SetupId={position.SetupId}, EntryModel={position.EntryModel}, Direction={position.Direction}, Bar={bar}, {FormatTime(eventTimeUtc)}, Entry={position.EntryPrice:F2}, Exit={exitPrice:F2}, ExitReason={exitReason}, PnL={pnl:F2}, MFE={position.MFE:F2}, MAE={position.MAE:F2}, RMultiple={rMultiple:F2}R, BreakEvenActivated={position.BreakEvenActivated}, TargetPOC={position.TargetPrice:F2}, Stop={position.StopPrice:F2}, OriginalStop={position.OriginalStopPrice:F2}", isHistorical);
         }
 
-        private void CloseOpenPositionsAtLondonClose()
+        private void ClosePositionsPastNewYorkClose(DateTime eventTimeUtc, bool isHistorical)
+        {
+            foreach (var position in _activePositions.Where(p => !p.Closed && eventTimeUtc >= p.SessionCloseTimeUtc).ToList())
+            {
+                var exitPrice = position.LastObservedTimeUtc >= position.EntryTimeUtc
+                    ? position.LastObservedPrice
+                    : position.EntryPrice;
+                ClosePosition(position, FindBarByTime(position.SessionCloseTimeUtc, position.EntryBar), position.SessionCloseTimeUtc, "NEW_YORK_CLOSE", exitPrice, isHistorical);
+            }
+        }
+
+        private void CloseOpenReplayPositionsWithoutPnl(DateTime replayEndUtc)
         {
             foreach (var position in _activePositions.Where(p => !p.Closed).ToList())
             {
-                var londonCloseUtc = GetLondonSessionEndUtc(position.EntryTimeUtc);
-                var lastTrade = _historicalTrades
-                    .Where(t => t.Time >= position.EntryTimeUtc && t.Time <= londonCloseUtc)
-                    .OrderBy(t => t.Time)
-                    .LastOrDefault();
-
-                var exitTime = lastTrade?.Time ?? londonCloseUtc;
-                var exitPrice = lastTrade?.Lastprice ?? position.EntryPrice;
-                ClosePosition(position, FindBarByTime(exitTime, position.EntryBar), exitTime, "LONDON_CLOSE", exitPrice, true);
+                position.Closed = true;
+                position.ExitTimeUtc = replayEndUtc;
+                position.ExitBar = FindBarByTime(replayEndUtc, position.EntryBar);
+                position.ExitReason = "REPLAY_END_OPEN";
+                position.ExitPrice = position.LastObservedTimeUtc >= position.EntryTimeUtc ? position.LastObservedPrice : position.EntryPrice;
+                _log($"[MR_REPLAY_OPEN] SetupId={position.SetupId}, Direction={position.Direction}, Bar={position.ExitBar}, ReplayEnd={FormatTime(replayEndUtc)}, Entry={position.EntryPrice:F2}, LastObserved={position.ExitPrice:F2}, LastObservedTime={(position.LastObservedTimeUtc == default ? "NA" : FormatTime(position.LastObservedTimeUtc))}, TargetPOC={position.TargetPrice:F2}, Stop={position.StopPrice:F2}, MaxHoldUntil={FormatTime(position.SessionCloseTimeUtc)}, PnLNotCounted=True", true);
             }
         }
 
@@ -822,6 +856,12 @@ namespace FabioOrderFlow
             return string.Join("|", counts.OrderByDescending(kv => kv.Value).ThenBy(kv => kv.Key).Select(kv => $"{kv.Key}:{kv.Value}"));
         }
 
+        private static void UpdatePositionLastObserved(ActivePosition position, DateTime eventTimeUtc, decimal price)
+        {
+            position.LastObservedTimeUtc = eventTimeUtc;
+            position.LastObservedPrice = price;
+        }
+
         private void UpdatePositionTracking(ActivePosition position, decimal high, decimal low)
         {
             if (position.Direction == "Long")
@@ -867,11 +907,11 @@ namespace FabioOrderFlow
             return IsInLondonSession(utcTime);
         }
 
-        private DateTime GetLondonSessionEndUtc(DateTime eventUtc)
+        private DateTime GetNewYorkSessionEndUtc(DateTime eventUtc)
         {
-            var london = MarketTimeZones.ToLondon(eventUtc);
-            var londonEnd = new DateTime(london.Year, london.Month, london.Day, LondonSessionEndHour, 0, 0, DateTimeKind.Unspecified);
-            return TimeZoneInfo.ConvertTimeToUtc(londonEnd, MarketTimeZones.London);
+            var newYork = MarketTimeZones.ToNewYork(eventUtc);
+            var newYorkEnd = new DateTime(newYork.Year, newYork.Month, newYork.Day, NewYorkSessionEndHour, 0, 0, DateTimeKind.Unspecified);
+            return TimeZoneInfo.ConvertTimeToUtc(newYorkEnd, MarketTimeZones.NewYork);
         }
 
         private int FindBarByTime(DateTime timeUtc, int fallbackBar)
@@ -1046,6 +1086,9 @@ namespace FabioOrderFlow
             public decimal InitialRisk { get; set; }
             public decimal MaxFavorablePrice { get; set; }
             public decimal MaxAdversePrice { get; set; }
+            public decimal LastObservedPrice { get; set; }
+            public DateTime LastObservedTimeUtc { get; set; }
+            public DateTime SessionCloseTimeUtc { get; set; }
             public decimal MFE { get; set; }
             public decimal MAE { get; set; }
             public bool BreakEvenActivated { get; set; }

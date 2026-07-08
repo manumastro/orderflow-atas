@@ -1,5 +1,26 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Fix 2026-07-08 - Max hold fino a New York close
+
+```text
+Decisione:
+- Non chiudere automaticamente a fine London.
+- Entry London vicine alla chiusura possono essere corrette e devono avere tempo fino alla sessione US.
+- Tempo massimo operativo: New York regular close, 16:00 New York.
+
+Informazione sessione:
+- New York regular cash close = 16:00 America/New_York.
+- Nel periodo estivo normale: 16:00 NY = 22:00 Italia = 20:00 UTC.
+- Il codice usa MarketTimeZones.NewYork, quindi gestisce DST tramite timezone.
+
+Implementazione:
+- Ogni posizione salva SessionCloseTimeUtc = 16:00 New York del giorno di entry.
+- Historical replay aggiorna posizioni anche fuori London fino a NY close; le entry restano permesse solo in London.
+- Se una posizione supera NY close viene chiusa con ExitReason=NEW_YORK_CLOSE.
+- Se il replay finisce prima di NY close, la posizione viene loggata come [MR_REPLAY_OPEN] e non produce [MR_EXIT], quindi non entra nel PnL.
+- OnLiveCumulativeTrade gestisce posizioni aperte anche fuori London, senza generare nuove entry fuori London.
+```
+
 ## Baseline 2026-07-08 - Nuovo punto di partenza operativo
 
 ```text

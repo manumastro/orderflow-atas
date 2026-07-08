@@ -12,7 +12,7 @@ Reload:   2026-07-08 09:34
 Risultato storico: 19 trade chiusi, PnL [MR_EXIT] +493,50
 ```
 
-Questa e' la baseline di partenza per le prossime modifiche.
+Questa e' la baseline di partenza. Subito dopo e' stata aggiunta la regola di massima durata fino a New York regular close, da ricaricare e rivalidare.
 
 ## Mappa Progetto
 
@@ -69,6 +69,7 @@ Regole:
 - controllare sempre `[CUM_TRADES_LOOKBACK]`, perche' ATAS limita la request agli ultimi 7 giorni effettivi;
 - PnL storico valido: sommare solo `[MR_EXIT]`;
 - leggere il target operativo da `[MR_ENTRY] TargetPOC`, non dal POC visuale se l'indicatore volume profile e' impostato su `Current Day`;
+- le entry sono London, ma la massima durata trade e' fino a New York regular close 16:00 New York;
 - usare `docs/atas/log-reading.md` prima di interpretare nuovi log.
 
 ## Build E Deploy
