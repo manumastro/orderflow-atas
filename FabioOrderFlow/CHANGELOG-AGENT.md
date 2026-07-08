@@ -1,5 +1,30 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Reload 2026-07-08 09:08 - No-entry audit validated
+
+```text
+Reload con audit esteso:
+- [MR_MODE] corretto, modello core pulito.
+- [CUM_TRADES_RESPONSE] Count=1.219.566.
+- [MR_HISTORICAL_TRADES] BeginItaly=2026-07-01 00:00:00, EndItaly=2026-07-08 09:08:36.
+- ActiveSetups=23.
+- Entry=1, Exit=1, PnL da [MR_EXIT] = -32,75.
+- Setup 30/06 marcati correttamente EXCLUDED_OUTSIDE_HISTORICAL_TRADE_COVERAGE.
+- No residuali DAY_STUDY/delayed/secondary/pressure/follow/second-leg/target2/scale-in.
+
+Audit:
+- EntryRejects=WRONG_AGGRESSION_DIRECTION:22|OUTSIDE_SHORT_ENTRY_ZONE:5|RR_TO_POC_TOO_LOW:2.
+- Expirations=POC_TOUCHED_BY_TRADE:17|OUTSIDE_HISTORICAL_TRADE_COVERAGE:3|TIMEOUT:2.
+- 17 setup muoiono per touch POC, spesso micro-volume 1-6 contratti e senza big trade same-direction prima del touch.
+- L'unico entry e' 2026-07-07 16:30 Long, stop hit -32,75, MFE=34,75.
+
+Diagnosi:
+- Il modello usa il developing profile della stessa London session come POC/VAH/VAL.
+- Questo rende spesso il POC troppo vicino al fakeout: target minuscolo, touch immediato e RR basso.
+- Dal transcript Fabio parla di previous balance area / bulk dell'asta e nella versione semplice usa il profilo del giorno precedente.
+- Prossima correzione coerente: usare una reference value area precedente/completa, non il micro developing POC della sessione corrente.
+```
+
 ## Fix 2026-07-08 - Replay audit per setup
 
 ```text
