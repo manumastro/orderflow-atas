@@ -1,5 +1,35 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Reload 2026-07-08 09:34 - Reference complete + breakeven validated
+
+```text
+Reload dopo implementazione PreviousDayProfile + PreviousLondonProfile + breakeven:
+- [MR_MODE] corretto: ReferenceProfiles=PreviousDayProfile|PreviousLondonProfile, BreakEvenTrigger=1.00R.
+- [MR_REFERENCE_READY]: 12 totali, 6 PreviousDayProfile + 6 PreviousLondonProfile.
+- [HISTORICAL_FLOW_FINISH]: Entries=19, ClosedPositions=19, OpenPositions=0, CompletedTrades=19.
+- PnL storico da [MR_EXIT]: +493,50.
+- [MR_BREAKEVEN]: 10 attivazioni.
+- No residuali DAY_STUDY/delayed/secondary/pressure/historical-intrabar/follow/second-leg/target2/scale-in.
+
+Breakdown storico:
+- POC_TARGET_HIT: 8 trade, +793,25.
+- STOP_HIT: 10 trade, -332,75.
+- LONDON_CLOSE: 1 trade, +33,00.
+- BreakEvenActivated=True: 10 trade, +793,25.
+- BreakEvenActivated=False: 9 trade, -299,75.
+- Per giorno: 2026-07-01 -19,75; 2026-07-02 +517,00; 2026-07-06 -36,75; 2026-07-08 +33,00.
+- Per source: PreviousDayProfile 9 trade +411,75; PreviousLondonProfile 10 trade +81,75.
+
+Nota live:
+- Dopo il replay e' apparso anche un [MR_ENTRY] LIVE alle 09:34:58, Long PreviousDayProfile, Entry=29398,00, Stop=29335,00, TargetPOC=29540,00.
+- Nel log analizzato non c'era ancora [MR_EXIT] LIVE per quel SetupId.
+
+Diagnosi:
+- La correzione della reference ha aumentato le entry e recuperato una PnL storica positiva.
+- Il breakeven funziona e trasforma diversi trade potenzialmente rientrati in stop in zero o target.
+- Resta da valutare se il modello sta sovra-tradando sullo stesso swing, soprattutto il 2026-07-02 con 11 trade.
+```
+
 ## Implementazione 2026-07-08 - Reference complete + breakeven
 
 ```text
