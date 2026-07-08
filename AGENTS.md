@@ -8,3 +8,4 @@
 7. Deploy DLL in `%APPDATA%/ATAS/Indicators/FabioOrderFlow.dll`.
 8. Non toccare PostLondonImpulse salvo richiesta.
 9. Docs: scrivi per umano+agente; progetto=procedure, modello=strategia+contratto codice, changelog=decisioni/reload.
+10. Lavora una cosa alla volta: mantieni sempre lo scopo scelto inizialmente, non mischiare local profile, retest, filtri o nuove entry nello stesso ciclo.
