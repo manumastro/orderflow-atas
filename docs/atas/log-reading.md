@@ -41,7 +41,7 @@ Marker principali:
 [MR_EXIT]                    exit finale e PnL valido
 [MR_LIVE_HEARTBEAT]          heartbeat live leggero
 [MR_REPLAY_AUDIT]            riepilogo storico: reject reasons e scadenze setup
-[MR_SETUP_NO_ENTRY]          diagnostica per setup senza entry
+[MR_SETUP_NO_ENTRY]          diagnostica per setup senza entry: stato finale, primo big trade utile/opposto e primo touch POC
 ```
 
 ## Come leggere un trade

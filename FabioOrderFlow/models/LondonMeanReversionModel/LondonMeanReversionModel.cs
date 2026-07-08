@@ -104,19 +104,19 @@ namespace FabioOrderFlow
             _activePositions.Clear();
             _entryRejectCounts.Clear();
             _setupExpirationCounts.Clear();
+            var firstTradeTime = _historicalTrades.Count > 0 ? _historicalTrades.First().Time : DateTime.MaxValue;
+            var lastTradeTime = _historicalTrades.Count > 0 ? _historicalTrades.Last().Time : DateTime.MinValue;
             foreach (var setup in _activeSetups)
-            {
-                setup.AggressionConfirmed = false;
-                setup.Expired = false;
-                setup.PocTouched = false;
-            }
+                ResetSetupReplayState(setup, firstTradeTime, lastTradeTime);
 
-            _log($"[HISTORICAL_FLOW_PROCESS_START] Model=FabioLondonMeanReversionCore, StartBar={startBar}, EndBar={endBar}, StoredTrades={_historicalTrades.Count}, ActiveSetups={_activeSetups.Count}, ReplayStateReset=True", false);
+            _log($"[HISTORICAL_FLOW_PROCESS_START] Model=FabioLondonMeanReversionCore, StartBar={startBar}, EndBar={endBar}, StoredTrades={_historicalTrades.Count}, ActiveSetups={_activeSetups.Count}, ReplayStateReset=True, FirstTrade={(_historicalTrades.Count > 0 ? FormatTime(firstTradeTime) : "NA")}, LastTrade={(_historicalTrades.Count > 0 ? FormatTime(lastTradeTime) : "NA")}", false);
 
             try
             {
                 foreach (var trade in _historicalTrades)
                 {
+                    ExpireSetups(trade.Time);
+
                     if (!IsLondonTradeAllowed(trade.Time))
                         continue;
 
@@ -287,7 +287,10 @@ namespace FabioOrderFlow
                 if (!IsEntryCandidate(setup, trade, out var reason, out var risk, out var reward, out var rr))
                 {
                     if (reason != "TRADE_BEFORE_REJECTION")
+                    {
                         RecordEntryReject(reason);
+                        TrackRejectedEntryCandidate(setup, trade, reason, risk, reward, rr);
+                    }
                     continue;
                 }
 
@@ -514,9 +517,63 @@ namespace FabioOrderFlow
                     continue;
 
                 setup.PocTouched = true;
+                setup.FirstPocTouchTimeUtc = trade.Time;
+                setup.FirstPocTouchPrice = trade.Lastprice;
+                setup.FirstPocTouchVolume = trade.Volume;
                 setup.Expired = true;
                 RecordSetupExpiration("POC_TOUCHED_BY_TRADE");
                 _log($"[MR_SETUP_EXPIRED] ExecutionMode={GetExecutionMode(isHistorical)}, SetupId={setup.SetupId}, Reason=POC_TOUCHED_BEFORE_ENTRY_BY_TRADE, Direction={setup.Direction}, Bar={FindBarByTime(trade.Time, setup.RejectionBar)}, {FormatTime(trade.Time)}, POC={setup.POC:F2}, TradeFirst={trade.FirstPrice:F2}, TradeLast={trade.Lastprice:F2}, Volume={trade.Volume:F0}", isHistorical);
+            }
+        }
+
+        private void ResetSetupReplayState(BalanceSetup setup, DateTime firstTradeTime, DateTime lastTradeTime)
+        {
+            setup.AggressionConfirmed = false;
+            setup.Expired = false;
+            setup.PocTouched = false;
+            setup.ReplayExcluded = false;
+            setup.FirstSameDirectionBigTradeTimeUtc = null;
+            setup.FirstSameDirectionBigTradePrice = 0;
+            setup.FirstSameDirectionBigTradeVolume = 0;
+            setup.FirstSameDirectionRejectReason = string.Empty;
+            setup.FirstSameDirectionRewardRiskToPoc = 0;
+            setup.FirstOppositeDirectionBigTradeTimeUtc = null;
+            setup.FirstOppositeDirectionBigTradePrice = 0;
+            setup.FirstOppositeDirectionBigTradeVolume = 0;
+            setup.FirstPocTouchTimeUtc = null;
+            setup.FirstPocTouchPrice = 0;
+            setup.FirstPocTouchVolume = 0;
+
+            if (_historicalTrades.Count == 0 || setup.RejectionTimeUtc < firstTradeTime || setup.RejectionTimeUtc > lastTradeTime)
+            {
+                setup.ReplayExcluded = true;
+                setup.Expired = true;
+                RecordSetupExpiration("OUTSIDE_HISTORICAL_TRADE_COVERAGE");
+            }
+        }
+
+        private void TrackRejectedEntryCandidate(BalanceSetup setup, CumulativeTrade trade, string reason, decimal risk, decimal reward, decimal rr)
+        {
+            if (!_processingHistoricalReplay)
+                return;
+
+            var expectedDirection = setup.Direction == "Long" ? TradeDirection.Buy : TradeDirection.Sell;
+            if (trade.Direction == expectedDirection)
+            {
+                if (setup.FirstSameDirectionBigTradeTimeUtc == null)
+                {
+                    setup.FirstSameDirectionBigTradeTimeUtc = trade.Time;
+                    setup.FirstSameDirectionBigTradePrice = trade.Lastprice;
+                    setup.FirstSameDirectionBigTradeVolume = trade.Volume;
+                    setup.FirstSameDirectionRejectReason = reason;
+                    setup.FirstSameDirectionRewardRiskToPoc = rr;
+                }
+            }
+            else if (setup.FirstOppositeDirectionBigTradeTimeUtc == null)
+            {
+                setup.FirstOppositeDirectionBigTradeTimeUtc = trade.Time;
+                setup.FirstOppositeDirectionBigTradePrice = trade.Lastprice;
+                setup.FirstOppositeDirectionBigTradeVolume = trade.Volume;
             }
         }
 
@@ -547,11 +604,27 @@ namespace FabioOrderFlow
                 if (setup.AggressionConfirmed)
                     continue;
 
-                var finalState = setup.Expired
-                    ? setup.PocTouched ? "EXPIRED_POC_TOUCHED" : "EXPIRED_TIMEOUT"
-                    : "NO_VALID_BIG_TRADE";
-                _log($"[MR_SETUP_NO_ENTRY] SetupId={setup.SetupId}, Direction={setup.Direction}, Source={setup.Source}, Bar={setup.RejectionBar}, {FormatTime(setup.RejectionTimeUtc)}, FinalState={finalState}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}, Stop={setup.StopPrice:F2}, TargetPOC={setup.TargetPrice:F2}", true);
+                var finalState = setup.ReplayExcluded
+                    ? "EXCLUDED_OUTSIDE_HISTORICAL_TRADE_COVERAGE"
+                    : setup.Expired
+                        ? setup.PocTouched ? "EXPIRED_POC_TOUCHED" : "EXPIRED_TIMEOUT"
+                        : "NO_VALID_BIG_TRADE";
+                _log($"[MR_SETUP_NO_ENTRY] SetupId={setup.SetupId}, Direction={setup.Direction}, Source={setup.Source}, Bar={setup.RejectionBar}, {FormatTime(setup.RejectionTimeUtc)}, FinalState={finalState}, POC={setup.POC:F2}, VAH={setup.VAH:F2}, VAL={setup.VAL:F2}, Stop={setup.StopPrice:F2}, TargetPOC={setup.TargetPrice:F2}, {FormatSetupAudit(setup)}", true);
             }
+        }
+
+        private string FormatSetupAudit(BalanceSetup setup)
+        {
+            var same = setup.FirstSameDirectionBigTradeTimeUtc.HasValue
+                ? $"FirstSameBigTrade={FormatTime(setup.FirstSameDirectionBigTradeTimeUtc.Value)}, SamePrice={setup.FirstSameDirectionBigTradePrice:F2}, SameVolume={setup.FirstSameDirectionBigTradeVolume:F0}, SameReject={setup.FirstSameDirectionRejectReason}, SameRR={setup.FirstSameDirectionRewardRiskToPoc:F2}"
+                : "FirstSameBigTrade=none";
+            var opposite = setup.FirstOppositeDirectionBigTradeTimeUtc.HasValue
+                ? $"FirstOppositeBigTrade={FormatTime(setup.FirstOppositeDirectionBigTradeTimeUtc.Value)}, OppositePrice={setup.FirstOppositeDirectionBigTradePrice:F2}, OppositeVolume={setup.FirstOppositeDirectionBigTradeVolume:F0}"
+                : "FirstOppositeBigTrade=none";
+            var poc = setup.FirstPocTouchTimeUtc.HasValue
+                ? $"FirstPocTouch={FormatTime(setup.FirstPocTouchTimeUtc.Value)}, PocTouchPrice={setup.FirstPocTouchPrice:F2}, PocTouchVolume={setup.FirstPocTouchVolume:F0}"
+                : "FirstPocTouch=none";
+            return $"{same}, {opposite}, {poc}";
         }
 
         private static string FormatCounts(Dictionary<string, int> counts)
@@ -690,6 +763,18 @@ namespace FabioOrderFlow
             public bool AggressionConfirmed { get; set; }
             public bool Expired { get; set; }
             public bool PocTouched { get; set; }
+            public bool ReplayExcluded { get; set; }
+            public DateTime? FirstSameDirectionBigTradeTimeUtc { get; set; }
+            public decimal FirstSameDirectionBigTradePrice { get; set; }
+            public decimal FirstSameDirectionBigTradeVolume { get; set; }
+            public string FirstSameDirectionRejectReason { get; set; } = string.Empty;
+            public decimal FirstSameDirectionRewardRiskToPoc { get; set; }
+            public DateTime? FirstOppositeDirectionBigTradeTimeUtc { get; set; }
+            public decimal FirstOppositeDirectionBigTradePrice { get; set; }
+            public decimal FirstOppositeDirectionBigTradeVolume { get; set; }
+            public DateTime? FirstPocTouchTimeUtc { get; set; }
+            public decimal FirstPocTouchPrice { get; set; }
+            public decimal FirstPocTouchVolume { get; set; }
         }
 
         public sealed class ActivePosition

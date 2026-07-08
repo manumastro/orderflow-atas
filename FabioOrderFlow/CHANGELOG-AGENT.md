@@ -1,5 +1,28 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Fix 2026-07-08 - Replay audit per setup
+
+```text
+Reload dopo fix replay state:
+- Setup attivi: 23.
+- Entry: 1.
+- Exit: 1.
+- PnL da [MR_EXIT]: -32,75.
+- Entry unica: 2026-07-07 16:30 Long, stop hit.
+- Reject globali: WRONG_AGGRESSION_DIRECTION=22, OUTSIDE_SHORT_ENTRY_ZONE=5, RR_TO_POC_TOO_LOW=2.
+- Scadenze: soprattutto POC_TOUCHED_BY_TRADE.
+
+Problema interpretativo emerso:
+- La regola attuale invalida il setup appena il prezzo tocca il POC esatto, anche con micro trade da 1-6 contratti.
+- Questo e' probabilmente troppo meccanico rispetto a Fabio: il target e' l'area/bulk dell'asta, non necessariamente un singolo tick POC.
+- Inoltre i setup prima del primo cumulative trade disponibile non devono contaminare il replay.
+
+Fix audit:
+- ExpireSetups viene eseguito su ogni trade storico, non solo sui big trade.
+- Setup fuori dalla copertura cumulative trades vengono marcati EXCLUDED_OUTSIDE_HISTORICAL_TRADE_COVERAGE.
+- [MR_SETUP_NO_ENTRY] ora include primo big trade same-direction, primo big trade opposite-direction e primo POC touch.
+```
+
 ## Fix 2026-07-07 - Historical replay setup state
 
 ```text
