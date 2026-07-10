@@ -103,3 +103,4 @@ Il report usa solo `[MR_EXIT]` per il PnL, separa `PreviousDayProfile` da `Previ
 - Il `.md` del modello contiene tesi, regole, parametri, log e limiti della strategia.
 - Il changelog contiene solo decisioni operative, risultati reload e comandi essenziali.
 - Ogni doc deve essere leggibile da umano e agente: frasi brevi, nomi file/tag esatti, nessuna narrativa superflua.
+- Ogni risposta e aggiornamento deve chiarire in forma concisa, anche se gia' discusso: `Operativo`, `Diagnostico`, `Cambiato`, `Da verificare`. Non assumere che il lettore ricordi il contesto precedente.

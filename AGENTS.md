@@ -9,3 +9,4 @@
 8. Non toccare PostLondonImpulse salvo richiesta.
 9. Docs: scrivi per umano+agente; progetto=procedure, modello=strategia+contratto codice, changelog=decisioni/reload.
 10. Lavora una cosa alla volta: mantieni sempre lo scopo scelto inizialmente, non mischiare local profile, retest, filtri o nuove entry nello stesso ciclo.
+11. Ogni risposta deve essere chiarificatrice e concisa anche se il tema e' gia' stato discusso: riepiloga sempre cosa e' operativo, cosa e' solo diagnostico, cosa e' cambiato e cosa resta da verificare; non dare per scontato il contesto precedente.

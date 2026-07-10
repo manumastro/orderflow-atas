@@ -1,5 +1,16 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Decisione 2026-07-10 - Comunicazione sempre chiarificatrice
+
+```text
+Ogni risposta/aggiornamento deve riepilogare in modo conciso, anche se gia' discusso:
+- Operativo: cio' che genera o gestisce trade.
+- Diagnostico: cio' che osserva soltanto e non modifica il PnL.
+- Cambiato: modifica effettuata nel ciclo corrente.
+- Da verificare: evidenza ancora mancante.
+Non assumere che il contesto precedente sia ricordato.
+```
+
 ## Reload 2026-07-10 12:47 - Compression lifecycle verificato
 
 ```text
