@@ -124,8 +124,8 @@ Lifecycle causale:
 2. Cerca una finestra da 6 a 18 barre.
 3. Prima della finestra richiede una baseline causale di almeno 6 barre, fino a 12, mai incluse nella candidata.
 4. BaselineMedianBarRange = mediana dei range high-low delle barre precedenti.
-5. Richiede ProfileRange / BaselineMedianBarRange <= 4,00.
-6. Richiede AverageProfileBarRange / BaselineMedianBarRange <= 1,25.
+5. Richiede ProfileRange / BaselineMedianBarRange <= 3,00.
+6. Richiede AverageProfileBarRange / BaselineMedianBarRange <= 0,85: le barre della candidata devono essere realmente piu' piccole della volatilita' precedente.
 7. Richiede almeno 70% di coppie adiacenti sovrapposte e almeno 2 cambi di direzione delle close.
 8. Richiede DirectionalEfficiency <= 0,40, CloseSpanRatio <= 0,80 e RangeToAverageBarRange <= 2,75.
 9. Quando tutti i criteri sono presenti, congela POC/VAH/VAL e logga [MR_LOCAL_PROFILE_READY].
@@ -133,7 +133,7 @@ Lifecycle causale:
 11. Un setup puo' allegare il profilo solo se ReadyBar < RejectionBar.
 ```
 
-Il reload 2026-07-10 ha validato lifecycle e causalita', ma non la prima classificazione: 54 profili READY includevano ancora range da 163,00 / 232,75 / 245,00 punti. La revisione successiva aggiunge quindi la contrazione rispetto alla volatilita' precedente. Le soglie `4,00` e `1,25` sono diagnostiche e devono essere validate con un nuovo reload; non sono un filtro operativo.
+Il primo reload ha validato lifecycle e causalita', ma ha prodotto 54 profili troppo permissivi. La prima normalizzazione `4,00 / 1,25` li ha ridotti solo a 46 e ha ancora accettato 5 range sopra 150 punti, con massimo 243,75. Il limite `1,25` consentiva espansione rispetto alla baseline, non contrazione. La revisione corrente usa quindi `3,00 / 0,85`. Le soglie restano diagnostiche e devono essere validate con un nuovo reload; non sono un filtro operativo.
 
 Le diagnostiche precedenti `CurrentLondonSessionProfile`, `LocalRotationProfile` e `LatestSwingPairToSetup` sono ritirate dal codice attivo.
 

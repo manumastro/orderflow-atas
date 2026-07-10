@@ -48,8 +48,8 @@ namespace FabioOrderFlow
         private const decimal LocalCompressionMaximumRangeToAverageBarRange = 2.75m;
         private const decimal LocalCompressionMaximumDirectionalEfficiency = 0.40m;
         private const decimal LocalCompressionMaximumCloseSpanRatio = 0.80m;
-        private const decimal LocalCompressionMaximumRangeToBaselineMedian = 4.00m;
-        private const decimal LocalCompressionMaximumAverageBarRangeToBaselineMedian = 1.25m;
+        private const decimal LocalCompressionMaximumRangeToBaselineMedian = 3.00m;
+        private const decimal LocalCompressionMaximumAverageBarRangeToBaselineMedian = 0.85m;
         private static readonly bool LogProfileDiagnosticsForSetups = false;
         private static readonly bool LogProfileDiagnosticsForEntries = true;
         private const string ActiveCompressionProfileSource = "ActiveCompressionProfile";

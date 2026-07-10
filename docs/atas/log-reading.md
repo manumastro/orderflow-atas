@@ -101,8 +101,8 @@ Su `[MR_PROFILE_CONTEXT]` controllare `ProfileReadyTime < Italy` del setup/entry
 
 ```text
 BaselineMedianBarRange                 mediana range delle 6-12 barre precedenti, escluse dalla candidata
-RangeToBaselineMedian                 deve essere <= 4,00
-AverageBarRangeToBaselineMedian       deve essere <= 1,25
+RangeToBaselineMedian                 deve essere <= 3,00
+AverageBarRangeToBaselineMedian       deve essere <= 0,85; conferma contrazione reale
 ```
 
 Per analisi PnL ignorare sempre tutti i marker profilo; usare solo `[MR_EXIT]`.

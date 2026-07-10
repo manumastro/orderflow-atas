@@ -11,6 +11,31 @@ Ogni risposta/aggiornamento deve riepilogare in modo conciso, anche se gia' disc
 Non assumere che il contesto precedente sia ricordato.
 ```
 
+## Reload 2026-07-10 15:28 - Prima normalizzazione insufficiente
+
+```text
+Operativo:
+- Tratto comune al reload precedente: 13 [MR_EXIT], PnL HISTORICAL -279,75 invariato.
+- Copertura nuova estesa fino alle 15:28: 18 entry historical; 17 exit PnL + 1 [MR_REPLAY_OPEN].
+- Nessun cambio a PreviousDayProfile, PreviousLondonProfile o gestione trade.
+
+Diagnostico:
+- [MR_LOCAL_PROFILE_READY]=46 e RESOLVED=46, contro 54/54 precedenti.
+- [MR_PROFILE_CONTEXT]=5: 4 historical + 1 live; causalita' ReadyTime < EntryTime sempre corretta.
+- Range mediano 65,13; massimo 243,75.
+- Restano 5 profili >= 150 punti: 159,50 / 168,25 / 176,25 / 196,50 / 243,75.
+- RangeToBaselineMedian massimo 3,30; AverageBarRangeToBaselineMedian massimo 1,25.
+
+Conclusione:
+- La soglia media 1,25 consente espansione, non impone una vera contrazione.
+- Prima normalizzazione NON validata come classificatore finale.
+
+Correzione singola:
+- RangeToBaselineMedian: 4,00 -> 3,00.
+- AverageBarRangeToBaselineMedian: 1,25 -> 0,85.
+- Tutto resta DIAGNOSTIC_ONLY; nuovo reload richiesto.
+```
+
 ## Implementazione 2026-07-10 - Compressione normalizzata per volatilita'
 
 ```text
