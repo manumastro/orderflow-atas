@@ -1,5 +1,32 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Reload 2026-07-10 11:51 - ActiveCompressionProfile check
+
+```text
+Copertura replay:
+- [CUM_TRADES_LOOKBACK] EffectiveBeginItaly=2026-07-03 11:51:21, EndItaly=2026-07-10 11:51:21.
+- [CUM_TRADES_RESPONSE] Count=1.131.053.
+- [HISTORICAL_FLOW_FINISH]: Entries=11, ClosedPositions=11, OpenPositions=0, CompletedTrades=11.
+- [MR_REPLAY_OPEN]: 0.
+
+Operativita' invariata:
+- [MR_MODE] corretto: ProfileDiagnostics=ActiveCompressionProfile, ProfileDiagnosticsUse=DIAGNOSTIC_ONLY, ProfileDiagnosticsLevel=ENTRY_ONLY.
+- [MR_PROFILE_CONTEXT]: 11, tutti ProfileSource=ActiveCompressionProfile e Context=ENTRY.
+- Nessuna entry/exit live nel file dopo reload.
+- PnL del rolling replay: -258,25 da [MR_EXIT]. Non confrontabile con la baseline +634,25: la request mobile a 7 giorni ha escluso il 01/07 e il 02/07, che contenevano +735,00.
+- Il 09/07 non ha prodotto setup/entry nel log disponibile. Il 10/07 fino alle 11:51 ha un solo setup long PreviousDayProfile, poi EXPIRED_TIMEOUT senza big trade Buy; nessuna entry.
+
+Verifica ActiveCompressionProfile:
+- La diagnostica e' meccanicamente corretta: ogni entry porta ProfileBegin/End, High/Low, POC/VAH/VAL e i rapporti rispetto a entry/target.
+- L'algoritmo attuale usa solo l'ultima coppia swing high/swing low e un minimo di 3 barre.
+- Nei casi guida 06/07 15:35, 15:50 e 16:02 seleziona rispettivamente finestre 7/4/6 barre con range 163,00 / 191,00 / 232,75 punti, incluse nella spinta/reversal. Non sono ancora una compressione/dealing range dimostrata.
+- Conclusione: ActiveCompressionProfile e' un prototipo di localizzazione, non ancora la replica del profile di compressione che Fabio disegna manualmente. Non usare POC/VAH/VAL di questa diagnostica per entry, filtro o target.
+
+Scope invariato:
+- Prossimo lavoro solo sul criterio che riconosce una vera compressione preesistente e indipendente dall'entry.
+- Retest, filtri e nuove entry restano esplicitamente fuori scope.
+```
+
 ## Implementazione 2026-07-08 - Focus unico ActiveCompressionProfile
 
 ```text

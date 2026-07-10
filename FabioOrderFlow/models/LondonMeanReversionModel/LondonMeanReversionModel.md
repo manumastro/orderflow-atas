@@ -115,7 +115,7 @@ Il focus attuale e' una sola diagnostica locale:
 ProfileSource=ActiveCompressionProfile
 ```
 
-`ActiveCompressionProfile` prova a rappresentare il profilo Fabio-style della compressione/dealing range intraday. Non e' direzionale e non parte dall'entry. Al momento del setup cerca l'ultima coppia di swing high/swing low gia' formata nella London corrente e profila la zona da quel primo estremo fino alla candela di setup. L'obiettivo e' verificare se questa finestra corrisponde alla zona che Fabio disegnerebbe a mano come range/compressione.
+`ActiveCompressionProfile` e' un prototipo diagnostico della compressione/dealing range intraday Fabio-style. Non e' direzionale e non parte dall'entry: al momento del setup cerca l'ultima coppia di swing high/swing low gia' formata nella London corrente e profila la zona da quel primo estremo fino alla candela di setup. Il reload 2026-07-10 ha mostrato che questo criterio da solo puo' includere una spinta/reversal ampia, non una compressione reale. Quindi serve solo a verificare la localizzazione e non e' ancora la replica del profile che Fabio disegnerebbe a mano.
 
 Le diagnostiche precedenti `CurrentLondonSessionProfile` e `LocalRotationProfile` sono state parcheggiate per non mischiare concetti: ora si verifica una cosa sola, l'`ActiveCompressionProfile`.
 
