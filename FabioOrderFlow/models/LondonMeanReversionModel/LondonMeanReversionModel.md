@@ -115,22 +115,39 @@ Il focus attuale e' una sola diagnostica locale:
 ProfileSource=ActiveCompressionProfile
 ```
 
-`ActiveCompressionProfile` e' un prototipo diagnostico della compressione/dealing range intraday Fabio-style. Non e' direzionale e non parte dall'entry: al momento del setup cerca l'ultima coppia di swing high/swing low gia' formata nella London corrente e profila la zona da quel primo estremo fino alla candela di setup. Il reload 2026-07-10 ha mostrato che questo criterio da solo puo' includere una spinta/reversal ampia, non una compressione reale. Quindi serve solo a verificare la localizzazione e non e' ancora la replica del profile che Fabio disegnerebbe a mano.
+`ActiveCompressionProfile` e' un prototipo diagnostico della compressione/dealing range intraday Fabio-style. Non e' direzionale, non parte dall'entry e non sostituisce le reference operative.
 
-Le diagnostiche precedenti `CurrentLondonSessionProfile` e `LocalRotationProfile` sono state parcheggiate per non mischiare concetti: ora si verifica una cosa sola, l'`ActiveCompressionProfile`.
+Lifecycle causale:
+
+```text
+1. Analizza solo barre London gia' completate; la barra di setup non puo' creare il profilo usato dallo stesso setup.
+2. Cerca una finestra da 6 a 18 barre.
+3. Richiede almeno 70% di coppie adiacenti sovrapposte.
+4. Richiede almeno 2 cambi di direzione delle close.
+5. Richiede DirectionalEfficiency <= 0,40, CloseSpanRatio <= 0,80 e RangeToAverageBarRange <= 2,75.
+6. Quando tutti i criteri sono presenti, congela POC/VAH/VAL e logga [MR_LOCAL_PROFILE_READY].
+7. Una close oltre il range di almeno 4 tick risolve il profilo e logga [MR_LOCAL_PROFILE_RESOLVED].
+8. Un setup puo' allegare il profilo solo se ReadyBar < RejectionBar.
+```
+
+Questi parametri sono una prima traduzione oggettiva di overlap, rotazione e assenza di avanzamento. Devono ancora essere verificati sui chart; non sono un filtro operativo.
+
+Le diagnostiche precedenti `CurrentLondonSessionProfile`, `LocalRotationProfile` e `LatestSwingPairToSetup` sono ritirate dal codice attivo.
 
 Campi principali:
 
 ```text
-ProfileSource
-ProfilePOC
-ProfileVAH
-ProfileVAL
-ProfileValueWidth
-ProfileHigh / ProfileLow
+ProfileSource / ProfileLabel
+ProfileReadyBar / ProfileReadyTime
+ProfilePOC / ProfileVAH / ProfileVAL
+ProfileHigh / ProfileLow / ProfileRange
+AdjacentOverlapRate
+RangeToAverageBarRange
+DirectionalEfficiency
+CloseSpanRatio / DirectionChanges
 CandidateTargetPOC
-TargetVsProfileVAL / TargetVsProfilePOC / TargetVsProfileVAH
-EntryVsProfileVAL / EntryVsProfilePOC / EntryVsProfileVAH
+TargetVsProfileVAL / ProfilePOC / ProfileVAH
+EntryVsProfileVAL / ProfilePOC / ProfileVAH
 ProfileUse=DIAGNOSTIC_ONLY
 ```
 
@@ -159,10 +176,13 @@ La finestra ActiveCompressionProfile corrisponde alla compressione che Fabio avr
 Campi da controllare sui log:
 
 ```text
-ProfileLabel      contiene giorno e barre profilo
-ProfileBegin/End  finestra temporale della compressione
-ProfileHigh/Low   estremi della dealing range
-ProfilePOC/VAH/VAL livelli volume profile della finestra
+[MR_LOCAL_PROFILE_READY]     il range diventa riconoscibile prima del setup
+[MR_LOCAL_PROFILE_RESOLVED]  acceptance fuori range o fine sessione
+ProfileLabel / Begin / End   finestra temporale congelata
+ProfileReadyBar / ReadyTime  momento causale di disponibilita'
+ProfileHigh / ProfileLow     estremi della dealing range
+ProfilePOC / VAH / VAL       livelli volume profile della finestra
+metriche overlap/rotazione   motivazione oggettiva della classificazione
 ```
 
 Se la finestra e' sbagliata, si corregge solo il metodo di individuazione della compressione. Entry, filtri e retest restano fuori scope.
@@ -257,7 +277,9 @@ Massima durata trade:   fino a New York regular close 16:00 New York
 [MR_REFERENCE_READY]         reference profile completato e disponibile
 [MR_SETUP_LONG]              failed auction sotto reference VAL, rientro in value
 [MR_SETUP_SHORT]             failed auction sopra reference VAH, rientro in value
-[MR_PROFILE_CONTEXT]         diagnostica ENTRY_ONLY; ProfileSource=ActiveCompressionProfile; non genera PnL
+[MR_LOCAL_PROFILE_READY]     compressione locale riconosciuta; diagnostica only
+[MR_LOCAL_PROFILE_RESOLVED]  compressione risolta da acceptance o fine sessione
+[MR_PROFILE_CONTEXT]         profilo READY preesistente allegato all'entry; non genera PnL
 [MR_SETUP_EXPIRED]           setup scaduto o POC gia' toccato prima dell'entry
 [MR_HISTORICAL_TRADES]       cumulative trades storici ricevuti
 [HISTORICAL_FLOW_PROCESS_START]

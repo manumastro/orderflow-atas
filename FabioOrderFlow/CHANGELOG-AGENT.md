@@ -1,5 +1,43 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Implementazione 2026-07-10 - Compression lifecycle + report canonico
+
+```text
+Reference operative confermate:
+- PreviousDayProfile resta operativo.
+- PreviousLondonProfile resta operativo.
+- Entry, stop, target POC, breakeven e max hold non cambiano.
+
+ActiveCompressionProfile diagnostico:
+- Ritirato LatestSwingPairToSetup, che includeva spinte/reversal e dipendeva dalla barra di setup.
+- Nuovo lifecycle causale su barre London completate: READY e RESOLVED.
+- Detection window 6-18 barre; overlap adiacente >= 70%; almeno 2 cambi direzione close.
+- DirectionalEfficiency <= 0,40; CloseSpanRatio <= 0,80; RangeToAverageBarRange <= 2,75.
+- Il profilo viene congelato quando READY; una close oltre il range di 4 tick lo risolve.
+- Un setup allega il profilo solo con ReadyBar < RejectionBar.
+- Nuovi marker: [MR_LOCAL_PROFILE_READY] e [MR_LOCAL_PROFILE_RESOLVED].
+- [MR_PROFILE_CONTEXT] resta ENTRY_ONLY e DIAGNOSTIC_ONLY.
+
+Pulizia e performance:
+- Nuovo tool unico: tools/report_mr_performance.py.
+- PnL solo da [MR_EXIT]; report per giorno/source/direzione/reason/mode, R, profit factor e drawdown.
+- Gate minimo: 30 trade, 10 sessioni, costi completi, PnL netto positivo, average R positiva, profit factor >= 1,25.
+- Strumenti/snapshot della vecchia gestione 70/30 e DAY_STUDY spostati in archive/legacy-research; non usarli sul core corrente.
+
+Snapshot prima del nuovo deploy, log corrente 2026-07-10:
+- 14 trade su 3 sessioni: 11 HISTORICAL + 3 LIVE.
+- PnL [MR_EXIT] -277,50; profit factor 0,30; average R -0,46; max drawdown 297,50 punti / 6,57R.
+- PreviousDayProfile: 6 trade, -241,75. PreviousLondonProfile: 8 trade, -35,75.
+- Stato report: INSUFFICIENT_SAMPLE; costi non ancora configurati.
+- Questi numeri descrivono il core precedente al deploy del nuovo detector diagnostico; non autorizzano filtri sulle reference.
+
+Validazione richiesta dopo reload:
+- Build Release deve restare 0 warning / 0 error.
+- [MR_MODE] deve mantenere ReferenceProfiles=PreviousDayProfile|PreviousLondonProfile e mostrare CompressionLifecycle=READY|RESOLVED.
+- Verificare sequenze [MR_LOCAL_PROFILE_READY] -> eventuale [MR_PROFILE_CONTEXT] -> [MR_LOCAL_PROFILE_RESOLVED].
+- PnL/entry storiche devono restare invariati a parita' di lookback, perche' il detector e' solo diagnostico.
+```
+
 ## Reload 2026-07-10 11:51 - ActiveCompressionProfile check
 
 ```text

@@ -23,6 +23,9 @@ src/MarketTimeZones.cs                                 conversioni UTC/London/It
 models/shared/BalanceZoneTracker/                      costruzione POC/VAH/VAL e inoltro eventi
 models/LondonMeanReversionModel/                       modello attivo London mean reversion
 models/PostLondonImpulseModel/                         parked, non operativo ora
+tools/report_mr_performance.py                         report canonico marker MR correnti
+performance-snapshots/                                 snapshot correnti London MR
+archive/legacy-research/                               strumenti/snapshot pre-core, non operativi
 CHANGELOG-AGENT.md                                     baseline, decisioni, reload verificati
 ```
 
@@ -31,8 +34,9 @@ CHANGELOG-AGENT.md                                     baseline, decisioni, relo
 ```text
 ATAS OnCalculate
 -> BalanceZoneTracker aggiorna profilo London e inoltra il flusso barre
--> LondonMeanReversionModel costruisce reference complete PreviousDayProfile/PreviousLondonProfile
--> LondonMeanReversionModel logga diagnostica [MR_PROFILE_CONTEXT] su ActiveCompressionProfile senza usarla per entry
+-> LondonMeanReversionModel costruisce reference operative complete PreviousDayProfile/PreviousLondonProfile
+-> LondonMeanReversionModel mantiene il lifecycle diagnostico READY/RESOLVED di ActiveCompressionProfile
+-> LondonMeanReversionModel allega un profilo locale all'entry solo se era READY prima del setup
 -> LondonMeanReversionModel valuta setup e gestione posizioni
 
 ATAS OnCumulativeTrade / OnUpdateCumulativeTrade
@@ -71,7 +75,8 @@ Regole:
 - controllare sempre `[CUM_TRADES_LOOKBACK]`, perche' ATAS limita la request agli ultimi 7 giorni effettivi;
 - PnL storico valido: sommare solo `[MR_EXIT]`;
 - leggere il target operativo da `[MR_ENTRY] TargetPOC`, non dal POC visuale se l'indicatore volume profile e' impostato su `Current Day`;
-- `[MR_PROFILE_CONTEXT]` e' solo diagnostica ENTRY_ONLY sul profilo locale `ProfileSource=ActiveCompressionProfile`, non modifica entry/exit/PnL;
+- `PreviousDayProfile` e `PreviousLondonProfile` restano entrambe reference operative;
+- `[MR_LOCAL_PROFILE_READY]`, `[MR_LOCAL_PROFILE_RESOLVED]` e `[MR_PROFILE_CONTEXT]` sono solo diagnostica `ActiveCompressionProfile`, non modificano entry/exit/PnL;
 - le entry sono London, ma la massima durata trade e' fino a New York regular close 16:00 New York;
 - usare `docs/atas/log-reading.md` prima di interpretare nuovi log.
 
@@ -83,6 +88,14 @@ cp -f bin/Release/net10.0-windows/FabioOrderFlow.dll "$APPDATA/ATAS/Indicators/F
 ```
 
 Dopo deploy: ricaricare ATAS/indicatore, attendere `[HISTORICAL_FLOW_FINISH]`, validare `[MR_ENTRY]` / `[MR_EXIT]` e aggiornare `CHANGELOG-AGENT.md` con poche righe.
+
+Report canonico:
+
+```bash
+python FabioOrderFlow/tools/report_mr_performance.py --save
+```
+
+Il report usa solo `[MR_EXIT]` per il PnL, separa `PreviousDayProfile` da `PreviousLondonProfile` e non promuove il modello con meno di 30 trade/10 sessioni o senza costi configurati.
 
 ## Regole Di Documentazione
 

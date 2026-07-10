@@ -34,7 +34,9 @@ Marker principali:
 [MR_REFERENCE_READY]         reference completa disponibile: PreviousDayProfile o PreviousLondonProfile
 [MR_SETUP_LONG]              sweep sotto reference VAL e close back inside value
 [MR_SETUP_SHORT]             sweep sopra reference VAH e close back inside value
-[MR_PROFILE_CONTEXT]         diagnostica ENTRY_ONLY profilo locale; ProfileSource=ActiveCompressionProfile; DIAGNOSTIC_ONLY
+[MR_LOCAL_PROFILE_READY]     compressione locale riconosciuta su barre gia' complete; DIAGNOSTIC_ONLY
+[MR_LOCAL_PROFILE_RESOLVED]  acceptance fuori range o fine sessione; DIAGNOSTIC_ONLY
+[MR_PROFILE_CONTEXT]         profilo locale gia' READY allegato all'entry; DIAGNOSTIC_ONLY
 [MR_SETUP_EXPIRED]           setup scaduto o POC toccato prima dell'entry
 [MR_HISTORICAL_TRADES]       cumulative trades storici ricevuti
 [HISTORICAL_FLOW_PROCESS_START]
@@ -85,14 +87,19 @@ In caso di dubbio, il target operativo e' sempre quello loggato in `[MR_ENTRY] T
 
 ## Diagnostica profili intraday
 
-`[MR_PROFILE_CONTEXT]` non genera segnali e non modifica il PnL. Serve solo a confrontare l'entry operativa con il profilo locale Fabio-style che si sta formando durante London. Il marker dedicato e' ENTRY_ONLY per non creare ingombro; i setup senza entry restano leggibili tramite `[MR_SETUP_NO_ENTRY]`.
+I marker del profilo locale non generano segnali e non modificano il PnL.
 
 ```text
-ProfileSource=ActiveCompressionProfile  profilo locale della compressione/dealing range intraday
+[MR_LOCAL_PROFILE_READY]     il detector ha riconosciuto overlap/rotazione su almeno 6 barre completate
+[MR_LOCAL_PROFILE_RESOLVED]  close accettata fuori range o fine London
+[MR_PROFILE_CONTEXT]         una entry viene confrontata con un profilo che era gia' READY prima del setup
+ProfileSource=ActiveCompressionProfile
 ProfileUse=DIAGNOSTIC_ONLY
 ```
 
-Per analisi PnL ignorare sempre `[MR_PROFILE_CONTEXT]`; usare solo `[MR_EXIT]`.
+Su `[MR_PROFILE_CONTEXT]` controllare `ProfileReadyTime < Italy` del setup/entry e leggere anche `AdjacentOverlapRate`, `RangeToAverageBarRange`, `DirectionalEfficiency`, `CloseSpanRatio` e `DirectionChanges`.
+
+Per analisi PnL ignorare sempre tutti i marker profilo; usare solo `[MR_EXIT]`.
 
 ## Durata massima trade
 
@@ -120,10 +127,10 @@ Il codice usa `MarketTimeZones.NewYork`, quindi gestisce i cambi DST tramite tim
 
 ## Regola pratica
 
-Se devi capire il risultato del modello:
+Se devi capire il risultato del modello, usare il report canonico:
 
-```text
-grep "\[MR_EXIT\]" FabioOrderFlow.log
+```bash
+python FabioOrderFlow/tools/report_mr_performance.py --save
 ```
 
-Poi somma solo `PnL=`.
+Il report deduplica per `SetupId`, somma solo `[MR_EXIT]`, separa source/direzione/giorno e segnala campione o costi insufficienti.

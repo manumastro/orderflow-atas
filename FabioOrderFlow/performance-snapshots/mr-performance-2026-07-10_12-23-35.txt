@@ -1,0 +1,8 @@
+London MR performance 2026-07-10 12:23:35
+Coverage: 2026-07-03 11:51:21 -> 2026-07-10 11:51:21
+Trades: 14; sessions: 3; replay open: 0
+PnL: -277.50 points; profit factor: 0.2956852791878172588832487310; average R: -0.4571428571428571428571428571
+Max drawdown: 297.5 points / 6.57R
+Costs complete: False; net after costs: NA
+Gate: INSUFFICIENT_SAMPLE
+PnL source: [MR_EXIT] only.
