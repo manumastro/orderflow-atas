@@ -130,7 +130,7 @@ Lifecycle causale:
 8. Un setup puo' allegare il profilo solo se ReadyBar < RejectionBar.
 ```
 
-Questi parametri sono una prima traduzione oggettiva di overlap, rotazione e assenza di avanzamento. Devono ancora essere verificati sui chart; non sono un filtro operativo.
+Questi parametri sono una prima traduzione oggettiva di overlap, rotazione e assenza di avanzamento. Il reload 2026-07-10 ha validato lifecycle e causalita', ma non la classificazione: 54 profili READY includevano ancora range da 163,00 / 232,75 / 245,00 punti. Manca quindi una misura robusta di contrazione rispetto alla volatilita' locale/sessione. Non e' un filtro operativo.
 
 Le diagnostiche precedenti `CurrentLondonSessionProfile`, `LocalRotationProfile` e `LatestSwingPairToSetup` sono ritirate dal codice attivo.
 

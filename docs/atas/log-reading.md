@@ -133,4 +133,4 @@ Se devi capire il risultato del modello, usare il report canonico:
 python FabioOrderFlow/tools/report_mr_performance.py --save
 ```
 
-Il report deduplica per `SetupId`, somma solo `[MR_EXIT]`, separa source/direzione/giorno e segnala campione o costi insufficienti.
+Il report deduplica per `SetupId`, somma solo `[MR_EXIT]`, separa source/direzione/giorno e segnala campione o costi insufficienti. Il default e' `HISTORICAL`; per il live usare `--execution-mode LIVE`. Non usare `ALL` come PnL totale quando replay e live si sovrappongono.

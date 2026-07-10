@@ -223,6 +223,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Report active London MR performance from current MR markers")
     parser.add_argument("--log", type=Path, action="append", help="Log file; repeat for multiple non-overlapping files")
     parser.add_argument("--save", action="store_true", help="Write JSON and text snapshots")
+    parser.add_argument("--execution-mode", choices=("HISTORICAL", "LIVE", "ALL"), default="HISTORICAL", help="Avoid mixing overlapping replay and live trades")
     parser.add_argument("--out-dir", type=Path, default=Path("FabioOrderFlow/performance-snapshots"))
     parser.add_argument("--commission-round-turn", type=Decimal, help="Commission per round turn in account currency")
     parser.add_argument("--slippage-points", type=Decimal, help="Total round-turn slippage in instrument points")
@@ -233,7 +234,14 @@ def main() -> int:
 
     paths = args.log or [default_log()]
     entries, exits_by_id, replay_open, warnings, coverage = read_records(paths)
-    records = sorted(exits_by_id.values(), key=lambda item: parse_time(item.time))
+    all_records = sorted(exits_by_id.values(), key=lambda item: parse_time(item.time))
+    records = [record for record in all_records if args.execution_mode == "ALL" or record.execution_mode == args.execution_mode]
+    selected_entries = {
+        setup_id: entry
+        for setup_id, entry in entries.items()
+        if args.execution_mode == "ALL" or entry.execution_mode == args.execution_mode
+    }
+    selected_replay_open = replay_open if args.execution_mode in ("HISTORICAL", "ALL") else []
 
     total = Bucket()
     for record in records:
@@ -241,7 +249,7 @@ def main() -> int:
     total_result = total.result()
 
     days = {record.time[:10] for record in records if record.time}
-    missing_entry_ids = sorted(set(exits_by_id) - set(entries))
+    missing_entry_ids = sorted({record.setup_id for record in records} - set(selected_entries))
     if missing_entry_ids:
         warnings.append(f"{len(missing_entry_ids)} exits have no matching MR_ENTRY; source breakdown may be UNKNOWN")
 
@@ -266,6 +274,7 @@ def main() -> int:
 
     report = {
         "createdLocal": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "executionMode": args.execution_mode,
         "logs": [str(path) for path in paths],
         "coverage": coverage,
         "totals": total_result,
@@ -293,39 +302,41 @@ def main() -> int:
             "requirements": "positive net points after costs, positive average R, profit factor >= 1.25, sample threshold met",
         },
         "integrity": {
-            "entries": len(entries),
+            "entries": len(selected_entries),
             "exits": len(records),
-            "replayOpen": len(replay_open),
+            "replayOpen": len(selected_replay_open),
             "missingEntryForExit": len(missing_entry_ids),
             "warnings": warnings,
         },
-        "byDay": grouped(records, entries, lambda row, _entry: row.time[:10] or "UNKNOWN"),
-        "byReferenceSource": grouped(records, entries, lambda _row, entry: entry.source if entry else "UNKNOWN"),
-        "byDirection": grouped(records, entries, lambda row, _entry: row.direction or "UNKNOWN"),
-        "byExitReason": grouped(records, entries, lambda row, _entry: row.reason),
-        "byExecutionMode": grouped(records, entries, lambda row, _entry: row.execution_mode or "UNKNOWN"),
+        "byDay": grouped(records, selected_entries, lambda row, _entry: row.time[:10] or "UNKNOWN"),
+        "byReferenceSource": grouped(records, selected_entries, lambda _row, entry: entry.source if entry else "UNKNOWN"),
+        "byDirection": grouped(records, selected_entries, lambda row, _entry: row.direction or "UNKNOWN"),
+        "byExitReason": grouped(records, selected_entries, lambda row, _entry: row.reason),
+        "byExecutionMode": grouped(records, selected_entries, lambda row, _entry: row.execution_mode or "UNKNOWN"),
     }
 
-    print(f"MR performance: trades={total.trades} sessions={len(days)} pnl={total.pnl_points:.2f} points")
+    print(f"MR performance: mode={args.execution_mode} trades={total.trades} sessions={len(days)} pnl={total.pnl_points:.2f} points")
     print(f"profitFactor={profit_factor:.2f}" if profit_factor is not None else "profitFactor=NA")
     average_r_text = f"{average_r:.2f}" if average_r is not None else "NA"
     print(f"averageR={average_r_text} maxDrawdown={report['risk']['maxDrawdownPoints']:.2f} points")
-    print(f"gate={gate_status} costsComplete={costs_complete} replayOpen={len(replay_open)}")
+    print(f"gate={gate_status} costsComplete={costs_complete} replayOpen={len(selected_replay_open)}")
     for warning in warnings:
         print(f"warning={warning}")
 
     if args.save:
         args.out_dir.mkdir(parents=True, exist_ok=True)
         stamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        json_path = args.out_dir / f"mr-performance-{stamp}.json"
-        text_path = args.out_dir / f"mr-performance-{stamp}.txt"
+        mode_name = args.execution_mode.lower()
+        json_path = args.out_dir / f"mr-performance-{mode_name}-{stamp}.json"
+        text_path = args.out_dir / f"mr-performance-{mode_name}-{stamp}.txt"
         json_path.write_text(json.dumps(report, indent=2, ensure_ascii=True), encoding="utf-8")
         text_path.write_text(
             "\n".join(
                 [
                     f"London MR performance {report['createdLocal']}",
+                    f"Execution mode: {args.execution_mode}",
                     f"Coverage: {coverage.get('effectiveBeginItaly', 'NA')} -> {coverage.get('endItaly', 'NA')}",
-                    f"Trades: {total.trades}; sessions: {len(days)}; replay open: {len(replay_open)}",
+                    f"Trades: {total.trades}; sessions: {len(days)}; replay open: {len(selected_replay_open)}",
                     f"PnL: {total.pnl_points:.2f} points; profit factor: {profit_factor if profit_factor is not None else 'NA'}; average R: {average_r if average_r is not None else 'NA'}",
                     f"Max drawdown: {report['risk']['maxDrawdownPoints']} points / {report['risk']['maxDrawdownR']}R",
                     f"Costs complete: {costs_complete}; net after costs: {net_after_costs if net_after_costs is not None else 'NA'}",

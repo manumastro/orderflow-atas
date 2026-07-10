@@ -95,7 +95,7 @@ Report canonico:
 python FabioOrderFlow/tools/report_mr_performance.py --save
 ```
 
-Il report usa solo `[MR_EXIT]` per il PnL, separa `PreviousDayProfile` da `PreviousLondonProfile` e non promuove il modello con meno di 30 trade/10 sessioni o senza costi configurati.
+Il report usa solo `[MR_EXIT]` per il PnL, separa `PreviousDayProfile` da `PreviousLondonProfile` e non promuove il modello con meno di 30 trade/10 sessioni o senza costi configurati. Il default e' `HISTORICAL`; usare `--execution-mode LIVE` per il live. Non sommare replay e live sovrapposti.
 
 ## Regole Di Documentazione
 

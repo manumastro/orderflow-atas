@@ -6,7 +6,13 @@ Questa directory contiene solo report del `LondonMeanReversionModel` corrente ge
 python FabioOrderFlow/tools/report_mr_performance.py --save
 ```
 
-Il report usa esclusivamente i marker `MR_*` correnti, deduplica per `SetupId` e considera realizzato soltanto il PnL di `[MR_EXIT]`.
+Il report usa esclusivamente i marker `MR_*` correnti, deduplica per `SetupId` e considera realizzato soltanto il PnL di `[MR_EXIT]`. Il default e' `HISTORICAL`, per evitare di sommare replay e live sovrapposti.
+
+```bash
+python FabioOrderFlow/tools/report_mr_performance.py --execution-mode LIVE
+```
+
+`--execution-mode ALL` e' solo un inventario tecnico: non usarlo come performance totale quando replay e live coprono lo stesso periodo.
 
 Per valutare il risultato netto servono anche:
 

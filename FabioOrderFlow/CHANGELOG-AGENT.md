@@ -1,5 +1,35 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Reload 2026-07-10 12:47 - Compression lifecycle verificato
+
+```text
+Reload:
+- [MR_MODE] corretto: ReferenceProfiles=PreviousDayProfile|PreviousLondonProfile.
+- CompressionLifecycle=READY|RESOLVED, CompressionMinBars=6, ProfileDiagnosticsUse=DIAGNOSTIC_ONLY.
+- [CUM_TRADES_LOOKBACK] 2026-07-03 12:47:06 -> 2026-07-10 12:47:06; Count=1.133.256.
+- [HISTORICAL_FLOW_FINISH]: Entries=13, ClosedPositions=13, OpenPositions=0, CompletedTrades=13.
+- [MR_REPLAY_OPEN]: 0.
+
+Performance, senza mischiare replay e live:
+- HISTORICAL: 13 trade / 3 sessioni, PnL -279,75, profit factor 0,29, average R -0,49, max drawdown 299,75 punti.
+- LIVE dopo reload: 1 trade, PnL -9,00.
+- Stato: INSUFFICIENT_SAMPLE; costi non configurati.
+- Il report ora usa HISTORICAL come default. LIVE e ALL sono selezioni esplicite; ALL non e' PnL valido se replay e live si sovrappongono.
+
+ActiveCompressionProfile:
+- [MR_LOCAL_PROFILE_READY]=54; [MR_LOCAL_PROFILE_RESOLVED]=54.
+- Reason: 28 ACCEPTANCE_ABOVE_RANGE, 21 ACCEPTANCE_BELOW_RANGE, 5 SESSION_END.
+- [MR_PROFILE_CONTEXT]=5, tutti HISTORICAL e tutti causalmente corretti: ProfileReadyTime precede l'entry.
+- 9 entry non avevano un profilo READY: corretto, la diagnostica non forza un contesto.
+- Il detector resta troppo permissivo: ha ancora classificato range da 163,00 / 232,75 / 245,00 punti, gia' incompatibili con la compressione locale cercata.
+
+Decisione:
+- Lifecycle e causalita' sono validati tecnicamente.
+- Qualita' della classificazione NON validata; ActiveCompressionProfile resta DIAGNOSTIC_ONLY e non puo' filtrare entry.
+- Nessun cambio a PreviousDayProfile, PreviousLondonProfile, entry, stop, target, breakeven o PnL.
+- Prossimo scope: aggiungere una misura robusta di contrazione rispetto alla volatilita' locale/sessione, poi ripetere il reload senza cambiare l'operativita'.
+```
+
 ## Implementazione 2026-07-10 - Compression lifecycle + report canonico
 
 ```text
@@ -25,9 +55,8 @@ Pulizia e performance:
 - Strumenti/snapshot della vecchia gestione 70/30 e DAY_STUDY spostati in archive/legacy-research; non usarli sul core corrente.
 
 Snapshot prima del nuovo deploy, log corrente 2026-07-10:
-- 14 trade su 3 sessioni: 11 HISTORICAL + 3 LIVE.
-- PnL [MR_EXIT] -277,50; profit factor 0,30; average R -0,46; max drawdown 297,50 punti / 6,57R.
-- PreviousDayProfile: 6 trade, -241,75. PreviousLondonProfile: 8 trade, -35,75.
+- Il file conteneva 11 trade HISTORICAL e 3 LIVE sovrapposti temporalmente: non devono essere sommati.
+- HISTORICAL: PnL -258,25; profit factor 0,31; average R -0,49; max drawdown 278,25 punti.
 - Stato report: INSUFFICIENT_SAMPLE; costi non ancora configurati.
 - Questi numeri descrivono il core precedente al deploy del nuovo detector diagnostico; non autorizzano filtri sulle reference.
 
