@@ -11,6 +11,32 @@ Ogni risposta/aggiornamento deve riepilogare in modo conciso, anche se gia' disc
 Non assumere che il contesto precedente sia ricordato.
 ```
 
+## Implementazione 2026-07-10 - Compressione normalizzata per volatilita'
+
+```text
+Operativo:
+- PreviousDayProfile e PreviousLondonProfile invariati.
+- Nessun cambio entry, stop, target, breakeven, max hold o PnL.
+
+Diagnostico:
+- ActiveCompressionProfile richiede ora una baseline causale precedente alla finestra candidata.
+- Baseline: mediana high-low delle 6-12 barre London precedenti, escluse dalla candidata.
+- ProfileRange / BaselineMedianBarRange <= 4,00.
+- AverageProfileBarRange / BaselineMedianBarRange <= 1,25.
+- Label nuova: VolatilityAdjustedCompression.
+- Nuovi campi log: BaselineMedianBarRange, RangeToBaselineMedian, AverageBarRangeToBaselineMedian.
+
+Motivo:
+- Il reload precedente aveva accettato 54 profili, inclusi range da 163,00 / 232,75 / 245,00 punti.
+- Overlap e rotazione relativi alla sola finestra non bastavano a distinguere una compressione da una fase volatile ampia.
+
+Da verificare al reload:
+- [MR_MODE] deve mostrare CompressionVolatilityBaseline=PRIOR_12_BARS_MEDIAN.
+- Confrontare READY/RESOLVED contro i precedenti 54/54.
+- Verificare range massimo, distribuzione RangeToBaselineMedian e contesti allegati alle entry.
+- Entry/PnL devono restare invariati a parita' di lookback: il profilo resta DIAGNOSTIC_ONLY.
+```
+
 ## Reload 2026-07-10 12:47 - Compression lifecycle verificato
 
 ```text

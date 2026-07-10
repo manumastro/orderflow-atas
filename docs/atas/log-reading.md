@@ -97,7 +97,13 @@ ProfileSource=ActiveCompressionProfile
 ProfileUse=DIAGNOSTIC_ONLY
 ```
 
-Su `[MR_PROFILE_CONTEXT]` controllare `ProfileReadyTime < Italy` del setup/entry e leggere anche `AdjacentOverlapRate`, `RangeToAverageBarRange`, `DirectionalEfficiency`, `CloseSpanRatio` e `DirectionChanges`.
+Su `[MR_PROFILE_CONTEXT]` controllare `ProfileReadyTime < Italy` del setup/entry. Leggere anche `AdjacentOverlapRate`, `DirectionalEfficiency`, `CloseSpanRatio`, `DirectionChanges` e le metriche di contrazione causale:
+
+```text
+BaselineMedianBarRange                 mediana range delle 6-12 barre precedenti, escluse dalla candidata
+RangeToBaselineMedian                 deve essere <= 4,00
+AverageBarRangeToBaselineMedian       deve essere <= 1,25
+```
 
 Per analisi PnL ignorare sempre tutti i marker profilo; usare solo `[MR_EXIT]`.
 

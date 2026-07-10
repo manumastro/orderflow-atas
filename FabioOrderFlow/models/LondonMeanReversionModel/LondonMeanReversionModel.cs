@@ -40,12 +40,16 @@ namespace FabioOrderFlow
         private const int LocalCompressionMinimumBars = 6;
         private const int LocalCompressionMaximumDetectionBars = 18;
         private const int LocalCompressionResolutionTicks = 4;
+        private const int LocalCompressionVolatilityLookbackBars = 12;
+        private const int LocalCompressionMinimumVolatilityBaselineBars = 6;
         private const int LocalCompressionMinimumDirectionChanges = 2;
         private const decimal LocalCompressionMinimumOverlapRate = 0.70m;
         private const decimal LocalCompressionMinimumPairOverlapRatio = 0.35m;
         private const decimal LocalCompressionMaximumRangeToAverageBarRange = 2.75m;
         private const decimal LocalCompressionMaximumDirectionalEfficiency = 0.40m;
         private const decimal LocalCompressionMaximumCloseSpanRatio = 0.80m;
+        private const decimal LocalCompressionMaximumRangeToBaselineMedian = 4.00m;
+        private const decimal LocalCompressionMaximumAverageBarRangeToBaselineMedian = 1.25m;
         private static readonly bool LogProfileDiagnosticsForSetups = false;
         private static readonly bool LogProfileDiagnosticsForEntries = true;
         private const string ActiveCompressionProfileSource = "ActiveCompressionProfile";
@@ -83,7 +87,7 @@ namespace FabioOrderFlow
             _getCandle = getCandle ?? throw new ArgumentNullException(nameof(getCandle));
             _tickSize = tickSize > 0 ? tickSize : 1m;
 
-            _log($"[MR_MODE] Model=FabioLondonMeanReversionCore, Modes=LIVE|HISTORICAL, ReferenceProfiles=PreviousDayProfile|PreviousLondonProfile, ProfileDiagnostics={ActiveCompressionProfileSource}, ProfileDiagnosticsUse=DIAGNOSTIC_ONLY, ProfileDiagnosticsLevel={(LogProfileDiagnosticsForSetups ? "SETUP_AND_ENTRY" : "ENTRY_ONLY")}, CompressionLifecycle=READY|RESOLVED, CompressionMinBars={LocalCompressionMinimumBars}, CompressionMinOverlapRate={LocalCompressionMinimumOverlapRate:F2}, CompressionMaxDirectionalEfficiency={LocalCompressionMaximumDirectionalEfficiency:F2}, BigTradeVolume={LondonBigTradeVolume:F0}, Target=REFERENCE_POC_FULL_EXIT, Entry=FAILED_AUCTION_BACK_INSIDE_REFERENCE_VALUE_PLUS_BIG_TRADE, BreakEvenTrigger={BreakEvenTriggerR:F2}R, MaxHold=NEW_YORK_REGULAR_CLOSE_16:00", false);
+            _log($"[MR_MODE] Model=FabioLondonMeanReversionCore, Modes=LIVE|HISTORICAL, ReferenceProfiles=PreviousDayProfile|PreviousLondonProfile, ProfileDiagnostics={ActiveCompressionProfileSource}, ProfileDiagnosticsUse=DIAGNOSTIC_ONLY, ProfileDiagnosticsLevel={(LogProfileDiagnosticsForSetups ? "SETUP_AND_ENTRY" : "ENTRY_ONLY")}, CompressionLifecycle=READY|RESOLVED, CompressionMinBars={LocalCompressionMinimumBars}, CompressionMinOverlapRate={LocalCompressionMinimumOverlapRate:F2}, CompressionMaxDirectionalEfficiency={LocalCompressionMaximumDirectionalEfficiency:F2}, CompressionVolatilityBaseline=PRIOR_{LocalCompressionVolatilityLookbackBars}_BARS_MEDIAN, CompressionMaxRangeToBaselineMedian={LocalCompressionMaximumRangeToBaselineMedian:F2}, CompressionMaxAverageBarRangeToBaselineMedian={LocalCompressionMaximumAverageBarRangeToBaselineMedian:F2}, BigTradeVolume={LondonBigTradeVolume:F0}, Target=REFERENCE_POC_FULL_EXIT, Entry=FAILED_AUCTION_BACK_INSIDE_REFERENCE_VALUE_PLUS_BIG_TRADE, BreakEvenTrigger={BreakEvenTriggerR:F2}R, MaxHold=NEW_YORK_REGULAR_CLOSE_16:00", false);
         }
 
         public IReadOnlyList<TradeRecord> CompletedTrades => _completedTrades;
@@ -467,6 +471,9 @@ namespace FabioOrderFlow
             setup.ActiveCompressionRangeToAverageBarRange = snapshot.RangeToAverageBarRange;
             setup.ActiveCompressionDirectionalEfficiency = snapshot.DirectionalEfficiency;
             setup.ActiveCompressionCloseSpanRatio = snapshot.CloseSpanRatio;
+            setup.ActiveCompressionBaselineMedianBarRange = snapshot.BaselineMedianBarRange;
+            setup.ActiveCompressionRangeToBaselineMedian = snapshot.RangeToBaselineMedian;
+            setup.ActiveCompressionAverageBarRangeToBaselineMedian = snapshot.AverageBarRangeToBaselineMedian;
             setup.ActiveCompressionDirectionChanges = snapshot.DirectionChanges;
         }
 
@@ -510,7 +517,7 @@ namespace FabioOrderFlow
 
             _activeCompressionProfile = candidate;
             var reference = candidate.Reference;
-            _log($"[MR_LOCAL_PROFILE_READY] ExecutionMode={GetExecutionMode(IsHistoricalContext(candidate.ReadyBar))}, ProfileSource={ActiveCompressionProfileSource}, ProfileLabel={reference.Label}, ReadyBar={candidate.ReadyBar}, ReadyTime={FormatTime(candidate.ReadyTimeUtc)}, StartBar={reference.StartBar}, EndBar={reference.EndBar}, Begin={FormatTime(reference.BeginTimeUtc)}, End={FormatTime(reference.EndTimeUtc)}, Bars={reference.Bars}, High={reference.High:F2}, Low={reference.Low:F2}, Range={reference.High - reference.Low:F2}, POC={reference.POC:F2}, VAH={reference.VAH:F2}, VAL={reference.VAL:F2}, AdjacentOverlapRate={candidate.OverlapRate:F2}, RangeToAverageBarRange={candidate.RangeToAverageBarRange:F2}, DirectionalEfficiency={candidate.DirectionalEfficiency:F2}, CloseSpanRatio={candidate.CloseSpanRatio:F2}, DirectionChanges={candidate.DirectionChanges}, ProfileUse=DIAGNOSTIC_ONLY", IsHistoricalContext(candidate.ReadyBar));
+            _log($"[MR_LOCAL_PROFILE_READY] ExecutionMode={GetExecutionMode(IsHistoricalContext(candidate.ReadyBar))}, ProfileSource={ActiveCompressionProfileSource}, ProfileLabel={reference.Label}, ReadyBar={candidate.ReadyBar}, ReadyTime={FormatTime(candidate.ReadyTimeUtc)}, StartBar={reference.StartBar}, EndBar={reference.EndBar}, Begin={FormatTime(reference.BeginTimeUtc)}, End={FormatTime(reference.EndTimeUtc)}, Bars={reference.Bars}, High={reference.High:F2}, Low={reference.Low:F2}, Range={reference.High - reference.Low:F2}, POC={reference.POC:F2}, VAH={reference.VAH:F2}, VAL={reference.VAL:F2}, AdjacentOverlapRate={candidate.OverlapRate:F2}, RangeToAverageBarRange={candidate.RangeToAverageBarRange:F2}, DirectionalEfficiency={candidate.DirectionalEfficiency:F2}, CloseSpanRatio={candidate.CloseSpanRatio:F2}, BaselineMedianBarRange={candidate.BaselineMedianBarRange:F2}, RangeToBaselineMedian={candidate.RangeToBaselineMedian:F2}, AverageBarRangeToBaselineMedian={candidate.AverageBarRangeToBaselineMedian:F2}, DirectionChanges={candidate.DirectionChanges}, ProfileUse=DIAGNOSTIC_ONLY", IsHistoricalContext(candidate.ReadyBar));
         }
 
         private bool TryFindCompressionCandidate(int endBar, out CompressionProfileSnapshot? candidate)
@@ -523,17 +530,24 @@ namespace FabioOrderFlow
             var maximumLength = Math.Min(LocalCompressionMaximumDetectionBars, bars.Count);
             for (var length = maximumLength; length >= LocalCompressionMinimumBars; length--)
             {
-                var selectedBars = bars.Skip(bars.Count - length).ToList();
+                var candidateStartIndex = bars.Count - length;
+                if (!TryGetCompressionVolatilityBaseline(bars, candidateStartIndex, out var baselineMedianBarRange))
+                    continue;
+
+                var selectedBars = bars.Skip(candidateStartIndex).ToList();
                 if (!TryMeasureCompression(
                         selectedBars,
+                        baselineMedianBarRange,
                         out var overlapRate,
                         out var rangeToAverageBarRange,
                         out var directionalEfficiency,
                         out var closeSpanRatio,
+                        out var rangeToBaselineMedian,
+                        out var averageBarRangeToBaselineMedian,
                         out var directionChanges))
                     continue;
 
-                var label = $"{_currentLondonDay.Value:yyyy-MM-dd}:{selectedBars.First().Bar}-{selectedBars.Last().Bar}:OverlapCompression";
+                var label = $"{_currentLondonDay.Value:yyyy-MM-dd}:{selectedBars.First().Bar}-{selectedBars.Last().Bar}:VolatilityAdjustedCompression";
                 if (!TryBuildReferenceFromContributions(ActiveCompressionProfileSource, label, selectedBars, out var reference) || reference?.IsValid != true)
                     continue;
 
@@ -546,6 +560,9 @@ namespace FabioOrderFlow
                     RangeToAverageBarRange = rangeToAverageBarRange,
                     DirectionalEfficiency = directionalEfficiency,
                     CloseSpanRatio = closeSpanRatio,
+                    BaselineMedianBarRange = baselineMedianBarRange,
+                    RangeToBaselineMedian = rangeToBaselineMedian,
+                    AverageBarRangeToBaselineMedian = averageBarRangeToBaselineMedian,
                     DirectionChanges = directionChanges
                 };
                 return true;
@@ -554,20 +571,52 @@ namespace FabioOrderFlow
             return false;
         }
 
+        private static bool TryGetCompressionVolatilityBaseline(
+            IReadOnlyList<ProfileAccumulator.BarContribution> bars,
+            int candidateStartIndex,
+            out decimal medianBarRange)
+        {
+            medianBarRange = 0;
+            var baselineCount = Math.Min(LocalCompressionVolatilityLookbackBars, candidateStartIndex);
+            if (baselineCount < LocalCompressionMinimumVolatilityBaselineBars)
+                return false;
+
+            var ranges = bars
+                .Skip(candidateStartIndex - baselineCount)
+                .Take(baselineCount)
+                .Select(bar => bar.High - bar.Low)
+                .Where(range => range > 0)
+                .OrderBy(range => range)
+                .ToList();
+            if (ranges.Count < LocalCompressionMinimumVolatilityBaselineBars)
+                return false;
+
+            var middle = ranges.Count / 2;
+            medianBarRange = ranges.Count % 2 == 0
+                ? (ranges[middle - 1] + ranges[middle]) / 2m
+                : ranges[middle];
+            return medianBarRange > 0;
+        }
+
         private static bool TryMeasureCompression(
             IReadOnlyList<ProfileAccumulator.BarContribution> bars,
+            decimal baselineMedianBarRange,
             out decimal overlapRate,
             out decimal rangeToAverageBarRange,
             out decimal directionalEfficiency,
             out decimal closeSpanRatio,
+            out decimal rangeToBaselineMedian,
+            out decimal averageBarRangeToBaselineMedian,
             out int directionChanges)
         {
             overlapRate = 0;
             rangeToAverageBarRange = decimal.MaxValue;
             directionalEfficiency = decimal.MaxValue;
             closeSpanRatio = decimal.MaxValue;
+            rangeToBaselineMedian = decimal.MaxValue;
+            averageBarRangeToBaselineMedian = decimal.MaxValue;
             directionChanges = 0;
-            if (bars.Count < LocalCompressionMinimumBars)
+            if (bars.Count < LocalCompressionMinimumBars || baselineMedianBarRange <= 0)
                 return false;
 
             var high = bars.Max(b => b.High);
@@ -575,6 +624,12 @@ namespace FabioOrderFlow
             var range = high - low;
             var averageBarRange = bars.Average(b => b.High - b.Low);
             if (range <= 0 || averageBarRange <= 0)
+                return false;
+
+            rangeToBaselineMedian = range / baselineMedianBarRange;
+            averageBarRangeToBaselineMedian = averageBarRange / baselineMedianBarRange;
+            if (rangeToBaselineMedian > LocalCompressionMaximumRangeToBaselineMedian
+                || averageBarRangeToBaselineMedian > LocalCompressionMaximumAverageBarRangeToBaselineMedian)
                 return false;
 
             rangeToAverageBarRange = range / averageBarRange;
@@ -742,7 +797,7 @@ namespace FabioOrderFlow
                 ? $"CandidateEntry={candidateEntry.Value:F2}, EntryVsProfileVAL={candidateEntry.Value - profileVal:F2}, EntryVsProfilePOC={candidateEntry.Value - profilePoc:F2}, EntryVsProfileVAH={candidateEntry.Value - profileVah:F2}"
                 : "CandidateEntry=NA, EntryVsProfileVAL=NA, EntryVsProfilePOC=NA, EntryVsProfileVAH=NA";
 
-            _log($"[MR_PROFILE_CONTEXT] ExecutionMode={GetExecutionMode(isHistorical)}, Context={context}, SetupId={setup.SetupId}, Direction={setup.Direction}, Source={setup.Source}, ReferenceLabel={setup.ReferenceLabel}, Bar={bar}, {FormatTime(eventTimeUtc)}, ProfileSource={profileSource}, ProfileLabel={profileLabel}, ProfileStartBar={profileStartBar}, ProfileEndBar={profileEndBar}, ProfileBegin={FormatTime(profileBeginTimeUtc)}, ProfileEnd={FormatTime(profileEndTimeUtc)}, ProfileReadyBar={setup.ActiveCompressionReadyBar}, ProfileReadyTime={FormatTime(setup.ActiveCompressionReadyTimeUtc)}, ProfileBars={profileBars}, ProfilePOC={profilePoc:F2}, ProfileVAH={profileVah:F2}, ProfileVAL={profileVal:F2}, ProfileValueWidth={valueWidth:F2}, ProfileHigh={profileHigh:F2}, ProfileLow={profileLow:F2}, ProfileRange={profileHigh - profileLow:F2}, ProfileTotalVolume={profileTotalVolume:F0}, ProfileValueAreaVolume={profileValueAreaVolume:F0}, ProfileMaxLevelVolume={profileMaxLevelVolume:F0}, AdjacentOverlapRate={setup.ActiveCompressionOverlapRate:F2}, RangeToAverageBarRange={setup.ActiveCompressionRangeToAverageBarRange:F2}, DirectionalEfficiency={setup.ActiveCompressionDirectionalEfficiency:F2}, CloseSpanRatio={setup.ActiveCompressionCloseSpanRatio:F2}, DirectionChanges={setup.ActiveCompressionDirectionChanges}, CandidateTargetPOC={setup.TargetPrice:F2}, TargetVsProfileVAL={targetVsVal:F2}, TargetVsProfilePOC={targetVsPoc:F2}, TargetVsProfileVAH={targetVsVah:F2}, {entryPart}, ProfileUse=DIAGNOSTIC_ONLY", isHistorical);
+            _log($"[MR_PROFILE_CONTEXT] ExecutionMode={GetExecutionMode(isHistorical)}, Context={context}, SetupId={setup.SetupId}, Direction={setup.Direction}, Source={setup.Source}, ReferenceLabel={setup.ReferenceLabel}, Bar={bar}, {FormatTime(eventTimeUtc)}, ProfileSource={profileSource}, ProfileLabel={profileLabel}, ProfileStartBar={profileStartBar}, ProfileEndBar={profileEndBar}, ProfileBegin={FormatTime(profileBeginTimeUtc)}, ProfileEnd={FormatTime(profileEndTimeUtc)}, ProfileReadyBar={setup.ActiveCompressionReadyBar}, ProfileReadyTime={FormatTime(setup.ActiveCompressionReadyTimeUtc)}, ProfileBars={profileBars}, ProfilePOC={profilePoc:F2}, ProfileVAH={profileVah:F2}, ProfileVAL={profileVal:F2}, ProfileValueWidth={valueWidth:F2}, ProfileHigh={profileHigh:F2}, ProfileLow={profileLow:F2}, ProfileRange={profileHigh - profileLow:F2}, ProfileTotalVolume={profileTotalVolume:F0}, ProfileValueAreaVolume={profileValueAreaVolume:F0}, ProfileMaxLevelVolume={profileMaxLevelVolume:F0}, AdjacentOverlapRate={setup.ActiveCompressionOverlapRate:F2}, RangeToAverageBarRange={setup.ActiveCompressionRangeToAverageBarRange:F2}, DirectionalEfficiency={setup.ActiveCompressionDirectionalEfficiency:F2}, CloseSpanRatio={setup.ActiveCompressionCloseSpanRatio:F2}, BaselineMedianBarRange={setup.ActiveCompressionBaselineMedianBarRange:F2}, RangeToBaselineMedian={setup.ActiveCompressionRangeToBaselineMedian:F2}, AverageBarRangeToBaselineMedian={setup.ActiveCompressionAverageBarRangeToBaselineMedian:F2}, DirectionChanges={setup.ActiveCompressionDirectionChanges}, CandidateTargetPOC={setup.TargetPrice:F2}, TargetVsProfileVAL={targetVsVal:F2}, TargetVsProfilePOC={targetVsPoc:F2}, TargetVsProfileVAH={targetVsVah:F2}, {entryPart}, ProfileUse=DIAGNOSTIC_ONLY", isHistorical);
         }
 
         private void UpdatePocTouches(int bar, IndicatorCandle candle)
@@ -1430,6 +1485,9 @@ namespace FabioOrderFlow
             public decimal ActiveCompressionRangeToAverageBarRange { get; set; }
             public decimal ActiveCompressionDirectionalEfficiency { get; set; }
             public decimal ActiveCompressionCloseSpanRatio { get; set; }
+            public decimal ActiveCompressionBaselineMedianBarRange { get; set; }
+            public decimal ActiveCompressionRangeToBaselineMedian { get; set; }
+            public decimal ActiveCompressionAverageBarRangeToBaselineMedian { get; set; }
             public int ActiveCompressionDirectionChanges { get; set; }
         }
 
@@ -1487,6 +1545,9 @@ namespace FabioOrderFlow
             public decimal RangeToAverageBarRange { get; set; }
             public decimal DirectionalEfficiency { get; set; }
             public decimal CloseSpanRatio { get; set; }
+            public decimal BaselineMedianBarRange { get; set; }
+            public decimal RangeToBaselineMedian { get; set; }
+            public decimal AverageBarRangeToBaselineMedian { get; set; }
             public int DirectionChanges { get; set; }
         }
 
