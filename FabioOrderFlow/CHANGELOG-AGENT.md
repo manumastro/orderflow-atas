@@ -1,5 +1,25 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Reload 2026-07-11 18:18 - Chart Esteso, Coverage Verificata
+
+```text
+Chart/replay:
+- ChartBeginItaly=2026-05-18 00:00:00; ChartEndItaly=2026-07-10 22:59:59.
+- WindowCount=8; CUM_TRADES_COMPLETE=8/8; ReceivedTrades=5.833.055.
+- LedgerProfiles=27, LedgerEvents=117, LedgerOutcomes=468 completi.
+- Entries=0, ClosedPositions=0, OpenPositions=0, CompletedTrades=0.
+
+Coverage:
+- TradeCoverage=AVAILABLE: 24 profili, 107 eventi, 16 date profilo distinte.
+- TradeCoverage=MISSING: 3 profili, 10 eventi, tutti 26/06.
+- Le finestre 18/05-08/06 hanno risposte ATAS molto rade; aggiungono solo 3 profili.
+
+Decisione:
+- 16 sessioni coperte sono ancora insufficienti per validare una shadow entry.
+- Etichettare i 24 profili AVAILABLE come tight/extended/unclear e continuare la raccolta fino a 20-30 sessioni coperte.
+- Nessuna soglia, entry, stop, target o PnL aggiunto.
+```
+
 ## Refinement 2026-07-11 - Compression Ledger JSON Only
 
 ```text
