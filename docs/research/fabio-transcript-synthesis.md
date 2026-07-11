@@ -19,7 +19,7 @@ Model 2: London mean reversion
 balance/compression -> first drive outside -> return inside -> opposite aggression -> balance bulk/POC.
 ```
 
-The current implementation studies Model 2 advanced variant only. It has no operational entries.
+The compression baseline studies Model 2 advanced variant only. The primary discovery layer now uses `FabioAuctionStudyModel` to observe both models across their native sessions, symmetrically and without operational entries.
 
 ## Evidence Map
 
@@ -48,9 +48,11 @@ Execution:
 - Fast break-even, partial exits and dynamic trailing are discretionary management, not yet an automated contract.
 ```
 
-## Study Contract
+## Dual-Session Discovery Contract
 
-Each `DynamicCompression` must be `READY` before any study event. The study then records:
+`FabioAuctionStudyModel` records every completed London and New York bar with causal developing/rolling profiles, raw LVNs, footprint delta, cumulative big trades and effort-versus-result. It applies no qualification threshold and generates no signal. This broad ledger is the discovery source for both transcript models.
+
+The older compression contract remains a narrower London baseline. Each `DynamicCompression` must be `READY` before any compression event. It then records:
 
 ```text
 HIGH/LOW TEST
@@ -80,10 +82,10 @@ BREAKOUT_LONG / BREAKOUT_SHORT
 ```text
 - order placement and PnL
 - scale-in / partial exits / trailing management
-- New York continuation model
-- breakout retest entry after acceptance
+- operational New York continuation entries
+- operational breakout retest entries
 - account-level daily loss rules
 - a claim that an algorithm knows the compression Fabio would draw
 ```
 
-The next decision is evidence-based: inspect the study candidates on chart/logs, compare them with the two videos, then choose one isolated entry contract for shadow testing before any operational trade is restored.
+The next decision is evidence-based: use the dual-session ledger to reconstruct London absorption/reentry and New York imbalance/LVN-retest sequences separately, then choose one isolated causal contract per playbook for shadow testing before any operational trade is restored.

@@ -28,11 +28,19 @@ I replay intermedi superseded non vengono conservati. Ogni snapshot completo con
 
 Il comando restituisce soltanto JSON su stdout. Gli aggregati sono osservazioni senza PnL e senza segnali. `profiles` negli aggregati indica il numero di range distinti; i campi `profileWeighted*` riducono il peso di profili con molti retest.
 
-Comando:
+Comando compression baseline:
 
 ```bash
 python FabioOrderFlow/tools/report_compression_ledger.py --save
 ```
+
+Comando dual-session auction-state:
+
+```bash
+python FabioOrderFlow/tools/report_auction_state_ledger.py --save
+```
+
+Il secondo salva `auction-state-*-summary.json` e `auction-state-*-bars.csv` con profilo causale, LVN, footprint e cumulative trades per London/New York. Non produce segnali o PnL.
 
 Non confrontare direttamente `CloseMoveRanges` di HIGH e LOW: il report
 fornisce `averageReversionCloseMoveRanges`, positivo soltanto quando il prezzo

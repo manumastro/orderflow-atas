@@ -4,7 +4,9 @@ Trend-following strategy su breakout della London balance zone durante NY sessio
 
 ## Status
 
-⚠️ **IN DEVELOPMENT** - Design phase, not implemented yet
+**SUPERSEDED LEGACY PLAN - NOT IMPLEMENTED**
+
+Il piano `post-London + 3 close` non corrisponde fedelmente ai transcript: il modello continuation principale opera dall'apertura New York `09:30`, che si sovrappone a London, e richiede stato di imbalance, location LVN/pullback e aggressione con risultato. La discovery corrente e' nel ledger no-trade `../FabioAuctionStudyModel/`.
 
 ## Concept
 
@@ -17,7 +19,7 @@ Trend-following strategy su breakout della London balance zone durante NY sessio
 ```
 1. London Balance Zone Ready
    ↓
-2. NY Session Breakout (3+ closes outside)
+2. NY Session imbalance/expansion (nessun requisito transcript di 3 close)
    ↓
 3. Identify Low Volume Nodes in direction
    ↓
@@ -52,6 +54,7 @@ Each module has its own README.md:
 
 ## Implementation Status
 
+- [x] Piano ritirato e sostituito dal dual-session auction-state ledger
 - [ ] Module interfaces defined
 - [ ] BalanceZoneTracker integrated (shared)
 - [ ] ImpulseProfiler

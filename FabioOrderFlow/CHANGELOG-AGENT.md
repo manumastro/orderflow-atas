@@ -1,5 +1,40 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Implementazione 2026-07-11 - Dual-Session Auction State Ledger
+
+```text
+Motivo:
+- I 6 LOW flow erano un sottoinsieme troppo stretto di 22 acceptance flow-covered.
+- La discovery era concentrata su acceptance continuation, mentre i transcript descrivono due playbook distinti e simmetrici.
+- Il vecchio tracker avviava il profilo NY soltanto dopo la fine London, perdendo circa 09:30-11:00 New York.
+
+Nuovo modulo:
+- models/FabioAuctionStudyModel/FabioAuctionStudyModel.cs.
+- London 08:00-16:00 London e New York 09:30-16:00 New York, indipendenti.
+- Una osservazione per barra/sessione completata; una barra overlap puo' avere due contesti.
+- Profilo sessione prior/developing, rolling 12 barre, LVN locali raw, range, efficienza e overlap.
+- Footprint bid/ask/delta e cumulative big trades aggregati per barra senza trattenerli globalmente.
+- Add-or-update live per evitare doppio conteggio degli aggiornamenti ATAS.
+- EffortResult simmetrico: BUY/SELL_WITH_RESULT, BUY/SELL_ABSORBED, NEUTRAL.
+
+Output:
+- AUCTION_STATE_MODE / AUCTION_STATE_BAR / AUCTION_STATE_SUMMARY.
+- tools/report_auction_state_ledger.py, JSON-only con CSV opzionale.
+- Nessuna soglia di selezione, setup, shadow entry, ordine, posizione o PnL.
+
+Decisione:
+- Compression acceptance e LOW flow restano baseline diagnostiche congelate.
+- La discovery principale passa al ledger dual-session.
+- London: studiare balance -> drive -> absorption -> reentry -> opposite response -> POC.
+- New York: studiare imbalance -> impulse profile -> LVN/pullback -> aggression with result -> continuation.
+- Piano legacy PostLondon + 3 close marcato superseded.
+
+Verifica pre-reload:
+- Build Release: 0 warning, 0 error.
+- Report JSON validato con fixture London+New York.
+- Da verificare su reload ATAS: conteggi, apertura NY 09:30, coverage cumulative e performance replay.
+```
+
 ## Cleanup 2026-07-11 - No-Trade Strutturale
 
 ```text

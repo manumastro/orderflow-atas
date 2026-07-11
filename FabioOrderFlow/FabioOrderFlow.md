@@ -9,7 +9,7 @@ Modalita':          COMPRESSION_EVENT_LEDGER_NO_TRADES
 Ordini / PnL:       DISABLED
 Reference profile:  LOG_ONLY
 Grafico:            sola zona London contestuale
-Output:             ledger + acceptance baseline + LOW flow confirmation shadow
+Output:             dual-session auction ledger + compression baseline/shadow
 ```
 
 `london-ny-close-hold` e il suo PnL `+634,25` restano baseline storica del precedente core MR, non un modello in esecuzione.
@@ -20,8 +20,9 @@ Output:             ledger + acceptance baseline + LOW flow confirmation shadow
 src/FabioOrderFlow.cs                                  orchestrator ATAS, log, live/replay/storico
 src/MarketTimeZones.cs                                 conversioni UTC/London/Italy/New York
 models/shared/BalanceZoneTracker/                      tracker London corrente; profile legacy non consumato
-models/LondonMeanReversionModel/                       ledger/shadow no-trade; nessun subsystem ordini/posizioni
-models/PostLondonImpulseModel/                         parked, non operativo ora
+models/LondonMeanReversionModel/                       baseline compression/shadow London no-trade
+models/FabioAuctionStudyModel/                          discovery principale London+New York, simmetrica e no-trade
+models/PostLondonImpulseModel/                         piano legacy superseded, non operativo
 tools/report_mr_performance.py                         report PnL legacy, solo MR_EXIT
 tools/report_compression_ledger.py                     export/aggregati descrittivi ledger no-trade
 tools/analyze_compression_shadow.py                    shadow primo evento offline, JSON only
@@ -48,9 +49,15 @@ ATAS OnCalculate
 -> classifica ogni evento ledger senza limitare la discovery setup
 -> nessun setup operativo, posizione, ordine, stop, target o PnL
 
+ATAS OnCalculate -> FabioAuctionStudyModel
+-> registra ogni barra completata London 08:00-16:00 e New York 09:30-16:00
+-> mantiene profili sessione e rolling causali, LVN raw, stato VA e aggressione/risultato
+-> osserva entrambe le direzioni senza produrre trigger
+
 ATAS OnCumulativeTrade / OnUpdateCumulativeTrade
 -> BalanceZoneTracker.OnLiveCumulativeTrade
 -> LondonMeanReversionModel.OnLiveCumulativeTrade
+-> FabioAuctionStudyModel aggrega cumulative big trades per barra senza creare ordini
 
 ATAS OnFinishRecalculate
 -> crea richieste CumulativeTrades sequenziali da massimo 7 giorni per coprire tutto il chart
@@ -66,7 +73,8 @@ ATAS OnFinishRecalculate
 ```text
 FabioOrderFlow.md                                      panoramica progetto e procedure
 CHANGELOG-AGENT.md                                     storico sintetico decisioni/reload
-models/LondonMeanReversionModel/LondonMeanReversionModel.md  strategia e contratto operativo del modello
+models/LondonMeanReversionModel/LondonMeanReversionModel.md  baseline compression e shadow
+models/FabioAuctionStudyModel/FabioAuctionStudyModel.md      discovery dual-session dai transcript
 models/shared/BalanceZoneTracker/BalanceZoneTracker.md       contratto del profilo/value area
 ```
 
@@ -116,6 +124,14 @@ python FabioOrderFlow/tools/report_compression_ledger.py --save
 ```
 
 Restituisce solo JSON su stdout e salva il report JSON con validation e aggregati flow-covered. Con `--save` salva anche i CSV con chiavi `ProfileLabel`, `EventBar`, `Boundary` e `HorizonBars`. Non introduce filtri, segnali o PnL.
+
+Report auction-state dual-session:
+
+```bash
+python FabioOrderFlow/tools/report_auction_state_ledger.py --save
+```
+
+Restituisce JSON-only e salva le barre London/New York con profilo causale, LVN, footprint e cumulative big trades. Non genera segnali o PnL.
 
 Shadow offline esplorativo:
 

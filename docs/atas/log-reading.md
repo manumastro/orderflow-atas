@@ -47,6 +47,9 @@ Marker attivi:
 [MR_SHADOW_LOW_FLOW_CONFIRMATION_OUTCOME]  outcome H6/H12 dalla close di conferma
 [MR_SHADOW_LOW_FLOW_CONFIRMATION_BAR]      path 60 minuti dalla close di conferma
 [HISTORICAL_FLOW_FINISH]          Entries=0, LedgerProfiles=N, LedgerEvents=N, LedgerOutcomes=N
+[AUCTION_STATE_MODE]              ledger ampio London+New York, no-trade
+[AUCTION_STATE_BAR]               profilo causale, LVN, footprint e cumulative flow per barra/sessione
+[AUCTION_STATE_SUMMARY]           copertura dual-session e guardrail no-trade
 ```
 
 ## Come Leggere Un Range
@@ -99,6 +102,22 @@ H6/H12 sono finestre di osservazione, non target. I marker shadow non vanno somm
 
 La conferma LOW flow e' una seconda shadow distinta. `DirectionalFlowImbalance=-sum(Delta)/sum(TotalVolume)` sulle prime tre barre dopo l'acceptance; deve essere `>0`. La sua entry diagnostica e' la close della terza barra. Non modifica, cancella o qualifica retroattivamente la baseline acceptance.
 
+## Come Leggere L'Auction State Ledger
+
+```text
+Session=LONDON|NEW_YORK            contesti separati; una barra overlap puo' avere due record
+PriorPOC/VAH/VAL                   profilo sessione prima della barra corrente
+DevelopingPOC/VAH/VAL              profilo disponibile alla close corrente
+PriorProfileRelation               ABOVE_VAH | BELOW_VAL | INSIDE_VALUE
+Prior6/Prior12Efficiency           avanzamento netto rispetto al path precedente
+Prior*LvnAbove/Below               minimo locale raw, non livello qualificato
+EffortResult                       BUY/SELL_WITH_RESULT | BUY/SELL_ABSORBED | NEUTRAL
+MaxCumulativeBuy/Sell              massima bolla cumulative nella barra
+CumulativeTradeCoverage            AVAILABLE | MISSING
+```
+
+`ABSORBED` descrive delta e risultato prezzo della barra; da solo non e' un setup. London reversion richiede ancora sequenza breakout-rientro-risposta opposta. New York continuation richiede stato di imbalance, location LVN/pullback e aggressione con risultato.
+
 ## BalanceZoneTracker Corrente
 
 `BalanceZoneTracker` identifica London e disegna la zona grigia per orientamento. `[ZONE_READY]`, POC/VAH/VAL, high/low e state machine non partecipano al ledger. Il refactor futuro lo ridurra' a `LondonTracker`, responsabile soltanto di inizio, fine e appartenenza alla sessione London.
@@ -121,6 +140,12 @@ python FabioOrderFlow/tools/report_mr_performance.py --save
 ```
 
 Il report performance non valuta il ledger perche' non esistono trade o PnL. Usarlo solo per confronti legacy basati su `[MR_EXIT]`.
+
+```bash
+python FabioOrderFlow/tools/report_auction_state_ledger.py --save
+```
+
+Il report auction-state e' JSON-only e salva il dataset dual-session. Verifica entrambe le sessioni, guardrail no-trade e copertura cumulative; non seleziona soglie.
 
 ```bash
 python FabioOrderFlow/tools/report_compression_ledger.py --save
