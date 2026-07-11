@@ -11,6 +11,28 @@ Ogni risposta/aggiornamento deve riepilogare in modo conciso, anche se gia' disc
 Non assumere che il contesto precedente sia ricordato.
 ```
 
+## Audit 2026-07-11 - Overlapping setup / position
+
+```text
+Operativo attuale:
+- Il core permette setup distinti della stessa Direction + Source + ReferenceLabel se derivano da RejectionBar diversi.
+- ExpireOverlappingSetupsOnEntry scade solo setup con stessa Direction e stesso RejectionBar.
+
+Evidenza replay 2026-07-11:
+- 08/07 long PreviousDayProfile: posizioni sovrapposte 09:25:09-10:07:50 e 09:34:58-10:16:39.
+- 10/07 short PreviousLondonProfile: doppia entry 12:22:36 da setup 12:04:57 e 12:09:57.
+- 10/07 short PreviousLondonProfile: posizioni sovrapposte 14:04:28-14:13:44 e 14:05:14-14:13:44.
+- 10/07 short PreviousLondonProfile: 14:46:29 resta aperta mentre aprono 14:53:25 e 15:30:06.
+
+Calcolo:
+- Entry/Exit/PnL delle 19 posizioni replay sono aritmeticamente coerenti.
+- Questo non e' un errore di PnL o del profilo locale: e' stacking di setup permesso dalla logica operativa corrente.
+
+Decisione:
+- Non correggere in questo ciclo: cambiare a una posizione per Direction+Source+ReferenceLabel e' una modifica operativa separata dal detector compressione.
+- Prima definire il contratto desiderato: stacking intenzionale oppure una sola posizione alla volta per reference/direzione.
+```
+
 ## Reload 2026-07-11 09:06 - Dynamic CompressionScore verificato
 
 ```text
