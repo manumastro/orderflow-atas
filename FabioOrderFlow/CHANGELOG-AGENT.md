@@ -1,5 +1,21 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Reload 2026-07-11 13:21 - Event Ledger funzionale, coverage fix distribuito
+
+```text
+Reload iniziale ledger:
+- StudyMode=COMPRESSION_EVENT_LEDGER_NO_TRADES; LedgerQualification=NONE.
+- StoredTrades=1.314.530; LedgerProfiles=7; LedgerEvents=34; LedgerOutcomes=136.
+- Entries=0, ClosedPositions=0, OpenPositions=0, CompletedTrades=0.
+- Nessun MR_COMPRESSION_STUDY_*, MR_ENTRY, MR_EXIT o errore FabioOrderFlow.
+- TradeCoverage=AVAILABLE per 6 profili e MISSING per il 02/07, fuori dal lookback cumulative-trade.
+
+Fix successivo distribuito:
+- I percentili zero del profilo senza coverage ora sono NA, non 1,00.
+- Nessun cambiamento a eventi, outcome, lifecycle o operativita'.
+- Da verificare al prossimo reload: LedgerProfiles=7, LedgerEvents=34, LedgerOutcomes=136 e percentile NA sul 02/07.
+```
+
 ## Implementazione 2026-07-11 - Compression Event Ledger, no drawings/no thresholds di qualifica
 
 ```text
