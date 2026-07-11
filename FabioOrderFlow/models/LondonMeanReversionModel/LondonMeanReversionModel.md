@@ -222,7 +222,7 @@ PriceState / PocTouchedThisBar / PocTouchedToDate
 TradeCount / buy/sell volume / delta / max trade
 ```
 
-La granularita' e' quella del chart ATAS. Su M5 produce 12 barre path regolari; su M1 circa 60. E' ammessa una tolleranza massima di 5 minuti sul timestamp finale per includere la prima barra M5 completata che raggiunge l'ora di osservazione. L'API indicatore installata non espone una richiesta candle M1 storica separata da un chart M5: per ottenere path M1 il modello deve essere applicato a un chart M1.
+La granularita' e' quella del chart ATAS. Su M5 produce normalmente 12 barre path, oppure 13 quando la dodicesima termina pochi secondi prima dei 60 minuti; su M1 circa 60. E' ammessa una tolleranza massima di 5 minuti sul timestamp finale per includere la prima barra M5 completata che raggiunge l'ora di osservazione. L'API indicatore installata non espone una richiesta candle M1 storica separata da un chart M5: per ottenere path M1 il modello deve essere applicato a un chart M1.
 
 Checkpoint:
 
