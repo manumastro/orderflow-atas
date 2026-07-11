@@ -1,5 +1,25 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Reload 2026-07-11 10:27 - Contratto Studio Confermato
+
+```text
+DLL: 4b372fcb71a3cac473fc233d8ebb11501962f9e50fa009cc36a3892a13cf59e5
+[MR_MODE]: StudyMode=COMPRESSION_CASES_NO_TRADES; OperationalEntries=DISABLED.
+
+CUM_TRADES_LOOKBACK:
+- EffectiveBeginItaly=2026-07-03 22:59:59
+- EndItaly=2026-07-10 22:59:59
+- StoredTrades=1.314.530
+
+Risultato replay:
+- READY=7, tutti ProfileUse=STUDY_INPUT_ONLY.
+- RESOLVED=7, tutti ProfileUse=STUDY_INPUT_ONLY.
+- StudyCandidates=8, tutti OperationalEntry=FALSE.
+- Entries=0, ClosedPositions=0, OpenPositions=0, CompletedTrades=0.
+- Nessun marker MR_SETUP, MR_ENTRY, MR_EXIT, MR_BREAKEVEN o MR_REPLAY_OPEN.
+- Nessun errore o eccezione FabioOrderFlow nel reload.
+```
+
 ## Reload 2026-07-11 10:16 - Compression Study verificato
 
 ```text
