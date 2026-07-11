@@ -11,6 +11,35 @@ Ogni risposta/aggiornamento deve riepilogare in modo conciso, anche se gia' disc
 Non assumere che il contesto precedente sia ricordato.
 ```
 
+## Implementazione 2026-07-10 - Dynamic CompressionScore
+
+```text
+Operativo:
+- PreviousDayProfile e PreviousLondonProfile invariati.
+- Nessun cambio entry, stop, target, breakeven, max hold o PnL.
+
+Diagnostico:
+- Sostituiti finestra 6-18 e filtri rigidi con lifecycle SEARCHING -> BUILDING -> READY -> RESOLVED.
+- SEARCHING usa distribuzione causale delle precedenti 12-24 barre London.
+- BUILDING parte dal primo bar nel 50% inferiore della volatilita' e cresce per overlap/acceptance.
+- CompressionScore: contraction 20%, overlap 20%, directional 15%, rotation 10%, containment 10%, boundary stability 10%, POC stability 7,5%, value concentration 7,5%.
+- L'estensione richiede overlap con le ultime 3 barre, non con l'intero envelope, per evitare range che inglobano lentamente un movimento ampio.
+- READY: score >= 0,65 per 2 barre consecutive, minimo 6 barre.
+- RESOLVED: 2 close consecutive fuori range con tolleranza dinamica 15% della mediana precedente.
+- Nessun log BUILDING per evitare rumore; marker esterni restano READY/PROFILE_CONTEXT/RESOLVED.
+- Label: DynamicCompression.
+
+Decisione:
+- Il checkpoint rigido 98a1839 e' superato prima della sua validazione; non usare le soglie 3,00 / 0,85 come contratto corrente.
+- ActiveCompressionProfile resta DIAGNOSTIC_ONLY.
+
+Da verificare:
+- [MR_MODE] CompressionDetection=DYNAMIC_SCORE e lifecycle completo.
+- Conteggio READY/RESOLVED, distribuzione CompressionScore e componenti.
+- ProfileReadyTime < entry per ogni contesto.
+- Entry/PnL invariati sul tratto comune.
+```
+
 ## Reload 2026-07-10 15:28 - Prima normalizzazione insufficiente
 
 ```text

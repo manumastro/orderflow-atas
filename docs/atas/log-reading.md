@@ -90,20 +90,27 @@ In caso di dubbio, il target operativo e' sempre quello loggato in `[MR_ENTRY] T
 I marker del profilo locale non generano segnali e non modificano il PnL.
 
 ```text
-[MR_LOCAL_PROFILE_READY]     il detector ha riconosciuto overlap/rotazione su almeno 6 barre completate
-[MR_LOCAL_PROFILE_RESOLVED]  close accettata fuori range o fine London
+[MR_LOCAL_PROFILE_READY]     score dinamico persistente su almeno 6 barre completate
+[MR_LOCAL_PROFILE_RESOLVED]  2 close accettate fuori range o fine London
 [MR_PROFILE_CONTEXT]         una entry viene confrontata con un profilo che era gia' READY prima del setup
 ProfileSource=ActiveCompressionProfile
 ProfileUse=DIAGNOSTIC_ONLY
 ```
 
-Su `[MR_PROFILE_CONTEXT]` controllare `ProfileReadyTime < Italy` del setup/entry. Leggere anche `AdjacentOverlapRate`, `DirectionalEfficiency`, `CloseSpanRatio`, `DirectionChanges` e le metriche di contrazione causale:
+Su `[MR_PROFILE_CONTEXT]` controllare `ProfileReadyTime < Italy` del setup/entry. Leggere `CompressionScore` e le componenti:
 
 ```text
-BaselineMedianBarRange                 mediana range delle 6-12 barre precedenti, escluse dalla candidata
-RangeToBaselineMedian                 deve essere <= 3,00
-AverageBarRangeToBaselineMedian       deve essere <= 0,85; conferma contrazione reale
+ContractionScore / OverlapScore
+DirectionalScore / RotationScore
+ContainmentScore / BoundaryStabilityScore
+PocStabilityScore
+ValueConcentrationScore
+BaselineMedianBarRange                 mediana della distribuzione precedente
+RangeToBaselineMedian                 metrica, non filtro rigido
+AverageBarRangeToBaselineMedian       metrica, non filtro rigido
 ```
+
+Il profile diventa READY con score `>= 0,65` per 2 barre consecutive. La risoluzione richiede 2 close esterne; una singola wick non basta.
 
 Per analisi PnL ignorare sempre tutti i marker profilo; usare solo `[MR_EXIT]`.
 

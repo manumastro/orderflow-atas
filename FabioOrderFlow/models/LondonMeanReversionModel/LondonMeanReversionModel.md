@@ -117,23 +117,42 @@ ProfileSource=ActiveCompressionProfile
 
 `ActiveCompressionProfile` e' un prototipo diagnostico della compressione/dealing range intraday Fabio-style. Non e' direzionale, non parte dall'entry e non sostituisce le reference operative.
 
-Lifecycle causale:
+Lifecycle causale e dinamico:
 
 ```text
-1. Analizza solo barre London gia' completate; la barra di setup non puo' creare il profilo usato dallo stesso setup.
-2. Cerca una finestra da 6 a 18 barre.
-3. Prima della finestra richiede una baseline causale di almeno 6 barre, fino a 12, mai incluse nella candidata.
-4. BaselineMedianBarRange = mediana dei range high-low delle barre precedenti.
-5. Richiede ProfileRange / BaselineMedianBarRange <= 3,00.
-6. Richiede AverageProfileBarRange / BaselineMedianBarRange <= 0,85: le barre della candidata devono essere realmente piu' piccole della volatilita' precedente.
-7. Richiede almeno 70% di coppie adiacenti sovrapposte e almeno 2 cambi di direzione delle close.
-8. Richiede DirectionalEfficiency <= 0,40, CloseSpanRatio <= 0,80 e RangeToAverageBarRange <= 2,75.
-9. Quando tutti i criteri sono presenti, congela POC/VAH/VAL e logga [MR_LOCAL_PROFILE_READY].
-10. Una close oltre il range di almeno 4 tick risolve il profilo e logga [MR_LOCAL_PROFILE_RESOLVED].
-11. Un setup puo' allegare il profilo solo se ReadyBar < RejectionBar.
+SEARCHING
+- Usa le ultime 12-24 barre London completate come distribuzione di volatilita' precedente.
+- Avvia una candidata quando il range della nuova barra e' nel 50% inferiore della distribuzione.
+
+BUILDING
+- L'inizio resta il primo bar contratto; non esiste una finestra massima fissa.
+- La candidata cresce solo se la nuova barra si sovrappone e la close resta accettata vicino al range.
+- Dopo almeno 6 barre calcola CompressionScore a ogni nuova barra.
+
+READY
+- Richiede CompressionScore >= 0,65 per 2 barre consecutive.
+- Congela finestra, high/low, POC, VAH e VAL; solo allora logga [MR_LOCAL_PROFILE_READY].
+- Un setup puo' allegarla solo se ReadyBar < RejectionBar.
+
+RESOLVED
+- Richiede 2 close consecutive oltre il range piu' una tolleranza adattiva pari al 15% della mediana precedente.
+- Una wick o una singola close esterna non risolve il profilo.
 ```
 
-Il primo reload ha validato lifecycle e causalita', ma ha prodotto 54 profili troppo permissivi. La prima normalizzazione `4,00 / 1,25` li ha ridotti solo a 46 e ha ancora accettato 5 range sopra 150 punti, con massimo 243,75. Il limite `1,25` consentiva espansione rispetto alla baseline, non contrazione. La revisione corrente usa quindi `3,00 / 0,85`. Le soglie restano diagnostiche e devono essere validate con un nuovo reload; non sono un filtro operativo.
+`CompressionScore` e' normalizzato da `0` a `1`:
+
+```text
+20% VolatilityContraction
+20% AdjacentOverlap sulle barre recenti
+15% assenza di avanzamento direzionale
+10% Rotation
+10% CloseContainment
+10% BoundaryStability
+7,5% PocStability
+7,5% ValueConcentration
+```
+
+I reload precedenti hanno dimostrato che finestre e rapporti rigidi non bastano: 54 profili iniziali e 46 dopo la prima normalizzazione, con range massimo 243,75. La versione dinamica sostituisce quei criteri; resta diagnostica e deve essere validata con un nuovo reload.
 
 Le diagnostiche precedenti `CurrentLondonSessionProfile`, `LocalRotationProfile` e `LatestSwingPairToSetup` sono ritirate dal codice attivo.
 
@@ -144,13 +163,16 @@ ProfileSource / ProfileLabel
 ProfileReadyBar / ProfileReadyTime
 ProfilePOC / ProfileVAH / ProfileVAL
 ProfileHigh / ProfileLow / ProfileRange
-AdjacentOverlapRate
-RangeToAverageBarRange
-DirectionalEfficiency
-CloseSpanRatio / DirectionChanges
+CompressionScore
+ContractionScore / OverlapScore
+DirectionalScore / RotationScore
+ContainmentScore / BoundaryStabilityScore
+PocStabilityScore
+ValueConcentrationScore
 BaselineMedianBarRange
 RangeToBaselineMedian
 AverageBarRangeToBaselineMedian
+DirectionChanges
 CandidateTargetPOC
 TargetVsProfileVAL / ProfilePOC / ProfileVAH
 EntryVsProfileVAL / ProfilePOC / ProfileVAH

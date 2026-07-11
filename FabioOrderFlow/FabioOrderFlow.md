@@ -35,7 +35,7 @@ CHANGELOG-AGENT.md                                     baseline, decisioni, relo
 ATAS OnCalculate
 -> BalanceZoneTracker aggiorna profilo London e inoltra il flusso barre
 -> LondonMeanReversionModel costruisce reference operative complete PreviousDayProfile/PreviousLondonProfile
--> LondonMeanReversionModel mantiene il lifecycle diagnostico READY/RESOLVED di ActiveCompressionProfile
+-> LondonMeanReversionModel mantiene il lifecycle diagnostico dinamico SEARCHING/BUILDING/READY/RESOLVED di ActiveCompressionProfile
 -> LondonMeanReversionModel allega un profilo locale all'entry solo se era READY prima del setup
 -> LondonMeanReversionModel valuta setup e gestione posizioni
 
