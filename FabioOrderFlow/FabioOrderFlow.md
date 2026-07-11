@@ -24,7 +24,8 @@ models/LondonMeanReversionModel/                       ledger live/replay eventi
 models/PostLondonImpulseModel/                         parked, non operativo ora
 tools/report_mr_performance.py                         report PnL legacy, solo MR_EXIT
 tools/report_compression_ledger.py                     export/aggregati descrittivi ledger no-trade
-tools/analyze_compression_shadow.py                    shadow fixed-horizon offline, JSON only
+tools/analyze_compression_shadow.py                    shadow primo evento offline, JSON only
+tools/analyze_compression_state_entries.py             shadow state-confirmed offline, JSON only
 performance-snapshots/                                 snapshot PnL legacy
 ledger-snapshots/                                      CSV dataset e report JSON del compression ledger
 archive/legacy-research/                               strumenti/snapshot pre-core, non operativi
@@ -116,7 +117,15 @@ Shadow offline esplorativo:
 python FabioOrderFlow/tools/analyze_compression_shadow.py --save FabioOrderFlow/ledger-snapshots/compression-shadow-2026-07-11.json
 ```
 
-Usa massimo una osservazione per profilo, split cronologico e exit fisse a 6/12 barre. Non ricostruisce stop, target, ordini o PnL. I tempi di mercato mostrati nei log sono sempre i campi `Italy=`.
+Usa massimo una osservazione per profilo, split cronologico e exit fisse a 6/12 barre. Non ricostruisce stop, target, ordini o PnL.
+
+Shadow state-confirmed offline:
+
+```bash
+python FabioOrderFlow/tools/analyze_compression_state_entries.py --save FabioOrderFlow/ledger-snapshots/compression-state-shadow-2026-07-11.json
+```
+
+Confronta causalmente failed breakout reversion e acceptance continuation, includendo nel JSON ogni entry individuale. I tempi di mercato mostrati nei log sono sempre i campi `Italy=`.
 
 ## Regole Di Documentazione
 

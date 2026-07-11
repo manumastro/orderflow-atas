@@ -33,3 +33,13 @@ python FabioOrderFlow/tools/analyze_compression_shadow.py \
 
 Usa al massimo il primo evento di ogni profilo, separa train/test per data e
 non ricostruisce stop o target dall'ordine intrabar non disponibile.
+
+Entry shadow confermate da stato, sempre offline e JSON-only:
+
+```bash
+python FabioOrderFlow/tools/analyze_compression_state_entries.py \
+  --save FabioOrderFlow/ledger-snapshots/compression-state-shadow-2026-07-11.json
+```
+
+Confronta failed breakout reversion e acceptance continuation usando soltanto
+stato disponibile alla barra di trigger. Il JSON include ogni entry e outcome.

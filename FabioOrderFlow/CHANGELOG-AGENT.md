@@ -1,5 +1,26 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Analisi 2026-07-11 - Entry Shadow Confermate da Stato
+
+```text
+Contratti offline causali:
+- FAILED_BREAKOUT_REVERSION: prior OUTSIDE stesso bordo -> evento chiude INSIDE.
+- ACCEPTANCE_CONTINUATION: OUTSIDE con OutsideCloseStreak>=2.
+- Entry al trigger close; exit H6/H12; massimo una entry per profilo/contratto.
+- EndReason non usato; nessun ordine, stop, target o PnL.
+
+Risultati:
+- Acceptance: 22 profili; train H6 +0,040/H12 -0,332; test H6 +0,147/H12 +0,870.
+- Failed breakout: 8 profili; train H6 -0,162/H12 -0,426; test H6 +0,070/H12 -0,700.
+- HIGH acceptance test H12: 6 profili, media +0,938, mediana +0,560; senza outlier massimo media +0,450.
+- HIGH acceptance train H12 resta negativo: media -0,213, mediana -0,265.
+
+Decisione:
+- Failed breakout reversion respinta sul campione corrente.
+- Acceptance continuation conservata come ipotesi shadow prospettica congelata, non validata.
+- ValidatedContracts=[]; OperationalEntries=DISABLED.
+```
+
 ## Analisi 2026-07-11 - Shadow Fixed-Horizon sui Dati Disponibili
 
 ```text
