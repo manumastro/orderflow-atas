@@ -22,8 +22,10 @@ src/MarketTimeZones.cs                                 conversioni UTC/London/It
 models/shared/BalanceZoneTracker/                      tracker London corrente; profile legacy non consumato
 models/LondonMeanReversionModel/                       ledger live/replay eventi compression
 models/PostLondonImpulseModel/                         parked, non operativo ora
-tools/report_mr_performance.py                         report canonico marker MR correnti
-performance-snapshots/                                 snapshot correnti London MR
+tools/report_mr_performance.py                         report PnL legacy, solo MR_EXIT
+tools/report_compression_ledger.py                     export/aggregati descrittivi ledger no-trade
+performance-snapshots/                                 snapshot PnL legacy
+ledger-snapshots/                                      CSV/JSON/TXT del compression ledger
 archive/legacy-research/                               strumenti/snapshot pre-core, non operativi
 CHANGELOG-AGENT.md                                     baseline, decisioni, reload verificati
 ```
@@ -91,13 +93,21 @@ cp -f bin/Release/net10.0-windows/FabioOrderFlow.dll "$APPDATA/ATAS/Indicators/F
 
 Dopo deploy: ricaricare ATAS/indicatore, attendere `[HISTORICAL_FLOW_FINISH]`, validare `Entries=0`, i contatori `LedgerProfiles/LedgerEvents/LedgerOutcomes`, l'assenza di box/marker studio e la zona London grigia, poi aggiornare `CHANGELOG-AGENT.md` con poche righe.
 
-Report canonico:
+Report PnL legacy:
 
 ```bash
 python FabioOrderFlow/tools/report_mr_performance.py --save
 ```
 
-Il report usa solo `[MR_EXIT]` per il PnL legacy. Il nuovo studio non produce PnL e non deve essere giudicato con il report performance. I tempi di mercato mostrati nei log sono sempre i campi `Italy=`.
+Il report usa solo `[MR_EXIT]` per il PnL legacy. Il nuovo studio non produce PnL e non deve essere giudicato con il report performance.
+
+Report ledger no-trade:
+
+```bash
+python FabioOrderFlow/tools/report_compression_ledger.py --save
+```
+
+Salva CSV con chiavi `ProfileLabel`, `EventBar`, `Boundary` e `HorizonBars`, JSON con validation e aggregati flow-covered, e un testo descrittivo. Non introduce filtri, segnali o PnL. I tempi di mercato mostrati nei log sono sempre i campi `Italy=`.
 
 ## Regole Di Documentazione
 

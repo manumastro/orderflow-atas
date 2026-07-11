@@ -90,10 +90,16 @@ I percentili sono metriche di confronto causale, non condizioni. `NA` significa 
 6. Per profili senza trade nelle risposte ricevute, `TradeCoverage=MISSING`: non inferire flow assente dal mercato. Il provider potrebbe non conservare quella finestra storica.
 ```
 
-## Report Performance
+## Report
 
 ```bash
 python FabioOrderFlow/tools/report_mr_performance.py --save
 ```
 
 Il report performance non valuta il ledger perche' non esistono trade o PnL. Usarlo solo per confronti legacy basati su `[MR_EXIT]`.
+
+```bash
+python FabioOrderFlow/tools/report_compression_ledger.py --save
+```
+
+Il report ledger seleziona l'ultimo replay `[HISTORICAL_FLOW_FINISH]` completo, verifica `eventi x 4 = outcome`, salva CSV/JSON/TXT in `FabioOrderFlow/ledger-snapshots/` e usa flow solo con `TradeCoverage=AVAILABLE`. Gli aggregati non sono segnali. Per confrontare HIGH e LOW usare i campi normalizzati `*Reversion*`, non il segno prezzo di `CloseMoveRanges`.

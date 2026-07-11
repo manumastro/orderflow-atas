@@ -1,5 +1,25 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Analisi 2026-07-11 - Compression Ledger, 21 Profili Flow-Covered
+
+```text
+Dataset:
+- 24 profili, 109 eventi, 436 outcome completi.
+- 21 profili / 99 eventi TradeCoverage=AVAILABLE; 3 profili / 10 eventi MISSING esclusi dal confronto flow.
+- Report ripetibile: tools/report_compression_ledger.py --save.
+- Snapshot CSV/JSON/TXT: ledger-snapshots/compression-ledger-2026-07-11_18-02-29-*.
+
+Evidenza descrittiva:
+- 97 BREACH e solo 2 TOUCH: confronto touch/breach non ancora possibile.
+- HIGH e LOW hanno esiti normalizzati diversi; la media per evento e quella pesata per profilo divergono.
+- Il percentile volume relativo 0,76-1,00 e' un'ipotesi diagnostica da riesaminare, non un filtro.
+- Nessuna classificazione, soglia, entry, stop, target o PnL e' stata aggiunta.
+
+Decisione:
+- Raccogliere altre sessioni e aggiungere etichette manuali tight/extended/unclear.
+- Valutare sempre conteggi di profili distinti e confronto fuori campione prima di un modello shadow.
+```
+
 ## Implementazione 2026-07-11 - Historical Cumulative Trades Windowed
 
 ```text
