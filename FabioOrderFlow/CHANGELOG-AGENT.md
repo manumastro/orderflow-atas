@@ -1,5 +1,30 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Reload e Analisi 2026-07-11 - Dual-Session Auction Ledger
+
+```text
+Reload M5:
+- AUCTION_STATE_BAR=6.488; London=3.508; NewYork=2.980; 40 date per sessione.
+- New York parte 09:30; non perde piu' i primi 90 minuti.
+- Cumulative ricevuti=5.833.055; matched nelle barre studio=4.854.494.
+- Replay compression invariato: 27 profili, 117 eventi, 468 outcome.
+- Shadow acceptance=25; LOW flow=6; Entries=0; ShadowOrders=0; errori=0.
+
+Analisi transcript playbook:
+- Tool tools/analyze_fabio_auction_playbooks.py, JSON-only.
+- 73 osservazioni con massimo una per modello/sessione/data/direzione.
+- BALANCE_ROTATION_V1=32; NY_IMBALANCE_PULLBACK_V1=41.
+- Split cronologico al 2026-06-23; selectionLeakage=true.
+- NY continuation LONG H6: train +0,342/78,9%, test -0,098/37,5%; fallisce.
+- NY continuation SHORT H6: train +0,123/71,4%, test +0,084/66,7%, ma solo 13 casi e H3/H12 instabili.
+- Balance rotation non stabile tra sessione, direzione e split.
+
+Decisione:
+- ValidatedModels=[]; nessuna nuova shadow o operativita'.
+- La discovery non e' piu' limitata a 6 profili, ma M5 e rolling LVN non rappresentano ancora l'impulso Fabio A->B.
+- Prossimo ciclo: impulse profile causale New York e studio M1 separato.
+```
+
 ## Implementazione 2026-07-11 - Dual-Session Auction State Ledger
 
 ```text

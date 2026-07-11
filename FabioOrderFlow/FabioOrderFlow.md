@@ -28,6 +28,7 @@ tools/report_compression_ledger.py                     export/aggregati descritt
 tools/analyze_compression_shadow.py                    shadow primo evento offline, JSON only
 tools/analyze_compression_state_entries.py             shadow state-confirmed offline, JSON only
 tools/analyze_acceptance_path_transitions.py            transizioni path e flow iniziale, JSON only
+tools/analyze_fabio_auction_playbooks.py                 balance rotation + NY pullback, JSON only
 performance-snapshots/                                 snapshot PnL legacy
 ledger-snapshots/                                      CSV dataset e report JSON del compression ledger
 archive/legacy-research/                               strumenti/snapshot pre-core, non operativi
@@ -132,6 +133,15 @@ python FabioOrderFlow/tools/report_auction_state_ledger.py --save
 ```
 
 Restituisce JSON-only e salva le barre London/New York con profilo causale, LVN, footprint e cumulative big trades. Non genera segnali o PnL.
+
+Analisi dei due playbook transcript:
+
+```bash
+python FabioOrderFlow/tools/analyze_fabio_auction_playbooks.py \
+  --save FabioOrderFlow/ledger-snapshots/fabio-auction-playbooks-2026-07-11.json
+```
+
+Costruisce `BALANCE_ROTATION_V1` e `NY_IMBALANCE_PULLBACK_V1`, massimo una osservazione per modello/sessione/data/direzione, split cronologico e `selectionLeakage=true`. Non produce segnali o PnL.
 
 Shadow offline esplorativo:
 

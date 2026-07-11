@@ -1,0 +1,3868 @@
+{
+  "generatedAt": "2026-07-11T23:23:28+02:00",
+  "source": "FabioOrderFlow\\ledger-snapshots\\auction-state-2026-07-11_23-14-29-bars.csv",
+  "contract": {
+    "operationalEntries": false,
+    "ordersSubmitted": false,
+    "pnlComputed": false,
+    "selectionLeakage": true,
+    "independence": "maximum one observation per model/session/date/direction",
+    "transcriptThresholds": {
+      "LONDON": 20,
+      "NEW_YORK": 30
+    },
+    "optimizedThresholds": []
+  },
+  "counts": {
+    "observations": 73,
+    "models": {
+      "BALANCE_ROTATION_V1": 32,
+      "NY_IMBALANCE_PULLBACK_V1": 41
+    },
+    "sessions": {
+      "LONDON": 21,
+      "NEW_YORK": 52
+    },
+    "directions": {
+      "SHORT": 34,
+      "LONG": 39
+    }
+  },
+  "summary": {
+    "dateCutoff": "2026-06-23",
+    "groups": {
+      "BALANCE_ROTATION_V1:LONDON:LONG:all": {
+        "observations": 7,
+        "dates": 7,
+        "horizons": {
+          "H3": {
+            "observations": 7,
+            "medianDirectionalMoveRanges": -0.11169977924944813,
+            "positiveRate": 0.42857142857142855,
+            "medianFavorableMfeRanges": 0.26384364820846906,
+            "medianAdverseMfeRanges": 0.3403298350824588,
+            "targetTouchRate": 0.42857142857142855
+          },
+          "H6": {
+            "observations": 6,
+            "medianDirectionalMoveRanges": 0.025421492339244785,
+            "positiveRate": 0.5,
+            "medianFavorableMfeRanges": 0.28701441669682715,
+            "medianAdverseMfeRanges": 0.5864087673285875,
+            "targetTouchRate": 0.5
+          },
+          "H12": {
+            "observations": 6,
+            "medianDirectionalMoveRanges": 0.3952878037272942,
+            "positiveRate": 0.8333333333333334,
+            "medianFavorableMfeRanges": 0.6398127208724939,
+            "medianAdverseMfeRanges": 0.6267661154795743,
+            "targetTouchRate": 0.8333333333333334
+          }
+        }
+      },
+      "BALANCE_ROTATION_V1:LONDON:SHORT:all": {
+        "observations": 14,
+        "dates": 14,
+        "horizons": {
+          "H3": {
+            "observations": 14,
+            "medianDirectionalMoveRanges": 0.06153501766613426,
+            "positiveRate": 0.5714285714285714,
+            "medianFavorableMfeRanges": 0.2100146667551094,
+            "medianAdverseMfeRanges": 0.17590962441314556,
+            "targetTouchRate": 0.5
+          },
+          "H6": {
+            "observations": 12,
+            "medianDirectionalMoveRanges": 0.0737668518378872,
+            "positiveRate": 0.6666666666666666,
+            "medianFavorableMfeRanges": 0.34863869092921884,
+            "medianAdverseMfeRanges": 0.2525743518884064,
+            "targetTouchRate": 0.5
+          },
+          "H12": {
+            "observations": 11,
+            "medianDirectionalMoveRanges": -0.03755868544600939,
+            "positiveRate": 0.45454545454545453,
+            "medianFavorableMfeRanges": 0.44966442953020136,
+            "medianAdverseMfeRanges": 0.35309278350515466,
+            "targetTouchRate": 0.9090909090909091
+          }
+        }
+      },
+      "BALANCE_ROTATION_V1:NEW_YORK:LONG:all": {
+        "observations": 4,
+        "dates": 4,
+        "horizons": {
+          "H3": {
+            "observations": 3,
+            "medianDirectionalMoveRanges": -0.11169977924944813,
+            "positiveRate": 0.3333333333333333,
+            "medianFavorableMfeRanges": 0.32882882882882886,
+            "medianAdverseMfeRanges": 0.2392935982339956,
+            "targetTouchRate": 1.0
+          },
+          "H6": {
+            "observations": 3,
+            "medianDirectionalMoveRanges": 0.12317880794701987,
+            "positiveRate": 0.6666666666666666,
+            "medianFavorableMfeRanges": 0.45045045045045046,
+            "medianAdverseMfeRanges": 0.2392935982339956,
+            "targetTouchRate": 1.0
+          },
+          "H12": {
+            "observations": 3,
+            "medianDirectionalMoveRanges": 0.3747178329571106,
+            "positiveRate": 1.0,
+            "medianFavorableMfeRanges": 0.7578828828828829,
+            "medianAdverseMfeRanges": 0.2392935982339956,
+            "targetTouchRate": 1.0
+          }
+        }
+      },
+      "BALANCE_ROTATION_V1:NEW_YORK:SHORT:all": {
+        "observations": 7,
+        "dates": 7,
+        "horizons": {
+          "H3": {
+            "observations": 7,
+            "medianDirectionalMoveRanges": -0.14017521902377972,
+            "positiveRate": 0.2857142857142857,
+            "medianFavorableMfeRanges": 0.12640801001251564,
+            "medianAdverseMfeRanges": 0.22528160200250313,
+            "targetTouchRate": 0.42857142857142855
+          },
+          "H6": {
+            "observations": 7,
+            "medianDirectionalMoveRanges": -0.056319580877537655,
+            "positiveRate": 0.2857142857142857,
+            "medianFavorableMfeRanges": 0.2816593886462882,
+            "medianAdverseMfeRanges": 0.30240174672489084,
+            "targetTouchRate": 0.42857142857142855
+          },
+          "H12": {
+            "observations": 6,
+            "medianDirectionalMoveRanges": -0.14828638291372964,
+            "positiveRate": 0.3333333333333333,
+            "medianFavorableMfeRanges": 0.35353687664358613,
+            "medianAdverseMfeRanges": 0.33187317480183565,
+            "targetTouchRate": 0.5
+          }
+        }
+      },
+      "NY_IMBALANCE_PULLBACK_V1:NEW_YORK:LONG:all": {
+        "observations": 28,
+        "dates": 28,
+        "horizons": {
+          "H3": {
+            "observations": 27,
+            "medianDirectionalMoveRanges": 0.022143489813994686,
+            "positiveRate": 0.6296296296296297,
+            "medianFavorableMfeRanges": 0.1323529411764706,
+            "medianAdverseMfeRanges": 0.1334913112164297,
+            "targetTouchRate": 0.0
+          },
+          "H6": {
+            "observations": 27,
+            "medianDirectionalMoveRanges": 0.23782771535580524,
+            "positiveRate": 0.6666666666666666,
+            "medianFavorableMfeRanges": 0.27699530516431925,
+            "medianAdverseMfeRanges": 0.21495327102803738,
+            "targetTouchRate": 0.0
+          },
+          "H12": {
+            "observations": 26,
+            "medianDirectionalMoveRanges": 0.054140812739858685,
+            "positiveRate": 0.5769230769230769,
+            "medianFavorableMfeRanges": 0.33003286541889487,
+            "medianAdverseMfeRanges": 0.25963928255369007,
+            "targetTouchRate": 0.0
+          }
+        }
+      },
+      "NY_IMBALANCE_PULLBACK_V1:NEW_YORK:SHORT:all": {
+        "observations": 13,
+        "dates": 13,
+        "horizons": {
+          "H3": {
+            "observations": 13,
+            "medianDirectionalMoveRanges": -0.04584221748400853,
+            "positiveRate": 0.38461538461538464,
+            "medianFavorableMfeRanges": 0.18840579710144928,
+            "medianAdverseMfeRanges": 0.2706766917293233,
+            "targetTouchRate": 0.0
+          },
+          "H6": {
+            "observations": 13,
+            "medianDirectionalMoveRanges": 0.11904761904761904,
+            "positiveRate": 0.6923076923076923,
+            "medianFavorableMfeRanges": 0.4053030303030303,
+            "medianAdverseMfeRanges": 0.2706766917293233,
+            "targetTouchRate": 0.0
+          },
+          "H12": {
+            "observations": 13,
+            "medianDirectionalMoveRanges": 0.3553008595988539,
+            "positiveRate": 0.6153846153846154,
+            "medianFavorableMfeRanges": 0.7032828282828283,
+            "medianAdverseMfeRanges": 0.3008595988538682,
+            "targetTouchRate": 0.0
+          }
+        }
+      },
+      "BALANCE_ROTATION_V1:LONDON:LONG:train": {
+        "observations": 4,
+        "dates": 4,
+        "horizons": {
+          "H3": {
+            "observations": 4,
+            "medianDirectionalMoveRanges": 0.04346543996225524,
+            "positiveRate": 0.5,
+            "medianFavorableMfeRanges": 0.557641318229774,
+            "medianAdverseMfeRanges": 0.39627956722275803,
+            "targetTouchRate": 0.75
+          },
+          "H6": {
+            "observations": 4,
+            "medianDirectionalMoveRanges": 0.08345865770228827,
+            "positiveRate": 0.75,
+            "medianFavorableMfeRanges": 0.5997420390870575,
+            "medianAdverseMfeRanges": 0.39627956722275803,
+            "targetTouchRate": 0.75
+          },
+          "H12": {
+            "observations": 4,
+            "medianDirectionalMoveRanges": 0.3952878037272942,
+            "positiveRate": 1.0,
+            "medianFavorableMfeRanges": 0.7652439263246136,
+            "medianAdverseMfeRanges": 0.39627956722275803,
+            "targetTouchRate": 1.0
+          }
+        }
+      },
+      "BALANCE_ROTATION_V1:LONDON:SHORT:train": {
+        "observations": 8,
+        "dates": 8,
+        "horizons": {
+          "H3": {
+            "observations": 8,
+            "medianDirectionalMoveRanges": -0.004700366509591131,
+            "positiveRate": 0.5,
+            "medianFavorableMfeRanges": 0.19624922652196677,
+            "medianAdverseMfeRanges": 0.18914791585662039,
+            "targetTouchRate": 0.25
+          },
+          "H6": {
+            "observations": 7,
+            "medianDirectionalMoveRanges": 0.06263982102908278,
+            "positiveRate": 0.5714285714285714,
+            "medianFavorableMfeRanges": 0.40604026845637586,
+            "medianAdverseMfeRanges": 0.2769607843137255,
+            "targetTouchRate": 0.2857142857142857
+          },
+          "H12": {
+            "observations": 6,
+            "medianDirectionalMoveRanges": -0.03517732596394262,
+            "positiveRate": 0.5,
+            "medianFavorableMfeRanges": 0.666008685353336,
+            "medianAdverseMfeRanges": 0.3568232662192394,
+            "targetTouchRate": 0.8333333333333334
+          }
+        }
+      },
+      "BALANCE_ROTATION_V1:NEW_YORK:LONG:train": {
+        "observations": 1,
+        "dates": 1,
+        "horizons": {
+          "H3": {
+            "observations": 1,
+            "medianDirectionalMoveRanges": -2.1128668171557563,
+            "positiveRate": 0.0,
+            "medianFavorableMfeRanges": 0.6659142212189616,
+            "medianAdverseMfeRanges": 2.1760722347629797,
+            "targetTouchRate": 1.0
+          },
+          "H6": {
+            "observations": 1,
+            "medianDirectionalMoveRanges": -0.7990970654627539,
+            "positiveRate": 0.0,
+            "medianFavorableMfeRanges": 0.6659142212189616,
+            "medianAdverseMfeRanges": 3.0767494356659144,
+            "targetTouchRate": 1.0
+          },
+          "H12": {
+            "observations": 1,
+            "medianDirectionalMoveRanges": 0.3747178329571106,
+            "positiveRate": 1.0,
+            "medianFavorableMfeRanges": 0.9841986455981941,
+            "medianAdverseMfeRanges": 3.0767494356659144,
+            "targetTouchRate": 1.0
+          }
+        }
+      },
+      "BALANCE_ROTATION_V1:NEW_YORK:SHORT:train": {
+        "observations": 2,
+        "dates": 2,
+        "horizons": {
+          "H3": {
+            "observations": 2,
+            "medianDirectionalMoveRanges": 0.08717764284327396,
+            "positiveRate": 0.5,
+            "medianFavorableMfeRanges": 0.26478518348542884,
+            "medianAdverseMfeRanges": 0.2336195788396025,
+            "targetTouchRate": 0.5
+          },
+          "H6": {
+            "observations": 2,
+            "medianDirectionalMoveRanges": 0.06808995110585495,
+            "positiveRate": 0.5,
+            "medianFavorableMfeRanges": 0.4280929518295589,
+            "medianAdverseMfeRanges": 0.3075013679769827,
+            "targetTouchRate": 0.5
+          },
+          "H12": {
+            "observations": 2,
+            "medianDirectionalMoveRanges": -0.03517686618537412,
+            "positiveRate": 0.5,
+            "medianFavorableMfeRanges": 0.47229184685718323,
+            "medianAdverseMfeRanges": 0.3127349831429933,
+            "targetTouchRate": 0.5
+          }
+        }
+      },
+      "NY_IMBALANCE_PULLBACK_V1:NEW_YORK:LONG:train": {
+        "observations": 20,
+        "dates": 20,
+        "horizons": {
+          "H3": {
+            "observations": 19,
+            "medianDirectionalMoveRanges": 0.0514018691588785,
+            "positiveRate": 0.6842105263157895,
+            "medianFavorableMfeRanges": 0.15072463768115943,
+            "medianAdverseMfeRanges": 0.14018691588785046,
+            "targetTouchRate": 0.0
+          },
+          "H6": {
+            "observations": 19,
+            "medianDirectionalMoveRanges": 0.34202898550724636,
+            "positiveRate": 0.7894736842105263,
+            "medianFavorableMfeRanges": 0.37540453074433655,
+            "medianAdverseMfeRanges": 0.1553398058252427,
+            "targetTouchRate": 0.0
+          },
+          "H12": {
+            "observations": 19,
+            "medianDirectionalMoveRanges": 0.14696813977389517,
+            "positiveRate": 0.631578947368421,
+            "medianFavorableMfeRanges": 0.539906103286385,
+            "medianAdverseMfeRanges": 0.2117163412127441,
+            "targetTouchRate": 0.0
+          }
+        }
+      },
+      "NY_IMBALANCE_PULLBACK_V1:NEW_YORK:SHORT:train": {
+        "observations": 7,
+        "dates": 7,
+        "horizons": {
+          "H3": {
+            "observations": 7,
+            "medianDirectionalMoveRanges": -0.04584221748400853,
+            "positiveRate": 0.2857142857142857,
+            "medianFavorableMfeRanges": 0.2639909553420011,
+            "medianAdverseMfeRanges": 0.19005847953216373,
+            "targetTouchRate": 0.0
+          },
+          "H6": {
+            "observations": 7,
+            "medianDirectionalMoveRanges": 0.12307692307692308,
+            "positiveRate": 0.7142857142857143,
+            "medianFavorableMfeRanges": 0.4728682170542636,
+            "medianAdverseMfeRanges": 0.19005847953216373,
+            "targetTouchRate": 0.0
+          },
+          "H12": {
+            "observations": 7,
+            "medianDirectionalMoveRanges": 0.3887884267631103,
+            "positiveRate": 0.7142857142857143,
+            "medianFavorableMfeRanges": 0.7036705461056401,
+            "medianAdverseMfeRanges": 0.21307072515666964,
+            "targetTouchRate": 0.0
+          }
+        }
+      },
+      "BALANCE_ROTATION_V1:LONDON:LONG:test": {
+        "observations": 3,
+        "dates": 3,
+        "horizons": {
+          "H3": {
+            "observations": 3,
+            "medianDirectionalMoveRanges": -0.11169977924944813,
+            "positiveRate": 0.3333333333333333,
+            "medianFavorableMfeRanges": 0.07352941176470588,
+            "medianAdverseMfeRanges": 0.24429967426710097,
+            "targetTouchRate": 0.0
+          },
+          "H6": {
+            "observations": 2,
+            "medianDirectionalMoveRanges": -0.35189332247557004,
+            "positiveRate": 0.0,
+            "medianFavorableMfeRanges": 0.16868652998658748,
+            "medianAdverseMfeRanges": 0.7609455834451044,
+            "targetTouchRate": 0.0
+          },
+          "H12": {
+            "observations": 2,
+            "medianDirectionalMoveRanges": -0.041447116305805665,
+            "positiveRate": 0.5,
+            "medianFavorableMfeRanges": 0.3559829469246982,
+            "medianAdverseMfeRanges": 0.9815338187392222,
+            "targetTouchRate": 0.5
+          }
+        }
+      },
+      "BALANCE_ROTATION_V1:LONDON:SHORT:test": {
+        "observations": 6,
+        "dates": 6,
+        "horizons": {
+          "H3": {
+            "observations": 6,
+            "medianDirectionalMoveRanges": 0.06153501766613426,
+            "positiveRate": 0.6666666666666666,
+            "medianFavorableMfeRanges": 0.2100146667551094,
+            "medianAdverseMfeRanges": 0.17590962441314556,
+            "targetTouchRate": 0.8333333333333334
+          },
+          "H6": {
+            "observations": 5,
+            "medianDirectionalMoveRanges": 0.17525773195876287,
+            "positiveRate": 0.8,
+            "medianFavorableMfeRanges": 0.2912371134020619,
+            "medianAdverseMfeRanges": 0.1875,
+            "targetTouchRate": 0.8
+          },
+          "H12": {
+            "observations": 5,
+            "medianDirectionalMoveRanges": -0.03755868544600939,
+            "positiveRate": 0.4,
+            "medianFavorableMfeRanges": 0.3943298969072165,
+            "medianAdverseMfeRanges": 0.35309278350515466,
+            "targetTouchRate": 1.0
+          }
+        }
+      },
+      "BALANCE_ROTATION_V1:NEW_YORK:LONG:test": {
+        "observations": 3,
+        "dates": 3,
+        "horizons": {
+          "H3": {
+            "observations": 2,
+            "medianDirectionalMoveRanges": 0.06577173199689756,
+            "positiveRate": 0.5,
+            "medianFavorableMfeRanges": 0.17258218483384047,
+            "medianAdverseMfeRanges": 0.19059274506294374,
+            "targetTouchRate": 1.0
+          },
+          "H6": {
+            "observations": 2,
+            "medianDirectionalMoveRanges": 0.27836868325278924,
+            "positiveRate": 1.0,
+            "medianFavorableMfeRanges": 0.3155122009426645,
+            "medianAdverseMfeRanges": 0.19059274506294374,
+            "targetTouchRate": 1.0
+          },
+          "H12": {
+            "observations": 2,
+            "medianDirectionalMoveRanges": 0.48556097488216693,
+            "positiveRate": 1.0,
+            "medianFavorableMfeRanges": 0.5294933178211324,
+            "medianAdverseMfeRanges": 0.19059274506294374,
+            "targetTouchRate": 1.0
+          }
+        }
+      },
+      "BALANCE_ROTATION_V1:NEW_YORK:SHORT:test": {
+        "observations": 5,
+        "dates": 5,
+        "horizons": {
+          "H3": {
+            "observations": 5,
+            "medianDirectionalMoveRanges": -0.14017521902377972,
+            "positiveRate": 0.2,
+            "medianFavorableMfeRanges": 0.12640801001251564,
+            "medianAdverseMfeRanges": 0.22528160200250313,
+            "targetTouchRate": 0.4
+          },
+          "H6": {
+            "observations": 5,
+            "medianDirectionalMoveRanges": -0.056319580877537655,
+            "positiveRate": 0.2,
+            "medianFavorableMfeRanges": 0.2547478716437459,
+            "medianAdverseMfeRanges": 0.30240174672489084,
+            "targetTouchRate": 0.4
+          },
+          "H12": {
+            "observations": 4,
+            "medianDirectionalMoveRanges": -0.24176135362392248,
+            "positiveRate": 0.25,
+            "medianFavorableMfeRanges": 0.268203630145017,
+            "medianAdverseMfeRanges": 0.35181518151815183,
+            "targetTouchRate": 0.5
+          }
+        }
+      },
+      "NY_IMBALANCE_PULLBACK_V1:NEW_YORK:LONG:test": {
+        "observations": 8,
+        "dates": 8,
+        "horizons": {
+          "H3": {
+            "observations": 8,
+            "medianDirectionalMoveRanges": -0.0014595759916508594,
+            "positiveRate": 0.5,
+            "medianFavorableMfeRanges": 0.05413010857802612,
+            "medianAdverseMfeRanges": 0.12292877094709714,
+            "targetTouchRate": 0.0
+          },
+          "H6": {
+            "observations": 8,
+            "medianDirectionalMoveRanges": -0.09807040397345948,
+            "positiveRate": 0.375,
+            "medianFavorableMfeRanges": 0.14631767970972104,
+            "medianAdverseMfeRanges": 0.25965177641087694,
+            "targetTouchRate": 0.0
+          },
+          "H12": {
+            "observations": 7,
+            "medianDirectionalMoveRanges": -0.010628875110717449,
+            "positiveRate": 0.42857142857142855,
+            "medianFavorableMfeRanges": 0.1938168846611177,
+            "medianAdverseMfeRanges": 0.4186413902053712,
+            "targetTouchRate": 0.0
+          }
+        }
+      },
+      "NY_IMBALANCE_PULLBACK_V1:NEW_YORK:SHORT:test": {
+        "observations": 6,
+        "dates": 6,
+        "horizons": {
+          "H3": {
+            "observations": 6,
+            "medianDirectionalMoveRanges": -0.02274151287309182,
+            "positiveRate": 0.5,
+            "medianFavorableMfeRanges": 0.15591907016788636,
+            "medianAdverseMfeRanges": 0.29609909076551677,
+            "targetTouchRate": 0.0
+          },
+          "H6": {
+            "observations": 6,
+            "medianDirectionalMoveRanges": 0.08387911038340837,
+            "positiveRate": 0.6666666666666666,
+            "medianFavorableMfeRanges": 0.26491192163790567,
+            "medianAdverseMfeRanges": 0.29609909076551677,
+            "targetTouchRate": 0.0
+          },
+          "H12": {
+            "observations": 6,
+            "medianDirectionalMoveRanges": 0.17567023177962496,
+            "positiveRate": 0.5,
+            "medianFavorableMfeRanges": 0.46755620110883267,
+            "medianAdverseMfeRanges": 0.35574380908876985,
+            "targetTouchRate": 0.0
+          }
+        }
+      }
+    }
+  },
+  "observations": [
+    {
+      "model": "BALANCE_ROTATION_V1",
+      "session": "LONDON",
+      "sessionDate": "2026-06-04",
+      "direction": "SHORT",
+      "eventBar": 2727,
+      "entryBar": 2748,
+      "latencyBars": 21,
+      "entryPrice": 30603.25,
+      "frozenPOC": 30506.0,
+      "frozenVAH": 30609.5,
+      "frozenVAL": 30456.0,
+      "normalizationRange": 99.25,
+      "directionalBigTrade": 20.0,
+      "oppositeBigTrade": 1.0,
+      "transcriptBigTradeMinimum": 20.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 2751,
+          "directionalMoveRanges": -0.15869017632241814,
+          "favorableMfeRanges": 0.12342569269521411,
+          "adverseMfeRanges": 0.2619647355163728,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "BALANCE_ROTATION_V1",
+      "session": "LONDON",
+      "sessionDate": "2026-06-05",
+      "direction": "SHORT",
+      "eventBar": 2948,
+      "entryBar": 2962,
+      "latencyBars": 14,
+      "entryPrice": 30440.0,
+      "frozenPOC": 30396.75,
+      "frozenVAH": 30471.0,
+      "frozenVAL": 30368.0,
+      "normalizationRange": 102.0,
+      "directionalBigTrade": 34.0,
+      "oppositeBigTrade": 5.0,
+      "transcriptBigTradeMinimum": 20.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 2965,
+          "directionalMoveRanges": -0.3553921568627451,
+          "favorableMfeRanges": 0.0,
+          "adverseMfeRanges": 0.45098039215686275,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 2968,
+          "directionalMoveRanges": 0.19607843137254902,
+          "favorableMfeRanges": 0.19607843137254902,
+          "adverseMfeRanges": 0.45098039215686275,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 2974,
+          "directionalMoveRanges": 0.8823529411764706,
+          "favorableMfeRanges": 0.8823529411764706,
+          "adverseMfeRanges": 0.45098039215686275,
+          "targetTouched": true
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "BALANCE_ROTATION_V1",
+      "session": "LONDON",
+      "sessionDate": "2026-06-11",
+      "direction": "SHORT",
+      "eventBar": 4005,
+      "entryBar": 4019,
+      "latencyBars": 14,
+      "entryPrice": 29167.0,
+      "frozenPOC": 29123.25,
+      "frozenVAH": 29177.75,
+      "frozenVAL": 29045.0,
+      "normalizationRange": 102.0,
+      "directionalBigTrade": 25.0,
+      "oppositeBigTrade": 1.0,
+      "transcriptBigTradeMinimum": 20.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 4022,
+          "directionalMoveRanges": -0.17401960784313725,
+          "favorableMfeRanges": 0.0784313725490196,
+          "adverseMfeRanges": 0.2769607843137255,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 4025,
+          "directionalMoveRanges": -0.03431372549019608,
+          "favorableMfeRanges": 0.0784313725490196,
+          "adverseMfeRanges": 0.2769607843137255,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 4031,
+          "directionalMoveRanges": -0.13970588235294118,
+          "favorableMfeRanges": 0.0857843137254902,
+          "adverseMfeRanges": 0.2769607843137255,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "BALANCE_ROTATION_V1",
+      "session": "LONDON",
+      "sessionDate": "2026-06-12",
+      "direction": "SHORT",
+      "eventBar": 4292,
+      "entryBar": 4329,
+      "latencyBars": 37,
+      "entryPrice": 29764.25,
+      "frozenPOC": 29590.0,
+      "frozenVAH": 29803.0,
+      "frozenVAL": 29549.75,
+      "normalizationRange": 200.25,
+      "directionalBigTrade": 31.0,
+      "oppositeBigTrade": 19.0,
+      "transcriptBigTradeMinimum": 20.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 4332,
+          "directionalMoveRanges": 0.32209737827715357,
+          "favorableMfeRanges": 0.4332084893882647,
+          "adverseMfeRanges": 0.066167290886392,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 4335,
+          "directionalMoveRanges": 0.08489388264669163,
+          "favorableMfeRanges": 0.6154806491885143,
+          "adverseMfeRanges": 0.066167290886392,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 4341,
+          "directionalMoveRanges": 0.9550561797752809,
+          "favorableMfeRanges": 1.0474406991260923,
+          "adverseMfeRanges": 0.13857677902621723,
+          "targetTouched": true
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "BALANCE_ROTATION_V1",
+      "session": "LONDON",
+      "sessionDate": "2026-06-15",
+      "direction": "SHORT",
+      "eventBar": 4557,
+      "entryBar": 4566,
+      "latencyBars": 9,
+      "entryPrice": 30539.75,
+      "frozenPOC": 30557.5,
+      "frozenVAH": 30582.5,
+      "frozenVAL": 30539.75,
+      "normalizationRange": 74.5,
+      "directionalBigTrade": 27.0,
+      "oppositeBigTrade": 8.0,
+      "transcriptBigTradeMinimum": 20.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 4569,
+          "directionalMoveRanges": 0.23154362416107382,
+          "favorableMfeRanges": 0.25838926174496646,
+          "adverseMfeRanges": 0.03691275167785235,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 4572,
+          "directionalMoveRanges": -0.14093959731543623,
+          "favorableMfeRanges": 0.40604026845637586,
+          "adverseMfeRanges": 0.22818791946308725,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 4578,
+          "directionalMoveRanges": -0.37583892617449666,
+          "favorableMfeRanges": 0.40604026845637586,
+          "adverseMfeRanges": 0.42953020134228187,
+          "targetTouched": true
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "BALANCE_ROTATION_V1",
+      "session": "LONDON",
+      "sessionDate": "2026-06-16",
+      "direction": "SHORT",
+      "eventBar": 4827,
+      "entryBar": 4882,
+      "latencyBars": 55,
+      "entryPrice": 30828.0,
+      "frozenPOC": 30831.75,
+      "frozenVAH": 30843.25,
+      "frozenVAL": 30818.5,
+      "normalizationRange": 70.5,
+      "directionalBigTrade": 82.0,
+      "oppositeBigTrade": 20.0,
+      "transcriptBigTradeMinimum": 20.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 4885,
+          "directionalMoveRanges": 0.09574468085106383,
+          "favorableMfeRanges": 0.22695035460992907,
+          "adverseMfeRanges": 0.30141843971631205,
+          "targetTouched": true
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 4888,
+          "directionalMoveRanges": -0.08865248226950355,
+          "favorableMfeRanges": 0.6099290780141844,
+          "adverseMfeRanges": 0.30141843971631205,
+          "targetTouched": true
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 4894,
+          "directionalMoveRanges": -0.4574468085106383,
+          "favorableMfeRanges": 1.0957446808510638,
+          "adverseMfeRanges": 0.7872340425531915,
+          "targetTouched": true
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "BALANCE_ROTATION_V1",
+      "session": "LONDON",
+      "sessionDate": "2026-06-18",
+      "direction": "LONG",
+      "eventBar": 5417,
+      "entryBar": 5419,
+      "latencyBars": 2,
+      "entryPrice": 30408.25,
+      "frozenPOC": 30432.75,
+      "frozenVAH": 30464.0,
+      "frozenVAL": 30396.5,
+      "normalizationRange": 117.75,
+      "directionalBigTrade": 25.0,
+      "oppositeBigTrade": 7.0,
+      "transcriptBigTradeMinimum": 20.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 5422,
+          "directionalMoveRanges": -0.11677282377919321,
+          "favorableMfeRanges": 0.06369426751592357,
+          "adverseMfeRanges": 0.45222929936305734,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 5425,
+          "directionalMoveRanges": 0.09978768577494693,
+          "favorableMfeRanges": 0.19957537154989385,
+          "adverseMfeRanges": 0.45222929936305734,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 5431,
+          "directionalMoveRanges": 0.44798301486199577,
+          "favorableMfeRanges": 0.6411889596602972,
+          "adverseMfeRanges": 0.45222929936305734,
+          "targetTouched": true
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "BALANCE_ROTATION_V1",
+      "session": "LONDON",
+      "sessionDate": "2026-06-18",
+      "direction": "SHORT",
+      "eventBar": 5379,
+      "entryBar": 5381,
+      "latencyBars": 2,
+      "entryPrice": 30437.25,
+      "frozenPOC": 30417.5,
+      "frozenVAH": 30444.0,
+      "frozenVAL": 30387.75,
+      "normalizationRange": 111.75,
+      "directionalBigTrade": 30.0,
+      "oppositeBigTrade": 28.0,
+      "transcriptBigTradeMinimum": 20.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 5384,
+          "directionalMoveRanges": -0.10514541387024609,
+          "favorableMfeRanges": 0.16554809843400448,
+          "adverseMfeRanges": 0.116331096196868,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 5387,
+          "directionalMoveRanges": 0.06263982102908278,
+          "favorableMfeRanges": 0.16554809843400448,
+          "adverseMfeRanges": 0.2841163310961969,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 5393,
+          "directionalMoveRanges": 0.06935123042505593,
+          "favorableMfeRanges": 0.44966442953020136,
+          "adverseMfeRanges": 0.2841163310961969,
+          "targetTouched": true
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "BALANCE_ROTATION_V1",
+      "session": "LONDON",
+      "sessionDate": "2026-06-19",
+      "direction": "LONG",
+      "eventBar": 5685,
+      "entryBar": 5711,
+      "latencyBars": 26,
+      "entryPrice": 30636.5,
+      "frozenPOC": 30639.0,
+      "frozenVAH": 30648.75,
+      "frozenVAL": 30590.0,
+      "normalizationRange": 108.0,
+      "directionalBigTrade": 25.0,
+      "oppositeBigTrade": 16.0,
+      "transcriptBigTradeMinimum": 20.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 5714,
+          "directionalMoveRanges": 0.2037037037037037,
+          "favorableMfeRanges": 0.3101851851851852,
+          "adverseMfeRanges": 0.08333333333333333,
+          "targetTouched": true
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 5717,
+          "directionalMoveRanges": 0.06712962962962964,
+          "favorableMfeRanges": 0.3101851851851852,
+          "adverseMfeRanges": 0.09722222222222222,
+          "targetTouched": true
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 5723,
+          "directionalMoveRanges": 0.3425925925925926,
+          "favorableMfeRanges": 0.4027777777777778,
+          "adverseMfeRanges": 0.09722222222222222,
+          "targetTouched": true
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "BALANCE_ROTATION_V1",
+      "session": "LONDON",
+      "sessionDate": "2026-06-22",
+      "direction": "LONG",
+      "eventBar": 5913,
+      "entryBar": 5917,
+      "latencyBars": 4,
+      "entryPrice": 30767.75,
+      "frozenPOC": 30750.0,
+      "frozenVAH": 30774.5,
+      "frozenVAL": 30721.0,
+      "normalizationRange": 67.75,
+      "directionalBigTrade": 41.0,
+      "oppositeBigTrade": 21.0,
+      "transcriptBigTradeMinimum": 20.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 5920,
+          "directionalMoveRanges": -0.39114391143911437,
+          "favorableMfeRanges": 0.8892988929889298,
+          "adverseMfeRanges": 0.8413284132841329,
+          "targetTouched": true
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 5923,
+          "directionalMoveRanges": -0.25830258302583026,
+          "favorableMfeRanges": 0.8892988929889298,
+          "adverseMfeRanges": 0.8413284132841329,
+          "targetTouched": true
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 5929,
+          "directionalMoveRanges": 0.01107011070110701,
+          "favorableMfeRanges": 0.8892988929889298,
+          "adverseMfeRanges": 0.8413284132841329,
+          "targetTouched": true
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "BALANCE_ROTATION_V1",
+      "session": "LONDON",
+      "sessionDate": "2026-06-22",
+      "direction": "SHORT",
+      "eventBar": 5932,
+      "entryBar": 5958,
+      "latencyBars": 26,
+      "entryPrice": 30756.5,
+      "frozenPOC": 30750.0,
+      "frozenVAH": 30771.25,
+      "frozenVAL": 30719.0,
+      "normalizationRange": 65.25,
+      "directionalBigTrade": 96.0,
+      "oppositeBigTrade": 70.0,
+      "transcriptBigTradeMinimum": 20.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 5961,
+          "directionalMoveRanges": 2.0,
+          "favorableMfeRanges": 2.206896551724138,
+          "adverseMfeRanges": 0.08812260536398467,
+          "targetTouched": true
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 5964,
+          "directionalMoveRanges": 1.78544061302682,
+          "favorableMfeRanges": 3.2413793103448274,
+          "adverseMfeRanges": 0.08812260536398467,
+          "targetTouched": true
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "BALANCE_ROTATION_V1",
+      "session": "LONDON",
+      "sessionDate": "2026-06-23",
+      "direction": "LONG",
+      "eventBar": 6219,
+      "entryBar": 6224,
+      "latencyBars": 5,
+      "entryPrice": 29780.75,
+      "frozenPOC": 29800.0,
+      "frozenVAH": 29919.0,
+      "frozenVAL": 29769.75,
+      "normalizationRange": 166.75,
+      "directionalBigTrade": 125.0,
+      "oppositeBigTrade": 86.0,
+      "transcriptBigTradeMinimum": 20.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 6227,
+          "directionalMoveRanges": 0.5757121439280359,
+          "favorableMfeRanges": 0.8050974512743628,
+          "adverseMfeRanges": 0.3403298350824588,
+          "targetTouched": true
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 6230,
+          "directionalMoveRanges": 1.1664167916041979,
+          "favorableMfeRanges": 1.3403298350824588,
+          "adverseMfeRanges": 0.3403298350824588,
+          "targetTouched": true
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 6236,
+          "directionalMoveRanges": 0.7241379310344828,
+          "favorableMfeRanges": 1.5967016491754122,
+          "adverseMfeRanges": 0.3403298350824588,
+          "targetTouched": true
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "BALANCE_ROTATION_V1",
+      "session": "LONDON",
+      "sessionDate": "2026-06-24",
+      "direction": "SHORT",
+      "eventBar": 6436,
+      "entryBar": 6437,
+      "latencyBars": 1,
+      "entryPrice": 29832.0,
+      "frozenPOC": 29800.0,
+      "frozenVAH": 29832.75,
+      "frozenVAL": 29791.75,
+      "normalizationRange": 97.0,
+      "directionalBigTrade": 20.0,
+      "oppositeBigTrade": 6.0,
+      "transcriptBigTradeMinimum": 20.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 6440,
+          "directionalMoveRanges": 0.09020618556701031,
+          "favorableMfeRanges": 0.14948453608247422,
+          "adverseMfeRanges": 0.35309278350515466,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 6443,
+          "directionalMoveRanges": 0.17525773195876287,
+          "favorableMfeRanges": 0.2912371134020619,
+          "adverseMfeRanges": 0.35309278350515466,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 6449,
+          "directionalMoveRanges": 0.18298969072164947,
+          "favorableMfeRanges": 0.3943298969072165,
+          "adverseMfeRanges": 0.35309278350515466,
+          "targetTouched": true
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "BALANCE_ROTATION_V1",
+      "session": "LONDON",
+      "sessionDate": "2026-06-25",
+      "direction": "SHORT",
+      "eventBar": 6764,
+      "entryBar": 6769,
+      "latencyBars": 5,
+      "entryPrice": 30179.5,
+      "frozenPOC": 30150.0,
+      "frozenVAH": 30183.0,
+      "frozenVAL": 30125.25,
+      "normalizationRange": 154.75,
+      "directionalBigTrade": 33.0,
+      "oppositeBigTrade": 18.0,
+      "transcriptBigTradeMinimum": 20.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 6772,
+          "directionalMoveRanges": 0.2294022617124394,
+          "favorableMfeRanges": 0.2762520193861066,
+          "adverseMfeRanges": 0.006462035541195477,
+          "targetTouched": true
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 6775,
+          "directionalMoveRanges": 0.7867528271405493,
+          "favorableMfeRanges": 0.901453957996769,
+          "adverseMfeRanges": 0.08723747980613894,
+          "targetTouched": true
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 6781,
+          "directionalMoveRanges": 4.474959612277868,
+          "favorableMfeRanges": 5.710823909531502,
+          "adverseMfeRanges": 0.08723747980613894,
+          "targetTouched": true
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "BALANCE_ROTATION_V1",
+      "session": "LONDON",
+      "sessionDate": "2026-06-29",
+      "direction": "LONG",
+      "eventBar": 7337,
+      "entryBar": 7339,
+      "latencyBars": 2,
+      "entryPrice": 29632.75,
+      "frozenPOC": 29720.0,
+      "frozenVAH": 29797.0,
+      "frozenVAL": 29545.75,
+      "normalizationRange": 566.25,
+      "directionalBigTrade": 147.0,
+      "oppositeBigTrade": 50.0,
+      "transcriptBigTradeMinimum": 20.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 7342,
+          "directionalMoveRanges": -0.11169977924944813,
+          "favorableMfeRanges": 0.016335540838852098,
+          "adverseMfeRanges": 0.2392935982339956,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "BALANCE_ROTATION_V1",
+      "session": "LONDON",
+      "sessionDate": "2026-07-02",
+      "direction": "SHORT",
+      "eventBar": 8097,
+      "entryBar": 8113,
+      "latencyBars": 16,
+      "entryPrice": 29927.0,
+      "frozenPOC": 29930.0,
+      "frozenVAH": 29943.5,
+      "frozenVAL": 29850.75,
+      "normalizationRange": 187.25,
+      "directionalBigTrade": 62.0,
+      "oppositeBigTrade": 43.0,
+      "transcriptBigTradeMinimum": 20.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 8116,
+          "directionalMoveRanges": -0.11882510013351134,
+          "favorableMfeRanges": 0.01602136181575434,
+          "adverseMfeRanges": 0.1588785046728972,
+          "targetTouched": true
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 8119,
+          "directionalMoveRanges": -0.2937249666221629,
+          "favorableMfeRanges": 0.01602136181575434,
+          "adverseMfeRanges": 0.35514018691588783,
+          "targetTouched": true
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 8125,
+          "directionalMoveRanges": -0.2897196261682243,
+          "favorableMfeRanges": 0.01602136181575434,
+          "adverseMfeRanges": 0.5046728971962616,
+          "targetTouched": true
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "BALANCE_ROTATION_V1",
+      "session": "LONDON",
+      "sessionDate": "2026-07-03",
+      "direction": "SHORT",
+      "eventBar": 8414,
+      "entryBar": 8415,
+      "latencyBars": 1,
+      "entryPrice": 29887.25,
+      "frozenPOC": 29885.0,
+      "frozenVAH": 29890.75,
+      "frozenVAL": 29844.5,
+      "normalizationRange": 53.25,
+      "directionalBigTrade": 73.0,
+      "oppositeBigTrade": 12.0,
+      "transcriptBigTradeMinimum": 20.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 8418,
+          "directionalMoveRanges": 0.03286384976525822,
+          "favorableMfeRanges": 0.22065727699530516,
+          "adverseMfeRanges": 0.1643192488262911,
+          "targetTouched": true
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 8421,
+          "directionalMoveRanges": 0.056338028169014086,
+          "favorableMfeRanges": 0.22065727699530516,
+          "adverseMfeRanges": 0.1643192488262911,
+          "targetTouched": true
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 8427,
+          "directionalMoveRanges": -0.03755868544600939,
+          "favorableMfeRanges": 0.22065727699530516,
+          "adverseMfeRanges": 0.5868544600938967,
+          "targetTouched": true
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "BALANCE_ROTATION_V1",
+      "session": "LONDON",
+      "sessionDate": "2026-07-07",
+      "direction": "LONG",
+      "eventBar": 8881,
+      "entryBar": 8896,
+      "latencyBars": 15,
+      "entryPrice": 29681.5,
+      "frozenPOC": 29688.0,
+      "frozenVAH": 29731.25,
+      "frozenVAL": 29673.75,
+      "normalizationRange": 68.0,
+      "directionalBigTrade": 236.0,
+      "oppositeBigTrade": 26.0,
+      "transcriptBigTradeMinimum": 20.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 8899,
+          "directionalMoveRanges": -0.41911764705882354,
+          "favorableMfeRanges": 0.07352941176470588,
+          "adverseMfeRanges": 0.4742647058823529,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 8902,
+          "directionalMoveRanges": -0.6875,
+          "favorableMfeRanges": 0.07352941176470588,
+          "adverseMfeRanges": 0.7205882352941176,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 8908,
+          "directionalMoveRanges": -0.6985294117647058,
+          "favorableMfeRanges": 0.07352941176470588,
+          "adverseMfeRanges": 1.161764705882353,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "BALANCE_ROTATION_V1",
+      "session": "LONDON",
+      "sessionDate": "2026-07-09",
+      "direction": "SHORT",
+      "eventBar": 9419,
+      "entryBar": 9451,
+      "latencyBars": 32,
+      "entryPrice": 29643.5,
+      "frozenPOC": 29652.5,
+      "frozenVAH": 29663.0,
+      "frozenVAL": 29620.75,
+      "normalizationRange": 92.0,
+      "directionalBigTrade": 23.0,
+      "oppositeBigTrade": 15.0,
+      "transcriptBigTradeMinimum": 20.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 9454,
+          "directionalMoveRanges": 0.41304347826086957,
+          "favorableMfeRanges": 0.421195652173913,
+          "adverseMfeRanges": 0.1875,
+          "targetTouched": true
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 9457,
+          "directionalMoveRanges": 0.28804347826086957,
+          "favorableMfeRanges": 0.8586956521739131,
+          "adverseMfeRanges": 0.1875,
+          "targetTouched": true
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 9463,
+          "directionalMoveRanges": -0.26358695652173914,
+          "favorableMfeRanges": 0.8586956521739131,
+          "adverseMfeRanges": 0.2907608695652174,
+          "targetTouched": true
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "BALANCE_ROTATION_V1",
+      "session": "LONDON",
+      "sessionDate": "2026-07-10",
+      "direction": "LONG",
+      "eventBar": 9702,
+      "entryBar": 9704,
+      "latencyBars": 2,
+      "entryPrice": 29778.75,
+      "frozenPOC": 29800.0,
+      "frozenVAH": 29824.5,
+      "frozenVAL": 29773.75,
+      "normalizationRange": 76.75,
+      "directionalBigTrade": 46.0,
+      "oppositeBigTrade": 13.0,
+      "transcriptBigTradeMinimum": 20.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 9707,
+          "directionalMoveRanges": 0.06514657980456026,
+          "favorableMfeRanges": 0.26384364820846906,
+          "adverseMfeRanges": 0.24429967426710097,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 9710,
+          "directionalMoveRanges": -0.016286644951140065,
+          "favorableMfeRanges": 0.26384364820846906,
+          "adverseMfeRanges": 0.8013029315960912,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 9716,
+          "directionalMoveRanges": 0.6156351791530945,
+          "favorableMfeRanges": 0.6384364820846905,
+          "adverseMfeRanges": 0.8013029315960912,
+          "targetTouched": true
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "BALANCE_ROTATION_V1",
+      "session": "LONDON",
+      "sessionDate": "2026-07-10",
+      "direction": "SHORT",
+      "eventBar": 9767,
+      "entryBar": 9775,
+      "latencyBars": 8,
+      "entryPrice": 29850.0,
+      "frozenPOC": 29862.0,
+      "frozenVAH": 29897.75,
+      "frozenVAL": 29798.75,
+      "normalizationRange": 159.25,
+      "directionalBigTrade": 357.0,
+      "oppositeBigTrade": 128.0,
+      "transcriptBigTradeMinimum": 20.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 9778,
+          "directionalMoveRanges": -0.32653061224489793,
+          "favorableMfeRanges": 0.19937205651491366,
+          "adverseMfeRanges": 0.3563579277864992,
+          "targetTouched": true
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "BALANCE_ROTATION_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-06-08",
+      "direction": "SHORT",
+      "eventBar": 3286,
+      "entryBar": 3292,
+      "latencyBars": 6,
+      "entryPrice": 29851.25,
+      "frozenPOC": 29700.0,
+      "frozenVAH": 29868.0,
+      "frozenVAL": 29621.0,
+      "normalizationRange": 181.0,
+      "directionalBigTrade": 43.0,
+      "oppositeBigTrade": 8.0,
+      "transcriptBigTradeMinimum": 30.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 3295,
+          "directionalMoveRanges": -0.2361878453038674,
+          "favorableMfeRanges": 0.015193370165745856,
+          "adverseMfeRanges": 0.3011049723756906,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 3298,
+          "directionalMoveRanges": 0.21685082872928177,
+          "favorableMfeRanges": 0.3370165745856354,
+          "adverseMfeRanges": 0.3011049723756906,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 3304,
+          "directionalMoveRanges": 0.0055248618784530384,
+          "favorableMfeRanges": 0.425414364640884,
+          "adverseMfeRanges": 0.31077348066298344,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "BALANCE_ROTATION_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-06-12",
+      "direction": "SHORT",
+      "eventBar": 4357,
+      "entryBar": 4365,
+      "latencyBars": 8,
+      "entryPrice": 29861.75,
+      "frozenPOC": 29847.25,
+      "frozenVAH": 29918.5,
+      "frozenVAL": 29673.75,
+      "normalizationRange": 313.0,
+      "directionalBigTrade": 31.0,
+      "oppositeBigTrade": 19.0,
+      "transcriptBigTradeMinimum": 30.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 4368,
+          "directionalMoveRanges": 0.41054313099041534,
+          "favorableMfeRanges": 0.5143769968051118,
+          "adverseMfeRanges": 0.16613418530351437,
+          "targetTouched": true
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 4371,
+          "directionalMoveRanges": -0.08067092651757188,
+          "favorableMfeRanges": 0.5191693290734825,
+          "adverseMfeRanges": 0.31389776357827476,
+          "targetTouched": true
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 4377,
+          "directionalMoveRanges": -0.07587859424920128,
+          "favorableMfeRanges": 0.5191693290734825,
+          "adverseMfeRanges": 0.3146964856230032,
+          "targetTouched": true
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "BALANCE_ROTATION_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-06-17",
+      "direction": "LONG",
+      "eventBar": 5210,
+      "entryBar": 5218,
+      "latencyBars": 8,
+      "entryPrice": 30411.0,
+      "frozenPOC": 30435.0,
+      "frozenVAH": 30477.25,
+      "frozenVAL": 30379.5,
+      "normalizationRange": 110.75,
+      "directionalBigTrade": 30.0,
+      "oppositeBigTrade": 10.0,
+      "transcriptBigTradeMinimum": 30.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 5221,
+          "directionalMoveRanges": -2.1128668171557563,
+          "favorableMfeRanges": 0.6659142212189616,
+          "adverseMfeRanges": 2.1760722347629797,
+          "targetTouched": true
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 5224,
+          "directionalMoveRanges": -0.7990970654627539,
+          "favorableMfeRanges": 0.6659142212189616,
+          "adverseMfeRanges": 3.0767494356659144,
+          "targetTouched": true
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 5230,
+          "directionalMoveRanges": 0.3747178329571106,
+          "favorableMfeRanges": 0.9841986455981941,
+          "adverseMfeRanges": 3.0767494356659144,
+          "targetTouched": true
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "BALANCE_ROTATION_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-06-25",
+      "direction": "SHORT",
+      "eventBar": 6808,
+      "entryBar": 6812,
+      "latencyBars": 4,
+      "entryPrice": 29683.75,
+      "frozenPOC": 29600.0,
+      "frozenVAH": 29753.5,
+      "frozenVAL": 29462.5,
+      "normalizationRange": 381.75,
+      "directionalBigTrade": 37.0,
+      "oppositeBigTrade": 30.0,
+      "transcriptBigTradeMinimum": 30.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 6815,
+          "directionalMoveRanges": -0.01309757694826457,
+          "favorableMfeRanges": 0.2547478716437459,
+          "adverseMfeRanges": 0.08382449246889326,
+          "targetTouched": true
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 6818,
+          "directionalMoveRanges": -0.056319580877537655,
+          "favorableMfeRanges": 0.2547478716437459,
+          "adverseMfeRanges": 0.08840864440078586,
+          "targetTouched": true
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 6824,
+          "directionalMoveRanges": -0.22069417157825802,
+          "favorableMfeRanges": 0.2547478716437459,
+          "adverseMfeRanges": 0.3333333333333333,
+          "targetTouched": true
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "BALANCE_ROTATION_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-06-29",
+      "direction": "LONG",
+      "eventBar": 7337,
+      "entryBar": 7339,
+      "latencyBars": 2,
+      "entryPrice": 29632.75,
+      "frozenPOC": 29600.0,
+      "frozenVAH": 29830.75,
+      "frozenVAL": 29508.5,
+      "normalizationRange": 566.25,
+      "directionalBigTrade": 147.0,
+      "oppositeBigTrade": 50.0,
+      "transcriptBigTradeMinimum": 30.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 7342,
+          "directionalMoveRanges": -0.11169977924944813,
+          "favorableMfeRanges": 0.016335540838852098,
+          "adverseMfeRanges": 0.2392935982339956,
+          "targetTouched": true
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 7345,
+          "directionalMoveRanges": 0.12317880794701987,
+          "favorableMfeRanges": 0.1805739514348786,
+          "adverseMfeRanges": 0.2392935982339956,
+          "targetTouched": true
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 7351,
+          "directionalMoveRanges": 0.23576158940397351,
+          "favorableMfeRanges": 0.3011037527593819,
+          "adverseMfeRanges": 0.2392935982339956,
+          "targetTouched": true
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "BALANCE_ROTATION_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-07-01",
+      "direction": "SHORT",
+      "eventBar": 7887,
+      "entryBar": 7893,
+      "latencyBars": 6,
+      "entryPrice": 30201.75,
+      "frozenPOC": 30100.0,
+      "frozenVAH": 30231.25,
+      "frozenVAL": 30098.0,
+      "normalizationRange": 229.0,
+      "directionalBigTrade": 57.0,
+      "oppositeBigTrade": 31.0,
+      "transcriptBigTradeMinimum": 30.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 7896,
+          "directionalMoveRanges": 0.04148471615720524,
+          "favorableMfeRanges": 0.2816593886462882,
+          "adverseMfeRanges": 0.17685589519650655,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 7899,
+          "directionalMoveRanges": -0.26200873362445415,
+          "favorableMfeRanges": 0.2816593886462882,
+          "adverseMfeRanges": 0.30240174672489084,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 7905,
+          "directionalMoveRanges": -0.39082969432314413,
+          "favorableMfeRanges": 0.2816593886462882,
+          "adverseMfeRanges": 0.675764192139738,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "BALANCE_ROTATION_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-07-06",
+      "direction": "SHORT",
+      "eventBar": 8683,
+      "entryBar": 8700,
+      "latencyBars": 17,
+      "entryPrice": 29990.0,
+      "frozenPOC": 30000.0,
+      "frozenVAH": 30045.25,
+      "frozenVAL": 29927.5,
+      "normalizationRange": 126.25,
+      "directionalBigTrade": 67.0,
+      "oppositeBigTrade": 48.0,
+      "transcriptBigTradeMinimum": 30.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 8703,
+          "directionalMoveRanges": -0.2297029702970297,
+          "favorableMfeRanges": 0.11683168316831684,
+          "adverseMfeRanges": 0.3702970297029703,
+          "targetTouched": true
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 8706,
+          "directionalMoveRanges": 0.27920792079207923,
+          "favorableMfeRanges": 0.3326732673267327,
+          "adverseMfeRanges": 0.3702970297029703,
+          "targetTouched": true
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 8712,
+          "directionalMoveRanges": 0.7425742574257426,
+          "favorableMfeRanges": 0.8534653465346534,
+          "adverseMfeRanges": 0.3702970297029703,
+          "targetTouched": true
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "BALANCE_ROTATION_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-07-07",
+      "direction": "LONG",
+      "eventBar": 9005,
+      "entryBar": 9011,
+      "latencyBars": 6,
+      "entryPrice": 29369.0,
+      "frozenPOC": 29540.0,
+      "frozenVAH": 29596.75,
+      "frozenVAL": 29330.25,
+      "normalizationRange": 290.0,
+      "directionalBigTrade": 62.0,
+      "oppositeBigTrade": 30.0,
+      "transcriptBigTradeMinimum": 30.0,
+      "outcomes": [],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "BALANCE_ROTATION_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-07-08",
+      "direction": "LONG",
+      "eventBar": 9230,
+      "entryBar": 9246,
+      "latencyBars": 16,
+      "entryPrice": 29277.0,
+      "frozenPOC": 29310.0,
+      "frozenVAH": 29355.0,
+      "frozenVAL": 29240.5,
+      "normalizationRange": 222.0,
+      "directionalBigTrade": 40.0,
+      "oppositeBigTrade": 30.0,
+      "transcriptBigTradeMinimum": 30.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 9249,
+          "directionalMoveRanges": 0.24324324324324326,
+          "favorableMfeRanges": 0.32882882882882886,
+          "adverseMfeRanges": 0.14189189189189189,
+          "targetTouched": true
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 9252,
+          "directionalMoveRanges": 0.43355855855855857,
+          "favorableMfeRanges": 0.45045045045045046,
+          "adverseMfeRanges": 0.14189189189189189,
+          "targetTouched": true
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 9258,
+          "directionalMoveRanges": 0.7353603603603603,
+          "favorableMfeRanges": 0.7578828828828829,
+          "adverseMfeRanges": 0.14189189189189189,
+          "targetTouched": true
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "BALANCE_ROTATION_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-07-08",
+      "direction": "SHORT",
+      "eventBar": 9259,
+      "entryBar": 9270,
+      "latencyBars": 11,
+      "entryPrice": 29372.75,
+      "frozenPOC": 29300.0,
+      "frozenVAH": 29386.25,
+      "frozenVAL": 29201.75,
+      "normalizationRange": 199.75,
+      "directionalBigTrade": 35.0,
+      "oppositeBigTrade": 22.0,
+      "transcriptBigTradeMinimum": 30.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 9273,
+          "directionalMoveRanges": -0.14017521902377972,
+          "favorableMfeRanges": 0.12640801001251564,
+          "adverseMfeRanges": 0.22528160200250313,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 9276,
+          "directionalMoveRanges": -0.16520650813516896,
+          "favorableMfeRanges": 0.12640801001251564,
+          "adverseMfeRanges": 0.25782227784730916,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 9282,
+          "directionalMoveRanges": -0.26282853566958697,
+          "favorableMfeRanges": 0.12640801001251564,
+          "adverseMfeRanges": 0.3304130162703379,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "BALANCE_ROTATION_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-07-09",
+      "direction": "SHORT",
+      "eventBar": 9537,
+      "entryBar": 9553,
+      "latencyBars": 16,
+      "entryPrice": 29913.5,
+      "frozenPOC": 29900.0,
+      "frozenVAH": 29921.5,
+      "frozenVAL": 29749.25,
+      "normalizationRange": 108.25,
+      "directionalBigTrade": 56.0,
+      "oppositeBigTrade": 54.0,
+      "transcriptBigTradeMinimum": 30.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 9556,
+          "directionalMoveRanges": -0.3163972286374134,
+          "favorableMfeRanges": 0.09930715935334873,
+          "adverseMfeRanges": 0.4133949191685912,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 9559,
+          "directionalMoveRanges": -0.04387990762124711,
+          "favorableMfeRanges": 0.09930715935334873,
+          "adverseMfeRanges": 0.4133949191685912,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "NY_IMBALANCE_PULLBACK_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-05-19",
+      "direction": "LONG",
+      "expansionBar": 348,
+      "pullbackBar": 349,
+      "entryBar": 351,
+      "expansionToPullbackBars": 1,
+      "pullbackToEntryBars": 2,
+      "totalLatencyBars": 3,
+      "pullbackLocation": "VALUE_BOUNDARY",
+      "entryPrice": 29125.25,
+      "frozenVAH": 29119.0,
+      "frozenVAL": 28929.5,
+      "rollingLvn": 29124.5,
+      "normalizationRange": 143.0,
+      "directionalBigTrade": 1.0,
+      "oppositeBigTrade": 0.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 354,
+          "directionalMoveRanges": 0.6066433566433567,
+          "favorableMfeRanges": 0.6066433566433567,
+          "adverseMfeRanges": 0.0,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 357,
+          "directionalMoveRanges": 0.8741258741258742,
+          "favorableMfeRanges": 0.9493006993006993,
+          "adverseMfeRanges": 0.0,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 363,
+          "directionalMoveRanges": 1.7045454545454546,
+          "favorableMfeRanges": 1.715034965034965,
+          "adverseMfeRanges": 0.0,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "NY_IMBALANCE_PULLBACK_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-05-20",
+      "direction": "LONG",
+      "expansionBar": 515,
+      "pullbackBar": 516,
+      "entryBar": 522,
+      "expansionToPullbackBars": 1,
+      "pullbackToEntryBars": 6,
+      "totalLatencyBars": 7,
+      "pullbackLocation": "LVN",
+      "entryPrice": 29521.5,
+      "frozenVAH": 29377.5,
+      "frozenVAL": 29290.0,
+      "rollingLvn": 29445.75,
+      "normalizationRange": 172.5,
+      "directionalBigTrade": 4.0,
+      "oppositeBigTrade": 0.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 525,
+          "directionalMoveRanges": 0.015942028985507246,
+          "favorableMfeRanges": 0.15072463768115943,
+          "adverseMfeRanges": 0.09420289855072464,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 528,
+          "directionalMoveRanges": 0.34202898550724636,
+          "favorableMfeRanges": 0.7463768115942029,
+          "adverseMfeRanges": 0.09420289855072464,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 534,
+          "directionalMoveRanges": 0.5579710144927537,
+          "favorableMfeRanges": 0.7463768115942029,
+          "adverseMfeRanges": 0.09420289855072464,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "NY_IMBALANCE_PULLBACK_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-05-21",
+      "direction": "LONG",
+      "expansionBar": 729,
+      "pullbackBar": 737,
+      "entryBar": 747,
+      "expansionToPullbackBars": 8,
+      "pullbackToEntryBars": 10,
+      "totalLatencyBars": 18,
+      "pullbackLocation": "BOTH",
+      "entryPrice": 29615.75,
+      "frozenVAH": 29521.25,
+      "frozenVAL": 29399.0,
+      "rollingLvn": 29525.75,
+      "normalizationRange": 73.25,
+      "directionalBigTrade": 5.0,
+      "oppositeBigTrade": 1.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 750,
+          "directionalMoveRanges": 1.0170648464163823,
+          "favorableMfeRanges": 1.8327645051194539,
+          "adverseMfeRanges": 0.0,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 753,
+          "directionalMoveRanges": 1.7610921501706485,
+          "favorableMfeRanges": 1.9453924914675769,
+          "adverseMfeRanges": 0.0,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 759,
+          "directionalMoveRanges": 1.4914675767918089,
+          "favorableMfeRanges": 2.856655290102389,
+          "adverseMfeRanges": 0.0,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "NY_IMBALANCE_PULLBACK_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-05-22",
+      "direction": "LONG",
+      "expansionBar": 921,
+      "pullbackBar": 936,
+      "entryBar": 944,
+      "expansionToPullbackBars": 15,
+      "pullbackToEntryBars": 8,
+      "totalLatencyBars": 23,
+      "pullbackLocation": "VALUE_BOUNDARY",
+      "entryPrice": 29950.75,
+      "frozenVAH": 29929.25,
+      "frozenVAL": 29847.75,
+      "rollingLvn": 29926.25,
+      "normalizationRange": 154.5,
+      "directionalBigTrade": 1.0,
+      "oppositeBigTrade": 0.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 947,
+          "directionalMoveRanges": 0.17475728155339806,
+          "favorableMfeRanges": 0.1796116504854369,
+          "adverseMfeRanges": 0.0,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 950,
+          "directionalMoveRanges": 0.3511326860841424,
+          "favorableMfeRanges": 0.37540453074433655,
+          "adverseMfeRanges": 0.1553398058252427,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 956,
+          "directionalMoveRanges": -0.04854368932038835,
+          "favorableMfeRanges": 0.48058252427184467,
+          "adverseMfeRanges": 0.1553398058252427,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "NY_IMBALANCE_PULLBACK_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-05-25",
+      "direction": "LONG",
+      "expansionBar": 1088,
+      "pullbackBar": 1090,
+      "entryBar": 1106,
+      "expansionToPullbackBars": 2,
+      "pullbackToEntryBars": 16,
+      "totalLatencyBars": 18,
+      "pullbackLocation": "LVN",
+      "entryPrice": 30248.75,
+      "frozenVAH": 30234.5,
+      "frozenVAL": 30191.75,
+      "rollingLvn": 30243.25,
+      "normalizationRange": 65.25,
+      "directionalBigTrade": 5.0,
+      "oppositeBigTrade": 0.0,
+      "outcomes": [],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "NY_IMBALANCE_PULLBACK_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-05-26",
+      "direction": "LONG",
+      "expansionBar": 1247,
+      "pullbackBar": 1248,
+      "entryBar": 1250,
+      "expansionToPullbackBars": 1,
+      "pullbackToEntryBars": 2,
+      "totalLatencyBars": 3,
+      "pullbackLocation": "BOTH",
+      "entryPrice": 30293.75,
+      "frozenVAH": 30265.0,
+      "frozenVAL": 30114.5,
+      "rollingLvn": 30269.75,
+      "normalizationRange": 61.25,
+      "directionalBigTrade": 1.0,
+      "oppositeBigTrade": 0.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 1253,
+          "directionalMoveRanges": 0.0653061224489796,
+          "favorableMfeRanges": 0.0653061224489796,
+          "adverseMfeRanges": 0.3836734693877551,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 1256,
+          "directionalMoveRanges": 0.5346938775510204,
+          "favorableMfeRanges": 0.636734693877551,
+          "adverseMfeRanges": 0.3836734693877551,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 1262,
+          "directionalMoveRanges": 0.0163265306122449,
+          "favorableMfeRanges": 0.7795918367346939,
+          "adverseMfeRanges": 0.3836734693877551,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "NY_IMBALANCE_PULLBACK_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-05-27",
+      "direction": "LONG",
+      "expansionBar": 1448,
+      "pullbackBar": 1457,
+      "entryBar": 1469,
+      "expansionToPullbackBars": 9,
+      "pullbackToEntryBars": 12,
+      "totalLatencyBars": 21,
+      "pullbackLocation": "BOTH",
+      "entryPrice": 30275.0,
+      "frozenVAH": 30260.0,
+      "frozenVAL": 30161.75,
+      "rollingLvn": 30261.5,
+      "normalizationRange": 95.75,
+      "directionalBigTrade": 2.0,
+      "oppositeBigTrade": 1.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 1472,
+          "directionalMoveRanges": 0.044386422976501305,
+          "favorableMfeRanges": 0.10966057441253264,
+          "adverseMfeRanges": 0.20365535248041775,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 1475,
+          "directionalMoveRanges": 0.6579634464751958,
+          "favorableMfeRanges": 0.6579634464751958,
+          "adverseMfeRanges": 0.20365535248041775,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 1481,
+          "directionalMoveRanges": 0.6579634464751958,
+          "favorableMfeRanges": 0.6971279373368147,
+          "adverseMfeRanges": 0.20365535248041775,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "NY_IMBALANCE_PULLBACK_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-05-28",
+      "direction": "LONG",
+      "expansionBar": 1653,
+      "pullbackBar": 1654,
+      "entryBar": 1664,
+      "expansionToPullbackBars": 1,
+      "pullbackToEntryBars": 10,
+      "totalLatencyBars": 11,
+      "pullbackLocation": "LVN",
+      "entryPrice": 30518.0,
+      "frozenVAH": 30293.5,
+      "frozenVAL": 30217.0,
+      "rollingLvn": 30304.75,
+      "normalizationRange": 176.0,
+      "directionalBigTrade": 13.0,
+      "oppositeBigTrade": 8.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 1667,
+          "directionalMoveRanges": 0.011363636363636364,
+          "favorableMfeRanges": 0.11363636363636363,
+          "adverseMfeRanges": 0.10795454545454546,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 1670,
+          "directionalMoveRanges": 0.3025568181818182,
+          "favorableMfeRanges": 0.3025568181818182,
+          "adverseMfeRanges": 0.10795454545454546,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 1676,
+          "directionalMoveRanges": 0.15625,
+          "favorableMfeRanges": 0.3536931818181818,
+          "adverseMfeRanges": 0.10795454545454546,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "NY_IMBALANCE_PULLBACK_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-05-29",
+      "direction": "LONG",
+      "expansionBar": 1869,
+      "pullbackBar": 1871,
+      "entryBar": 1875,
+      "expansionToPullbackBars": 2,
+      "pullbackToEntryBars": 4,
+      "totalLatencyBars": 6,
+      "pullbackLocation": "VALUE_BOUNDARY",
+      "entryPrice": 30730.25,
+      "frozenVAH": 30712.25,
+      "frozenVAL": 30564.0,
+      "rollingLvn": 30720.75,
+      "normalizationRange": 95.5,
+      "directionalBigTrade": 2.0,
+      "oppositeBigTrade": 1.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 1878,
+          "directionalMoveRanges": -0.5314136125654451,
+          "favorableMfeRanges": 0.06544502617801047,
+          "adverseMfeRanges": 0.5314136125654451,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 1881,
+          "directionalMoveRanges": -0.5314136125654451,
+          "favorableMfeRanges": 0.06544502617801047,
+          "adverseMfeRanges": 0.56282722513089,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 1887,
+          "directionalMoveRanges": -0.8089005235602095,
+          "favorableMfeRanges": 0.06544502617801047,
+          "adverseMfeRanges": 0.9554973821989529,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "NY_IMBALANCE_PULLBACK_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-06-01",
+      "direction": "LONG",
+      "expansionBar": 2071,
+      "pullbackBar": 2072,
+      "entryBar": 2078,
+      "expansionToPullbackBars": 1,
+      "pullbackToEntryBars": 6,
+      "totalLatencyBars": 7,
+      "pullbackLocation": "BOTH",
+      "entryPrice": 30724.0,
+      "frozenVAH": 30690.5,
+      "frozenVAL": 30587.75,
+      "rollingLvn": 30695.0,
+      "normalizationRange": 163.25,
+      "directionalBigTrade": 2.0,
+      "oppositeBigTrade": 1.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 2081,
+          "directionalMoveRanges": 0.31393568147013784,
+          "favorableMfeRanges": 0.3430321592649311,
+          "adverseMfeRanges": 0.0781010719754977,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 2084,
+          "directionalMoveRanges": 0.6493108728943339,
+          "favorableMfeRanges": 0.7442572741194488,
+          "adverseMfeRanges": 0.0781010719754977,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 2090,
+          "directionalMoveRanges": 0.31546707503828486,
+          "favorableMfeRanges": 0.7442572741194488,
+          "adverseMfeRanges": 0.0781010719754977,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "NY_IMBALANCE_PULLBACK_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-06-02",
+      "direction": "LONG",
+      "expansionBar": 2283,
+      "pullbackBar": 2284,
+      "entryBar": 2286,
+      "expansionToPullbackBars": 1,
+      "pullbackToEntryBars": 2,
+      "totalLatencyBars": 3,
+      "pullbackLocation": "LVN",
+      "entryPrice": 30945.75,
+      "frozenVAH": 30910.75,
+      "frozenVAL": 30814.25,
+      "rollingLvn": 30922.25,
+      "normalizationRange": 106.5,
+      "directionalBigTrade": 2.0,
+      "oppositeBigTrade": 1.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 2289,
+          "directionalMoveRanges": 0.107981220657277,
+          "favorableMfeRanges": 0.18779342723004694,
+          "adverseMfeRanges": 0.07511737089201878,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 2292,
+          "directionalMoveRanges": 0.27699530516431925,
+          "favorableMfeRanges": 0.27699530516431925,
+          "adverseMfeRanges": 0.07511737089201878,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 2298,
+          "directionalMoveRanges": 0.4859154929577465,
+          "favorableMfeRanges": 0.539906103286385,
+          "adverseMfeRanges": 0.07511737089201878,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "NY_IMBALANCE_PULLBACK_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-06-04",
+      "direction": "LONG",
+      "expansionBar": 2764,
+      "pullbackBar": 2765,
+      "entryBar": 2769,
+      "expansionToPullbackBars": 1,
+      "pullbackToEntryBars": 4,
+      "totalLatencyBars": 5,
+      "pullbackLocation": "BOTH",
+      "entryPrice": 30776.25,
+      "frozenVAH": 30701.75,
+      "frozenVAL": 30527.5,
+      "rollingLvn": 30710.75,
+      "normalizationRange": 142.25,
+      "directionalBigTrade": 2.0,
+      "oppositeBigTrade": 1.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 2772,
+          "directionalMoveRanges": -0.033391915641476276,
+          "favorableMfeRanges": 0.0035149384885764497,
+          "adverseMfeRanges": 0.26537785588752194,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 2775,
+          "directionalMoveRanges": 0.0773286467486819,
+          "favorableMfeRanges": 0.09314586994727592,
+          "adverseMfeRanges": 0.26537785588752194,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 2781,
+          "directionalMoveRanges": 0.08787346221441125,
+          "favorableMfeRanges": 0.15289982425307558,
+          "adverseMfeRanges": 0.26537785588752194,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "NY_IMBALANCE_PULLBACK_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-06-05",
+      "direction": "SHORT",
+      "expansionBar": 3006,
+      "pullbackBar": 3008,
+      "entryBar": 3011,
+      "expansionToPullbackBars": 2,
+      "pullbackToEntryBars": 3,
+      "totalLatencyBars": 5,
+      "pullbackLocation": "VALUE_BOUNDARY",
+      "entryPrice": 29935.75,
+      "frozenVAH": 30172.75,
+      "frozenVAL": 30050.0,
+      "rollingLvn": 30060.0,
+      "normalizationRange": 171.0,
+      "directionalBigTrade": 6.0,
+      "oppositeBigTrade": 5.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 3014,
+          "directionalMoveRanges": -0.12719298245614036,
+          "favorableMfeRanges": 0.14035087719298245,
+          "adverseMfeRanges": 0.19005847953216373,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 3017,
+          "directionalMoveRanges": 0.38742690058479534,
+          "favorableMfeRanges": 0.4371345029239766,
+          "adverseMfeRanges": 0.19005847953216373,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 3023,
+          "directionalMoveRanges": 0.956140350877193,
+          "favorableMfeRanges": 1.043859649122807,
+          "adverseMfeRanges": 0.19005847953216373,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "NY_IMBALANCE_PULLBACK_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-06-08",
+      "direction": "LONG",
+      "expansionBar": 3265,
+      "pullbackBar": 3266,
+      "entryBar": 3270,
+      "expansionToPullbackBars": 1,
+      "pullbackToEntryBars": 4,
+      "totalLatencyBars": 5,
+      "pullbackLocation": "BOTH",
+      "entryPrice": 29900.5,
+      "frozenVAH": 29749.0,
+      "frozenVAL": 29621.0,
+      "rollingLvn": 29749.75,
+      "normalizationRange": 243.25,
+      "directionalBigTrade": 21.0,
+      "oppositeBigTrade": 4.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 3273,
+          "directionalMoveRanges": 0.34121274409044194,
+          "favorableMfeRanges": 0.35765673175745116,
+          "adverseMfeRanges": 0.051387461459403906,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 3276,
+          "directionalMoveRanges": 0.5210688591983555,
+          "favorableMfeRanges": 0.5210688591983555,
+          "adverseMfeRanges": 0.051387461459403906,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 3282,
+          "directionalMoveRanges": 0.14696813977389517,
+          "favorableMfeRanges": 0.5323741007194245,
+          "adverseMfeRanges": 0.2117163412127441,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "NY_IMBALANCE_PULLBACK_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-06-09",
+      "direction": "SHORT",
+      "expansionBar": 3538,
+      "pullbackBar": 3539,
+      "entryBar": 3546,
+      "expansionToPullbackBars": 1,
+      "pullbackToEntryBars": 7,
+      "totalLatencyBars": 8,
+      "pullbackLocation": "LVN",
+      "entryPrice": 28976.75,
+      "frozenVAH": 30100.0,
+      "frozenVAL": 29528.0,
+      "rollingLvn": 29451.75,
+      "normalizationRange": 442.25,
+      "directionalBigTrade": 30.0,
+      "oppositeBigTrade": 18.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 3549,
+          "directionalMoveRanges": 0.19728660260033917,
+          "favorableMfeRanges": 0.2639909553420011,
+          "adverseMfeRanges": 0.2018089315997739,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 3552,
+          "directionalMoveRanges": 0.3911814584511023,
+          "favorableMfeRanges": 0.6664782362916902,
+          "adverseMfeRanges": 0.2018089315997739,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 3558,
+          "directionalMoveRanges": 0.48841153193894854,
+          "favorableMfeRanges": 1.0508762012436406,
+          "adverseMfeRanges": 0.2018089315997739,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "NY_IMBALANCE_PULLBACK_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-06-10",
+      "direction": "LONG",
+      "expansionBar": 3793,
+      "pullbackBar": 3794,
+      "entryBar": 3799,
+      "expansionToPullbackBars": 1,
+      "pullbackToEntryBars": 5,
+      "totalLatencyBars": 6,
+      "pullbackLocation": "BOTH",
+      "entryPrice": 29531.5,
+      "frozenVAH": 29350.25,
+      "frozenVAL": 29126.0,
+      "rollingLvn": 29364.75,
+      "normalizationRange": 408.25,
+      "directionalBigTrade": 8.0,
+      "oppositeBigTrade": 5.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 3802,
+          "directionalMoveRanges": -0.5082669932639314,
+          "favorableMfeRanges": 0.013472137170851195,
+          "adverseMfeRanges": 0.5854255970606246,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 3805,
+          "directionalMoveRanges": -0.8536436007348438,
+          "favorableMfeRanges": 0.013472137170851195,
+          "adverseMfeRanges": 1.0116350275566441,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 3811,
+          "directionalMoveRanges": -1.1359461114513165,
+          "favorableMfeRanges": 0.013472137170851195,
+          "adverseMfeRanges": 1.4292712798530312,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "NY_IMBALANCE_PULLBACK_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-06-10",
+      "direction": "SHORT",
+      "expansionBar": 3804,
+      "pullbackBar": 3805,
+      "entryBar": 3806,
+      "expansionToPullbackBars": 1,
+      "pullbackToEntryBars": 1,
+      "totalLatencyBars": 2,
+      "pullbackLocation": "LVN",
+      "entryPrice": 29105.25,
+      "frozenVAH": 29500.0,
+      "frozenVAL": 29299.0,
+      "rollingLvn": 29261.0,
+      "normalizationRange": 279.25,
+      "directionalBigTrade": 24.0,
+      "oppositeBigTrade": 10.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 3809,
+          "directionalMoveRanges": -0.03581020590868397,
+          "favorableMfeRanges": 0.5631154879140555,
+          "adverseMfeRanges": 0.10205908683974933,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 3812,
+          "directionalMoveRanges": 0.22739480752014324,
+          "favorableMfeRanges": 0.5631154879140555,
+          "adverseMfeRanges": 0.18889883616830797,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 3818,
+          "directionalMoveRanges": 0.1665174574753805,
+          "favorableMfeRanges": 0.7036705461056401,
+          "adverseMfeRanges": 0.21307072515666964,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "NY_IMBALANCE_PULLBACK_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-06-11",
+      "direction": "LONG",
+      "expansionBar": 4094,
+      "pullbackBar": 4095,
+      "entryBar": 4110,
+      "expansionToPullbackBars": 1,
+      "pullbackToEntryBars": 15,
+      "totalLatencyBars": 16,
+      "pullbackLocation": "BOTH",
+      "entryPrice": 29368.75,
+      "frozenVAH": 29174.5,
+      "frozenVAL": 28854.0,
+      "rollingLvn": 29173.5,
+      "normalizationRange": 270.0,
+      "directionalBigTrade": 35.0,
+      "oppositeBigTrade": 5.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 4113,
+          "directionalMoveRanges": 0.7240740740740741,
+          "favorableMfeRanges": 0.7907407407407407,
+          "adverseMfeRanges": 0.000925925925925926,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 4116,
+          "directionalMoveRanges": 0.4861111111111111,
+          "favorableMfeRanges": 0.7907407407407407,
+          "adverseMfeRanges": 0.000925925925925926,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 4122,
+          "directionalMoveRanges": 0.3712962962962963,
+          "favorableMfeRanges": 0.7907407407407407,
+          "adverseMfeRanges": 0.06944444444444445,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "NY_IMBALANCE_PULLBACK_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-06-12",
+      "direction": "LONG",
+      "expansionBar": 4345,
+      "pullbackBar": 4346,
+      "entryBar": 4355,
+      "expansionToPullbackBars": 1,
+      "pullbackToEntryBars": 9,
+      "totalLatencyBars": 10,
+      "pullbackLocation": "BOTH",
+      "entryPrice": 29896.0,
+      "frozenVAH": 29731.0,
+      "frozenVAL": 29600.75,
+      "rollingLvn": 29764.0,
+      "normalizationRange": 276.25,
+      "directionalBigTrade": 129.0,
+      "oppositeBigTrade": 84.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 4358,
+          "directionalMoveRanges": 0.19457013574660634,
+          "favorableMfeRanges": 0.26334841628959277,
+          "adverseMfeRanges": 0.14389140271493212,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 4361,
+          "directionalMoveRanges": 0.5194570135746607,
+          "favorableMfeRanges": 0.5601809954751131,
+          "adverseMfeRanges": 0.14389140271493212,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 4367,
+          "directionalMoveRanges": -0.1158371040723982,
+          "favorableMfeRanges": 0.5665158371040724,
+          "adverseMfeRanges": 0.5104072398190045,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "NY_IMBALANCE_PULLBACK_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-06-15",
+      "direction": "LONG",
+      "expansionBar": 4632,
+      "pullbackBar": 4633,
+      "entryBar": 4638,
+      "expansionToPullbackBars": 1,
+      "pullbackToEntryBars": 5,
+      "totalLatencyBars": 6,
+      "pullbackLocation": "LVN",
+      "entryPrice": 30847.75,
+      "frozenVAH": 30758.25,
+      "frozenVAL": 30688.5,
+      "rollingLvn": 30774.5,
+      "normalizationRange": 112.25,
+      "directionalBigTrade": 50.0,
+      "oppositeBigTrade": 27.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 4641,
+          "directionalMoveRanges": -0.11804008908685969,
+          "favorableMfeRanges": 0.0645879732739421,
+          "adverseMfeRanges": 0.4053452115812918,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 4644,
+          "directionalMoveRanges": 0.2806236080178174,
+          "favorableMfeRanges": 0.34966592427616927,
+          "adverseMfeRanges": 0.4053452115812918,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 4650,
+          "directionalMoveRanges": 0.47438752783964366,
+          "favorableMfeRanges": 0.579064587973274,
+          "adverseMfeRanges": 0.4053452115812918,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "NY_IMBALANCE_PULLBACK_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-06-16",
+      "direction": "SHORT",
+      "expansionBar": 4900,
+      "pullbackBar": 4901,
+      "entryBar": 4903,
+      "expansionToPullbackBars": 1,
+      "pullbackToEntryBars": 2,
+      "totalLatencyBars": 3,
+      "pullbackLocation": "LVN",
+      "entryPrice": 30608.25,
+      "frozenVAH": 30862.0,
+      "frozenVAL": 30798.5,
+      "rollingLvn": 30751.75,
+      "normalizationRange": 138.25,
+      "directionalBigTrade": 109.0,
+      "oppositeBigTrade": 54.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 4906,
+          "directionalMoveRanges": -0.15009041591320071,
+          "favorableMfeRanges": 0.012658227848101266,
+          "adverseMfeRanges": 0.7703435804701627,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 4909,
+          "directionalMoveRanges": -0.1717902350813743,
+          "favorableMfeRanges": 0.3309222423146474,
+          "adverseMfeRanges": 0.7703435804701627,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 4915,
+          "directionalMoveRanges": 0.3887884267631103,
+          "favorableMfeRanges": 0.779385171790235,
+          "adverseMfeRanges": 0.7703435804701627,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "NY_IMBALANCE_PULLBACK_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-06-17",
+      "direction": "SHORT",
+      "expansionBar": 5182,
+      "pullbackBar": 5183,
+      "entryBar": 5221,
+      "expansionToPullbackBars": 1,
+      "pullbackToEntryBars": 38,
+      "totalLatencyBars": 39,
+      "pullbackLocation": "BOTH",
+      "entryPrice": 30177.0,
+      "frozenVAH": 30513.25,
+      "frozenVAL": 30403.0,
+      "rollingLvn": 30371.75,
+      "normalizationRange": 225.75,
+      "directionalBigTrade": 115.0,
+      "oppositeBigTrade": 67.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 5224,
+          "directionalMoveRanges": -0.6445182724252492,
+          "favorableMfeRanges": 0.4728682170542636,
+          "adverseMfeRanges": 0.7286821705426356,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 5227,
+          "directionalMoveRanges": -0.23477297895902546,
+          "favorableMfeRanges": 0.4728682170542636,
+          "adverseMfeRanges": 0.7408637873754153,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 5233,
+          "directionalMoveRanges": -0.5204872646733112,
+          "favorableMfeRanges": 0.4728682170542636,
+          "adverseMfeRanges": 1.5193798449612403,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "NY_IMBALANCE_PULLBACK_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-06-18",
+      "direction": "LONG",
+      "expansionBar": 5452,
+      "pullbackBar": 5453,
+      "entryBar": 5458,
+      "expansionToPullbackBars": 1,
+      "pullbackToEntryBars": 5,
+      "totalLatencyBars": 6,
+      "pullbackLocation": "BOTH",
+      "entryPrice": 30645.75,
+      "frozenVAH": 30586.5,
+      "frozenVAL": 30452.75,
+      "rollingLvn": 30599.75,
+      "normalizationRange": 224.5,
+      "directionalBigTrade": 197.0,
+      "oppositeBigTrade": 87.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 5461,
+          "directionalMoveRanges": -0.10356347438752785,
+          "favorableMfeRanges": 0.022271714922048998,
+          "adverseMfeRanges": 0.2739420935412027,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 5464,
+          "directionalMoveRanges": -0.16481069042316257,
+          "favorableMfeRanges": 0.133630289532294,
+          "adverseMfeRanges": 0.2739420935412027,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 5470,
+          "directionalMoveRanges": -0.4298440979955457,
+          "favorableMfeRanges": 0.133630289532294,
+          "adverseMfeRanges": 0.6659242761692651,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "NY_IMBALANCE_PULLBACK_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-06-19",
+      "direction": "LONG",
+      "expansionBar": 5733,
+      "pullbackBar": 5734,
+      "entryBar": 5736,
+      "expansionToPullbackBars": 1,
+      "pullbackToEntryBars": 2,
+      "totalLatencyBars": 3,
+      "pullbackLocation": "BOTH",
+      "entryPrice": 30691.5,
+      "frozenVAH": 30676.0,
+      "frozenVAL": 30657.25,
+      "rollingLvn": 30675.5,
+      "normalizationRange": 53.5,
+      "directionalBigTrade": 20.0,
+      "oppositeBigTrade": 17.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 5739,
+          "directionalMoveRanges": 0.0514018691588785,
+          "favorableMfeRanges": 0.2523364485981308,
+          "adverseMfeRanges": 0.14018691588785046,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 5742,
+          "directionalMoveRanges": 0.11214953271028037,
+          "favorableMfeRanges": 0.2523364485981308,
+          "adverseMfeRanges": 0.21495327102803738,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 5748,
+          "directionalMoveRanges": -0.14018691588785046,
+          "favorableMfeRanges": 0.2523364485981308,
+          "adverseMfeRanges": 0.719626168224299,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "NY_IMBALANCE_PULLBACK_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-06-22",
+      "direction": "SHORT",
+      "expansionBar": 5957,
+      "pullbackBar": 5958,
+      "entryBar": 5959,
+      "expansionToPullbackBars": 1,
+      "pullbackToEntryBars": 1,
+      "totalLatencyBars": 2,
+      "pullbackLocation": "LVN",
+      "entryPrice": 30692.0,
+      "frozenVAH": 30939.0,
+      "frozenVAL": 30829.25,
+      "rollingLvn": 30804.75,
+      "normalizationRange": 211.25,
+      "directionalBigTrade": 55.0,
+      "oppositeBigTrade": 50.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 5962,
+          "directionalMoveRanges": 0.2923076923076923,
+          "favorableMfeRanges": 0.3763313609467456,
+          "adverseMfeRanges": 0.1893491124260355,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 5965,
+          "directionalMoveRanges": 0.12307692307692308,
+          "favorableMfeRanges": 0.6958579881656805,
+          "adverseMfeRanges": 0.1893491124260355,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 5971,
+          "directionalMoveRanges": 0.4556213017751479,
+          "favorableMfeRanges": 0.6958579881656805,
+          "adverseMfeRanges": 0.1893491124260355,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "NY_IMBALANCE_PULLBACK_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-06-23",
+      "direction": "LONG",
+      "expansionBar": 6229,
+      "pullbackBar": 6230,
+      "entryBar": 6231,
+      "expansionToPullbackBars": 1,
+      "pullbackToEntryBars": 1,
+      "totalLatencyBars": 2,
+      "pullbackLocation": "LVN",
+      "entryPrice": 30001.5,
+      "frozenVAH": 29932.25,
+      "frozenVAL": 29734.5,
+      "rollingLvn": 29934.5,
+      "normalizationRange": 318.25,
+      "directionalBigTrade": 216.0,
+      "oppositeBigTrade": 167.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 6234,
+          "directionalMoveRanges": -0.056559308719560095,
+          "favorableMfeRanges": 0.1429693637077769,
+          "adverseMfeRanges": 0.19167321288295366,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 6237,
+          "directionalMoveRanges": -0.3692065985860173,
+          "favorableMfeRanges": 0.1429693637077769,
+          "adverseMfeRanges": 0.4053417124901807,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 6243,
+          "directionalMoveRanges": -0.6582875098193244,
+          "favorableMfeRanges": 0.1429693637077769,
+          "adverseMfeRanges": 0.7431264728986646,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "NY_IMBALANCE_PULLBACK_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-06-23",
+      "direction": "SHORT",
+      "expansionBar": 6242,
+      "pullbackBar": 6243,
+      "entryBar": 6244,
+      "expansionToPullbackBars": 1,
+      "pullbackToEntryBars": 1,
+      "totalLatencyBars": 2,
+      "pullbackLocation": "BOTH",
+      "entryPrice": 29746.5,
+      "frozenVAH": 30028.0,
+      "frozenVAL": 29813.0,
+      "rollingLvn": 29813.0,
+      "normalizationRange": 234.5,
+      "directionalBigTrade": 90.0,
+      "oppositeBigTrade": 48.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 6247,
+          "directionalMoveRanges": -0.04584221748400853,
+          "favorableMfeRanges": 0.1535181236673774,
+          "adverseMfeRanges": 0.13752665245202558,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 6250,
+          "directionalMoveRanges": 0.09275053304904052,
+          "favorableMfeRanges": 0.21855010660980811,
+          "adverseMfeRanges": 0.17697228144989338,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 6256,
+          "directionalMoveRanges": -0.502132196162047,
+          "favorableMfeRanges": 0.21855010660980811,
+          "adverseMfeRanges": 0.7217484008528785,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "NY_IMBALANCE_PULLBACK_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-06-24",
+      "direction": "LONG",
+      "expansionBar": 6511,
+      "pullbackBar": 6512,
+      "entryBar": 6514,
+      "expansionToPullbackBars": 1,
+      "pullbackToEntryBars": 2,
+      "totalLatencyBars": 3,
+      "pullbackLocation": "BOTH",
+      "entryPrice": 29832.5,
+      "frozenVAH": 29723.25,
+      "frozenVAL": 29600.75,
+      "rollingLvn": 29760.25,
+      "normalizationRange": 316.5,
+      "directionalBigTrade": 107.0,
+      "oppositeBigTrade": 52.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 6517,
+          "directionalMoveRanges": 0.08293838862559241,
+          "favorableMfeRanges": 0.23696682464454977,
+          "adverseMfeRanges": 0.1334913112164297,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 6520,
+          "directionalMoveRanges": -0.13665086887835703,
+          "favorableMfeRanges": 0.23696682464454977,
+          "adverseMfeRanges": 0.26540284360189575,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 6526,
+          "directionalMoveRanges": -0.22669826224328593,
+          "favorableMfeRanges": 0.23696682464454977,
+          "adverseMfeRanges": 0.4186413902053712,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "NY_IMBALANCE_PULLBACK_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-06-24",
+      "direction": "SHORT",
+      "expansionBar": 6539,
+      "pullbackBar": 6540,
+      "entryBar": 6546,
+      "expansionToPullbackBars": 1,
+      "pullbackToEntryBars": 6,
+      "totalLatencyBars": 7,
+      "pullbackLocation": "LVN",
+      "entryPrice": 29411.0,
+      "frozenVAH": 29789.0,
+      "frozenVAL": 29629.0,
+      "rollingLvn": 29614.75,
+      "normalizationRange": 199.5,
+      "directionalBigTrade": 75.0,
+      "oppositeBigTrade": 55.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 6549,
+          "directionalMoveRanges": 0.0037593984962406013,
+          "favorableMfeRanges": 0.23182957393483708,
+          "adverseMfeRanges": 0.2706766917293233,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 6552,
+          "directionalMoveRanges": 0.11904761904761904,
+          "favorableMfeRanges": 0.23182957393483708,
+          "adverseMfeRanges": 0.2706766917293233,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 6558,
+          "directionalMoveRanges": -0.6453634085213033,
+          "favorableMfeRanges": 0.23182957393483708,
+          "adverseMfeRanges": 0.7644110275689223,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "NY_IMBALANCE_PULLBACK_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-06-25",
+      "direction": "LONG",
+      "expansionBar": 6791,
+      "pullbackBar": 6792,
+      "entryBar": 6806,
+      "expansionToPullbackBars": 1,
+      "pullbackToEntryBars": 14,
+      "totalLatencyBars": 15,
+      "pullbackLocation": "BOTH",
+      "entryPrice": 29790.5,
+      "frozenVAH": 29710.5,
+      "frozenVAL": 29377.5,
+      "rollingLvn": 29716.0,
+      "normalizationRange": 420.5,
+      "directionalBigTrade": 146.0,
+      "oppositeBigTrade": 21.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 6809,
+          "directionalMoveRanges": -0.07074910820451843,
+          "favorableMfeRanges": 0.1938168846611177,
+          "adverseMfeRanges": 0.11236623067776456,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 6812,
+          "directionalMoveRanges": -0.25386444708680145,
+          "favorableMfeRanges": 0.1938168846611177,
+          "adverseMfeRanges": 0.2800237812128419,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 6818,
+          "directionalMoveRanges": -0.2027348394768133,
+          "favorableMfeRanges": 0.1938168846611177,
+          "adverseMfeRanges": 0.48513674197384066,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "NY_IMBALANCE_PULLBACK_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-06-29",
+      "direction": "LONG",
+      "expansionBar": 7353,
+      "pullbackBar": 7354,
+      "entryBar": 7356,
+      "expansionToPullbackBars": 1,
+      "pullbackToEntryBars": 2,
+      "totalLatencyBars": 3,
+      "pullbackLocation": "BOTH",
+      "entryPrice": 29838.75,
+      "frozenVAH": 29797.0,
+      "frozenVAL": 29527.0,
+      "rollingLvn": 29803.0,
+      "normalizationRange": 306.0,
+      "directionalBigTrade": 124.0,
+      "oppositeBigTrade": 27.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 7359,
+          "directionalMoveRanges": 0.031862745098039214,
+          "favorableMfeRanges": 0.1323529411764706,
+          "adverseMfeRanges": 0.014705882352941176,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 7362,
+          "directionalMoveRanges": 0.10620915032679738,
+          "favorableMfeRanges": 0.2246732026143791,
+          "adverseMfeRanges": 0.014705882352941176,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 7368,
+          "directionalMoveRanges": 0.2508169934640523,
+          "favorableMfeRanges": 0.30637254901960786,
+          "adverseMfeRanges": 0.014705882352941176,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "NY_IMBALANCE_PULLBACK_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-06-30",
+      "direction": "LONG",
+      "expansionBar": 7613,
+      "pullbackBar": 7614,
+      "entryBar": 7615,
+      "expansionToPullbackBars": 1,
+      "pullbackToEntryBars": 1,
+      "totalLatencyBars": 2,
+      "pullbackLocation": "BOTH",
+      "entryPrice": 30440.0,
+      "frozenVAH": 30384.5,
+      "frozenVAL": 30211.0,
+      "rollingLvn": 30393.5,
+      "normalizationRange": 360.75,
+      "directionalBigTrade": 73.0,
+      "oppositeBigTrade": 52.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 7618,
+          "directionalMoveRanges": -0.24324324324324326,
+          "favorableMfeRanges": 0.00693000693000693,
+          "adverseMfeRanges": 0.26195426195426197,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 7621,
+          "directionalMoveRanges": -0.1995841995841996,
+          "favorableMfeRanges": 0.00693000693000693,
+          "adverseMfeRanges": 0.43728343728343727,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 7627,
+          "directionalMoveRanges": -0.02702702702702703,
+          "favorableMfeRanges": 0.00693000693000693,
+          "adverseMfeRanges": 0.43728343728343727,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "NY_IMBALANCE_PULLBACK_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-07-01",
+      "direction": "SHORT",
+      "expansionBar": 7920,
+      "pullbackBar": 7921,
+      "entryBar": 7932,
+      "expansionToPullbackBars": 1,
+      "pullbackToEntryBars": 11,
+      "totalLatencyBars": 12,
+      "pullbackLocation": "BOTH",
+      "entryPrice": 30163.75,
+      "frozenVAH": 30315.5,
+      "frozenVAL": 30191.5,
+      "rollingLvn": 30197.25,
+      "normalizationRange": 87.25,
+      "directionalBigTrade": 32.0,
+      "oppositeBigTrade": 22.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 7935,
+          "directionalMoveRanges": 0.09455587392550144,
+          "favorableMfeRanges": 0.1174785100286533,
+          "adverseMfeRanges": 0.3008595988538682,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 7938,
+          "directionalMoveRanges": 0.04871060171919771,
+          "favorableMfeRanges": 0.2979942693409742,
+          "adverseMfeRanges": 0.3008595988538682,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 7944,
+          "directionalMoveRanges": 0.3553008595988539,
+          "favorableMfeRanges": 0.7421203438395415,
+          "adverseMfeRanges": 0.3008595988538682,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "NY_IMBALANCE_PULLBACK_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-07-02",
+      "direction": "SHORT",
+      "expansionBar": 8165,
+      "pullbackBar": 8166,
+      "entryBar": 8167,
+      "expansionToPullbackBars": 1,
+      "pullbackToEntryBars": 1,
+      "totalLatencyBars": 2,
+      "pullbackLocation": "LVN",
+      "entryPrice": 29903.0,
+      "frozenVAH": 30253.75,
+      "frozenVAL": 30110.0,
+      "rollingLvn": 30080.25,
+      "normalizationRange": 285.75,
+      "directionalBigTrade": 71.0,
+      "oppositeBigTrade": 70.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 8170,
+          "directionalMoveRanges": 0.27034120734908135,
+          "favorableMfeRanges": 0.5205599300087489,
+          "adverseMfeRanges": 0.29133858267716534,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 8173,
+          "directionalMoveRanges": 0.6561679790026247,
+          "favorableMfeRanges": 0.6666666666666666,
+          "adverseMfeRanges": 0.29133858267716534,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 8179,
+          "directionalMoveRanges": 0.5118110236220472,
+          "favorableMfeRanges": 1.0227471566054243,
+          "adverseMfeRanges": 0.29133858267716534,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "NY_IMBALANCE_PULLBACK_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-07-03",
+      "direction": "SHORT",
+      "expansionBar": 8438,
+      "pullbackBar": 8439,
+      "entryBar": 8455,
+      "expansionToPullbackBars": 1,
+      "pullbackToEntryBars": 16,
+      "totalLatencyBars": 17,
+      "pullbackLocation": "LVN",
+      "entryPrice": 29894.25,
+      "frozenVAH": 29944.0,
+      "frozenVAL": 29918.25,
+      "rollingLvn": 29917.25,
+      "normalizationRange": 51.75,
+      "directionalBigTrade": 17.0,
+      "oppositeBigTrade": 10.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 8458,
+          "directionalMoveRanges": -0.27053140096618356,
+          "favorableMfeRanges": 0.18840579710144928,
+          "adverseMfeRanges": 0.34299516908212563,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 8461,
+          "directionalMoveRanges": -0.12077294685990338,
+          "favorableMfeRanges": 0.18840579710144928,
+          "adverseMfeRanges": 0.36231884057971014,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 8467,
+          "directionalMoveRanges": -0.19806763285024154,
+          "favorableMfeRanges": 0.18840579710144928,
+          "adverseMfeRanges": 0.4106280193236715,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "NY_IMBALANCE_PULLBACK_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-07-06",
+      "direction": "LONG",
+      "expansionBar": 8666,
+      "pullbackBar": 8667,
+      "entryBar": 8671,
+      "expansionToPullbackBars": 1,
+      "pullbackToEntryBars": 4,
+      "totalLatencyBars": 5,
+      "pullbackLocation": "LVN",
+      "entryPrice": 30044.5,
+      "frozenVAH": 29961.0,
+      "frozenVAL": 29849.25,
+      "rollingLvn": 29992.75,
+      "normalizationRange": 232.75,
+      "directionalBigTrade": 69.0,
+      "oppositeBigTrade": 40.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 8674,
+          "directionalMoveRanges": -0.008592910848549946,
+          "favorableMfeRanges": 0.04833512352309345,
+          "adverseMfeRanges": 0.24274973147153597,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 8677,
+          "directionalMoveRanges": -0.07841031149301826,
+          "favorableMfeRanges": 0.09881847475832438,
+          "adverseMfeRanges": 0.24812030075187969,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 8683,
+          "directionalMoveRanges": 0.02040816326530612,
+          "favorableMfeRanges": 0.12244897959183673,
+          "adverseMfeRanges": 0.44360902255639095,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "NY_IMBALANCE_PULLBACK_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-07-07",
+      "direction": "SHORT",
+      "expansionBar": 8945,
+      "pullbackBar": 8946,
+      "entryBar": 8948,
+      "expansionToPullbackBars": 1,
+      "pullbackToEntryBars": 2,
+      "totalLatencyBars": 3,
+      "pullbackLocation": "BOTH",
+      "entryPrice": 29256.75,
+      "frozenVAH": 29551.0,
+      "frozenVAL": 29307.0,
+      "rollingLvn": 29307.25,
+      "normalizationRange": 378.75,
+      "directionalBigTrade": 165.0,
+      "oppositeBigTrade": 48.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 8951,
+          "directionalMoveRanges": -0.10495049504950495,
+          "favorableMfeRanges": 0.12343234323432344,
+          "adverseMfeRanges": 0.15577557755775578,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 8954,
+          "directionalMoveRanges": -0.18745874587458747,
+          "favorableMfeRanges": 0.12343234323432344,
+          "adverseMfeRanges": 0.2079207920792079,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 8960,
+          "directionalMoveRanges": -0.0039603960396039604,
+          "favorableMfeRanges": 0.12343234323432344,
+          "adverseMfeRanges": 0.26732673267326734,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "NY_IMBALANCE_PULLBACK_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-07-08",
+      "direction": "LONG",
+      "expansionBar": 9265,
+      "pullbackBar": 9266,
+      "entryBar": 9282,
+      "expansionToPullbackBars": 1,
+      "pullbackToEntryBars": 16,
+      "totalLatencyBars": 17,
+      "pullbackLocation": "BOTH",
+      "entryPrice": 29425.25,
+      "frozenVAH": 29393.0,
+      "frozenVAL": 29201.5,
+      "rollingLvn": 29403.5,
+      "normalizationRange": 133.5,
+      "directionalBigTrade": 52.0,
+      "oppositeBigTrade": 20.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 9285,
+          "directionalMoveRanges": -0.052434456928838954,
+          "favorableMfeRanges": 0.0599250936329588,
+          "adverseMfeRanges": 0.2752808988764045,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 9288,
+          "directionalMoveRanges": 0.23782771535580524,
+          "favorableMfeRanges": 0.5599250936329588,
+          "adverseMfeRanges": 0.33146067415730335,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "NY_IMBALANCE_PULLBACK_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-07-08",
+      "direction": "SHORT",
+      "expansionBar": 9219,
+      "pullbackBar": 9220,
+      "entryBar": 9226,
+      "expansionToPullbackBars": 1,
+      "pullbackToEntryBars": 6,
+      "totalLatencyBars": 7,
+      "pullbackLocation": "BOTH",
+      "entryPrice": 29173.25,
+      "frozenVAH": 29372.25,
+      "frozenVAL": 29292.5,
+      "rollingLvn": 29271.5,
+      "normalizationRange": 198.0,
+      "directionalBigTrade": 41.0,
+      "oppositeBigTrade": 27.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 9229,
+          "directionalMoveRanges": -0.04924242424242424,
+          "favorableMfeRanges": 0.11237373737373738,
+          "adverseMfeRanges": 0.6275252525252525,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 9232,
+          "directionalMoveRanges": 0.1590909090909091,
+          "favorableMfeRanges": 0.4053030303030303,
+          "adverseMfeRanges": 0.6275252525252525,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 9238,
+          "directionalMoveRanges": 0.38762626262626265,
+          "favorableMfeRanges": 0.7032828282828283,
+          "adverseMfeRanges": 0.6275252525252525,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "NY_IMBALANCE_PULLBACK_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-07-09",
+      "direction": "LONG",
+      "expansionBar": 9514,
+      "pullbackBar": 9515,
+      "entryBar": 9518,
+      "expansionToPullbackBars": 1,
+      "pullbackToEntryBars": 3,
+      "totalLatencyBars": 4,
+      "pullbackLocation": "BOTH",
+      "entryPrice": 29908.75,
+      "frozenVAH": 29889.0,
+      "frozenVAL": 29720.75,
+      "rollingLvn": 29898.5,
+      "normalizationRange": 176.25,
+      "directionalBigTrade": 33.0,
+      "oppositeBigTrade": 21.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 9521,
+          "directionalMoveRanges": 0.005673758865248227,
+          "favorableMfeRanges": 0.04680851063829787,
+          "adverseMfeRanges": 0.09219858156028368,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 9524,
+          "directionalMoveRanges": -0.11773049645390071,
+          "favorableMfeRanges": 0.04680851063829787,
+          "adverseMfeRanges": 0.25390070921985813,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 9530,
+          "directionalMoveRanges": 0.1900709219858156,
+          "favorableMfeRanges": 0.22836879432624113,
+          "adverseMfeRanges": 0.25390070921985813,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "model": "NY_IMBALANCE_PULLBACK_V1",
+      "session": "NEW_YORK",
+      "sessionDate": "2026-07-10",
+      "direction": "LONG",
+      "expansionBar": 9786,
+      "pullbackBar": 9788,
+      "entryBar": 9796,
+      "expansionToPullbackBars": 2,
+      "pullbackToEntryBars": 8,
+      "totalLatencyBars": 10,
+      "pullbackLocation": "BOTH",
+      "entryPrice": 30017.0,
+      "frozenVAH": 29949.0,
+      "frozenVAL": 29854.0,
+      "rollingLvn": 29956.25,
+      "normalizationRange": 282.25,
+      "directionalBigTrade": 293.0,
+      "oppositeBigTrade": 53.0,
+      "outcomes": [
+        {
+          "horizonBars": 3,
+          "endBar": 9799,
+          "directionalMoveRanges": 0.022143489813994686,
+          "favorableMfeRanges": 0.042515500442869794,
+          "adverseMfeRanges": 0.0637732506643047,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 6,
+          "endBar": 9802,
+          "directionalMoveRanges": 0.023914968999114262,
+          "favorableMfeRanges": 0.06023029229406555,
+          "adverseMfeRanges": 0.0637732506643047,
+          "targetTouched": false
+        },
+        {
+          "horizonBars": 12,
+          "endBar": 9808,
+          "directionalMoveRanges": -0.010628875110717449,
+          "favorableMfeRanges": 0.09300265721877768,
+          "adverseMfeRanges": 0.07263064658990256,
+          "targetTouched": false
+        }
+      ],
+      "operationalEntry": false,
+      "orderSubmitted": false
+    }
+  ],
+  "decision": {
+    "validatedModels": [],
+    "reason": "Post-hoc transcript reconstruction on an already inspected sample; prospective independent dates are required."
+  }
+}

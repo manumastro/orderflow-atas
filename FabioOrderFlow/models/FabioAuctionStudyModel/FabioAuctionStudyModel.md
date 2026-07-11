@@ -88,13 +88,25 @@ python FabioOrderFlow/tools/report_auction_state_ledger.py --save
 
 Il comando restituisce esclusivamente JSON su stdout e salva summary JSON e CSV barre. Gli aggregati sono descrittivi, senza soglie, segnali o PnL.
 
+## Reload Verificato 2026-07-11
+
+```text
+Auction bars:                    6.488
+London / New York:               3.508 / 2.980
+Date per sessione:               40 / 40
+Cumulative ricevuti / matched:   5.833.055 / 4.854.494
+New York first bar:              09:30 local
+OperationalEntries / Orders:     0 / 0
+Errori:                          0
+```
+
+L'analisi iniziale e' in `docs/research/fabio-auction-playbooks-analysis-2026-07-11.md`. Ha prodotto 73 osservazioni tra balance rotation e NY pullback, ma nessun modello validato. NY SHORT H6 resta una traccia diagnostica su 13 casi; LONG fallisce lo split test.
+
 ## Da Verificare
 
 ```text
-- reload storico completo con entrambe le sessioni presenti;
-- copertura cumulative per barra;
-- apertura New York inclusa dalle 09:30, non soltanto dal termine London;
-- simmetria ABOVE_VAH e BELOW_VAL;
-- stabilita' live/historical degli update cumulative;
-- granularita' M1 su chart M1 per avvicinarsi ai live Fabio.
+- stabilita' live/historical degli update cumulative su nuove barre;
+- profilo causale dell'impulso A->B, distinto dal rolling profile 12 barre;
+- granularita' M1 su chart M1, mantenuta separata da M5;
+- nuove date prospettiche senza modificare i contratti post-hoc.
 ```

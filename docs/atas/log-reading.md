@@ -148,6 +148,13 @@ python FabioOrderFlow/tools/report_auction_state_ledger.py --save
 Il report auction-state e' JSON-only e salva il dataset dual-session. Verifica entrambe le sessioni, guardrail no-trade e copertura cumulative; non seleziona soglie.
 
 ```bash
+python FabioOrderFlow/tools/analyze_fabio_auction_playbooks.py \
+  --save FabioOrderFlow/ledger-snapshots/fabio-auction-playbooks-2026-07-11.json
+```
+
+L'analizzatore ricostruisce balance rotation e NY imbalance pullback con split cronologico. `selectionLeakage=true` resta obbligatorio finche' non arrivano date prospettiche indipendenti.
+
+```bash
 python FabioOrderFlow/tools/report_compression_ledger.py --save
 ```
 

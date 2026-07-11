@@ -42,6 +42,15 @@ python FabioOrderFlow/tools/report_auction_state_ledger.py --save
 
 Il secondo salva `auction-state-*-summary.json` e `auction-state-*-bars.csv` con profilo causale, LVN, footprint e cumulative trades per London/New York. Non produce segnali o PnL.
 
+Analisi playbook dai transcript:
+
+```bash
+python FabioOrderFlow/tools/analyze_fabio_auction_playbooks.py \
+  --save FabioOrderFlow/ledger-snapshots/fabio-auction-playbooks-2026-07-11.json
+```
+
+Il report conserva tutte le osservazioni `BALANCE_ROTATION_V1` e `NY_IMBALANCE_PULLBACK_V1`, split train/test e `selectionLeakage=true`.
+
 Non confrontare direttamente `CloseMoveRanges` di HIGH e LOW: il report
 fornisce `averageReversionCloseMoveRanges`, positivo soltanto quando il prezzo
 si muove dal bordo verso l'interno del range.
