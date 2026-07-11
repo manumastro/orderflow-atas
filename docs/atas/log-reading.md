@@ -69,7 +69,7 @@ EndInsideRange                    close finale rientrata nel range
 PocTouched                        POC del range attraversato nell'orizzonte
 ```
 
-I percentili sono metriche di confronto causale, non condizioni. `NA` significa che non esistono ancora barre precedenti nel range da cui derivare il percentile.
+I percentili sono metriche di confronto causale, non condizioni. `NA` significa che non esistono ancora barre precedenti comparabili oppure che la coverage cumulative trade e' assente.
 
 ## BalanceZoneTracker Corrente
 

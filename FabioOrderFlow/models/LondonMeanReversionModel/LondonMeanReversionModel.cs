@@ -1086,7 +1086,7 @@ namespace FabioOrderFlow
 
         private static decimal? GetPriorPercentile(IReadOnlyList<decimal> history, decimal value)
         {
-            if (history.Count == 0)
+            if (history.Count == 0 || (value == 0m && history.All(observation => observation == 0m)))
                 return null;
 
             return PercentileRank(history, value);
