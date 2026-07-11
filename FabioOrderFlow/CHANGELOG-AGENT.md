@@ -21,6 +21,33 @@ Da validare:
 - Ledger resta senza trade: Entries=0.
 ```
 
+## Reload 2026-07-11 17:48 - Historical Windowed Requests Verificate
+
+```text
+Chart/replay:
+- ChartBeginItaly=2026-06-12 00:00:00
+- ChartEndItaly=2026-07-10 22:59:59
+- CurrentBar=5.700
+- WindowCount=5, RequestWindowDays=7
+- CUM_TRADES_COMPLETE WindowsCompleted=5/5
+- ReceivedTrades=4.807.895
+- StoredTrades=75.654 (solo finestre READY -> RESOLVED dei profili)
+
+Ledger:
+- LedgerProfiles=24, LedgerEvents=109, LedgerOutcomes=436
+- TradeCoverage=AVAILABLE: 21 profili
+- TradeCoverage=MISSING: 3 profili, tutti il 26/06
+  - 10:49-10:54 Italy
+  - 13:04-13:14 Italy
+  - 13:54-14:14 Italy
+- Nessun errore/exception; Entries=0, ClosedPositions=0, OpenPositions=0, CompletedTrades=0.
+
+Decisione:
+- La precedente copertura limitata non era una retention ATAS di sette giorni: ATAS restituisce anche i trade dal 12/06.
+- I tre profili MISSING restano validi solo per geometria e outcome prezzo, non per flow.
+- Non classificare ne' promuovere setup: 24 profili sono ancora un campione esplorativo.
+```
+
 ## Reload 2026-07-11 13:24 - Event Ledger e Coverage Confermati
 
 ```text
