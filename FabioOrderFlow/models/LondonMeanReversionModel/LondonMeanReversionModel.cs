@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using ATAS.Indicators;
+using ATAS.Indicators.Drawing;
 
 namespace FabioOrderFlow
 {
@@ -24,6 +25,10 @@ namespace FabioOrderFlow
         private readonly Action<string, bool> _log;
         private readonly Func<int, IndicatorCandle> _getCandle;
         private readonly decimal _tickSize;
+        private readonly List<DrawingRectangle> _chartRectangles;
+        private readonly List<LineTillTouch> _chartLines;
+        private readonly HashSet<string> _drawnCompressionProfiles = new();
+        private readonly Dictionary<string, TradeChartVisual> _tradeChartVisuals = new();
 
         private const decimal LondonBigTradeVolume = 20m;
         private const int RejectionThresholdTicks = 10;
@@ -55,6 +60,7 @@ namespace FabioOrderFlow
         private const decimal CompressionBoundaryStabilityWeight = 0.10m;
         private const decimal CompressionPocStabilityWeight = 0.075m;
         private const decimal CompressionValueConcentrationWeight = 0.075m;
+        private const string SetupConcurrencyMode = "SINGLE_SETUP_AND_POSITION";
         private static readonly bool LogProfileDiagnosticsForSetups = false;
         private static readonly bool LogProfileDiagnosticsForEntries = true;
         private const string ActiveCompressionProfileSource = "ActiveCompressionProfile";
@@ -88,14 +94,18 @@ namespace FabioOrderFlow
             BalanceZoneTracker balanceTracker,
             Action<string, bool> log,
             Func<int, IndicatorCandle> getCandle,
-            decimal tickSize)
+            decimal tickSize,
+            List<DrawingRectangle> chartRectangles,
+            List<LineTillTouch> chartLines)
         {
             _ = balanceTracker ?? throw new ArgumentNullException(nameof(balanceTracker));
             _log = log ?? throw new ArgumentNullException(nameof(log));
             _getCandle = getCandle ?? throw new ArgumentNullException(nameof(getCandle));
             _tickSize = tickSize > 0 ? tickSize : 1m;
+            _chartRectangles = chartRectangles ?? throw new ArgumentNullException(nameof(chartRectangles));
+            _chartLines = chartLines ?? throw new ArgumentNullException(nameof(chartLines));
 
-            _log($"[MR_MODE] Model=FabioLondonMeanReversionCore, Modes=LIVE|HISTORICAL, ReferenceProfiles=PreviousDayProfile|PreviousLondonProfile, ProfileDiagnostics={ActiveCompressionProfileSource}, ProfileDiagnosticsUse=DIAGNOSTIC_ONLY, ProfileDiagnosticsLevel={(LogProfileDiagnosticsForSetups ? "SETUP_AND_ENTRY" : "ENTRY_ONLY")}, CompressionLifecycle=SEARCHING|BUILDING|READY|RESOLVED, CompressionDetection=DYNAMIC_SCORE, CompressionBaseline=PRIOR_{LocalCompressionBaselineLookbackBars}_BARS, CompressionMinBaselineBars={LocalCompressionMinimumBaselineBars}, CompressionMinBuildingBars={LocalCompressionMinimumBuildingBars}, CompressionReadyScore={LocalCompressionMinimumReadyScore:F2}, CompressionReadyPersistence={LocalCompressionReadyPersistenceBars}, CompressionResolutionPersistence={LocalCompressionResolutionPersistenceBars}, BigTradeVolume={LondonBigTradeVolume:F0}, Target=REFERENCE_POC_FULL_EXIT, Entry=FAILED_AUCTION_BACK_INSIDE_REFERENCE_VALUE_PLUS_BIG_TRADE, BreakEvenTrigger={BreakEvenTriggerR:F2}R, MaxHold=NEW_YORK_REGULAR_CLOSE_16:00", false);
+            _log($"[MR_MODE] Model=FabioLondonMeanReversionCore, Modes=LIVE|HISTORICAL, ReferenceProfiles=PreviousDayProfile|PreviousLondonProfile, SetupConcurrency={SetupConcurrencyMode}, ChartVisuals=MR_TRADE_AND_DYNAMIC_COMPRESSION, ProfileDiagnostics={ActiveCompressionProfileSource}, ProfileDiagnosticsUse=DIAGNOSTIC_ONLY, ProfileDiagnosticsLevel={(LogProfileDiagnosticsForSetups ? "SETUP_AND_ENTRY" : "ENTRY_ONLY")}, CompressionLifecycle=SEARCHING|BUILDING|READY|RESOLVED, CompressionDetection=DYNAMIC_SCORE, CompressionBaseline=PRIOR_{LocalCompressionBaselineLookbackBars}_BARS, CompressionMinBaselineBars={LocalCompressionMinimumBaselineBars}, CompressionMinBuildingBars={LocalCompressionMinimumBuildingBars}, CompressionReadyScore={LocalCompressionMinimumReadyScore:F2}, CompressionReadyPersistence={LocalCompressionReadyPersistenceBars}, CompressionResolutionPersistence={LocalCompressionResolutionPersistenceBars}, BigTradeVolume={LondonBigTradeVolume:F0}, Target=REFERENCE_POC_FULL_EXIT, Entry=FAILED_AUCTION_BACK_INSIDE_REFERENCE_VALUE_PLUS_BIG_TRADE, BreakEvenTrigger={BreakEvenTriggerR:F2}R, MaxHold=NEW_YORK_REGULAR_CLOSE_16:00", false);
         }
 
         public IReadOnlyList<TradeRecord> CompletedTrades => _completedTrades;
@@ -327,17 +337,30 @@ namespace FabioOrderFlow
 
         private void DetectReferenceRejectionSetups(int bar, IndicatorCandle candle)
         {
-            if (!IsInLondonSession(candle.Time))
+            if (!IsInLondonSession(candle.Time) || HasActiveMeanReversionLifecycle())
                 return;
 
+            // A single setup owns the lifecycle. PreviousDayProfile has explicit priority when both references qualify.
             foreach (var reference in GetActiveReferences())
             {
                 if (TryCreateFailedHighSetup(bar, candle, reference, out var shortSetup) && shortSetup != null)
+                {
                     AddSetup(shortSetup, "MR_SETUP_SHORT");
+                    return;
+                }
 
                 if (TryCreateFailedLowSetup(bar, candle, reference, out var longSetup) && longSetup != null)
+                {
                     AddSetup(longSetup, "MR_SETUP_LONG");
+                    return;
+                }
             }
+        }
+
+        private bool HasActiveMeanReversionLifecycle()
+        {
+            return _activePositions.Any(position => !position.Closed)
+                || _activeSetups.Any(setup => !setup.Expired && !setup.AggressionConfirmed);
         }
 
         private IEnumerable<ReferenceValueArea> GetActiveReferences()
@@ -559,6 +582,7 @@ namespace FabioOrderFlow
 
             _activeCompressionProfile = snapshot;
             _buildingCompressionProfile = null;
+            DrawDynamicCompressionProfile(snapshot);
             LogCompressionReady(snapshot);
         }
 
@@ -809,6 +833,100 @@ namespace FabioOrderFlow
             _log($"[MR_LOCAL_PROFILE_READY] ExecutionMode={GetExecutionMode(isHistorical)}, State=READY, ProfileSource={ActiveCompressionProfileSource}, ProfileLabel={reference.Label}, ReadyBar={candidate.ReadyBar}, ReadyTime={FormatTime(candidate.ReadyTimeUtc)}, StartBar={reference.StartBar}, EndBar={reference.EndBar}, Begin={FormatTime(reference.BeginTimeUtc)}, End={FormatTime(reference.EndTimeUtc)}, Bars={reference.Bars}, High={reference.High:F2}, Low={reference.Low:F2}, Range={reference.High - reference.Low:F2}, POC={reference.POC:F2}, VAH={reference.VAH:F2}, VAL={reference.VAL:F2}, CompressionScore={candidate.CompressionScore:F2}, ContractionScore={candidate.ContractionScore:F2}, OverlapScore={candidate.OverlapScore:F2}, DirectionalScore={candidate.DirectionalScore:F2}, RotationScore={candidate.RotationScore:F2}, ContainmentScore={candidate.ContainmentScore:F2}, BoundaryStabilityScore={candidate.BoundaryStabilityScore:F2}, PocStabilityScore={candidate.PocStabilityScore:F2}, ValueConcentrationScore={candidate.ValueConcentrationScore:F2}, BaselineMedianBarRange={candidate.BaselineMedianBarRange:F2}, RangeToBaselineMedian={candidate.RangeToBaselineMedian:F2}, AverageBarRangeToBaselineMedian={candidate.AverageBarRangeToBaselineMedian:F2}, DirectionChanges={candidate.DirectionChanges}, ProfileUse=DIAGNOSTIC_ONLY", isHistorical);
         }
 
+        private void DrawDynamicCompressionProfile(CompressionProfileSnapshot snapshot)
+        {
+            var profile = snapshot.Reference;
+            if (!_drawnCompressionProfiles.Add(profile.Label))
+                return;
+
+            var fillBrush = new System.Drawing.SolidBrush(System.Drawing.Color.FromArgb(28, 0, 188, 212));
+            var outlinePen = new System.Drawing.Pen(System.Drawing.Color.DeepSkyBlue, 1);
+            _chartRectangles.Add(new DrawingRectangle(
+                profile.StartBar,
+                profile.High,
+                profile.EndBar,
+                profile.Low,
+                outlinePen,
+                fillBrush));
+
+            _chartLines.Add(CreateChartLine(profile.StartBar, profile.POC, profile.EndBar, System.Drawing.Color.Turquoise, 2, false));
+            _chartLines.Add(CreateChartLine(profile.StartBar, profile.VAH, profile.EndBar, System.Drawing.Color.DarkTurquoise, 1, false, true));
+            _chartLines.Add(CreateChartLine(profile.StartBar, profile.VAL, profile.EndBar, System.Drawing.Color.DarkTurquoise, 1, false, true));
+        }
+
+        private void DrawTradeOpened(ActivePosition position)
+        {
+            if (_tradeChartVisuals.ContainsKey(position.SetupId))
+                return;
+
+            var entryColor = position.Direction == "Long" ? System.Drawing.Color.LimeGreen : System.Drawing.Color.OrangeRed;
+            var liveEndBar = Math.Max(position.EntryBar + 1, _currentBar);
+            var entryLine = CreateChartLine(position.EntryBar, position.EntryPrice, liveEndBar, entryColor, 2, true);
+            var stopLine = CreateChartLine(position.EntryBar, position.OriginalStopPrice, liveEndBar, System.Drawing.Color.Crimson, 1, true, true);
+            var targetLine = CreateChartLine(position.EntryBar, position.TargetPrice, liveEndBar, System.Drawing.Color.DodgerBlue, 1, true, true);
+            _chartLines.Add(entryLine);
+            _chartLines.Add(stopLine);
+            _chartLines.Add(targetLine);
+            _chartRectangles.Add(CreateTradeMarker(position.EntryBar, position.EntryPrice, entryColor, 110));
+
+            _tradeChartVisuals[position.SetupId] = new TradeChartVisual
+            {
+                EntryLine = entryLine,
+                StopLine = stopLine,
+                TargetLine = targetLine
+            };
+        }
+
+        private void DrawTradeClosed(ActivePosition position, decimal pnl)
+        {
+            var closeBar = Math.Max(position.EntryBar + 1, position.ExitBar);
+            if (_tradeChartVisuals.TryGetValue(position.SetupId, out var visual))
+            {
+                visual.EntryLine.IsRay = false;
+                visual.EntryLine.SecondBar = closeBar;
+                visual.StopLine.IsRay = false;
+                visual.StopLine.SecondBar = closeBar;
+                visual.TargetLine.IsRay = false;
+                visual.TargetLine.SecondBar = closeBar;
+            }
+
+            var exitColor = pnl > 0 ? System.Drawing.Color.LimeGreen : pnl < 0 ? System.Drawing.Color.Crimson : System.Drawing.Color.Gold;
+            _chartRectangles.Add(CreateTradeMarker(position.ExitBar, position.ExitPrice, exitColor, 130));
+            _chartLines.Add(CreateChartLine(position.ExitBar, position.ExitPrice, position.ExitBar + 1, exitColor, 2, false));
+        }
+
+        private DrawingRectangle CreateTradeMarker(int bar, decimal price, System.Drawing.Color color, int alpha)
+        {
+            var markerHalfHeight = Math.Max(_tickSize * 2m, _tickSize);
+            return new DrawingRectangle(
+                bar,
+                price + markerHalfHeight,
+                bar + 1,
+                price - markerHalfHeight,
+                new System.Drawing.Pen(color, 1),
+                new System.Drawing.SolidBrush(System.Drawing.Color.FromArgb(alpha, color)));
+        }
+
+        private static LineTillTouch CreateChartLine(
+            int startBar,
+            decimal price,
+            int endBar,
+            System.Drawing.Color color,
+            int width,
+            bool isRay,
+            bool dashed = false)
+        {
+            var pen = new System.Drawing.Pen(color, width);
+            if (dashed)
+                pen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dash;
+
+            return new LineTillTouch(startBar, price, pen)
+            {
+                IsRay = isRay,
+                SecondBar = Math.Max(startBar + 1, endBar)
+            };
+        }
+
         private void ResolveActiveCompressionProfile(int bar, DateTime eventTimeUtc, decimal close, string reason)
         {
             if (_activeCompressionProfile == null)
@@ -989,13 +1107,12 @@ namespace FabioOrderFlow
 
         private void ExpireOverlappingSetupsOnEntry(BalanceSetup confirmedSetup)
         {
+            // Defensive cleanup: single-lifecycle detection should leave no competing setup,
+            // but pending entries must never survive after a position is opened.
             foreach (var setup in _activeSetups.Where(s => s.SetupId != confirmedSetup.SetupId && !s.Expired && !s.AggressionConfirmed))
             {
-                if (setup.Direction != confirmedSetup.Direction || setup.RejectionBar != confirmedSetup.RejectionBar)
-                    continue;
-
                 setup.Expired = true;
-                RecordSetupExpiration("OVERLAPPING_REFERENCE_ENTRY");
+                RecordSetupExpiration("SINGLE_LIFECYCLE_ENTRY");
             }
         }
 
@@ -1090,6 +1207,7 @@ namespace FabioOrderFlow
             };
 
             _activePositions.Add(position);
+            DrawTradeOpened(position);
 
             _log($"[MR_ENTRY] ExecutionMode={GetExecutionMode(isHistorical)}, SetupId={setup.SetupId}, EntryModel={mode}, Source={setup.Source}, Pattern={setup.Pattern}, ReferenceLabel={setup.ReferenceLabel}, Direction={setup.Direction}, Bar={position.EntryBar}, {FormatTime(trade.Time)}, EntryPrice={position.EntryPrice:F2}, Volume={trade.Volume:F0}, TradeDirection={trade.Direction}, Stop={position.StopPrice:F2}, TargetPOC={position.TargetPrice:F2}, Risk={risk:F2}, RewardToPOC={reward:F2}, RewardRiskToPOC={rr:F2}, BreakEvenTrigger={BreakEvenTriggerR:F2}R, MaxHoldUntil={FormatTime(position.SessionCloseTimeUtc)}, BigTradeVolume={LondonBigTradeVolume:F0}, SecondsAfterRejection={(trade.Time - setup.RejectionTimeUtc).TotalSeconds:F1}", isHistorical);
             if (LogProfileDiagnosticsForEntries)
@@ -1202,6 +1320,8 @@ namespace FabioOrderFlow
                     ? position.EntryPrice - position.OriginalStopPrice
                     : position.OriginalStopPrice - position.EntryPrice;
             var rMultiple = risk > 0 ? pnl / risk : 0;
+
+            DrawTradeClosed(position, pnl);
 
             _completedTrades.Add(new TradeRecord
             {
@@ -1683,6 +1803,13 @@ namespace FabioOrderFlow
             public decimal MAE { get; set; }
             public decimal RMultiple { get; set; }
             public bool BreakEvenActivated { get; set; }
+        }
+
+        private sealed class TradeChartVisual
+        {
+            public LineTillTouch EntryLine { get; set; } = null!;
+            public LineTillTouch StopLine { get; set; } = null!;
+            public LineTillTouch TargetLine { get; set; } = null!;
         }
 
         private sealed class CompressionCandidateState

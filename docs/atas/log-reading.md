@@ -30,7 +30,7 @@ HISTORICAL  dati passati processati con le stesse regole live
 Marker principali:
 
 ```text
-[MR_MODE]                    configurazione del modello pulito
+[MR_MODE]                    configurazione del modello: reference, concorrenza setup e visual chart
 [MR_REFERENCE_READY]         reference completa disponibile: PreviousDayProfile o PreviousLondonProfile
 [MR_SETUP_LONG]              sweep sotto reference VAL e close back inside value
 [MR_SETUP_SHORT]             sweep sopra reference VAH e close back inside value
@@ -133,10 +133,21 @@ Nel periodo estivo normale questo corrisponde circa a:
 
 Il codice usa `MarketTimeZones.NewYork`, quindi gestisce i cambi DST tramite timezone.
 
-## Barre
+## Barre E Chart
 
 - Le barre M5 sono stampate sull'open time della barra.
 - I timestamp precisi delle entry arrivano dai cumulative trades e sono intrabar.
+- Per ogni evento di mercato usare il campo `Italy=`: e' ora italiana. `WriteItaly=` indica solo quando ATAS ha scritto il log.
+- Il chart posiziona entry/exit sul bar M5 che contiene il timestamp intrabar; il prezzo e' quello preciso in `[MR_ENTRY] EntryPrice` e `[MR_EXIT] Exit`.
+
+Visual MR:
+
+```text
+DynamicCompression: box/POC/VAH/VAL turchese.
+Long entry: verde; short entry: arancio-rosso.
+Stop: cremisi tratteggiato; target: blu tratteggiato.
+Exit profit: verde; loss: cremisi; breakeven: oro.
+```
 
 ## Regola pratica
 

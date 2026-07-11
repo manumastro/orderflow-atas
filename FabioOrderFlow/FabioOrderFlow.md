@@ -37,7 +37,7 @@ ATAS OnCalculate
 -> LondonMeanReversionModel costruisce reference operative complete PreviousDayProfile/PreviousLondonProfile
 -> LondonMeanReversionModel mantiene il lifecycle diagnostico dinamico SEARCHING/BUILDING/READY/RESOLVED di ActiveCompressionProfile
 -> LondonMeanReversionModel allega un profilo locale all'entry solo se era READY prima del setup
--> LondonMeanReversionModel valuta setup e gestione posizioni
+-> LondonMeanReversionModel gestisce una sola catena setup/posizione alla volta e disegna trade/profile sul chart
 
 ATAS OnCumulativeTrade / OnUpdateCumulativeTrade
 -> BalanceZoneTracker.OnLiveCumulativeTrade
@@ -76,6 +76,7 @@ Regole:
 - PnL storico valido: sommare solo `[MR_EXIT]`;
 - leggere il target operativo da `[MR_ENTRY] TargetPOC`, non dal POC visuale se l'indicatore volume profile e' impostato su `Current Day`;
 - `PreviousDayProfile` e `PreviousLondonProfile` restano entrambe reference operative;
+- il core non usa pyramiding: un setup pending o una posizione aperta blocca ogni nuovo setup fino a scadenza/exit;
 - `[MR_LOCAL_PROFILE_READY]`, `[MR_LOCAL_PROFILE_RESOLVED]` e `[MR_PROFILE_CONTEXT]` sono solo diagnostica `ActiveCompressionProfile`, non modificano entry/exit/PnL;
 - le entry sono London, ma la massima durata trade e' fino a New York regular close 16:00 New York;
 - usare `docs/atas/log-reading.md` prima di interpretare nuovi log.
@@ -95,7 +96,7 @@ Report canonico:
 python FabioOrderFlow/tools/report_mr_performance.py --save
 ```
 
-Il report usa solo `[MR_EXIT]` per il PnL, separa `PreviousDayProfile` da `PreviousLondonProfile` e non promuove il modello con meno di 30 trade/10 sessioni o senza costi configurati. Il default e' `HISTORICAL`; usare `--execution-mode LIVE` per il live. Non sommare replay e live sovrapposti.
+Il report usa solo `[MR_EXIT]` per il PnL, separa `PreviousDayProfile` da `PreviousLondonProfile` e non promuove il modello con meno di 30 trade/10 sessioni o senza costi configurati. Il default e' `HISTORICAL`; usare `--execution-mode LIVE` per il live. Non sommare replay e live sovrapposti. I tempi di mercato mostrati nei log sono sempre i campi `Italy=`.
 
 ## Regole Di Documentazione
 

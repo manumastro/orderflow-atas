@@ -11,6 +11,29 @@ Ogni risposta/aggiornamento deve riepilogare in modo conciso, anche se gia' disc
 Non assumere che il contesto precedente sia ricordato.
 ```
 
+## Implementazione 2026-07-11 - Single lifecycle + chart visuals
+
+```text
+Operativo:
+- Decisione B implementata: una sola catena setup -> posizione alla volta.
+- Setup pending blocca la ricerca di altri setup; posizione aperta blocca nuovi setup.
+- Nella stessa candela PreviousDayProfile ha priorita' su PreviousLondonProfile; il primo setup valido interrompe la ricerca.
+- Dopo entry, ogni setup pending residuo viene scaduto come difesa.
+- Nessun pyramiding/stacking di posizioni.
+
+Visual chart:
+- DynamicCompression: box turchese trasparente, POC turchese, VAH/VAL tratteggiati.
+- Entry long verde, short arancio-rosso; stop cremisi; target blu.
+- Exit profit verde, loss cremisi, breakeven oro.
+- Funziona nel replay storico e live. Il bar mostra l'evento; il timestamp preciso resta in Italy= nel log.
+
+Da validare dopo reload:
+- [MR_MODE] SetupConcurrency=SINGLE_SETUP_AND_POSITION e ChartVisuals=MR_TRADE_AND_DYNAMIC_COMPRESSION.
+- Nessuna posizione sovrapposta nel replay.
+- Rettangoli/linee presenti e leggibili sul chart senza interferire con BalanceZoneTracker.
+- DynamicCompression resta DIAGNOSTIC_ONLY; PreviousDayProfile e PreviousLondonProfile restano le sole reference operative.
+```
+
 ## Audit 2026-07-11 - Overlapping setup / position
 
 ```text

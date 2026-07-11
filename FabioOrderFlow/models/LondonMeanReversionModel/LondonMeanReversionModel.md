@@ -234,6 +234,20 @@ Questo e' corretto: Fabio nella versione semplice parla di `last day profile / p
 [MR_ENTRY] TargetPOC=...
 ```
 
+## Concorrenza Setup
+
+Il core usa una sola catena `setup -> posizione` alla volta:
+
+```text
+- Se esiste un setup pending, non vengono cercati altri setup.
+- Se esiste una posizione aperta, non vengono cercati setup.
+- Sulla stessa candela PreviousDayProfile ha priorita' su PreviousLondonProfile.
+- Quando una posizione apre, eventuali setup pending vengono scaduti come difesa.
+- Dopo exit o scadenza del setup, il modello puo' cercare il prossimo setup.
+```
+
+Questo impedisce stacking di posizioni sulla stessa o su reference diverse. Non e' pyramiding.
+
 ## Entry Operativa
 
 ### Short mean reversion
@@ -297,6 +311,23 @@ Breakeven offset:       0 tick
 Sessione entry:         London 08:00-16:00
 Massima durata trade:   fino a New York regular close 16:00 New York
 ```
+
+## Visual Chart
+
+Gli oggetti ATAS vengono disegnati sia per replay storico sia per eventi live. Gli orari precisi restano nel log `Italy=`; il chart posiziona l'oggetto sul bar M5 che contiene l'evento.
+
+```text
+DynamicCompression: box turchese trasparente; POC turchese; VAH/VAL turchese tratteggiato.
+Long entry:          marker e linea verde.
+Short entry:         marker e linea arancio-rosso.
+Stop:                linea cremisi tratteggiata.
+Target POC:          linea blu tratteggiata.
+Exit profit:         marker verde.
+Exit stop/loss:      marker cremisi.
+Exit breakeven:      marker oro.
+```
+
+Le linee entry/stop/target restano ray solo mentre la posizione live e' aperta; alla chiusura diventano segmenti dal bar di entry al bar di exit.
 
 ## Log
 
