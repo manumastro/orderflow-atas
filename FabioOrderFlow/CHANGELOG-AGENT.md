@@ -1,5 +1,21 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Reload 2026-07-11 13:24 - Event Ledger e Coverage Confermati
+
+```text
+StudyMode=COMPRESSION_EVENT_LEDGER_NO_TRADES.
+LedgerQualification=NONE.
+ChartVisuals=LONDON_CONTEXT_ONLY.
+
+Risultato:
+- StoredTrades=1.314.530.
+- LedgerProfiles=7; LedgerEvents=34; LedgerOutcomes=136.
+- Entries=0; ClosedPositions=0; OpenPositions=0; CompletedTrades=0.
+- Nessun MR_COMPRESSION_STUDY_*, MR_ENTRY, MR_EXIT o errore FabioOrderFlow.
+- 02/07 TradeCoverage=MISSING e tutti i percentile prior=NA.
+- Gli altri sei profili hanno percentili raw variabili, quindi confrontabili causalmente.
+```
+
 ## Reload 2026-07-11 13:21 - Event Ledger funzionale, coverage fix distribuito
 
 ```text
