@@ -12,7 +12,7 @@ Operativita' trade:     DISABLED
 Reference precedenti:   LOG_ONLY
 Grafico contesto:       zona London grigia, POC/VAH/VAL dal BalanceZoneTracker
 Grafico studio:         nessun box/marker DynamicCompression
-Output:                 ledger profili, eventi bordo e outcome 1/3/6/12 barre
+Output:                 ledger + shadow acceptance continuation H6/H12
 PnL corrente:           non applicabile; nessun MR_ENTRY/MR_EXIT nuovo
 ```
 
@@ -193,6 +193,36 @@ Per ogni barra dopo `READY` fino a `RESOLVED`, il ledger registra `HIGH` e/o `LO
 ```
 
 Il percentile confronta l'evento solo con le barre precedenti dello stesso range: e' una metrica causale, non un filtro. Lo studio non afferma ancora che la finestra sia sempre quella che Fabio disegnerebbe; nessun retest operativo, entry o PnL viene introdotto.
+
+### Shadow Acceptance Live
+
+`ACCEPTANCE_CONTINUATION_V1` e' una shadow observation live/historical, non una posizione. Scatta sulla seconda close consecutiva fuori dal range congelato:
+
+```text
+HIGH + OutsideCloseStreak >= 2 -> Direction=LONG
+LOW  + OutsideCloseStreak >= 2 -> Direction=SHORT
+```
+
+Emette al massimo una shadow entry per profilo:
+
+```text
+[MR_SHADOW_ACCEPTANCE_ENTRY]
+OperationalEntry=FALSE
+OrderSubmitted=FALSE
+```
+
+`H6` e `H12` significano outcome dopo 6 e 12 barre dalla shadow entry. Su chart 5 minuti equivalgono indicativamente a 30 e 60 minuti. Non sono target:
+
+```text
+[MR_SHADOW_ACCEPTANCE_OUTCOME]
+DirectionalMoveRanges  positivo se il prezzo continua nella direzione shadow
+FavorableMfeRanges     massima escursione favorevole entro l'orizzonte
+AdverseMfeRanges       massima escursione contraria entro l'orizzonte
+EndInsideRange         close H6/H12 dentro il range congelato
+PocTouched             POC attraversato entro H6/H12
+```
+
+Nessun ordine, stop, target, posizione, PnL o marker `[MR_ENTRY]/[MR_EXIT]` viene creato. L'ipotesi e' promossa soltanto a diagnostica live prospettica.
 
 ### Nota visuale su POC
 

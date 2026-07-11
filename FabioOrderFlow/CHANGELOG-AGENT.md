@@ -1,5 +1,30 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Implementazione 2026-07-11 - Acceptance Continuation Shadow Live
+
+```text
+Ipotesi promossa a diagnostica live/historical:
+- ACCEPTANCE_CONTINUATION_V1.
+- Trigger: seconda close consecutiva fuori dal range congelato.
+- HIGH -> shadow LONG; LOW -> shadow SHORT.
+- Outcome H6/H12 = close a 6/12 barre dalla shadow entry.
+
+Marker:
+- MR_SHADOW_ACCEPTANCE_ENTRY.
+- MR_SHADOW_ACCEPTANCE_OUTCOME.
+- OperationalEntry=FALSE; OrderSubmitted=FALSE; ShadowOrders=0.
+
+Vincoli:
+- Massimo una shadow entry per profilo.
+- Nessun ordine, posizione, stop, target, PnL, MR_ENTRY o MR_EXIT.
+- DirectionalMoveRanges positivo significa continuation favorevole.
+
+Da validare al reload:
+- MR_MODE ShadowModel=ACCEPTANCE_CONTINUATION_V1 e ShadowOrders=DISABLED.
+- HISTORICAL_FLOW_FINISH Entries=0, ShadowAcceptanceEntries>0, ShadowAcceptanceOutcomes=2x entry quando H6/H12 disponibili.
+- Nessun errore o marker operativo.
+```
+
 ## Analisi 2026-07-11 - Entry Shadow Confermate da Stato
 
 ```text

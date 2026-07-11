@@ -26,6 +26,8 @@ from typing import Callable, Iterable
 PROFILE_MARKER = "MR_COMPRESSION_LEDGER_PROFILE"
 EVENT_MARKER = "MR_COMPRESSION_LEDGER_EVENT"
 OUTCOME_MARKER = "MR_COMPRESSION_LEDGER_OUTCOME"
+SHADOW_ENTRY_MARKER = "MR_SHADOW_ACCEPTANCE_ENTRY"
+SHADOW_OUTCOME_MARKER = "MR_SHADOW_ACCEPTANCE_OUTCOME"
 PROCESS_START_MARKER = "HISTORICAL_FLOW_PROCESS_START"
 PROCESS_FINISH_MARKER = "HISTORICAL_FLOW_FINISH"
 LOOKBACK_MARKER = "CUM_TRADES_LOOKBACK"
@@ -52,8 +54,22 @@ OUTCOME_FIELDS = (
     "CloseMoveRanges", "UpMfeRanges", "DownMaeRanges", "EndInsideRange",
     "PocTouched",
 )
+SHADOW_ENTRY_FIELDS = (
+    "ShadowModel", "ShadowId", "ProfileLabel", "EntryBar", "Italy", "London",
+    "UTC", "Boundary", "Direction", "EntryPrice", "Trigger",
+    "OutsideCloseStreak", "High", "Low", "POC", "Range", "TradeCoverage",
+    "TotalVolumePercentilePrior", "AbsoluteDeltaPercentilePrior",
+    "OperationalEntry", "OrderSubmitted",
+)
+SHADOW_OUTCOME_FIELDS = (
+    "ShadowModel", "ShadowId", "ProfileLabel", "EntryBar", "Boundary",
+    "Direction", "HorizonBars", "EndBar", "Italy", "London", "UTC",
+    "EntryPrice", "EndClose", "DirectionalMoveRanges", "FavorableMfeRanges",
+    "AdverseMfeRanges", "EndInsideRange", "PocTouched", "TradeCoverage",
+    "OperationalEntry", "OrderSubmitted",
+)
 
-INTEGER_FIELDS = {"ReadyBar", "ResolvedBar", "StudyBars", "HighTests", "LowTests", "BoundaryEvents", "Bar", "TestOrdinal", "OutsideCloseStreak", "TradeCount", "EventBar", "HorizonBars", "EndBar"}
+INTEGER_FIELDS = {"ReadyBar", "ResolvedBar", "StudyBars", "HighTests", "LowTests", "BoundaryEvents", "Bar", "TestOrdinal", "OutsideCloseStreak", "TradeCount", "EventBar", "EntryBar", "HorizonBars", "EndBar"}
 DECIMAL_FIELDS = {
     "BuyVolume", "SellVolume", "ProfileCVD", "High", "Low", "POC", "Range",
     "RangeToBaselineMedian", "CompressionScore", "BoundaryPrice", "EventClose",
@@ -61,9 +77,10 @@ DECIMAL_FIELDS = {
     "TotalVolume", "Delta", "MaxBuyVolume", "MaxSellVolume",
     "TotalVolumePercentilePrior", "AbsoluteDeltaPercentilePrior",
     "MaxBuyPercentilePrior", "MaxSellPercentilePrior", "EndClose",
-    "CloseMoveRanges", "UpMfeRanges", "DownMaeRanges",
+    "CloseMoveRanges", "UpMfeRanges", "DownMaeRanges", "EntryPrice",
+    "DirectionalMoveRanges", "FavorableMfeRanges", "AdverseMfeRanges",
 }
-BOOLEAN_FIELDS = {"EndInsideRange", "PocTouched"}
+BOOLEAN_FIELDS = {"EndInsideRange", "PocTouched", "OperationalEntry", "OrderSubmitted"}
 
 
 @dataclass(frozen=True)
@@ -119,7 +136,7 @@ def converted(record: dict[str, str], keys: Iterable[str]) -> dict[str, object]:
         elif key in DECIMAL_FIELDS:
             result[key] = as_float(number(value))
         elif key in BOOLEAN_FIELDS:
-            result[key] = value == "True"
+            result[key] = value.lower() == "true"
         else:
             result[key] = value
     return result
@@ -272,6 +289,29 @@ def grouped_outcomes(
     return rows
 
 
+def shadow_outcome_groups(outcomes: list[dict[str, object]]) -> list[dict[str, object]]:
+    groups: dict[tuple[str, int | None], list[dict[str, object]]] = defaultdict(list)
+    for outcome in outcomes:
+        horizon = outcome["HorizonBars"] if isinstance(outcome["HorizonBars"], int) else None
+        groups[(str(outcome["Boundary"]), horizon)].append(outcome)
+
+    rows: list[dict[str, object]] = []
+    for (boundary, horizon), grouped in sorted(groups.items(), key=lambda item: (item[0][0], item[0][1] or 0)):
+        moves = [float(value) for outcome in grouped if isinstance(value := outcome["DirectionalMoveRanges"], float)]
+        rows.append({
+            "boundary": boundary,
+            "horizonBars": horizon,
+            "outcomes": len(grouped),
+            "profiles": len({str(outcome["ProfileLabel"]) for outcome in grouped}),
+            "averageDirectionalMoveRanges": round(sum(moves) / len(moves), 4) if moves else None,
+            "medianDirectionalMoveRanges": round(median(moves), 4) if moves else None,
+            "positiveDirectionalMoveRate": round(sum(move > 0 for move in moves) / len(moves), 4) if moves else None,
+            "endInsideRate": round(sum(outcome["EndInsideRange"] is True for outcome in grouped) / len(grouped), 4),
+            "pocTouchedRate": round(sum(outcome["PocTouched"] is True for outcome in grouped) / len(grouped), 4),
+        })
+    return rows
+
+
 def profile_summary(profiles: list[dict[str, object]]) -> list[dict[str, object]]:
     grouped: dict[str, list[dict[str, object]]] = defaultdict(list)
     for profile in profiles:
@@ -325,6 +365,8 @@ def main() -> int:
     profiles = [converted(record, PROFILE_FIELDS) for record in records_for_marker(run.lines, PROFILE_MARKER)]
     events = [converted(record, EVENT_FIELDS) for record in records_for_marker(run.lines, EVENT_MARKER)]
     outcomes = [converted(record, OUTCOME_FIELDS) for record in records_for_marker(run.lines, OUTCOME_MARKER)]
+    shadow_entries = [converted(record, SHADOW_ENTRY_FIELDS) for record in records_for_marker(run.lines, SHADOW_ENTRY_MARKER)]
+    shadow_outcomes = [converted(record, SHADOW_OUTCOME_FIELDS) for record in records_for_marker(run.lines, SHADOW_OUTCOME_MARKER)]
 
     profiles_by_label = {str(profile["ProfileLabel"]): profile for profile in profiles}
     warnings: list[str] = []
@@ -383,6 +425,8 @@ def main() -> int:
             "expectedOutcomesAtFourHorizons": expected_outcomes,
             "flowCoveredEvents": len(events_flow_covered),
             "missingCoverageEvents": len(events) - len(events_flow_covered),
+            "shadowAcceptanceEntries": len(shadow_entries),
+            "shadowAcceptanceOutcomes": len(shadow_outcomes),
         },
         "validation": {
             "outcomesComplete": len(outcomes) == expected_outcomes,
@@ -390,9 +434,18 @@ def main() -> int:
             "closedPositions": run.finish.get("ClosedPositions"),
             "openPositions": run.finish.get("OpenPositions"),
             "completedTrades": run.finish.get("CompletedTrades"),
+            "shadowOrders": run.finish.get("ShadowOrders"),
+            "shadowEntriesAreNonOperational": all(entry["OperationalEntry"] is False and entry["OrderSubmitted"] is False for entry in shadow_entries),
             "warnings": warnings,
         },
         "profileCoverage": profile_summary(profiles),
+        "shadowAcceptance": {
+            "entries": shadow_entries,
+            "outcomes": shadow_outcomes,
+            "flowCoveredOutcomeGroups": shadow_outcome_groups([
+                outcome for outcome in shadow_outcomes if outcome["TradeCoverage"] == "AVAILABLE"
+            ]),
+        },
         "allOutcomeGroups": all_groups,
         "flowCoveredOutcomeGroups": flow_groups,
         "guardrail": "Descriptive ledger analysis only. It does not create an entry, a threshold, a stop, a target, or PnL.",
@@ -404,6 +457,8 @@ def main() -> int:
         csv_rows(profiles, base.with_name(base.name + "-profiles.csv"))
         csv_rows(events, base.with_name(base.name + "-events.csv"))
         csv_rows(outcomes, base.with_name(base.name + "-outcomes.csv"))
+        csv_rows(shadow_entries, base.with_name(base.name + "-shadow-entries.csv"))
+        csv_rows(shadow_outcomes, base.with_name(base.name + "-shadow-outcomes.csv"))
         aggregation_rows = [row for groups in flow_groups.values() for row in groups]
         csv_rows(aggregation_rows, base.with_name(base.name + "-flow-covered-aggregates.csv"))
         base.with_name(base.name + "-summary.json").write_text(json.dumps(summary, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")

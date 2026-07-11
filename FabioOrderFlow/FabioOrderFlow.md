@@ -9,7 +9,7 @@ Modalita':          COMPRESSION_EVENT_LEDGER_NO_TRADES
 Ordini / PnL:       DISABLED
 Reference profile:  LOG_ONLY
 Grafico:            sola zona London contestuale
-Output:             ledger eventi bordo + outcome 1/3/6/12 barre
+Output:             ledger + shadow acceptance continuation H6/H12
 ```
 
 `london-ny-close-hold` e il suo PnL `+634,25` restano baseline storica del precedente core MR, non un modello in esecuzione.
@@ -40,7 +40,9 @@ ATAS OnCalculate
 -> LondonMeanReversionModel costruisce PreviousDayProfile/PreviousLondonProfile solo per log
 -> LondonMeanReversionModel mantiene il lifecycle dinamico SEARCHING/BUILDING/READY/RESOLVED di DynamicCompression
 -> LondonMeanReversionModel registra tutte le interazioni High/Low dopo READY, senza qualifica fissa
--> LondonMeanReversionModel registra outcome 1/3/6/12 barre, senza setup, posizioni, PnL o marker trade
+-> LondonMeanReversionModel registra outcome ledger 1/3/6/12 barre
+-> sulla seconda close esterna registra shadow acceptance continuation e outcome H6/H12
+-> nessun setup operativo, posizione, ordine, stop, target o PnL
 
 ATAS OnCumulativeTrade / OnUpdateCumulativeTrade
 -> BalanceZoneTracker.OnLiveCumulativeTrade

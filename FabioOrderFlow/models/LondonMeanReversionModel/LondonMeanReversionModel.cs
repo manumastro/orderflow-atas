@@ -62,6 +62,8 @@ namespace FabioOrderFlow
         private const decimal CompressionValueConcentrationWeight = 0.075m;
         private const int CompressionStudyConfirmationBars = 2;
         private static readonly int[] CompressionLedgerOutcomeHorizons = { 1, 3, 6, 12 };
+        private static readonly int[] ShadowAcceptanceOutcomeHorizons = { 6, 12 };
+        private const string ShadowAcceptanceModel = "ACCEPTANCE_CONTINUATION_V1";
         private const string StudyMode = "COMPRESSION_EVENT_LEDGER_NO_TRADES";
         private static readonly bool LogProfileDiagnosticsForSetups = false;
         private static readonly bool LogProfileDiagnosticsForEntries = true;
@@ -89,6 +91,8 @@ namespace FabioOrderFlow
         private readonly HashSet<string> _loggedCompressionLedgerProfiles = new();
         private readonly HashSet<string> _loggedCompressionLedgerEvents = new();
         private readonly HashSet<string> _loggedCompressionLedgerOutcomes = new();
+        private readonly HashSet<string> _loggedShadowAcceptanceEntries = new();
+        private readonly HashSet<string> _loggedShadowAcceptanceOutcomes = new();
         private readonly ProfileAccumulator _currentDayProfile = new();
         private readonly ProfileAccumulator _currentLondonProfile = new();
         private DateOnly? _currentDayItaly;
@@ -120,7 +124,7 @@ namespace FabioOrderFlow
             _chartRectangles = chartRectangles ?? throw new ArgumentNullException(nameof(chartRectangles));
             _chartLines = chartLines ?? throw new ArgumentNullException(nameof(chartLines));
 
-            _log($"[MR_MODE] Model=FabioCompressionStudy, Modes=LIVE|HISTORICAL, StudyMode={StudyMode}, OperationalEntries=DISABLED, ReferenceProfiles=LOG_ONLY:PreviousDayProfile|PreviousLondonProfile, ChartVisuals=LONDON_CONTEXT_ONLY, Ledger=BOUNDARY_EVENTS_AND_OUTCOMES, LedgerQualification=NONE, LedgerOutcomeHorizons={string.Join("|", CompressionLedgerOutcomeHorizons)}, CompressionLifecycle=SEARCHING|BUILDING|READY|RESOLVED, CompressionDetection=DYNAMIC_SCORE, CompressionBaseline=PRIOR_{LocalCompressionBaselineLookbackBars}_BARS, CompressionMinBaselineBars={LocalCompressionMinimumBaselineBars}, CompressionMinBuildingBars={LocalCompressionMinimumBuildingBars}, CompressionReadyScore={LocalCompressionMinimumReadyScore:F2}, CompressionReadyPersistence={LocalCompressionReadyPersistenceBars}, CompressionResolutionPersistence={LocalCompressionResolutionPersistenceBars}, HistoricalBigTradeVolume={LondonBigTradeVolume:F0}, HistoricalStudyConfirmationBars={CompressionStudyConfirmationBars}", false);
+            _log($"[MR_MODE] Model=FabioCompressionStudy, Modes=LIVE|HISTORICAL, StudyMode={StudyMode}, OperationalEntries=DISABLED, ReferenceProfiles=LOG_ONLY:PreviousDayProfile|PreviousLondonProfile, ChartVisuals=LONDON_CONTEXT_ONLY, Ledger=BOUNDARY_EVENTS_AND_OUTCOMES, LedgerQualification=NONE, LedgerOutcomeHorizons={string.Join("|", CompressionLedgerOutcomeHorizons)}, ShadowModel={ShadowAcceptanceModel}, ShadowTrigger=SECOND_CONSECUTIVE_OUTSIDE_CLOSE, ShadowOutcomeHorizons={string.Join("|", ShadowAcceptanceOutcomeHorizons)}, ShadowOrders=DISABLED, CompressionLifecycle=SEARCHING|BUILDING|READY|RESOLVED, CompressionDetection=DYNAMIC_SCORE, CompressionBaseline=PRIOR_{LocalCompressionBaselineLookbackBars}_BARS, CompressionMinBaselineBars={LocalCompressionMinimumBaselineBars}, CompressionMinBuildingBars={LocalCompressionMinimumBuildingBars}, CompressionReadyScore={LocalCompressionMinimumReadyScore:F2}, CompressionReadyPersistence={LocalCompressionReadyPersistenceBars}, CompressionResolutionPersistence={LocalCompressionResolutionPersistenceBars}, HistoricalBigTradeVolume={LondonBigTradeVolume:F0}, HistoricalStudyConfirmationBars={CompressionStudyConfirmationBars}", false);
         }
 
         public IReadOnlyList<TradeRecord> CompletedTrades => _completedTrades;
@@ -240,6 +244,8 @@ namespace FabioOrderFlow
             _loggedCompressionLedgerProfiles.Clear();
             _loggedCompressionLedgerEvents.Clear();
             _loggedCompressionLedgerOutcomes.Clear();
+            _loggedShadowAcceptanceEntries.Clear();
+            _loggedShadowAcceptanceOutcomes.Clear();
 
             _log($"[HISTORICAL_FLOW_PROCESS_START] Model=FabioCompressionStudy, StudyMode={StudyMode}, StartBar={startBar}, EndBar={endBar}, StoredTrades={_historicalTrades.Count}, CompressionProfiles={_compressionStudyProfiles.Count}, OperationalEntries=DISABLED", false);
 
@@ -247,7 +253,7 @@ namespace FabioOrderFlow
             {
                 var ledger = RunCompressionLedger(_compressionStudyProfiles, _historicalTrades, endBar, true);
                 var durationMs = (DateTime.UtcNow - startedUtc).TotalMilliseconds;
-                _log($"[HISTORICAL_FLOW_FINISH] Model=FabioCompressionStudy, StudyMode={StudyMode}, StartBar={startBar}, EndBar={endBar}, StoredTrades={_historicalTrades.Count}, Entries=0, ClosedPositions=0, OpenPositions=0, CompletedTrades=0, LedgerProfiles={ledger.Profiles}, LedgerEvents={ledger.Events}, LedgerOutcomes={ledger.Outcomes}, ProcessDurationMs={durationMs:F0}", false);
+                _log($"[HISTORICAL_FLOW_FINISH] Model=FabioCompressionStudy, StudyMode={StudyMode}, StartBar={startBar}, EndBar={endBar}, StoredTrades={_historicalTrades.Count}, Entries=0, ClosedPositions=0, OpenPositions=0, CompletedTrades=0, LedgerProfiles={ledger.Profiles}, LedgerEvents={ledger.Events}, LedgerOutcomes={ledger.Outcomes}, ShadowAcceptanceEntries={ledger.ShadowAcceptanceEntries}, ShadowAcceptanceOutcomes={ledger.ShadowAcceptanceOutcomes}, ShadowOrders=0, ProcessDurationMs={durationMs:F0}", false);
             }
             finally
             {
@@ -1024,6 +1030,31 @@ namespace FabioOrderFlow
                         }
                     }
                 }
+
+                var shadowEvent = events.FirstOrDefault(ledgerEvent =>
+                    ledgerEvent.CloseState == "OUTSIDE" && ledgerEvent.OutsideCloseStreak >= 2);
+                if (shadowEvent != null)
+                {
+                    var shadowKey = $"{GetExecutionMode(isHistorical)}:{reference.Label}:{shadowEvent.Bar}:{shadowEvent.Boundary}";
+                    var tradeCoverage = profileBuyVolume + profileSellVolume > 0m ? "AVAILABLE" : "MISSING";
+                    if (_loggedShadowAcceptanceEntries.Add(shadowKey))
+                    {
+                        LogShadowAcceptanceEntry(shadowEvent, tradeCoverage, isHistorical);
+                        result.ShadowAcceptanceEntries++;
+                    }
+
+                    foreach (var horizon in ShadowAcceptanceOutcomeHorizons)
+                    {
+                        if (!TryBuildCompressionLedgerOutcome(shadowEvent, observedEndBar, horizon, out var outcome) || outcome == null)
+                            continue;
+
+                        if (_loggedShadowAcceptanceOutcomes.Add($"{shadowKey}:{horizon}"))
+                        {
+                            LogShadowAcceptanceOutcome(outcome, tradeCoverage, isHistorical);
+                            result.ShadowAcceptanceOutcomes++;
+                        }
+                    }
+                }
             }
 
             return result;
@@ -1160,6 +1191,27 @@ namespace FabioOrderFlow
         private void LogCompressionLedgerOutcome(CompressionLedgerOutcome outcome, bool isHistorical)
         {
             _log($"[MR_COMPRESSION_LEDGER_OUTCOME] ExecutionMode={GetExecutionMode(isHistorical)}, StudyMode={StudyMode}, ProfileLabel={outcome.Event.Profile.Reference.Label}, EventBar={outcome.Event.Bar}, Boundary={outcome.Event.Boundary}, Interaction={outcome.Event.Interaction}, HorizonBars={outcome.Horizon}, EndBar={outcome.EndBar}, {FormatTime(outcome.EndTimeUtc)}, EventClose={outcome.Event.EventClose:F2}, EndClose={outcome.EndClose:F2}, CloseMoveRanges={outcome.CloseMoveRanges:F2}, UpMfeRanges={outcome.UpMfeRanges:F2}, DownMaeRanges={outcome.DownMaeRanges:F2}, EndInsideRange={outcome.EndInsideRange}, PocTouched={outcome.PocTouched}, OperationalEntry=FALSE", isHistorical);
+        }
+
+        private void LogShadowAcceptanceEntry(CompressionLedgerEvent entry, string tradeCoverage, bool isHistorical)
+        {
+            var reference = entry.Profile.Reference;
+            var direction = entry.Boundary == "HIGH" ? "LONG" : "SHORT";
+            var shadowId = $"{reference.Label}:{entry.Bar}:{entry.Boundary}";
+            _log($"[MR_SHADOW_ACCEPTANCE_ENTRY] ExecutionMode={GetExecutionMode(isHistorical)}, StudyMode={StudyMode}, ShadowModel={ShadowAcceptanceModel}, ShadowId={shadowId}, ProfileLabel={reference.Label}, EntryBar={entry.Bar}, {FormatTime(entry.EventTimeUtc)}, Boundary={entry.Boundary}, Direction={direction}, EntryPrice={entry.EventClose:F2}, Trigger=SECOND_CONSECUTIVE_OUTSIDE_CLOSE, OutsideCloseStreak={entry.OutsideCloseStreak}, High={reference.High:F2}, Low={reference.Low:F2}, POC={reference.POC:F2}, Range={Math.Max(reference.High - reference.Low, _tickSize):F2}, TradeCoverage={tradeCoverage}, TotalVolumePercentilePrior={FormatLedgerPercentile(entry.TotalVolumePercentilePrior)}, AbsoluteDeltaPercentilePrior={FormatLedgerPercentile(entry.AbsoluteDeltaPercentilePrior)}, OperationalEntry=FALSE, OrderSubmitted=FALSE", isHistorical);
+        }
+
+        private void LogShadowAcceptanceOutcome(CompressionLedgerOutcome outcome, string tradeCoverage, bool isHistorical)
+        {
+            var entry = outcome.Event;
+            var reference = entry.Profile.Reference;
+            var isLong = entry.Boundary == "HIGH";
+            var direction = isLong ? "LONG" : "SHORT";
+            var directionalMove = isLong ? outcome.CloseMoveRanges : -outcome.CloseMoveRanges;
+            var favorableMfe = isLong ? outcome.UpMfeRanges : outcome.DownMaeRanges;
+            var adverseMfe = isLong ? outcome.DownMaeRanges : outcome.UpMfeRanges;
+            var shadowId = $"{reference.Label}:{entry.Bar}:{entry.Boundary}";
+            _log($"[MR_SHADOW_ACCEPTANCE_OUTCOME] ExecutionMode={GetExecutionMode(isHistorical)}, StudyMode={StudyMode}, ShadowModel={ShadowAcceptanceModel}, ShadowId={shadowId}, ProfileLabel={reference.Label}, EntryBar={entry.Bar}, Boundary={entry.Boundary}, Direction={direction}, HorizonBars={outcome.Horizon}, EndBar={outcome.EndBar}, {FormatTime(outcome.EndTimeUtc)}, EntryPrice={entry.EventClose:F2}, EndClose={outcome.EndClose:F2}, DirectionalMoveRanges={directionalMove:F2}, FavorableMfeRanges={favorableMfe:F2}, AdverseMfeRanges={adverseMfe:F2}, EndInsideRange={outcome.EndInsideRange}, PocTouched={outcome.PocTouched}, TradeCoverage={tradeCoverage}, OperationalEntry=FALSE, OrderSubmitted=FALSE", isHistorical);
         }
 
         private static decimal? GetPriorPercentile(IReadOnlyList<decimal> history, decimal value)
@@ -2433,6 +2485,8 @@ namespace FabioOrderFlow
             public int Profiles { get; set; }
             public int Events { get; set; }
             public int Outcomes { get; set; }
+            public int ShadowAcceptanceEntries { get; set; }
+            public int ShadowAcceptanceOutcomes { get; set; }
         }
 
         private sealed class CompressionLedgerBarStats

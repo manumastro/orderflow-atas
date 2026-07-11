@@ -40,6 +40,8 @@ Marker attivi:
 [MR_COMPRESSION_LEDGER_PROFILE]   geometria, test, volume, CVD e coverage del range
 [MR_COMPRESSION_LEDGER_EVENT]     touch/breach High o Low senza qualifica trade
 [MR_COMPRESSION_LEDGER_OUTCOME]   esito a 1, 3, 6, 12 barre
+[MR_SHADOW_ACCEPTANCE_ENTRY]      seconda close esterna; osservazione continuation, nessun ordine
+[MR_SHADOW_ACCEPTANCE_OUTCOME]    esito direzionale dopo 6/12 barre
 [HISTORICAL_FLOW_FINISH]          Entries=0, LedgerProfiles=N, LedgerEvents=N, LedgerOutcomes=N
 ```
 
@@ -74,6 +76,20 @@ PocTouched                        POC del range attraversato nell'orizzonte
 ```
 
 I percentili sono metriche di confronto causale, non condizioni. `NA` significa che non esistono ancora barre precedenti comparabili oppure che la coverage cumulative trade e' assente.
+
+## Come Leggere La Shadow Acceptance
+
+```text
+H6 / H12               6 o 12 barre dopo la shadow entry; su chart 5 minuti circa 30/60 minuti
+Direction LONG/SHORT   continuation sopra HIGH / sotto LOW
+DirectionalMoveRanges positivo se il movimento segue la direzione shadow
+FavorableMfeRanges     escursione massima favorevole
+AdverseMfeRanges       escursione massima contraria
+OperationalEntry      sempre FALSE
+OrderSubmitted         sempre FALSE
+```
+
+H6/H12 sono finestre di osservazione, non target. I marker shadow non vanno sommati come PnL e non sono `[MR_ENTRY]`.
 
 ## BalanceZoneTracker Corrente
 

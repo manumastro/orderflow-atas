@@ -8,6 +8,8 @@ Ogni snapshot completo contiene:
 *-profiles.csv                 un record per ProfileLabel
 *-events.csv                   un record per ProfileLabel + Bar + Boundary
 *-outcomes.csv                 un record per ProfileLabel + EventBar + Boundary + HorizonBars
+*-shadow-entries.csv           acceptance continuation, massimo una per profilo
+*-shadow-outcomes.csv          outcome direzionali H6/H12 delle shadow entry
 *-flow-covered-aggregates.csv  aggregati descrittivi; solo TradeCoverage=AVAILABLE
 *-summary.json                 unico report: controlli replay, aggregati completi e metadati
 ```
