@@ -211,7 +211,7 @@ OperationalEntry=FALSE
 OrderSubmitted=FALSE
 ```
 
-`H6` e `H12` significano outcome dopo 6 e 12 barre dalla shadow entry. Su chart 5 minuti equivalgono indicativamente a 30 e 60 minuti. Non sono target. Inoltre `[MR_SHADOW_ACCEPTANCE_BAR]` registra ogni barra completata fino a 60 minuti dall'entry:
+`H6` e `H12` significano outcome dopo 6 e 12 barre dalla shadow entry. Su chart 5 minuti equivalgono indicativamente a 30 e 60 minuti. Non sono target. Inoltre `[MR_SHADOW_ACCEPTANCE_BAR]` registra ogni barra completata fino alla prima barra che raggiunge i 60 minuti dall'entry:
 
 ```text
 ChartTimeFrame / PathBarOrdinal / ElapsedMinutes
@@ -222,7 +222,7 @@ PriceState / PocTouchedThisBar / PocTouchedToDate
 TradeCount / buy/sell volume / delta / max trade
 ```
 
-La granularita' e' quella del chart ATAS. Su M5 produce circa 12 barre path; su M1 circa 60. L'API indicatore installata non espone una richiesta candle M1 storica separata da un chart M5: per ottenere path M1 il modello deve essere applicato a un chart M1.
+La granularita' e' quella del chart ATAS. Su M5 produce 12 barre path regolari; su M1 circa 60. E' ammessa una tolleranza massima di 5 minuti sul timestamp finale per includere la prima barra M5 completata che raggiunge l'ora di osservazione. L'API indicatore installata non espone una richiesta candle M1 storica separata da un chart M5: per ottenere path M1 il modello deve essere applicato a un chart M1.
 
 Checkpoint:
 

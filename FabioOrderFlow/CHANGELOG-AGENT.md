@@ -1,5 +1,21 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Reload 2026-07-11 18:56 - Shadow Path, Prima Verifica
+
+```text
+Replay M5:
+- 8/8 finestre; ReceivedTrades=5.833.055; StoredTrades=236.018.
+- 27 profili, 117 eventi, 468 outcome ledger completi.
+- 25 acceptance totali: 22 AVAILABLE, equivalenti al campione offline, e 3 MISSING.
+- 50 outcome shadow; 284 path bars; nessun path AVAILABLE con TradeCount=0.
+- Entries=0; posizioni=0; ShadowOrders=0; nessun errore o marker operativo.
+
+Correzione derivata:
+- 16/25 path si fermavano a 11 barre per timestamp H12 pochi secondi oltre 60 minuti.
+- Il path ora include la prima barra completata che raggiunge 60 minuti, entro tolleranza massima 5 minuti.
+- Retention cumulative estesa allo stesso limite; da verificare con secondo reload.
+```
+
 ## Implementazione 2026-07-11 - Shadow Path Completo e Setup Discovery Aperta
 
 ```text

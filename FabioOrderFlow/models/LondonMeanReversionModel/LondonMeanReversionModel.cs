@@ -65,6 +65,7 @@ namespace FabioOrderFlow
         private static readonly int[] ShadowAcceptanceOutcomeHorizons = { 6, 12 };
         private const string ShadowAcceptanceModel = "ACCEPTANCE_CONTINUATION_V1";
         private const int ShadowAcceptancePathMinutes = 60;
+        private const int ShadowAcceptancePathCompletionToleranceMinutes = 5;
         private const string StudyMode = "COMPRESSION_EVENT_LEDGER_NO_TRADES";
         private static readonly bool LogProfileDiagnosticsForSetups = false;
         private static readonly bool LogProfileDiagnosticsForEntries = true;
@@ -174,7 +175,8 @@ namespace FabioOrderFlow
                 _historicalLedgerTradeWindows.Add(new HistoricalLedgerTradeWindow
                 {
                     BeginUtc = _getCandle(beginBar).Time,
-                    EndUtc = GetCandleEventTime(_getCandle(endBar)).AddMinutes(ShadowAcceptancePathMinutes)
+                    EndUtc = GetCandleEventTime(_getCandle(endBar)).AddMinutes(
+                        ShadowAcceptancePathMinutes + ShadowAcceptancePathCompletionToleranceMinutes)
                 });
             }
 
@@ -1237,7 +1239,7 @@ namespace FabioOrderFlow
                 var elapsedMinutes = (eventTimeUtc - entry.EventTimeUtc).TotalMinutes;
                 if (elapsedMinutes <= 0)
                     continue;
-                if (elapsedMinutes > ShadowAcceptancePathMinutes)
+                if (elapsedMinutes > ShadowAcceptancePathMinutes + ShadowAcceptancePathCompletionToleranceMinutes)
                     break;
 
                 highest = Math.Max(highest, candle.High);
@@ -1266,6 +1268,8 @@ namespace FabioOrderFlow
                 var shadowId = $"{reference.Label}:{entry.Bar}:{entry.Boundary}";
                 _log($"[MR_SHADOW_ACCEPTANCE_BAR] ExecutionMode={GetExecutionMode(isHistorical)}, StudyMode={StudyMode}, ShadowModel={ShadowAcceptanceModel}, ShadowId={shadowId}, ProfileLabel={reference.Label}, EntryBar={entry.Bar}, Boundary={entry.Boundary}, Direction={direction}, ChartTimeFrame={_chartTimeFrame}, PathBar={bar}, PathBarOrdinal={bar - entry.Bar}, ElapsedMinutes={elapsedMinutes:F2}, {FormatTime(eventTimeUtc)}, Open={candle.Open:F2}, High={candle.High:F2}, Low={candle.Low:F2}, Close={candle.Close:F2}, CandleVolume={candle.Volume:F0}, DirectionalMoveRanges={directionalMove:F2}, FavorableMfeToDateRanges={favorableMfe:F2}, AdverseMfeToDateRanges={adverseMfe:F2}, PriceState={priceState}, PocTouchedThisBar={pocTouchedThisBar}, PocTouchedToDate={pocTouchedToDate}, TradeCount={stats.TradeCount}, TotalVolume={stats.TotalVolume:F0}, BuyVolume={stats.BuyVolume:F0}, SellVolume={stats.SellVolume:F0}, Delta={stats.Delta:F0}, MaxBuyVolume={stats.MaxBuyVolume:F0}, MaxSellVolume={stats.MaxSellVolume:F0}, TradeCoverage={tradeCoverage}, OperationalEntry=FALSE, OrderSubmitted=FALSE", isHistorical);
                 logged++;
+                if (elapsedMinutes >= ShadowAcceptancePathMinutes)
+                    break;
             }
 
             return logged;
