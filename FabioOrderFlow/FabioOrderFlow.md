@@ -26,6 +26,7 @@ tools/report_mr_performance.py                         report PnL legacy, solo M
 tools/report_compression_ledger.py                     export/aggregati descrittivi ledger no-trade
 tools/analyze_compression_shadow.py                    shadow primo evento offline, JSON only
 tools/analyze_compression_state_entries.py             shadow state-confirmed offline, JSON only
+tools/analyze_acceptance_path_transitions.py            transizioni path e flow iniziale, JSON only
 performance-snapshots/                                 snapshot PnL legacy
 ledger-snapshots/                                      CSV dataset e report JSON del compression ledger
 archive/legacy-research/                               strumenti/snapshot pre-core, non operativi

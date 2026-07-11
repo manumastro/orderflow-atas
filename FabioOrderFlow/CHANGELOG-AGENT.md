@@ -1,5 +1,31 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Analisi 2026-07-11 - Acceptance Path Transitions
+
+```text
+Dataset:
+- 22 acceptance AVAILABLE / 15 date / M5; una osservazione per profilo.
+- Tool JSON-only: tools/analyze_acceptance_path_transitions.py.
+- Report: ledger-snapshots/acceptance-path-transitions-2026-07-11.json.
+
+Transizioni:
+- CONTINUOUS_ACCEPTANCE: 5 profili; H12 mediana +1,650; positivi 80%.
+- EARLY_REJECTION <=15m: 8 profili; H12 mediana -0,070; positivi 50%.
+- DELAYED_REJECTION >15m: 9 profili; H12 mediana -0,290; positivi 11,1%.
+- REJECTION_TO_POC: 14 profili; H12 mediana -0,290; positivi 28,6%.
+
+Flow prime tre barre:
+- Positivo: 12 profili; H12 positivi 50%.
+- Non positivo: 10 profili; H12 positivi 30%.
+- HIGH non separa; LOW positivo 50% contro non positivo 0%, ma solo 6 contro 4 profili.
+
+Decisione:
+- ValidatedTransitions=[]; ValidatedFlowConfirmations=[].
+- CONTINUOUS_ACCEPTANCE e' un descrittore futuro, non un trigger entry.
+- Conservare LOW + segno flow prime tre barre come confronto prospettico, senza modificare ACCEPTANCE_CONTINUATION_V1.
+- OperationalEntry=FALSE; OrderSubmitted=FALSE; PnL=NONE.
+```
+
 ## Reload 2026-07-11 19:01 - Shadow Path Verificato
 
 ```text

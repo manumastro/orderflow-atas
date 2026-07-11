@@ -1,0 +1,3507 @@
+{
+  "report": "acceptance-path-transitions-exploratory",
+  "generatedAtLocal": "2026-07-11T19:10:55+02:00",
+  "source": {
+    "snapshotPrefix": "FabioOrderFlow\\ledger-snapshots\\compression-ledger-2026-07-11_19-03-07",
+    "ledgerCounts": {
+      "profiles": 27,
+      "events": 117,
+      "outcomes": 468,
+      "expectedOutcomesAtFourHorizons": 468,
+      "flowCoveredEvents": 107,
+      "missingCoverageEvents": 10,
+      "shadowAcceptanceEntries": 25,
+      "shadowAcceptanceOutcomes": 50,
+      "shadowAcceptancePathBars": 307
+    },
+    "flowCoveredAcceptanceProfiles": 22,
+    "chartTimeFrames": [
+      "M5"
+    ]
+  },
+  "contract": {
+    "maximumObservationsPerProfile": 1,
+    "initialTransition": {
+      "CONTINUOUS_ACCEPTANCE": "no completed path bar closes inside the frozen range",
+      "EARLY_REJECTION": "first completed close inside within 15 elapsed minutes",
+      "DELAYED_REJECTION": "first completed close inside after 15 elapsed minutes"
+    },
+    "overlappingTags": {
+      "REJECTION_TO_POC": "POC touched during the observed path",
+      "REACCEPTANCE_AFTER_REENTRY": "expected outside close observed after the first inside close",
+      "OPPOSITE_BREAKOUT": "opposite outside close observed during the path"
+    },
+    "directionalFlowImbalance": "signed cumulative delta in the shadow direction divided by total volume over the first N path bars",
+    "first3BarsFlowRegime": "causal shadow confirmation available after three completed path bars; positive versus non-positive, with no fitted threshold",
+    "observationEnd": "first completed chart bar reaching 60 elapsed minutes, with at most 5 minutes completion tolerance",
+    "orders": false,
+    "stop": null,
+    "target": null,
+    "pnl": null,
+    "costs": null
+  },
+  "split": {
+    "method": "chronological distinct profile dates",
+    "trainFraction": 0.7,
+    "trainDates": [
+      "2026-06-11",
+      "2026-06-12",
+      "2026-06-16",
+      "2026-06-17",
+      "2026-06-19",
+      "2026-06-23",
+      "2026-06-24",
+      "2026-06-25",
+      "2026-06-29",
+      "2026-07-01"
+    ],
+    "testDates": [
+      "2026-07-02",
+      "2026-07-03",
+      "2026-07-06",
+      "2026-07-08",
+      "2026-07-09"
+    ],
+    "selectionLeakage": true,
+    "selectionLeakageReason": "Transition and early-flow hypotheses were formulated after inspecting this overlapping sample."
+  },
+  "summaries": {
+    "all": {
+      "all": {
+        "profiles": 22,
+        "dates": 15,
+        "firstInsideRate": 0.7727,
+        "medianFirstInsideMinutes": 15.07,
+        "pocTouchRate": 0.6364,
+        "medianFirstPocTouchMinutes": 20.0,
+        "reacceptedAfterReentryRate": 0.5909,
+        "oppositeBreakoutRate": 0.2273,
+        "first1BarsMedianDirectionalFlowImbalance": -0.0027,
+        "first2BarsMedianDirectionalFlowImbalance": 0.0155,
+        "first3BarsMedianDirectionalFlowImbalance": 0.0075,
+        "h6": {
+          "averageDirectionalMoveRanges": 0.0741,
+          "medianDirectionalMoveRanges": -0.285,
+          "positiveDirectionalMoveRate": 0.4091,
+          "averageFavorableMfeRanges": 0.795,
+          "averageAdverseMfeRanges": 0.7014,
+          "endInsideRate": 0.4545,
+          "pocTouchedRate": 0.4091
+        },
+        "h12": {
+          "averageDirectionalMoveRanges": 0.0505,
+          "medianDirectionalMoveRanges": -0.255,
+          "positiveDirectionalMoveRate": 0.4091,
+          "averageFavorableMfeRanges": 1.1659,
+          "averageAdverseMfeRanges": 1.0714,
+          "endInsideRate": 0.3182,
+          "pocTouchedRate": 0.6364
+        }
+      },
+      "byBoundary": {
+        "HIGH": {
+          "profiles": 12,
+          "dates": 9,
+          "firstInsideRate": 0.75,
+          "medianFirstInsideMinutes": 10.09,
+          "pocTouchRate": 0.5833,
+          "medianFirstPocTouchMinutes": 15.15,
+          "reacceptedAfterReentryRate": 0.5833,
+          "oppositeBreakoutRate": 0.25,
+          "first1BarsMedianDirectionalFlowImbalance": 0.0251,
+          "first2BarsMedianDirectionalFlowImbalance": -0.0043,
+          "first3BarsMedianDirectionalFlowImbalance": -0.0073,
+          "h6": {
+            "averageDirectionalMoveRanges": 0.165,
+            "medianDirectionalMoveRanges": -0.01,
+            "positiveDirectionalMoveRate": 0.5,
+            "averageFavorableMfeRanges": 0.74,
+            "averageAdverseMfeRanges": 0.7825,
+            "endInsideRate": 0.5,
+            "pocTouchedRate": 0.4167
+          },
+          "h12": {
+            "averageDirectionalMoveRanges": 0.3625,
+            "medianDirectionalMoveRanges": 0.02,
+            "positiveDirectionalMoveRate": 0.5,
+            "averageFavorableMfeRanges": 1.1542,
+            "averageAdverseMfeRanges": 1.065,
+            "endInsideRate": 0.25,
+            "pocTouchedRate": 0.5833
+          }
+        },
+        "LOW": {
+          "profiles": 10,
+          "dates": 9,
+          "firstInsideRate": 0.8,
+          "medianFirstInsideMinutes": 29.875,
+          "pocTouchRate": 0.7,
+          "medianFirstPocTouchMinutes": 30.01,
+          "reacceptedAfterReentryRate": 0.6,
+          "oppositeBreakoutRate": 0.2,
+          "first1BarsMedianDirectionalFlowImbalance": -0.0235,
+          "first2BarsMedianDirectionalFlowImbalance": 0.0387,
+          "first3BarsMedianDirectionalFlowImbalance": 0.0256,
+          "h6": {
+            "averageDirectionalMoveRanges": -0.035,
+            "medianDirectionalMoveRanges": -0.295,
+            "positiveDirectionalMoveRate": 0.3,
+            "averageFavorableMfeRanges": 0.861,
+            "averageAdverseMfeRanges": 0.604,
+            "endInsideRate": 0.4,
+            "pocTouchedRate": 0.4
+          },
+          "h12": {
+            "averageDirectionalMoveRanges": -0.324,
+            "medianDirectionalMoveRanges": -0.29,
+            "positiveDirectionalMoveRate": 0.3,
+            "averageFavorableMfeRanges": 1.18,
+            "averageAdverseMfeRanges": 1.079,
+            "endInsideRate": 0.4,
+            "pocTouchedRate": 0.7
+          }
+        }
+      },
+      "byInitialTransition": {
+        "CONTINUOUS_ACCEPTANCE": {
+          "profiles": 5,
+          "dates": 5,
+          "firstInsideRate": 0.0,
+          "medianFirstInsideMinutes": null,
+          "pocTouchRate": 0.0,
+          "medianFirstPocTouchMinutes": null,
+          "reacceptedAfterReentryRate": 0.0,
+          "oppositeBreakoutRate": 0.0,
+          "first1BarsMedianDirectionalFlowImbalance": 0.0751,
+          "first2BarsMedianDirectionalFlowImbalance": 0.059,
+          "first3BarsMedianDirectionalFlowImbalance": 0.0263,
+          "h6": {
+            "averageDirectionalMoveRanges": 1.484,
+            "medianDirectionalMoveRanges": 1.35,
+            "positiveDirectionalMoveRate": 1.0,
+            "averageFavorableMfeRanges": 2.026,
+            "averageAdverseMfeRanges": 0.32,
+            "endInsideRate": 0.0,
+            "pocTouchedRate": 0.0
+          },
+          "h12": {
+            "averageDirectionalMoveRanges": 1.578,
+            "medianDirectionalMoveRanges": 1.65,
+            "positiveDirectionalMoveRate": 0.8,
+            "averageFavorableMfeRanges": 2.924,
+            "averageAdverseMfeRanges": 0.358,
+            "endInsideRate": 0.0,
+            "pocTouchedRate": 0.0
+          }
+        },
+        "EARLY_REJECTION": {
+          "profiles": 8,
+          "dates": 6,
+          "firstInsideRate": 1.0,
+          "medianFirstInsideMinutes": 9.97,
+          "pocTouchRate": 0.875,
+          "medianFirstPocTouchMinutes": 20.0,
+          "reacceptedAfterReentryRate": 1.0,
+          "oppositeBreakoutRate": 0.25,
+          "first1BarsMedianDirectionalFlowImbalance": -0.0878,
+          "first2BarsMedianDirectionalFlowImbalance": -0.0716,
+          "first3BarsMedianDirectionalFlowImbalance": -0.0448,
+          "h6": {
+            "averageDirectionalMoveRanges": -0.36,
+            "medianDirectionalMoveRanges": -0.4,
+            "positiveDirectionalMoveRate": 0.25,
+            "averageFavorableMfeRanges": 0.2475,
+            "averageAdverseMfeRanges": 0.935,
+            "endInsideRate": 0.75,
+            "pocTouchedRate": 0.625
+          },
+          "h12": {
+            "averageDirectionalMoveRanges": -0.2838,
+            "medianDirectionalMoveRanges": -0.07,
+            "positiveDirectionalMoveRate": 0.5,
+            "averageFavorableMfeRanges": 0.6512,
+            "averageAdverseMfeRanges": 1.2913,
+            "endInsideRate": 0.375,
+            "pocTouchedRate": 0.875
+          }
+        },
+        "DELAYED_REJECTION": {
+          "profiles": 9,
+          "dates": 8,
+          "firstInsideRate": 1.0,
+          "medianFirstInsideMinutes": 30.01,
+          "pocTouchRate": 0.7778,
+          "medianFirstPocTouchMinutes": 20.0,
+          "reacceptedAfterReentryRate": 0.5556,
+          "oppositeBreakoutRate": 0.3333,
+          "first1BarsMedianDirectionalFlowImbalance": 0.0409,
+          "first2BarsMedianDirectionalFlowImbalance": 0.0388,
+          "first3BarsMedianDirectionalFlowImbalance": 0.0451,
+          "h6": {
+            "averageDirectionalMoveRanges": -0.3233,
+            "medianDirectionalMoveRanges": -0.3,
+            "positiveDirectionalMoveRate": 0.2222,
+            "averageFavorableMfeRanges": 0.5978,
+            "averageAdverseMfeRanges": 0.7056,
+            "endInsideRate": 0.4444,
+            "pocTouchedRate": 0.4444
+          },
+          "h12": {
+            "averageDirectionalMoveRanges": -0.5011,
+            "medianDirectionalMoveRanges": -0.29,
+            "positiveDirectionalMoveRate": 0.1111,
+            "averageFavorableMfeRanges": 0.6467,
+            "averageAdverseMfeRanges": 1.2722,
+            "endInsideRate": 0.4444,
+            "pocTouchedRate": 0.7778
+          }
+        }
+      },
+      "byBoundaryAndInitialTransition": {
+        "HIGH": {
+          "CONTINUOUS_ACCEPTANCE": {
+            "profiles": 3,
+            "dates": 3,
+            "firstInsideRate": 0.0,
+            "medianFirstInsideMinutes": null,
+            "pocTouchRate": 0.0,
+            "medianFirstPocTouchMinutes": null,
+            "reacceptedAfterReentryRate": 0.0,
+            "oppositeBreakoutRate": 0.0,
+            "first1BarsMedianDirectionalFlowImbalance": 0.0361,
+            "first2BarsMedianDirectionalFlowImbalance": -0.0191,
+            "first3BarsMedianDirectionalFlowImbalance": 0.0089,
+            "h6": {
+              "averageDirectionalMoveRanges": 1.3133,
+              "medianDirectionalMoveRanges": 1.35,
+              "positiveDirectionalMoveRate": 1.0,
+              "averageFavorableMfeRanges": 1.7767,
+              "averageAdverseMfeRanges": 0.4933,
+              "endInsideRate": 0.0,
+              "pocTouchedRate": 0.0
+            },
+            "h12": {
+              "averageDirectionalMoveRanges": 1.5733,
+              "medianDirectionalMoveRanges": 1.65,
+              "positiveDirectionalMoveRate": 0.6667,
+              "averageFavorableMfeRanges": 2.9233,
+              "averageAdverseMfeRanges": 0.5567,
+              "endInsideRate": 0.0,
+              "pocTouchedRate": 0.0
+            }
+          },
+          "EARLY_REJECTION": {
+            "profiles": 5,
+            "dates": 4,
+            "firstInsideRate": 1.0,
+            "medianFirstInsideMinutes": 9.94,
+            "pocTouchRate": 0.8,
+            "medianFirstPocTouchMinutes": 12.575,
+            "reacceptedAfterReentryRate": 1.0,
+            "oppositeBreakoutRate": 0.2,
+            "first1BarsMedianDirectionalFlowImbalance": -0.188,
+            "first2BarsMedianDirectionalFlowImbalance": -0.0936,
+            "first3BarsMedianDirectionalFlowImbalance": -0.0385,
+            "h6": {
+              "averageDirectionalMoveRanges": -0.08,
+              "medianDirectionalMoveRanges": -0.28,
+              "positiveDirectionalMoveRate": 0.4,
+              "averageFavorableMfeRanges": 0.31,
+              "averageAdverseMfeRanges": 0.94,
+              "endInsideRate": 0.6,
+              "pocTouchedRate": 0.6
+            },
+            "h12": {
+              "averageDirectionalMoveRanges": 0.086,
+              "medianDirectionalMoveRanges": 0.21,
+              "positiveDirectionalMoveRate": 0.6,
+              "averageFavorableMfeRanges": 0.528,
+              "averageAdverseMfeRanges": 1.16,
+              "endInsideRate": 0.4,
+              "pocTouchedRate": 0.8
+            }
+          },
+          "DELAYED_REJECTION": {
+            "profiles": 4,
+            "dates": 4,
+            "firstInsideRate": 1.0,
+            "medianFirstInsideMinutes": 24.995,
+            "pocTouchRate": 0.75,
+            "medianFirstPocTouchMinutes": 20.0,
+            "reacceptedAfterReentryRate": 0.5,
+            "oppositeBreakoutRate": 0.5,
+            "first1BarsMedianDirectionalFlowImbalance": 0.0995,
+            "first2BarsMedianDirectionalFlowImbalance": 0.0471,
+            "first3BarsMedianDirectionalFlowImbalance": 0.0536,
+            "h6": {
+              "averageDirectionalMoveRanges": -0.39,
+              "medianDirectionalMoveRanges": -0.46,
+              "positiveDirectionalMoveRate": 0.25,
+              "averageFavorableMfeRanges": 0.5,
+              "averageAdverseMfeRanges": 0.8025,
+              "endInsideRate": 0.75,
+              "pocTouchedRate": 0.5
+            },
+            "h12": {
+              "averageDirectionalMoveRanges": -0.2,
+              "medianDirectionalMoveRanges": -0.195,
+              "positiveDirectionalMoveRate": 0.25,
+              "averageFavorableMfeRanges": 0.61,
+              "averageAdverseMfeRanges": 1.3275,
+              "endInsideRate": 0.25,
+              "pocTouchedRate": 0.75
+            }
+          }
+        },
+        "LOW": {
+          "CONTINUOUS_ACCEPTANCE": {
+            "profiles": 2,
+            "dates": 2,
+            "firstInsideRate": 0.0,
+            "medianFirstInsideMinutes": null,
+            "pocTouchRate": 0.0,
+            "medianFirstPocTouchMinutes": null,
+            "reacceptedAfterReentryRate": 0.0,
+            "oppositeBreakoutRate": 0.0,
+            "first1BarsMedianDirectionalFlowImbalance": 0.1437,
+            "first2BarsMedianDirectionalFlowImbalance": 0.0779,
+            "first3BarsMedianDirectionalFlowImbalance": 0.1026,
+            "h6": {
+              "averageDirectionalMoveRanges": 1.74,
+              "medianDirectionalMoveRanges": 1.74,
+              "positiveDirectionalMoveRate": 1.0,
+              "averageFavorableMfeRanges": 2.4,
+              "averageAdverseMfeRanges": 0.06,
+              "endInsideRate": 0.0,
+              "pocTouchedRate": 0.0
+            },
+            "h12": {
+              "averageDirectionalMoveRanges": 1.585,
+              "medianDirectionalMoveRanges": 1.585,
+              "positiveDirectionalMoveRate": 1.0,
+              "averageFavorableMfeRanges": 2.925,
+              "averageAdverseMfeRanges": 0.06,
+              "endInsideRate": 0.0,
+              "pocTouchedRate": 0.0
+            }
+          },
+          "EARLY_REJECTION": {
+            "profiles": 3,
+            "dates": 3,
+            "firstInsideRate": 1.0,
+            "medianFirstInsideMinutes": 10.0,
+            "pocTouchRate": 1.0,
+            "medianFirstPocTouchMinutes": 30.01,
+            "reacceptedAfterReentryRate": 1.0,
+            "oppositeBreakoutRate": 0.3333,
+            "first1BarsMedianDirectionalFlowImbalance": -0.0274,
+            "first2BarsMedianDirectionalFlowImbalance": -0.0512,
+            "first3BarsMedianDirectionalFlowImbalance": -0.0511,
+            "h6": {
+              "averageDirectionalMoveRanges": -0.8267,
+              "medianDirectionalMoveRanges": -0.84,
+              "positiveDirectionalMoveRate": 0.0,
+              "averageFavorableMfeRanges": 0.1433,
+              "averageAdverseMfeRanges": 0.9267,
+              "endInsideRate": 1.0,
+              "pocTouchedRate": 0.6667
+            },
+            "h12": {
+              "averageDirectionalMoveRanges": -0.9,
+              "medianDirectionalMoveRanges": -1.37,
+              "positiveDirectionalMoveRate": 0.3333,
+              "averageFavorableMfeRanges": 0.8567,
+              "averageAdverseMfeRanges": 1.51,
+              "endInsideRate": 0.3333,
+              "pocTouchedRate": 1.0
+            }
+          },
+          "DELAYED_REJECTION": {
+            "profiles": 5,
+            "dates": 4,
+            "firstInsideRate": 1.0,
+            "medianFirstInsideMinutes": 49.98,
+            "pocTouchRate": 0.8,
+            "medianFirstPocTouchMinutes": 27.54,
+            "reacceptedAfterReentryRate": 0.6,
+            "oppositeBreakoutRate": 0.2,
+            "first1BarsMedianDirectionalFlowImbalance": -0.0306,
+            "first2BarsMedianDirectionalFlowImbalance": 0.0388,
+            "first3BarsMedianDirectionalFlowImbalance": 0.0451,
+            "h6": {
+              "averageDirectionalMoveRanges": -0.27,
+              "medianDirectionalMoveRanges": -0.29,
+              "positiveDirectionalMoveRate": 0.2,
+              "averageFavorableMfeRanges": 0.676,
+              "averageAdverseMfeRanges": 0.628,
+              "endInsideRate": 0.2,
+              "pocTouchedRate": 0.4
+            },
+            "h12": {
+              "averageDirectionalMoveRanges": -0.742,
+              "medianDirectionalMoveRanges": -0.29,
+              "positiveDirectionalMoveRate": 0.0,
+              "averageFavorableMfeRanges": 0.676,
+              "averageAdverseMfeRanges": 1.228,
+              "endInsideRate": 0.6,
+              "pocTouchedRate": 0.8
+            }
+          }
+        }
+      },
+      "byFirst3BarsFlowRegime": {
+        "DIRECTIONAL_FLOW_POSITIVE": {
+          "profiles": 12,
+          "dates": 10,
+          "firstInsideRate": 0.6667,
+          "medianFirstInsideMinutes": 27.375,
+          "pocTouchRate": 0.5,
+          "medianFirstPocTouchMinutes": 25.005,
+          "reacceptedAfterReentryRate": 0.4167,
+          "oppositeBreakoutRate": 0.1667,
+          "first1BarsMedianDirectionalFlowImbalance": 0.0592,
+          "first2BarsMedianDirectionalFlowImbalance": 0.0489,
+          "first3BarsMedianDirectionalFlowImbalance": 0.0669,
+          "h6": {
+            "averageDirectionalMoveRanges": 0.2833,
+            "medianDirectionalMoveRanges": 0.025,
+            "positiveDirectionalMoveRate": 0.5,
+            "averageFavorableMfeRanges": 1.0567,
+            "averageAdverseMfeRanges": 0.5675,
+            "endInsideRate": 0.4167,
+            "pocTouchedRate": 0.3333
+          },
+          "h12": {
+            "averageDirectionalMoveRanges": 0.1225,
+            "medianDirectionalMoveRanges": 0.02,
+            "positiveDirectionalMoveRate": 0.5,
+            "averageFavorableMfeRanges": 1.23,
+            "averageAdverseMfeRanges": 0.8575,
+            "endInsideRate": 0.1667,
+            "pocTouchedRate": 0.5
+          }
+        },
+        "DIRECTIONAL_FLOW_NON_POSITIVE": {
+          "profiles": 10,
+          "dates": 7,
+          "firstInsideRate": 0.9,
+          "medianFirstInsideMinutes": 10.09,
+          "pocTouchRate": 0.8,
+          "medianFirstPocTouchMinutes": 20.0,
+          "reacceptedAfterReentryRate": 0.8,
+          "oppositeBreakoutRate": 0.3,
+          "first1BarsMedianDirectionalFlowImbalance": -0.0375,
+          "first2BarsMedianDirectionalFlowImbalance": -0.0546,
+          "first3BarsMedianDirectionalFlowImbalance": -0.05,
+          "h6": {
+            "averageDirectionalMoveRanges": -0.177,
+            "medianDirectionalMoveRanges": -0.29,
+            "positiveDirectionalMoveRate": 0.3,
+            "averageFavorableMfeRanges": 0.481,
+            "averageAdverseMfeRanges": 0.862,
+            "endInsideRate": 0.5,
+            "pocTouchedRate": 0.5
+          },
+          "h12": {
+            "averageDirectionalMoveRanges": -0.036,
+            "medianDirectionalMoveRanges": -0.29,
+            "positiveDirectionalMoveRate": 0.3,
+            "averageFavorableMfeRanges": 1.089,
+            "averageAdverseMfeRanges": 1.328,
+            "endInsideRate": 0.5,
+            "pocTouchedRate": 0.8
+          }
+        }
+      },
+      "byBoundaryAndFirst3BarsFlowRegime": {
+        "HIGH": {
+          "DIRECTIONAL_FLOW_POSITIVE": {
+            "profiles": 6,
+            "dates": 4,
+            "firstInsideRate": 0.6667,
+            "medianFirstInsideMinutes": 24.995,
+            "pocTouchRate": 0.5,
+            "medianFirstPocTouchMinutes": 20.0,
+            "reacceptedAfterReentryRate": 0.5,
+            "oppositeBreakoutRate": 0.1667,
+            "first1BarsMedianDirectionalFlowImbalance": 0.0678,
+            "first2BarsMedianDirectionalFlowImbalance": 0.0373,
+            "first3BarsMedianDirectionalFlowImbalance": 0.0372,
+            "h6": {
+              "averageDirectionalMoveRanges": 0.2783,
+              "medianDirectionalMoveRanges": 0.0,
+              "positiveDirectionalMoveRate": 0.5,
+              "averageFavorableMfeRanges": 0.93,
+              "averageAdverseMfeRanges": 0.6067,
+              "endInsideRate": 0.5,
+              "pocTouchedRate": 0.3333
+            },
+            "h12": {
+              "averageDirectionalMoveRanges": 0.1617,
+              "medianDirectionalMoveRanges": 0.02,
+              "positiveDirectionalMoveRate": 0.5,
+              "averageFavorableMfeRanges": 1.0283,
+              "averageAdverseMfeRanges": 0.885,
+              "endInsideRate": 0.0,
+              "pocTouchedRate": 0.5
+            }
+          },
+          "DIRECTIONAL_FLOW_NON_POSITIVE": {
+            "profiles": 6,
+            "dates": 5,
+            "firstInsideRate": 0.8333,
+            "medianFirstInsideMinutes": 10.08,
+            "pocTouchRate": 0.6667,
+            "medianFirstPocTouchMinutes": 15.11,
+            "reacceptedAfterReentryRate": 0.6667,
+            "oppositeBreakoutRate": 0.3333,
+            "first1BarsMedianDirectionalFlowImbalance": -0.158,
+            "first2BarsMedianDirectionalFlowImbalance": -0.0893,
+            "first3BarsMedianDirectionalFlowImbalance": -0.0437,
+            "h6": {
+              "averageDirectionalMoveRanges": 0.0517,
+              "medianDirectionalMoveRanges": -0.01,
+              "positiveDirectionalMoveRate": 0.5,
+              "averageFavorableMfeRanges": 0.55,
+              "averageAdverseMfeRanges": 0.9583,
+              "endInsideRate": 0.5,
+              "pocTouchedRate": 0.5
+            },
+            "h12": {
+              "averageDirectionalMoveRanges": 0.5633,
+              "medianDirectionalMoveRanges": 0.105,
+              "positiveDirectionalMoveRate": 0.5,
+              "averageFavorableMfeRanges": 1.28,
+              "averageAdverseMfeRanges": 1.245,
+              "endInsideRate": 0.5,
+              "pocTouchedRate": 0.6667
+            }
+          }
+        },
+        "LOW": {
+          "DIRECTIONAL_FLOW_POSITIVE": {
+            "profiles": 6,
+            "dates": 6,
+            "firstInsideRate": 0.6667,
+            "medianFirstInsideMinutes": 37.37,
+            "pocTouchRate": 0.5,
+            "medianFirstPocTouchMinutes": 30.01,
+            "reacceptedAfterReentryRate": 0.3333,
+            "oppositeBreakoutRate": 0.1667,
+            "first1BarsMedianDirectionalFlowImbalance": 0.0259,
+            "first2BarsMedianDirectionalFlowImbalance": 0.0551,
+            "first3BarsMedianDirectionalFlowImbalance": 0.0958,
+            "h6": {
+              "averageDirectionalMoveRanges": 0.2883,
+              "medianDirectionalMoveRanges": 0.18,
+              "positiveDirectionalMoveRate": 0.5,
+              "averageFavorableMfeRanges": 1.1833,
+              "averageAdverseMfeRanges": 0.5283,
+              "endInsideRate": 0.3333,
+              "pocTouchedRate": 0.3333
+            },
+            "h12": {
+              "averageDirectionalMoveRanges": 0.0833,
+              "medianDirectionalMoveRanges": 0.085,
+              "positiveDirectionalMoveRate": 0.5,
+              "averageFavorableMfeRanges": 1.4317,
+              "averageAdverseMfeRanges": 0.83,
+              "endInsideRate": 0.3333,
+              "pocTouchedRate": 0.5
+            }
+          },
+          "DIRECTIONAL_FLOW_NON_POSITIVE": {
+            "profiles": 4,
+            "dates": 4,
+            "firstInsideRate": 1.0,
+            "medianFirstInsideMinutes": 24.985,
+            "pocTouchRate": 1.0,
+            "medianFirstPocTouchMinutes": 27.49,
+            "reacceptedAfterReentryRate": 1.0,
+            "oppositeBreakoutRate": 0.25,
+            "first1BarsMedianDirectionalFlowImbalance": -0.0235,
+            "first2BarsMedianDirectionalFlowImbalance": -0.0063,
+            "first3BarsMedianDirectionalFlowImbalance": -0.0585,
+            "h6": {
+              "averageDirectionalMoveRanges": -0.52,
+              "medianDirectionalMoveRanges": -0.57,
+              "positiveDirectionalMoveRate": 0.0,
+              "averageFavorableMfeRanges": 0.3775,
+              "averageAdverseMfeRanges": 0.7175,
+              "endInsideRate": 0.5,
+              "pocTouchedRate": 0.5
+            },
+            "h12": {
+              "averageDirectionalMoveRanges": -0.935,
+              "medianDirectionalMoveRanges": -0.83,
+              "positiveDirectionalMoveRate": 0.0,
+              "averageFavorableMfeRanges": 0.8025,
+              "averageAdverseMfeRanges": 1.4525,
+              "endInsideRate": 0.5,
+              "pocTouchedRate": 1.0
+            }
+          }
+        }
+      },
+      "overlappingTrajectoryTags": {
+        "REJECTION_TO_POC": {
+          "profiles": 14,
+          "dates": 11,
+          "firstInsideRate": 1.0,
+          "medianFirstInsideMinutes": 15.025,
+          "pocTouchRate": 1.0,
+          "medianFirstPocTouchMinutes": 20.0,
+          "reacceptedAfterReentryRate": 0.7857,
+          "oppositeBreakoutRate": 0.3571,
+          "first1BarsMedianDirectionalFlowImbalance": -0.0235,
+          "first2BarsMedianDirectionalFlowImbalance": 0.0155,
+          "first3BarsMedianDirectionalFlowImbalance": -0.0276,
+          "h6": {
+            "averageDirectionalMoveRanges": -0.4614,
+            "medianDirectionalMoveRanges": -0.4,
+            "positiveDirectionalMoveRate": 0.1429,
+            "averageFavorableMfeRanges": 0.3743,
+            "averageAdverseMfeRanges": 0.8757,
+            "endInsideRate": 0.6429,
+            "pocTouchedRate": 0.6429
+          },
+          "h12": {
+            "averageDirectionalMoveRanges": -0.4343,
+            "medianDirectionalMoveRanges": -0.29,
+            "positiveDirectionalMoveRate": 0.2857,
+            "averageFavorableMfeRanges": 0.615,
+            "averageAdverseMfeRanges": 1.3657,
+            "endInsideRate": 0.4286,
+            "pocTouchedRate": 1.0
+          }
+        },
+        "REACCEPTANCE_AFTER_REENTRY": {
+          "profiles": 13,
+          "dates": 11,
+          "firstInsideRate": 1.0,
+          "medianFirstInsideMinutes": 10.09,
+          "pocTouchRate": 0.8462,
+          "medianFirstPocTouchMinutes": 20.0,
+          "reacceptedAfterReentryRate": 1.0,
+          "oppositeBreakoutRate": 0.1538,
+          "first1BarsMedianDirectionalFlowImbalance": -0.0274,
+          "first2BarsMedianDirectionalFlowImbalance": 0.0105,
+          "first3BarsMedianDirectionalFlowImbalance": -0.0351,
+          "h6": {
+            "averageDirectionalMoveRanges": -0.2769,
+            "medianDirectionalMoveRanges": -0.3,
+            "positiveDirectionalMoveRate": 0.2308,
+            "averageFavorableMfeRanges": 0.3977,
+            "averageAdverseMfeRanges": 0.8,
+            "endInsideRate": 0.5385,
+            "pocTouchedRate": 0.5385
+          },
+          "h12": {
+            "averageDirectionalMoveRanges": -0.1769,
+            "medianDirectionalMoveRanges": -0.29,
+            "positiveDirectionalMoveRate": 0.3846,
+            "averageFavorableMfeRanges": 0.68,
+            "averageAdverseMfeRanges": 1.16,
+            "endInsideRate": 0.3077,
+            "pocTouchedRate": 0.8462
+          }
+        },
+        "OPPOSITE_BREAKOUT": {
+          "profiles": 5,
+          "dates": 5,
+          "firstInsideRate": 1.0,
+          "medianFirstInsideMinutes": 15.07,
+          "pocTouchRate": 1.0,
+          "medianFirstPocTouchMinutes": 19.84,
+          "reacceptedAfterReentryRate": 0.4,
+          "oppositeBreakoutRate": 1.0,
+          "first1BarsMedianDirectionalFlowImbalance": -0.0274,
+          "first2BarsMedianDirectionalFlowImbalance": 0.0154,
+          "first3BarsMedianDirectionalFlowImbalance": -0.0385,
+          "h6": {
+            "averageDirectionalMoveRanges": -0.684,
+            "medianDirectionalMoveRanges": -0.84,
+            "positiveDirectionalMoveRate": 0.2,
+            "averageFavorableMfeRanges": 0.288,
+            "averageAdverseMfeRanges": 1.164,
+            "endInsideRate": 0.8,
+            "pocTouchedRate": 0.8
+          },
+          "h12": {
+            "averageDirectionalMoveRanges": -0.88,
+            "medianDirectionalMoveRanges": -1.42,
+            "positiveDirectionalMoveRate": 0.2,
+            "averageFavorableMfeRanges": 0.786,
+            "averageAdverseMfeRanges": 1.826,
+            "endInsideRate": 0.4,
+            "pocTouchedRate": 1.0
+          }
+        }
+      }
+    },
+    "train": {
+      "all": {
+        "profiles": 15,
+        "dates": 10,
+        "firstInsideRate": 0.8,
+        "medianFirstInsideMinutes": 22.38,
+        "pocTouchRate": 0.6667,
+        "medianFirstPocTouchMinutes": 27.49,
+        "reacceptedAfterReentryRate": 0.5333,
+        "oppositeBreakoutRate": 0.2667,
+        "first1BarsMedianDirectionalFlowImbalance": -0.0196,
+        "first2BarsMedianDirectionalFlowImbalance": 0.0387,
+        "first3BarsMedianDirectionalFlowImbalance": 0.0214,
+        "h6": {
+          "averageDirectionalMoveRanges": 0.04,
+          "medianDirectionalMoveRanges": -0.29,
+          "positiveDirectionalMoveRate": 0.4,
+          "averageFavorableMfeRanges": 0.8567,
+          "averageAdverseMfeRanges": 0.6573,
+          "endInsideRate": 0.4,
+          "pocTouchedRate": 0.3333
+        },
+        "h12": {
+          "averageDirectionalMoveRanges": -0.332,
+          "medianDirectionalMoveRanges": -0.29,
+          "positiveDirectionalMoveRate": 0.2667,
+          "averageFavorableMfeRanges": 1.0893,
+          "averageAdverseMfeRanges": 1.176,
+          "endInsideRate": 0.4,
+          "pocTouchedRate": 0.6667
+        }
+      },
+      "byBoundary": {
+        "HIGH": {
+          "profiles": 6,
+          "dates": 5,
+          "firstInsideRate": 0.8333,
+          "medianFirstInsideMinutes": 15.07,
+          "pocTouchRate": 0.6667,
+          "medianFirstPocTouchMinutes": 27.51,
+          "reacceptedAfterReentryRate": 0.5,
+          "oppositeBreakoutRate": 0.3333,
+          "first1BarsMedianDirectionalFlowImbalance": 0.0385,
+          "first2BarsMedianDirectionalFlowImbalance": 0.0155,
+          "first3BarsMedianDirectionalFlowImbalance": -0.0069,
+          "h6": {
+            "averageDirectionalMoveRanges": 0.03,
+            "medianDirectionalMoveRanges": -0.06,
+            "positiveDirectionalMoveRate": 0.5,
+            "averageFavorableMfeRanges": 0.7133,
+            "averageAdverseMfeRanges": 0.785,
+            "endInsideRate": 0.5,
+            "pocTouchedRate": 0.3333
+          },
+          "h12": {
+            "averageDirectionalMoveRanges": -0.2133,
+            "medianDirectionalMoveRanges": -0.265,
+            "positiveDirectionalMoveRate": 0.3333,
+            "averageFavorableMfeRanges": 0.8367,
+            "averageAdverseMfeRanges": 1.2917,
+            "endInsideRate": 0.3333,
+            "pocTouchedRate": 0.6667
+          }
+        },
+        "LOW": {
+          "profiles": 9,
+          "dates": 8,
+          "firstInsideRate": 0.7778,
+          "medianFirstInsideMinutes": 34.99,
+          "pocTouchRate": 0.6667,
+          "medianFirstPocTouchMinutes": 27.49,
+          "reacceptedAfterReentryRate": 0.5556,
+          "oppositeBreakoutRate": 0.2222,
+          "first1BarsMedianDirectionalFlowImbalance": -0.0274,
+          "first2BarsMedianDirectionalFlowImbalance": 0.0388,
+          "first3BarsMedianDirectionalFlowImbalance": 0.0451,
+          "h6": {
+            "averageDirectionalMoveRanges": 0.0467,
+            "medianDirectionalMoveRanges": -0.29,
+            "positiveDirectionalMoveRate": 0.3333,
+            "averageFavorableMfeRanges": 0.9522,
+            "averageAdverseMfeRanges": 0.5722,
+            "endInsideRate": 0.3333,
+            "pocTouchedRate": 0.3333
+          },
+          "h12": {
+            "averageDirectionalMoveRanges": -0.4111,
+            "medianDirectionalMoveRanges": -0.29,
+            "positiveDirectionalMoveRate": 0.2222,
+            "averageFavorableMfeRanges": 1.2578,
+            "averageAdverseMfeRanges": 1.0989,
+            "endInsideRate": 0.4444,
+            "pocTouchedRate": 0.6667
+          }
+        }
+      },
+      "byInitialTransition": {
+        "CONTINUOUS_ACCEPTANCE": {
+          "profiles": 3,
+          "dates": 3,
+          "firstInsideRate": 0.0,
+          "medianFirstInsideMinutes": null,
+          "pocTouchRate": 0.0,
+          "medianFirstPocTouchMinutes": null,
+          "reacceptedAfterReentryRate": 0.0,
+          "oppositeBreakoutRate": 0.0,
+          "first1BarsMedianDirectionalFlowImbalance": 0.0824,
+          "first2BarsMedianDirectionalFlowImbalance": 0.0714,
+          "first3BarsMedianDirectionalFlowImbalance": 0.1007,
+          "h6": {
+            "averageDirectionalMoveRanges": 1.62,
+            "medianDirectionalMoveRanges": 1.38,
+            "positiveDirectionalMoveRate": 1.0,
+            "averageFavorableMfeRanges": 2.2833,
+            "averageAdverseMfeRanges": 0.17,
+            "endInsideRate": 0.0,
+            "pocTouchedRate": 0.0
+          },
+          "h12": {
+            "averageDirectionalMoveRanges": 0.9533,
+            "medianDirectionalMoveRanges": 1.05,
+            "positiveDirectionalMoveRate": 0.6667,
+            "averageFavorableMfeRanges": 2.6333,
+            "averageAdverseMfeRanges": 0.2333,
+            "endInsideRate": 0.0,
+            "pocTouchedRate": 0.0
+          }
+        },
+        "EARLY_REJECTION": {
+          "profiles": 4,
+          "dates": 3,
+          "firstInsideRate": 1.0,
+          "medianFirstInsideMinutes": 9.97,
+          "pocTouchRate": 0.75,
+          "medianFirstPocTouchMinutes": 34.98,
+          "reacceptedAfterReentryRate": 1.0,
+          "oppositeBreakoutRate": 0.25,
+          "first1BarsMedianDirectionalFlowImbalance": -0.0878,
+          "first2BarsMedianDirectionalFlowImbalance": -0.0758,
+          "first3BarsMedianDirectionalFlowImbalance": -0.0585,
+          "h6": {
+            "averageDirectionalMoveRanges": -0.4375,
+            "medianDirectionalMoveRanges": -0.65,
+            "positiveDirectionalMoveRate": 0.25,
+            "averageFavorableMfeRanges": 0.2475,
+            "averageAdverseMfeRanges": 0.875,
+            "endInsideRate": 0.75,
+            "pocTouchedRate": 0.25
+          },
+          "h12": {
+            "averageDirectionalMoveRanges": -0.875,
+            "medianDirectionalMoveRanges": -1.07,
+            "positiveDirectionalMoveRate": 0.25,
+            "averageFavorableMfeRanges": 0.7475,
+            "averageAdverseMfeRanges": 1.535,
+            "endInsideRate": 0.5,
+            "pocTouchedRate": 0.75
+          }
+        },
+        "DELAYED_REJECTION": {
+          "profiles": 8,
+          "dates": 7,
+          "firstInsideRate": 1.0,
+          "medianFirstInsideMinutes": 32.5,
+          "pocTouchRate": 0.875,
+          "medianFirstPocTouchMinutes": 20.0,
+          "reacceptedAfterReentryRate": 0.5,
+          "oppositeBreakoutRate": 0.375,
+          "first1BarsMedianDirectionalFlowImbalance": 0.0106,
+          "first2BarsMedianDirectionalFlowImbalance": 0.0387,
+          "first3BarsMedianDirectionalFlowImbalance": 0.0333,
+          "h6": {
+            "averageDirectionalMoveRanges": -0.3137,
+            "medianDirectionalMoveRanges": -0.295,
+            "positiveDirectionalMoveRate": 0.25,
+            "averageFavorableMfeRanges": 0.6262,
+            "averageAdverseMfeRanges": 0.7312,
+            "endInsideRate": 0.375,
+            "pocTouchedRate": 0.5
+          },
+          "h12": {
+            "averageDirectionalMoveRanges": -0.5425,
+            "medianDirectionalMoveRanges": -0.29,
+            "positiveDirectionalMoveRate": 0.125,
+            "averageFavorableMfeRanges": 0.6813,
+            "averageAdverseMfeRanges": 1.35,
+            "endInsideRate": 0.5,
+            "pocTouchedRate": 0.875
+          }
+        }
+      },
+      "byBoundaryAndInitialTransition": {
+        "HIGH": {
+          "CONTINUOUS_ACCEPTANCE": {
+            "profiles": 1,
+            "dates": 1,
+            "firstInsideRate": 0.0,
+            "medianFirstInsideMinutes": null,
+            "pocTouchRate": 0.0,
+            "medianFirstPocTouchMinutes": null,
+            "reacceptedAfterReentryRate": 0.0,
+            "oppositeBreakoutRate": 0.0,
+            "first1BarsMedianDirectionalFlowImbalance": 0.0361,
+            "first2BarsMedianDirectionalFlowImbalance": 0.059,
+            "first3BarsMedianDirectionalFlowImbalance": 0.0263,
+            "h6": {
+              "averageDirectionalMoveRanges": 1.38,
+              "medianDirectionalMoveRanges": 1.38,
+              "positiveDirectionalMoveRate": 1.0,
+              "averageFavorableMfeRanges": 2.05,
+              "averageAdverseMfeRanges": 0.39,
+              "endInsideRate": 0.0,
+              "pocTouchedRate": 0.0
+            },
+            "h12": {
+              "averageDirectionalMoveRanges": -0.31,
+              "medianDirectionalMoveRanges": -0.31,
+              "positiveDirectionalMoveRate": 0.0,
+              "averageFavorableMfeRanges": 2.05,
+              "averageAdverseMfeRanges": 0.58,
+              "endInsideRate": 0.0,
+              "pocTouchedRate": 0.0
+            }
+          },
+          "EARLY_REJECTION": {
+            "profiles": 2,
+            "dates": 2,
+            "firstInsideRate": 1.0,
+            "medianFirstInsideMinutes": 7.45,
+            "pocTouchRate": 0.5,
+            "medianFirstPocTouchMinutes": 49.91,
+            "reacceptedAfterReentryRate": 1.0,
+            "oppositeBreakoutRate": 0.0,
+            "first1BarsMedianDirectionalFlowImbalance": -0.1721,
+            "first2BarsMedianDirectionalFlowImbalance": -0.1158,
+            "first3BarsMedianDirectionalFlowImbalance": -0.0514,
+            "h6": {
+              "averageDirectionalMoveRanges": -0.02,
+              "medianDirectionalMoveRanges": -0.02,
+              "positiveDirectionalMoveRate": 0.5,
+              "averageFavorableMfeRanges": 0.3,
+              "averageAdverseMfeRanges": 0.805,
+              "endInsideRate": 0.5,
+              "pocTouchedRate": 0.0
+            },
+            "h12": {
+              "averageDirectionalMoveRanges": -0.17,
+              "medianDirectionalMoveRanges": -0.17,
+              "positiveDirectionalMoveRate": 0.5,
+              "averageFavorableMfeRanges": 0.45,
+              "averageAdverseMfeRanges": 1.255,
+              "endInsideRate": 0.5,
+              "pocTouchedRate": 0.5
+            }
+          },
+          "DELAYED_REJECTION": {
+            "profiles": 3,
+            "dates": 3,
+            "firstInsideRate": 1.0,
+            "medianFirstInsideMinutes": 20.0,
+            "pocTouchRate": 1.0,
+            "medianFirstPocTouchMinutes": 20.0,
+            "reacceptedAfterReentryRate": 0.3333,
+            "oppositeBreakoutRate": 0.6667,
+            "first1BarsMedianDirectionalFlowImbalance": 0.0994,
+            "first2BarsMedianDirectionalFlowImbalance": 0.0157,
+            "first3BarsMedianDirectionalFlowImbalance": 0.0214,
+            "h6": {
+              "averageDirectionalMoveRanges": -0.3867,
+              "medianDirectionalMoveRanges": -0.52,
+              "positiveDirectionalMoveRate": 0.3333,
+              "averageFavorableMfeRanges": 0.5433,
+              "averageAdverseMfeRanges": 0.9033,
+              "endInsideRate": 0.6667,
+              "pocTouchedRate": 0.6667
+            },
+            "h12": {
+              "averageDirectionalMoveRanges": -0.21,
+              "medianDirectionalMoveRanges": -0.22,
+              "positiveDirectionalMoveRate": 0.3333,
+              "averageFavorableMfeRanges": 0.69,
+              "averageAdverseMfeRanges": 1.5533,
+              "endInsideRate": 0.3333,
+              "pocTouchedRate": 1.0
+            }
+          }
+        },
+        "LOW": {
+          "CONTINUOUS_ACCEPTANCE": {
+            "profiles": 2,
+            "dates": 2,
+            "firstInsideRate": 0.0,
+            "medianFirstInsideMinutes": null,
+            "pocTouchRate": 0.0,
+            "medianFirstPocTouchMinutes": null,
+            "reacceptedAfterReentryRate": 0.0,
+            "oppositeBreakoutRate": 0.0,
+            "first1BarsMedianDirectionalFlowImbalance": 0.1437,
+            "first2BarsMedianDirectionalFlowImbalance": 0.0779,
+            "first3BarsMedianDirectionalFlowImbalance": 0.1026,
+            "h6": {
+              "averageDirectionalMoveRanges": 1.74,
+              "medianDirectionalMoveRanges": 1.74,
+              "positiveDirectionalMoveRate": 1.0,
+              "averageFavorableMfeRanges": 2.4,
+              "averageAdverseMfeRanges": 0.06,
+              "endInsideRate": 0.0,
+              "pocTouchedRate": 0.0
+            },
+            "h12": {
+              "averageDirectionalMoveRanges": 1.585,
+              "medianDirectionalMoveRanges": 1.585,
+              "positiveDirectionalMoveRate": 1.0,
+              "averageFavorableMfeRanges": 2.925,
+              "averageAdverseMfeRanges": 0.06,
+              "endInsideRate": 0.0,
+              "pocTouchedRate": 0.0
+            }
+          },
+          "EARLY_REJECTION": {
+            "profiles": 2,
+            "dates": 2,
+            "firstInsideRate": 1.0,
+            "medianFirstInsideMinutes": 12.49,
+            "pocTouchRate": 1.0,
+            "medianFirstPocTouchMinutes": 27.49,
+            "reacceptedAfterReentryRate": 1.0,
+            "oppositeBreakoutRate": 0.5,
+            "first1BarsMedianDirectionalFlowImbalance": -0.0375,
+            "first2BarsMedianDirectionalFlowImbalance": -0.0546,
+            "first3BarsMedianDirectionalFlowImbalance": -0.0585,
+            "h6": {
+              "averageDirectionalMoveRanges": -0.855,
+              "medianDirectionalMoveRanges": -0.855,
+              "positiveDirectionalMoveRate": 0.0,
+              "averageFavorableMfeRanges": 0.195,
+              "averageAdverseMfeRanges": 0.945,
+              "endInsideRate": 1.0,
+              "pocTouchedRate": 0.5
+            },
+            "h12": {
+              "averageDirectionalMoveRanges": -1.58,
+              "medianDirectionalMoveRanges": -1.58,
+              "positiveDirectionalMoveRate": 0.0,
+              "averageFavorableMfeRanges": 1.045,
+              "averageAdverseMfeRanges": 1.815,
+              "endInsideRate": 0.5,
+              "pocTouchedRate": 1.0
+            }
+          },
+          "DELAYED_REJECTION": {
+            "profiles": 5,
+            "dates": 4,
+            "firstInsideRate": 1.0,
+            "medianFirstInsideMinutes": 49.98,
+            "pocTouchRate": 0.8,
+            "medianFirstPocTouchMinutes": 27.54,
+            "reacceptedAfterReentryRate": 0.6,
+            "oppositeBreakoutRate": 0.2,
+            "first1BarsMedianDirectionalFlowImbalance": -0.0306,
+            "first2BarsMedianDirectionalFlowImbalance": 0.0388,
+            "first3BarsMedianDirectionalFlowImbalance": 0.0451,
+            "h6": {
+              "averageDirectionalMoveRanges": -0.27,
+              "medianDirectionalMoveRanges": -0.29,
+              "positiveDirectionalMoveRate": 0.2,
+              "averageFavorableMfeRanges": 0.676,
+              "averageAdverseMfeRanges": 0.628,
+              "endInsideRate": 0.2,
+              "pocTouchedRate": 0.4
+            },
+            "h12": {
+              "averageDirectionalMoveRanges": -0.742,
+              "medianDirectionalMoveRanges": -0.29,
+              "positiveDirectionalMoveRate": 0.0,
+              "averageFavorableMfeRanges": 0.676,
+              "averageAdverseMfeRanges": 1.228,
+              "endInsideRate": 0.6,
+              "pocTouchedRate": 0.8
+            }
+          }
+        }
+      },
+      "byFirst3BarsFlowRegime": {
+        "DIRECTIONAL_FLOW_POSITIVE": {
+          "profiles": 8,
+          "dates": 7,
+          "firstInsideRate": 0.625,
+          "medianFirstInsideMinutes": 30.01,
+          "pocTouchRate": 0.5,
+          "medianFirstPocTouchMinutes": 27.51,
+          "reacceptedAfterReentryRate": 0.25,
+          "oppositeBreakoutRate": 0.25,
+          "first1BarsMedianDirectionalFlowImbalance": 0.0592,
+          "first2BarsMedianDirectionalFlowImbalance": 0.0652,
+          "first3BarsMedianDirectionalFlowImbalance": 0.0917,
+          "h6": {
+            "averageDirectionalMoveRanges": 0.4625,
+            "medianDirectionalMoveRanges": 0.495,
+            "positiveDirectionalMoveRate": 0.625,
+            "averageFavorableMfeRanges": 1.265,
+            "averageAdverseMfeRanges": 0.5363,
+            "endInsideRate": 0.25,
+            "pocTouchedRate": 0.25
+          },
+          "h12": {
+            "averageDirectionalMoveRanges": -0.085,
+            "medianDirectionalMoveRanges": -0.3,
+            "positiveDirectionalMoveRate": 0.375,
+            "averageFavorableMfeRanges": 1.4512,
+            "averageAdverseMfeRanges": 0.9337,
+            "endInsideRate": 0.25,
+            "pocTouchedRate": 0.5
+          }
+        },
+        "DIRECTIONAL_FLOW_NON_POSITIVE": {
+          "profiles": 7,
+          "dates": 5,
+          "firstInsideRate": 1.0,
+          "medianFirstInsideMinutes": 14.98,
+          "pocTouchRate": 0.8571,
+          "medianFirstPocTouchMinutes": 27.49,
+          "reacceptedAfterReentryRate": 0.8571,
+          "oppositeBreakoutRate": 0.2857,
+          "first1BarsMedianDirectionalFlowImbalance": -0.0274,
+          "first2BarsMedianDirectionalFlowImbalance": -0.0512,
+          "first3BarsMedianDirectionalFlowImbalance": -0.0511,
+          "h6": {
+            "averageDirectionalMoveRanges": -0.4429,
+            "medianDirectionalMoveRanges": -0.46,
+            "positiveDirectionalMoveRate": 0.1429,
+            "averageFavorableMfeRanges": 0.39,
+            "averageAdverseMfeRanges": 0.7957,
+            "endInsideRate": 0.5714,
+            "pocTouchedRate": 0.4286
+          },
+          "h12": {
+            "averageDirectionalMoveRanges": -0.6143,
+            "medianDirectionalMoveRanges": -0.29,
+            "positiveDirectionalMoveRate": 0.1429,
+            "averageFavorableMfeRanges": 0.6757,
+            "averageAdverseMfeRanges": 1.4529,
+            "endInsideRate": 0.5714,
+            "pocTouchedRate": 0.8571
+          }
+        }
+      },
+      "byBoundaryAndFirst3BarsFlowRegime": {
+        "HIGH": {
+          "DIRECTIONAL_FLOW_POSITIVE": {
+            "profiles": 3,
+            "dates": 2,
+            "firstInsideRate": 0.6667,
+            "medianFirstInsideMinutes": 25.005,
+            "pocTouchRate": 0.6667,
+            "medianFirstPocTouchMinutes": 27.51,
+            "reacceptedAfterReentryRate": 0.3333,
+            "oppositeBreakoutRate": 0.3333,
+            "first1BarsMedianDirectionalFlowImbalance": 0.0994,
+            "first2BarsMedianDirectionalFlowImbalance": 0.059,
+            "first3BarsMedianDirectionalFlowImbalance": 0.0263,
+            "h6": {
+              "averageDirectionalMoveRanges": 0.4,
+              "medianDirectionalMoveRanges": 0.34,
+              "positiveDirectionalMoveRate": 0.6667,
+              "averageFavorableMfeRanges": 1.02,
+              "averageAdverseMfeRanges": 0.67,
+              "endInsideRate": 0.3333,
+              "pocTouchedRate": 0.3333
+            },
+            "h12": {
+              "averageDirectionalMoveRanges": -0.24,
+              "medianDirectionalMoveRanges": -0.31,
+              "positiveDirectionalMoveRate": 0.3333,
+              "averageFavorableMfeRanges": 1.1667,
+              "averageAdverseMfeRanges": 1.13,
+              "endInsideRate": 0.0,
+              "pocTouchedRate": 0.6667
+            }
+          },
+          "DIRECTIONAL_FLOW_NON_POSITIVE": {
+            "profiles": 3,
+            "dates": 3,
+            "firstInsideRate": 1.0,
+            "medianFirstInsideMinutes": 9.94,
+            "pocTouchRate": 0.6667,
+            "medianFirstPocTouchMinutes": 32.49,
+            "reacceptedAfterReentryRate": 0.6667,
+            "oppositeBreakoutRate": 0.3333,
+            "first1BarsMedianDirectionalFlowImbalance": -0.128,
+            "first2BarsMedianDirectionalFlowImbalance": -0.0936,
+            "first3BarsMedianDirectionalFlowImbalance": -0.049,
+            "h6": {
+              "averageDirectionalMoveRanges": -0.34,
+              "medianDirectionalMoveRanges": -0.46,
+              "positiveDirectionalMoveRate": 0.3333,
+              "averageFavorableMfeRanges": 0.4067,
+              "averageAdverseMfeRanges": 0.9,
+              "endInsideRate": 0.6667,
+              "pocTouchedRate": 0.3333
+            },
+            "h12": {
+              "averageDirectionalMoveRanges": -0.1867,
+              "medianDirectionalMoveRanges": -0.22,
+              "positiveDirectionalMoveRate": 0.3333,
+              "averageFavorableMfeRanges": 0.5067,
+              "averageAdverseMfeRanges": 1.4533,
+              "endInsideRate": 0.6667,
+              "pocTouchedRate": 0.6667
+            }
+          }
+        },
+        "LOW": {
+          "DIRECTIONAL_FLOW_POSITIVE": {
+            "profiles": 5,
+            "dates": 5,
+            "firstInsideRate": 0.6,
+            "medianFirstInsideMinutes": 49.98,
+            "pocTouchRate": 0.4,
+            "medianFirstPocTouchMinutes": 39.895,
+            "reacceptedAfterReentryRate": 0.2,
+            "oppositeBreakoutRate": 0.2,
+            "first1BarsMedianDirectionalFlowImbalance": -0.0306,
+            "first2BarsMedianDirectionalFlowImbalance": 0.0714,
+            "first3BarsMedianDirectionalFlowImbalance": 0.1007,
+            "h6": {
+              "averageDirectionalMoveRanges": 0.5,
+              "medianDirectionalMoveRanges": 0.65,
+              "positiveDirectionalMoveRate": 0.6,
+              "averageFavorableMfeRanges": 1.412,
+              "averageAdverseMfeRanges": 0.456,
+              "endInsideRate": 0.2,
+              "pocTouchedRate": 0.2
+            },
+            "h12": {
+              "averageDirectionalMoveRanges": 0.008,
+              "medianDirectionalMoveRanges": -0.29,
+              "positiveDirectionalMoveRate": 0.4,
+              "averageFavorableMfeRanges": 1.622,
+              "averageAdverseMfeRanges": 0.816,
+              "endInsideRate": 0.4,
+              "pocTouchedRate": 0.4
+            }
+          },
+          "DIRECTIONAL_FLOW_NON_POSITIVE": {
+            "profiles": 4,
+            "dates": 4,
+            "firstInsideRate": 1.0,
+            "medianFirstInsideMinutes": 24.985,
+            "pocTouchRate": 1.0,
+            "medianFirstPocTouchMinutes": 27.49,
+            "reacceptedAfterReentryRate": 1.0,
+            "oppositeBreakoutRate": 0.25,
+            "first1BarsMedianDirectionalFlowImbalance": -0.0235,
+            "first2BarsMedianDirectionalFlowImbalance": -0.0063,
+            "first3BarsMedianDirectionalFlowImbalance": -0.0585,
+            "h6": {
+              "averageDirectionalMoveRanges": -0.52,
+              "medianDirectionalMoveRanges": -0.57,
+              "positiveDirectionalMoveRate": 0.0,
+              "averageFavorableMfeRanges": 0.3775,
+              "averageAdverseMfeRanges": 0.7175,
+              "endInsideRate": 0.5,
+              "pocTouchedRate": 0.5
+            },
+            "h12": {
+              "averageDirectionalMoveRanges": -0.935,
+              "medianDirectionalMoveRanges": -0.83,
+              "positiveDirectionalMoveRate": 0.0,
+              "averageFavorableMfeRanges": 0.8025,
+              "averageAdverseMfeRanges": 1.4525,
+              "endInsideRate": 0.5,
+              "pocTouchedRate": 1.0
+            }
+          }
+        }
+      },
+      "overlappingTrajectoryTags": {
+        "REJECTION_TO_POC": {
+          "profiles": 10,
+          "dates": 8,
+          "firstInsideRate": 1.0,
+          "medianFirstInsideMinutes": 22.38,
+          "pocTouchRate": 1.0,
+          "medianFirstPocTouchMinutes": 27.49,
+          "reacceptedAfterReentryRate": 0.7,
+          "oppositeBreakoutRate": 0.4,
+          "first1BarsMedianDirectionalFlowImbalance": -0.0235,
+          "first2BarsMedianDirectionalFlowImbalance": 0.0272,
+          "first3BarsMedianDirectionalFlowImbalance": -0.0276,
+          "h6": {
+            "averageDirectionalMoveRanges": -0.533,
+            "medianDirectionalMoveRanges": -0.49,
+            "positiveDirectionalMoveRate": 0.1,
+            "averageFavorableMfeRanges": 0.425,
+            "averageAdverseMfeRanges": 0.828,
+            "endInsideRate": 0.6,
+            "pocTouchedRate": 0.5
+          },
+          "h12": {
+            "averageDirectionalMoveRanges": -0.731,
+            "medianDirectionalMoveRanges": -0.53,
+            "positiveDirectionalMoveRate": 0.1,
+            "averageFavorableMfeRanges": 0.639,
+            "averageAdverseMfeRanges": 1.493,
+            "endInsideRate": 0.5,
+            "pocTouchedRate": 1.0
+          }
+        },
+        "REACCEPTANCE_AFTER_REENTRY": {
+          "profiles": 8,
+          "dates": 7,
+          "firstInsideRate": 1.0,
+          "medianFirstInsideMinutes": 17.49,
+          "pocTouchRate": 0.875,
+          "medianFirstPocTouchMinutes": 34.98,
+          "reacceptedAfterReentryRate": 1.0,
+          "oppositeBreakoutRate": 0.125,
+          "first1BarsMedianDirectionalFlowImbalance": -0.0375,
+          "first2BarsMedianDirectionalFlowImbalance": -0.0178,
+          "first3BarsMedianDirectionalFlowImbalance": -0.0431,
+          "h6": {
+            "averageDirectionalMoveRanges": -0.2587,
+            "medianDirectionalMoveRanges": -0.295,
+            "positiveDirectionalMoveRate": 0.25,
+            "averageFavorableMfeRanges": 0.4763,
+            "averageAdverseMfeRanges": 0.74,
+            "endInsideRate": 0.375,
+            "pocTouchedRate": 0.375
+          },
+          "h12": {
+            "averageDirectionalMoveRanges": -0.42,
+            "medianDirectionalMoveRanges": -0.29,
+            "positiveDirectionalMoveRate": 0.25,
+            "averageFavorableMfeRanges": 0.7812,
+            "averageAdverseMfeRanges": 1.28,
+            "endInsideRate": 0.375,
+            "pocTouchedRate": 0.875
+          }
+        },
+        "OPPOSITE_BREAKOUT": {
+          "profiles": 4,
+          "dates": 4,
+          "firstInsideRate": 1.0,
+          "medianFirstInsideMinutes": 19.915,
+          "pocTouchRate": 1.0,
+          "medianFirstPocTouchMinutes": 19.92,
+          "reacceptedAfterReentryRate": 0.25,
+          "oppositeBreakoutRate": 1.0,
+          "first1BarsMedianDirectionalFlowImbalance": 0.0067,
+          "first2BarsMedianDirectionalFlowImbalance": 0.0535,
+          "first3BarsMedianDirectionalFlowImbalance": 0.0217,
+          "h6": {
+            "averageDirectionalMoveRanges": -0.92,
+            "medianDirectionalMoveRanges": -0.91,
+            "positiveDirectionalMoveRate": 0.0,
+            "averageFavorableMfeRanges": 0.29,
+            "averageAdverseMfeRanges": 1.08,
+            "endInsideRate": 1.0,
+            "pocTouchedRate": 0.75
+          },
+          "h12": {
+            "averageDirectionalMoveRanges": -1.3275,
+            "medianDirectionalMoveRanges": -1.605,
+            "positiveDirectionalMoveRate": 0.0,
+            "averageFavorableMfeRanges": 0.715,
+            "averageAdverseMfeRanges": 1.9075,
+            "endInsideRate": 0.5,
+            "pocTouchedRate": 1.0
+          }
+        }
+      }
+    },
+    "test": {
+      "all": {
+        "profiles": 7,
+        "dates": 5,
+        "firstInsideRate": 0.7143,
+        "medianFirstInsideMinutes": 10.08,
+        "pocTouchRate": 0.5714,
+        "medianFirstPocTouchMinutes": 12.575,
+        "reacceptedAfterReentryRate": 0.7143,
+        "oppositeBreakoutRate": 0.1429,
+        "first1BarsMedianDirectionalFlowImbalance": 0.0141,
+        "first2BarsMedianDirectionalFlowImbalance": -0.0191,
+        "first3BarsMedianDirectionalFlowImbalance": 0.0062,
+        "h6": {
+          "averageDirectionalMoveRanges": 0.1471,
+          "medianDirectionalMoveRanges": -0.28,
+          "positiveDirectionalMoveRate": 0.4286,
+          "averageFavorableMfeRanges": 0.6629,
+          "averageAdverseMfeRanges": 0.7957,
+          "endInsideRate": 0.5714,
+          "pocTouchedRate": 0.5714
+        },
+        "h12": {
+          "averageDirectionalMoveRanges": 0.87,
+          "medianDirectionalMoveRanges": 0.46,
+          "positiveDirectionalMoveRate": 0.7143,
+          "averageFavorableMfeRanges": 1.33,
+          "averageAdverseMfeRanges": 0.8471,
+          "endInsideRate": 0.1429,
+          "pocTouchedRate": 0.5714
+        }
+      },
+      "byBoundary": {
+        "HIGH": {
+          "profiles": 6,
+          "dates": 4,
+          "firstInsideRate": 0.6667,
+          "medianFirstInsideMinutes": 10.085,
+          "pocTouchRate": 0.5,
+          "medianFirstPocTouchMinutes": 10.0,
+          "reacceptedAfterReentryRate": 0.6667,
+          "oppositeBreakoutRate": 0.1667,
+          "first1BarsMedianDirectionalFlowImbalance": -0.0404,
+          "first2BarsMedianDirectionalFlowImbalance": -0.0273,
+          "first3BarsMedianDirectionalFlowImbalance": -0.0073,
+          "h6": {
+            "averageDirectionalMoveRanges": 0.3,
+            "medianDirectionalMoveRanges": -0.01,
+            "positiveDirectionalMoveRate": 0.5,
+            "averageFavorableMfeRanges": 0.7667,
+            "averageAdverseMfeRanges": 0.78,
+            "endInsideRate": 0.5,
+            "pocTouchedRate": 0.5
+          },
+          "h12": {
+            "averageDirectionalMoveRanges": 0.9383,
+            "medianDirectionalMoveRanges": 0.56,
+            "positiveDirectionalMoveRate": 0.6667,
+            "averageFavorableMfeRanges": 1.4717,
+            "averageAdverseMfeRanges": 0.8383,
+            "endInsideRate": 0.1667,
+            "pocTouchedRate": 0.5
+          }
+        },
+        "LOW": {
+          "profiles": 1,
+          "dates": 1,
+          "firstInsideRate": 1.0,
+          "medianFirstInsideMinutes": 4.81,
+          "pocTouchRate": 1.0,
+          "medianFirstPocTouchMinutes": 30.01,
+          "reacceptedAfterReentryRate": 1.0,
+          "oppositeBreakoutRate": 0.0,
+          "first1BarsMedianDirectionalFlowImbalance": 0.0969,
+          "first2BarsMedianDirectionalFlowImbalance": 0.0377,
+          "first3BarsMedianDirectionalFlowImbalance": 0.0062,
+          "h6": {
+            "averageDirectionalMoveRanges": -0.77,
+            "medianDirectionalMoveRanges": -0.77,
+            "positiveDirectionalMoveRate": 0.0,
+            "averageFavorableMfeRanges": 0.04,
+            "averageAdverseMfeRanges": 0.89,
+            "endInsideRate": 1.0,
+            "pocTouchedRate": 1.0
+          },
+          "h12": {
+            "averageDirectionalMoveRanges": 0.46,
+            "medianDirectionalMoveRanges": 0.46,
+            "positiveDirectionalMoveRate": 1.0,
+            "averageFavorableMfeRanges": 0.48,
+            "averageAdverseMfeRanges": 0.9,
+            "endInsideRate": 0.0,
+            "pocTouchedRate": 1.0
+          }
+        }
+      },
+      "byInitialTransition": {
+        "CONTINUOUS_ACCEPTANCE": {
+          "profiles": 2,
+          "dates": 2,
+          "firstInsideRate": 0.0,
+          "medianFirstInsideMinutes": null,
+          "pocTouchRate": 0.0,
+          "medianFirstPocTouchMinutes": null,
+          "reacceptedAfterReentryRate": 0.0,
+          "oppositeBreakoutRate": 0.0,
+          "first1BarsMedianDirectionalFlowImbalance": -0.0099,
+          "first2BarsMedianDirectionalFlowImbalance": -0.0273,
+          "first3BarsMedianDirectionalFlowImbalance": -0.0073,
+          "h6": {
+            "averageDirectionalMoveRanges": 1.28,
+            "medianDirectionalMoveRanges": 1.28,
+            "positiveDirectionalMoveRate": 1.0,
+            "averageFavorableMfeRanges": 1.64,
+            "averageAdverseMfeRanges": 0.545,
+            "endInsideRate": 0.0,
+            "pocTouchedRate": 0.0
+          },
+          "h12": {
+            "averageDirectionalMoveRanges": 2.515,
+            "medianDirectionalMoveRanges": 2.515,
+            "positiveDirectionalMoveRate": 1.0,
+            "averageFavorableMfeRanges": 3.36,
+            "averageAdverseMfeRanges": 0.545,
+            "endInsideRate": 0.0,
+            "pocTouchedRate": 0.0
+          }
+        },
+        "EARLY_REJECTION": {
+          "profiles": 4,
+          "dates": 3,
+          "firstInsideRate": 1.0,
+          "medianFirstInsideMinutes": 7.51,
+          "pocTouchRate": 1.0,
+          "medianFirstPocTouchMinutes": 12.575,
+          "reacceptedAfterReentryRate": 1.0,
+          "oppositeBreakoutRate": 0.25,
+          "first1BarsMedianDirectionalFlowImbalance": -0.0869,
+          "first2BarsMedianDirectionalFlowImbalance": -0.0373,
+          "first3BarsMedianDirectionalFlowImbalance": -0.0162,
+          "h6": {
+            "averageDirectionalMoveRanges": -0.2825,
+            "medianDirectionalMoveRanges": -0.31,
+            "positiveDirectionalMoveRate": 0.25,
+            "averageFavorableMfeRanges": 0.2475,
+            "averageAdverseMfeRanges": 0.995,
+            "endInsideRate": 0.75,
+            "pocTouchedRate": 1.0
+          },
+          "h12": {
+            "averageDirectionalMoveRanges": 0.3075,
+            "medianDirectionalMoveRanges": 0.335,
+            "positiveDirectionalMoveRate": 0.75,
+            "averageFavorableMfeRanges": 0.555,
+            "averageAdverseMfeRanges": 1.0475,
+            "endInsideRate": 0.25,
+            "pocTouchedRate": 1.0
+          }
+        },
+        "DELAYED_REJECTION": {
+          "profiles": 1,
+          "dates": 1,
+          "firstInsideRate": 1.0,
+          "medianFirstInsideMinutes": 29.99,
+          "pocTouchRate": 0.0,
+          "medianFirstPocTouchMinutes": null,
+          "reacceptedAfterReentryRate": 1.0,
+          "oppositeBreakoutRate": 0.0,
+          "first1BarsMedianDirectionalFlowImbalance": 0.1111,
+          "first2BarsMedianDirectionalFlowImbalance": 0.0786,
+          "first3BarsMedianDirectionalFlowImbalance": 0.0857,
+          "h6": {
+            "averageDirectionalMoveRanges": -0.4,
+            "medianDirectionalMoveRanges": -0.4,
+            "positiveDirectionalMoveRate": 0.0,
+            "averageFavorableMfeRanges": 0.37,
+            "averageAdverseMfeRanges": 0.5,
+            "endInsideRate": 1.0,
+            "pocTouchedRate": 0.0
+          },
+          "h12": {
+            "averageDirectionalMoveRanges": -0.17,
+            "medianDirectionalMoveRanges": -0.17,
+            "positiveDirectionalMoveRate": 0.0,
+            "averageFavorableMfeRanges": 0.37,
+            "averageAdverseMfeRanges": 0.65,
+            "endInsideRate": 0.0,
+            "pocTouchedRate": 0.0
+          }
+        }
+      },
+      "byBoundaryAndInitialTransition": {
+        "HIGH": {
+          "CONTINUOUS_ACCEPTANCE": {
+            "profiles": 2,
+            "dates": 2,
+            "firstInsideRate": 0.0,
+            "medianFirstInsideMinutes": null,
+            "pocTouchRate": 0.0,
+            "medianFirstPocTouchMinutes": null,
+            "reacceptedAfterReentryRate": 0.0,
+            "oppositeBreakoutRate": 0.0,
+            "first1BarsMedianDirectionalFlowImbalance": -0.0099,
+            "first2BarsMedianDirectionalFlowImbalance": -0.0273,
+            "first3BarsMedianDirectionalFlowImbalance": -0.0073,
+            "h6": {
+              "averageDirectionalMoveRanges": 1.28,
+              "medianDirectionalMoveRanges": 1.28,
+              "positiveDirectionalMoveRate": 1.0,
+              "averageFavorableMfeRanges": 1.64,
+              "averageAdverseMfeRanges": 0.545,
+              "endInsideRate": 0.0,
+              "pocTouchedRate": 0.0
+            },
+            "h12": {
+              "averageDirectionalMoveRanges": 2.515,
+              "medianDirectionalMoveRanges": 2.515,
+              "positiveDirectionalMoveRate": 1.0,
+              "averageFavorableMfeRanges": 3.36,
+              "averageAdverseMfeRanges": 0.545,
+              "endInsideRate": 0.0,
+              "pocTouchedRate": 0.0
+            }
+          },
+          "EARLY_REJECTION": {
+            "profiles": 3,
+            "dates": 2,
+            "firstInsideRate": 1.0,
+            "medianFirstInsideMinutes": 10.08,
+            "pocTouchRate": 1.0,
+            "medianFirstPocTouchMinutes": 10.0,
+            "reacceptedAfterReentryRate": 1.0,
+            "oppositeBreakoutRate": 0.3333,
+            "first1BarsMedianDirectionalFlowImbalance": -0.188,
+            "first2BarsMedianDirectionalFlowImbalance": -0.0851,
+            "first3BarsMedianDirectionalFlowImbalance": -0.0385,
+            "h6": {
+              "averageDirectionalMoveRanges": -0.12,
+              "medianDirectionalMoveRanges": -0.28,
+              "positiveDirectionalMoveRate": 0.3333,
+              "averageFavorableMfeRanges": 0.3167,
+              "averageAdverseMfeRanges": 1.03,
+              "endInsideRate": 0.6667,
+              "pocTouchedRate": 1.0
+            },
+            "h12": {
+              "averageDirectionalMoveRanges": 0.2567,
+              "medianDirectionalMoveRanges": 0.21,
+              "positiveDirectionalMoveRate": 0.6667,
+              "averageFavorableMfeRanges": 0.58,
+              "averageAdverseMfeRanges": 1.0967,
+              "endInsideRate": 0.3333,
+              "pocTouchedRate": 1.0
+            }
+          },
+          "DELAYED_REJECTION": {
+            "profiles": 1,
+            "dates": 1,
+            "firstInsideRate": 1.0,
+            "medianFirstInsideMinutes": 29.99,
+            "pocTouchRate": 0.0,
+            "medianFirstPocTouchMinutes": null,
+            "reacceptedAfterReentryRate": 1.0,
+            "oppositeBreakoutRate": 0.0,
+            "first1BarsMedianDirectionalFlowImbalance": 0.1111,
+            "first2BarsMedianDirectionalFlowImbalance": 0.0786,
+            "first3BarsMedianDirectionalFlowImbalance": 0.0857,
+            "h6": {
+              "averageDirectionalMoveRanges": -0.4,
+              "medianDirectionalMoveRanges": -0.4,
+              "positiveDirectionalMoveRate": 0.0,
+              "averageFavorableMfeRanges": 0.37,
+              "averageAdverseMfeRanges": 0.5,
+              "endInsideRate": 1.0,
+              "pocTouchedRate": 0.0
+            },
+            "h12": {
+              "averageDirectionalMoveRanges": -0.17,
+              "medianDirectionalMoveRanges": -0.17,
+              "positiveDirectionalMoveRate": 0.0,
+              "averageFavorableMfeRanges": 0.37,
+              "averageAdverseMfeRanges": 0.65,
+              "endInsideRate": 0.0,
+              "pocTouchedRate": 0.0
+            }
+          }
+        },
+        "LOW": {
+          "CONTINUOUS_ACCEPTANCE": {
+            "profiles": 0,
+            "dates": 0,
+            "h6": {},
+            "h12": {}
+          },
+          "EARLY_REJECTION": {
+            "profiles": 1,
+            "dates": 1,
+            "firstInsideRate": 1.0,
+            "medianFirstInsideMinutes": 4.81,
+            "pocTouchRate": 1.0,
+            "medianFirstPocTouchMinutes": 30.01,
+            "reacceptedAfterReentryRate": 1.0,
+            "oppositeBreakoutRate": 0.0,
+            "first1BarsMedianDirectionalFlowImbalance": 0.0969,
+            "first2BarsMedianDirectionalFlowImbalance": 0.0377,
+            "first3BarsMedianDirectionalFlowImbalance": 0.0062,
+            "h6": {
+              "averageDirectionalMoveRanges": -0.77,
+              "medianDirectionalMoveRanges": -0.77,
+              "positiveDirectionalMoveRate": 0.0,
+              "averageFavorableMfeRanges": 0.04,
+              "averageAdverseMfeRanges": 0.89,
+              "endInsideRate": 1.0,
+              "pocTouchedRate": 1.0
+            },
+            "h12": {
+              "averageDirectionalMoveRanges": 0.46,
+              "medianDirectionalMoveRanges": 0.46,
+              "positiveDirectionalMoveRate": 1.0,
+              "averageFavorableMfeRanges": 0.48,
+              "averageAdverseMfeRanges": 0.9,
+              "endInsideRate": 0.0,
+              "pocTouchedRate": 1.0
+            }
+          },
+          "DELAYED_REJECTION": {
+            "profiles": 0,
+            "dates": 0,
+            "h6": {},
+            "h12": {}
+          }
+        }
+      },
+      "byFirst3BarsFlowRegime": {
+        "DIRECTIONAL_FLOW_POSITIVE": {
+          "profiles": 4,
+          "dates": 3,
+          "firstInsideRate": 0.75,
+          "medianFirstInsideMinutes": 4.94,
+          "pocTouchRate": 0.5,
+          "medianFirstPocTouchMinutes": 20.005,
+          "reacceptedAfterReentryRate": 0.75,
+          "oppositeBreakoutRate": 0.0,
+          "first1BarsMedianDirectionalFlowImbalance": 0.0555,
+          "first2BarsMedianDirectionalFlowImbalance": 0.0241,
+          "first3BarsMedianDirectionalFlowImbalance": 0.0285,
+          "h6": {
+            "averageDirectionalMoveRanges": -0.075,
+            "medianDirectionalMoveRanges": -0.37,
+            "positiveDirectionalMoveRate": 0.25,
+            "averageFavorableMfeRanges": 0.64,
+            "averageAdverseMfeRanges": 0.63,
+            "endInsideRate": 0.75,
+            "pocTouchedRate": 0.5
+          },
+          "h12": {
+            "averageDirectionalMoveRanges": 0.5375,
+            "medianDirectionalMoveRanges": 0.335,
+            "positiveDirectionalMoveRate": 0.75,
+            "averageFavorableMfeRanges": 0.7875,
+            "averageAdverseMfeRanges": 0.705,
+            "endInsideRate": 0.0,
+            "pocTouchedRate": 0.5
+          }
+        },
+        "DIRECTIONAL_FLOW_NON_POSITIVE": {
+          "profiles": 3,
+          "dates": 2,
+          "firstInsideRate": 0.6667,
+          "medianFirstInsideMinutes": 10.085,
+          "pocTouchRate": 0.6667,
+          "medianFirstPocTouchMinutes": 10.14,
+          "reacceptedAfterReentryRate": 0.6667,
+          "oppositeBreakoutRate": 0.3333,
+          "first1BarsMedianDirectionalFlowImbalance": -0.188,
+          "first2BarsMedianDirectionalFlowImbalance": -0.0851,
+          "first3BarsMedianDirectionalFlowImbalance": -0.0385,
+          "h6": {
+            "averageDirectionalMoveRanges": 0.4433,
+            "medianDirectionalMoveRanges": 0.26,
+            "positiveDirectionalMoveRate": 0.6667,
+            "averageFavorableMfeRanges": 0.6933,
+            "averageAdverseMfeRanges": 1.0167,
+            "endInsideRate": 0.3333,
+            "pocTouchedRate": 0.6667
+          },
+          "h12": {
+            "averageDirectionalMoveRanges": 1.3133,
+            "medianDirectionalMoveRanges": 0.91,
+            "positiveDirectionalMoveRate": 0.6667,
+            "averageFavorableMfeRanges": 2.0533,
+            "averageAdverseMfeRanges": 1.0367,
+            "endInsideRate": 0.3333,
+            "pocTouchedRate": 0.6667
+          }
+        }
+      },
+      "byBoundaryAndFirst3BarsFlowRegime": {
+        "HIGH": {
+          "DIRECTIONAL_FLOW_POSITIVE": {
+            "profiles": 3,
+            "dates": 2,
+            "firstInsideRate": 0.6667,
+            "medianFirstInsideMinutes": 17.465,
+            "pocTouchRate": 0.3333,
+            "medianFirstPocTouchMinutes": 10.0,
+            "reacceptedAfterReentryRate": 0.6667,
+            "oppositeBreakoutRate": 0.0,
+            "first1BarsMedianDirectionalFlowImbalance": 0.0141,
+            "first2BarsMedianDirectionalFlowImbalance": 0.0105,
+            "first3BarsMedianDirectionalFlowImbalance": 0.0481,
+            "h6": {
+              "averageDirectionalMoveRanges": 0.1567,
+              "medianDirectionalMoveRanges": -0.34,
+              "positiveDirectionalMoveRate": 0.3333,
+              "averageFavorableMfeRanges": 0.84,
+              "averageAdverseMfeRanges": 0.5433,
+              "endInsideRate": 0.6667,
+              "pocTouchedRate": 0.3333
+            },
+            "h12": {
+              "averageDirectionalMoveRanges": 0.5633,
+              "medianDirectionalMoveRanges": 0.21,
+              "positiveDirectionalMoveRate": 0.6667,
+              "averageFavorableMfeRanges": 0.89,
+              "averageAdverseMfeRanges": 0.64,
+              "endInsideRate": 0.0,
+              "pocTouchedRate": 0.3333
+            }
+          },
+          "DIRECTIONAL_FLOW_NON_POSITIVE": {
+            "profiles": 3,
+            "dates": 2,
+            "firstInsideRate": 0.6667,
+            "medianFirstInsideMinutes": 10.085,
+            "pocTouchRate": 0.6667,
+            "medianFirstPocTouchMinutes": 10.14,
+            "reacceptedAfterReentryRate": 0.6667,
+            "oppositeBreakoutRate": 0.3333,
+            "first1BarsMedianDirectionalFlowImbalance": -0.188,
+            "first2BarsMedianDirectionalFlowImbalance": -0.0851,
+            "first3BarsMedianDirectionalFlowImbalance": -0.0385,
+            "h6": {
+              "averageDirectionalMoveRanges": 0.4433,
+              "medianDirectionalMoveRanges": 0.26,
+              "positiveDirectionalMoveRate": 0.6667,
+              "averageFavorableMfeRanges": 0.6933,
+              "averageAdverseMfeRanges": 1.0167,
+              "endInsideRate": 0.3333,
+              "pocTouchedRate": 0.6667
+            },
+            "h12": {
+              "averageDirectionalMoveRanges": 1.3133,
+              "medianDirectionalMoveRanges": 0.91,
+              "positiveDirectionalMoveRate": 0.6667,
+              "averageFavorableMfeRanges": 2.0533,
+              "averageAdverseMfeRanges": 1.0367,
+              "endInsideRate": 0.3333,
+              "pocTouchedRate": 0.6667
+            }
+          }
+        },
+        "LOW": {
+          "DIRECTIONAL_FLOW_POSITIVE": {
+            "profiles": 1,
+            "dates": 1,
+            "firstInsideRate": 1.0,
+            "medianFirstInsideMinutes": 4.81,
+            "pocTouchRate": 1.0,
+            "medianFirstPocTouchMinutes": 30.01,
+            "reacceptedAfterReentryRate": 1.0,
+            "oppositeBreakoutRate": 0.0,
+            "first1BarsMedianDirectionalFlowImbalance": 0.0969,
+            "first2BarsMedianDirectionalFlowImbalance": 0.0377,
+            "first3BarsMedianDirectionalFlowImbalance": 0.0062,
+            "h6": {
+              "averageDirectionalMoveRanges": -0.77,
+              "medianDirectionalMoveRanges": -0.77,
+              "positiveDirectionalMoveRate": 0.0,
+              "averageFavorableMfeRanges": 0.04,
+              "averageAdverseMfeRanges": 0.89,
+              "endInsideRate": 1.0,
+              "pocTouchedRate": 1.0
+            },
+            "h12": {
+              "averageDirectionalMoveRanges": 0.46,
+              "medianDirectionalMoveRanges": 0.46,
+              "positiveDirectionalMoveRate": 1.0,
+              "averageFavorableMfeRanges": 0.48,
+              "averageAdverseMfeRanges": 0.9,
+              "endInsideRate": 0.0,
+              "pocTouchedRate": 1.0
+            }
+          },
+          "DIRECTIONAL_FLOW_NON_POSITIVE": {
+            "profiles": 0,
+            "dates": 0,
+            "h6": {},
+            "h12": {}
+          }
+        }
+      },
+      "overlappingTrajectoryTags": {
+        "REJECTION_TO_POC": {
+          "profiles": 4,
+          "dates": 3,
+          "firstInsideRate": 1.0,
+          "medianFirstInsideMinutes": 7.51,
+          "pocTouchRate": 1.0,
+          "medianFirstPocTouchMinutes": 12.575,
+          "reacceptedAfterReentryRate": 1.0,
+          "oppositeBreakoutRate": 0.25,
+          "first1BarsMedianDirectionalFlowImbalance": -0.0869,
+          "first2BarsMedianDirectionalFlowImbalance": -0.0373,
+          "first3BarsMedianDirectionalFlowImbalance": -0.0162,
+          "h6": {
+            "averageDirectionalMoveRanges": -0.2825,
+            "medianDirectionalMoveRanges": -0.31,
+            "positiveDirectionalMoveRate": 0.25,
+            "averageFavorableMfeRanges": 0.2475,
+            "averageAdverseMfeRanges": 0.995,
+            "endInsideRate": 0.75,
+            "pocTouchedRate": 1.0
+          },
+          "h12": {
+            "averageDirectionalMoveRanges": 0.3075,
+            "medianDirectionalMoveRanges": 0.335,
+            "positiveDirectionalMoveRate": 0.75,
+            "averageFavorableMfeRanges": 0.555,
+            "averageAdverseMfeRanges": 1.0475,
+            "endInsideRate": 0.25,
+            "pocTouchedRate": 1.0
+          }
+        },
+        "REACCEPTANCE_AFTER_REENTRY": {
+          "profiles": 5,
+          "dates": 4,
+          "firstInsideRate": 1.0,
+          "medianFirstInsideMinutes": 10.08,
+          "pocTouchRate": 0.8,
+          "medianFirstPocTouchMinutes": 12.575,
+          "reacceptedAfterReentryRate": 1.0,
+          "oppositeBreakoutRate": 0.2,
+          "first1BarsMedianDirectionalFlowImbalance": 0.0141,
+          "first2BarsMedianDirectionalFlowImbalance": 0.0105,
+          "first3BarsMedianDirectionalFlowImbalance": 0.0062,
+          "h6": {
+            "averageDirectionalMoveRanges": -0.306,
+            "medianDirectionalMoveRanges": -0.34,
+            "positiveDirectionalMoveRate": 0.2,
+            "averageFavorableMfeRanges": 0.272,
+            "averageAdverseMfeRanges": 0.896,
+            "endInsideRate": 0.8,
+            "pocTouchedRate": 0.8
+          },
+          "h12": {
+            "averageDirectionalMoveRanges": 0.212,
+            "medianDirectionalMoveRanges": 0.21,
+            "positiveDirectionalMoveRate": 0.6,
+            "averageFavorableMfeRanges": 0.518,
+            "averageAdverseMfeRanges": 0.968,
+            "endInsideRate": 0.2,
+            "pocTouchedRate": 0.8
+          }
+        },
+        "OPPOSITE_BREAKOUT": {
+          "profiles": 1,
+          "dates": 1,
+          "firstInsideRate": 1.0,
+          "medianFirstInsideMinutes": 10.09,
+          "pocTouchRate": 1.0,
+          "medianFirstPocTouchMinutes": 5.13,
+          "reacceptedAfterReentryRate": 1.0,
+          "oppositeBreakoutRate": 1.0,
+          "first1BarsMedianDirectionalFlowImbalance": -0.188,
+          "first2BarsMedianDirectionalFlowImbalance": -0.0851,
+          "first3BarsMedianDirectionalFlowImbalance": -0.0385,
+          "h6": {
+            "averageDirectionalMoveRanges": 0.26,
+            "medianDirectionalMoveRanges": 0.26,
+            "positiveDirectionalMoveRate": 1.0,
+            "averageFavorableMfeRanges": 0.28,
+            "averageAdverseMfeRanges": 1.5,
+            "endInsideRate": 0.0,
+            "pocTouchedRate": 1.0
+          },
+          "h12": {
+            "averageDirectionalMoveRanges": 0.91,
+            "medianDirectionalMoveRanges": 0.91,
+            "positiveDirectionalMoveRate": 1.0,
+            "averageFavorableMfeRanges": 1.07,
+            "averageAdverseMfeRanges": 1.5,
+            "endInsideRate": 0.0,
+            "pocTouchedRate": 1.0
+          }
+        }
+      }
+    }
+  },
+  "observations": [
+    {
+      "shadowId": "2026-06-11:3999-4005:DynamicCompression:4011:LOW",
+      "profileLabel": "2026-06-11:3999-4005:DynamicCompression",
+      "date": "2026-06-11",
+      "entryBar": 4011,
+      "boundary": "LOW",
+      "direction": "SHORT",
+      "chartTimeFrame": "M5",
+      "entryPrice": 29166.0,
+      "initialTransition": "DELAYED_REJECTION",
+      "trajectoryTags": [
+        "DELAYED_REJECTION",
+        "REJECTION_TO_POC",
+        "REACCEPTANCE_AFTER_REENTRY"
+      ],
+      "firstInsideMinutes": 54.87,
+      "firstInsidePathBarOrdinal": 11,
+      "pocTouched": true,
+      "firstPocTouchMinutes": 35.08,
+      "reacceptedAfterReentry": true,
+      "oppositeBreakout": false,
+      "terminalState": "BELOW_RANGE",
+      "terminalElapsedMinutes": 64.7,
+      "pathBars": 13,
+      "entryDirectionalDelta": 39.0,
+      "entryTotalVolumePercentilePrior": 1.0,
+      "entryAbsoluteDeltaPercentilePrior": 0.8,
+      "flowPrefixes": {
+        "first1Bars": {
+          "bars": 1,
+          "directionalDelta": -1.0,
+          "totalVolume": 51.0,
+          "directionalFlowImbalance": -0.0196
+        },
+        "first2Bars": {
+          "bars": 2,
+          "directionalDelta": 6.0,
+          "totalVolume": 66.0,
+          "directionalFlowImbalance": 0.0909
+        },
+        "first3Bars": {
+          "bars": 3,
+          "directionalDelta": -16.0,
+          "totalVolume": 92.0,
+          "directionalFlowImbalance": -0.1739
+        }
+      },
+      "horizons": {
+        "h6": {
+          "elapsedMinutes": 29.65,
+          "directionalMoveRanges": -0.07,
+          "favorableMfeRanges": 0.7,
+          "adverseMfeRanges": 0.15,
+          "endInsideRange": false,
+          "pocTouched": false
+        },
+        "h12": {
+          "elapsedMinutes": 59.26,
+          "directionalMoveRanges": -0.29,
+          "favorableMfeRanges": 0.7,
+          "adverseMfeRanges": 0.75,
+          "endInsideRange": true,
+          "pocTouched": true
+        }
+      },
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "shadowId": "2026-06-11:4012-4020:DynamicCompression:4034:LOW",
+      "profileLabel": "2026-06-11:4012-4020:DynamicCompression",
+      "date": "2026-06-11",
+      "entryBar": 4034,
+      "boundary": "LOW",
+      "direction": "SHORT",
+      "chartTimeFrame": "M5",
+      "entryPrice": 29096.0,
+      "initialTransition": "DELAYED_REJECTION",
+      "trajectoryTags": [
+        "DELAYED_REJECTION",
+        "REJECTION_TO_POC",
+        "OPPOSITE_BREAKOUT"
+      ],
+      "firstInsideMinutes": 24.76,
+      "firstInsidePathBarOrdinal": 5,
+      "pocTouched": true,
+      "firstPocTouchMinutes": 19.84,
+      "reacceptedAfterReentry": false,
+      "oppositeBreakout": true,
+      "terminalState": "INSIDE_RANGE",
+      "terminalElapsedMinutes": 64.96,
+      "pathBars": 13,
+      "entryDirectionalDelta": -19.0,
+      "entryTotalVolumePercentilePrior": 1.0,
+      "entryAbsoluteDeltaPercentilePrior": 1.0,
+      "flowPrefixes": {
+        "first1Bars": {
+          "bars": 1,
+          "directionalDelta": -14.0,
+          "totalVolume": 34.0,
+          "directionalFlowImbalance": -0.4118
+        },
+        "first2Bars": {
+          "bars": 2,
+          "directionalDelta": 18.0,
+          "totalVolume": 124.0,
+          "directionalFlowImbalance": 0.1452
+        },
+        "first3Bars": {
+          "bars": 3,
+          "directionalDelta": 30.0,
+          "totalVolume": 194.0,
+          "directionalFlowImbalance": 0.1546
+        }
+      },
+      "horizons": {
+        "h6": {
+          "elapsedMinutes": 29.95,
+          "directionalMoveRanges": -1.34,
+          "favorableMfeRanges": 0.0,
+          "adverseMfeRanges": 1.69,
+          "endInsideRange": true,
+          "pocTouched": true
+        },
+        "h12": {
+          "elapsedMinutes": 59.16,
+          "directionalMoveRanges": -1.88,
+          "favorableMfeRanges": 0.0,
+          "adverseMfeRanges": 2.07,
+          "endInsideRange": true,
+          "pocTouched": true
+        }
+      },
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "shadowId": "2026-06-12:4292-4298:DynamicCompression:4301:LOW",
+      "profileLabel": "2026-06-12:4292-4298:DynamicCompression",
+      "date": "2026-06-12",
+      "entryBar": 4301,
+      "boundary": "LOW",
+      "direction": "SHORT",
+      "chartTimeFrame": "M5",
+      "entryPrice": 29878.25,
+      "initialTransition": "DELAYED_REJECTION",
+      "trajectoryTags": [
+        "DELAYED_REJECTION"
+      ],
+      "firstInsideMinutes": 59.94,
+      "firstInsidePathBarOrdinal": 12,
+      "pocTouched": false,
+      "firstPocTouchMinutes": null,
+      "reacceptedAfterReentry": false,
+      "oppositeBreakout": false,
+      "terminalState": "INSIDE_RANGE",
+      "terminalElapsedMinutes": 64.55,
+      "pathBars": 13,
+      "entryDirectionalDelta": -48.0,
+      "entryTotalVolumePercentilePrior": 0.0,
+      "entryAbsoluteDeltaPercentilePrior": 1.0,
+      "flowPrefixes": {
+        "first1Bars": {
+          "bars": 1,
+          "directionalDelta": -11.0,
+          "totalVolume": 359.0,
+          "directionalFlowImbalance": -0.0306
+        },
+        "first2Bars": {
+          "bars": 2,
+          "directionalDelta": -29.0,
+          "totalVolume": 543.0,
+          "directionalFlowImbalance": -0.0534
+        },
+        "first3Bars": {
+          "bars": 3,
+          "directionalDelta": 63.0,
+          "totalVolume": 693.0,
+          "directionalFlowImbalance": 0.0909
+        }
+      },
+      "horizons": {
+        "h6": {
+          "elapsedMinutes": 29.96,
+          "directionalMoveRanges": 0.65,
+          "favorableMfeRanges": 1.2,
+          "adverseMfeRanges": 0.05,
+          "endInsideRange": false,
+          "pocTouched": false
+        },
+        "h12": {
+          "elapsedMinutes": 59.94,
+          "directionalMoveRanges": -0.96,
+          "favorableMfeRanges": 1.2,
+          "adverseMfeRanges": 0.99,
+          "endInsideRange": true,
+          "pocTouched": false
+        }
+      },
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "shadowId": "2026-06-16:4867-4873:DynamicCompression:4876:LOW",
+      "profileLabel": "2026-06-16:4867-4873:DynamicCompression",
+      "date": "2026-06-16",
+      "entryBar": 4876,
+      "boundary": "LOW",
+      "direction": "SHORT",
+      "chartTimeFrame": "M5",
+      "entryPrice": 30902.5,
+      "initialTransition": "CONTINUOUS_ACCEPTANCE",
+      "trajectoryTags": [
+        "CONTINUOUS_ACCEPTANCE"
+      ],
+      "firstInsideMinutes": null,
+      "firstInsidePathBarOrdinal": null,
+      "pocTouched": false,
+      "firstPocTouchMinutes": null,
+      "reacceptedAfterReentry": false,
+      "oppositeBreakout": false,
+      "terminalState": "BELOW_RANGE",
+      "terminalElapsedMinutes": 60.01,
+      "pathBars": 12,
+      "entryDirectionalDelta": 91.0,
+      "entryTotalVolumePercentilePrior": 1.0,
+      "entryAbsoluteDeltaPercentilePrior": 1.0,
+      "flowPrefixes": {
+        "first1Bars": {
+          "bars": 1,
+          "directionalDelta": 413.0,
+          "totalVolume": 2015.0,
+          "directionalFlowImbalance": 0.205
+        },
+        "first2Bars": {
+          "bars": 2,
+          "directionalDelta": 338.0,
+          "totalVolume": 4004.0,
+          "directionalFlowImbalance": 0.0844
+        },
+        "first3Bars": {
+          "bars": 3,
+          "directionalDelta": 689.0,
+          "totalVolume": 6587.0,
+          "directionalFlowImbalance": 0.1046
+        }
+      },
+      "horizons": {
+        "h6": {
+          "elapsedMinutes": 30.0,
+          "directionalMoveRanges": 2.31,
+          "favorableMfeRanges": 2.69,
+          "adverseMfeRanges": 0.05,
+          "endInsideRange": false,
+          "pocTouched": false
+        },
+        "h12": {
+          "elapsedMinutes": 60.01,
+          "directionalMoveRanges": 2.12,
+          "favorableMfeRanges": 3.64,
+          "adverseMfeRanges": 0.05,
+          "endInsideRange": false,
+          "pocTouched": false
+        }
+      },
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "shadowId": "2026-06-17:5115-5121:DynamicCompression:5123:LOW",
+      "profileLabel": "2026-06-17:5115-5121:DynamicCompression",
+      "date": "2026-06-17",
+      "entryBar": 5123,
+      "boundary": "LOW",
+      "direction": "SHORT",
+      "chartTimeFrame": "M5",
+      "entryPrice": 30462.25,
+      "initialTransition": "DELAYED_REJECTION",
+      "trajectoryTags": [
+        "DELAYED_REJECTION",
+        "REJECTION_TO_POC",
+        "REACCEPTANCE_AFTER_REENTRY"
+      ],
+      "firstInsideMinutes": 49.98,
+      "firstInsidePathBarOrdinal": 10,
+      "pocTouched": true,
+      "firstPocTouchMinutes": 59.95,
+      "reacceptedAfterReentry": true,
+      "oppositeBreakout": false,
+      "terminalState": "BELOW_RANGE",
+      "terminalElapsedMinutes": 64.94,
+      "pathBars": 13,
+      "entryDirectionalDelta": 152.0,
+      "entryTotalVolumePercentilePrior": 1.0,
+      "entryAbsoluteDeltaPercentilePrior": 1.0,
+      "flowPrefixes": {
+        "first1Bars": {
+          "bars": 1,
+          "directionalDelta": -20.0,
+          "totalVolume": 418.0,
+          "directionalFlowImbalance": -0.0478
+        },
+        "first2Bars": {
+          "bars": 2,
+          "directionalDelta": 45.0,
+          "totalVolume": 1159.0,
+          "directionalFlowImbalance": 0.0388
+        },
+        "first3Bars": {
+          "bars": 3,
+          "directionalDelta": 97.0,
+          "totalVolume": 2151.0,
+          "directionalFlowImbalance": 0.0451
+        }
+      },
+      "horizons": {
+        "h6": {
+          "elapsedMinutes": 29.97,
+          "directionalMoveRanges": -0.29,
+          "favorableMfeRanges": 1.06,
+          "adverseMfeRanges": 0.42,
+          "endInsideRange": false,
+          "pocTouched": false
+        },
+        "h12": {
+          "elapsedMinutes": 59.95,
+          "directionalMoveRanges": -0.29,
+          "favorableMfeRanges": 1.06,
+          "adverseMfeRanges": 0.9,
+          "endInsideRange": false,
+          "pocTouched": true
+        }
+      },
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "shadowId": "2026-06-19:5654-5660:DynamicCompression:5680:LOW",
+      "profileLabel": "2026-06-19:5654-5660:DynamicCompression",
+      "date": "2026-06-19",
+      "entryBar": 5680,
+      "boundary": "LOW",
+      "direction": "SHORT",
+      "chartTimeFrame": "M5",
+      "entryPrice": 30608.25,
+      "initialTransition": "CONTINUOUS_ACCEPTANCE",
+      "trajectoryTags": [
+        "CONTINUOUS_ACCEPTANCE"
+      ],
+      "firstInsideMinutes": null,
+      "firstInsidePathBarOrdinal": null,
+      "pocTouched": false,
+      "firstPocTouchMinutes": null,
+      "reacceptedAfterReentry": false,
+      "oppositeBreakout": false,
+      "terminalState": "BELOW_RANGE",
+      "terminalElapsedMinutes": 60.02,
+      "pathBars": 12,
+      "entryDirectionalDelta": 48.0,
+      "entryTotalVolumePercentilePrior": 0.47,
+      "entryAbsoluteDeltaPercentilePrior": 0.79,
+      "flowPrefixes": {
+        "first1Bars": {
+          "bars": 1,
+          "directionalDelta": 28.0,
+          "totalVolume": 340.0,
+          "directionalFlowImbalance": 0.0824
+        },
+        "first2Bars": {
+          "bars": 2,
+          "directionalDelta": 52.0,
+          "totalVolume": 728.0,
+          "directionalFlowImbalance": 0.0714
+        },
+        "first3Bars": {
+          "bars": 3,
+          "directionalDelta": 125.0,
+          "totalVolume": 1241.0,
+          "directionalFlowImbalance": 0.1007
+        }
+      },
+      "horizons": {
+        "h6": {
+          "elapsedMinutes": 30.02,
+          "directionalMoveRanges": 1.17,
+          "favorableMfeRanges": 2.11,
+          "adverseMfeRanges": 0.07,
+          "endInsideRange": false,
+          "pocTouched": false
+        },
+        "h12": {
+          "elapsedMinutes": 60.02,
+          "directionalMoveRanges": 1.05,
+          "favorableMfeRanges": 2.21,
+          "adverseMfeRanges": 0.07,
+          "endInsideRange": false,
+          "pocTouched": false
+        }
+      },
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "shadowId": "2026-06-19:5688-5694:DynamicCompression:5697:HIGH",
+      "profileLabel": "2026-06-19:5688-5694:DynamicCompression",
+      "date": "2026-06-19",
+      "entryBar": 5697,
+      "boundary": "HIGH",
+      "direction": "LONG",
+      "chartTimeFrame": "M5",
+      "entryPrice": 30593.5,
+      "initialTransition": "EARLY_REJECTION",
+      "trajectoryTags": [
+        "EARLY_REJECTION",
+        "REJECTION_TO_POC",
+        "REACCEPTANCE_AFTER_REENTRY"
+      ],
+      "firstInsideMinutes": 9.94,
+      "firstInsidePathBarOrdinal": 2,
+      "pocTouched": true,
+      "firstPocTouchMinutes": 49.91,
+      "reacceptedAfterReentry": true,
+      "oppositeBreakout": false,
+      "terminalState": "INSIDE_RANGE",
+      "terminalElapsedMinutes": 60.0,
+      "pathBars": 12,
+      "entryDirectionalDelta": -67.0,
+      "entryTotalVolumePercentilePrior": 1.0,
+      "entryAbsoluteDeltaPercentilePrior": 1.0,
+      "flowPrefixes": {
+        "first1Bars": {
+          "bars": 1,
+          "directionalDelta": -48.0,
+          "totalVolume": 222.0,
+          "directionalFlowImbalance": -0.2162
+        },
+        "first2Bars": {
+          "bars": 2,
+          "directionalDelta": -45.0,
+          "totalVolume": 481.0,
+          "directionalFlowImbalance": -0.0936
+        },
+        "first3Bars": {
+          "bars": 3,
+          "directionalDelta": -28.0,
+          "totalVolume": 798.0,
+          "directionalFlowImbalance": -0.0351
+        }
+      },
+      "horizons": {
+        "h6": {
+          "elapsedMinutes": 30.03,
+          "directionalMoveRanges": -0.46,
+          "favorableMfeRanges": 0.05,
+          "adverseMfeRanges": 0.59,
+          "endInsideRange": true,
+          "pocTouched": false
+        },
+        "h12": {
+          "elapsedMinutes": 60.0,
+          "directionalMoveRanges": -0.77,
+          "favorableMfeRanges": 0.05,
+          "adverseMfeRanges": 1.49,
+          "endInsideRange": true,
+          "pocTouched": true
+        }
+      },
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "shadowId": "2026-06-23:6188-6194:DynamicCompression:6201:HIGH",
+      "profileLabel": "2026-06-23:6188-6194:DynamicCompression",
+      "date": "2026-06-23",
+      "entryBar": 6201,
+      "boundary": "HIGH",
+      "direction": "LONG",
+      "chartTimeFrame": "M5",
+      "entryPrice": 29867.75,
+      "initialTransition": "DELAYED_REJECTION",
+      "trajectoryTags": [
+        "DELAYED_REJECTION",
+        "REJECTION_TO_POC",
+        "OPPOSITE_BREAKOUT"
+      ],
+      "firstInsideMinutes": 30.01,
+      "firstInsidePathBarOrdinal": 6,
+      "pocTouched": true,
+      "firstPocTouchMinutes": 35.02,
+      "reacceptedAfterReentry": false,
+      "oppositeBreakout": true,
+      "terminalState": "BELOW_RANGE",
+      "terminalElapsedMinutes": 60.02,
+      "pathBars": 12,
+      "entryDirectionalDelta": 175.0,
+      "entryTotalVolumePercentilePrior": 0.83,
+      "entryAbsoluteDeltaPercentilePrior": 0.5,
+      "flowPrefixes": {
+        "first1Bars": {
+          "bars": 1,
+          "directionalDelta": 157.0,
+          "totalVolume": 1579.0,
+          "directionalFlowImbalance": 0.0994
+        },
+        "first2Bars": {
+          "bars": 2,
+          "directionalDelta": 251.0,
+          "totalVolume": 2739.0,
+          "directionalFlowImbalance": 0.0916
+        },
+        "first3Bars": {
+          "bars": 3,
+          "directionalDelta": 351.0,
+          "totalVolume": 3795.0,
+          "directionalFlowImbalance": 0.0925
+        }
+      },
+      "horizons": {
+        "h6": {
+          "elapsedMinutes": 30.01,
+          "directionalMoveRanges": -0.52,
+          "favorableMfeRanges": 0.37,
+          "adverseMfeRanges": 0.6,
+          "endInsideRange": true,
+          "pocTouched": false
+        },
+        "h12": {
+          "elapsedMinutes": 60.02,
+          "directionalMoveRanges": -1.42,
+          "favorableMfeRanges": 0.37,
+          "adverseMfeRanges": 1.79,
+          "endInsideRange": false,
+          "pocTouched": true
+        }
+      },
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "shadowId": "2026-06-23:6212-6220:DynamicCompression:6227:HIGH",
+      "profileLabel": "2026-06-23:6212-6220:DynamicCompression",
+      "date": "2026-06-23",
+      "entryBar": 6227,
+      "boundary": "HIGH",
+      "direction": "LONG",
+      "chartTimeFrame": "M5",
+      "entryPrice": 29876.75,
+      "initialTransition": "CONTINUOUS_ACCEPTANCE",
+      "trajectoryTags": [
+        "CONTINUOUS_ACCEPTANCE"
+      ],
+      "firstInsideMinutes": null,
+      "firstInsidePathBarOrdinal": null,
+      "pocTouched": false,
+      "firstPocTouchMinutes": null,
+      "reacceptedAfterReentry": false,
+      "oppositeBreakout": false,
+      "terminalState": "ABOVE_RANGE",
+      "terminalElapsedMinutes": 60.0,
+      "pathBars": 12,
+      "entryDirectionalDelta": 612.0,
+      "entryTotalVolumePercentilePrior": 0.5,
+      "entryAbsoluteDeltaPercentilePrior": 0.83,
+      "flowPrefixes": {
+        "first1Bars": {
+          "bars": 1,
+          "directionalDelta": 383.0,
+          "totalVolume": 10603.0,
+          "directionalFlowImbalance": 0.0361
+        },
+        "first2Bars": {
+          "bars": 2,
+          "directionalDelta": 1369.0,
+          "totalVolume": 23199.0,
+          "directionalFlowImbalance": 0.059
+        },
+        "first3Bars": {
+          "bars": 3,
+          "directionalDelta": 863.0,
+          "totalVolume": 32861.0,
+          "directionalFlowImbalance": 0.0263
+        }
+      },
+      "horizons": {
+        "h6": {
+          "elapsedMinutes": 30.0,
+          "directionalMoveRanges": 1.38,
+          "favorableMfeRanges": 2.05,
+          "adverseMfeRanges": 0.39,
+          "endInsideRange": false,
+          "pocTouched": false
+        },
+        "h12": {
+          "elapsedMinutes": 60.0,
+          "directionalMoveRanges": -0.31,
+          "favorableMfeRanges": 2.05,
+          "adverseMfeRanges": 0.58,
+          "endInsideRange": false,
+          "pocTouched": false
+        }
+      },
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "shadowId": "2026-06-24:6442-6448:DynamicCompression:6453:LOW",
+      "profileLabel": "2026-06-24:6442-6448:DynamicCompression",
+      "date": "2026-06-24",
+      "entryBar": 6453,
+      "boundary": "LOW",
+      "direction": "SHORT",
+      "chartTimeFrame": "M5",
+      "entryPrice": 29765.75,
+      "initialTransition": "EARLY_REJECTION",
+      "trajectoryTags": [
+        "EARLY_REJECTION",
+        "REJECTION_TO_POC",
+        "REACCEPTANCE_AFTER_REENTRY"
+      ],
+      "firstInsideMinutes": 10.0,
+      "firstInsidePathBarOrdinal": 2,
+      "pocTouched": true,
+      "firstPocTouchMinutes": 34.98,
+      "reacceptedAfterReentry": true,
+      "oppositeBreakout": false,
+      "terminalState": "INSIDE_RANGE",
+      "terminalElapsedMinutes": 64.94,
+      "pathBars": 13,
+      "entryDirectionalDelta": 41.0,
+      "entryTotalVolumePercentilePrior": 1.0,
+      "entryAbsoluteDeltaPercentilePrior": 0.75,
+      "flowPrefixes": {
+        "first1Bars": {
+          "bars": 1,
+          "directionalDelta": -30.0,
+          "totalVolume": 630.0,
+          "directionalFlowImbalance": -0.0476
+        },
+        "first2Bars": {
+          "bars": 2,
+          "directionalDelta": -51.0,
+          "totalVolume": 997.0,
+          "directionalFlowImbalance": -0.0512
+        },
+        "first3Bars": {
+          "bars": 3,
+          "directionalDelta": -81.0,
+          "totalVolume": 1229.0,
+          "directionalFlowImbalance": -0.0659
+        }
+      },
+      "horizons": {
+        "h6": {
+          "elapsedMinutes": 29.98,
+          "directionalMoveRanges": -0.87,
+          "favorableMfeRanges": 0.22,
+          "adverseMfeRanges": 0.95,
+          "endInsideRange": true,
+          "pocTouched": false
+        },
+        "h12": {
+          "elapsedMinutes": 59.98,
+          "directionalMoveRanges": -1.37,
+          "favorableMfeRanges": 0.22,
+          "adverseMfeRanges": 1.71,
+          "endInsideRange": true,
+          "pocTouched": true
+        }
+      },
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "shadowId": "2026-06-24:6455-6461:DynamicCompression:6464:HIGH",
+      "profileLabel": "2026-06-24:6455-6461:DynamicCompression",
+      "date": "2026-06-24",
+      "entryBar": 6464,
+      "boundary": "HIGH",
+      "direction": "LONG",
+      "chartTimeFrame": "M5",
+      "entryPrice": 29821.5,
+      "initialTransition": "DELAYED_REJECTION",
+      "trajectoryTags": [
+        "DELAYED_REJECTION",
+        "REJECTION_TO_POC",
+        "OPPOSITE_BREAKOUT"
+      ],
+      "firstInsideMinutes": 15.07,
+      "firstInsidePathBarOrdinal": 3,
+      "pocTouched": true,
+      "firstPocTouchMinutes": 15.07,
+      "reacceptedAfterReentry": false,
+      "oppositeBreakout": true,
+      "terminalState": "INSIDE_RANGE",
+      "terminalElapsedMinutes": 60.06,
+      "pathBars": 12,
+      "entryDirectionalDelta": -11.0,
+      "entryTotalVolumePercentilePrior": 0.5,
+      "entryAbsoluteDeltaPercentilePrior": 0.0,
+      "flowPrefixes": {
+        "first1Bars": {
+          "bars": 1,
+          "directionalDelta": 29.0,
+          "totalVolume": 709.0,
+          "directionalFlowImbalance": 0.0409
+        },
+        "first2Bars": {
+          "bars": 2,
+          "directionalDelta": 18.0,
+          "totalVolume": 1168.0,
+          "directionalFlowImbalance": 0.0154
+        },
+        "first3Bars": {
+          "bars": 3,
+          "directionalDelta": -76.0,
+          "totalVolume": 1550.0,
+          "directionalFlowImbalance": -0.049
+        }
+      },
+      "horizons": {
+        "h6": {
+          "elapsedMinutes": 30.06,
+          "directionalMoveRanges": -0.98,
+          "favorableMfeRanges": 0.62,
+          "adverseMfeRanges": 1.09,
+          "endInsideRange": true,
+          "pocTouched": true
+        },
+        "h12": {
+          "elapsedMinutes": 60.06,
+          "directionalMoveRanges": -0.22,
+          "favorableMfeRanges": 0.62,
+          "adverseMfeRanges": 1.85,
+          "endInsideRange": true,
+          "pocTouched": true
+        }
+      },
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "shadowId": "2026-06-25:6735-6742:DynamicCompression:6750:LOW",
+      "profileLabel": "2026-06-25:6735-6742:DynamicCompression",
+      "date": "2026-06-25",
+      "entryBar": 6750,
+      "boundary": "LOW",
+      "direction": "SHORT",
+      "chartTimeFrame": "M5",
+      "entryPrice": 30117.75,
+      "initialTransition": "DELAYED_REJECTION",
+      "trajectoryTags": [
+        "DELAYED_REJECTION",
+        "REJECTION_TO_POC",
+        "REACCEPTANCE_AFTER_REENTRY"
+      ],
+      "firstInsideMinutes": 34.99,
+      "firstInsidePathBarOrdinal": 7,
+      "pocTouched": true,
+      "firstPocTouchMinutes": 20.0,
+      "reacceptedAfterReentry": true,
+      "oppositeBreakout": false,
+      "terminalState": "BELOW_RANGE",
+      "terminalElapsedMinutes": 60.01,
+      "pathBars": 12,
+      "entryDirectionalDelta": -82.0,
+      "entryTotalVolumePercentilePrior": 0.86,
+      "entryAbsoluteDeltaPercentilePrior": 0.57,
+      "flowPrefixes": {
+        "first1Bars": {
+          "bars": 1,
+          "directionalDelta": 85.0,
+          "totalVolume": 741.0,
+          "directionalFlowImbalance": 0.1147
+        },
+        "first2Bars": {
+          "bars": 2,
+          "directionalDelta": 48.0,
+          "totalVolume": 1240.0,
+          "directionalFlowImbalance": 0.0387
+        },
+        "first3Bars": {
+          "bars": 3,
+          "directionalDelta": -35.0,
+          "totalVolume": 1737.0,
+          "directionalFlowImbalance": -0.0201
+        }
+      },
+      "horizons": {
+        "h6": {
+          "elapsedMinutes": 30.0,
+          "directionalMoveRanges": -0.3,
+          "favorableMfeRanges": 0.42,
+          "adverseMfeRanges": 0.83,
+          "endInsideRange": false,
+          "pocTouched": true
+        },
+        "h12": {
+          "elapsedMinutes": 60.01,
+          "directionalMoveRanges": -0.29,
+          "favorableMfeRanges": 0.42,
+          "adverseMfeRanges": 1.43,
+          "endInsideRange": false,
+          "pocTouched": true
+        }
+      },
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "shadowId": "2026-06-29:7272-7278:DynamicCompression:7286:HIGH",
+      "profileLabel": "2026-06-29:7272-7278:DynamicCompression",
+      "date": "2026-06-29",
+      "entryBar": 7286,
+      "boundary": "HIGH",
+      "direction": "LONG",
+      "chartTimeFrame": "M5",
+      "entryPrice": 29717.5,
+      "initialTransition": "EARLY_REJECTION",
+      "trajectoryTags": [
+        "EARLY_REJECTION",
+        "REACCEPTANCE_AFTER_REENTRY"
+      ],
+      "firstInsideMinutes": 4.96,
+      "firstInsidePathBarOrdinal": 1,
+      "pocTouched": false,
+      "firstPocTouchMinutes": null,
+      "reacceptedAfterReentry": true,
+      "oppositeBreakout": false,
+      "terminalState": "ABOVE_RANGE",
+      "terminalElapsedMinutes": 60.03,
+      "pathBars": 12,
+      "entryDirectionalDelta": 9.0,
+      "entryTotalVolumePercentilePrior": 0.57,
+      "entryAbsoluteDeltaPercentilePrior": 0.14,
+      "flowPrefixes": {
+        "first1Bars": {
+          "bars": 1,
+          "directionalDelta": -59.0,
+          "totalVolume": 461.0,
+          "directionalFlowImbalance": -0.128
+        },
+        "first2Bars": {
+          "bars": 2,
+          "directionalDelta": -123.0,
+          "totalVolume": 891.0,
+          "directionalFlowImbalance": -0.138
+        },
+        "first3Bars": {
+          "bars": 3,
+          "directionalDelta": -79.0,
+          "totalVolume": 1165.0,
+          "directionalFlowImbalance": -0.0678
+        }
+      },
+      "horizons": {
+        "h6": {
+          "elapsedMinutes": 30.03,
+          "directionalMoveRanges": 0.42,
+          "favorableMfeRanges": 0.55,
+          "adverseMfeRanges": 1.02,
+          "endInsideRange": false,
+          "pocTouched": false
+        },
+        "h12": {
+          "elapsedMinutes": 60.03,
+          "directionalMoveRanges": 0.43,
+          "favorableMfeRanges": 0.85,
+          "adverseMfeRanges": 1.02,
+          "endInsideRange": false,
+          "pocTouched": false
+        }
+      },
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "shadowId": "2026-06-29:7302-7308:DynamicCompression:7317:LOW",
+      "profileLabel": "2026-06-29:7302-7308:DynamicCompression",
+      "date": "2026-06-29",
+      "entryBar": 7317,
+      "boundary": "LOW",
+      "direction": "SHORT",
+      "chartTimeFrame": "M5",
+      "entryPrice": 29674.5,
+      "initialTransition": "EARLY_REJECTION",
+      "trajectoryTags": [
+        "EARLY_REJECTION",
+        "REJECTION_TO_POC",
+        "REACCEPTANCE_AFTER_REENTRY",
+        "OPPOSITE_BREAKOUT"
+      ],
+      "firstInsideMinutes": 14.98,
+      "firstInsidePathBarOrdinal": 3,
+      "pocTouched": true,
+      "firstPocTouchMinutes": 20.0,
+      "reacceptedAfterReentry": true,
+      "oppositeBreakout": true,
+      "terminalState": "ABOVE_RANGE",
+      "terminalElapsedMinutes": 60.01,
+      "pathBars": 12,
+      "entryDirectionalDelta": 22.0,
+      "entryTotalVolumePercentilePrior": 1.0,
+      "entryAbsoluteDeltaPercentilePrior": 0.13,
+      "flowPrefixes": {
+        "first1Bars": {
+          "bars": 1,
+          "directionalDelta": -22.0,
+          "totalVolume": 802.0,
+          "directionalFlowImbalance": -0.0274
+        },
+        "first2Bars": {
+          "bars": 2,
+          "directionalDelta": -76.0,
+          "totalVolume": 1310.0,
+          "directionalFlowImbalance": -0.058
+        },
+        "first3Bars": {
+          "bars": 3,
+          "directionalDelta": -97.0,
+          "totalVolume": 1899.0,
+          "directionalFlowImbalance": -0.0511
+        }
+      },
+      "horizons": {
+        "h6": {
+          "elapsedMinutes": 30.0,
+          "directionalMoveRanges": -0.84,
+          "favorableMfeRanges": 0.17,
+          "adverseMfeRanges": 0.94,
+          "endInsideRange": true,
+          "pocTouched": true
+        },
+        "h12": {
+          "elapsedMinutes": 60.01,
+          "directionalMoveRanges": -1.79,
+          "favorableMfeRanges": 1.87,
+          "adverseMfeRanges": 1.92,
+          "endInsideRange": false,
+          "pocTouched": true
+        }
+      },
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "shadowId": "2026-07-01:7826-7832:DynamicCompression:7835:HIGH",
+      "profileLabel": "2026-07-01:7826-7832:DynamicCompression",
+      "date": "2026-07-01",
+      "entryBar": 7835,
+      "boundary": "HIGH",
+      "direction": "LONG",
+      "chartTimeFrame": "M5",
+      "entryPrice": 30378.5,
+      "initialTransition": "DELAYED_REJECTION",
+      "trajectoryTags": [
+        "DELAYED_REJECTION",
+        "REJECTION_TO_POC",
+        "REACCEPTANCE_AFTER_REENTRY"
+      ],
+      "firstInsideMinutes": 20.0,
+      "firstInsidePathBarOrdinal": 4,
+      "pocTouched": true,
+      "firstPocTouchMinutes": 20.0,
+      "reacceptedAfterReentry": true,
+      "oppositeBreakout": false,
+      "terminalState": "ABOVE_RANGE",
+      "terminalElapsedMinutes": 60.01,
+      "pathBars": 12,
+      "entryDirectionalDelta": -37.0,
+      "entryTotalVolumePercentilePrior": 1.0,
+      "entryAbsoluteDeltaPercentilePrior": 0.5,
+      "flowPrefixes": {
+        "first1Bars": {
+          "bars": 1,
+          "directionalDelta": 29.0,
+          "totalVolume": 291.0,
+          "directionalFlowImbalance": 0.0997
+        },
+        "first2Bars": {
+          "bars": 2,
+          "directionalDelta": 11.0,
+          "totalVolume": 701.0,
+          "directionalFlowImbalance": 0.0157
+        },
+        "first3Bars": {
+          "bars": 3,
+          "directionalDelta": 23.0,
+          "totalVolume": 1073.0,
+          "directionalFlowImbalance": 0.0214
+        }
+      },
+      "horizons": {
+        "h6": {
+          "elapsedMinutes": 29.95,
+          "directionalMoveRanges": 0.34,
+          "favorableMfeRanges": 0.64,
+          "adverseMfeRanges": 1.02,
+          "endInsideRange": false,
+          "pocTouched": true
+        },
+        "h12": {
+          "elapsedMinutes": 60.01,
+          "directionalMoveRanges": 1.01,
+          "favorableMfeRanges": 1.08,
+          "adverseMfeRanges": 1.02,
+          "endInsideRange": false,
+          "pocTouched": true
+        }
+      },
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "shadowId": "2026-07-02:8121-8129:DynamicCompression:8133:HIGH",
+      "profileLabel": "2026-07-02:8121-8129:DynamicCompression",
+      "date": "2026-07-02",
+      "entryBar": 8133,
+      "boundary": "HIGH",
+      "direction": "LONG",
+      "chartTimeFrame": "M5",
+      "entryPrice": 30057.5,
+      "initialTransition": "CONTINUOUS_ACCEPTANCE",
+      "trajectoryTags": [
+        "CONTINUOUS_ACCEPTANCE"
+      ],
+      "firstInsideMinutes": null,
+      "firstInsidePathBarOrdinal": null,
+      "pocTouched": false,
+      "firstPocTouchMinutes": null,
+      "reacceptedAfterReentry": false,
+      "oppositeBreakout": false,
+      "terminalState": "ABOVE_RANGE",
+      "terminalElapsedMinutes": 60.0,
+      "pathBars": 12,
+      "entryDirectionalDelta": 62.0,
+      "entryTotalVolumePercentilePrior": 1.0,
+      "entryAbsoluteDeltaPercentilePrior": 0.67,
+      "flowPrefixes": {
+        "first1Bars": {
+          "bars": 1,
+          "directionalDelta": 83.0,
+          "totalVolume": 1105.0,
+          "directionalFlowImbalance": 0.0751
+        },
+        "first2Bars": {
+          "bars": 2,
+          "directionalDelta": -80.0,
+          "totalVolume": 2256.0,
+          "directionalFlowImbalance": -0.0355
+        },
+        "first3Bars": {
+          "bars": 3,
+          "directionalDelta": -66.0,
+          "totalVolume": 2808.0,
+          "directionalFlowImbalance": -0.0235
+        }
+      },
+      "horizons": {
+        "h6": {
+          "elapsedMinutes": 30.0,
+          "directionalMoveRanges": 1.35,
+          "favorableMfeRanges": 1.53,
+          "adverseMfeRanges": 0.65,
+          "endInsideRange": false,
+          "pocTouched": false
+        },
+        "h12": {
+          "elapsedMinutes": 60.0,
+          "directionalMoveRanges": 3.38,
+          "favorableMfeRanges": 4.82,
+          "adverseMfeRanges": 0.65,
+          "endInsideRange": false,
+          "pocTouched": false
+        }
+      },
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "shadowId": "2026-07-03:8365-8371:DynamicCompression:8373:HIGH",
+      "profileLabel": "2026-07-03:8365-8371:DynamicCompression",
+      "date": "2026-07-03",
+      "entryBar": 8373,
+      "boundary": "HIGH",
+      "direction": "LONG",
+      "chartTimeFrame": "M5",
+      "entryPrice": 29870.0,
+      "initialTransition": "EARLY_REJECTION",
+      "trajectoryTags": [
+        "EARLY_REJECTION",
+        "REJECTION_TO_POC",
+        "REACCEPTANCE_AFTER_REENTRY",
+        "OPPOSITE_BREAKOUT"
+      ],
+      "firstInsideMinutes": 10.09,
+      "firstInsidePathBarOrdinal": 2,
+      "pocTouched": true,
+      "firstPocTouchMinutes": 5.13,
+      "reacceptedAfterReentry": true,
+      "oppositeBreakout": true,
+      "terminalState": "ABOVE_RANGE",
+      "terminalElapsedMinutes": 60.16,
+      "pathBars": 12,
+      "entryDirectionalDelta": -40.0,
+      "entryTotalVolumePercentilePrior": 0.0,
+      "entryAbsoluteDeltaPercentilePrior": 0.0,
+      "flowPrefixes": {
+        "first1Bars": {
+          "bars": 1,
+          "directionalDelta": -100.0,
+          "totalVolume": 532.0,
+          "directionalFlowImbalance": -0.188
+        },
+        "first2Bars": {
+          "bars": 2,
+          "directionalDelta": -66.0,
+          "totalVolume": 776.0,
+          "directionalFlowImbalance": -0.0851
+        },
+        "first3Bars": {
+          "bars": 3,
+          "directionalDelta": -35.0,
+          "totalVolume": 909.0,
+          "directionalFlowImbalance": -0.0385
+        }
+      },
+      "horizons": {
+        "h6": {
+          "elapsedMinutes": 30.14,
+          "directionalMoveRanges": 0.26,
+          "favorableMfeRanges": 0.28,
+          "adverseMfeRanges": 1.5,
+          "endInsideRange": false,
+          "pocTouched": true
+        },
+        "h12": {
+          "elapsedMinutes": 60.16,
+          "directionalMoveRanges": 0.91,
+          "favorableMfeRanges": 1.07,
+          "adverseMfeRanges": 1.5,
+          "endInsideRange": false,
+          "pocTouched": true
+        }
+      },
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "shadowId": "2026-07-03:8390-8396:DynamicCompression:8398:HIGH",
+      "profileLabel": "2026-07-03:8390-8396:DynamicCompression",
+      "date": "2026-07-03",
+      "entryBar": 8398,
+      "boundary": "HIGH",
+      "direction": "LONG",
+      "chartTimeFrame": "M5",
+      "entryPrice": 29885.5,
+      "initialTransition": "EARLY_REJECTION",
+      "trajectoryTags": [
+        "EARLY_REJECTION",
+        "REJECTION_TO_POC",
+        "REACCEPTANCE_AFTER_REENTRY"
+      ],
+      "firstInsideMinutes": 10.08,
+      "firstInsidePathBarOrdinal": 2,
+      "pocTouched": true,
+      "firstPocTouchMinutes": 15.15,
+      "reacceptedAfterReentry": true,
+      "oppositeBreakout": false,
+      "terminalState": "INSIDE_RANGE",
+      "terminalElapsedMinutes": 60.04,
+      "pathBars": 12,
+      "entryDirectionalDelta": -19.0,
+      "entryTotalVolumePercentilePrior": 0.0,
+      "entryAbsoluteDeltaPercentilePrior": 0.0,
+      "flowPrefixes": {
+        "first1Bars": {
+          "bars": 1,
+          "directionalDelta": -22.0,
+          "totalVolume": 86.0,
+          "directionalFlowImbalance": -0.2558
+        },
+        "first2Bars": {
+          "bars": 2,
+          "directionalDelta": -57.0,
+          "totalVolume": 213.0,
+          "directionalFlowImbalance": -0.2676
+        },
+        "first3Bars": {
+          "bars": 3,
+          "directionalDelta": -37.0,
+          "totalVolume": 447.0,
+          "directionalFlowImbalance": -0.0828
+        }
+      },
+      "horizons": {
+        "h6": {
+          "elapsedMinutes": 30.19,
+          "directionalMoveRanges": -0.28,
+          "favorableMfeRanges": 0.27,
+          "adverseMfeRanges": 0.9,
+          "endInsideRange": true,
+          "pocTouched": true
+        },
+        "h12": {
+          "elapsedMinutes": 60.04,
+          "directionalMoveRanges": -0.35,
+          "favorableMfeRanges": 0.27,
+          "adverseMfeRanges": 0.96,
+          "endInsideRange": true,
+          "pocTouched": true
+        }
+      },
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "shadowId": "2026-07-06:8605-8611:DynamicCompression:8616:HIGH",
+      "profileLabel": "2026-07-06:8605-8611:DynamicCompression",
+      "date": "2026-07-06",
+      "entryBar": 8616,
+      "boundary": "HIGH",
+      "direction": "LONG",
+      "chartTimeFrame": "M5",
+      "entryPrice": 29877.0,
+      "initialTransition": "EARLY_REJECTION",
+      "trajectoryTags": [
+        "EARLY_REJECTION",
+        "REJECTION_TO_POC",
+        "REACCEPTANCE_AFTER_REENTRY"
+      ],
+      "firstInsideMinutes": 4.94,
+      "firstInsidePathBarOrdinal": 1,
+      "pocTouched": true,
+      "firstPocTouchMinutes": 10.0,
+      "reacceptedAfterReentry": true,
+      "oppositeBreakout": false,
+      "terminalState": "INSIDE_RANGE",
+      "terminalElapsedMinutes": 64.98,
+      "pathBars": 13,
+      "entryDirectionalDelta": -23.0,
+      "entryTotalVolumePercentilePrior": 0.5,
+      "entryAbsoluteDeltaPercentilePrior": 0.5,
+      "flowPrefixes": {
+        "first1Bars": {
+          "bars": 1,
+          "directionalDelta": 7.0,
+          "totalVolume": 497.0,
+          "directionalFlowImbalance": 0.0141
+        },
+        "first2Bars": {
+          "bars": 2,
+          "directionalDelta": 8.0,
+          "totalVolume": 762.0,
+          "directionalFlowImbalance": 0.0105
+        },
+        "first3Bars": {
+          "bars": 3,
+          "directionalDelta": 48.0,
+          "totalVolume": 998.0,
+          "directionalFlowImbalance": 0.0481
+        }
+      },
+      "horizons": {
+        "h6": {
+          "elapsedMinutes": 29.74,
+          "directionalMoveRanges": -0.34,
+          "favorableMfeRanges": 0.4,
+          "adverseMfeRanges": 0.69,
+          "endInsideRange": true,
+          "pocTouched": true
+        },
+        "h12": {
+          "elapsedMinutes": 59.98,
+          "directionalMoveRanges": 0.21,
+          "favorableMfeRanges": 0.4,
+          "adverseMfeRanges": 0.83,
+          "endInsideRange": false,
+          "pocTouched": true
+        }
+      },
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "shadowId": "2026-07-08:9163-9173:DynamicCompression:9175:HIGH",
+      "profileLabel": "2026-07-08:9163-9173:DynamicCompression",
+      "date": "2026-07-08",
+      "entryBar": 9175,
+      "boundary": "HIGH",
+      "direction": "LONG",
+      "chartTimeFrame": "M5",
+      "entryPrice": 29030.75,
+      "initialTransition": "DELAYED_REJECTION",
+      "trajectoryTags": [
+        "DELAYED_REJECTION",
+        "REACCEPTANCE_AFTER_REENTRY"
+      ],
+      "firstInsideMinutes": 29.99,
+      "firstInsidePathBarOrdinal": 6,
+      "pocTouched": false,
+      "firstPocTouchMinutes": null,
+      "reacceptedAfterReentry": true,
+      "oppositeBreakout": false,
+      "terminalState": "ABOVE_RANGE",
+      "terminalElapsedMinutes": 60.01,
+      "pathBars": 12,
+      "entryDirectionalDelta": 66.0,
+      "entryTotalVolumePercentilePrior": 1.0,
+      "entryAbsoluteDeltaPercentilePrior": 0.0,
+      "flowPrefixes": {
+        "first1Bars": {
+          "bars": 1,
+          "directionalDelta": 111.0,
+          "totalVolume": 999.0,
+          "directionalFlowImbalance": 0.1111
+        },
+        "first2Bars": {
+          "bars": 2,
+          "directionalDelta": 117.0,
+          "totalVolume": 1489.0,
+          "directionalFlowImbalance": 0.0786
+        },
+        "first3Bars": {
+          "bars": 3,
+          "directionalDelta": 181.0,
+          "totalVolume": 2111.0,
+          "directionalFlowImbalance": 0.0857
+        }
+      },
+      "horizons": {
+        "h6": {
+          "elapsedMinutes": 29.99,
+          "directionalMoveRanges": -0.4,
+          "favorableMfeRanges": 0.37,
+          "adverseMfeRanges": 0.5,
+          "endInsideRange": true,
+          "pocTouched": false
+        },
+        "h12": {
+          "elapsedMinutes": 60.01,
+          "directionalMoveRanges": -0.17,
+          "favorableMfeRanges": 0.37,
+          "adverseMfeRanges": 0.65,
+          "endInsideRange": false,
+          "pocTouched": false
+        }
+      },
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "shadowId": "2026-07-08:9182-9188:DynamicCompression:9190:HIGH",
+      "profileLabel": "2026-07-08:9182-9188:DynamicCompression",
+      "date": "2026-07-08",
+      "entryBar": 9190,
+      "boundary": "HIGH",
+      "direction": "LONG",
+      "chartTimeFrame": "M5",
+      "entryPrice": 29079.5,
+      "initialTransition": "CONTINUOUS_ACCEPTANCE",
+      "trajectoryTags": [
+        "CONTINUOUS_ACCEPTANCE"
+      ],
+      "firstInsideMinutes": null,
+      "firstInsidePathBarOrdinal": null,
+      "pocTouched": false,
+      "firstPocTouchMinutes": null,
+      "reacceptedAfterReentry": false,
+      "oppositeBreakout": false,
+      "terminalState": "ABOVE_RANGE",
+      "terminalElapsedMinutes": 60.01,
+      "pathBars": 12,
+      "entryDirectionalDelta": 5.0,
+      "entryTotalVolumePercentilePrior": 0.0,
+      "entryAbsoluteDeltaPercentilePrior": 0.0,
+      "flowPrefixes": {
+        "first1Bars": {
+          "bars": 1,
+          "directionalDelta": -104.0,
+          "totalVolume": 1096.0,
+          "directionalFlowImbalance": -0.0949
+        },
+        "first2Bars": {
+          "bars": 2,
+          "directionalDelta": -47.0,
+          "totalVolume": 2457.0,
+          "directionalFlowImbalance": -0.0191
+        },
+        "first3Bars": {
+          "bars": 3,
+          "directionalDelta": 37.0,
+          "totalVolume": 4143.0,
+          "directionalFlowImbalance": 0.0089
+        }
+      },
+      "horizons": {
+        "h6": {
+          "elapsedMinutes": 30.0,
+          "directionalMoveRanges": 1.21,
+          "favorableMfeRanges": 1.75,
+          "adverseMfeRanges": 0.44,
+          "endInsideRange": false,
+          "pocTouched": false
+        },
+        "h12": {
+          "elapsedMinutes": 60.01,
+          "directionalMoveRanges": 1.65,
+          "favorableMfeRanges": 1.9,
+          "adverseMfeRanges": 0.44,
+          "endInsideRange": false,
+          "pocTouched": false
+        }
+      },
+      "operationalEntry": false,
+      "orderSubmitted": false
+    },
+    {
+      "shadowId": "2026-07-09:9431-9439:DynamicCompression:9442:LOW",
+      "profileLabel": "2026-07-09:9431-9439:DynamicCompression",
+      "date": "2026-07-09",
+      "entryBar": 9442,
+      "boundary": "LOW",
+      "direction": "SHORT",
+      "chartTimeFrame": "M5",
+      "entryPrice": 29627.0,
+      "initialTransition": "EARLY_REJECTION",
+      "trajectoryTags": [
+        "EARLY_REJECTION",
+        "REJECTION_TO_POC",
+        "REACCEPTANCE_AFTER_REENTRY"
+      ],
+      "firstInsideMinutes": 4.81,
+      "firstInsidePathBarOrdinal": 1,
+      "pocTouched": true,
+      "firstPocTouchMinutes": 30.01,
+      "reacceptedAfterReentry": true,
+      "oppositeBreakout": false,
+      "terminalState": "BELOW_RANGE",
+      "terminalElapsedMinutes": 60.04,
+      "pathBars": 12,
+      "entryDirectionalDelta": -21.0,
+      "entryTotalVolumePercentilePrior": 0.5,
+      "entryAbsoluteDeltaPercentilePrior": 0.5,
+      "flowPrefixes": {
+        "first1Bars": {
+          "bars": 1,
+          "directionalDelta": 44.0,
+          "totalVolume": 454.0,
+          "directionalFlowImbalance": 0.0969
+        },
+        "first2Bars": {
+          "bars": 2,
+          "directionalDelta": 25.0,
+          "totalVolume": 663.0,
+          "directionalFlowImbalance": 0.0377
+        },
+        "first3Bars": {
+          "bars": 3,
+          "directionalDelta": 6.0,
+          "totalVolume": 964.0,
+          "directionalFlowImbalance": 0.0062
+        }
+      },
+      "horizons": {
+        "h6": {
+          "elapsedMinutes": 30.01,
+          "directionalMoveRanges": -0.77,
+          "favorableMfeRanges": 0.04,
+          "adverseMfeRanges": 0.89,
+          "endInsideRange": true,
+          "pocTouched": true
+        },
+        "h12": {
+          "elapsedMinutes": 60.04,
+          "directionalMoveRanges": 0.46,
+          "favorableMfeRanges": 0.48,
+          "adverseMfeRanges": 0.9,
+          "endInsideRange": false,
+          "pocTouched": true
+        }
+      },
+      "operationalEntry": false,
+      "orderSubmitted": false
+    }
+  ],
+  "assessment": {
+    "validatedTransitions": [],
+    "validatedFlowConfirmations": [],
+    "minimumIndependentTestProfiles": 8,
+    "conclusion": "Descriptive path classification only; all transition and flow hypotheses require unseen prospective sessions."
+  },
+  "guardrail": "No executable ATAS entry, order, stop, target, PnL, or intrabar execution assumption is produced."
+}

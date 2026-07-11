@@ -248,6 +248,8 @@ OPPOSITE_OUTSIDE
 
 Solo `OUTSIDE_ACCEPTANCE` alimenta oggi la shadow continuation; gli altri stati restano disponibili per confronti diagnostici senza generare entry sovrapposte.
 
+Il primo studio del path completo e' documentato in `docs/research/acceptance-path-transition-analysis-2026-07-11.md`. `CONTINUOUS_ACCEPTANCE`, rejection entro/dopo 15 minuti, POC touch e reacceptance sono descrittori futuri del path, non nuovi trigger live. Il segno del directional flow nelle prime tre barre resta una diagnostica prospettica, con nessuna conferma validata.
+
 ### Nota visuale su POC
 
 Se sull'indicatore ATAS il volume profile e' impostato su `Current Day`, il POC visuale puo' essere diverso dal target del modello.

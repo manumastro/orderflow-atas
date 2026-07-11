@@ -46,3 +46,14 @@ python FabioOrderFlow/tools/analyze_compression_state_entries.py \
 
 Confronta failed breakout reversion e acceptance continuation usando soltanto
 stato disponibile alla barra di trigger. Il JSON include ogni entry e outcome.
+
+Transizioni del path acceptance e directional flow iniziale, JSON-only:
+
+```bash
+python FabioOrderFlow/tools/analyze_acceptance_path_transitions.py \
+  --save FabioOrderFlow/ledger-snapshots/acceptance-path-transitions-2026-07-11.json
+```
+
+Classifica continuous acceptance, rejection entro/dopo 15 minuti, POC touch,
+reacceptance e opposite breakout. Misura il flow nelle prime 1/2/3 barre.
+Le classi path sono descrittive e non producono entry, ordini o PnL.
