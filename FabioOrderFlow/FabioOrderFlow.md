@@ -9,7 +9,7 @@ Modalita':          COMPRESSION_EVENT_LEDGER_NO_TRADES
 Ordini / PnL:       DISABLED
 Reference profile:  LOG_ONLY
 Grafico:            sola zona London contestuale
-Output:             ledger + shadow acceptance continuation H6/H12
+Output:             ledger + shadow acceptance path completo 60 minuti
 ```
 
 `london-ny-close-hold` e il suo PnL `+634,25` restano baseline storica del precedente core MR, non un modello in esecuzione.
@@ -41,7 +41,9 @@ ATAS OnCalculate
 -> LondonMeanReversionModel mantiene il lifecycle dinamico SEARCHING/BUILDING/READY/RESOLVED di DynamicCompression
 -> LondonMeanReversionModel registra tutte le interazioni High/Low dopo READY, senza qualifica fissa
 -> LondonMeanReversionModel registra outcome ledger 1/3/6/12 barre
--> sulla seconda close esterna registra shadow acceptance continuation e outcome H6/H12
+-> sulla seconda close esterna registra shadow acceptance continuation
+-> registra ogni barra chart per 60 minuti e checkpoint H6/H12
+-> classifica ogni evento ledger senza limitare la discovery setup
 -> nessun setup operativo, posizione, ordine, stop, target o PnL
 
 ATAS OnCumulativeTrade / OnUpdateCumulativeTrade

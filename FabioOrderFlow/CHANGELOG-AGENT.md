@@ -1,5 +1,27 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Implementazione 2026-07-11 - Shadow Path Completo e Setup Discovery Aperta
+
+```text
+Path post-entry:
+- MR_SHADOW_ACCEPTANCE_BAR per ogni barra completata fino a 60 minuti.
+- Include timeframe, elapsed minutes, OHLC, candle volume, cumulative flow, directional move, MFE/MAE progressivi, range state e POC touch.
+- Historical cumulative retention estesa a RESOLVED + 60 minuti per evitare flow post-entry falso a zero.
+
+Timeframe:
+- Granularita' = chart ATAS; M5 circa 12 path bars, M1 circa 60.
+- L'API Indicator installata non espone richiesta storica candle M1 separata da chart M5.
+- Per path M1 applicare l'indicatore a chart M1; ogni marker dichiara ChartTimeFrame.
+
+Setup discovery:
+- Ogni MR_COMPRESSION_LEDGER_EVENT porta DiagnosticState.
+- OUTSIDE_FIRST, OUTSIDE_ACCEPTANCE, INSIDE_BOUNDARY_INTERACTION, OPPOSITE_OUTSIDE restano tutti osservabili.
+- Solo OUTSIDE_ACCEPTANCE alimenta la shadow corrente; nessun evento viene scartato dal ledger.
+
+Vincoli invariati:
+- OperationalEntry=FALSE; OrderSubmitted=FALSE; Entries=0; ShadowOrders=0.
+```
+
 ## Implementazione 2026-07-11 - Acceptance Continuation Shadow Live
 
 ```text

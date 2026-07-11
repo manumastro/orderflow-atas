@@ -42,6 +42,7 @@ Marker attivi:
 [MR_COMPRESSION_LEDGER_OUTCOME]   esito a 1, 3, 6, 12 barre
 [MR_SHADOW_ACCEPTANCE_ENTRY]      seconda close esterna; osservazione continuation, nessun ordine
 [MR_SHADOW_ACCEPTANCE_OUTCOME]    esito direzionale dopo 6/12 barre
+[MR_SHADOW_ACCEPTANCE_BAR]        ogni barra chart completata fino a 60 minuti dall'entry
 [HISTORICAL_FLOW_FINISH]          Entries=0, LedgerProfiles=N, LedgerEvents=N, LedgerOutcomes=N
 ```
 
@@ -90,6 +91,8 @@ OrderSubmitted         sempre FALSE
 ```
 
 H6/H12 sono finestre di osservazione, non target. I marker shadow non vanno sommati come PnL e non sono `[MR_ENTRY]`.
+
+`MR_SHADOW_ACCEPTANCE_BAR` espone il path completo: `ChartTimeFrame`, `PathBarOrdinal`, `ElapsedMinutes`, OHLC, volume candela, flow cumulative, movimento direzionale, MFE/MAE progressivi, stato rispetto al range e POC touch. La granularita' coincide con il chart: M1 richiede un chart M1; un chart M5 non espone candele M1 separate all'indicatore.
 
 ## BalanceZoneTracker Corrente
 

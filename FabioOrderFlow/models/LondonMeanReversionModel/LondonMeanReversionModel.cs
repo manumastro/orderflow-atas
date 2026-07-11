@@ -64,6 +64,7 @@ namespace FabioOrderFlow
         private static readonly int[] CompressionLedgerOutcomeHorizons = { 1, 3, 6, 12 };
         private static readonly int[] ShadowAcceptanceOutcomeHorizons = { 6, 12 };
         private const string ShadowAcceptanceModel = "ACCEPTANCE_CONTINUATION_V1";
+        private const int ShadowAcceptancePathMinutes = 60;
         private const string StudyMode = "COMPRESSION_EVENT_LEDGER_NO_TRADES";
         private static readonly bool LogProfileDiagnosticsForSetups = false;
         private static readonly bool LogProfileDiagnosticsForEntries = true;
@@ -93,6 +94,7 @@ namespace FabioOrderFlow
         private readonly HashSet<string> _loggedCompressionLedgerOutcomes = new();
         private readonly HashSet<string> _loggedShadowAcceptanceEntries = new();
         private readonly HashSet<string> _loggedShadowAcceptanceOutcomes = new();
+        private readonly HashSet<string> _loggedShadowAcceptancePathBars = new();
         private readonly ProfileAccumulator _currentDayProfile = new();
         private readonly ProfileAccumulator _currentLondonProfile = new();
         private DateOnly? _currentDayItaly;
@@ -108,12 +110,14 @@ namespace FabioOrderFlow
         private long _liveAcceptedTradeCount;
         private DateTime _lastLiveHeartbeatUtc = DateTime.MinValue;
         private bool _processingHistoricalReplay;
+        private readonly string _chartTimeFrame;
 
         public LondonMeanReversionModule(
             BalanceZoneTracker balanceTracker,
             Action<string, bool> log,
             Func<int, IndicatorCandle> getCandle,
             decimal tickSize,
+            string chartTimeFrame,
             List<DrawingRectangle> chartRectangles,
             List<LineTillTouch> chartLines)
         {
@@ -121,10 +125,11 @@ namespace FabioOrderFlow
             _log = log ?? throw new ArgumentNullException(nameof(log));
             _getCandle = getCandle ?? throw new ArgumentNullException(nameof(getCandle));
             _tickSize = tickSize > 0 ? tickSize : 1m;
+            _chartTimeFrame = string.IsNullOrWhiteSpace(chartTimeFrame) ? "UNKNOWN" : chartTimeFrame;
             _chartRectangles = chartRectangles ?? throw new ArgumentNullException(nameof(chartRectangles));
             _chartLines = chartLines ?? throw new ArgumentNullException(nameof(chartLines));
 
-            _log($"[MR_MODE] Model=FabioCompressionStudy, Modes=LIVE|HISTORICAL, StudyMode={StudyMode}, OperationalEntries=DISABLED, ReferenceProfiles=LOG_ONLY:PreviousDayProfile|PreviousLondonProfile, ChartVisuals=LONDON_CONTEXT_ONLY, Ledger=BOUNDARY_EVENTS_AND_OUTCOMES, LedgerQualification=NONE, LedgerOutcomeHorizons={string.Join("|", CompressionLedgerOutcomeHorizons)}, ShadowModel={ShadowAcceptanceModel}, ShadowTrigger=SECOND_CONSECUTIVE_OUTSIDE_CLOSE, ShadowOutcomeHorizons={string.Join("|", ShadowAcceptanceOutcomeHorizons)}, ShadowOrders=DISABLED, CompressionLifecycle=SEARCHING|BUILDING|READY|RESOLVED, CompressionDetection=DYNAMIC_SCORE, CompressionBaseline=PRIOR_{LocalCompressionBaselineLookbackBars}_BARS, CompressionMinBaselineBars={LocalCompressionMinimumBaselineBars}, CompressionMinBuildingBars={LocalCompressionMinimumBuildingBars}, CompressionReadyScore={LocalCompressionMinimumReadyScore:F2}, CompressionReadyPersistence={LocalCompressionReadyPersistenceBars}, CompressionResolutionPersistence={LocalCompressionResolutionPersistenceBars}, HistoricalBigTradeVolume={LondonBigTradeVolume:F0}, HistoricalStudyConfirmationBars={CompressionStudyConfirmationBars}", false);
+            _log($"[MR_MODE] Model=FabioCompressionStudy, Modes=LIVE|HISTORICAL, StudyMode={StudyMode}, OperationalEntries=DISABLED, ReferenceProfiles=LOG_ONLY:PreviousDayProfile|PreviousLondonProfile, ChartVisuals=LONDON_CONTEXT_ONLY, Ledger=BOUNDARY_EVENTS_AND_OUTCOMES, LedgerQualification=NONE, LedgerOutcomeHorizons={string.Join("|", CompressionLedgerOutcomeHorizons)}, ShadowModel={ShadowAcceptanceModel}, ShadowTrigger=SECOND_CONSECUTIVE_OUTSIDE_CLOSE, ShadowOutcomeHorizons={string.Join("|", ShadowAcceptanceOutcomeHorizons)}, ShadowPath=EVERY_COMPLETED_CHART_BAR_FOR_{ShadowAcceptancePathMinutes}_MINUTES, ChartTimeFrame={_chartTimeFrame}, ShadowOrders=DISABLED, CompressionLifecycle=SEARCHING|BUILDING|READY|RESOLVED, CompressionDetection=DYNAMIC_SCORE, CompressionBaseline=PRIOR_{LocalCompressionBaselineLookbackBars}_BARS, CompressionMinBaselineBars={LocalCompressionMinimumBaselineBars}, CompressionMinBuildingBars={LocalCompressionMinimumBuildingBars}, CompressionReadyScore={LocalCompressionMinimumReadyScore:F2}, CompressionReadyPersistence={LocalCompressionReadyPersistenceBars}, CompressionResolutionPersistence={LocalCompressionResolutionPersistenceBars}, HistoricalBigTradeVolume={LondonBigTradeVolume:F0}, HistoricalStudyConfirmationBars={CompressionStudyConfirmationBars}", false);
         }
 
         public IReadOnlyList<TradeRecord> CompletedTrades => _completedTrades;
@@ -169,7 +174,7 @@ namespace FabioOrderFlow
                 _historicalLedgerTradeWindows.Add(new HistoricalLedgerTradeWindow
                 {
                     BeginUtc = _getCandle(beginBar).Time,
-                    EndUtc = GetCandleEventTime(_getCandle(endBar))
+                    EndUtc = GetCandleEventTime(_getCandle(endBar)).AddMinutes(ShadowAcceptancePathMinutes)
                 });
             }
 
@@ -246,6 +251,7 @@ namespace FabioOrderFlow
             _loggedCompressionLedgerOutcomes.Clear();
             _loggedShadowAcceptanceEntries.Clear();
             _loggedShadowAcceptanceOutcomes.Clear();
+            _loggedShadowAcceptancePathBars.Clear();
 
             _log($"[HISTORICAL_FLOW_PROCESS_START] Model=FabioCompressionStudy, StudyMode={StudyMode}, StartBar={startBar}, EndBar={endBar}, StoredTrades={_historicalTrades.Count}, CompressionProfiles={_compressionStudyProfiles.Count}, OperationalEntries=DISABLED", false);
 
@@ -253,7 +259,7 @@ namespace FabioOrderFlow
             {
                 var ledger = RunCompressionLedger(_compressionStudyProfiles, _historicalTrades, endBar, true);
                 var durationMs = (DateTime.UtcNow - startedUtc).TotalMilliseconds;
-                _log($"[HISTORICAL_FLOW_FINISH] Model=FabioCompressionStudy, StudyMode={StudyMode}, StartBar={startBar}, EndBar={endBar}, StoredTrades={_historicalTrades.Count}, Entries=0, ClosedPositions=0, OpenPositions=0, CompletedTrades=0, LedgerProfiles={ledger.Profiles}, LedgerEvents={ledger.Events}, LedgerOutcomes={ledger.Outcomes}, ShadowAcceptanceEntries={ledger.ShadowAcceptanceEntries}, ShadowAcceptanceOutcomes={ledger.ShadowAcceptanceOutcomes}, ShadowOrders=0, ProcessDurationMs={durationMs:F0}", false);
+                _log($"[HISTORICAL_FLOW_FINISH] Model=FabioCompressionStudy, StudyMode={StudyMode}, StartBar={startBar}, EndBar={endBar}, StoredTrades={_historicalTrades.Count}, Entries=0, ClosedPositions=0, OpenPositions=0, CompletedTrades=0, LedgerProfiles={ledger.Profiles}, LedgerEvents={ledger.Events}, LedgerOutcomes={ledger.Outcomes}, ShadowAcceptanceEntries={ledger.ShadowAcceptanceEntries}, ShadowAcceptanceOutcomes={ledger.ShadowAcceptanceOutcomes}, ShadowAcceptancePathBars={ledger.ShadowAcceptancePathBars}, ShadowOrders=0, ProcessDurationMs={durationMs:F0}", false);
             }
             finally
             {
@@ -1054,6 +1060,14 @@ namespace FabioOrderFlow
                             result.ShadowAcceptanceOutcomes++;
                         }
                     }
+
+                    result.ShadowAcceptancePathBars += LogShadowAcceptancePath(
+                        shadowEvent,
+                        shadowKey,
+                        observedEndBar,
+                        tradesByBar,
+                        tradeCoverage,
+                        isHistorical);
                 }
             }
 
@@ -1143,7 +1157,14 @@ namespace FabioOrderFlow
 
         private void LogCompressionLedgerEvent(CompressionLedgerEvent ledgerEvent, bool isHistorical)
         {
-            _log($"[MR_COMPRESSION_LEDGER_EVENT] ExecutionMode={GetExecutionMode(isHistorical)}, StudyMode={StudyMode}, ProfileLabel={ledgerEvent.Profile.Reference.Label}, Bar={ledgerEvent.Bar}, {FormatTime(ledgerEvent.EventTimeUtc)}, Boundary={ledgerEvent.Boundary}, Interaction={ledgerEvent.Interaction}, TestOrdinal={ledgerEvent.TestOrdinal}, OutsideCloseStreak={ledgerEvent.OutsideCloseStreak}, BoundaryPrice={ledgerEvent.BoundaryPrice:F2}, EventClose={ledgerEvent.EventClose:F2}, CloseState={ledgerEvent.CloseState}, BreachDistanceRanges={ledgerEvent.BreachDistanceRanges:F2}, CloseDistanceRanges={ledgerEvent.CloseDistanceRanges:F2}, BarRangeToBaselineMedian={ledgerEvent.BarRangeToBaselineMedian:F2}, TradeCount={ledgerEvent.TradeCount}, TotalVolume={ledgerEvent.TotalVolume:F0}, BuyVolume={ledgerEvent.BuyVolume:F0}, SellVolume={ledgerEvent.SellVolume:F0}, Delta={ledgerEvent.Delta:F0}, ProfileCVD={ledgerEvent.ProfileCvd:F0}, MaxBuyVolume={ledgerEvent.MaxBuyVolume:F0}, MaxSellVolume={ledgerEvent.MaxSellVolume:F0}, TotalVolumePercentilePrior={FormatLedgerPercentile(ledgerEvent.TotalVolumePercentilePrior)}, AbsoluteDeltaPercentilePrior={FormatLedgerPercentile(ledgerEvent.AbsoluteDeltaPercentilePrior)}, MaxBuyPercentilePrior={FormatLedgerPercentile(ledgerEvent.MaxBuyPercentilePrior)}, MaxSellPercentilePrior={FormatLedgerPercentile(ledgerEvent.MaxSellPercentilePrior)}, OperationalEntry=FALSE", isHistorical);
+            var diagnosticState = ledgerEvent.CloseState switch
+            {
+                "OUTSIDE" when ledgerEvent.OutsideCloseStreak >= 2 => "OUTSIDE_ACCEPTANCE",
+                "OUTSIDE" => "OUTSIDE_FIRST",
+                "INSIDE" => "INSIDE_BOUNDARY_INTERACTION",
+                _ => "OPPOSITE_OUTSIDE"
+            };
+            _log($"[MR_COMPRESSION_LEDGER_EVENT] ExecutionMode={GetExecutionMode(isHistorical)}, StudyMode={StudyMode}, ProfileLabel={ledgerEvent.Profile.Reference.Label}, Bar={ledgerEvent.Bar}, {FormatTime(ledgerEvent.EventTimeUtc)}, Boundary={ledgerEvent.Boundary}, Interaction={ledgerEvent.Interaction}, DiagnosticState={diagnosticState}, TestOrdinal={ledgerEvent.TestOrdinal}, OutsideCloseStreak={ledgerEvent.OutsideCloseStreak}, BoundaryPrice={ledgerEvent.BoundaryPrice:F2}, EventClose={ledgerEvent.EventClose:F2}, CloseState={ledgerEvent.CloseState}, BreachDistanceRanges={ledgerEvent.BreachDistanceRanges:F2}, CloseDistanceRanges={ledgerEvent.CloseDistanceRanges:F2}, BarRangeToBaselineMedian={ledgerEvent.BarRangeToBaselineMedian:F2}, TradeCount={ledgerEvent.TradeCount}, TotalVolume={ledgerEvent.TotalVolume:F0}, BuyVolume={ledgerEvent.BuyVolume:F0}, SellVolume={ledgerEvent.SellVolume:F0}, Delta={ledgerEvent.Delta:F0}, ProfileCVD={ledgerEvent.ProfileCvd:F0}, MaxBuyVolume={ledgerEvent.MaxBuyVolume:F0}, MaxSellVolume={ledgerEvent.MaxSellVolume:F0}, TotalVolumePercentilePrior={FormatLedgerPercentile(ledgerEvent.TotalVolumePercentilePrior)}, AbsoluteDeltaPercentilePrior={FormatLedgerPercentile(ledgerEvent.AbsoluteDeltaPercentilePrior)}, MaxBuyPercentilePrior={FormatLedgerPercentile(ledgerEvent.MaxBuyPercentilePrior)}, MaxSellPercentilePrior={FormatLedgerPercentile(ledgerEvent.MaxSellPercentilePrior)}, OperationalEntry=FALSE", isHistorical);
         }
 
         private bool TryBuildCompressionLedgerOutcome(
@@ -1193,12 +1214,69 @@ namespace FabioOrderFlow
             _log($"[MR_COMPRESSION_LEDGER_OUTCOME] ExecutionMode={GetExecutionMode(isHistorical)}, StudyMode={StudyMode}, ProfileLabel={outcome.Event.Profile.Reference.Label}, EventBar={outcome.Event.Bar}, Boundary={outcome.Event.Boundary}, Interaction={outcome.Event.Interaction}, HorizonBars={outcome.Horizon}, EndBar={outcome.EndBar}, {FormatTime(outcome.EndTimeUtc)}, EventClose={outcome.Event.EventClose:F2}, EndClose={outcome.EndClose:F2}, CloseMoveRanges={outcome.CloseMoveRanges:F2}, UpMfeRanges={outcome.UpMfeRanges:F2}, DownMaeRanges={outcome.DownMaeRanges:F2}, EndInsideRange={outcome.EndInsideRange}, PocTouched={outcome.PocTouched}, OperationalEntry=FALSE", isHistorical);
         }
 
+        private int LogShadowAcceptancePath(
+            CompressionLedgerEvent entry,
+            string shadowKey,
+            int observedEndBar,
+            IReadOnlyDictionary<int, List<CumulativeTrade>> tradesByBar,
+            string tradeCoverage,
+            bool isHistorical)
+        {
+            var reference = entry.Profile.Reference;
+            var range = Math.Max(reference.High - reference.Low, _tickSize);
+            var isLong = entry.Boundary == "HIGH";
+            var highest = entry.EventClose;
+            var lowest = entry.EventClose;
+            var pocTouchedToDate = false;
+            var logged = 0;
+            var maxBar = Math.Min(observedEndBar, _currentBar - 1);
+            for (var bar = entry.Bar + 1; bar <= maxBar; bar++)
+            {
+                var candle = _getCandle(bar);
+                var eventTimeUtc = GetCandleEventTime(candle);
+                var elapsedMinutes = (eventTimeUtc - entry.EventTimeUtc).TotalMinutes;
+                if (elapsedMinutes <= 0)
+                    continue;
+                if (elapsedMinutes > ShadowAcceptancePathMinutes)
+                    break;
+
+                highest = Math.Max(highest, candle.High);
+                lowest = Math.Min(lowest, candle.Low);
+                var pocTouchedThisBar = candle.Low <= reference.POC && candle.High >= reference.POC;
+                pocTouchedToDate |= pocTouchedThisBar;
+                var closeMove = (candle.Close - entry.EventClose) / range;
+                var directionalMove = isLong ? closeMove : -closeMove;
+                var favorableMfe = isLong
+                    ? (highest - entry.EventClose) / range
+                    : (entry.EventClose - lowest) / range;
+                var adverseMfe = isLong
+                    ? (entry.EventClose - lowest) / range
+                    : (highest - entry.EventClose) / range;
+                var priceState = candle.Close > reference.High
+                    ? "ABOVE_RANGE"
+                    : candle.Close < reference.Low
+                        ? "BELOW_RANGE"
+                        : "INSIDE_RANGE";
+                var stats = BuildCompressionLedgerBarStats(
+                    tradesByBar.TryGetValue(bar, out var barTrades) ? barTrades : Array.Empty<CumulativeTrade>());
+                if (!_loggedShadowAcceptancePathBars.Add($"{shadowKey}:{bar}"))
+                    continue;
+
+                var direction = isLong ? "LONG" : "SHORT";
+                var shadowId = $"{reference.Label}:{entry.Bar}:{entry.Boundary}";
+                _log($"[MR_SHADOW_ACCEPTANCE_BAR] ExecutionMode={GetExecutionMode(isHistorical)}, StudyMode={StudyMode}, ShadowModel={ShadowAcceptanceModel}, ShadowId={shadowId}, ProfileLabel={reference.Label}, EntryBar={entry.Bar}, Boundary={entry.Boundary}, Direction={direction}, ChartTimeFrame={_chartTimeFrame}, PathBar={bar}, PathBarOrdinal={bar - entry.Bar}, ElapsedMinutes={elapsedMinutes:F2}, {FormatTime(eventTimeUtc)}, Open={candle.Open:F2}, High={candle.High:F2}, Low={candle.Low:F2}, Close={candle.Close:F2}, CandleVolume={candle.Volume:F0}, DirectionalMoveRanges={directionalMove:F2}, FavorableMfeToDateRanges={favorableMfe:F2}, AdverseMfeToDateRanges={adverseMfe:F2}, PriceState={priceState}, PocTouchedThisBar={pocTouchedThisBar}, PocTouchedToDate={pocTouchedToDate}, TradeCount={stats.TradeCount}, TotalVolume={stats.TotalVolume:F0}, BuyVolume={stats.BuyVolume:F0}, SellVolume={stats.SellVolume:F0}, Delta={stats.Delta:F0}, MaxBuyVolume={stats.MaxBuyVolume:F0}, MaxSellVolume={stats.MaxSellVolume:F0}, TradeCoverage={tradeCoverage}, OperationalEntry=FALSE, OrderSubmitted=FALSE", isHistorical);
+                logged++;
+            }
+
+            return logged;
+        }
+
         private void LogShadowAcceptanceEntry(CompressionLedgerEvent entry, string tradeCoverage, bool isHistorical)
         {
             var reference = entry.Profile.Reference;
             var direction = entry.Boundary == "HIGH" ? "LONG" : "SHORT";
             var shadowId = $"{reference.Label}:{entry.Bar}:{entry.Boundary}";
-            _log($"[MR_SHADOW_ACCEPTANCE_ENTRY] ExecutionMode={GetExecutionMode(isHistorical)}, StudyMode={StudyMode}, ShadowModel={ShadowAcceptanceModel}, ShadowId={shadowId}, ProfileLabel={reference.Label}, EntryBar={entry.Bar}, {FormatTime(entry.EventTimeUtc)}, Boundary={entry.Boundary}, Direction={direction}, EntryPrice={entry.EventClose:F2}, Trigger=SECOND_CONSECUTIVE_OUTSIDE_CLOSE, OutsideCloseStreak={entry.OutsideCloseStreak}, High={reference.High:F2}, Low={reference.Low:F2}, POC={reference.POC:F2}, Range={Math.Max(reference.High - reference.Low, _tickSize):F2}, TradeCoverage={tradeCoverage}, TotalVolumePercentilePrior={FormatLedgerPercentile(entry.TotalVolumePercentilePrior)}, AbsoluteDeltaPercentilePrior={FormatLedgerPercentile(entry.AbsoluteDeltaPercentilePrior)}, OperationalEntry=FALSE, OrderSubmitted=FALSE", isHistorical);
+            _log($"[MR_SHADOW_ACCEPTANCE_ENTRY] ExecutionMode={GetExecutionMode(isHistorical)}, StudyMode={StudyMode}, ShadowModel={ShadowAcceptanceModel}, ShadowId={shadowId}, ProfileLabel={reference.Label}, EntryBar={entry.Bar}, {FormatTime(entry.EventTimeUtc)}, Boundary={entry.Boundary}, Direction={direction}, ChartTimeFrame={_chartTimeFrame}, EntryPrice={entry.EventClose:F2}, Trigger=SECOND_CONSECUTIVE_OUTSIDE_CLOSE, OutsideCloseStreak={entry.OutsideCloseStreak}, High={reference.High:F2}, Low={reference.Low:F2}, POC={reference.POC:F2}, Range={Math.Max(reference.High - reference.Low, _tickSize):F2}, TradeCoverage={tradeCoverage}, TotalVolumePercentilePrior={FormatLedgerPercentile(entry.TotalVolumePercentilePrior)}, AbsoluteDeltaPercentilePrior={FormatLedgerPercentile(entry.AbsoluteDeltaPercentilePrior)}, OperationalEntry=FALSE, OrderSubmitted=FALSE", isHistorical);
         }
 
         private void LogShadowAcceptanceOutcome(CompressionLedgerOutcome outcome, string tradeCoverage, bool isHistorical)
@@ -1211,7 +1289,7 @@ namespace FabioOrderFlow
             var favorableMfe = isLong ? outcome.UpMfeRanges : outcome.DownMaeRanges;
             var adverseMfe = isLong ? outcome.DownMaeRanges : outcome.UpMfeRanges;
             var shadowId = $"{reference.Label}:{entry.Bar}:{entry.Boundary}";
-            _log($"[MR_SHADOW_ACCEPTANCE_OUTCOME] ExecutionMode={GetExecutionMode(isHistorical)}, StudyMode={StudyMode}, ShadowModel={ShadowAcceptanceModel}, ShadowId={shadowId}, ProfileLabel={reference.Label}, EntryBar={entry.Bar}, Boundary={entry.Boundary}, Direction={direction}, HorizonBars={outcome.Horizon}, EndBar={outcome.EndBar}, {FormatTime(outcome.EndTimeUtc)}, EntryPrice={entry.EventClose:F2}, EndClose={outcome.EndClose:F2}, DirectionalMoveRanges={directionalMove:F2}, FavorableMfeRanges={favorableMfe:F2}, AdverseMfeRanges={adverseMfe:F2}, EndInsideRange={outcome.EndInsideRange}, PocTouched={outcome.PocTouched}, TradeCoverage={tradeCoverage}, OperationalEntry=FALSE, OrderSubmitted=FALSE", isHistorical);
+            _log($"[MR_SHADOW_ACCEPTANCE_OUTCOME] ExecutionMode={GetExecutionMode(isHistorical)}, StudyMode={StudyMode}, ShadowModel={ShadowAcceptanceModel}, ShadowId={shadowId}, ProfileLabel={reference.Label}, EntryBar={entry.Bar}, Boundary={entry.Boundary}, Direction={direction}, ChartTimeFrame={_chartTimeFrame}, HorizonBars={outcome.Horizon}, ElapsedMinutes={(outcome.EndTimeUtc - entry.EventTimeUtc).TotalMinutes:F2}, EndBar={outcome.EndBar}, {FormatTime(outcome.EndTimeUtc)}, EntryPrice={entry.EventClose:F2}, EndClose={outcome.EndClose:F2}, DirectionalMoveRanges={directionalMove:F2}, FavorableMfeRanges={favorableMfe:F2}, AdverseMfeRanges={adverseMfe:F2}, EndInsideRange={outcome.EndInsideRange}, PocTouched={outcome.PocTouched}, TradeCoverage={tradeCoverage}, OperationalEntry=FALSE, OrderSubmitted=FALSE", isHistorical);
         }
 
         private static decimal? GetPriorPercentile(IReadOnlyList<decimal> history, decimal value)
@@ -2487,6 +2565,7 @@ namespace FabioOrderFlow
             public int Outcomes { get; set; }
             public int ShadowAcceptanceEntries { get; set; }
             public int ShadowAcceptanceOutcomes { get; set; }
+            public int ShadowAcceptancePathBars { get; set; }
         }
 
         private sealed class CompressionLedgerBarStats

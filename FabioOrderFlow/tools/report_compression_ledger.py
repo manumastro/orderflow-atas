@@ -28,6 +28,7 @@ EVENT_MARKER = "MR_COMPRESSION_LEDGER_EVENT"
 OUTCOME_MARKER = "MR_COMPRESSION_LEDGER_OUTCOME"
 SHADOW_ENTRY_MARKER = "MR_SHADOW_ACCEPTANCE_ENTRY"
 SHADOW_OUTCOME_MARKER = "MR_SHADOW_ACCEPTANCE_OUTCOME"
+SHADOW_BAR_MARKER = "MR_SHADOW_ACCEPTANCE_BAR"
 PROCESS_START_MARKER = "HISTORICAL_FLOW_PROCESS_START"
 PROCESS_FINISH_MARKER = "HISTORICAL_FLOW_FINISH"
 LOOKBACK_MARKER = "CUM_TRADES_LOOKBACK"
@@ -41,7 +42,7 @@ PROFILE_FIELDS = (
 )
 EVENT_FIELDS = (
     "ProfileLabel", "Bar", "Italy", "London", "UTC", "Boundary",
-    "Interaction", "TestOrdinal", "OutsideCloseStreak", "BoundaryPrice",
+    "Interaction", "DiagnosticState", "TestOrdinal", "OutsideCloseStreak", "BoundaryPrice",
     "EventClose", "CloseState", "BreachDistanceRanges", "CloseDistanceRanges",
     "BarRangeToBaselineMedian", "TradeCount", "TotalVolume", "BuyVolume",
     "SellVolume", "Delta", "ProfileCVD", "MaxBuyVolume", "MaxSellVolume",
@@ -56,20 +57,31 @@ OUTCOME_FIELDS = (
 )
 SHADOW_ENTRY_FIELDS = (
     "ShadowModel", "ShadowId", "ProfileLabel", "EntryBar", "Italy", "London",
-    "UTC", "Boundary", "Direction", "EntryPrice", "Trigger",
+    "UTC", "Boundary", "Direction", "ChartTimeFrame", "EntryPrice", "Trigger",
     "OutsideCloseStreak", "High", "Low", "POC", "Range", "TradeCoverage",
     "TotalVolumePercentilePrior", "AbsoluteDeltaPercentilePrior",
     "OperationalEntry", "OrderSubmitted",
 )
 SHADOW_OUTCOME_FIELDS = (
     "ShadowModel", "ShadowId", "ProfileLabel", "EntryBar", "Boundary",
-    "Direction", "HorizonBars", "EndBar", "Italy", "London", "UTC",
-    "EntryPrice", "EndClose", "DirectionalMoveRanges", "FavorableMfeRanges",
-    "AdverseMfeRanges", "EndInsideRange", "PocTouched", "TradeCoverage",
-    "OperationalEntry", "OrderSubmitted",
+    "Direction", "ChartTimeFrame", "HorizonBars", "ElapsedMinutes", "EndBar",
+    "Italy", "London", "UTC", "EntryPrice", "EndClose",
+    "DirectionalMoveRanges", "FavorableMfeRanges", "AdverseMfeRanges",
+    "EndInsideRange", "PocTouched", "TradeCoverage", "OperationalEntry",
+    "OrderSubmitted",
+)
+SHADOW_BAR_FIELDS = (
+    "ShadowModel", "ShadowId", "ProfileLabel", "EntryBar", "Boundary",
+    "Direction", "ChartTimeFrame", "PathBar", "PathBarOrdinal",
+    "ElapsedMinutes", "Italy", "London", "UTC", "Open", "High", "Low",
+    "Close", "CandleVolume", "DirectionalMoveRanges",
+    "FavorableMfeToDateRanges", "AdverseMfeToDateRanges", "PriceState",
+    "PocTouchedThisBar", "PocTouchedToDate", "TradeCount", "TotalVolume",
+    "BuyVolume", "SellVolume", "Delta", "MaxBuyVolume", "MaxSellVolume",
+    "TradeCoverage", "OperationalEntry", "OrderSubmitted",
 )
 
-INTEGER_FIELDS = {"ReadyBar", "ResolvedBar", "StudyBars", "HighTests", "LowTests", "BoundaryEvents", "Bar", "TestOrdinal", "OutsideCloseStreak", "TradeCount", "EventBar", "EntryBar", "HorizonBars", "EndBar"}
+INTEGER_FIELDS = {"ReadyBar", "ResolvedBar", "StudyBars", "HighTests", "LowTests", "BoundaryEvents", "Bar", "TestOrdinal", "OutsideCloseStreak", "TradeCount", "EventBar", "EntryBar", "PathBar", "PathBarOrdinal", "HorizonBars", "EndBar"}
 DECIMAL_FIELDS = {
     "BuyVolume", "SellVolume", "ProfileCVD", "High", "Low", "POC", "Range",
     "RangeToBaselineMedian", "CompressionScore", "BoundaryPrice", "EventClose",
@@ -79,8 +91,10 @@ DECIMAL_FIELDS = {
     "MaxBuyPercentilePrior", "MaxSellPercentilePrior", "EndClose",
     "CloseMoveRanges", "UpMfeRanges", "DownMaeRanges", "EntryPrice",
     "DirectionalMoveRanges", "FavorableMfeRanges", "AdverseMfeRanges",
+    "ElapsedMinutes", "Open", "Close", "CandleVolume",
+    "FavorableMfeToDateRanges", "AdverseMfeToDateRanges",
 }
-BOOLEAN_FIELDS = {"EndInsideRange", "PocTouched", "OperationalEntry", "OrderSubmitted"}
+BOOLEAN_FIELDS = {"EndInsideRange", "PocTouched", "PocTouchedThisBar", "PocTouchedToDate", "OperationalEntry", "OrderSubmitted"}
 
 
 @dataclass(frozen=True)
@@ -367,6 +381,7 @@ def main() -> int:
     outcomes = [converted(record, OUTCOME_FIELDS) for record in records_for_marker(run.lines, OUTCOME_MARKER)]
     shadow_entries = [converted(record, SHADOW_ENTRY_FIELDS) for record in records_for_marker(run.lines, SHADOW_ENTRY_MARKER)]
     shadow_outcomes = [converted(record, SHADOW_OUTCOME_FIELDS) for record in records_for_marker(run.lines, SHADOW_OUTCOME_MARKER)]
+    shadow_path_bars = [converted(record, SHADOW_BAR_FIELDS) for record in records_for_marker(run.lines, SHADOW_BAR_MARKER)]
 
     profiles_by_label = {str(profile["ProfileLabel"]): profile for profile in profiles}
     warnings: list[str] = []
@@ -427,6 +442,7 @@ def main() -> int:
             "missingCoverageEvents": len(events) - len(events_flow_covered),
             "shadowAcceptanceEntries": len(shadow_entries),
             "shadowAcceptanceOutcomes": len(shadow_outcomes),
+            "shadowAcceptancePathBars": len(shadow_path_bars),
         },
         "validation": {
             "outcomesComplete": len(outcomes) == expected_outcomes,
@@ -436,12 +452,14 @@ def main() -> int:
             "completedTrades": run.finish.get("CompletedTrades"),
             "shadowOrders": run.finish.get("ShadowOrders"),
             "shadowEntriesAreNonOperational": all(entry["OperationalEntry"] is False and entry["OrderSubmitted"] is False for entry in shadow_entries),
+            "shadowPathBarsAreNonOperational": all(bar["OperationalEntry"] is False and bar["OrderSubmitted"] is False for bar in shadow_path_bars),
             "warnings": warnings,
         },
         "profileCoverage": profile_summary(profiles),
         "shadowAcceptance": {
             "entries": shadow_entries,
             "outcomes": shadow_outcomes,
+            "pathBars": shadow_path_bars,
             "flowCoveredOutcomeGroups": shadow_outcome_groups([
                 outcome for outcome in shadow_outcomes if outcome["TradeCoverage"] == "AVAILABLE"
             ]),
@@ -459,6 +477,7 @@ def main() -> int:
         csv_rows(outcomes, base.with_name(base.name + "-outcomes.csv"))
         csv_rows(shadow_entries, base.with_name(base.name + "-shadow-entries.csv"))
         csv_rows(shadow_outcomes, base.with_name(base.name + "-shadow-outcomes.csv"))
+        csv_rows(shadow_path_bars, base.with_name(base.name + "-shadow-path-bars.csv"))
         aggregation_rows = [row for groups in flow_groups.values() for row in groups]
         csv_rows(aggregation_rows, base.with_name(base.name + "-flow-covered-aggregates.csv"))
         base.with_name(base.name + "-summary.json").write_text(json.dumps(summary, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
