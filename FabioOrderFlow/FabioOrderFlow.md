@@ -20,7 +20,7 @@ Output:             ledger + acceptance baseline + LOW flow confirmation shadow
 src/FabioOrderFlow.cs                                  orchestrator ATAS, log, live/replay/storico
 src/MarketTimeZones.cs                                 conversioni UTC/London/Italy/New York
 models/shared/BalanceZoneTracker/                      tracker London corrente; profile legacy non consumato
-models/LondonMeanReversionModel/                       ledger live/replay eventi compression
+models/LondonMeanReversionModel/                       ledger/shadow no-trade; nessun subsystem ordini/posizioni
 models/PostLondonImpulseModel/                         parked, non operativo ora
 tools/report_mr_performance.py                         report PnL legacy, solo MR_EXIT
 tools/report_compression_ledger.py                     export/aggregati descrittivi ledger no-trade

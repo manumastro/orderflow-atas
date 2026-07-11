@@ -2,7 +2,15 @@
 
 Output ripetibili di `../tools/report_compression_ledger.py`.
 
-Ogni snapshot completo contiene:
+Snapshot canonici mantenuti:
+
+```text
+18-02-29   baseline ledger usata dall'analisi descrittiva iniziale
+18-23-06   chart esteso usato dagli studi shadow offline
+19-03-07   acceptance path completo verificato e fonte dello studio transizioni
+```
+
+I replay intermedi superseded non vengono conservati. Ogni snapshot completo contiene:
 
 ```text
 *-profiles.csv                 un record per ProfileLabel

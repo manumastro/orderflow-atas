@@ -2,7 +2,7 @@
 
 Modello attivo di studio `FabioCompressionStudy`.
 
-Nessun log del modello apre o gestisce posizioni. `MR_COMPRESSION_LEDGER_*` descrive osservazioni causali live-equivalenti e replay storico, non PnL.
+Nessun log del modello apre o gestisce posizioni. `MR_COMPRESSION_LEDGER_*` descrive osservazioni causali live-equivalenti e replay storico, non PnL. Il sorgente attivo non contiene piu' classi o metodi per setup operativi, posizioni, stop, target, breakeven, exit o disegni trade; il contratto no-trade e' strutturale, non soltanto disabilitato da configurazione.
 
 ## Stato Corrente
 

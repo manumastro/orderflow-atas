@@ -63,7 +63,7 @@ public class FabioOrderFlow : Indicator
             if (EnableLondonMeanReversion)
             {
                 var tickSize = InstrumentInfo?.TickSize ?? 1m;
-                _meanReversionModule = new LondonMeanReversionModule(_balanceTracker, Log, GetCandle, tickSize, ChartInfo?.TimeFrame ?? "UNKNOWN", Rectangles, HorizontalLinesTillTouch);
+                _meanReversionModule = new LondonMeanReversionModule(Log, GetCandle, tickSize, ChartInfo?.TimeFrame ?? "UNKNOWN");
                 _balanceTracker.SetMeanReversionModule(_meanReversionModule);
                 Log($"[MODULE] London Mean Reversion module initialized (Live-first, TickSize={tickSize})");
             }

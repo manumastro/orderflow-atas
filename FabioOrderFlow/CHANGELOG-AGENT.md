@@ -1,5 +1,27 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Cleanup 2026-07-11 - No-Trade Strutturale
+
+```text
+Codice attivo:
+- LondonMeanReversionModel ridotto da circa 2.900 a circa 1.650 righe.
+- Rimossi sottosistemi irraggiungibili: setup reference/rejection, entry, posizioni, stop, target, breakeven, exit, PnL, replay audit e disegni trade/candidati.
+- Rimosse API pubbliche ActiveSetups, ActivePositions e CompletedTrades.
+- Rimosse dipendenze grafiche e parametro BalanceZoneTracker dal costruttore del modulo.
+- Mantenuti reference LOG_ONLY, lifecycle compression, ledger, cumulative flow e shadow.
+
+Repository:
+- Rimossa snapshot intermedia 18-58-21, superseded dal path verificato 19-03-07.
+- Mantenute snapshot canoniche 18-02-29, 18-23-06 e 19-03-07.
+- Rimossi output build ignorati BacktestApp/DataExporter; nessun sorgente era presente.
+- Log reference non tracciati, transcript, archive legacy, PostLondonImpulse, BalanceZoneTracker e API ATAS lasciati invariati.
+
+Verifica:
+- Sorgente attivo privo di MR_ENTRY/MR_EXIT/MR_SETUP/MR_BREAKEVEN/MR_REPLAY_OPEN.
+- Build Release: 0 warning, 0 error.
+- Comportamento ledger/shadow da verificare al reload insieme a LOW flow confirmation.
+```
+
 ## Implementazione 2026-07-11 - LOW Flow Confirmation Shadow Live
 
 ```text
