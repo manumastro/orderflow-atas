@@ -152,7 +152,7 @@ RESOLVED
 7,5% ValueConcentration
 ```
 
-I reload precedenti hanno dimostrato che finestre e rapporti rigidi non bastano: 54 profili iniziali e 46 dopo la prima normalizzazione, con range massimo 243,75. La versione dinamica sostituisce quei criteri; resta diagnostica e deve essere validata con un nuovo reload.
+I reload precedenti hanno dimostrato che finestre e rapporti rigidi non bastano: 54 profili iniziali e 46 dopo la prima normalizzazione, con range massimo 243,75. Il reload dinamico 2026-07-11 ha prodotto 7 profili da 7-11 barre, range 19,50-88,25 e score 0,67-0,80; tutte le risoluzioni hanno richiesto 2 close. La riduzione dei falsi profili e il lifecycle sono validati tecnicamente. Resta da confrontare visivamente ciascuna finestra con la compressione Fabio-style; il profilo rimane diagnostico.
 
 Le diagnostiche precedenti `CurrentLondonSessionProfile`, `LocalRotationProfile` e `LatestSwingPairToSetup` sono ritirate dal codice attivo.
 

@@ -11,6 +11,32 @@ Ogni risposta/aggiornamento deve riepilogare in modo conciso, anche se gia' disc
 Non assumere che il contesto precedente sia ricordato.
 ```
 
+## Reload 2026-07-11 09:06 - Dynamic CompressionScore verificato
+
+```text
+Operativo:
+- [MR_MODE] mantiene ReferenceProfiles=PreviousDayProfile|PreviousLondonProfile.
+- [CUM_TRADES_LOOKBACK] 2026-07-03 22:59:59 -> 2026-07-10 22:59:59; Count=1.314.530.
+- [HISTORICAL_FLOW_FINISH]: 19 entry, 19 closed, 0 open, 19 completed.
+- Tratto comune al reload 15:28: 17 [MR_EXIT], PnL -419,25 invariato.
+- Due exit successive spiegano il totale finale -455,25: 0,00 e -36,00.
+- Nessuna regressione causata dal profilo diagnostico.
+
+Diagnostico:
+- [MR_MODE] corretto: CompressionDetection=DYNAMIC_SCORE e lifecycle SEARCHING|BUILDING|READY|RESOLVED.
+- [MR_LOCAL_PROFILE_READY]=7; RESOLVED=7, contro 46/46 della versione precedente.
+- Finestre 7-11 barre; range minimo 19,50, mediano 46,75, massimo 88,25.
+- CompressionScore minimo 0,67, mediano 0,69, massimo 0,80.
+- Risoluzioni: 6 ACCEPTANCE_ABOVE_RANGE, 1 ACCEPTANCE_BELOW_RANGE; tutte dopo ResolutionCloses=2.
+- Nessun range >= 150 punti: eliminato il problema dei profili 159,50-243,75.
+- [MR_PROFILE_CONTEXT]=0: nessuna entry e' avvenuta mentre uno dei 7 profili era ancora nello stato READY; non e' un errore.
+
+Decisione:
+- Lifecycle dinamico e riduzione dei falsi profili validati tecnicamente.
+- Non modificare ora score/persistenza: prima confrontare visivamente i 7 range con le compressioni Fabio-style.
+- ActiveCompressionProfile resta DIAGNOSTIC_ONLY; nessun filtro, target o nuova entry.
+```
+
 ## Implementazione 2026-07-10 - Dynamic CompressionScore
 
 ```text
