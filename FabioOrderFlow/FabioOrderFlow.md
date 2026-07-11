@@ -76,7 +76,7 @@ Regole:
 - PnL storico valido: sommare solo `[MR_EXIT]`;
 - leggere il target operativo da `[MR_ENTRY] TargetPOC`, non dal POC visuale se l'indicatore volume profile e' impostato su `Current Day`;
 - `PreviousDayProfile` e `PreviousLondonProfile` restano entrambe reference operative;
-- il core non usa pyramiding: un setup pending o una posizione aperta blocca ogni nuovo setup fino a scadenza/exit;
+- il core non usa pyramiding: i setup possono coesistere, ma una posizione aperta blocca ogni nuova entry fino all'exit;
 - `[MR_LOCAL_PROFILE_READY]`, `[MR_LOCAL_PROFILE_RESOLVED]` e `[MR_PROFILE_CONTEXT]` sono solo diagnostica `ActiveCompressionProfile`, non modificano entry/exit/PnL;
 - le entry sono London, ma la massima durata trade e' fino a New York regular close 16:00 New York;
 - usare `docs/atas/log-reading.md` prima di interpretare nuovi log.

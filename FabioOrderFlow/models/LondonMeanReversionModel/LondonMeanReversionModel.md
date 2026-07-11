@@ -234,19 +234,19 @@ Questo e' corretto: Fabio nella versione semplice parla di `last day profile / p
 [MR_ENTRY] TargetPOC=...
 ```
 
-## Concorrenza Setup
+## Concorrenza Entry
 
-Il core usa una sola catena `setup -> posizione` alla volta:
+I setup sono osservazioni indipendenti e possono coesistere. Il core limita invece l'esecuzione:
 
 ```text
-- Se esiste un setup pending, non vengono cercati altri setup.
-- Se esiste una posizione aperta, non vengono cercati setup.
-- Sulla stessa candela PreviousDayProfile ha priorita' su PreviousLondonProfile.
-- Quando una posizione apre, eventuali setup pending vengono scaduti come difesa.
-- Dopo exit o scadenza del setup, il modello puo' cercare il prossimo setup.
+- PreviousDayProfile e PreviousLondonProfile possono entrambe creare setup.
+- Setup diversi della stessa reference possono coesistere fino a entry, timeout o POC touch.
+- Se esiste una posizione aperta, nessun cumulative big trade puo' aprire una seconda entry.
+- I setup pending non vengono cancellati dall'entry: restano soggetti alle regole normali di timeout e POC touch.
+- Dopo l'exit, un setup ancora valido puo' generare la prossima entry.
 ```
 
-Questo impedisce stacking di posizioni sulla stessa o su reference diverse. Non e' pyramiding.
+Questo impedisce stacking/pyramiding delle posizioni senza eliminare informazione diagnostica o setup validi.
 
 ## Entry Operativa
 
@@ -327,7 +327,7 @@ Exit stop/loss:      marker cremisi.
 Exit breakeven:      marker oro.
 ```
 
-Le linee entry/stop/target restano ray solo mentre la posizione live e' aperta; alla chiusura diventano segmenti dal bar di entry al bar di exit.
+Le linee entry/stop/target restano ray solo mentre la posizione live e' aperta; alla chiusura diventano segmenti dal bar di entry al bar di exit. I marker sono larghi tre barre e alti cinque tick per restare visibili anche quando entry ed exit cadono nello stesso bar.
 
 ## Log
 

@@ -30,7 +30,7 @@ HISTORICAL  dati passati processati con le stesse regole live
 Marker principali:
 
 ```text
-[MR_MODE]                    configurazione del modello: reference, concorrenza setup e visual chart
+[MR_MODE]                    configurazione del modello: reference, concorrenza entry e visual chart
 [MR_REFERENCE_READY]         reference completa disponibile: PreviousDayProfile o PreviousLondonProfile
 [MR_SETUP_LONG]              sweep sotto reference VAL e close back inside value
 [MR_SETUP_SHORT]             sweep sopra reference VAH e close back inside value

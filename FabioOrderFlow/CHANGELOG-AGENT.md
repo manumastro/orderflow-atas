@@ -11,7 +11,23 @@ Ogni risposta/aggiornamento deve riepilogare in modo conciso, anche se gia' disc
 Non assumere che il contesto precedente sia ricordato.
 ```
 
-## Implementazione 2026-07-11 - Single lifecycle + chart visuals
+## Correzione 2026-07-11 - Setup multipli, entry singola
+
+```text
+Decisione:
+- La policy SINGLE_SETUP_AND_POSITION ha ridotto il replay reload a una sola entry ed e' superseded.
+- I setup possono ora coesistere e conservano timeout/POC touch individuali.
+- ProcessAggressionTrade blocca una nuova entry solo quando esiste una posizione aperta.
+- Nessun setup pending viene scaduto automaticamente quando una posizione apre.
+- Risultato atteso: nessuna posizione simultanea, ma nessuna soppressione preventiva dei setup.
+
+Visual:
+- Il reload del 09:30 conferma sette DynamicCompression, nessuna il 10/07.
+- I marker trade sono ampliati a tre barre e cinque tick; le linee closed durano almeno tre barre.
+- Da verificare dopo reload: marker entry/exit visibili e zero sovrapposizioni di posizioni.
+```
+
+## Superseded 2026-07-11 - Single lifecycle + chart visuals
 
 ```text
 Operativo:
@@ -34,12 +50,12 @@ Da validare dopo reload:
 - DynamicCompression resta DIAGNOSTIC_ONLY; PreviousDayProfile e PreviousLondonProfile restano le sole reference operative.
 ```
 
-## Audit 2026-07-11 - Overlapping setup / position
+## Audit storico 2026-07-11 - Overlapping setup / position
 
 ```text
-Operativo attuale:
-- Il core permette setup distinti della stessa Direction + Source + ReferenceLabel se derivano da RejectionBar diversi.
-- ExpireOverlappingSetupsOnEntry scade solo setup con stessa Direction e stesso RejectionBar.
+Comportamento prima della correzione entry singola:
+- Il core permetteva setup distinti della stessa Direction + Source + ReferenceLabel se derivavano da RejectionBar diversi.
+- ExpireOverlappingSetupsOnEntry scadeva solo setup con stessa Direction e stesso RejectionBar.
 
 Evidenza replay 2026-07-11:
 - 08/07 long PreviousDayProfile: posizioni sovrapposte 09:25:09-10:07:50 e 09:34:58-10:16:39.
