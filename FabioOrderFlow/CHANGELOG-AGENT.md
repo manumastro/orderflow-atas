@@ -1,5 +1,30 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Implementazione 2026-07-11 - Compression Event Ledger, no drawings/no thresholds di qualifica
+
+```text
+Decisione:
+- Ritirati dal flusso attivo MR_COMPRESSION_STUDY_CASE, MR_COMPRESSION_STUDY_CANDIDATE e i loro marker/box DynamicCompression.
+- Il chart conserva soltanto zona London, POC/VAH/VAL grigi del BalanceZoneTracker come contesto.
+- Nessun entry, stop, target, PnL o oggetto candidato viene simulato/disegnato.
+
+Ledger:
+- Dopo READY, ogni barra che tocca o supera High/Low genera MR_COMPRESSION_LEDGER_EVENT.
+- Non c'e' filtro BigTradeVolume, due close, score, retest o direzione per registrare un evento.
+- Il record contiene geometria normalizzata, flow raw, delta/CVD, massimi trade e percentili causali delle barre precedenti nello stesso range.
+- MR_COMPRESSION_LEDGER_OUTCOME registra esito a 1/3/6/12 barre: close move, MFE/MAE, rientro e POC touch.
+- Historical calcola gli outcome dal replay completo; live li aggiunge solo quando l'orizzonte diventa disponibile.
+
+Limite esplicito:
+- READY continua a usare il lifecycle dynamic-score come scoperta della finestra; il ledger non usa quelle soglie per qualificare o scartare gli eventi.
+
+Da validare al reload:
+- [MR_MODE] StudyMode=COMPRESSION_EVENT_LEDGER_NO_TRADES e LedgerQualification=NONE.
+- [HISTORICAL_FLOW_FINISH] Entries=0, LedgerProfiles>0, LedgerEvents>0, LedgerOutcomes>0.
+- Nessun nuovo MR_COMPRESSION_STUDY_*, MR_ENTRY o MR_EXIT.
+- Zona London grigia visibile; nessun box turchese/marker candidato.
+```
+
 ## Decisione 2026-07-11 - Zona London contestuale e valutazione compression
 
 ```text

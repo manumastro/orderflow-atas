@@ -5,152 +5,90 @@ Guida canonica per interpretare i log di `FabioOrderFlow`.
 ## Principi
 
 - Il file corrente viene azzerato a ogni inizializzazione indicatore.
-- Il prefisso `WriteItaly` e' l'ora di scrittura del log, non necessariamente l'ora di mercato.
-- Per eventi di mercato usa i campi embedded `Italy=`, `London=` e `UTC=`.
-- Per analisi operativa usa l'orario italiano come riferimento principale.
-- Il modello corrente e' uno studio senza trade: dopo reload non devono apparire nuovi `[MR_ENTRY]` o `[MR_EXIT]`.
-- `[MR_EXIT]` e' la sola fonte PnL soltanto per i log legacy precedenti al passaggio allo studio.
+- `WriteItaly=` e' l'ora di scrittura; per il mercato usare `Italy=`, `London=` e `UTC=` inclusi nell'evento.
+- Il modello attivo e' `COMPRESSION_EVENT_LEDGER_NO_TRADES`: non deve emettere `[MR_ENTRY]`, `[MR_EXIT]`, posizioni o PnL.
+- `[MR_EXIT]` resta fonte PnL solo nei log legacy precedenti allo studio.
 
-## File corrente
+## File Corrente
 
 ```text
 %APPDATA%/ATAS/Logs/FabioOrderFlow.log
 ```
 
-## FabioCompressionStudy
-
-Il modello attivo e' `COMPRESSION_CASES_NO_TRADES`.
+## Contratto Ledger
 
 ```text
-LIVE        osserva bar e cumulative trades real-time; nessun ordine.
-HISTORICAL  ripete lo stesso studio sui dati ATAS; nessun PnL.
+LIVE        registra eventi al bordo dopo READY e outcome quando 1/3/6/12 barre sono disponibili.
+HISTORICAL  ricostruisce gli stessi record sui dati ATAS ricevuti.
+
+Chart       solo zona London grigia del BalanceZoneTracker, come contesto.
+No chart    DynamicCompression, marker candidati, entry, stop o target.
 ```
 
 Marker attivi:
 
 ```text
-[MR_MODE]                         deve mostrare StudyMode=COMPRESSION_CASES_NO_TRADES e OperationalEntries=DISABLED
-[ZONE_READY]                      zona/profile London grigi di contesto; non influisce sullo studio
-[MR_REFERENCE_READY]              PreviousDay/PreviousLondon costruiti esclusivamente come log
-[MR_LOCAL_PROFILE_READY]          compression congelata e causalmente disponibile
-[MR_LOCAL_PROFILE_RESOLVED]       fine osservazione dopo acceptance/fine sessione
-[MR_COMPRESSION_STUDY_CASE]       acceptance breakout, qualificata oppure esclusa
-[MR_COMPRESSION_STUDY_CANDIDATE]  candidato grafico/log; OperationalEntry=FALSE
-[MR_COMPRESSION_STUDY_PROFILE]    test alto/basso, volume al bordo, CVD e conteggio candidati
-[HISTORICAL_FLOW_FINISH]          deve riportare Entries=0 e StudyCandidates=N
+[MR_MODE]                         StudyMode=COMPRESSION_EVENT_LEDGER_NO_TRADES
+[ZONE_READY]                      zona London grigia, POC/VAH/VAL solo contesto
+[MR_REFERENCE_READY]              PreviousDay/PreviousLondon costruiti solo come log
+[MR_LOCAL_PROFILE_READY]          range causalmente disponibile al ledger
+[MR_LOCAL_PROFILE_RESOLVED]       fine della finestra osservata
+[MR_COMPRESSION_LEDGER_PROFILE]   geometria, test, volume, CVD e coverage del range
+[MR_COMPRESSION_LEDGER_EVENT]     touch/breach High o Low senza qualifica trade
+[MR_COMPRESSION_LEDGER_OUTCOME]   esito a 1, 3, 6, 12 barre
+[HISTORICAL_FLOW_FINISH]          Entries=0, LedgerProfiles=N, LedgerEvents=N, LedgerOutcomes=N
 ```
 
-## Come leggere lo studio
+## Come Leggere Un Range
 
-1. Trova `[MR_LOCAL_PROFILE_READY]`: solo da questo momento il range e' studiabile.
-2. Leggi `[MR_LOCAL_PROFILE_RESOLVED]` per il tipo di esito.
-3. Leggi `[MR_COMPRESSION_STUDY_PROFILE]`: `HighTests`, `LowTests`, volumi aggressivi al bordo e `ProfileCVD`.
-4. Leggi ogni `[MR_COMPRESSION_STUDY_CANDIDATE]`:
-   - `REVERSION_LONG/SHORT`: aggressione al bordo assorbita, rientro e big trade opposto;
-   - `BREAKOUT_LONG/SHORT`: due close in acceptance, big trade e CVD coerenti.
-5. `OperationalEntry=FALSE` e' obbligatorio. I marker sul chart sono candidati, non eseguiti.
-
-## POC legacy vs Studio
-
-La sezione seguente descrive il precedente core MR ed e' solo storica. Il nuovo studio usa il POC della compression come target candidato solo per i casi reversion; non esiste un target breakout ancora definito.
-
-Il POC disegnato da un indicatore volume profile ATAS dipende dalla sua impostazione.
-
-Se il profile visuale e' impostato su `Current Day`, puo' mostrare il developing POC corrente. Il modello London MR invece usa reference complete:
+1. Trova `[MR_LOCAL_PROFILE_READY]`. Prima di quel punto nessun evento e' registrato per quel range.
+2. Leggi `[MR_COMPRESSION_LEDGER_PROFILE]` per `RangeToBaselineMedian`, `HighTests`, `LowTests`, `BoundaryEvents`, `BuyVolume`, `SellVolume`, `ProfileCVD` e `TradeCoverage`.
+3. Per ogni `[MR_COMPRESSION_LEDGER_EVENT]` confronta:
 
 ```text
-PreviousDayProfile
-PreviousLondonProfile
+Boundary / Interaction             HIGH|LOW e TOUCH|BREACH
+TestOrdinal                        ripetizione causale del test sullo stesso lato
+OutsideCloseStreak                quante close consecutive erano gia' fuori da quel bordo
+BreachDistanceRanges              estensione oltre bordo, normalizzata per ampiezza range
+CloseDistanceRanges               close rispetto al bordo, normalizzata per ampiezza range
+BarRangeToBaselineMedian          volatilita' barra rispetto alla mediana precedente
+TradeCount / TotalVolume          partecipazione raw della barra
+BuyVolume / SellVolume / Delta    aggressione raw, senza soglia fissa
+ProfileCVD                        pressione cumulata dal READY all'evento
+MaxBuyVolume / MaxSellVolume      massimo singolo trade per lato nella barra
+*PercentilePrior                  posizione rispetto alle barre precedenti dello stesso range
 ```
 
-Quindi il POC visuale puo' differire da `[MR_ENTRY] TargetPOC`.
-
-Esempio:
+4. Per ogni `[MR_COMPRESSION_LEDGER_OUTCOME]` leggi:
 
 ```text
-Visual current-day POC circa 29500
-[MR_ENTRY] TargetPOC=29540, Source=PreviousDayProfile, ReferenceLabel=2026-07-07
+HorizonBars                       1, 3, 6 o 12 barre dopo l'evento
+CloseMoveRanges                   variazione close normalizzata per range
+UpMfeRanges / DownMaeRanges       escursione massima sopra/sotto l'evento
+EndInsideRange                    close finale rientrata nel range
+PocTouched                        POC del range attraversato nell'orizzonte
 ```
 
-In caso di dubbio, il target operativo e' sempre quello loggato in `[MR_ENTRY] TargetPOC` e confermato da `[MR_REFERENCE_READY] POC`.
+I percentili sono metriche di confronto causale, non condizioni. `NA` significa che non esistono ancora barre precedenti nel range da cui derivare il percentile.
 
 ## BalanceZoneTracker Corrente
 
-`BalanceZoneTracker` e' affidabile e resta invariato: identifica London e, per ora, mantiene/propaga il precedente contesto profile. La zona London grigia con POC/VAH/VAL e' visibile solo per orientamento; `[ZONE_READY]`, high/low e state machine non partecipano alla classificazione compression. Il prossimo refactor separato lo ridurra' a `LondonTracker`, responsabile soltanto di identificare inizio, fine e appartenenza alla sessione London.
+`BalanceZoneTracker` identifica London e disegna la zona grigia per orientamento. `[ZONE_READY]`, POC/VAH/VAL, high/low e state machine non partecipano al ledger. Il refactor futuro lo ridurra' a `LondonTracker`, responsabile soltanto di inizio, fine e appartenenza alla sessione London.
 
-## Compression Study
-
-I marker della compression generano candidati studio, ma non segnali d'ordine e non PnL.
+## Verifica Reload
 
 ```text
-[MR_LOCAL_PROFILE_READY]     score dinamico persistente su almeno 6 barre completate
-[MR_LOCAL_PROFILE_RESOLVED]  2 close accettate fuori range o fine London
-[MR_COMPRESSION_STUDY_CASE]       confronta acceptance, big trade e CVD
-[MR_COMPRESSION_STUDY_CANDIDATE]  descrive un candidato non operativo
-[MR_COMPRESSION_STUDY_PROFILE]    riassume l'intera finestra studiata
-ProfileSource=ActiveCompressionProfile
-ProfileUse=STUDY_INPUT_ONLY
+1. [MR_MODE] contiene StudyMode=COMPRESSION_EVENT_LEDGER_NO_TRADES.
+2. [HISTORICAL_FLOW_FINISH] contiene Entries=0 e contatori Ledger non nulli.
+3. Nessun nuovo MR_SETUP, MR_ENTRY, MR_EXIT, MR_BREAKEVEN o MR_REPLAY_OPEN.
+4. Il chart mostra la zona London grigia, ma non box turchesi o marker candidati.
+5. Per profili senza cumulative trade nel lookback, TradeCoverage=MISSING: non inferire flow assente dal mercato.
 ```
 
-Su `[MR_COMPRESSION_STUDY_PROFILE]` controllare che READY preceda il range studiato. Leggere `CompressionScore` e le componenti:
-
-```text
-ContractionScore / OverlapScore
-DirectionalScore / RotationScore
-ContainmentScore / BoundaryStabilityScore
-PocStabilityScore
-ValueConcentrationScore
-BaselineMedianBarRange                 mediana della distribuzione precedente
-RangeToBaselineMedian                 metrica, non filtro rigido
-AverageBarRangeToBaselineMedian       metrica, non filtro rigido
-```
-
-Il profile diventa READY con score `>= 0,65` per 2 barre consecutive. La risoluzione richiede 2 close esterne; una singola wick non basta.
-
-Non analizzare PnL sullo studio. `[MR_EXIT]` e' rilevante solo per dati legacy.
-
-## Gestione Trade Legacy
-
-Entry, stop, target e durata New York restano documentazione del core MR ritirato e non sono eseguiti dal modello studio.
-
-Regola operativa:
-
-```text
-Entry window: London 08:00-16:00 London
-Max hold:     New York regular close 16:00 New York
-```
-
-Nel periodo estivo normale questo corrisponde circa a:
-
-```text
-16:00 New York = 22:00 Italia = 20:00 UTC
-```
-
-Il codice usa `MarketTimeZones.NewYork`, quindi gestisce i cambi DST tramite timezone.
-
-## Barre E Chart
-
-- Le barre M5 sono stampate sull'open time della barra.
-- I timestamp precisi delle entry arrivano dai cumulative trades e sono intrabar.
-- Per ogni evento di mercato usare il campo `Italy=`: e' ora italiana. `WriteItaly=` indica solo quando ATAS ha scritto il log.
-- Il chart posiziona candidati studio sul bar M5 che contiene il timestamp intrabar o la close di conferma.
-
-Visual MR:
-
-```text
-Zona London: box/livelli grigi del BalanceZoneTracker, solo contesto.
-DynamicCompression: box/POC/VAH/VAL turchese, input dello studio.
-Reversion long: verde; reversion short: viola.
-Breakout long: blu; breakout short: arancio.
-Linea tratteggiata: target POC candidato solo per reversion.
-```
-
-## Regola pratica
-
-Se devi capire il risultato del modello, usare il report canonico:
+## Report Performance
 
 ```bash
 python FabioOrderFlow/tools/report_mr_performance.py --save
 ```
 
-Il report performance non valuta il nuovo studio, perche' non esistono trade o PnL. Usarlo solo per confronti legacy basati su `[MR_EXIT]`.
+Il report performance non valuta il ledger perche' non esistono trade o PnL. Usarlo solo per confronti legacy basati su `[MR_EXIT]`.

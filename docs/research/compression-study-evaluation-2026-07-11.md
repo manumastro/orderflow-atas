@@ -2,14 +2,14 @@
 
 Source: reload `2026-07-11 10:27`, `FabioCompressionStudy`, historical cumulative trades from `2026-07-03 22:59:59 Italy` through `2026-07-10 22:59:59 Italy`.
 
-This is an observational evaluation. It does not change detector thresholds, create entries, or calculate PnL.
+This is an observational evaluation of the retired `COMPRESSION_CASES_NO_TRADES` candidate pass. It does not change detector thresholds, create entries, or calculate PnL. Since the event-ledger refactor, use this only as a baseline comparison; new analysis comes from `MR_COMPRESSION_LEDGER_*`.
 
 ## Result
 
 ```text
 READY / RESOLVED profiles: 7 / 7
-Study cases:              7
-Candidates:               8
+Retired study cases:      7
+Retired candidates:       8
 Operational entries:      0
 ```
 

@@ -2,16 +2,17 @@
 
 Modello attivo di studio `FabioCompressionStudy`.
 
-Nessun log del modello apre o gestisce posizioni. `MR_*` e `MR_COMPRESSION_STUDY_*` descrivono osservazioni live-equivalenti e replay storico, non PnL.
+Nessun log del modello apre o gestisce posizioni. `MR_COMPRESSION_LEDGER_*` descrive osservazioni causali live-equivalenti e replay storico, non PnL.
 
 ## Stato Corrente
 
 ```text
-Modalita':              COMPRESSION_CASES_NO_TRADES
+Modalita':              COMPRESSION_EVENT_LEDGER_NO_TRADES
 Operativita' trade:     DISABLED
 Reference precedenti:   LOG_ONLY
 Grafico contesto:       zona London grigia, POC/VAH/VAL dal BalanceZoneTracker
-Grafico studio:         DynamicCompression + candidati studio
+Grafico studio:         nessun box/marker DynamicCompression
+Output:                 ledger profili, eventi bordo e outcome 1/3/6/12 barre
 PnL corrente:           non applicabile; nessun MR_ENTRY/MR_EXIT nuovo
 ```
 
@@ -62,11 +63,11 @@ La versione semplice puo' usare il profilo del giorno precedente.
 ## Contratto Live / Historic
 
 ```text
-LIVE        osserva trade/barre real-time e scrive candidati studio quando una compression si risolve.
-HISTORICAL  applica lo stesso studio ai cumulative trade e alle barre ricevute da ATAS.
+LIVE        osserva trade/barre real-time e aggiorna gli outcome del ledger quando diventano disponibili.
+HISTORICAL  ricostruisce gli stessi eventi e outcome sui cumulative trade e sulle barre ricevute da ATAS.
 ```
 
-Entrambe le modalita' sono causalmente equivalenti: un profilo entra nello studio solo dopo `READY`; non si usa il suo futuro per creare il candidato. I candidati non aprono ordini, non aggiornano posizioni e non generano PnL.
+Entrambe le modalita' sono causalmente equivalenti: un profilo entra nel ledger solo dopo `READY`; ogni outcome viene scritto soltanto quando le sue 1/3/6/12 barre future sono effettivamente disponibili. Il ledger non apre ordini, non aggiorna posizioni e non genera PnL.
 
 ## Reference Value Areas
 
@@ -93,10 +94,10 @@ La compression non e' piu' una diagnostica agganciata a setup legacy: e' l'input
 ```text
 READY     congela range, POC, VAH e VAL prima dell'evento studiato.
 RESOLVED  chiude l'osservazione dopo due close in acceptance o alla fine sessione.
-STUDY     confronta tutti i casi rientro/assorbimento e breakout/acceptance.
+LEDGER    registra ogni interazione High/Low e il suo esito, senza qualificarla come entry.
 ```
 
-Non esistono setup legacy o entry reali. Ogni candidato porta `OperationalEntry=FALSE`.
+Non esistono setup legacy o entry reali. Ogni profilo, evento e outcome porta `OperationalEntry=FALSE`.
 
 Il focus attuale e' una sola diagnostica locale:
 
@@ -162,46 +163,36 @@ BaselineMedianBarRange
 RangeToBaselineMedian
 AverageBarRangeToBaselineMedian
 DirectionChanges
-HighTests / LowTests
-HighBoundaryBuyVolume / LowBoundarySellVolume
-ProfileCVD
-CandidateType / Evidence / BoundaryAggressionVolume / EventCVD
+HighTests / LowTests / BoundaryEvents
+BuyVolume / SellVolume / ProfileCVD / TradeCoverage
+Boundary / Interaction / TestOrdinal / OutsideCloseStreak
+BreachDistanceRanges / CloseDistanceRanges / BarRangeToBaselineMedian
+TradeCount / TotalVolume / BuyVolume / SellVolume / Delta
+MaxBuyVolume / MaxSellVolume e percentile causali precedenti
+CloseMoveRanges / UpMfeRanges / DownMaeRanges
+EndInsideRange / PocTouched
 OperationalEntry=FALSE
 ```
 
-Serve per confrontare casi reversion e breakout senza PnL. Un eventuale modello futuro richiede una validazione shadow separata.
+Serve per confrontare ogni interazione al bordo senza PnL e senza filtro volume fisso. Un eventuale modello futuro richiede una validazione shadow separata.
 
 ## Studio Attivo
 
 Lo studio e' attivo su live e historical, ma e' `NO_TRADES`.
 
-### Casi Analizzati
+### Ledger Eventi
+
+Per ogni barra dopo `READY` fino a `RESOLVED`, il ledger registra `HIGH` e/o `LOW` quando il bordo viene toccato o superato. Non richiede big trade, due close, retest, stop, target o una direzione predeterminata.
 
 ```text
-REVERSION_SHORT
-Breach sopra High -> buy aggressivo al bordo assorbito -> close rientra -> sell >= 20 entro 2 barre.
-Stop candidato: High - 2 tick. Target candidato: Compression POC.
-
-REVERSION_LONG
-Breach sotto Low -> sell aggressivo al bordo assorbito -> close rientra -> buy >= 20 entro 2 barre.
-Stop candidato: Low + 2 tick. Target candidato: Compression POC.
-
-BREAKOUT_LONG / BREAKOUT_SHORT
-Il lifecycle osserva gia' due close oltre High/Low. Il caso e' qualificato solo con big trade al bordo e CVD nella stessa direzione.
-Stop candidato: 2 tick dentro il bordo. Target: UNDEFINED_REQUIRES_SEPARATE_MODEL.
+[MR_LOCAL_PROFILE_READY]          range causalmente disponibile
+[MR_LOCAL_PROFILE_RESOLVED]       fine finestra osservata
+[MR_COMPRESSION_LEDGER_PROFILE]   geometria, test, volume complessivo e CVD del range
+[MR_COMPRESSION_LEDGER_EVENT]     touch/breach al bordo con flow raw e percentili relativi
+[MR_COMPRESSION_LEDGER_OUTCOME]   close/MFE/MAE a 1, 3, 6, 12 barre, rientro e touch POC
 ```
 
-Campi chiave:
-
-```text
-[MR_LOCAL_PROFILE_READY]             range causalmente disponibile
-[MR_LOCAL_PROFILE_RESOLVED]          acceptance o session end
-[MR_COMPRESSION_STUDY_CASE]          verifica breakout acceptance, anche non qualificato
-[MR_COMPRESSION_STUDY_CANDIDATE]     candidato con OperationalEntry=FALSE
-[MR_COMPRESSION_STUDY_PROFILE]       HighTests/LowTests, volumi al bordo, ProfileCVD e conteggio candidati
-```
-
-Lo studio non afferma ancora che la finestra sia sempre quella che Fabio disegnerebbe; questa resta la verifica visuale centrale. Nessun filtro, retest operativo, entry o PnL viene introdotto.
+Il percentile confronta l'evento solo con le barre precedenti dello stesso range: e' una metrica causale, non un filtro. Lo studio non afferma ancora che la finestra sia sempre quella che Fabio disegnerebbe; nessun retest operativo, entry o PnL viene introdotto.
 
 ### Nota visuale su POC
 
@@ -215,7 +206,7 @@ Target modello:          29540
 Perche':                 Source=PreviousDayProfile, ReferenceLabel=2026-07-07
 ```
 
-Questo e' storico del core reference. Nel modello studio il POC target candidato, quando presente, e' sempre quello incluso in `[MR_COMPRESSION_STUDY_CANDIDATE]` con `TargetModel=COMPRESSION_POC`.
+Questo e' storico del core reference. Nel ledger il POC e' un livello osservato: `PocTouched` dice soltanto se il prezzo lo ha attraversato entro l'orizzonte analizzato.
 
 ## Entry Legacy Retired
 
@@ -288,25 +279,21 @@ Massima durata trade:   fino a New York regular close 16:00 New York
 Gli oggetti ATAS vengono disegnati sia per replay storico sia per eventi live. Gli orari precisi restano nel log `Italy=`; il chart posiziona l'oggetto sul bar M5 che contiene l'evento.
 
 ```text
-DynamicCompression:             box turchese trasparente; POC turchese; VAH/VAL turchese tratteggiato.
-Study Reversion Long:            marker verde.
-Study Reversion Short:           marker viola.
-Study Breakout Long:             marker blu.
-Study Breakout Short:            marker arancio.
-Study target POC reversion:      linea tratteggiata nel colore del candidato.
-BalanceZoneTracker profile:      zona London grigia, POC/VAH/VAL solo contesto; non influenza lo studio.
+BalanceZoneTracker profile:      zona London grigia, POC/VAH/VAL solo contesto; non influenza il ledger.
+DynamicCompression:             non disegnato.
+Ledger events/outcomes:          non disegnati; leggibili solo nei log.
 ```
 
-I marker rappresentano candidati, non esecuzioni. Sono larghi tre barre e alti cinque tick. Il target viene mostrato solo per i candidati reversion (`Compression POC`); il target breakout e' volutamente `UNDEFINED_REQUIRES_SEPARATE_MODEL`.
+Il chart non promuove piu' un range o un'interazione a segnale. Il confronto avviene dai record causali del ledger.
 
 ## Log
 
 ```text
 [MR_MODE]                    configurazione modello
 [MR_REFERENCE_READY]         reference profile completato e disponibile
-[MR_COMPRESSION_STUDY_CASE]      acceptance breakout studiata, qualificata o esclusa
-[MR_COMPRESSION_STUDY_CANDIDATE] candidato reversion/breakout, mai una posizione
-[MR_COMPRESSION_STUDY_PROFILE]   riepilogo test, aggressione, CVD e candidati del profilo
+[MR_COMPRESSION_LEDGER_PROFILE]  riepilogo range, test, flow raw e copertura trade
+[MR_COMPRESSION_LEDGER_EVENT]    touch/breach High/Low non qualificato
+[MR_COMPRESSION_LEDGER_OUTCOME]  esito causale dell'evento a 1/3/6/12 barre
 [MR_LOCAL_PROFILE_READY]     compressione locale riconosciuta; diagnostica only
 [MR_LOCAL_PROFILE_RESOLVED]  compressione risolta da acceptance o fine sessione
 [MR_PROFILE_CONTEXT]         marker storico legacy, non emesso nel flusso studio

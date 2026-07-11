@@ -61,7 +61,8 @@ namespace FabioOrderFlow
         private const decimal CompressionPocStabilityWeight = 0.075m;
         private const decimal CompressionValueConcentrationWeight = 0.075m;
         private const int CompressionStudyConfirmationBars = 2;
-        private const string StudyMode = "COMPRESSION_CASES_NO_TRADES";
+        private static readonly int[] CompressionLedgerOutcomeHorizons = { 1, 3, 6, 12 };
+        private const string StudyMode = "COMPRESSION_EVENT_LEDGER_NO_TRADES";
         private static readonly bool LogProfileDiagnosticsForSetups = false;
         private static readonly bool LogProfileDiagnosticsForEntries = true;
         private const string ActiveCompressionProfileSource = "ActiveCompressionProfile";
@@ -76,9 +77,13 @@ namespace FabioOrderFlow
         private readonly Dictionary<string, int> _entryRejectCounts = new();
         private readonly Dictionary<string, int> _setupExpirationCounts = new();
         private readonly List<CompressionProfileSnapshot> _compressionStudyProfiles = new();
+        private readonly List<CompressionProfileSnapshot> _liveCompressionLedgerProfiles = new();
         private readonly List<CumulativeTrade> _liveStudyTrades = new();
         private readonly HashSet<string> _liveStudyTradeKeys = new();
         private readonly HashSet<string> _drawnCompressionStudyCandidates = new();
+        private readonly HashSet<string> _loggedCompressionLedgerProfiles = new();
+        private readonly HashSet<string> _loggedCompressionLedgerEvents = new();
+        private readonly HashSet<string> _loggedCompressionLedgerOutcomes = new();
         private readonly ProfileAccumulator _currentDayProfile = new();
         private readonly ProfileAccumulator _currentLondonProfile = new();
         private DateOnly? _currentDayItaly;
@@ -110,7 +115,7 @@ namespace FabioOrderFlow
             _chartRectangles = chartRectangles ?? throw new ArgumentNullException(nameof(chartRectangles));
             _chartLines = chartLines ?? throw new ArgumentNullException(nameof(chartLines));
 
-            _log($"[MR_MODE] Model=FabioCompressionStudy, Modes=LIVE|HISTORICAL, StudyMode={StudyMode}, OperationalEntries=DISABLED, ReferenceProfiles=LOG_ONLY:PreviousDayProfile|PreviousLondonProfile, ChartVisuals=LONDON_CONTEXT_AND_DYNAMIC_COMPRESSION_AND_STUDY_CANDIDATES, StudyCases=REVERSION_ABSORPTION|BREAKOUT_ACCEPTANCE, CompressionLifecycle=SEARCHING|BUILDING|READY|RESOLVED, CompressionDetection=DYNAMIC_SCORE, CompressionBaseline=PRIOR_{LocalCompressionBaselineLookbackBars}_BARS, CompressionMinBaselineBars={LocalCompressionMinimumBaselineBars}, CompressionMinBuildingBars={LocalCompressionMinimumBuildingBars}, CompressionReadyScore={LocalCompressionMinimumReadyScore:F2}, CompressionReadyPersistence={LocalCompressionReadyPersistenceBars}, CompressionResolutionPersistence={LocalCompressionResolutionPersistenceBars}, BigTradeVolume={LondonBigTradeVolume:F0}, StudyConfirmationBars={CompressionStudyConfirmationBars}", false);
+            _log($"[MR_MODE] Model=FabioCompressionStudy, Modes=LIVE|HISTORICAL, StudyMode={StudyMode}, OperationalEntries=DISABLED, ReferenceProfiles=LOG_ONLY:PreviousDayProfile|PreviousLondonProfile, ChartVisuals=LONDON_CONTEXT_ONLY, Ledger=BOUNDARY_EVENTS_AND_OUTCOMES, LedgerQualification=NONE, LedgerOutcomeHorizons={string.Join("|", CompressionLedgerOutcomeHorizons)}, CompressionLifecycle=SEARCHING|BUILDING|READY|RESOLVED, CompressionDetection=DYNAMIC_SCORE, CompressionBaseline=PRIOR_{LocalCompressionBaselineLookbackBars}_BARS, CompressionMinBaselineBars={LocalCompressionMinimumBaselineBars}, CompressionMinBuildingBars={LocalCompressionMinimumBuildingBars}, CompressionReadyScore={LocalCompressionMinimumReadyScore:F2}, CompressionReadyPersistence={LocalCompressionReadyPersistenceBars}, CompressionResolutionPersistence={LocalCompressionResolutionPersistenceBars}, HistoricalBigTradeVolume={LondonBigTradeVolume:F0}, HistoricalStudyConfirmationBars={CompressionStudyConfirmationBars}", false);
         }
 
         public IReadOnlyList<TradeRecord> CompletedTrades => _completedTrades;
@@ -122,6 +127,8 @@ namespace FabioOrderFlow
             _currentBar = currentBar;
             UpdateReferenceProfiles(bar, candle);
             UpdateActiveCompressionProfile(bar);
+            if (!IsHistoricalContext(bar))
+                UpdateLiveCompressionLedgerOutcomes(bar);
         }
 
         public void OnNewSessionHigh(int bar, IndicatorCandle candle, decimal previousHigh)
@@ -151,14 +158,18 @@ namespace FabioOrderFlow
             _activeSetups.Clear();
             _entryRejectCounts.Clear();
             _setupExpirationCounts.Clear();
+            _liveCompressionLedgerProfiles.Clear();
+            _loggedCompressionLedgerProfiles.Clear();
+            _loggedCompressionLedgerEvents.Clear();
+            _loggedCompressionLedgerOutcomes.Clear();
 
             _log($"[HISTORICAL_FLOW_PROCESS_START] Model=FabioCompressionStudy, StudyMode={StudyMode}, StartBar={startBar}, EndBar={endBar}, StoredTrades={_historicalTrades.Count}, CompressionProfiles={_compressionStudyProfiles.Count}, OperationalEntries=DISABLED", false);
 
             try
             {
-                var candidates = RunCompressionStudy(_compressionStudyProfiles, _historicalTrades, endBar, true);
+                var ledger = RunCompressionLedger(_compressionStudyProfiles, _historicalTrades, endBar, true);
                 var durationMs = (DateTime.UtcNow - startedUtc).TotalMilliseconds;
-                _log($"[HISTORICAL_FLOW_FINISH] Model=FabioCompressionStudy, StudyMode={StudyMode}, StartBar={startBar}, EndBar={endBar}, StoredTrades={_historicalTrades.Count}, Entries=0, ClosedPositions=0, OpenPositions=0, CompletedTrades=0, StudyCandidates={candidates}, ProcessDurationMs={durationMs:F0}", false);
+                _log($"[HISTORICAL_FLOW_FINISH] Model=FabioCompressionStudy, StudyMode={StudyMode}, StartBar={startBar}, EndBar={endBar}, StoredTrades={_historicalTrades.Count}, Entries=0, ClosedPositions=0, OpenPositions=0, CompletedTrades=0, LedgerProfiles={ledger.Profiles}, LedgerEvents={ledger.Events}, LedgerOutcomes={ledger.Outcomes}, ProcessDurationMs={durationMs:F0}", false);
             }
             finally
             {
@@ -524,7 +535,6 @@ namespace FabioOrderFlow
             _activeCompressionProfile = snapshot;
             _compressionStudyProfiles.Add(snapshot);
             _buildingCompressionProfile = null;
-            DrawDynamicCompressionProfile(snapshot);
             LogCompressionReady(snapshot);
         }
 
@@ -794,6 +804,297 @@ namespace FabioOrderFlow
             _chartLines.Add(CreateChartLine(profile.StartBar, profile.POC, profile.EndBar, System.Drawing.Color.Turquoise, 2, false));
             _chartLines.Add(CreateChartLine(profile.StartBar, profile.VAH, profile.EndBar, System.Drawing.Color.DarkTurquoise, 1, false, true));
             _chartLines.Add(CreateChartLine(profile.StartBar, profile.VAL, profile.EndBar, System.Drawing.Color.DarkTurquoise, 1, false, true));
+        }
+
+        private void UpdateLiveCompressionLedgerOutcomes(int currentBar)
+        {
+            var resolvedProfiles = _liveCompressionLedgerProfiles
+                .Where(profile => profile.ResolvedBar >= profile.ReadyBar)
+                .ToList();
+            if (resolvedProfiles.Count == 0)
+                return;
+
+            RunCompressionLedger(resolvedProfiles, _liveStudyTrades, Math.Max(0, currentBar - 1), false);
+        }
+
+        private CompressionLedgerRunResult RunCompressionLedger(
+            IReadOnlyList<CompressionProfileSnapshot> profiles,
+            IReadOnlyList<CumulativeTrade> trades,
+            int observedEndBar,
+            bool isHistorical)
+        {
+            var result = new CompressionLedgerRunResult();
+            if (profiles.Count == 0)
+                return result;
+
+            var tradesByBar = trades.Count > 0
+                ? GroupTradesByBar(trades, observedEndBar)
+                : new Dictionary<int, List<CumulativeTrade>>();
+
+            foreach (var profile in profiles.OrderBy(snapshot => snapshot.ReadyBar))
+            {
+                if (profile.ResolvedBar < profile.ReadyBar)
+                    continue;
+
+                var reference = profile.Reference;
+                var studyEndBar = Math.Min(profile.ResolvedBar, observedEndBar);
+                if (studyEndBar <= profile.ReadyBar)
+                    continue;
+
+                var range = Math.Max(reference.High - reference.Low, _tickSize);
+                var highTests = 0;
+                var lowTests = 0;
+                var highOutsideCloseStreak = 0;
+                var lowOutsideCloseStreak = 0;
+                var profileBuyVolume = 0m;
+                var profileSellVolume = 0m;
+                var profileCvd = 0m;
+                var totalVolumeHistory = new List<decimal>();
+                var absoluteDeltaHistory = new List<decimal>();
+                var maxBuyHistory = new List<decimal>();
+                var maxSellHistory = new List<decimal>();
+                var events = new List<CompressionLedgerEvent>();
+
+                for (var bar = profile.ReadyBar + 1; bar <= studyEndBar; bar++)
+                {
+                    var candle = _getCandle(bar);
+                    var stats = BuildCompressionLedgerBarStats(
+                        tradesByBar.TryGetValue(bar, out var barTrades) ? barTrades : Array.Empty<CumulativeTrade>());
+                    profileBuyVolume += stats.BuyVolume;
+                    profileSellVolume += stats.SellVolume;
+                    profileCvd += stats.Delta;
+
+                    highOutsideCloseStreak = candle.Close > reference.High ? highOutsideCloseStreak + 1 : 0;
+                    lowOutsideCloseStreak = candle.Close < reference.Low ? lowOutsideCloseStreak + 1 : 0;
+                    var totalVolumePercentile = GetPriorPercentile(totalVolumeHistory, stats.TotalVolume);
+                    var absoluteDeltaPercentile = GetPriorPercentile(absoluteDeltaHistory, Math.Abs(stats.Delta));
+                    var maxBuyPercentile = GetPriorPercentile(maxBuyHistory, stats.MaxBuyVolume);
+                    var maxSellPercentile = GetPriorPercentile(maxSellHistory, stats.MaxSellVolume);
+
+                    if (candle.High >= reference.High)
+                    {
+                        highTests++;
+                        events.Add(CreateCompressionLedgerEvent(
+                            profile,
+                            bar,
+                            candle,
+                            stats,
+                            "HIGH",
+                            candle.High > reference.High ? "BREACH" : "TOUCH",
+                            highTests,
+                            highOutsideCloseStreak,
+                            range,
+                            profileCvd,
+                            totalVolumePercentile,
+                            absoluteDeltaPercentile,
+                            maxBuyPercentile,
+                            maxSellPercentile));
+                    }
+
+                    if (candle.Low <= reference.Low)
+                    {
+                        lowTests++;
+                        events.Add(CreateCompressionLedgerEvent(
+                            profile,
+                            bar,
+                            candle,
+                            stats,
+                            "LOW",
+                            candle.Low < reference.Low ? "BREACH" : "TOUCH",
+                            lowTests,
+                            lowOutsideCloseStreak,
+                            range,
+                            profileCvd,
+                            totalVolumePercentile,
+                            absoluteDeltaPercentile,
+                            maxBuyPercentile,
+                            maxSellPercentile));
+                    }
+
+                    totalVolumeHistory.Add(stats.TotalVolume);
+                    absoluteDeltaHistory.Add(Math.Abs(stats.Delta));
+                    maxBuyHistory.Add(stats.MaxBuyVolume);
+                    maxSellHistory.Add(stats.MaxSellVolume);
+                }
+
+                var profileKey = $"{GetExecutionMode(isHistorical)}:{reference.Label}";
+                if (_loggedCompressionLedgerProfiles.Add(profileKey))
+                {
+                    _log($"[MR_COMPRESSION_LEDGER_PROFILE] ExecutionMode={GetExecutionMode(isHistorical)}, StudyMode={StudyMode}, ProfileLabel={reference.Label}, ReadyBar={profile.ReadyBar}, ResolvedBar={profile.ResolvedBar}, EndReason={profile.ResolutionReason}, StudyBars={studyEndBar - profile.ReadyBar}, HighTests={highTests}, LowTests={lowTests}, BoundaryEvents={events.Count}, BuyVolume={profileBuyVolume:F0}, SellVolume={profileSellVolume:F0}, ProfileCVD={profileCvd:F0}, TradeCoverage={(profileBuyVolume + profileSellVolume > 0m ? "AVAILABLE" : "MISSING")}, High={reference.High:F2}, Low={reference.Low:F2}, POC={reference.POC:F2}, Range={range:F2}, RangeToBaselineMedian={profile.RangeToBaselineMedian:F2}, CompressionScore={profile.CompressionScore:F2}, OperationalEntry=FALSE", isHistorical);
+                    result.Profiles++;
+                }
+
+                foreach (var ledgerEvent in events)
+                {
+                    var eventKey = $"{GetExecutionMode(isHistorical)}:{reference.Label}:{ledgerEvent.Bar}:{ledgerEvent.Boundary}";
+                    if (_loggedCompressionLedgerEvents.Add(eventKey))
+                    {
+                        LogCompressionLedgerEvent(ledgerEvent, isHistorical);
+                        result.Events++;
+                    }
+
+                    foreach (var horizon in CompressionLedgerOutcomeHorizons)
+                    {
+                        if (!TryBuildCompressionLedgerOutcome(ledgerEvent, observedEndBar, horizon, out var outcome) || outcome == null)
+                            continue;
+
+                        var outcomeKey = $"{eventKey}:{horizon}";
+                        if (_loggedCompressionLedgerOutcomes.Add(outcomeKey))
+                        {
+                            LogCompressionLedgerOutcome(outcome, isHistorical);
+                            result.Outcomes++;
+                        }
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        private CompressionLedgerBarStats BuildCompressionLedgerBarStats(IReadOnlyList<CumulativeTrade> trades)
+        {
+            var stats = new CompressionLedgerBarStats();
+            foreach (var trade in trades)
+            {
+                stats.TradeCount++;
+                stats.TotalVolume += trade.Volume;
+                if (trade.Direction == TradeDirection.Buy)
+                {
+                    stats.BuyVolume += trade.Volume;
+                    stats.Delta += trade.Volume;
+                    stats.MaxBuyVolume = Math.Max(stats.MaxBuyVolume, trade.Volume);
+                }
+                else if (trade.Direction == TradeDirection.Sell)
+                {
+                    stats.SellVolume += trade.Volume;
+                    stats.Delta -= trade.Volume;
+                    stats.MaxSellVolume = Math.Max(stats.MaxSellVolume, trade.Volume);
+                }
+            }
+
+            return stats;
+        }
+
+        private CompressionLedgerEvent CreateCompressionLedgerEvent(
+            CompressionProfileSnapshot profile,
+            int bar,
+            IndicatorCandle candle,
+            CompressionLedgerBarStats stats,
+            string boundary,
+            string interaction,
+            int testOrdinal,
+            int outsideCloseStreak,
+            decimal range,
+            decimal profileCvd,
+            decimal? totalVolumePercentile,
+            decimal? absoluteDeltaPercentile,
+            decimal? maxBuyPercentile,
+            decimal? maxSellPercentile)
+        {
+            var reference = profile.Reference;
+            var boundaryPrice = boundary == "HIGH" ? reference.High : reference.Low;
+            var breachDistance = boundary == "HIGH"
+                ? Math.Max(0m, candle.High - boundaryPrice)
+                : Math.Max(0m, boundaryPrice - candle.Low);
+            var closeDistance = boundary == "HIGH"
+                ? candle.Close - boundaryPrice
+                : boundaryPrice - candle.Close;
+            var closeState = closeDistance > 0m ? "OUTSIDE" : candle.Close >= reference.Low && candle.Close <= reference.High ? "INSIDE" : "OPPOSITE_OUTSIDE";
+            var baseline = Math.Max(profile.BaselineMedianBarRange, _tickSize);
+
+            return new CompressionLedgerEvent
+            {
+                Profile = profile,
+                Bar = bar,
+                EventTimeUtc = GetCandleEventTime(candle),
+                Boundary = boundary,
+                Interaction = interaction,
+                TestOrdinal = testOrdinal,
+                OutsideCloseStreak = outsideCloseStreak,
+                EventClose = candle.Close,
+                BoundaryPrice = boundaryPrice,
+                BreachDistanceRanges = breachDistance / range,
+                CloseDistanceRanges = closeDistance / range,
+                BarRangeToBaselineMedian = (candle.High - candle.Low) / baseline,
+                CloseState = closeState,
+                TradeCount = stats.TradeCount,
+                TotalVolume = stats.TotalVolume,
+                BuyVolume = stats.BuyVolume,
+                SellVolume = stats.SellVolume,
+                Delta = stats.Delta,
+                ProfileCvd = profileCvd,
+                MaxBuyVolume = stats.MaxBuyVolume,
+                MaxSellVolume = stats.MaxSellVolume,
+                TotalVolumePercentilePrior = totalVolumePercentile,
+                AbsoluteDeltaPercentilePrior = absoluteDeltaPercentile,
+                MaxBuyPercentilePrior = maxBuyPercentile,
+                MaxSellPercentilePrior = maxSellPercentile
+            };
+        }
+
+        private void LogCompressionLedgerEvent(CompressionLedgerEvent ledgerEvent, bool isHistorical)
+        {
+            _log($"[MR_COMPRESSION_LEDGER_EVENT] ExecutionMode={GetExecutionMode(isHistorical)}, StudyMode={StudyMode}, ProfileLabel={ledgerEvent.Profile.Reference.Label}, Bar={ledgerEvent.Bar}, {FormatTime(ledgerEvent.EventTimeUtc)}, Boundary={ledgerEvent.Boundary}, Interaction={ledgerEvent.Interaction}, TestOrdinal={ledgerEvent.TestOrdinal}, OutsideCloseStreak={ledgerEvent.OutsideCloseStreak}, BoundaryPrice={ledgerEvent.BoundaryPrice:F2}, EventClose={ledgerEvent.EventClose:F2}, CloseState={ledgerEvent.CloseState}, BreachDistanceRanges={ledgerEvent.BreachDistanceRanges:F2}, CloseDistanceRanges={ledgerEvent.CloseDistanceRanges:F2}, BarRangeToBaselineMedian={ledgerEvent.BarRangeToBaselineMedian:F2}, TradeCount={ledgerEvent.TradeCount}, TotalVolume={ledgerEvent.TotalVolume:F0}, BuyVolume={ledgerEvent.BuyVolume:F0}, SellVolume={ledgerEvent.SellVolume:F0}, Delta={ledgerEvent.Delta:F0}, ProfileCVD={ledgerEvent.ProfileCvd:F0}, MaxBuyVolume={ledgerEvent.MaxBuyVolume:F0}, MaxSellVolume={ledgerEvent.MaxSellVolume:F0}, TotalVolumePercentilePrior={FormatLedgerPercentile(ledgerEvent.TotalVolumePercentilePrior)}, AbsoluteDeltaPercentilePrior={FormatLedgerPercentile(ledgerEvent.AbsoluteDeltaPercentilePrior)}, MaxBuyPercentilePrior={FormatLedgerPercentile(ledgerEvent.MaxBuyPercentilePrior)}, MaxSellPercentilePrior={FormatLedgerPercentile(ledgerEvent.MaxSellPercentilePrior)}, OperationalEntry=FALSE", isHistorical);
+        }
+
+        private bool TryBuildCompressionLedgerOutcome(
+            CompressionLedgerEvent ledgerEvent,
+            int observedEndBar,
+            int horizon,
+            out CompressionLedgerOutcome? outcome)
+        {
+            outcome = null;
+            var endBar = ledgerEvent.Bar + horizon;
+            if (endBar > observedEndBar || endBar >= _currentBar)
+                return false;
+
+            var reference = ledgerEvent.Profile.Reference;
+            var range = Math.Max(reference.High - reference.Low, _tickSize);
+            var highest = ledgerEvent.EventClose;
+            var lowest = ledgerEvent.EventClose;
+            var pocTouched = false;
+            for (var bar = ledgerEvent.Bar + 1; bar <= endBar; bar++)
+            {
+                var candle = _getCandle(bar);
+                highest = Math.Max(highest, candle.High);
+                lowest = Math.Min(lowest, candle.Low);
+                if (candle.Low <= reference.POC && candle.High >= reference.POC)
+                    pocTouched = true;
+            }
+
+            var endCandle = _getCandle(endBar);
+            outcome = new CompressionLedgerOutcome
+            {
+                Event = ledgerEvent,
+                Horizon = horizon,
+                EndBar = endBar,
+                EndTimeUtc = GetCandleEventTime(endCandle),
+                EndClose = endCandle.Close,
+                CloseMoveRanges = (endCandle.Close - ledgerEvent.EventClose) / range,
+                UpMfeRanges = (highest - ledgerEvent.EventClose) / range,
+                DownMaeRanges = (ledgerEvent.EventClose - lowest) / range,
+                EndInsideRange = endCandle.Close >= reference.Low && endCandle.Close <= reference.High,
+                PocTouched = pocTouched
+            };
+            return true;
+        }
+
+        private void LogCompressionLedgerOutcome(CompressionLedgerOutcome outcome, bool isHistorical)
+        {
+            _log($"[MR_COMPRESSION_LEDGER_OUTCOME] ExecutionMode={GetExecutionMode(isHistorical)}, StudyMode={StudyMode}, ProfileLabel={outcome.Event.Profile.Reference.Label}, EventBar={outcome.Event.Bar}, Boundary={outcome.Event.Boundary}, Interaction={outcome.Event.Interaction}, HorizonBars={outcome.Horizon}, EndBar={outcome.EndBar}, {FormatTime(outcome.EndTimeUtc)}, EventClose={outcome.Event.EventClose:F2}, EndClose={outcome.EndClose:F2}, CloseMoveRanges={outcome.CloseMoveRanges:F2}, UpMfeRanges={outcome.UpMfeRanges:F2}, DownMaeRanges={outcome.DownMaeRanges:F2}, EndInsideRange={outcome.EndInsideRange}, PocTouched={outcome.PocTouched}, OperationalEntry=FALSE", isHistorical);
+        }
+
+        private static decimal? GetPriorPercentile(IReadOnlyList<decimal> history, decimal value)
+        {
+            if (history.Count == 0)
+                return null;
+
+            return PercentileRank(history, value);
+        }
+
+        private static string FormatLedgerPercentile(decimal? value)
+        {
+            return value.HasValue ? value.Value.ToString("F2") : "NA";
         }
 
         private int RunCompressionStudy(
@@ -1178,7 +1479,10 @@ namespace FabioOrderFlow
             resolvedProfile.ResolutionReason = reason;
             _log($"[MR_LOCAL_PROFILE_RESOLVED] ExecutionMode={GetExecutionMode(isHistorical)}, State=RESOLVED, ProfileSource={ActiveCompressionProfileSource}, ProfileLabel={reference.Label}, ResolvedBar={bar}, ResolvedTime={FormatTime(eventTimeUtc)}, Reason={reason}, ResolutionCloses={_compressionOutsideCloses}, Close={close:F2}, High={reference.High:F2}, Low={reference.Low:F2}, POC={reference.POC:F2}, ProfileUse=STUDY_INPUT_ONLY", isHistorical);
             if (!isHistorical)
-                RunCompressionStudy(new[] { resolvedProfile }, _liveStudyTrades, bar, false);
+            {
+                _liveCompressionLedgerProfiles.Add(resolvedProfile);
+                RunCompressionLedger(new[] { resolvedProfile }, _liveStudyTrades, bar, false);
+            }
 
             _activeCompressionProfile = null;
             _compressionOutsideDirection = 0;
@@ -2038,6 +2342,67 @@ namespace FabioOrderFlow
             public decimal MAE { get; set; }
             public decimal RMultiple { get; set; }
             public bool BreakEvenActivated { get; set; }
+        }
+
+        private sealed class CompressionLedgerRunResult
+        {
+            public int Profiles { get; set; }
+            public int Events { get; set; }
+            public int Outcomes { get; set; }
+        }
+
+        private sealed class CompressionLedgerBarStats
+        {
+            public int TradeCount { get; set; }
+            public decimal TotalVolume { get; set; }
+            public decimal BuyVolume { get; set; }
+            public decimal SellVolume { get; set; }
+            public decimal Delta { get; set; }
+            public decimal MaxBuyVolume { get; set; }
+            public decimal MaxSellVolume { get; set; }
+        }
+
+        private sealed class CompressionLedgerEvent
+        {
+            public CompressionProfileSnapshot Profile { get; set; } = new();
+            public int Bar { get; set; }
+            public DateTime EventTimeUtc { get; set; }
+            public string Boundary { get; set; } = string.Empty;
+            public string Interaction { get; set; } = string.Empty;
+            public int TestOrdinal { get; set; }
+            public int OutsideCloseStreak { get; set; }
+            public decimal EventClose { get; set; }
+            public decimal BoundaryPrice { get; set; }
+            public decimal BreachDistanceRanges { get; set; }
+            public decimal CloseDistanceRanges { get; set; }
+            public decimal BarRangeToBaselineMedian { get; set; }
+            public string CloseState { get; set; } = string.Empty;
+            public int TradeCount { get; set; }
+            public decimal TotalVolume { get; set; }
+            public decimal BuyVolume { get; set; }
+            public decimal SellVolume { get; set; }
+            public decimal Delta { get; set; }
+            public decimal ProfileCvd { get; set; }
+            public decimal MaxBuyVolume { get; set; }
+            public decimal MaxSellVolume { get; set; }
+            public decimal? TotalVolumePercentilePrior { get; set; }
+            public decimal? AbsoluteDeltaPercentilePrior { get; set; }
+            public decimal? MaxBuyPercentilePrior { get; set; }
+            public decimal? MaxSellPercentilePrior { get; set; }
+        }
+
+        private sealed class CompressionLedgerOutcome
+        {
+            public CompressionLedgerEvent Event { get; set; } = new();
+            public int Horizon { get; set; }
+            public int EndBar { get; set; }
+            public DateTime EndTimeUtc { get; set; }
+            public decimal EndClose { get; set; }
+            public decimal CloseMoveRanges { get; set; }
+            public decimal UpMfeRanges { get; set; }
+            public decimal DownMaeRanges { get; set; }
+            public bool EndInsideRange { get; set; }
+            public bool PocTouched { get; set; }
         }
 
         private sealed class CompressionStudyBoundaryState
