@@ -19,7 +19,7 @@ Guida canonica per interpretare i log di `FabioOrderFlow`.
 
 ```text
 LIVE        registra eventi al bordo dopo READY e outcome quando 1/3/6/12 barre sono disponibili.
-HISTORICAL  ricostruisce gli stessi record sui dati ATAS ricevuti.
+HISTORICAL  richiede finestre ATAS sequenziali di massimo 7 giorni e ricostruisce gli stessi record dopo l'ultima risposta.
 
 Chart       solo zona London grigia del BalanceZoneTracker, come contesto.
 No chart    DynamicCompression, marker candidati, entry, stop o target.
@@ -28,6 +28,10 @@ No chart    DynamicCompression, marker candidati, entry, stop o target.
 Marker attivi:
 
 ```text
+[CUM_TRADES_LOOKBACK]              chart completo, durata finestra e numero richieste pianificate
+[CUM_TRADES_REQUEST/RESPONSE]      una richiesta/risposta ATAS per finestra
+[CUM_TRADES_COMPLETE]              tutte le finestre concluse prima del replay
+[MR_HISTORICAL_TRADES_WINDOW]      trade ricevuti, trattenuti, fuori finestre ledger e duplicati
 [MR_MODE]                         StudyMode=COMPRESSION_EVENT_LEDGER_NO_TRADES
 [ZONE_READY]                      zona London grigia, POC/VAH/VAL solo contesto
 [MR_REFERENCE_READY]              PreviousDay/PreviousLondon costruiti solo come log
@@ -82,7 +86,8 @@ I percentili sono metriche di confronto causale, non condizioni. `NA` significa 
 2. [HISTORICAL_FLOW_FINISH] contiene Entries=0 e contatori Ledger non nulli.
 3. Nessun nuovo MR_SETUP, MR_ENTRY, MR_EXIT, MR_BREAKEVEN o MR_REPLAY_OPEN.
 4. Il chart mostra la zona London grigia, ma non box turchesi o marker candidati.
-5. Per profili senza cumulative trade nel lookback, TradeCoverage=MISSING: non inferire flow assente dal mercato.
+5. `[CUM_TRADES_COMPLETE]` deve mostrare tutte le finestre completate prima del replay.
+6. Per profili senza trade nelle risposte ricevute, `TradeCoverage=MISSING`: non inferire flow assente dal mercato. Il provider potrebbe non conservare quella finestra storica.
 ```
 
 ## Report Performance

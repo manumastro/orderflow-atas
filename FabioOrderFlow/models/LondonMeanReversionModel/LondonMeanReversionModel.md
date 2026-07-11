@@ -64,10 +64,10 @@ La versione semplice puo' usare il profilo del giorno precedente.
 
 ```text
 LIVE        osserva trade/barre real-time e aggiorna gli outcome del ledger quando diventano disponibili.
-HISTORICAL  ricostruisce gli stessi eventi e outcome sui cumulative trade e sulle barre ricevute da ATAS.
+HISTORICAL  riceve finestre cumulative ATAS sequenziali da massimo 7 giorni, poi ricostruisce gli stessi eventi e outcome sull'intero chart.
 ```
 
-Entrambe le modalita' sono causalmente equivalenti: un profilo entra nel ledger solo dopo `READY`; ogni outcome viene scritto soltanto quando le sue 1/3/6/12 barre future sono effettivamente disponibili. Il ledger non apre ordini, non aggiorna posizioni e non genera PnL.
+Entrambe le modalita' sono causalmente equivalenti: un profilo entra nel ledger solo dopo `READY`; ogni outcome viene scritto soltanto quando le sue 1/3/6/12 barre future sono effettivamente disponibili. Per lo storico, il replay parte soltanto dopo l'ultima risposta ATAS. Il ledger trattiene solo trade tra `READY` e `RESOLVED`; `TradeCoverage` dichiara se ATAS ha effettivamente restituito flow per quel profilo. Il ledger non apre ordini, non aggiorna posizioni e non genera PnL.
 
 ## Reference Value Areas
 

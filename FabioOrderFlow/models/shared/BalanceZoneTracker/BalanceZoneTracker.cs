@@ -160,10 +160,26 @@ namespace FabioOrderFlow
             _meanReversionModule = module;
         }
 
+        public void BeginHistoricalCumulativeTrades()
+        {
+            _meanReversionModule?.BeginHistoricalCumulativeTrades();
+        }
+
+        public void AppendHistoricalCumulativeTrades(IEnumerable<CumulativeTrade> cumulativeTrades, int windowIndex, int windowCount)
+        {
+            _meanReversionModule?.AppendHistoricalCumulativeTrades(cumulativeTrades, windowIndex, windowCount);
+        }
+
+        public void CompleteHistoricalCumulativeTrades()
+        {
+            _meanReversionModule?.CompleteHistoricalCumulativeTrades();
+        }
+
         public void OnHistoricalCumulativeTrades(IEnumerable<CumulativeTrade> cumulativeTrades)
         {
-            // Delegate to MR module if enabled
-            _meanReversionModule?.OnHistoricalCumulativeTrades(cumulativeTrades);
+            BeginHistoricalCumulativeTrades();
+            AppendHistoricalCumulativeTrades(cumulativeTrades, 1, 1);
+            CompleteHistoricalCumulativeTrades();
         }
 
         public void OnLiveCumulativeTrade(CumulativeTrade trade)

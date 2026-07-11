@@ -43,9 +43,10 @@ ATAS OnCumulativeTrade / OnUpdateCumulativeTrade
 -> LondonMeanReversionModel.OnLiveCumulativeTrade
 
 ATAS OnFinishRecalculate
--> RequestForCumulativeTrades ultimi 7 giorni effettivi
--> LondonMeanReversionModel.OnHistoricalCumulativeTrades
--> LondonMeanReversionModel.ProcessHistoricalPositions con le stesse regole live
+-> crea richieste CumulativeTrades sequenziali da massimo 7 giorni per coprire tutto il chart
+-> inoltra ogni risposta al ledger, trattenendo solo i trade nelle finestre READY -> RESOLVED
+-> avvia ProcessHistoricalPositions solo dopo l'ultima risposta
+-> TradeCoverage=AVAILABLE/MISSING espone la retention effettiva ATAS per ogni profilo
 ```
 
 `BalanceZoneTracker` funziona correttamente ed e' lasciato invariato: oggi riconosce London, mantiene il suo stato profile legacy e inoltra eventi. La sua zona London grigia e i relativi livelli sono visibili solo come contesto. Il ledger non consuma POC/VAH/VAL, high/low o state machine del tracker. Il refactor futuro, separato dallo studio, lo ridurra' a `LondonTracker`, con la sola responsabilita' di identificare confini e appartenenza alla sessione London. Il ledger non aggiunge oggetti chart.
@@ -71,7 +72,7 @@ models/shared/BalanceZoneTracker/BalanceZoneTracker.md       contratto del profi
 Regole:
 
 - reload storico completo solo dopo `[HISTORICAL_FLOW_FINISH]`;
-- controllare sempre `[CUM_TRADES_LOOKBACK]`, perche' ATAS limita la request agli ultimi 7 giorni effettivi;
+- controllare sempre `[CUM_TRADES_LOOKBACK]`, `[CUM_TRADES_RESPONSE]` e `[CUM_TRADES_COMPLETE]`: ogni singola request e' al massimo sette giorni, ma il batch copre l'intero chart;
 - dopo un reload studio non devono apparire nuovi `[MR_ENTRY]` o `[MR_EXIT]`;
 - `[MR_EXIT]` resta l'unica fonte PnL per confronti storici legacy, non per lo studio corrente;
 - `PreviousDayProfile` e `PreviousLondonProfile` sono solo log;

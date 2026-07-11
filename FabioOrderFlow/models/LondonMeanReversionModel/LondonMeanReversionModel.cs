@@ -71,6 +71,11 @@ namespace FabioOrderFlow
         private readonly List<BalanceSetup> _activeSetups = new();
         private readonly List<ActivePosition> _activePositions = new();
         private readonly List<CumulativeTrade> _historicalTrades = new();
+        private readonly HashSet<string> _historicalTradeKeys = new();
+        private readonly List<HistoricalLedgerTradeWindow> _historicalLedgerTradeWindows = new();
+        private long _historicalTradesReceived;
+        private long _historicalTradesOutsideLedgerWindows;
+        private long _historicalTradesDuplicate;
         private readonly List<TradeRecord> _completedTrades = new();
         private readonly HashSet<string> _setupKeys = new();
         private readonly Dictionary<string, decimal> _liveTradeMaxVolumeByKey = new();
@@ -141,11 +146,84 @@ namespace FabioOrderFlow
             _currentBar = Math.Max(_currentBar, bar + 1);
         }
 
-        public void OnHistoricalCumulativeTrades(IEnumerable<CumulativeTrade> cumulativeTrades)
+        public void BeginHistoricalCumulativeTrades()
         {
             _historicalTrades.Clear();
-            _historicalTrades.AddRange(cumulativeTrades.OrderBy(t => t.Time));
-            _log($"[MR_HISTORICAL_TRADES] Count={_historicalTrades.Count}, BigTradeVolume={LondonBigTradeVolume:F0}, BeginItaly={(_historicalTrades.Count > 0 ? MarketTimeZones.ToItaly(_historicalTrades.First().Time).ToString("yyyy-MM-dd HH:mm:ss") : "NA")}, EndItaly={(_historicalTrades.Count > 0 ? MarketTimeZones.ToItaly(_historicalTrades.Last().Time).ToString("yyyy-MM-dd HH:mm:ss") : "NA")}", false);
+            _historicalTradeKeys.Clear();
+            _historicalLedgerTradeWindows.Clear();
+            _historicalTradesReceived = 0;
+            _historicalTradesOutsideLedgerWindows = 0;
+            _historicalTradesDuplicate = 0;
+
+            foreach (var profile in _compressionStudyProfiles.Where(profile => profile.ResolvedBar >= profile.ReadyBar))
+            {
+                var beginBar = Math.Min(profile.ReadyBar + 1, Math.Max(_currentBar - 1, 0));
+                var endBar = Math.Min(profile.ResolvedBar, Math.Max(_currentBar - 1, 0));
+                if (endBar < beginBar)
+                    continue;
+
+                _historicalLedgerTradeWindows.Add(new HistoricalLedgerTradeWindow
+                {
+                    BeginUtc = _getCandle(beginBar).Time,
+                    EndUtc = GetCandleEventTime(_getCandle(endBar))
+                });
+            }
+
+            _log($"[MR_HISTORICAL_TRADES_BEGIN] ProfileWindows={_historicalLedgerTradeWindows.Count}, CompressionProfiles={_compressionStudyProfiles.Count}", false);
+        }
+
+        public void AppendHistoricalCumulativeTrades(IEnumerable<CumulativeTrade> cumulativeTrades, int windowIndex, int windowCount)
+        {
+            var received = 0;
+            var retained = 0;
+            var outside = 0;
+            var duplicate = 0;
+            foreach (var trade in cumulativeTrades)
+            {
+                received++;
+                if (!IsHistoricalLedgerTradeTime(trade.Time))
+                {
+                    outside++;
+                    continue;
+                }
+
+                if (!_historicalTradeKeys.Add(GetHistoricalTradeKey(trade)))
+                {
+                    duplicate++;
+                    continue;
+                }
+
+                _historicalTrades.Add(trade);
+                retained++;
+            }
+
+            _historicalTradesReceived += received;
+            _historicalTradesOutsideLedgerWindows += outside;
+            _historicalTradesDuplicate += duplicate;
+            _log($"[MR_HISTORICAL_TRADES_WINDOW] Window={windowIndex}/{windowCount}, Received={received}, Retained={retained}, OutsideLedgerWindows={outside}, Duplicate={duplicate}, RetainedTotal={_historicalTrades.Count}", false);
+        }
+
+        public void CompleteHistoricalCumulativeTrades()
+        {
+            _historicalTrades.Sort((left, right) => left.Time.CompareTo(right.Time));
+            _log($"[MR_HISTORICAL_TRADES] Received={_historicalTradesReceived}, Retained={_historicalTrades.Count}, OutsideLedgerWindows={_historicalTradesOutsideLedgerWindows}, Duplicate={_historicalTradesDuplicate}, BeginItaly={(_historicalTrades.Count > 0 ? MarketTimeZones.ToItaly(_historicalTrades.First().Time).ToString("yyyy-MM-dd HH:mm:ss") : "NA")}, EndItaly={(_historicalTrades.Count > 0 ? MarketTimeZones.ToItaly(_historicalTrades.Last().Time).ToString("yyyy-MM-dd HH:mm:ss") : "NA")}", false);
+        }
+
+        public void OnHistoricalCumulativeTrades(IEnumerable<CumulativeTrade> cumulativeTrades)
+        {
+            BeginHistoricalCumulativeTrades();
+            AppendHistoricalCumulativeTrades(cumulativeTrades, 1, 1);
+            CompleteHistoricalCumulativeTrades();
+        }
+
+        private bool IsHistoricalLedgerTradeTime(DateTime timeUtc)
+        {
+            return _historicalLedgerTradeWindows.Any(window => timeUtc >= window.BeginUtc && timeUtc <= window.EndUtc);
+        }
+
+        private static string GetHistoricalTradeKey(CumulativeTrade trade)
+        {
+            return $"{trade.Time.Ticks}:{trade.Direction}:{trade.FirstPrice:F2}:{trade.Lastprice:F2}:{trade.Volume:F4}";
         }
 
         public void ProcessHistoricalPositions(int startBar, int endBar)
@@ -2342,6 +2420,12 @@ namespace FabioOrderFlow
             public decimal MAE { get; set; }
             public decimal RMultiple { get; set; }
             public bool BreakEvenActivated { get; set; }
+        }
+
+        private sealed class HistoricalLedgerTradeWindow
+        {
+            public DateTime BeginUtc { get; set; }
+            public DateTime EndUtc { get; set; }
         }
 
         private sealed class CompressionLedgerRunResult

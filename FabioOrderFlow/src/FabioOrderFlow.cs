@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using ATAS.Indicators;
 
@@ -8,7 +9,13 @@ public class FabioOrderFlow : Indicator
 {
     private BalanceZoneTracker? _balanceTracker;
     private LondonMeanReversionModule? _meanReversionModule;
+    private const int CumulativeTradesRequestWindowDays = 7;
     private CumulativeTradesRequest? _cumulativeTradesRequest;
+    private HistoricalCumulativeTradesWindow? _activeCumulativeTradesWindow;
+    private readonly Queue<HistoricalCumulativeTradesWindow> _pendingCumulativeTradesWindows = new();
+    private int _cumulativeTradesWindowCount;
+    private int _cumulativeTradesWindowsCompleted;
+    private long _cumulativeTradesReceived;
     private static readonly bool DetailedDebugLogs = false;
     private readonly object _logSync = new();
     private readonly string _logPath;
@@ -81,20 +88,23 @@ public class FabioOrderFlow : Indicator
 
         try
         {
-            var startTime = GetCandle(0).Time;
-            var endTime = GetCandle(CurrentBar - 1).LastTime;
-            if (endTime <= startTime)
-                endTime = GetCandle(CurrentBar - 1).Time;
+            var chartStartTime = GetCandle(0).Time;
+            var chartEndTime = GetCandle(CurrentBar - 1).LastTime;
+            if (chartEndTime <= chartStartTime)
+                chartEndTime = GetCandle(CurrentBar - 1).Time;
 
-            var chartStartTime = startTime;
-            var maxLookbackStart = endTime.AddDays(-7);
-            if (startTime < maxLookbackStart)
-                startTime = maxLookbackStart;
+            _pendingCumulativeTradesWindows.Clear();
+            _activeCumulativeTradesWindow = null;
+            _cumulativeTradesRequest = null;
+            _cumulativeTradesWindowsCompleted = 0;
+            _cumulativeTradesReceived = 0;
+            foreach (var window in BuildHistoricalCumulativeTradesWindows(chartStartTime, chartEndTime))
+                _pendingCumulativeTradesWindows.Enqueue(window);
 
-            _cumulativeTradesRequest = new CumulativeTradesRequest(startTime, endTime, 0, 0);
-            Log($"[CUM_TRADES_LOOKBACK] Mode=Last7DaysSingleRequest, ChartBeginItaly={MarketTimeZones.ToItaly(chartStartTime):yyyy-MM-dd HH:mm:ss}, EffectiveBeginItaly={MarketTimeZones.ToItaly(startTime):yyyy-MM-dd HH:mm:ss}, EndItaly={MarketTimeZones.ToItaly(endTime):yyyy-MM-dd HH:mm:ss}, CurrentBar={CurrentBar}");
-            Log($"[CUM_TRADES_REQUEST] RequestId={_cumulativeTradesRequest.RequestId}, BeginItaly={MarketTimeZones.ToItaly(startTime):yyyy-MM-dd HH:mm:ss}, BeginUtc={startTime:yyyy-MM-dd HH:mm:ss}, EndItaly={MarketTimeZones.ToItaly(endTime):yyyy-MM-dd HH:mm:ss}, EndUtc={endTime:yyyy-MM-dd HH:mm:ss}, CurrentBar={CurrentBar}");
-            RequestForCumulativeTrades(_cumulativeTradesRequest);
+            _cumulativeTradesWindowCount = _pendingCumulativeTradesWindows.Count;
+            Log($"[CUM_TRADES_LOOKBACK] Mode=WindowedSequentialRequests, ChartBeginItaly={MarketTimeZones.ToItaly(chartStartTime):yyyy-MM-dd HH:mm:ss}, ChartEndItaly={MarketTimeZones.ToItaly(chartEndTime):yyyy-MM-dd HH:mm:ss}, RequestWindowDays={CumulativeTradesRequestWindowDays}, WindowCount={_cumulativeTradesWindowCount}, CurrentBar={CurrentBar}");
+            _balanceTracker?.BeginHistoricalCumulativeTrades();
+            RequestNextHistoricalCumulativeTradesWindow();
         }
         catch (Exception ex)
         {
@@ -104,15 +114,18 @@ public class FabioOrderFlow : Indicator
 
     protected override void OnCumulativeTradesResponse(CumulativeTradesRequest request, IEnumerable<CumulativeTrade> cumulativeTrades)
     {
-        if (_cumulativeTradesRequest == null || request != _cumulativeTradesRequest)
+        if (_cumulativeTradesRequest == null || _activeCumulativeTradesWindow == null || request != _cumulativeTradesRequest)
             return;
 
         var trades = cumulativeTrades.ToList();
-        Log($"[CUM_TRADES_RESPONSE] Count={trades.Count}, RequestId={request.RequestId}");
-        _balanceTracker?.OnHistoricalCumulativeTrades(trades);
-        
-        if (_meanReversionModule != null && CurrentBar > 0)
-            _meanReversionModule.ProcessHistoricalPositions(0, CurrentBar - 1);
+        _cumulativeTradesReceived += trades.Count;
+        _cumulativeTradesWindowsCompleted++;
+        Log($"[CUM_TRADES_RESPONSE] Window={_activeCumulativeTradesWindow.Index}/{_cumulativeTradesWindowCount}, Count={trades.Count}, RequestId={request.RequestId}, BeginItaly={MarketTimeZones.ToItaly(_activeCumulativeTradesWindow.BeginUtc):yyyy-MM-dd HH:mm:ss}, EndItaly={MarketTimeZones.ToItaly(_activeCumulativeTradesWindow.EndUtc):yyyy-MM-dd HH:mm:ss}");
+        _balanceTracker?.AppendHistoricalCumulativeTrades(trades, _activeCumulativeTradesWindow.Index, _cumulativeTradesWindowCount);
+
+        _cumulativeTradesRequest = null;
+        _activeCumulativeTradesWindow = null;
+        RequestNextHistoricalCumulativeTradesWindow();
     }
 
     protected override void OnCumulativeTrade(CumulativeTrade trade)
@@ -131,6 +144,59 @@ public class FabioOrderFlow : Indicator
         // Live behavior is debugged through operational MR logs and historical replay.
     }
     
+    private IEnumerable<HistoricalCumulativeTradesWindow> BuildHistoricalCumulativeTradesWindows(DateTime chartStartUtc, DateTime chartEndUtc)
+    {
+        var index = 1;
+        var beginUtc = chartStartUtc;
+        while (beginUtc <= chartEndUtc)
+        {
+            var endUtc = beginUtc.AddDays(CumulativeTradesRequestWindowDays);
+            if (endUtc > chartEndUtc)
+                endUtc = chartEndUtc;
+
+            yield return new HistoricalCumulativeTradesWindow(index++, beginUtc, endUtc);
+            if (endUtc >= chartEndUtc)
+                yield break;
+
+            beginUtc = endUtc.AddTicks(1);
+        }
+    }
+
+    private void RequestNextHistoricalCumulativeTradesWindow()
+    {
+        if (_pendingCumulativeTradesWindows.Count == 0)
+        {
+            _balanceTracker?.CompleteHistoricalCumulativeTrades();
+            Log($"[CUM_TRADES_COMPLETE] WindowsCompleted={_cumulativeTradesWindowsCompleted}/{_cumulativeTradesWindowCount}, ReceivedTrades={_cumulativeTradesReceived}");
+            if (_meanReversionModule != null && CurrentBar > 0)
+                _meanReversionModule.ProcessHistoricalPositions(0, CurrentBar - 1);
+            return;
+        }
+
+        _activeCumulativeTradesWindow = _pendingCumulativeTradesWindows.Dequeue();
+        _cumulativeTradesRequest = new CumulativeTradesRequest(
+            _activeCumulativeTradesWindow.BeginUtc,
+            _activeCumulativeTradesWindow.EndUtc,
+            0,
+            0);
+        Log($"[CUM_TRADES_REQUEST] Window={_activeCumulativeTradesWindow.Index}/{_cumulativeTradesWindowCount}, RequestId={_cumulativeTradesRequest.RequestId}, BeginItaly={MarketTimeZones.ToItaly(_activeCumulativeTradesWindow.BeginUtc):yyyy-MM-dd HH:mm:ss}, BeginUtc={_activeCumulativeTradesWindow.BeginUtc:yyyy-MM-dd HH:mm:ss}, EndItaly={MarketTimeZones.ToItaly(_activeCumulativeTradesWindow.EndUtc):yyyy-MM-dd HH:mm:ss}, EndUtc={_activeCumulativeTradesWindow.EndUtc:yyyy-MM-dd HH:mm:ss}, CurrentBar={CurrentBar}");
+        RequestForCumulativeTrades(_cumulativeTradesRequest);
+    }
+
+    private sealed class HistoricalCumulativeTradesWindow
+    {
+        public HistoricalCumulativeTradesWindow(int index, DateTime beginUtc, DateTime endUtc)
+        {
+            Index = index;
+            BeginUtc = beginUtc;
+            EndUtc = endUtc;
+        }
+
+        public int Index { get; }
+        public DateTime BeginUtc { get; }
+        public DateTime EndUtc { get; }
+    }
+
     private void LogChartTradingSessions()
     {
         try

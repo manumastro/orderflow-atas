@@ -110,9 +110,10 @@ FabioOrderFlow.OnCumulativeTrade / OnUpdateCumulativeTrade
 -> BalanceZoneTracker.OnLiveCumulativeTrade
 -> LondonMeanReversionModel.OnLiveCumulativeTrade
 
-FabioOrderFlow.OnCumulativeTradesResponse
--> BalanceZoneTracker.OnHistoricalCumulativeTrades
--> LondonMeanReversionModel.OnHistoricalCumulativeTrades
+FabioOrderFlow.OnCumulativeTradesResponse, una finestra ATAS alla volta
+-> BalanceZoneTracker.AppendHistoricalCumulativeTrades
+-> LondonMeanReversionModel.AppendHistoricalCumulativeTrades
+-> dopo CUM_TRADES_COMPLETE: LondonMeanReversionModel.ProcessHistoricalPositions
 ```
 
 ## Stato Post-London Legacy

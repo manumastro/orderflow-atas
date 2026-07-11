@@ -1,5 +1,26 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Implementazione 2026-07-11 - Historical Cumulative Trades Windowed
+
+```text
+Problema:
+- Con chart esteso a 21 giorni, il vecchio codice tagliava esplicitamente i cumulative trade agli ultimi 7 giorni.
+- Il ledger poteva quindi avere range vecchi ma flow MISSING, non utilizzabile per conclusioni order-flow.
+
+Soluzione:
+- Il chart intero viene diviso in richieste CumulativeTrades sequenziali di massimo 7 giorni.
+- Viene inviata una sola richiesta ATAS alla volta; ProcessHistoricalPositions parte solo dopo CUM_TRADES_COMPLETE.
+- Il modello trattiene in streaming soltanto i trade dentro le finestre READY -> RESOLVED dei profili rilevati.
+- Log nuovi: CUM_TRADES_REQUEST/RESPONSE/COMPLETE e MR_HISTORICAL_TRADES_WINDOW.
+- TradeCoverage continua a distinguere flow restituito da ATAS e dati storici non disponibili.
+
+Da validare:
+- CUM_TRADES_LOOKBACK WindowCount>1.
+- Tutte le finestre ricevono risposta e CUM_TRADES_COMPLETE le conferma.
+- StoredTrades/TradeCoverage crescono per i profili piu' vecchi se ATAS conserva quei dati.
+- Ledger resta senza trade: Entries=0.
+```
+
 ## Reload 2026-07-11 13:24 - Event Ledger e Coverage Confermati
 
 ```text
