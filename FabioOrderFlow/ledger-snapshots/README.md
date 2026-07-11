@@ -23,3 +23,13 @@ python FabioOrderFlow/tools/report_compression_ledger.py --save
 Non confrontare direttamente `CloseMoveRanges` di HIGH e LOW: il report
 fornisce `averageReversionCloseMoveRanges`, positivo soltanto quando il prezzo
 si muove dal bordo verso l'interno del range.
+
+Shadow fixed-horizon esplorativo, sempre JSON e senza ordini/PnL:
+
+```bash
+python FabioOrderFlow/tools/analyze_compression_shadow.py \
+  --save FabioOrderFlow/ledger-snapshots/compression-shadow-2026-07-11.json
+```
+
+Usa al massimo il primo evento di ogni profilo, separa train/test per data e
+non ricostruisce stop o target dall'ordine intrabar non disponibile.

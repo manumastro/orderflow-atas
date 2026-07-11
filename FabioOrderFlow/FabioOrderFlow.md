@@ -24,6 +24,7 @@ models/LondonMeanReversionModel/                       ledger live/replay eventi
 models/PostLondonImpulseModel/                         parked, non operativo ora
 tools/report_mr_performance.py                         report PnL legacy, solo MR_EXIT
 tools/report_compression_ledger.py                     export/aggregati descrittivi ledger no-trade
+tools/analyze_compression_shadow.py                    shadow fixed-horizon offline, JSON only
 performance-snapshots/                                 snapshot PnL legacy
 ledger-snapshots/                                      CSV dataset e report JSON del compression ledger
 archive/legacy-research/                               strumenti/snapshot pre-core, non operativi
@@ -107,7 +108,15 @@ Report ledger no-trade:
 python FabioOrderFlow/tools/report_compression_ledger.py --save
 ```
 
-Restituisce solo JSON su stdout e salva il report JSON con validation e aggregati flow-covered. Con `--save` salva anche i CSV con chiavi `ProfileLabel`, `EventBar`, `Boundary` e `HorizonBars`. Non introduce filtri, segnali o PnL. I tempi di mercato mostrati nei log sono sempre i campi `Italy=`.
+Restituisce solo JSON su stdout e salva il report JSON con validation e aggregati flow-covered. Con `--save` salva anche i CSV con chiavi `ProfileLabel`, `EventBar`, `Boundary` e `HorizonBars`. Non introduce filtri, segnali o PnL.
+
+Shadow offline esplorativo:
+
+```bash
+python FabioOrderFlow/tools/analyze_compression_shadow.py --save FabioOrderFlow/ledger-snapshots/compression-shadow-2026-07-11.json
+```
+
+Usa massimo una osservazione per profilo, split cronologico e exit fisse a 6/12 barre. Non ricostruisce stop, target, ordini o PnL. I tempi di mercato mostrati nei log sono sempre i campi `Italy=`.
 
 ## Regole Di Documentazione
 

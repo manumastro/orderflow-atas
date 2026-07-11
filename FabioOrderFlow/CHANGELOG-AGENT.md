@@ -1,5 +1,26 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Analisi 2026-07-11 - Shadow Fixed-Horizon sui Dati Disponibili
+
+```text
+Contratto offline:
+- Primo evento al bordo per ogni profilo AVAILABLE; massimo una shadow observation per profilo.
+- Direzione verso l'interno; exit close a 6/12 barre; nessuno stop, target, ordine o PnL inventato.
+- 24 profili: train cronologico 17, test 7; selectionLeakage=true per overlap con analisi precedente.
+
+Risultato test:
+- Baseline: H6 +0,104 range; H12 -0,586.
+- HIGH: H6 -0,222; H12 -1,040, 5 profili.
+- LOW: H6 +0,920; H12 +0,550, ma solo 2 profili.
+- Volume top quartile: H6 +0,187; H12 -1,133, solo 3 profili.
+- Compact: H6 +0,288; H12 -0,002, 5 profili.
+- Nessun candidato raggiunge 8 profili test o stabilita' H6/H12.
+
+Decisione:
+- ValidatedCandidates=[]; nessuna promozione shadow/operativa.
+- Report: ledger-snapshots/compression-shadow-2026-07-11.json.
+```
+
 ## Reload 2026-07-11 18:18 - Chart Esteso, Coverage Verificata
 
 ```text

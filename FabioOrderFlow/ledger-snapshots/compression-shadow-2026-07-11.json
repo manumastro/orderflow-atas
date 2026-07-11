@@ -1,0 +1,701 @@
+{
+  "report": "compression-shadow-fixed-horizon-exploratory",
+  "generatedAtLocal": "2026-07-11T18:28:55+02:00",
+  "source": {
+    "snapshotPrefix": "FabioOrderFlow\\ledger-snapshots\\compression-ledger-2026-07-11_18-23-06",
+    "ledgerCounts": {
+      "profiles": 27,
+      "events": 117,
+      "outcomes": 468,
+      "expectedOutcomesAtFourHorizons": 468,
+      "flowCoveredEvents": 107,
+      "missingCoverageEvents": 10
+    },
+    "flowCoveredProfiles": 24,
+    "selectedFirstEvents": 24
+  },
+  "contract": {
+    "entry": "close of the first recorded boundary event per flow-covered profile",
+    "direction": "reversion toward the frozen compression range",
+    "exit": "close after exactly 6 or 12 bars",
+    "maximumEntriesPerProfile": 1,
+    "orders": false,
+    "stop": null,
+    "target": null,
+    "pnl": null,
+    "costs": null
+  },
+  "split": {
+    "method": "chronological distinct profile dates",
+    "trainFraction": 0.7,
+    "trainDates": [
+      "2026-05-19",
+      "2026-06-11",
+      "2026-06-12",
+      "2026-06-16",
+      "2026-06-17",
+      "2026-06-19",
+      "2026-06-23",
+      "2026-06-24",
+      "2026-06-25",
+      "2026-06-29",
+      "2026-07-01"
+    ],
+    "testDates": [
+      "2026-07-02",
+      "2026-07-03",
+      "2026-07-06",
+      "2026-07-08",
+      "2026-07-09"
+    ],
+    "trainProfiles": 17,
+    "testProfiles": 7,
+    "selectionLeakage": true,
+    "selectionLeakageReason": "Candidate ideas were inspected on an earlier overlapping snapshot; this is not a pristine holdout."
+  },
+  "geometry": {
+    "compactThresholdRangeToBaselineMedian": 1.81,
+    "thresholdDerivedFrom": "training profiles only"
+  },
+  "candidates": {
+    "BASELINE_FIRST_EVENT_REVERSION": {
+      "eligibleProfiles": 24,
+      "horizon6": {
+        "train": {
+          "observations": 17,
+          "dates": 11,
+          "averageReversionCloseRanges": -0.0147,
+          "medianReversionCloseRanges": -0.09,
+          "positiveReversionRate": 0.4706,
+          "dateWeightedAverageReversionCloseRanges": -0.1815,
+          "averageReversionMfeRanges": 0.7047,
+          "averageContinuationMfeRanges": 0.7712,
+          "pocTouchedRate": 0.4706,
+          "endInsideRate": 0.2941
+        },
+        "test": {
+          "observations": 7,
+          "dates": 5,
+          "averageReversionCloseRanges": 0.1043,
+          "medianReversionCloseRanges": 0.33,
+          "positiveReversionRate": 0.7143,
+          "dateWeightedAverageReversionCloseRanges": 0.129,
+          "averageReversionMfeRanges": 0.88,
+          "averageContinuationMfeRanges": 0.5829,
+          "pocTouchedRate": 0.4286,
+          "endInsideRate": 0.2857
+        },
+        "all": {
+          "observations": 24,
+          "dates": 16,
+          "averageReversionCloseRanges": 0.02,
+          "medianReversionCloseRanges": 0.06,
+          "positiveReversionRate": 0.5417,
+          "dateWeightedAverageReversionCloseRanges": -0.0845,
+          "averageReversionMfeRanges": 0.7558,
+          "averageContinuationMfeRanges": 0.7163,
+          "pocTouchedRate": 0.4583,
+          "endInsideRate": 0.2917
+        }
+      },
+      "horizon12": {
+        "train": {
+          "observations": 17,
+          "dates": 11,
+          "averageReversionCloseRanges": 0.3118,
+          "medianReversionCloseRanges": 0.3,
+          "positiveReversionRate": 0.5882,
+          "dateWeightedAverageReversionCloseRanges": 0.0312,
+          "averageReversionMfeRanges": 1.0518,
+          "averageContinuationMfeRanges": 0.9418,
+          "pocTouchedRate": 0.7059,
+          "endInsideRate": 0.4706
+        },
+        "test": {
+          "observations": 7,
+          "dates": 5,
+          "averageReversionCloseRanges": -0.5857,
+          "medianReversionCloseRanges": 0.37,
+          "positiveReversionRate": 0.5714,
+          "dateWeightedAverageReversionCloseRanges": -0.75,
+          "averageReversionMfeRanges": 0.9614,
+          "averageContinuationMfeRanges": 1.2571,
+          "pocTouchedRate": 0.5714,
+          "endInsideRate": 0.5714
+        },
+        "all": {
+          "observations": 24,
+          "dates": 16,
+          "averageReversionCloseRanges": 0.05,
+          "medianReversionCloseRanges": 0.335,
+          "positiveReversionRate": 0.5833,
+          "dateWeightedAverageReversionCloseRanges": -0.2129,
+          "averageReversionMfeRanges": 1.0254,
+          "averageContinuationMfeRanges": 1.0337,
+          "pocTouchedRate": 0.6667,
+          "endInsideRate": 0.5
+        }
+      }
+    },
+    "HIGH_BOUNDARY_REVERSION": {
+      "eligibleProfiles": 14,
+      "horizon6": {
+        "train": {
+          "observations": 9,
+          "dates": 7,
+          "averageReversionCloseRanges": 0.2333,
+          "medianReversionCloseRanges": 0.1,
+          "positiveReversionRate": 0.5556,
+          "dateWeightedAverageReversionCloseRanges": 0.2562,
+          "averageReversionMfeRanges": 0.71,
+          "averageContinuationMfeRanges": 0.3522,
+          "pocTouchedRate": 0.4444,
+          "endInsideRate": 0.3333
+        },
+        "test": {
+          "observations": 5,
+          "dates": 3,
+          "averageReversionCloseRanges": -0.222,
+          "medianReversionCloseRanges": 0.02,
+          "positiveReversionRate": 0.6,
+          "dateWeightedAverageReversionCloseRanges": -0.3983,
+          "averageReversionMfeRanges": 0.76,
+          "averageContinuationMfeRanges": 0.794,
+          "pocTouchedRate": 0.4,
+          "endInsideRate": 0.2
+        },
+        "all": {
+          "observations": 14,
+          "dates": 10,
+          "averageReversionCloseRanges": 0.0707,
+          "medianReversionCloseRanges": 0.06,
+          "positiveReversionRate": 0.5714,
+          "dateWeightedAverageReversionCloseRanges": 0.0598,
+          "averageReversionMfeRanges": 0.7279,
+          "averageContinuationMfeRanges": 0.51,
+          "pocTouchedRate": 0.4286,
+          "endInsideRate": 0.2857
+        }
+      },
+      "horizon12": {
+        "train": {
+          "observations": 9,
+          "dates": 7,
+          "averageReversionCloseRanges": 0.44,
+          "medianReversionCloseRanges": 0.54,
+          "positiveReversionRate": 0.7778,
+          "dateWeightedAverageReversionCloseRanges": 0.439,
+          "averageReversionMfeRanges": 1.1111,
+          "averageContinuationMfeRanges": 0.4544,
+          "pocTouchedRate": 0.7778,
+          "endInsideRate": 0.6667
+        },
+        "test": {
+          "observations": 5,
+          "dates": 3,
+          "averageReversionCloseRanges": -1.04,
+          "medianReversionCloseRanges": -0.29,
+          "positiveReversionRate": 0.4,
+          "dateWeightedAverageReversionCloseRanges": -1.6167,
+          "averageReversionMfeRanges": 0.82,
+          "averageContinuationMfeRanges": 1.738,
+          "pocTouchedRate": 0.4,
+          "endInsideRate": 0.4
+        },
+        "all": {
+          "observations": 14,
+          "dates": 10,
+          "averageReversionCloseRanges": -0.0886,
+          "medianReversionCloseRanges": 0.335,
+          "positiveReversionRate": 0.6429,
+          "dateWeightedAverageReversionCloseRanges": -0.1777,
+          "averageReversionMfeRanges": 1.0071,
+          "averageContinuationMfeRanges": 0.9129,
+          "pocTouchedRate": 0.6429,
+          "endInsideRate": 0.5714
+        }
+      }
+    },
+    "LOW_BOUNDARY_REVERSION": {
+      "eligibleProfiles": 10,
+      "horizon6": {
+        "train": {
+          "observations": 8,
+          "dates": 7,
+          "averageReversionCloseRanges": -0.2938,
+          "medianReversionCloseRanges": -0.445,
+          "positiveReversionRate": 0.375,
+          "dateWeightedAverageReversionCloseRanges": -0.4086,
+          "averageReversionMfeRanges": 0.6987,
+          "averageContinuationMfeRanges": 1.2425,
+          "pocTouchedRate": 0.5,
+          "endInsideRate": 0.25
+        },
+        "test": {
+          "observations": 2,
+          "dates": 2,
+          "averageReversionCloseRanges": 0.92,
+          "medianReversionCloseRanges": 0.92,
+          "positiveReversionRate": 1.0,
+          "dateWeightedAverageReversionCloseRanges": 0.92,
+          "averageReversionMfeRanges": 1.18,
+          "averageContinuationMfeRanges": 0.055,
+          "pocTouchedRate": 0.5,
+          "endInsideRate": 0.5
+        },
+        "all": {
+          "observations": 10,
+          "dates": 9,
+          "averageReversionCloseRanges": -0.051,
+          "medianReversionCloseRanges": -0.02,
+          "positiveReversionRate": 0.5,
+          "dateWeightedAverageReversionCloseRanges": -0.1133,
+          "averageReversionMfeRanges": 0.795,
+          "averageContinuationMfeRanges": 1.005,
+          "pocTouchedRate": 0.5,
+          "endInsideRate": 0.3
+        }
+      },
+      "horizon12": {
+        "train": {
+          "observations": 8,
+          "dates": 7,
+          "averageReversionCloseRanges": 0.1675,
+          "medianReversionCloseRanges": -0.06,
+          "positiveReversionRate": 0.375,
+          "dateWeightedAverageReversionCloseRanges": 0.0686,
+          "averageReversionMfeRanges": 0.985,
+          "averageContinuationMfeRanges": 1.49,
+          "pocTouchedRate": 0.625,
+          "endInsideRate": 0.25
+        },
+        "test": {
+          "observations": 2,
+          "dates": 2,
+          "averageReversionCloseRanges": 0.55,
+          "medianReversionCloseRanges": 0.55,
+          "positiveReversionRate": 1.0,
+          "dateWeightedAverageReversionCloseRanges": 0.55,
+          "averageReversionMfeRanges": 1.315,
+          "averageContinuationMfeRanges": 0.055,
+          "pocTouchedRate": 1.0,
+          "endInsideRate": 1.0
+        },
+        "all": {
+          "observations": 10,
+          "dates": 9,
+          "averageReversionCloseRanges": 0.244,
+          "medianReversionCloseRanges": 0.18,
+          "positiveReversionRate": 0.5,
+          "dateWeightedAverageReversionCloseRanges": 0.1756,
+          "averageReversionMfeRanges": 1.051,
+          "averageContinuationMfeRanges": 1.203,
+          "pocTouchedRate": 0.7,
+          "endInsideRate": 0.4
+        }
+      }
+    },
+    "CLOSE_INSIDE_REVERSION": {
+      "eligibleProfiles": 10,
+      "horizon6": {
+        "train": {
+          "observations": 10,
+          "dates": 6,
+          "averageReversionCloseRanges": 0.219,
+          "medianReversionCloseRanges": 0.035,
+          "positiveReversionRate": 0.5,
+          "dateWeightedAverageReversionCloseRanges": 0.2656,
+          "averageReversionMfeRanges": 0.74,
+          "averageContinuationMfeRanges": 0.661,
+          "pocTouchedRate": 0.5,
+          "endInsideRate": 0.4
+        },
+        "test": {
+          "observations": 0,
+          "dates": 0,
+          "averageReversionCloseRanges": null,
+          "medianReversionCloseRanges": null,
+          "positiveReversionRate": null,
+          "dateWeightedAverageReversionCloseRanges": null,
+          "averageReversionMfeRanges": null,
+          "averageContinuationMfeRanges": null,
+          "pocTouchedRate": null,
+          "endInsideRate": null
+        },
+        "all": {
+          "observations": 10,
+          "dates": 6,
+          "averageReversionCloseRanges": 0.219,
+          "medianReversionCloseRanges": 0.035,
+          "positiveReversionRate": 0.5,
+          "dateWeightedAverageReversionCloseRanges": 0.2656,
+          "averageReversionMfeRanges": 0.74,
+          "averageContinuationMfeRanges": 0.661,
+          "pocTouchedRate": 0.5,
+          "endInsideRate": 0.4
+        }
+      },
+      "horizon12": {
+        "train": {
+          "observations": 10,
+          "dates": 6,
+          "averageReversionCloseRanges": 0.774,
+          "medianReversionCloseRanges": 0.505,
+          "positiveReversionRate": 0.7,
+          "dateWeightedAverageReversionCloseRanges": 0.8672,
+          "averageReversionMfeRanges": 1.203,
+          "averageContinuationMfeRanges": 0.738,
+          "pocTouchedRate": 0.9,
+          "endInsideRate": 0.5
+        },
+        "test": {
+          "observations": 0,
+          "dates": 0,
+          "averageReversionCloseRanges": null,
+          "medianReversionCloseRanges": null,
+          "positiveReversionRate": null,
+          "dateWeightedAverageReversionCloseRanges": null,
+          "averageReversionMfeRanges": null,
+          "averageContinuationMfeRanges": null,
+          "pocTouchedRate": null,
+          "endInsideRate": null
+        },
+        "all": {
+          "observations": 10,
+          "dates": 6,
+          "averageReversionCloseRanges": 0.774,
+          "medianReversionCloseRanges": 0.505,
+          "positiveReversionRate": 0.7,
+          "dateWeightedAverageReversionCloseRanges": 0.8672,
+          "averageReversionMfeRanges": 1.203,
+          "averageContinuationMfeRanges": 0.738,
+          "pocTouchedRate": 0.9,
+          "endInsideRate": 0.5
+        }
+      }
+    },
+    "RELATIVE_VOLUME_TOP_QUARTILE_REVERSION": {
+      "eligibleProfiles": 13,
+      "horizon6": {
+        "train": {
+          "observations": 10,
+          "dates": 8,
+          "averageReversionCloseRanges": 0.123,
+          "medianReversionCloseRanges": 0.035,
+          "positiveReversionRate": 0.5,
+          "dateWeightedAverageReversionCloseRanges": 0.1794,
+          "averageReversionMfeRanges": 0.918,
+          "averageContinuationMfeRanges": 0.786,
+          "pocTouchedRate": 0.6,
+          "endInsideRate": 0.3
+        },
+        "test": {
+          "observations": 3,
+          "dates": 3,
+          "averageReversionCloseRanges": 0.1867,
+          "medianReversionCloseRanges": 0.57,
+          "positiveReversionRate": 0.6667,
+          "dateWeightedAverageReversionCloseRanges": 0.1867,
+          "averageReversionMfeRanges": 0.9167,
+          "averageContinuationMfeRanges": 0.5267,
+          "pocTouchedRate": 0.3333,
+          "endInsideRate": 0.3333
+        },
+        "all": {
+          "observations": 13,
+          "dates": 11,
+          "averageReversionCloseRanges": 0.1377,
+          "medianReversionCloseRanges": 0.16,
+          "positiveReversionRate": 0.5385,
+          "dateWeightedAverageReversionCloseRanges": 0.1814,
+          "averageReversionMfeRanges": 0.9177,
+          "averageContinuationMfeRanges": 0.7262,
+          "pocTouchedRate": 0.5385,
+          "endInsideRate": 0.3077
+        }
+      },
+      "horizon12": {
+        "train": {
+          "observations": 10,
+          "dates": 8,
+          "averageReversionCloseRanges": 0.481,
+          "medianReversionCloseRanges": 0.68,
+          "positiveReversionRate": 0.7,
+          "dateWeightedAverageReversionCloseRanges": 0.4175,
+          "averageReversionMfeRanges": 1.426,
+          "averageContinuationMfeRanges": 0.959,
+          "pocTouchedRate": 0.9,
+          "endInsideRate": 0.4
+        },
+        "test": {
+          "observations": 3,
+          "dates": 3,
+          "averageReversionCloseRanges": -1.1333,
+          "medianReversionCloseRanges": 0.41,
+          "positiveReversionRate": 0.6667,
+          "dateWeightedAverageReversionCloseRanges": -1.1333,
+          "averageReversionMfeRanges": 1.0067,
+          "averageContinuationMfeRanges": 1.7733,
+          "pocTouchedRate": 0.6667,
+          "endInsideRate": 0.6667
+        },
+        "all": {
+          "observations": 13,
+          "dates": 11,
+          "averageReversionCloseRanges": 0.1085,
+          "medianReversionCloseRanges": 0.47,
+          "positiveReversionRate": 0.6923,
+          "dateWeightedAverageReversionCloseRanges": -0.0055,
+          "averageReversionMfeRanges": 1.3292,
+          "averageContinuationMfeRanges": 1.1469,
+          "pocTouchedRate": 0.8462,
+          "endInsideRate": 0.4615
+        }
+      }
+    },
+    "ABS_DELTA_TOP_QUARTILE_REVERSION": {
+      "eligibleProfiles": 7,
+      "horizon6": {
+        "train": {
+          "observations": 5,
+          "dates": 4,
+          "averageReversionCloseRanges": 0.488,
+          "medianReversionCloseRanges": 0.16,
+          "positiveReversionRate": 0.6,
+          "dateWeightedAverageReversionCloseRanges": 0.665,
+          "averageReversionMfeRanges": 1.204,
+          "averageContinuationMfeRanges": 0.628,
+          "pocTouchedRate": 0.8,
+          "endInsideRate": 0.4
+        },
+        "test": {
+          "observations": 2,
+          "dates": 2,
+          "averageReversionCloseRanges": -0.355,
+          "medianReversionCloseRanges": -0.355,
+          "positiveReversionRate": 0.5,
+          "dateWeightedAverageReversionCloseRanges": -0.355,
+          "averageReversionMfeRanges": 0.57,
+          "averageContinuationMfeRanges": 0.765,
+          "pocTouchedRate": 0.0,
+          "endInsideRate": 0.5
+        },
+        "all": {
+          "observations": 7,
+          "dates": 6,
+          "averageReversionCloseRanges": 0.2471,
+          "medianReversionCloseRanges": 0.16,
+          "positiveReversionRate": 0.5714,
+          "dateWeightedAverageReversionCloseRanges": 0.325,
+          "averageReversionMfeRanges": 1.0229,
+          "averageContinuationMfeRanges": 0.6671,
+          "pocTouchedRate": 0.5714,
+          "endInsideRate": 0.4286
+        }
+      },
+      "horizon12": {
+        "train": {
+          "observations": 5,
+          "dates": 4,
+          "averageReversionCloseRanges": 1.108,
+          "medianReversionCloseRanges": 1.79,
+          "positiveReversionRate": 0.6,
+          "dateWeightedAverageReversionCloseRanges": 1.1875,
+          "averageReversionMfeRanges": 1.826,
+          "averageContinuationMfeRanges": 0.732,
+          "pocTouchedRate": 1.0,
+          "endInsideRate": 0.0
+        },
+        "test": {
+          "observations": 2,
+          "dates": 2,
+          "averageReversionCloseRanges": -2.045,
+          "medianReversionCloseRanges": -2.045,
+          "positiveReversionRate": 0.5,
+          "dateWeightedAverageReversionCloseRanges": -2.045,
+          "averageReversionMfeRanges": 0.705,
+          "averageContinuationMfeRanges": 2.635,
+          "pocTouchedRate": 0.5,
+          "endInsideRate": 0.5
+        },
+        "all": {
+          "observations": 7,
+          "dates": 6,
+          "averageReversionCloseRanges": 0.2071,
+          "medianReversionCloseRanges": 0.41,
+          "positiveReversionRate": 0.5714,
+          "dateWeightedAverageReversionCloseRanges": 0.11,
+          "averageReversionMfeRanges": 1.5057,
+          "averageContinuationMfeRanges": 1.2757,
+          "pocTouchedRate": 0.8571,
+          "endInsideRate": 0.1429
+        }
+      }
+    },
+    "COMPACT_GEOMETRY_REVERSION": {
+      "eligibleProfiles": 14,
+      "horizon6": {
+        "train": {
+          "observations": 9,
+          "dates": 8,
+          "averageReversionCloseRanges": -0.4878,
+          "medianReversionCloseRanges": -0.38,
+          "positiveReversionRate": 0.3333,
+          "dateWeightedAverageReversionCloseRanges": -0.5506,
+          "averageReversionMfeRanges": 0.5367,
+          "averageContinuationMfeRanges": 1.1367,
+          "pocTouchedRate": 0.5556,
+          "endInsideRate": 0.3333
+        },
+        "test": {
+          "observations": 5,
+          "dates": 3,
+          "averageReversionCloseRanges": 0.288,
+          "medianReversionCloseRanges": 0.33,
+          "positiveReversionRate": 0.8,
+          "dateWeightedAverageReversionCloseRanges": 0.4517,
+          "averageReversionMfeRanges": 1.004,
+          "averageContinuationMfeRanges": 0.51,
+          "pocTouchedRate": 0.6,
+          "endInsideRate": 0.2
+        },
+        "all": {
+          "observations": 14,
+          "dates": 11,
+          "averageReversionCloseRanges": -0.2107,
+          "medianReversionCloseRanges": -0.135,
+          "positiveReversionRate": 0.5,
+          "dateWeightedAverageReversionCloseRanges": -0.2773,
+          "averageReversionMfeRanges": 0.7036,
+          "averageContinuationMfeRanges": 0.9129,
+          "pocTouchedRate": 0.5714,
+          "endInsideRate": 0.2857
+        }
+      },
+      "horizon12": {
+        "train": {
+          "observations": 9,
+          "dates": 8,
+          "averageReversionCloseRanges": -0.1344,
+          "medianReversionCloseRanges": -0.05,
+          "positiveReversionRate": 0.4444,
+          "dateWeightedAverageReversionCloseRanges": -0.2363,
+          "averageReversionMfeRanges": 0.8111,
+          "averageContinuationMfeRanges": 1.3289,
+          "pocTouchedRate": 0.6667,
+          "endInsideRate": 0.3333
+        },
+        "test": {
+          "observations": 5,
+          "dates": 3,
+          "averageReversionCloseRanges": -0.002,
+          "medianReversionCloseRanges": 0.37,
+          "positiveReversionRate": 0.6,
+          "dateWeightedAverageReversionCloseRanges": 0.1133,
+          "averageReversionMfeRanges": 1.064,
+          "averageContinuationMfeRanges": 0.706,
+          "pocTouchedRate": 0.6,
+          "endInsideRate": 0.6
+        },
+        "all": {
+          "observations": 14,
+          "dates": 11,
+          "averageReversionCloseRanges": -0.0871,
+          "medianReversionCloseRanges": 0.16,
+          "positiveReversionRate": 0.5,
+          "dateWeightedAverageReversionCloseRanges": -0.1409,
+          "averageReversionMfeRanges": 0.9014,
+          "averageContinuationMfeRanges": 1.1064,
+          "pocTouchedRate": 0.6429,
+          "endInsideRate": 0.4286
+        }
+      }
+    },
+    "EXTENDED_GEOMETRY_REVERSION": {
+      "eligibleProfiles": 10,
+      "horizon6": {
+        "train": {
+          "observations": 8,
+          "dates": 6,
+          "averageReversionCloseRanges": 0.5175,
+          "medianReversionCloseRanges": 0.13,
+          "positiveReversionRate": 0.625,
+          "dateWeightedAverageReversionCloseRanges": 0.5258,
+          "averageReversionMfeRanges": 0.8937,
+          "averageContinuationMfeRanges": 0.36,
+          "pocTouchedRate": 0.375,
+          "endInsideRate": 0.25
+        },
+        "test": {
+          "observations": 2,
+          "dates": 2,
+          "averageReversionCloseRanges": -0.355,
+          "medianReversionCloseRanges": -0.355,
+          "positiveReversionRate": 0.5,
+          "dateWeightedAverageReversionCloseRanges": -0.355,
+          "averageReversionMfeRanges": 0.57,
+          "averageContinuationMfeRanges": 0.765,
+          "pocTouchedRate": 0.0,
+          "endInsideRate": 0.5
+        },
+        "all": {
+          "observations": 10,
+          "dates": 8,
+          "averageReversionCloseRanges": 0.343,
+          "medianReversionCloseRanges": 0.13,
+          "positiveReversionRate": 0.6,
+          "dateWeightedAverageReversionCloseRanges": 0.3056,
+          "averageReversionMfeRanges": 0.829,
+          "averageContinuationMfeRanges": 0.441,
+          "pocTouchedRate": 0.3,
+          "endInsideRate": 0.3
+        }
+      },
+      "horizon12": {
+        "train": {
+          "observations": 8,
+          "dates": 6,
+          "averageReversionCloseRanges": 0.8138,
+          "medianReversionCloseRanges": 0.42,
+          "positiveReversionRate": 0.75,
+          "dateWeightedAverageReversionCloseRanges": 0.7408,
+          "averageReversionMfeRanges": 1.3225,
+          "averageContinuationMfeRanges": 0.5062,
+          "pocTouchedRate": 0.75,
+          "endInsideRate": 0.625
+        },
+        "test": {
+          "observations": 2,
+          "dates": 2,
+          "averageReversionCloseRanges": -2.045,
+          "medianReversionCloseRanges": -2.045,
+          "positiveReversionRate": 0.5,
+          "dateWeightedAverageReversionCloseRanges": -2.045,
+          "averageReversionMfeRanges": 0.705,
+          "averageContinuationMfeRanges": 2.635,
+          "pocTouchedRate": 0.5,
+          "endInsideRate": 0.5
+        },
+        "all": {
+          "observations": 10,
+          "dates": 8,
+          "averageReversionCloseRanges": 0.242,
+          "medianReversionCloseRanges": 0.355,
+          "positiveReversionRate": 0.7,
+          "dateWeightedAverageReversionCloseRanges": 0.0444,
+          "averageReversionMfeRanges": 1.199,
+          "averageContinuationMfeRanges": 0.932,
+          "pocTouchedRate": 0.7,
+          "endInsideRate": 0.6
+        }
+      }
+    }
+  },
+  "assessment": {
+    "minimumTestProfilesPerCandidate": 8,
+    "candidatesMeetingMinimum": [],
+    "validatedCandidates": [],
+    "conclusion": "Exploratory only. No candidate can be promoted because the test block is small, costs are absent, and the holdout has prior-selection leakage."
+  },
+  "guardrail": "This report contains no executable entry, order, stop, target, or PnL contract."
+}
