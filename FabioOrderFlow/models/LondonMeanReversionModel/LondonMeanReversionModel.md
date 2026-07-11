@@ -10,8 +10,8 @@ Nessun log del modello apre o gestisce posizioni. `MR_*` e `MR_COMPRESSION_STUDY
 Modalita':              COMPRESSION_CASES_NO_TRADES
 Operativita' trade:     DISABLED
 Reference precedenti:   LOG_ONLY
-Grafico attivo:         DynamicCompression + candidati studio
-Grafico disattivato:    BalanceZoneTracker profile box/livelli
+Grafico contesto:       zona London grigia, POC/VAH/VAL dal BalanceZoneTracker
+Grafico studio:         DynamicCompression + candidati studio
 PnL corrente:           non applicabile; nessun MR_ENTRY/MR_EXIT nuovo
 ```
 
@@ -294,7 +294,7 @@ Study Reversion Short:           marker viola.
 Study Breakout Long:             marker blu.
 Study Breakout Short:            marker arancio.
 Study target POC reversion:      linea tratteggiata nel colore del candidato.
-BalanceZoneTracker profile:      non disegnato.
+BalanceZoneTracker profile:      zona London grigia, POC/VAH/VAL solo contesto; non influenza lo studio.
 ```
 
 I marker rappresentano candidati, non esecuzioni. Sono larghi tre barre e alti cinque tick. Il target viene mostrato solo per i candidati reversion (`Compression POC`); il target breakout e' volutamente `UNDEFINED_REQUIRES_SEPARATE_MODEL`.

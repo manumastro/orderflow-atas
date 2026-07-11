@@ -8,7 +8,7 @@ Indicatore ATAS modulare per order flow su NQ/ES. Il progetto contiene l'orchest
 Modalita':          COMPRESSION_CASES_NO_TRADES
 Ordini / PnL:       DISABLED
 Reference profile:  LOG_ONLY
-Grafico:            DynamicCompression + candidati studio
+Grafico:            zona London contestuale + DynamicCompression + candidati studio
 ```
 
 `london-ny-close-hold` e il suo PnL `+634,25` restano baseline storica del precedente core MR, non un modello in esecuzione.
@@ -47,7 +47,7 @@ ATAS OnFinishRecalculate
 -> LondonMeanReversionModel.ProcessHistoricalPositions con le stesse regole live
 ```
 
-`BalanceZoneTracker` funziona correttamente ed e' lasciato invariato: oggi riconosce London, mantiene il suo stato profile legacy e inoltra eventi. Il modello studio non consuma POC/VAH/VAL, high/low, state machine o visual del tracker; box/livelli sono disattivati. Il refactor futuro, separato dallo studio, lo ridurra' a `LondonTracker`, con la sola responsabilita' di identificare confini e appartenenza alla sessione London. La visualizzazione attiva resta `DynamicCompression` del modulo studio.
+`BalanceZoneTracker` funziona correttamente ed e' lasciato invariato: oggi riconosce London, mantiene il suo stato profile legacy e inoltra eventi. La sua zona London grigia e i relativi livelli sono visibili solo come contesto. Il modello studio non consuma POC/VAH/VAL, high/low o state machine del tracker. Il refactor futuro, separato dallo studio, lo ridurra' a `LondonTracker`, con la sola responsabilita' di identificare confini e appartenenza alla sessione London. `DynamicCompression` e candidati restano una visualizzazione distinta del modulo studio.
 
 ## Documenti Obbligatori
 
@@ -77,6 +77,7 @@ Regole:
 - `[MR_LOCAL_PROFILE_READY]` e `[MR_LOCAL_PROFILE_RESOLVED]` sono l'input causale dello studio;
 - `[MR_COMPRESSION_STUDY_CASE]`, `[MR_COMPRESSION_STUDY_CANDIDATE]` e `[MR_COMPRESSION_STUDY_PROFILE]` sono candidati, mai trade;
 - usare `docs/research/fabio-transcript-synthesis.md` per il contratto derivato dai due transcript;
+- usare `docs/research/compression-study-evaluation-2026-07-11.md` per la lettura comparativa dei sette range verificati;
 - usare `docs/atas/log-reading.md` prima di interpretare nuovi log.
 
 ## Build E Deploy

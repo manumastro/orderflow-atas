@@ -1,5 +1,26 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Decisione 2026-07-11 - Zona London contestuale e valutazione compression
+
+```text
+Visual:
+- Riattivato DrawBalanceProfileVisuals=true.
+- BalanceZoneTracker disegna di nuovo zona London, POC, VAH e VAL grigi.
+- Gli oggetti sono solo contesto: non influenzano DynamicCompression, candidati, trade o PnL.
+
+Valutazione reload 10:27:
+- Il detector e' causalmente corretto ma misura ancora contrazione/overlap delle barre, non soltanto dealing range visivamente stretti.
+- Caso piu' compatto: 03/07 12:05-12:39, 7 barre, range 19,50, 15 high test, buy boundary 403, CVD +406.
+- 08/07 e 09/07 sono profile larghi/estesi: candidati studio validi meccanicamente, non promossi a compression Fabio-style.
+- 02/07 non ha copertura cumulative-trade nello storico ricevuto; resta solo contesto geometrico.
+- Il caso 06/07 mostra EntryCandidate=StopCandidate: evidenza che lo studio non e' un entry model.
+- Analisi completa: docs/research/compression-study-evaluation-2026-07-11.md.
+
+Regola:
+- Non introdurre ora un filtro di ampiezza, retest, target o entry.
+- La prossima decisione diagnostica separata e' classificare/rifiutare deterministicamente i range estesi dopo confronto chart.
+```
+
 ## Reload 2026-07-11 10:27 - Contratto Studio Confermato
 
 ```text

@@ -13,7 +13,7 @@ Ancora implementato, ma non consumato dal modello studio:
 - aggregazione volume per price level
 - preview POC / VAH / VAL
 - high / low London e state machine post-London
-- [ZONE_READY] e grafica profile (la grafica e' disattivata)
+- [ZONE_READY] e zona/profile London grigi, visibili solo come contesto
 ```
 
 Il tracker non decide entry, stop, target, PnL o filtri di big trade.
@@ -127,7 +127,7 @@ Per FabioCompressionStudy il tracker serve oggi alla sessione e al forwarding co
 
 ## Visual
 
-Il disegno del tracker e' disattivato (`DrawBalanceProfileVisuals=false`) per non sovrapporre profile non operativi al chart studio. Il solo profile grafico attivo e' `DynamicCompression`, disegnato dal modello studio.
+Il tracker disegna la zona London grigia, POC, VAH e VAL (`DrawBalanceProfileVisuals=true`) come contesto della sessione. Non e' un trigger e non influenza `FabioCompressionStudy`. `DynamicCompression` turchese e i candidati colorati restano disegnati dal modello studio e hanno semantica distinta.
 
 ## Validazione
 

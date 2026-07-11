@@ -88,7 +88,7 @@ namespace FabioOrderFlow
         private const int MinCompleteSessionBars = 90; // Tolleranza -6 bars
         private const int LondonPreviewStartHour = 8;
         private static readonly bool DetailedDebugLogs = false;
-        private static readonly bool DrawBalanceProfileVisuals = false;
+        private static readonly bool DrawBalanceProfileVisuals = true;
         
         // Preview profile values (shared with MR module)
         private decimal _lastPreviewPoc;
