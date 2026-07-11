@@ -304,55 +304,10 @@ def csv_rows(rows: Iterable[dict[str, object]], path: Path) -> None:
         writer.writerows(rows)
 
 
-def display_decimal(value: object) -> str:
-    return f"{value:.3f}" if isinstance(value, float) else "NA"
-
-
-def text_report(summary: dict[str, object]) -> str:
-    counts = summary["counts"]
-    coverage = summary["profileCoverage"]
-    flow_groups = summary["flowCoveredOutcomeGroups"]
-    lines = [
-        "Compression Event Ledger - Descriptive Report",
-        "",
-        "Scope",
-        f"  Historical replay lines: {summary['run']['startLine']}-{summary['run']['finishLine']}",
-        f"  Chart: {summary['run']['lookback'].get('ChartBeginItaly', 'NA')} -> {summary['run']['lookback'].get('ChartEndItaly', 'NA')}",
-        f"  Cumulative windows: {summary['run']['lookback'].get('WindowCount', 'NA')} x {summary['run']['lookback'].get('RequestWindowDays', 'NA')} days",
-        f"  Raw cumulative trades received: {summary['run']['complete'].get('ReceivedTrades', 'NA')}",
-        "",
-        "Records",
-        f"  Profiles: {counts['profiles']}; events: {counts['events']}; outcomes: {counts['outcomes']}",
-        f"  Flow-covered events: {counts['flowCoveredEvents']}; missing-coverage events: {counts['missingCoverageEvents']}",
-        "",
-        "Profile Coverage",
-    ]
-    for row in coverage:
-        lines.append(
-            f"  {row['tradeCoverage']}: profiles={row['profiles']}, events={row['boundaryEvents']}, "
-            f"avgRange={display_decimal(row['averageRange'])}, avgRange/Baseline={display_decimal(row['averageRangeToBaselineMedian'])}"
-        )
-
-    lines.extend(["", "Flow-Covered Outcomes By Boundary (descriptive)"])
-    for row in flow_groups["boundary"]:
-        lines.append(
-            f"  {row['group']} H{row['horizonBars']}: events={row['events']}, profiles={row['profiles']}, "
-            f"reversion={display_decimal(row['averageReversionCloseMoveRanges'])}, inside={display_decimal(row['endInsideRate'])}, "
-            f"poc={display_decimal(row['pocTouchedRate'])}"
-        )
-
-    lines.extend([
-        "",
-        "Interpretation Guardrail",
-        "  These are observations, not entry rules. Small group counts and the three MISSING profiles preclude trade classification.",
-    ])
-    return "\n".join(lines) + "\n"
-
-
 def main() -> int:
     parser = argparse.ArgumentParser(description="Export and describe the active compression event ledger")
     parser.add_argument("--log", type=Path, default=default_log(), help="ATAS FabioOrderFlow.log path")
-    parser.add_argument("--save", action="store_true", help="Write CSV, JSON, and text snapshots")
+    parser.add_argument("--save", action="store_true", help="Write CSV datasets and the JSON report snapshot")
     parser.add_argument("--out-dir", type=Path, default=Path("FabioOrderFlow/ledger-snapshots"), help="Snapshot output directory")
     parser.add_argument("--prefix", default="compression-ledger", help="Snapshot filename prefix")
     args = parser.parse_args()
@@ -442,9 +397,6 @@ def main() -> int:
         "flowCoveredOutcomeGroups": flow_groups,
         "guardrail": "Descriptive ledger analysis only. It does not create an entry, a threshold, a stop, a target, or PnL.",
     }
-    report = text_report(summary)
-    print(report, end="")
-
     if args.save:
         args.out_dir.mkdir(parents=True, exist_ok=True)
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -455,9 +407,8 @@ def main() -> int:
         aggregation_rows = [row for groups in flow_groups.values() for row in groups]
         csv_rows(aggregation_rows, base.with_name(base.name + "-flow-covered-aggregates.csv"))
         base.with_name(base.name + "-summary.json").write_text(json.dumps(summary, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
-        base.with_name(base.name + "-report.txt").write_text(report, encoding="utf-8")
-        print(f"Saved: {base.with_name(base.name + '-summary.json')}")
 
+    print(json.dumps(summary, indent=2, ensure_ascii=True))
     return 0
 
 

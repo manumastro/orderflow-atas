@@ -25,7 +25,7 @@ models/PostLondonImpulseModel/                         parked, non operativo ora
 tools/report_mr_performance.py                         report PnL legacy, solo MR_EXIT
 tools/report_compression_ledger.py                     export/aggregati descrittivi ledger no-trade
 performance-snapshots/                                 snapshot PnL legacy
-ledger-snapshots/                                      CSV/JSON/TXT del compression ledger
+ledger-snapshots/                                      CSV dataset e report JSON del compression ledger
 archive/legacy-research/                               strumenti/snapshot pre-core, non operativi
 CHANGELOG-AGENT.md                                     baseline, decisioni, reload verificati
 ```
@@ -107,7 +107,7 @@ Report ledger no-trade:
 python FabioOrderFlow/tools/report_compression_ledger.py --save
 ```
 
-Salva CSV con chiavi `ProfileLabel`, `EventBar`, `Boundary` e `HorizonBars`, JSON con validation e aggregati flow-covered, e un testo descrittivo. Non introduce filtri, segnali o PnL. I tempi di mercato mostrati nei log sono sempre i campi `Italy=`.
+Restituisce solo JSON su stdout e salva il report JSON con validation e aggregati flow-covered. Con `--save` salva anche i CSV con chiavi `ProfileLabel`, `EventBar`, `Boundary` e `HorizonBars`. Non introduce filtri, segnali o PnL. I tempi di mercato mostrati nei log sono sempre i campi `Italy=`.
 
 ## Regole Di Documentazione
 

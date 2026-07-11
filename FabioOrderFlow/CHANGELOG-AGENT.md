@@ -1,5 +1,14 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Refinement 2026-07-11 - Compression Ledger JSON Only
+
+```text
+- tools/report_compression_ledger.py restituisce esclusivamente JSON su stdout.
+- Con --save persiste il report summary JSON e i CSV dataset; il renderer e il file report.txt sono rimossi.
+- Contratto JSON verificato sul replay corrente: report corretto, outcomesComplete=true, events=109.
+- Nessuna modifica a lifecycle, coverage, classificazione o operativita' trade.
+```
+
 ## Analisi 2026-07-11 - Compression Ledger, 21 Profili Flow-Covered
 
 ```text
@@ -7,7 +16,7 @@ Dataset:
 - 24 profili, 109 eventi, 436 outcome completi.
 - 21 profili / 99 eventi TradeCoverage=AVAILABLE; 3 profili / 10 eventi MISSING esclusi dal confronto flow.
 - Report ripetibile: tools/report_compression_ledger.py --save.
-- Snapshot CSV/JSON/TXT: ledger-snapshots/compression-ledger-2026-07-11_18-02-29-*.
+- Report JSON e dataset CSV: ledger-snapshots/compression-ledger-2026-07-11_18-02-29-*.
 
 Evidenza descrittiva:
 - 97 BREACH e solo 2 TOUCH: confronto touch/breach non ancora possibile.

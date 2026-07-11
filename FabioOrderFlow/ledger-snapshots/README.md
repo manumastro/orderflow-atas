@@ -9,13 +9,10 @@ Ogni snapshot completo contiene:
 *-events.csv                   un record per ProfileLabel + Bar + Boundary
 *-outcomes.csv                 un record per ProfileLabel + EventBar + Boundary + HorizonBars
 *-flow-covered-aggregates.csv  aggregati descrittivi; solo TradeCoverage=AVAILABLE
-*-summary.json                 controlli replay, aggregati completi e metadati
-*-report.txt                   sintesi leggibile
+*-summary.json                 unico report: controlli replay, aggregati completi e metadati
 ```
 
-Gli aggregati sono osservazioni senza PnL e senza segnali. `profiles` negli
-aggregati indica il numero di range distinti; i campi `profileWeighted*`
-riducono il peso di profili con molti retest.
+Il comando restituisce soltanto JSON su stdout. Gli aggregati sono osservazioni senza PnL e senza segnali. `profiles` negli aggregati indica il numero di range distinti; i campi `profileWeighted*` riducono il peso di profili con molti retest.
 
 Comando:
 

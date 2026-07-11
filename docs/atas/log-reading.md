@@ -102,4 +102,4 @@ Il report performance non valuta il ledger perche' non esistono trade o PnL. Usa
 python FabioOrderFlow/tools/report_compression_ledger.py --save
 ```
 
-Il report ledger seleziona l'ultimo replay `[HISTORICAL_FLOW_FINISH]` completo, verifica `eventi x 4 = outcome`, salva CSV/JSON/TXT in `FabioOrderFlow/ledger-snapshots/` e usa flow solo con `TradeCoverage=AVAILABLE`. Gli aggregati non sono segnali. Per confrontare HIGH e LOW usare i campi normalizzati `*Reversion*`, non il segno prezzo di `CloseMoveRanges`.
+Il report ledger restituisce solo JSON, seleziona l'ultimo replay `[HISTORICAL_FLOW_FINISH]` completo, verifica `eventi x 4 = outcome`, salva il report JSON e, con `--save`, i CSV in `FabioOrderFlow/ledger-snapshots/`. Usa flow solo con `TradeCoverage=AVAILABLE`. Gli aggregati non sono segnali. Per confrontare HIGH e LOW usare i campi normalizzati `*Reversion*`, non il segno prezzo di `CloseMoveRanges`.
