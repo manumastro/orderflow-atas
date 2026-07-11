@@ -1,19 +1,17 @@
 # FabioOrderFlow
 
-Indicatore ATAS modulare per order flow su NQ/ES. Il progetto contiene l'orchestrator, il tracker del volume profile e modelli indipendenti. Il modello operativo corrente e' `LondonMeanReversionModel`.
+Indicatore ATAS modulare per order flow su NQ/ES. Il progetto contiene l'orchestrator, il tracker del volume profile e modelli indipendenti. Il modulo attivo e' `LondonMeanReversionModel` in modalita' `FabioCompressionStudy`.
 
-## Baseline Corrente
+## Stato Corrente
 
 ```text
-Baseline:        2026-07-08 London MR reference + breakeven + NY close hold
-Code commit:     f20ec7b
-Validation docs: 26b17f5
-Tag stabile:     london-ny-close-hold
-Reload:          2026-07-08 10:40
-Risultato:       20 trade chiusi, PnL [MR_EXIT] +634,25
+Modalita':          COMPRESSION_CASES_NO_TRADES
+Ordini / PnL:       DISABLED
+Reference profile:  LOG_ONLY
+Grafico:            DynamicCompression + candidati studio
 ```
 
-Questa e' la baseline operativa fissa di partenza. Modifiche future devono essere confrontate contro questo risultato e devono avere un nuovo tag/checkpoint.
+`london-ny-close-hold` e il suo PnL `+634,25` restano baseline storica del precedente core MR, non un modello in esecuzione.
 
 ## Mappa Progetto
 
@@ -21,7 +19,7 @@ Questa e' la baseline operativa fissa di partenza. Modifiche future devono esser
 src/FabioOrderFlow.cs                                  orchestrator ATAS, log, live/replay/storico
 src/MarketTimeZones.cs                                 conversioni UTC/London/Italy/New York
 models/shared/BalanceZoneTracker/                      costruzione POC/VAH/VAL e inoltro eventi
-models/LondonMeanReversionModel/                       modello attivo London mean reversion
+models/LondonMeanReversionModel/                       studio live/replay Fabio compression cases
 models/PostLondonImpulseModel/                         parked, non operativo ora
 tools/report_mr_performance.py                         report canonico marker MR correnti
 performance-snapshots/                                 snapshot correnti London MR
@@ -34,10 +32,10 @@ CHANGELOG-AGENT.md                                     baseline, decisioni, relo
 ```text
 ATAS OnCalculate
 -> BalanceZoneTracker aggiorna profilo London e inoltra il flusso barre
--> LondonMeanReversionModel costruisce reference operative complete PreviousDayProfile/PreviousLondonProfile
--> LondonMeanReversionModel mantiene il lifecycle diagnostico dinamico SEARCHING/BUILDING/READY/RESOLVED di ActiveCompressionProfile
--> LondonMeanReversionModel allega un profilo locale all'entry solo se era READY prima del setup
--> LondonMeanReversionModel gestisce una sola catena setup/posizione alla volta e disegna trade/profile sul chart
+-> LondonMeanReversionModel costruisce PreviousDayProfile/PreviousLondonProfile solo per log
+-> LondonMeanReversionModel mantiene il lifecycle dinamico SEARCHING/BUILDING/READY/RESOLVED di DynamicCompression
+-> LondonMeanReversionModel studia assorbimento/reversion e acceptance/breakout per ogni compression congelata
+-> LondonMeanReversionModel non crea setup, posizioni, PnL o marker trade reali
 
 ATAS OnCumulativeTrade / OnUpdateCumulativeTrade
 -> BalanceZoneTracker.OnLiveCumulativeTrade
@@ -49,7 +47,7 @@ ATAS OnFinishRecalculate
 -> LondonMeanReversionModel.ProcessHistoricalPositions con le stesse regole live
 ```
 
-`BalanceZoneTracker` non decide entry, stop o target. Pubblica/visualizza i livelli London e inoltra barre/trade al modello. La strategia sta nel `.md` e nel `.cs` del modello specifico.
+`BalanceZoneTracker` non decide entry, stop o target. Costruisce i livelli London solo per log e inoltra barre/trade al modello; il suo box/livelli grafici sono disattivati. La visualizzazione attiva e' DynamicCompression del modulo studio.
 
 ## Documenti Obbligatori
 
@@ -73,12 +71,12 @@ Regole:
 
 - reload storico completo solo dopo `[HISTORICAL_FLOW_FINISH]`;
 - controllare sempre `[CUM_TRADES_LOOKBACK]`, perche' ATAS limita la request agli ultimi 7 giorni effettivi;
-- PnL storico valido: sommare solo `[MR_EXIT]`;
-- leggere il target operativo da `[MR_ENTRY] TargetPOC`, non dal POC visuale se l'indicatore volume profile e' impostato su `Current Day`;
-- `PreviousDayProfile` e `PreviousLondonProfile` restano entrambe reference operative;
-- il core non usa pyramiding: i setup possono coesistere, ma una posizione aperta blocca ogni nuova entry fino all'exit;
-- `[MR_LOCAL_PROFILE_READY]`, `[MR_LOCAL_PROFILE_RESOLVED]` e `[MR_PROFILE_CONTEXT]` sono solo diagnostica `ActiveCompressionProfile`, non modificano entry/exit/PnL;
-- le entry sono London, ma la massima durata trade e' fino a New York regular close 16:00 New York;
+- dopo un reload studio non devono apparire nuovi `[MR_ENTRY]` o `[MR_EXIT]`;
+- `[MR_EXIT]` resta l'unica fonte PnL per confronti storici legacy, non per lo studio corrente;
+- `PreviousDayProfile` e `PreviousLondonProfile` sono solo log;
+- `[MR_LOCAL_PROFILE_READY]` e `[MR_LOCAL_PROFILE_RESOLVED]` sono l'input causale dello studio;
+- `[MR_COMPRESSION_STUDY_CASE]`, `[MR_COMPRESSION_STUDY_CANDIDATE]` e `[MR_COMPRESSION_STUDY_PROFILE]` sono candidati, mai trade;
+- usare `docs/research/fabio-transcript-synthesis.md` per il contratto derivato dai due transcript;
 - usare `docs/atas/log-reading.md` prima di interpretare nuovi log.
 
 ## Build E Deploy
@@ -88,7 +86,7 @@ cd FabioOrderFlow/src && dotnet build -c Release
 cp -f bin/Release/net10.0-windows/FabioOrderFlow.dll "$APPDATA/ATAS/Indicators/FabioOrderFlow.dll"
 ```
 
-Dopo deploy: ricaricare ATAS/indicatore, attendere `[HISTORICAL_FLOW_FINISH]`, validare `[MR_ENTRY]` / `[MR_EXIT]` e aggiornare `CHANGELOG-AGENT.md` con poche righe.
+Dopo deploy: ricaricare ATAS/indicatore, attendere `[HISTORICAL_FLOW_FINISH]`, validare `Entries=0`, i marker `MR_COMPRESSION_STUDY_*` e la resa chart, poi aggiornare `CHANGELOG-AGENT.md` con poche righe.
 
 Report canonico:
 
@@ -96,7 +94,7 @@ Report canonico:
 python FabioOrderFlow/tools/report_mr_performance.py --save
 ```
 
-Il report usa solo `[MR_EXIT]` per il PnL, separa `PreviousDayProfile` da `PreviousLondonProfile` e non promuove il modello con meno di 30 trade/10 sessioni o senza costi configurati. Il default e' `HISTORICAL`; usare `--execution-mode LIVE` per il live. Non sommare replay e live sovrapposti. I tempi di mercato mostrati nei log sono sempre i campi `Italy=`.
+Il report usa solo `[MR_EXIT]` per il PnL legacy. Il nuovo studio non produce PnL e non deve essere giudicato con il report performance. I tempi di mercato mostrati nei log sono sempre i campi `Italy=`.
 
 ## Regole Di Documentazione
 

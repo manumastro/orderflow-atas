@@ -1,5 +1,33 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Implementazione 2026-07-11 - Fabio Compression Study, no trades
+
+```text
+Decisione:
+- Ritirato il core PreviousDayProfile/PreviousLondonProfile come trigger di setup/entry.
+- Le due reference restano costruite solo come log [MR_REFERENCE_READY].
+- Nessun MR_ENTRY, MR_EXIT, posizione o PnL puo' essere prodotto dal modello attivo.
+- DynamicCompression resta disegnato; il profile grafico grigio di BalanceZoneTracker e' disattivato.
+
+Studio live-equivalente:
+- Reversion: breach, aggressione grande assorbita, rientro e big trade opposto entro due barre.
+- Breakout: due close di acceptance, big trade al bordo e CVD coerente.
+- Marker: [MR_COMPRESSION_STUDY_CASE], [MR_COMPRESSION_STUDY_CANDIDATE], [MR_COMPRESSION_STUDY_PROFILE].
+- Ogni candidato dichiara OperationalEntry=FALSE; non esiste PnL studio.
+- Breakout target resta UNDEFINED_REQUIRES_SEPARATE_MODEL. Reversion usa Compression POC solo come target candidato.
+
+Fonti/contratto:
+- Analizzati transcription.txt e trascription_1.txt.
+- Sintesi: docs/research/fabio-transcript-synthesis.md.
+- I transcript distinguono Model 1 New York continuation e Model 2 London reversion; il codice studia solo Model 2 avanzato.
+
+Da validare al reload:
+- [MR_MODE] StudyMode=COMPRESSION_CASES_NO_TRADES e OperationalEntries=DISABLED.
+- [HISTORICAL_FLOW_FINISH] Entries=0, CompletedTrades=0, StudyCandidates=N.
+- Box turchesi DynamicCompression e marker candidati visibili; nessun box/livello grigio BalanceZoneTracker.
+- Nessun nuovo [MR_ENTRY] o [MR_EXIT].
+```
+
 ## Decisione 2026-07-10 - Comunicazione sempre chiarificatrice
 
 ```text

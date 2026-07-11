@@ -1,41 +1,39 @@
 # LondonMeanReversionModel
 
-Modello attivo di `FabioOrderFlow`.
+Modello attivo di studio `FabioCompressionStudy`.
 
-`MR` significa **Mean Reversion**. Tutti i log `MR_*` appartengono al modello operativo, sia live sia historical replay.
+Nessun log del modello apre o gestisce posizioni. `MR_*` e `MR_COMPRESSION_STUDY_*` descrivono osservazioni live-equivalenti e replay storico, non PnL.
 
-## Baseline corrente
-
-```text
-Baseline:        2026-07-08 reference + breakeven + NY close hold
-Code commit:     f20ec7b
-Validation docs: 26b17f5
-Tag stabile:     london-ny-close-hold
-Reload:          2026-07-08 10:40
-```
-
-Risultato storico validato dal reload:
+## Stato Corrente
 
 ```text
-Reference disponibili: PreviousDayProfile + PreviousLondonProfile
-MR_REFERENCE_READY:    12
-MR_ENTRY historical:   20
-MR_EXIT historical:    20
-MR_BREAKEVEN:          12
-MR_REPLAY_OPEN:        0
-NEW_YORK_CLOSE:        0
-LONDON_CLOSE:          0
-PnL da MR_EXIT:        +634,25
-Open historical:       0
+Modalita':              COMPRESSION_CASES_NO_TRADES
+Operativita' trade:     DISABLED
+Reference precedenti:   LOG_ONLY
+Grafico attivo:         DynamicCompression + candidati studio
+Grafico disattivato:    BalanceZoneTracker profile box/livelli
+PnL corrente:           non applicabile; nessun MR_ENTRY/MR_EXIT nuovo
 ```
 
-Questa baseline e' il punto fisso di partenza. Modifiche future devono confrontarsi con questo stato e avere un nuovo checkpoint/tag.
+La baseline `london-ny-close-hold` con `+634,25` e' conservata come storico del vecchio core reference mean-reversion. Non e' piu' il modello operativo.
 
 ## Tesi Fabio
 
-Fonte: `transcription.txt`.
+Fonti: `transcription.txt` e `trascription_1.txt`.
 
-Playbook unico:
+I transcript separano due modelli, da non combinare in una singola entry:
+
+```text
+Model 1, New York trend:
+imbalance -> low volume node -> aggressione -> continuation.
+
+Model 2, London reversion:
+compression/balance -> primo breakout -> rientro -> aggressione opposta -> bulk/POC.
+```
+
+Il codice studia solo la versione avanzata del Model 2: individua la compression, misura test e aggressione ai bordi, poi confronta rientro/assorbimento e acceptance breakout. Il summary esteso e' in `docs/research/fabio-transcript-synthesis.md`.
+
+Playbook storico del core precedente:
 
 ```text
 1. Esiste una value area gia' completa: previous day profile o previous completed London profile.
@@ -63,33 +61,25 @@ La versione semplice puo' usare il profilo del giorno precedente.
 
 ## Contratto Live / Historic
 
-Il modello ha solo due modalita':
-
 ```text
-LIVE        dati real-time ATAS
-HISTORICAL  dati passati processati con le stesse regole live
+LIVE        osserva trade/barre real-time e scrive candidati studio quando una compression si risolve.
+HISTORICAL  applica lo stesso studio ai cumulative trade e alle barre ricevute da ATAS.
 ```
 
-Il replay storico usa gli stessi metodi della live. Non esistono entry di ricerca/debug parallele.
+Entrambe le modalita' sono causalmente equivalenti: un profilo entra nello studio solo dopo `READY`; non si usa il suo futuro per creare il candidato. I candidati non aprono ordini, non aggiornano posizioni e non generano PnL.
 
 ## Reference Value Areas
 
-Il modello usa due reference profile completati, entrambi validi live e replay:
+Il modello continua a costruire e loggare due reference complete:
 
 ```text
 PreviousDayProfile       profilo completo del giorno italiano precedente
 PreviousLondonProfile    profilo completo della London session precedente
 ```
 
-Regola importante:
+Sono `LOG_ONLY`: non producono setup, entry, stop, target, marker trade o PnL. La scelta rispetta la richiesta di non usare piu' il profile semplice come trigger mentre viene studiata la variante avanzata sulla compression locale.
 
-```text
-Non si usa il developing POC della London/current day corrente per generare entry.
-```
-
-Motivo: il developing POC della sessione corrente era troppo vicino al fakeout e produceva target minuscoli, touch immediati e poche entry.
-
-## Profile Diagnostics
+## Compression Study Input
 
 Fabio distingue tra versione semplice e versione avanzata:
 
@@ -98,16 +88,15 @@ Versione semplice:  usare il previous day profile / previous balance area.
 Versione avanzata: identificare la compressione/dealing range che il mercato costruisce durante la sessione e plottare il profilo su quella zona.
 ```
 
-Per non sporcare la baseline, il modello usa una diagnostica unica e poco invasiva:
+La compression non e' piu' una diagnostica agganciata a setup legacy: e' l'input dello studio attivo.
 
 ```text
-Marker:       [MR_PROFILE_CONTEXT]
-Uso:          DIAGNOSTIC_ONLY
-Livello log:  ENTRY_ONLY
-Entry/target: invariati, sempre PreviousDayProfile/PreviousLondonProfile completati
+READY     congela range, POC, VAH e VAL prima dell'evento studiato.
+RESOLVED  chiude l'osservazione dopo due close in acceptance o alla fine sessione.
+STUDY     confronta tutti i casi rientro/assorbimento e breakout/acceptance.
 ```
 
-I profili vengono comunque agganciati anche al setup per audit interno; il marker dedicato viene emesso solo sull'entry per evitare ingombro nel log live/replay.
+Non esistono setup legacy o entry reali. Ogni candidato porta `OperationalEntry=FALSE`.
 
 Il focus attuale e' una sola diagnostica locale:
 
@@ -115,7 +104,7 @@ Il focus attuale e' una sola diagnostica locale:
 ProfileSource=ActiveCompressionProfile
 ```
 
-`ActiveCompressionProfile` e' un prototipo diagnostico della compressione/dealing range intraday Fabio-style. Non e' direzionale, non parte dall'entry e non sostituisce le reference operative.
+`ActiveCompressionProfile` e' il range locale studiato. Non e' un entry model, non parte da un'entry e non puo' aprire posizioni.
 
 Lifecycle causale e dinamico:
 
@@ -132,7 +121,7 @@ BUILDING
 READY
 - Richiede CompressionScore >= 0,65 per 2 barre consecutive.
 - Congela finestra, high/low, POC, VAH e VAL; solo allora logga [MR_LOCAL_PROFILE_READY].
-- Un setup puo' allegarla solo se ReadyBar < RejectionBar.
+- Solo dopo READY il motore puo' analizzare test al bordo, assorbimento e acceptance.
 
 RESOLVED
 - Richiede 2 close consecutive oltre il range piu' una tolleranza adattiva pari al 15% della mediana precedente.
@@ -152,7 +141,7 @@ RESOLVED
 7,5% ValueConcentration
 ```
 
-I reload precedenti hanno dimostrato che finestre e rapporti rigidi non bastano: 54 profili iniziali e 46 dopo la prima normalizzazione, con range massimo 243,75. Il reload dinamico 2026-07-11 ha prodotto 7 profili da 7-11 barre, range 19,50-88,25 e score 0,67-0,80; tutte le risoluzioni hanno richiesto 2 close. La riduzione dei falsi profili e il lifecycle sono validati tecnicamente. Resta da confrontare visivamente ciascuna finestra con la compressione Fabio-style; il profilo rimane diagnostico.
+I reload precedenti hanno dimostrato che finestre e rapporti rigidi non bastano: 54 profili iniziali e 46 dopo la prima normalizzazione, con range massimo 243,75. Il reload dinamico 2026-07-11 ha prodotto 7 profili da 7-11 barre, range 19,50-88,25 e score 0,67-0,80; tutte le risoluzioni hanno richiesto 2 close. La riduzione dei falsi profili e il lifecycle sono validati tecnicamente. Resta da confrontare visivamente ciascuna finestra con la compression Fabio-style; per questo i risultati sono candidati studio, non trade.
 
 Le diagnostiche precedenti `CurrentLondonSessionProfile`, `LocalRotationProfile` e `LatestSwingPairToSetup` sono ritirate dal codice attivo.
 
@@ -173,47 +162,46 @@ BaselineMedianBarRange
 RangeToBaselineMedian
 AverageBarRangeToBaselineMedian
 DirectionChanges
-CandidateTargetPOC
-TargetVsProfileVAL / ProfilePOC / ProfileVAH
-EntryVsProfileVAL / ProfilePOC / ProfileVAH
-ProfileUse=DIAGNOSTIC_ONLY
+HighTests / LowTests
+HighBoundaryBuyVolume / LowBoundarySellVolume
+ProfileCVD
+CandidateType / Evidence / BoundaryAggressionVolume / EventCVD
+OperationalEntry=FALSE
 ```
 
-Serve per studiare casi come il 2026-07-06. Questa diagnostica non blocca trade e non cambia PnL; eventuali filtri futuri dovranno essere validati contro la baseline `london-ny-close-baseline`.
+Serve per confrontare casi reversion e breakout senza PnL. Un eventuale modello futuro richiede una validazione shadow separata.
 
-## Potenziali Passi Successivi
+## Studio Attivo
 
-Questa sezione e' solo roadmap. Nessuna voce e' operativa finche' non appare nei log come entry reale e non viene validata con reload.
+Lo studio e' attivo su live e historical, ma e' `NO_TRADES`.
 
-### Verifica ActiveCompressionProfile
-
-Principio Fabio-style da verificare:
+### Casi Analizzati
 
 ```text
-Prima individuo la dealing range/compressione.
-Poi plotto il profilo su quella zona.
-Solo dopo posso giudicare setup, breakout, failed auction, value edge e POC.
+REVERSION_SHORT
+Breach sopra High -> buy aggressivo al bordo assorbito -> close rientra -> sell >= 20 entro 2 barre.
+Stop candidato: High - 2 tick. Target candidato: Compression POC.
+
+REVERSION_LONG
+Breach sotto Low -> sell aggressivo al bordo assorbito -> close rientra -> buy >= 20 entro 2 barre.
+Stop candidato: Low + 2 tick. Target candidato: Compression POC.
+
+BREAKOUT_LONG / BREAKOUT_SHORT
+Il lifecycle osserva gia' due close oltre High/Low. Il caso e' qualificato solo con big trade al bordo e CVD nella stessa direzione.
+Stop candidato: 2 tick dentro il bordo. Target: UNDEFINED_REQUIRES_SEPARATE_MODEL.
 ```
 
-La verifica attuale non deve produrre filtri, nuove entry o PnL. Deve rispondere solo a questa domanda:
+Campi chiave:
 
 ```text
-La finestra ActiveCompressionProfile corrisponde alla compressione che Fabio avrebbe disegnato sul chart?
+[MR_LOCAL_PROFILE_READY]             range causalmente disponibile
+[MR_LOCAL_PROFILE_RESOLVED]          acceptance o session end
+[MR_COMPRESSION_STUDY_CASE]          verifica breakout acceptance, anche non qualificato
+[MR_COMPRESSION_STUDY_CANDIDATE]     candidato con OperationalEntry=FALSE
+[MR_COMPRESSION_STUDY_PROFILE]       HighTests/LowTests, volumi al bordo, ProfileCVD e conteggio candidati
 ```
 
-Campi da controllare sui log:
-
-```text
-[MR_LOCAL_PROFILE_READY]     il range diventa riconoscibile prima del setup
-[MR_LOCAL_PROFILE_RESOLVED]  acceptance fuori range o fine sessione
-ProfileLabel / Begin / End   finestra temporale congelata
-ProfileReadyBar / ReadyTime  momento causale di disponibilita'
-ProfileHigh / ProfileLow     estremi della dealing range
-ProfilePOC / VAH / VAL       livelli volume profile della finestra
-metriche overlap/rotazione   motivazione oggettiva della classificazione
-```
-
-Se la finestra e' sbagliata, si corregge solo il metodo di individuazione della compressione. Entry, filtri e retest restano fuori scope.
+Lo studio non afferma ancora che la finestra sia sempre quella che Fabio disegnerebbe; questa resta la verifica visuale centrale. Nessun filtro, retest operativo, entry o PnL viene introdotto.
 
 ### Nota visuale su POC
 
@@ -227,28 +215,11 @@ Target modello:          29540
 Perche':                 Source=PreviousDayProfile, ReferenceLabel=2026-07-07
 ```
 
-Questo e' corretto: Fabio nella versione semplice parla di `last day profile / previous balance area`. Il target operativo va letto sempre da:
+Questo e' storico del core reference. Nel modello studio il POC target candidato, quando presente, e' sempre quello incluso in `[MR_COMPRESSION_STUDY_CANDIDATE]` con `TargetModel=COMPRESSION_POC`.
 
-```text
-[MR_REFERENCE_READY] Source=... ReferenceLabel=... POC=...
-[MR_ENTRY] TargetPOC=...
-```
+## Entry Legacy Retired
 
-## Concorrenza Entry
-
-I setup sono osservazioni indipendenti e possono coesistere. Il core limita invece l'esecuzione:
-
-```text
-- PreviousDayProfile e PreviousLondonProfile possono entrambe creare setup.
-- Setup diversi della stessa reference possono coesistere fino a entry, timeout o POC touch.
-- Se esiste una posizione aperta, nessun cumulative big trade puo' aprire una seconda entry.
-- I setup pending non vengono cancellati dall'entry: restano soggetti alle regole normali di timeout e POC touch.
-- Dopo l'exit, un setup ancora valido puo' generare la prossima entry.
-```
-
-Questo impedisce stacking/pyramiding delle posizioni senza eliminare informazione diagnostica o setup validi.
-
-## Entry Operativa
+Le regole di setup/posizione del precedente core sono ritirate dal flusso attivo. Restano sotto solo come riferimento storico; non devono essere riattivate o confrontate come risultati live.
 
 ### Short mean reversion
 
@@ -298,7 +269,7 @@ Gestione:
 - Se ancora aperto, flat massimo a New York regular close 16:00 New York.
 ```
 
-## Parametri
+## Parametri Legacy Retired
 
 ```text
 Big trade volume:       20 contratti
@@ -317,42 +288,42 @@ Massima durata trade:   fino a New York regular close 16:00 New York
 Gli oggetti ATAS vengono disegnati sia per replay storico sia per eventi live. Gli orari precisi restano nel log `Italy=`; il chart posiziona l'oggetto sul bar M5 che contiene l'evento.
 
 ```text
-DynamicCompression: box turchese trasparente; POC turchese; VAH/VAL turchese tratteggiato.
-Long entry:          marker e linea verde.
-Short entry:         marker e linea arancio-rosso.
-Stop:                linea cremisi tratteggiata.
-Target POC:          linea blu tratteggiata.
-Exit profit:         marker verde.
-Exit stop/loss:      marker cremisi.
-Exit breakeven:      marker oro.
+DynamicCompression:             box turchese trasparente; POC turchese; VAH/VAL turchese tratteggiato.
+Study Reversion Long:            marker verde.
+Study Reversion Short:           marker viola.
+Study Breakout Long:             marker blu.
+Study Breakout Short:            marker arancio.
+Study target POC reversion:      linea tratteggiata nel colore del candidato.
+BalanceZoneTracker profile:      non disegnato.
 ```
 
-Le linee entry/stop/target restano ray solo mentre la posizione live e' aperta; alla chiusura diventano segmenti dal bar di entry al bar di exit. I marker sono larghi tre barre e alti cinque tick per restare visibili anche quando entry ed exit cadono nello stesso bar.
+I marker rappresentano candidati, non esecuzioni. Sono larghi tre barre e alti cinque tick. Il target viene mostrato solo per i candidati reversion (`Compression POC`); il target breakout e' volutamente `UNDEFINED_REQUIRES_SEPARATE_MODEL`.
 
 ## Log
 
 ```text
 [MR_MODE]                    configurazione modello
 [MR_REFERENCE_READY]         reference profile completato e disponibile
-[MR_SETUP_LONG]              failed auction sotto reference VAL, rientro in value
-[MR_SETUP_SHORT]             failed auction sopra reference VAH, rientro in value
+[MR_COMPRESSION_STUDY_CASE]      acceptance breakout studiata, qualificata o esclusa
+[MR_COMPRESSION_STUDY_CANDIDATE] candidato reversion/breakout, mai una posizione
+[MR_COMPRESSION_STUDY_PROFILE]   riepilogo test, aggressione, CVD e candidati del profilo
 [MR_LOCAL_PROFILE_READY]     compressione locale riconosciuta; diagnostica only
 [MR_LOCAL_PROFILE_RESOLVED]  compressione risolta da acceptance o fine sessione
-[MR_PROFILE_CONTEXT]         profilo READY preesistente allegato all'entry; non genera PnL
-[MR_SETUP_EXPIRED]           setup scaduto o POC gia' toccato prima dell'entry
+[MR_PROFILE_CONTEXT]         marker storico legacy, non emesso nel flusso studio
+[MR_SETUP_EXPIRED]           marker storico legacy, non emesso nel flusso studio
 [MR_HISTORICAL_TRADES]       cumulative trades storici ricevuti
 [HISTORICAL_FLOW_PROCESS_START]
 [MR_REPLAY_AUDIT]            riepilogo replay e motivi no-entry
 [MR_SETUP_NO_ENTRY]          diagnostica setup senza entry
-[MR_ENTRY]                   posizione creata
-[MR_BREAKEVEN]               stop portato a breakeven dopo MFE >= 1R
-[MR_REPLAY_OPEN]             posizione storica ancora aperta a fine dati replay; PnL non contato
-[MR_EXIT]                    exit finale; PnL valido
+[MR_ENTRY]                   marker legacy; non deve essere emesso dal nuovo modello
+[MR_BREAKEVEN]               marker legacy; non deve essere emesso dal nuovo modello
+[MR_REPLAY_OPEN]             marker legacy; non deve essere emesso dal nuovo modello
+[MR_EXIT]                    marker legacy; non deve essere emesso dal nuovo modello
 [MR_LIVE_HEARTBEAT]          heartbeat leggero live
 [HISTORICAL_FLOW_FINISH]
 ```
 
-PnL valido: sommare solo `[MR_EXIT]`.
+Non esiste PnL studio. `[MR_EXIT]` resta l'unica fonte PnL per log storici legacy, ma non deve apparire dopo un reload del modello studio.
 
 ## File
 

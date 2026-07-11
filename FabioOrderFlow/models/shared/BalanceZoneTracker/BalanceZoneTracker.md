@@ -1,6 +1,6 @@
 # BalanceZoneTracker
 
-Modulo shared che costruisce il volume profile London per visual/context e inoltra eventi/trade ai modelli. Il modello attivo London MR ora costruisce internamente le reference operative complete `PreviousDayProfile` e `PreviousLondonProfile`.
+Modulo shared che costruisce il volume profile London per log/context e inoltra eventi/trade ai modelli. Il modello attivo `FabioCompressionStudy` costruisce internamente le reference `PreviousDayProfile` e `PreviousLondonProfile` solo come log.
 
 ## Responsabilita'
 
@@ -11,7 +11,7 @@ Modulo shared che costruisce il volume profile London per visual/context e inolt
 4. evitare duplicazione volume quando ATAS aggiorna la stessa candela
 5. notificare al LondonMeanReversionModel nuovi high/low London
 6. inoltrare cumulative trades live/storici al modello
-7. congelare/disegnare la balance zone a fine London
+7. congelare la balance zone a fine London; il disegno e' disattivato nella modalita' studio
 8. fornire il flusso barre/trade necessario al modello MR
 ```
 
@@ -48,9 +48,7 @@ LastPreviewVah
 LastPreviewVal
 ```
 
-Nota: il modello operativo London MR non usa piu' questi developing levels per generare entry. Usa solo reference complete precedenti.
-
-Se il POC visuale sul chart e' impostato su `Current Day`, puo' non coincidere con il `TargetPOC` del modello. Questo e' atteso: il tracker/indicatore visualizza il contesto scelto sul chart, mentre il modello legge `PreviousDayProfile` o `PreviousLondonProfile`.
+Il modello studio non usa questi developing levels per generare entry: non esistono entry operative. I valori restano disponibili solo per log e per modelli futuri separati.
 
 ## Calcolo Livelli
 
@@ -114,20 +112,11 @@ Il tracker mantiene anche una state machine utile a modelli futuri/post-London:
 NoZone -> BuildingSessionProfile -> BalanceReady -> BreakoutPending -> OutOfBalance
 ```
 
-Per London MR il tracker resta importante per sessioni, visual e inoltro dati. La logica entry non dipende piu' dalla value area preview della London corrente.
+Per FabioCompressionStudy il tracker resta importante per sessioni e inoltro dati. La logica studio non dipende dalla value area preview della London corrente.
 
 ## Visual
 
-A fine London il tracker disegna:
-
-```text
-box sessione High/Low
-linea POC
-linea VAH
-linea VAL
-```
-
-Il box usa High/Low per coprire tutta la sessione. La business logic usa VAH/VAL/POC.
+Il disegno del tracker e' disattivato (`DrawBalanceProfileVisuals=false`) per non sovrapporre profile non operativi al chart studio. Il solo profile grafico attivo e' `DynamicCompression`, disegnato dal modello studio.
 
 ## Validazione
 

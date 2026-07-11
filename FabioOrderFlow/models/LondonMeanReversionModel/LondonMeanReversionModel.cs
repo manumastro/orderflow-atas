@@ -60,7 +60,8 @@ namespace FabioOrderFlow
         private const decimal CompressionBoundaryStabilityWeight = 0.10m;
         private const decimal CompressionPocStabilityWeight = 0.075m;
         private const decimal CompressionValueConcentrationWeight = 0.075m;
-        private const string EntryConcurrencyMode = "SINGLE_OPEN_POSITION";
+        private const int CompressionStudyConfirmationBars = 2;
+        private const string StudyMode = "COMPRESSION_CASES_NO_TRADES";
         private static readonly bool LogProfileDiagnosticsForSetups = false;
         private static readonly bool LogProfileDiagnosticsForEntries = true;
         private const string ActiveCompressionProfileSource = "ActiveCompressionProfile";
@@ -74,6 +75,10 @@ namespace FabioOrderFlow
         private readonly Dictionary<string, decimal> _liveTradeMaxVolumeByKey = new();
         private readonly Dictionary<string, int> _entryRejectCounts = new();
         private readonly Dictionary<string, int> _setupExpirationCounts = new();
+        private readonly List<CompressionProfileSnapshot> _compressionStudyProfiles = new();
+        private readonly List<CumulativeTrade> _liveStudyTrades = new();
+        private readonly HashSet<string> _liveStudyTradeKeys = new();
+        private readonly HashSet<string> _drawnCompressionStudyCandidates = new();
         private readonly ProfileAccumulator _currentDayProfile = new();
         private readonly ProfileAccumulator _currentLondonProfile = new();
         private DateOnly? _currentDayItaly;
@@ -105,7 +110,7 @@ namespace FabioOrderFlow
             _chartRectangles = chartRectangles ?? throw new ArgumentNullException(nameof(chartRectangles));
             _chartLines = chartLines ?? throw new ArgumentNullException(nameof(chartLines));
 
-            _log($"[MR_MODE] Model=FabioLondonMeanReversionCore, Modes=LIVE|HISTORICAL, ReferenceProfiles=PreviousDayProfile|PreviousLondonProfile, EntryConcurrency={EntryConcurrencyMode}, SetupLifecycle=MULTIPLE_PENDING, ChartVisuals=MR_TRADE_AND_DYNAMIC_COMPRESSION, ProfileDiagnostics={ActiveCompressionProfileSource}, ProfileDiagnosticsUse=DIAGNOSTIC_ONLY, ProfileDiagnosticsLevel={(LogProfileDiagnosticsForSetups ? "SETUP_AND_ENTRY" : "ENTRY_ONLY")}, CompressionLifecycle=SEARCHING|BUILDING|READY|RESOLVED, CompressionDetection=DYNAMIC_SCORE, CompressionBaseline=PRIOR_{LocalCompressionBaselineLookbackBars}_BARS, CompressionMinBaselineBars={LocalCompressionMinimumBaselineBars}, CompressionMinBuildingBars={LocalCompressionMinimumBuildingBars}, CompressionReadyScore={LocalCompressionMinimumReadyScore:F2}, CompressionReadyPersistence={LocalCompressionReadyPersistenceBars}, CompressionResolutionPersistence={LocalCompressionResolutionPersistenceBars}, BigTradeVolume={LondonBigTradeVolume:F0}, Target=REFERENCE_POC_FULL_EXIT, Entry=FAILED_AUCTION_BACK_INSIDE_REFERENCE_VALUE_PLUS_BIG_TRADE, BreakEvenTrigger={BreakEvenTriggerR:F2}R, MaxHold=NEW_YORK_REGULAR_CLOSE_16:00", false);
+            _log($"[MR_MODE] Model=FabioCompressionStudy, Modes=LIVE|HISTORICAL, StudyMode={StudyMode}, OperationalEntries=DISABLED, ReferenceProfiles=LOG_ONLY:PreviousDayProfile|PreviousLondonProfile, ChartVisuals=DYNAMIC_COMPRESSION_AND_STUDY_CANDIDATES, StudyCases=REVERSION_ABSORPTION|BREAKOUT_ACCEPTANCE, CompressionLifecycle=SEARCHING|BUILDING|READY|RESOLVED, CompressionDetection=DYNAMIC_SCORE, CompressionBaseline=PRIOR_{LocalCompressionBaselineLookbackBars}_BARS, CompressionMinBaselineBars={LocalCompressionMinimumBaselineBars}, CompressionMinBuildingBars={LocalCompressionMinimumBuildingBars}, CompressionReadyScore={LocalCompressionMinimumReadyScore:F2}, CompressionReadyPersistence={LocalCompressionReadyPersistenceBars}, CompressionResolutionPersistence={LocalCompressionResolutionPersistenceBars}, BigTradeVolume={LondonBigTradeVolume:F0}, StudyConfirmationBars={CompressionStudyConfirmationBars}", false);
         }
 
         public IReadOnlyList<TradeRecord> CompletedTrades => _completedTrades;
@@ -117,10 +122,6 @@ namespace FabioOrderFlow
             _currentBar = currentBar;
             UpdateReferenceProfiles(bar, candle);
             UpdateActiveCompressionProfile(bar);
-            ExpireSetups(GetCandleEventTime(candle));
-            DetectReferenceRejectionSetups(bar, candle);
-            UpdatePocTouches(bar, candle);
-            UpdateOpenPositionsFromBar(bar, candle);
         }
 
         public void OnNewSessionHigh(int bar, IndicatorCandle candle, decimal previousHigh)
@@ -147,40 +148,17 @@ namespace FabioOrderFlow
             _processingHistoricalReplay = true;
             _completedTrades.Clear();
             _activePositions.Clear();
+            _activeSetups.Clear();
             _entryRejectCounts.Clear();
             _setupExpirationCounts.Clear();
 
-            var firstTradeTime = _historicalTrades.Count > 0 ? _historicalTrades.First().Time : DateTime.MaxValue;
-            var lastTradeTime = _historicalTrades.Count > 0 ? _historicalTrades.Last().Time : DateTime.MinValue;
-            foreach (var setup in _activeSetups)
-                ResetSetupReplayState(setup, firstTradeTime, lastTradeTime);
-
-            _log($"[HISTORICAL_FLOW_PROCESS_START] Model=FabioLondonMeanReversionCore, StartBar={startBar}, EndBar={endBar}, StoredTrades={_historicalTrades.Count}, ActiveSetups={_activeSetups.Count}, ReplayStateReset=True, FirstTrade={(_historicalTrades.Count > 0 ? FormatTime(firstTradeTime) : "NA")}, LastTrade={(_historicalTrades.Count > 0 ? FormatTime(lastTradeTime) : "NA")}", false);
+            _log($"[HISTORICAL_FLOW_PROCESS_START] Model=FabioCompressionStudy, StudyMode={StudyMode}, StartBar={startBar}, EndBar={endBar}, StoredTrades={_historicalTrades.Count}, CompressionProfiles={_compressionStudyProfiles.Count}, OperationalEntries=DISABLED", false);
 
             try
             {
-                foreach (var trade in _historicalTrades)
-                {
-                    ClosePositionsPastNewYorkClose(trade.Time, true);
-                    ExpireSetups(trade.Time);
-
-                    if (IsLondonTradeAllowed(trade.Time))
-                    {
-                        if (trade.Volume >= LondonBigTradeVolume)
-                            ProcessAggressionTrade(trade, "Historical", true);
-
-                        ExpireSetupsOnPocTouchFromTrade(trade, true);
-                    }
-
-                    UpdateOpenPositionsFromTrade(trade, true);
-                    ClosePositionsPastNewYorkClose(trade.Time, true);
-                }
-
-                ClosePositionsPastNewYorkClose(lastTradeTime, true);
-                CloseOpenReplayPositionsWithoutPnl(lastTradeTime);
+                var candidates = RunCompressionStudy(_compressionStudyProfiles, _historicalTrades, endBar, true);
                 var durationMs = (DateTime.UtcNow - startedUtc).TotalMilliseconds;
-                LogReplayAudit();
-                _log($"[HISTORICAL_FLOW_FINISH] Model=FabioLondonMeanReversionCore, StartBar={startBar}, EndBar={endBar}, StoredTrades={_historicalTrades.Count}, Entries={_activePositions.Count}, ClosedPositions={_activePositions.Count(p => p.Closed)}, OpenPositions={_activePositions.Count(p => !p.Closed)}, CompletedTrades={_completedTrades.Count}, ProcessDurationMs={durationMs:F0}", false);
+                _log($"[HISTORICAL_FLOW_FINISH] Model=FabioCompressionStudy, StudyMode={StudyMode}, StartBar={startBar}, EndBar={endBar}, StoredTrades={_historicalTrades.Count}, Entries=0, ClosedPositions=0, OpenPositions=0, CompletedTrades=0, StudyCandidates={candidates}, ProcessDurationMs={durationMs:F0}", false);
             }
             finally
             {
@@ -190,34 +168,9 @@ namespace FabioOrderFlow
 
         public void OnLiveCumulativeTrade(CumulativeTrade trade)
         {
-            var inLondon = IsLondonTradeAllowed(trade.Time);
-            var hasOpenPosition = _activePositions.Any(p => !p.Closed);
-            if (!inLondon && !hasOpenPosition)
-                return;
-
-            ClosePositionsPastNewYorkClose(trade.Time, false);
-            ExpireSetups(trade.Time);
-
-            var acceptedBigTrade = false;
-            if (inLondon && trade.Volume >= LondonBigTradeVolume)
-            {
-                var key = GetLiveTradeKey(trade);
-                if (!_liveTradeMaxVolumeByKey.TryGetValue(key, out var seenVolume) || trade.Volume > seenVolume)
-                {
-                    _liveTradeMaxVolumeByKey[key] = trade.Volume;
-                    ProcessAggressionTrade(trade, "Live", false);
-                    acceptedBigTrade = true;
-                }
-            }
-
-            if (inLondon)
-                ExpireSetupsOnPocTouchFromTrade(trade, false);
-
-            UpdateOpenPositionsFromTrade(trade, false);
-            ClosePositionsPastNewYorkClose(trade.Time, false);
-
-            if (acceptedBigTrade)
-                LogLiveHeartbeat(trade);
+            var key = GetLiveTradeKey(trade);
+            if (_liveStudyTradeKeys.Add(key))
+                _liveStudyTrades.Add(trade);
         }
 
         private void UpdateReferenceProfiles(int bar, IndicatorCandle candle)
@@ -569,6 +522,7 @@ namespace FabioOrderFlow
                 return;
 
             _activeCompressionProfile = snapshot;
+            _compressionStudyProfiles.Add(snapshot);
             _buildingCompressionProfile = null;
             DrawDynamicCompressionProfile(snapshot);
             LogCompressionReady(snapshot);
@@ -842,6 +796,301 @@ namespace FabioOrderFlow
             _chartLines.Add(CreateChartLine(profile.StartBar, profile.VAL, profile.EndBar, System.Drawing.Color.DarkTurquoise, 1, false, true));
         }
 
+        private int RunCompressionStudy(
+            IReadOnlyList<CompressionProfileSnapshot> profiles,
+            IReadOnlyList<CumulativeTrade> trades,
+            int fallbackEndBar,
+            bool isHistorical)
+        {
+            if (profiles.Count == 0 || trades.Count == 0)
+                return 0;
+
+            var tradesByBar = GroupTradesByBar(trades, fallbackEndBar);
+            var candidates = 0;
+            foreach (var profile in profiles.OrderBy(snapshot => snapshot.ReadyBar))
+                candidates += StudyCompressionProfile(profile, tradesByBar, fallbackEndBar, isHistorical);
+
+            return candidates;
+        }
+
+        private Dictionary<int, List<CumulativeTrade>> GroupTradesByBar(IReadOnlyList<CumulativeTrade> trades, int endBar)
+        {
+            var result = new Dictionary<int, List<CumulativeTrade>>();
+            var lastBar = Math.Min(Math.Max(endBar, 0), Math.Max(_currentBar - 1, 0));
+            var bar = 0;
+            foreach (var trade in trades)
+            {
+                while (bar < lastBar && trade.Time > GetCandleEventTime(_getCandle(bar)))
+                    bar++;
+
+                var candle = _getCandle(bar);
+                if (trade.Time < candle.Time || trade.Time > GetCandleEventTime(candle))
+                    continue;
+
+                if (!result.TryGetValue(bar, out var barTrades))
+                {
+                    barTrades = new List<CumulativeTrade>();
+                    result[bar] = barTrades;
+                }
+
+                barTrades.Add(trade);
+            }
+
+            return result;
+        }
+
+        private int StudyCompressionProfile(
+            CompressionProfileSnapshot profile,
+            IReadOnlyDictionary<int, List<CumulativeTrade>> tradesByBar,
+            int fallbackEndBar,
+            bool isHistorical)
+        {
+            var reference = profile.Reference;
+            var studyEndBar = profile.ResolvedBar >= profile.ReadyBar
+                ? profile.ResolvedBar
+                : Math.Min(fallbackEndBar, _currentBar - 1);
+            if (studyEndBar <= profile.ReadyBar)
+                return 0;
+
+            var tolerance = Math.Max(_tickSize * 2m, profile.BaselineMedianBarRange * LocalCompressionBoundaryTolerance);
+            var highTests = 0;
+            var lowTests = 0;
+            var highBoundaryBuyVolume = 0m;
+            var lowBoundarySellVolume = 0m;
+            var profileCvd = 0m;
+            var candidates = 0;
+            CompressionStudyBoundaryState? pendingHighAbsorption = null;
+            CompressionStudyBoundaryState? pendingLowAbsorption = null;
+            var statsByBar = new Dictionary<int, CompressionStudyBarStats>();
+
+            for (var bar = profile.ReadyBar + 1; bar <= studyEndBar; bar++)
+            {
+                var candle = _getCandle(bar);
+                var stats = BuildCompressionStudyBarStats(
+                    tradesByBar.TryGetValue(bar, out var barTrades) ? barTrades : Array.Empty<CumulativeTrade>(),
+                    reference.High,
+                    reference.Low,
+                    tolerance);
+                statsByBar[bar] = stats;
+                profileCvd += stats.Delta;
+
+                var testsHigh = candle.High >= reference.High - tolerance;
+                var testsLow = candle.Low <= reference.Low + tolerance;
+                if (testsHigh)
+                    highTests++;
+                if (testsLow)
+                    lowTests++;
+                highBoundaryBuyVolume += stats.HighBoundaryBuyVolume;
+                lowBoundarySellVolume += stats.LowBoundarySellVolume;
+
+                var highAbsorbed = candle.High > reference.High + tolerance
+                    && stats.HighBoundaryBuyVolume >= LondonBigTradeVolume
+                    && candle.Close < reference.High - tolerance;
+                if (highAbsorbed)
+                {
+                    pendingHighAbsorption = new CompressionStudyBoundaryState
+                    {
+                        Bar = bar,
+                        TimeUtc = GetCandleEventTime(candle),
+                        AggressionVolume = stats.HighBoundaryBuyVolume
+                    };
+                }
+
+                var lowAbsorbed = candle.Low < reference.Low - tolerance
+                    && stats.LowBoundarySellVolume >= LondonBigTradeVolume
+                    && candle.Close > reference.Low + tolerance;
+                if (lowAbsorbed)
+                {
+                    pendingLowAbsorption = new CompressionStudyBoundaryState
+                    {
+                        Bar = bar,
+                        TimeUtc = GetCandleEventTime(candle),
+                        AggressionVolume = stats.LowBoundarySellVolume
+                    };
+                }
+
+                if (pendingHighAbsorption != null)
+                {
+                    if (bar - pendingHighAbsorption.Bar > CompressionStudyConfirmationBars)
+                    {
+                        pendingHighAbsorption = null;
+                    }
+                    else if (stats.SellVolume >= LondonBigTradeVolume && candle.Close < reference.High - tolerance)
+                    {
+                        candidates += EmitCompressionStudyCandidate(
+                            profile,
+                            "REVERSION_SHORT",
+                            "Short",
+                            bar,
+                            stats.LastSellTimeUtc ?? GetCandleEventTime(candle),
+                            stats.LastSellPrice ?? candle.Close,
+                            reference.High - _tickSize * StopInsideFailedExtremeTicks,
+                            reference.POC,
+                            "ABSORBED_BUY_AGGRESSION_PLUS_SELL_CONFIRMATION",
+                            pendingHighAbsorption.AggressionVolume,
+                            stats.Delta,
+                            profileCvd,
+                            isHistorical);
+                        pendingHighAbsorption = null;
+                    }
+                }
+
+                if (pendingLowAbsorption != null)
+                {
+                    if (bar - pendingLowAbsorption.Bar > CompressionStudyConfirmationBars)
+                    {
+                        pendingLowAbsorption = null;
+                    }
+                    else if (stats.BuyVolume >= LondonBigTradeVolume && candle.Close > reference.Low + tolerance)
+                    {
+                        candidates += EmitCompressionStudyCandidate(
+                            profile,
+                            "REVERSION_LONG",
+                            "Long",
+                            bar,
+                            stats.LastBuyTimeUtc ?? GetCandleEventTime(candle),
+                            stats.LastBuyPrice ?? candle.Close,
+                            reference.Low + _tickSize * StopInsideFailedExtremeTicks,
+                            reference.POC,
+                            "ABSORBED_SELL_AGGRESSION_PLUS_BUY_CONFIRMATION",
+                            pendingLowAbsorption.AggressionVolume,
+                            stats.Delta,
+                            profileCvd,
+                            isHistorical);
+                        pendingLowAbsorption = null;
+                    }
+                }
+            }
+
+            candidates += EmitBreakoutAcceptanceStudyCandidate(profile, statsByBar, studyEndBar, profileCvd, tolerance, isHistorical);
+            var endReason = string.IsNullOrEmpty(profile.ResolutionReason) ? "REPLAY_END" : profile.ResolutionReason;
+            _log($"[MR_COMPRESSION_STUDY_PROFILE] ExecutionMode={GetExecutionMode(isHistorical)}, StudyMode={StudyMode}, ProfileLabel={reference.Label}, ReadyBar={profile.ReadyBar}, EndBar={studyEndBar}, EndReason={endReason}, HighTests={highTests}, LowTests={lowTests}, HighBoundaryBuyVolume={highBoundaryBuyVolume:F0}, LowBoundarySellVolume={lowBoundarySellVolume:F0}, ProfileCVD={profileCvd:F0}, Candidates={candidates}, POC={reference.POC:F2}, High={reference.High:F2}, Low={reference.Low:F2}, CompressionScore={profile.CompressionScore:F2}", isHistorical);
+            return candidates;
+        }
+
+        private CompressionStudyBarStats BuildCompressionStudyBarStats(
+            IReadOnlyList<CumulativeTrade> trades,
+            decimal high,
+            decimal low,
+            decimal tolerance)
+        {
+            var stats = new CompressionStudyBarStats();
+            foreach (var trade in trades)
+            {
+                if (trade.Direction == TradeDirection.Buy)
+                {
+                    stats.BuyVolume += trade.Volume;
+                    stats.Delta += trade.Volume;
+                    if (trade.Volume >= LondonBigTradeVolume)
+                    {
+                        stats.LastBuyPrice = trade.Lastprice;
+                        stats.LastBuyTimeUtc = trade.Time;
+                        if (trade.Lastprice >= high - tolerance)
+                            stats.HighBoundaryBuyVolume += trade.Volume;
+                    }
+                }
+                else if (trade.Direction == TradeDirection.Sell)
+                {
+                    stats.SellVolume += trade.Volume;
+                    stats.Delta -= trade.Volume;
+                    if (trade.Volume >= LondonBigTradeVolume)
+                    {
+                        stats.LastSellPrice = trade.Lastprice;
+                        stats.LastSellTimeUtc = trade.Time;
+                        if (trade.Lastprice <= low + tolerance)
+                            stats.LowBoundarySellVolume += trade.Volume;
+                    }
+                }
+            }
+
+            return stats;
+        }
+
+        private int EmitBreakoutAcceptanceStudyCandidate(
+            CompressionProfileSnapshot profile,
+            IReadOnlyDictionary<int, CompressionStudyBarStats> statsByBar,
+            int studyEndBar,
+            decimal profileCvd,
+            decimal tolerance,
+            bool isHistorical)
+        {
+            if (profile.ResolvedBar < profile.ReadyBar || !profile.ResolutionReason.StartsWith("ACCEPTANCE_", StringComparison.Ordinal))
+                return 0;
+
+            var reference = profile.Reference;
+            var resolutionCandle = _getCandle(profile.ResolvedBar);
+            var currentStats = statsByBar.TryGetValue(profile.ResolvedBar, out var value)
+                ? value
+                : new CompressionStudyBarStats();
+            var previousStats = statsByBar.TryGetValue(profile.ResolvedBar - 1, out var previous)
+                ? previous
+                : new CompressionStudyBarStats();
+            var acceptanceDelta = currentStats.Delta + previousStats.Delta;
+            var up = profile.ResolutionReason == "ACCEPTANCE_ABOVE_RANGE";
+            var directionalBoundaryVolume = up
+                ? currentStats.HighBoundaryBuyVolume + previousStats.HighBoundaryBuyVolume
+                : currentStats.LowBoundarySellVolume + previousStats.LowBoundarySellVolume;
+            var qualified = directionalBoundaryVolume >= LondonBigTradeVolume && (up ? acceptanceDelta > 0 : acceptanceDelta < 0);
+            _log($"[MR_COMPRESSION_STUDY_CASE] ExecutionMode={GetExecutionMode(isHistorical)}, StudyMode={StudyMode}, ProfileLabel={reference.Label}, Case={(up ? "BREAKOUT_ACCEPTANCE_UP" : "BREAKOUT_ACCEPTANCE_DOWN")}, Bar={profile.ResolvedBar}, {FormatTime(GetCandleEventTime(resolutionCandle))}, Qualified={qualified}, DirectionalBoundaryVolume={directionalBoundaryVolume:F0}, AcceptanceCVD={acceptanceDelta:F0}, ProfileCVD={profileCvd:F0}, High={reference.High:F2}, Low={reference.Low:F2}, Tolerance={tolerance:F2}, Retest=NOT_EVALUATED", isHistorical);
+            if (!qualified)
+                return 0;
+
+            return EmitCompressionStudyCandidate(
+                profile,
+                up ? "BREAKOUT_LONG" : "BREAKOUT_SHORT",
+                up ? "Long" : "Short",
+                profile.ResolvedBar,
+                up ? currentStats.LastBuyTimeUtc ?? GetCandleEventTime(resolutionCandle) : currentStats.LastSellTimeUtc ?? GetCandleEventTime(resolutionCandle),
+                up ? currentStats.LastBuyPrice ?? resolutionCandle.Close : currentStats.LastSellPrice ?? resolutionCandle.Close,
+                up ? reference.High - _tickSize * StopInsideFailedExtremeTicks : reference.Low + _tickSize * StopInsideFailedExtremeTicks,
+                0,
+                "TWO_CLOSE_ACCEPTANCE_PLUS_DIRECTIONAL_BIG_TRADE_AND_CVD",
+                directionalBoundaryVolume,
+                acceptanceDelta,
+                profileCvd,
+                isHistorical);
+        }
+
+        private int EmitCompressionStudyCandidate(
+            CompressionProfileSnapshot profile,
+            string candidateType,
+            string direction,
+            int bar,
+            DateTime eventTimeUtc,
+            decimal entryPrice,
+            decimal stopPrice,
+            decimal targetPrice,
+            string evidence,
+            decimal boundaryAggressionVolume,
+            decimal eventCvd,
+            decimal profileCvd,
+            bool isHistorical)
+        {
+            var key = $"{profile.Reference.Label}:{candidateType}:{bar}:{entryPrice:F2}";
+            if (!_drawnCompressionStudyCandidates.Add(key))
+                return 0;
+
+            var targetModel = targetPrice > 0 ? "COMPRESSION_POC" : "UNDEFINED_REQUIRES_SEPARATE_MODEL";
+            _log($"[MR_COMPRESSION_STUDY_CANDIDATE] ExecutionMode={GetExecutionMode(isHistorical)}, StudyMode={StudyMode}, CandidateType={candidateType}, Direction={direction}, ProfileLabel={profile.Reference.Label}, Bar={bar}, {FormatTime(eventTimeUtc)}, EntryCandidate={entryPrice:F2}, StopCandidate={stopPrice:F2}, TargetCandidate={(targetPrice > 0 ? targetPrice.ToString("F2") : "NA")}, TargetModel={targetModel}, Evidence={evidence}, BoundaryAggressionVolume={boundaryAggressionVolume:F0}, EventCVD={eventCvd:F0}, ProfileCVD={profileCvd:F0}, OperationalEntry=FALSE", isHistorical);
+            DrawCompressionStudyCandidate(candidateType, bar, entryPrice, targetPrice);
+            return 1;
+        }
+
+        private void DrawCompressionStudyCandidate(string candidateType, int bar, decimal entryPrice, decimal targetPrice)
+        {
+            var color = candidateType switch
+            {
+                "REVERSION_LONG" => System.Drawing.Color.LimeGreen,
+                "REVERSION_SHORT" => System.Drawing.Color.MediumVioletRed,
+                "BREAKOUT_LONG" => System.Drawing.Color.DodgerBlue,
+                _ => System.Drawing.Color.DarkOrange
+            };
+            _chartRectangles.Add(CreateTradeMarker(bar, entryPrice, color, 170));
+            _chartLines.Add(CreateChartLine(bar, entryPrice, bar + 3, color, 2, false));
+            if (targetPrice > 0)
+                _chartLines.Add(CreateChartLine(bar, targetPrice, bar + 3, color, 1, false, true));
+        }
+
         private void DrawTradeOpened(ActivePosition position)
         {
             if (_tradeChartVisuals.ContainsKey(position.SetupId))
@@ -921,9 +1170,16 @@ namespace FabioOrderFlow
             if (_activeCompressionProfile == null)
                 return;
 
-            var reference = _activeCompressionProfile.Reference;
+            var resolvedProfile = _activeCompressionProfile;
+            var reference = resolvedProfile.Reference;
             var isHistorical = IsHistoricalContext(bar);
-            _log($"[MR_LOCAL_PROFILE_RESOLVED] ExecutionMode={GetExecutionMode(isHistorical)}, State=RESOLVED, ProfileSource={ActiveCompressionProfileSource}, ProfileLabel={reference.Label}, ResolvedBar={bar}, ResolvedTime={FormatTime(eventTimeUtc)}, Reason={reason}, ResolutionCloses={_compressionOutsideCloses}, Close={close:F2}, High={reference.High:F2}, Low={reference.Low:F2}, POC={reference.POC:F2}, ProfileUse=DIAGNOSTIC_ONLY", isHistorical);
+            resolvedProfile.ResolvedBar = bar;
+            resolvedProfile.ResolvedTimeUtc = eventTimeUtc;
+            resolvedProfile.ResolutionReason = reason;
+            _log($"[MR_LOCAL_PROFILE_RESOLVED] ExecutionMode={GetExecutionMode(isHistorical)}, State=RESOLVED, ProfileSource={ActiveCompressionProfileSource}, ProfileLabel={reference.Label}, ResolvedBar={bar}, ResolvedTime={FormatTime(eventTimeUtc)}, Reason={reason}, ResolutionCloses={_compressionOutsideCloses}, Close={close:F2}, High={reference.High:F2}, Low={reference.Low:F2}, POC={reference.POC:F2}, ProfileUse=STUDY_INPUT_ONLY", isHistorical);
+            if (!isHistorical)
+                RunCompressionStudy(new[] { resolvedProfile }, _liveStudyTrades, bar, false);
+
             _activeCompressionProfile = null;
             _compressionOutsideDirection = 0;
             _compressionOutsideCloses = 0;
@@ -1784,6 +2040,26 @@ namespace FabioOrderFlow
             public bool BreakEvenActivated { get; set; }
         }
 
+        private sealed class CompressionStudyBoundaryState
+        {
+            public int Bar { get; set; }
+            public DateTime TimeUtc { get; set; }
+            public decimal AggressionVolume { get; set; }
+        }
+
+        private sealed class CompressionStudyBarStats
+        {
+            public decimal BuyVolume { get; set; }
+            public decimal SellVolume { get; set; }
+            public decimal HighBoundaryBuyVolume { get; set; }
+            public decimal LowBoundarySellVolume { get; set; }
+            public decimal Delta { get; set; }
+            public decimal? LastBuyPrice { get; set; }
+            public DateTime? LastBuyTimeUtc { get; set; }
+            public decimal? LastSellPrice { get; set; }
+            public DateTime? LastSellTimeUtc { get; set; }
+        }
+
         private sealed class TradeChartVisual
         {
             public LineTillTouch EntryLine { get; set; } = null!;
@@ -1824,6 +2100,9 @@ namespace FabioOrderFlow
             public decimal PocStabilityScore { get; set; }
             public decimal ValueConcentrationScore { get; set; }
             public int DirectionChanges { get; set; }
+            public int ResolvedBar { get; set; } = -1;
+            public DateTime ResolvedTimeUtc { get; set; }
+            public string ResolutionReason { get; set; } = string.Empty;
         }
 
         private sealed class ReferenceValueArea

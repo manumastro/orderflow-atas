@@ -88,6 +88,7 @@ namespace FabioOrderFlow
         private const int MinCompleteSessionBars = 90; // Tolleranza -6 bars
         private const int LondonPreviewStartHour = 8;
         private static readonly bool DetailedDebugLogs = false;
+        private static readonly bool DrawBalanceProfileVisuals = false;
         
         // Preview profile values (shared with MR module)
         private decimal _lastPreviewPoc;
@@ -517,7 +518,8 @@ namespace FabioOrderFlow
                 _context.CurrentZone.IsReady = true;
                 _context.State = MarketState.BalanceReady;
 
-                DrawBalanceZone();
+                if (DrawBalanceProfileVisuals)
+                    DrawBalanceZone();
 
                 LogEvent($"[ZONE_READY] Balance zone ready: High={_context.CurrentZone.High:F2}, Low={_context.CurrentZone.Low:F2}, POC={_context.CurrentZone.POC:F2}, VAH={_context.CurrentZone.VAH:F2}, VAL={_context.CurrentZone.VAL:F2}, TotalVolume={_context.CurrentZone.TotalVolume:F0}");
                 LogEvent($"[ZONE_READY] StartBar={_context.CurrentZone.StartBar}, EndBar={_context.CurrentZone.EndBar}, Bars={barCount}");

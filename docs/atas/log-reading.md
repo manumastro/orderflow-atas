@@ -8,7 +8,8 @@ Guida canonica per interpretare i log di `FabioOrderFlow`.
 - Il prefisso `WriteItaly` e' l'ora di scrittura del log, non necessariamente l'ora di mercato.
 - Per eventi di mercato usa i campi embedded `Italy=`, `London=` e `UTC=`.
 - Per analisi operativa usa l'orario italiano come riferimento principale.
-- PnL valido: sommare solo `[MR_EXIT]`.
+- Il modello corrente e' uno studio senza trade: dopo reload non devono apparire nuovi `[MR_ENTRY]` o `[MR_EXIT]`.
+- `[MR_EXIT]` e' la sola fonte PnL soltanto per i log legacy precedenti al passaggio allo studio.
 
 ## File corrente
 
@@ -16,54 +17,41 @@ Guida canonica per interpretare i log di `FabioOrderFlow`.
 %APPDATA%/ATAS/Logs/FabioOrderFlow.log
 ```
 
-## LondonMeanReversionModel pulito
+## FabioCompressionStudy
 
-`MR` significa `Mean Reversion`.
-
-Il modello ha solo due modalita':
+Il modello attivo e' `COMPRESSION_CASES_NO_TRADES`.
 
 ```text
-LIVE        dati real-time ATAS
-HISTORICAL  dati passati processati con le stesse regole live
+LIVE        osserva bar e cumulative trades real-time; nessun ordine.
+HISTORICAL  ripete lo stesso studio sui dati ATAS; nessun PnL.
 ```
 
-Marker principali:
+Marker attivi:
 
 ```text
-[MR_MODE]                    configurazione del modello: reference, concorrenza entry e visual chart
-[MR_REFERENCE_READY]         reference completa disponibile: PreviousDayProfile o PreviousLondonProfile
-[MR_SETUP_LONG]              sweep sotto reference VAL e close back inside value
-[MR_SETUP_SHORT]             sweep sopra reference VAH e close back inside value
-[MR_LOCAL_PROFILE_READY]     compressione locale riconosciuta su barre gia' complete; DIAGNOSTIC_ONLY
-[MR_LOCAL_PROFILE_RESOLVED]  acceptance fuori range o fine sessione; DIAGNOSTIC_ONLY
-[MR_PROFILE_CONTEXT]         profilo locale gia' READY allegato all'entry; DIAGNOSTIC_ONLY
-[MR_SETUP_EXPIRED]           setup scaduto o POC toccato prima dell'entry
-[MR_HISTORICAL_TRADES]       cumulative trades storici ricevuti
-[HISTORICAL_FLOW_PROCESS_START]
-[HISTORICAL_FLOW_FINISH]
-[MR_ENTRY]                   entry su big trade nella direzione mean-reversion
-[MR_BREAKEVEN]               stop portato a breakeven dopo MFE >= 1R
-[MR_REPLAY_OPEN]             posizione storica aperta a fine dati; non sommare nel PnL
-[MR_EXIT]                    exit finale e PnL valido
-[MR_LIVE_HEARTBEAT]          heartbeat live leggero
-[MR_REPLAY_AUDIT]            riepilogo storico: reject reasons e scadenze setup
-[MR_SETUP_NO_ENTRY]          diagnostica per setup senza entry: stato finale, primo big trade utile/opposto e primo touch POC
+[MR_MODE]                         deve mostrare StudyMode=COMPRESSION_CASES_NO_TRADES e OperationalEntries=DISABLED
+[MR_REFERENCE_READY]              PreviousDay/PreviousLondon costruiti esclusivamente come log
+[MR_LOCAL_PROFILE_READY]          compression congelata e causalmente disponibile
+[MR_LOCAL_PROFILE_RESOLVED]       fine osservazione dopo acceptance/fine sessione
+[MR_COMPRESSION_STUDY_CASE]       acceptance breakout, qualificata oppure esclusa
+[MR_COMPRESSION_STUDY_CANDIDATE]  candidato grafico/log; OperationalEntry=FALSE
+[MR_COMPRESSION_STUDY_PROFILE]    test alto/basso, volume al bordo, CVD e conteggio candidati
+[HISTORICAL_FLOW_FINISH]          deve riportare Entries=0 e StudyCandidates=N
 ```
 
-## Come leggere un trade
+## Come leggere lo studio
 
-1. Trova `[MR_REFERENCE_READY]` per capire quale reference e' disponibile.
-2. Trova `[MR_SETUP_LONG]` o `[MR_SETUP_SHORT]`.
-3. Verifica `Source`, `ReferenceLabel`, `POC`, `VAH`, `VAL`, `Stop`, `TargetPOC`.
-4. Trova `[MR_ENTRY]` con lo stesso `SetupId`.
-5. Controlla `ExecutionMode`:
-   - `LIVE` = evento real-time;
-   - `HISTORICAL` = replay di dati passati con le stesse regole.
-6. Se presente, leggi `[MR_BREAKEVEN]` con lo stesso `SetupId`.
-7. Trova `[MR_EXIT]` con lo stesso `SetupId`.
-8. Usa solo il campo `PnL` di `[MR_EXIT]`.
+1. Trova `[MR_LOCAL_PROFILE_READY]`: solo da questo momento il range e' studiabile.
+2. Leggi `[MR_LOCAL_PROFILE_RESOLVED]` per il tipo di esito.
+3. Leggi `[MR_COMPRESSION_STUDY_PROFILE]`: `HighTests`, `LowTests`, volumi aggressivi al bordo e `ProfileCVD`.
+4. Leggi ogni `[MR_COMPRESSION_STUDY_CANDIDATE]`:
+   - `REVERSION_LONG/SHORT`: aggressione al bordo assorbita, rientro e big trade opposto;
+   - `BREAKOUT_LONG/SHORT`: due close in acceptance, big trade e CVD coerenti.
+5. `OperationalEntry=FALSE` e' obbligatorio. I marker sul chart sono candidati, non eseguiti.
 
-## POC visuale vs TargetPOC
+## POC legacy vs Studio
+
+La sezione seguente descrive il precedente core MR ed e' solo storica. Il nuovo studio usa il POC della compression come target candidato solo per i casi reversion; non esiste un target breakout ancora definito.
 
 Il POC disegnato da un indicatore volume profile ATAS dipende dalla sua impostazione.
 
@@ -85,19 +73,21 @@ Visual current-day POC circa 29500
 
 In caso di dubbio, il target operativo e' sempre quello loggato in `[MR_ENTRY] TargetPOC` e confermato da `[MR_REFERENCE_READY] POC`.
 
-## Diagnostica profili intraday
+## Compression Study
 
-I marker del profilo locale non generano segnali e non modificano il PnL.
+I marker della compression generano candidati studio, ma non segnali d'ordine e non PnL.
 
 ```text
 [MR_LOCAL_PROFILE_READY]     score dinamico persistente su almeno 6 barre completate
 [MR_LOCAL_PROFILE_RESOLVED]  2 close accettate fuori range o fine London
-[MR_PROFILE_CONTEXT]         una entry viene confrontata con un profilo che era gia' READY prima del setup
+[MR_COMPRESSION_STUDY_CASE]       confronta acceptance, big trade e CVD
+[MR_COMPRESSION_STUDY_CANDIDATE]  descrive un candidato non operativo
+[MR_COMPRESSION_STUDY_PROFILE]    riassume l'intera finestra studiata
 ProfileSource=ActiveCompressionProfile
-ProfileUse=DIAGNOSTIC_ONLY
+ProfileUse=STUDY_INPUT_ONLY
 ```
 
-Su `[MR_PROFILE_CONTEXT]` controllare `ProfileReadyTime < Italy` del setup/entry. Leggere `CompressionScore` e le componenti:
+Su `[MR_COMPRESSION_STUDY_PROFILE]` controllare che READY preceda il range studiato. Leggere `CompressionScore` e le componenti:
 
 ```text
 ContractionScore / OverlapScore
@@ -112,11 +102,11 @@ AverageBarRangeToBaselineMedian       metrica, non filtro rigido
 
 Il profile diventa READY con score `>= 0,65` per 2 barre consecutive. La risoluzione richiede 2 close esterne; una singola wick non basta.
 
-Per analisi PnL ignorare sempre tutti i marker profilo; usare solo `[MR_EXIT]`.
+Non analizzare PnL sullo studio. `[MR_EXIT]` e' rilevante solo per dati legacy.
 
-## Durata massima trade
+## Gestione Trade Legacy
 
-Le entry sono London, ma non vanno chiuse automaticamente a fine London. Un setup valido puo' nascere vicino alla chiusura London e avere bisogno della sessione US per completare il rientro al POC.
+Entry, stop, target e durata New York restano documentazione del core MR ritirato e non sono eseguiti dal modello studio.
 
 Regola operativa:
 
@@ -138,15 +128,15 @@ Il codice usa `MarketTimeZones.NewYork`, quindi gestisce i cambi DST tramite tim
 - Le barre M5 sono stampate sull'open time della barra.
 - I timestamp precisi delle entry arrivano dai cumulative trades e sono intrabar.
 - Per ogni evento di mercato usare il campo `Italy=`: e' ora italiana. `WriteItaly=` indica solo quando ATAS ha scritto il log.
-- Il chart posiziona entry/exit sul bar M5 che contiene il timestamp intrabar; il prezzo e' quello preciso in `[MR_ENTRY] EntryPrice` e `[MR_EXIT] Exit`.
+- Il chart posiziona candidati studio sul bar M5 che contiene il timestamp intrabar o la close di conferma.
 
 Visual MR:
 
 ```text
 DynamicCompression: box/POC/VAH/VAL turchese.
-Long entry: verde; short entry: arancio-rosso.
-Stop: cremisi tratteggiato; target: blu tratteggiato.
-Exit profit: verde; loss: cremisi; breakeven: oro.
+Reversion long: verde; reversion short: viola.
+Breakout long: blu; breakout short: arancio.
+Linea tratteggiata: target POC candidato solo per reversion.
 ```
 
 ## Regola pratica
@@ -157,4 +147,4 @@ Se devi capire il risultato del modello, usare il report canonico:
 python FabioOrderFlow/tools/report_mr_performance.py --save
 ```
 
-Il report deduplica per `SetupId`, somma solo `[MR_EXIT]`, separa source/direzione/giorno e segnala campione o costi insufficienti. Il default e' `HISTORICAL`; per il live usare `--execution-mode LIVE`. Non usare `ALL` come PnL totale quando replay e live si sovrappongono.
+Il report performance non valuta il nuovo studio, perche' non esistono trade o PnL. Usarlo solo per confronti legacy basati su `[MR_EXIT]`.
