@@ -1,5 +1,29 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Reload 2026-07-11 10:16 - Compression Study verificato
+
+```text
+CUM_TRADES_LOOKBACK:
+- EffectiveBeginItaly=2026-07-03 22:59:59
+- EndItaly=2026-07-10 22:59:59
+- StoredTrades=1.314.530
+
+Risultato:
+- CompressionProfiles=7; READY=7; RESOLVED=7.
+- [MR_COMPRESSION_STUDY_CASE]=7.
+- StudyCandidates=8: BREAKOUT_LONG=5, BREAKOUT_SHORT=1, REVERSION_LONG=1, REVERSION_SHORT=1.
+- Entries=0, ClosedPositions=0, OpenPositions=0, CompletedTrades=0.
+- Nessun [MR_ENTRY], [MR_EXIT], setup legacy, errore o eccezione.
+
+Correzione contratto:
+- [MR_LOCAL_PROFILE_READY] ora dichiara ProfileUse=STUDY_INPUT_ONLY, coerente con RESOLVED e studio.
+
+BalanceZoneTracker:
+- Rimane invariato perche' funziona: [ZONE_READY] e forwarding storico/live sono presenti.
+- POC/VAH/VAL, high/low, state machine e profile visual non influenzano il modello studio.
+- Refactor futuro separato: riduzione/rinomina a LondonTracker, esclusivamente responsabile di identificare la sessione London.
+```
+
 ## Implementazione 2026-07-11 - Fabio Compression Study, no trades
 
 ```text

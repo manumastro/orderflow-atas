@@ -18,7 +18,7 @@ Grafico:            DynamicCompression + candidati studio
 ```text
 src/FabioOrderFlow.cs                                  orchestrator ATAS, log, live/replay/storico
 src/MarketTimeZones.cs                                 conversioni UTC/London/Italy/New York
-models/shared/BalanceZoneTracker/                      costruzione POC/VAH/VAL e inoltro eventi
+models/shared/BalanceZoneTracker/                      tracker London corrente; profile legacy non consumato
 models/LondonMeanReversionModel/                       studio live/replay Fabio compression cases
 models/PostLondonImpulseModel/                         parked, non operativo ora
 tools/report_mr_performance.py                         report canonico marker MR correnti
@@ -31,7 +31,7 @@ CHANGELOG-AGENT.md                                     baseline, decisioni, relo
 
 ```text
 ATAS OnCalculate
--> BalanceZoneTracker aggiorna profilo London e inoltra il flusso barre
+-> BalanceZoneTracker riconosce la sessione London; per ora mantiene anche stato profile legacy e inoltra il flusso barre
 -> LondonMeanReversionModel costruisce PreviousDayProfile/PreviousLondonProfile solo per log
 -> LondonMeanReversionModel mantiene il lifecycle dinamico SEARCHING/BUILDING/READY/RESOLVED di DynamicCompression
 -> LondonMeanReversionModel studia assorbimento/reversion e acceptance/breakout per ogni compression congelata
@@ -47,7 +47,7 @@ ATAS OnFinishRecalculate
 -> LondonMeanReversionModel.ProcessHistoricalPositions con le stesse regole live
 ```
 
-`BalanceZoneTracker` non decide entry, stop o target. Costruisce i livelli London solo per log e inoltra barre/trade al modello; il suo box/livelli grafici sono disattivati. La visualizzazione attiva e' DynamicCompression del modulo studio.
+`BalanceZoneTracker` funziona correttamente ed e' lasciato invariato: oggi riconosce London, mantiene il suo stato profile legacy e inoltra eventi. Il modello studio non consuma POC/VAH/VAL, high/low, state machine o visual del tracker; box/livelli sono disattivati. Il refactor futuro, separato dallo studio, lo ridurra' a `LondonTracker`, con la sola responsabilita' di identificare confini e appartenenza alla sessione London. La visualizzazione attiva resta `DynamicCompression` del modulo studio.
 
 ## Documenti Obbligatori
 

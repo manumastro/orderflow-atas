@@ -1,21 +1,32 @@
 # BalanceZoneTracker
 
-Modulo shared che costruisce il volume profile London per log/context e inoltra eventi/trade ai modelli. Il modello attivo `FabioCompressionStudy` costruisce internamente le reference `PreviousDayProfile` e `PreviousLondonProfile` solo come log.
+Modulo shared affidabile per individuare la sessione London. Oggi conserva anche il precedente stato profile London e inoltra eventi, ma il modello attivo `FabioCompressionStudy` non consuma quelle elaborazioni.
 
-## Responsabilita'
+## Stato Corrente
 
 ```text
-1. riconoscere sessione London tramite MarketTimeZones
-2. aggregare volume per price level dai candle price levels ATAS
-3. calcolare POC, VAH, VAL dinamici durante London
-4. evitare duplicazione volume quando ATAS aggiorna la stessa candela
-5. notificare al LondonMeanReversionModel nuovi high/low London
-6. inoltrare cumulative trades live/storici al modello
-7. congelare la balance zone a fine London; il disegno e' disattivato nella modalita' studio
-8. fornire il flusso barre/trade necessario al modello MR
+Usato dal modello studio:
+- riconoscimento della sessione London tramite MarketTimeZones
+- ciclo barre e forwarding dei cumulative trades
+
+Ancora implementato, ma non consumato dal modello studio:
+- aggregazione volume per price level
+- preview POC / VAH / VAL
+- high / low London e state machine post-London
+- [ZONE_READY] e grafica profile (la grafica e' disattivata)
 ```
 
-Non decide entry, stop, target, PnL o filtri di big trade. Quelle regole stanno nel modello specifico.
+Il tracker non decide entry, stop, target, PnL o filtri di big trade.
+
+## Destinazione Del Refactor
+
+Il refactor non e' incluso nel ciclo compression study. Quando sara' eseguito, il modulo sara' ridotto e rinominato `LondonTracker` con una responsabilita' esclusiva:
+
+```text
+Dato un timestamp UTC, identificare appartenenza, inizio e fine della sessione London.
+```
+
+Quella versione non dovra' calcolare profile, POC/VAH/VAL, high/low, volume per prezzo, state machine, grafica o forwarding trade. L'orchestrator inoltrera' direttamente al modello i dati necessari. Fino ad allora il codice presente resta invariato perche' funziona correttamente e il suo output non puo' influenzare candidati, trade o PnL.
 
 ## Sessioni
 
@@ -32,7 +43,7 @@ MarketTimeZones.ToItaly(utcTime)
 MarketTimeZones.ToNewYork(utcTime)
 ```
 
-## Profilo London
+## Profile Legacy Non Consumati
 
 Durante London il tracker mantiene un profilo in costruzione:
 
@@ -104,7 +115,7 @@ FabioOrderFlow.OnCumulativeTradesResponse
 -> LondonMeanReversionModel.OnHistoricalCumulativeTrades
 ```
 
-## Stato Post-London
+## Stato Post-London Legacy
 
 Il tracker mantiene anche una state machine utile a modelli futuri/post-London:
 
@@ -112,7 +123,7 @@ Il tracker mantiene anche una state machine utile a modelli futuri/post-London:
 NoZone -> BuildingSessionProfile -> BalanceReady -> BreakoutPending -> OutOfBalance
 ```
 
-Per FabioCompressionStudy il tracker resta importante per sessioni e inoltro dati. La logica studio non dipende dalla value area preview della London corrente.
+Per FabioCompressionStudy il tracker serve oggi alla sessione e al forwarding corrente. La logica studio non dipende dalla value area preview della London corrente ne' dagli altri output profile legacy.
 
 ## Visual
 
@@ -120,12 +131,12 @@ Il disegno del tracker e' disattivato (`DrawBalanceProfileVisuals=false`) per no
 
 ## Validazione
 
-Il tracker e' sano se:
+Stato verificato al reload 2026-07-11:
 
 ```text
-POC/VAH/VAL preview cambiano durante London senza volume duplicato
-nuovi high/low London arrivano al modello
-trade live/storici arrivano al modello
-[ZONE_READY] appare a fine London completa
-build Release passa senza errori/warning
+[ZONE_READY] continua ad apparire per le sessioni complete.
+Il tracker inoltra barre/trade e lo studio storico completa senza errori.
+POC/VAH/VAL e state machine non sono consumati da FabioCompressionStudy.
 ```
+
+Il futuro `LondonTracker` sara' sano se riconosce correttamente inizio, fine e appartenenza alla sessione London, inclusi i cambi DST.

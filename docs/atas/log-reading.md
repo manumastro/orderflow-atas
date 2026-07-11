@@ -30,6 +30,7 @@ Marker attivi:
 
 ```text
 [MR_MODE]                         deve mostrare StudyMode=COMPRESSION_CASES_NO_TRADES e OperationalEntries=DISABLED
+[ZONE_READY]                      output profile legacy del BalanceZoneTracker; non influisce sullo studio
 [MR_REFERENCE_READY]              PreviousDay/PreviousLondon costruiti esclusivamente come log
 [MR_LOCAL_PROFILE_READY]          compression congelata e causalmente disponibile
 [MR_LOCAL_PROFILE_RESOLVED]       fine osservazione dopo acceptance/fine sessione
@@ -72,6 +73,10 @@ Visual current-day POC circa 29500
 ```
 
 In caso di dubbio, il target operativo e' sempre quello loggato in `[MR_ENTRY] TargetPOC` e confermato da `[MR_REFERENCE_READY] POC`.
+
+## BalanceZoneTracker Corrente
+
+`BalanceZoneTracker` e' affidabile e resta invariato: identifica London e, per ora, mantiene/propaga il precedente contesto profile. `[ZONE_READY]`, POC/VAH/VAL, high/low e state machine non partecipano alla classificazione compression. Il prossimo refactor separato lo ridurra' a `LondonTracker`, responsabile soltanto di identificare inizio, fine e appartenenza alla sessione London.
 
 ## Compression Study
 
