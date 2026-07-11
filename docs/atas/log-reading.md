@@ -43,6 +43,9 @@ Marker attivi:
 [MR_SHADOW_ACCEPTANCE_ENTRY]      seconda close esterna; osservazione continuation, nessun ordine
 [MR_SHADOW_ACCEPTANCE_OUTCOME]    esito direzionale dopo 6/12 barre
 [MR_SHADOW_ACCEPTANCE_BAR]        ogni barra chart fino alla prima completata che raggiunge 60 minuti
+[MR_SHADOW_LOW_FLOW_CONFIRMATION_ENTRY]    LOW + flow direzionale positivo nelle prime 3 barre
+[MR_SHADOW_LOW_FLOW_CONFIRMATION_OUTCOME]  outcome H6/H12 dalla close di conferma
+[MR_SHADOW_LOW_FLOW_CONFIRMATION_BAR]      path 60 minuti dalla close di conferma
 [HISTORICAL_FLOW_FINISH]          Entries=0, LedgerProfiles=N, LedgerEvents=N, LedgerOutcomes=N
 ```
 
@@ -92,7 +95,9 @@ OrderSubmitted         sempre FALSE
 
 H6/H12 sono finestre di osservazione, non target. I marker shadow non vanno sommati come PnL e non sono `[MR_ENTRY]`.
 
-`MR_SHADOW_ACCEPTANCE_BAR` espone il path completo fino alla prima barra completata che raggiunge i 60 minuti, con tolleranza finale massima di 5 minuti per M5: `ChartTimeFrame`, `PathBarOrdinal`, `ElapsedMinutes`, OHLC, volume candela, flow cumulative, movimento direzionale, MFE/MAE progressivi, stato rispetto al range e POC touch. La granularita' coincide con il chart: M1 richiede un chart M1; un chart M5 non espone candele M1 separate all'indicatore.
+`MR_SHADOW_ACCEPTANCE_BAR` e `MR_SHADOW_LOW_FLOW_CONFIRMATION_BAR` espongono il path completo fino alla prima barra completata che raggiunge i 60 minuti, con tolleranza finale massima di 5 minuti per M5: `ChartTimeFrame`, `PathBarOrdinal`, `ElapsedMinutes`, OHLC, volume candela, flow cumulative, movimento direzionale, MFE/MAE progressivi, stato rispetto al range e POC touch. La granularita' coincide con il chart: M1 richiede un chart M1; un chart M5 non espone candele M1 separate all'indicatore.
+
+La conferma LOW flow e' una seconda shadow distinta. `DirectionalFlowImbalance=-sum(Delta)/sum(TotalVolume)` sulle prime tre barre dopo l'acceptance; deve essere `>0`. La sua entry diagnostica e' la close della terza barra. Non modifica, cancella o qualifica retroattivamente la baseline acceptance.
 
 ## BalanceZoneTracker Corrente
 

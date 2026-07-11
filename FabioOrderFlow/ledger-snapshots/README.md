@@ -11,6 +11,9 @@ Ogni snapshot completo contiene:
 *-shadow-entries.csv           acceptance continuation, massimo una per profilo
 *-shadow-outcomes.csv          outcome direzionali H6/H12 delle shadow entry
 *-shadow-path-bars.csv         ogni barra chart fino a 60 minuti dall'entry
+*-shadow-low-flow-entries.csv  conferme LOW flow dopo tre barre
+*-shadow-low-flow-outcomes.csv outcome H6/H12 dalla conferma
+*-shadow-low-flow-path-bars.csv path 60 minuti dalla conferma
 *-flow-covered-aggregates.csv  aggregati descrittivi; solo TradeCoverage=AVAILABLE
 *-summary.json                 unico report: controlli replay, aggregati completi e metadati
 ```

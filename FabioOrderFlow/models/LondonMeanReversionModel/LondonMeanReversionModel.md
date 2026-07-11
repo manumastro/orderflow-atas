@@ -12,7 +12,7 @@ Operativita' trade:     DISABLED
 Reference precedenti:   LOG_ONLY
 Grafico contesto:       zona London grigia, POC/VAH/VAL dal BalanceZoneTracker
 Grafico studio:         nessun box/marker DynamicCompression
-Output:                 ledger + shadow acceptance continuation H6/H12
+Output:                 ledger + acceptance baseline + LOW flow confirmation shadow
 PnL corrente:           non applicabile; nessun MR_ENTRY/MR_EXIT nuovo
 ```
 
@@ -235,7 +235,17 @@ EndInsideRange         close H6/H12 dentro il range congelato
 PocTouched             POC attraversato entro H6/H12
 ```
 
-Nessun ordine, stop, target, posizione, PnL o marker `[MR_ENTRY]/[MR_EXIT]` viene creato. L'ipotesi e' promossa soltanto a diagnostica live prospettica.
+Nessun ordine, stop, target, posizione, PnL o marker `[MR_ENTRY]/[MR_EXIT]` viene creato. Le ipotesi sono promosse soltanto a diagnostica live prospettica.
+
+Marker della conferma LOW flow:
+
+```text
+[MR_SHADOW_LOW_FLOW_CONFIRMATION_ENTRY]
+[MR_SHADOW_LOW_FLOW_CONFIRMATION_OUTCOME]
+[MR_SHADOW_LOW_FLOW_CONFIRMATION_BAR]
+OperationalEntry=FALSE
+OrderSubmitted=FALSE
+```
 
 La discovery setup non e' limitata all'acceptance. Ogni evento ledger resta registrato e porta `DiagnosticState`:
 
@@ -248,7 +258,9 @@ OPPOSITE_OUTSIDE
 
 Solo `OUTSIDE_ACCEPTANCE` alimenta oggi la shadow continuation; gli altri stati restano disponibili per confronti diagnostici senza generare entry sovrapposte.
 
-Il primo studio del path completo e' documentato in `docs/research/acceptance-path-transition-analysis-2026-07-11.md`. `CONTINUOUS_ACCEPTANCE`, rejection entro/dopo 15 minuti, POC touch e reacceptance sono descrittori futuri del path, non nuovi trigger live. Il segno del directional flow nelle prime tre barre resta una diagnostica prospettica, con nessuna conferma validata.
+Il primo studio del path completo e' documentato in `docs/research/acceptance-path-transition-analysis-2026-07-11.md`. `CONTINUOUS_ACCEPTANCE`, rejection entro/dopo 15 minuti, POC touch e reacceptance sono descrittori futuri del path, non trigger operativi.
+
+`LOW_ACCEPTANCE_FLOW_CONFIRMATION_V1` e' promossa a seconda shadow prospettica live/historical, ancora non validata. Dopo una acceptance LOW attende esattamente tre barre completate, calcola `-sum(Delta)/sum(TotalVolume)` e registra una shadow SHORT solo se il valore e' maggiore di zero. La soglia zero rappresenta il segno del flow e non e' ottimizzata. Entry, outcome H6/H12 e path 60 minuti sono ancorati alla close della terza barra. La baseline `ACCEPTANCE_CONTINUATION_V1` resta invariata e viene registrata anche quando la conferma flow non scatta.
 
 ### Nota visuale su POC
 

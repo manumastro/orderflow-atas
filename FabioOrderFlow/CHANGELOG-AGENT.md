@@ -1,5 +1,36 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Implementazione 2026-07-11 - LOW Flow Confirmation Shadow Live
+
+```text
+Nuova shadow prospettica:
+- LOW_ACCEPTANCE_FLOW_CONFIRMATION_V1.
+- Parte da una LOW acceptance gia' registrata.
+- Dopo 3 barre completate calcola -sum(Delta)/sum(TotalVolume).
+- Se >0 registra shadow SHORT alla close della terza barra.
+- Outcome H6/H12 e path completo 60 minuti partono dalla conferma.
+
+Marker:
+- MR_SHADOW_LOW_FLOW_CONFIRMATION_ENTRY.
+- MR_SHADOW_LOW_FLOW_CONFIRMATION_OUTCOME.
+- MR_SHADOW_LOW_FLOW_CONFIRMATION_BAR.
+
+Separazione:
+- ACCEPTANCE_CONTINUATION_V1 resta invariata e continua a registrare tutti i casi.
+- La conferma LOW flow e' un secondo dataset, non un filtro retroattivo.
+- Retention historical estesa a 80 minuti dopo RESOLVED per coprire conferma + path.
+
+Vincoli:
+- OperationalEntry=FALSE; OrderSubmitted=FALSE; ShadowOrders=0.
+- Nessun ordine, posizione, stop, target, PnL, MR_ENTRY o MR_EXIT.
+- Build Release: 0 warning, 0 error.
+
+Da verificare al reload:
+- 6 conferme circa sul replay flow-covered corrente.
+- 12 outcome H6/H12 e path 60 minuti dalla conferma.
+- Baseline invariata: 25 acceptance / 50 outcome.
+```
+
 ## Analisi 2026-07-11 - Acceptance Path Transitions
 
 ```text

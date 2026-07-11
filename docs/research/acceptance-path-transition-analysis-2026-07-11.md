@@ -136,11 +136,11 @@ OrderSubmitted=FALSE
 PnL=NONE
 ```
 
-Non modificare `ACCEPTANCE_CONTINUATION_V1`. Raccogliere nuove sessioni separando HIGH/LOW e registrare prospetticamente:
+`ACCEPTANCE_CONTINUATION_V1` resta invariata. Per decisione successiva allo studio, `LOW_ACCEPTANCE_FLOW_CONFIRMATION_V1` viene registrata come seconda shadow live/historical non operativa, separando:
 
 ```text
 LOW_ACCEPTANCE + first3BarsDirectionalFlow > 0
 LOW_ACCEPTANCE + first3BarsDirectionalFlow <= 0
 ```
 
-La soglia zero e' solo il segno del flow, non una soglia ottimizzata. Prima di qualsiasi promozione servono almeno 8 profili test indipendenti per gruppo e stabilita' H6/H12.
+La soglia zero e' solo il segno del flow, non una soglia ottimizzata. La promozione riguarda esclusivamente la raccolta shadow; `ValidatedFlowConfirmations=[]` resta vero. Prima di qualsiasi operativita' servono almeno 8 profili test indipendenti per gruppo e stabilita' H6/H12.

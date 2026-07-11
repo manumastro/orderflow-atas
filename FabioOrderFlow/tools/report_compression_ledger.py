@@ -29,6 +29,9 @@ OUTCOME_MARKER = "MR_COMPRESSION_LEDGER_OUTCOME"
 SHADOW_ENTRY_MARKER = "MR_SHADOW_ACCEPTANCE_ENTRY"
 SHADOW_OUTCOME_MARKER = "MR_SHADOW_ACCEPTANCE_OUTCOME"
 SHADOW_BAR_MARKER = "MR_SHADOW_ACCEPTANCE_BAR"
+LOW_FLOW_ENTRY_MARKER = "MR_SHADOW_LOW_FLOW_CONFIRMATION_ENTRY"
+LOW_FLOW_OUTCOME_MARKER = "MR_SHADOW_LOW_FLOW_CONFIRMATION_OUTCOME"
+LOW_FLOW_BAR_MARKER = "MR_SHADOW_LOW_FLOW_CONFIRMATION_BAR"
 PROCESS_START_MARKER = "HISTORICAL_FLOW_PROCESS_START"
 PROCESS_FINISH_MARKER = "HISTORICAL_FLOW_FINISH"
 LOOKBACK_MARKER = "CUM_TRADES_LOOKBACK"
@@ -70,6 +73,21 @@ SHADOW_OUTCOME_FIELDS = (
     "EndInsideRange", "PocTouched", "TradeCoverage", "OperationalEntry",
     "OrderSubmitted",
 )
+LOW_FLOW_ENTRY_FIELDS = (
+    "ShadowModel", "ShadowId", "ProfileLabel", "BaseAcceptanceBar", "EntryBar",
+    "Italy", "London", "UTC", "Boundary", "Direction", "ChartTimeFrame",
+    "EntryPrice", "Trigger", "FlowBars", "DirectionalDelta", "TotalVolume",
+    "DirectionalFlowImbalance", "TradeCoverage", "OperationalEntry",
+    "OrderSubmitted",
+)
+LOW_FLOW_OUTCOME_FIELDS = (
+    "ShadowModel", "ShadowId", "ProfileLabel", "BaseAcceptanceBar", "EntryBar",
+    "Boundary", "Direction", "ChartTimeFrame", "HorizonBars", "ElapsedMinutes",
+    "EndBar", "Italy", "London", "UTC", "EntryPrice", "EndClose",
+    "DirectionalMoveRanges", "FavorableMfeRanges", "AdverseMfeRanges",
+    "EndInsideRange", "PocTouched", "TradeCoverage", "OperationalEntry",
+    "OrderSubmitted",
+)
 SHADOW_BAR_FIELDS = (
     "ShadowModel", "ShadowId", "ProfileLabel", "EntryBar", "Boundary",
     "Direction", "ChartTimeFrame", "PathBar", "PathBarOrdinal",
@@ -81,7 +99,7 @@ SHADOW_BAR_FIELDS = (
     "TradeCoverage", "OperationalEntry", "OrderSubmitted",
 )
 
-INTEGER_FIELDS = {"ReadyBar", "ResolvedBar", "StudyBars", "HighTests", "LowTests", "BoundaryEvents", "Bar", "TestOrdinal", "OutsideCloseStreak", "TradeCount", "EventBar", "EntryBar", "PathBar", "PathBarOrdinal", "HorizonBars", "EndBar"}
+INTEGER_FIELDS = {"ReadyBar", "ResolvedBar", "StudyBars", "HighTests", "LowTests", "BoundaryEvents", "Bar", "TestOrdinal", "OutsideCloseStreak", "TradeCount", "EventBar", "BaseAcceptanceBar", "EntryBar", "FlowBars", "PathBar", "PathBarOrdinal", "HorizonBars", "EndBar"}
 DECIMAL_FIELDS = {
     "BuyVolume", "SellVolume", "ProfileCVD", "High", "Low", "POC", "Range",
     "RangeToBaselineMedian", "CompressionScore", "BoundaryPrice", "EventClose",
@@ -93,6 +111,7 @@ DECIMAL_FIELDS = {
     "DirectionalMoveRanges", "FavorableMfeRanges", "AdverseMfeRanges",
     "ElapsedMinutes", "Open", "Close", "CandleVolume",
     "FavorableMfeToDateRanges", "AdverseMfeToDateRanges",
+    "DirectionalDelta", "DirectionalFlowImbalance",
 }
 BOOLEAN_FIELDS = {"EndInsideRange", "PocTouched", "PocTouchedThisBar", "PocTouchedToDate", "OperationalEntry", "OrderSubmitted"}
 
@@ -382,6 +401,9 @@ def main() -> int:
     shadow_entries = [converted(record, SHADOW_ENTRY_FIELDS) for record in records_for_marker(run.lines, SHADOW_ENTRY_MARKER)]
     shadow_outcomes = [converted(record, SHADOW_OUTCOME_FIELDS) for record in records_for_marker(run.lines, SHADOW_OUTCOME_MARKER)]
     shadow_path_bars = [converted(record, SHADOW_BAR_FIELDS) for record in records_for_marker(run.lines, SHADOW_BAR_MARKER)]
+    low_flow_entries = [converted(record, LOW_FLOW_ENTRY_FIELDS) for record in records_for_marker(run.lines, LOW_FLOW_ENTRY_MARKER)]
+    low_flow_outcomes = [converted(record, LOW_FLOW_OUTCOME_FIELDS) for record in records_for_marker(run.lines, LOW_FLOW_OUTCOME_MARKER)]
+    low_flow_path_bars = [converted(record, SHADOW_BAR_FIELDS) for record in records_for_marker(run.lines, LOW_FLOW_BAR_MARKER)]
 
     profiles_by_label = {str(profile["ProfileLabel"]): profile for profile in profiles}
     warnings: list[str] = []
@@ -443,6 +465,9 @@ def main() -> int:
             "shadowAcceptanceEntries": len(shadow_entries),
             "shadowAcceptanceOutcomes": len(shadow_outcomes),
             "shadowAcceptancePathBars": len(shadow_path_bars),
+            "shadowLowFlowConfirmationEntries": len(low_flow_entries),
+            "shadowLowFlowConfirmationOutcomes": len(low_flow_outcomes),
+            "shadowLowFlowConfirmationPathBars": len(low_flow_path_bars),
         },
         "validation": {
             "outcomesComplete": len(outcomes) == expected_outcomes,
@@ -453,6 +478,7 @@ def main() -> int:
             "shadowOrders": run.finish.get("ShadowOrders"),
             "shadowEntriesAreNonOperational": all(entry["OperationalEntry"] is False and entry["OrderSubmitted"] is False for entry in shadow_entries),
             "shadowPathBarsAreNonOperational": all(bar["OperationalEntry"] is False and bar["OrderSubmitted"] is False for bar in shadow_path_bars),
+            "shadowLowFlowIsNonOperational": all(row["OperationalEntry"] is False and row["OrderSubmitted"] is False for row in low_flow_entries + low_flow_outcomes + low_flow_path_bars),
             "warnings": warnings,
         },
         "profileCoverage": profile_summary(profiles),
@@ -462,6 +488,14 @@ def main() -> int:
             "pathBars": shadow_path_bars,
             "flowCoveredOutcomeGroups": shadow_outcome_groups([
                 outcome for outcome in shadow_outcomes if outcome["TradeCoverage"] == "AVAILABLE"
+            ]),
+        },
+        "shadowLowFlowConfirmation": {
+            "entries": low_flow_entries,
+            "outcomes": low_flow_outcomes,
+            "pathBars": low_flow_path_bars,
+            "flowCoveredOutcomeGroups": shadow_outcome_groups([
+                outcome for outcome in low_flow_outcomes if outcome["TradeCoverage"] == "AVAILABLE"
             ]),
         },
         "allOutcomeGroups": all_groups,
@@ -478,6 +512,9 @@ def main() -> int:
         csv_rows(shadow_entries, base.with_name(base.name + "-shadow-entries.csv"))
         csv_rows(shadow_outcomes, base.with_name(base.name + "-shadow-outcomes.csv"))
         csv_rows(shadow_path_bars, base.with_name(base.name + "-shadow-path-bars.csv"))
+        csv_rows(low_flow_entries, base.with_name(base.name + "-shadow-low-flow-entries.csv"))
+        csv_rows(low_flow_outcomes, base.with_name(base.name + "-shadow-low-flow-outcomes.csv"))
+        csv_rows(low_flow_path_bars, base.with_name(base.name + "-shadow-low-flow-path-bars.csv"))
         aggregation_rows = [row for groups in flow_groups.values() for row in groups]
         csv_rows(aggregation_rows, base.with_name(base.name + "-flow-covered-aggregates.csv"))
         base.with_name(base.name + "-summary.json").write_text(json.dumps(summary, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")

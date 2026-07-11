@@ -9,7 +9,7 @@ Modalita':          COMPRESSION_EVENT_LEDGER_NO_TRADES
 Ordini / PnL:       DISABLED
 Reference profile:  LOG_ONLY
 Grafico:            sola zona London contestuale
-Output:             ledger + shadow acceptance path completo 60 minuti
+Output:             ledger + acceptance baseline + LOW flow confirmation shadow
 ```
 
 `london-ny-close-hold` e il suo PnL `+634,25` restano baseline storica del precedente core MR, non un modello in esecuzione.
@@ -44,6 +44,7 @@ ATAS OnCalculate
 -> LondonMeanReversionModel registra outcome ledger 1/3/6/12 barre
 -> sulla seconda close esterna registra shadow acceptance continuation
 -> registra ogni barra chart per 60 minuti e checkpoint H6/H12
+-> dopo LOW acceptance valuta il segno flow delle prime 3 barre e registra una seconda shadow confermata
 -> classifica ogni evento ledger senza limitare la discovery setup
 -> nessun setup operativo, posizione, ordine, stop, target o PnL
 
