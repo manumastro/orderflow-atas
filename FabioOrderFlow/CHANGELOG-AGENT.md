@@ -1,5 +1,32 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Reload e Analisi 2026-07-12 - Raw Causal LVN Ranking V1
+
+```text
+Reload M1 NY-only 40 date:
+- LvnRanking=RAW_CAUSAL_V1; READY/PULLBACK/RESOLVED=396/1.132/396;
+- raw LVN=23.030 su 383 profili; touch occurrences=31.676;
+- rank permutation errors=0; bounds errors=0; touch subset errors=0;
+- mode-to-summary=32,638s; log=6.259.755 byte;
+- London/MR/auction-state bars/operativita'/errori=0.
+
+Campione causale primo pullback prima della resolution:
+- 211 osservazioni: continuation=129, reentry=79, two-sided=3;
+- esclusi resolved-same-bar=154, no raw LVN=3, no first touch=24.
+
+AUC continuation vs reentry, tutti / prima per data-direzione:
+- BestRankScore=0,490 / 0,520;
+- BestProminence=0,499 / 0,484;
+- MinimumDirectionalProgress=0,627 / 0,540;
+- MinimumDistanceToOriginRanges=0,629 / 0,560.
+
+Decisione:
+- prominence/rank/percentile non discriminano;
+- location moderata su tutti gli impulsi, debole riducendo dipendenza intraday;
+- Validated=FALSE; PromotedToShadow=FALSE; selectionLeakage=true;
+- nessuna soglia o combinazione cumulative aggiunta.
+```
+
 ## Implementazione 2026-07-12 - Raw Causal LVN Ranking V1
 
 ```text

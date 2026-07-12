@@ -127,7 +127,10 @@ Con `LvnRanking=RAW_CAUSAL_V1`, `ImpulseLvnMetrics` e `TouchedLvnMetrics` aggiun
 
 ```bash
 python FabioOrderFlow/tools/report_auction_impulse_ledger.py --save
+python FabioOrderFlow/tools/analyze_auction_impulse_lvn_ranking.py --timeframe M1 --save
 ```
+
+L'analyzer LVN usa soltanto il primo pullback strettamente precedente a `ResolvedBar`; esclude same-bar outcome, profili senza raw LVN e barre senza touch. Restituisce distribuzioni/AUC continue con `selectionLeakage=true`, mai soglie o segnali.
 
 Su dxFeed storico ATAS puo' restituire `CUM_TRADES_RESPONSE Count=0`: il profilo footprint resta disponibile, ma ogni pullback avra' `CumulativeTradeCoverage=MISSING`. Non interpretarlo come aggressione zero.
 

@@ -59,6 +59,14 @@ python FabioOrderFlow/tools/report_auction_impulse_ledger.py --save
 
 Salva `auction-impulse-*-summary.json`, profili, barre pullback e risoluzioni in CSV. Con `LvnRanking=RAW_CAUSAL_V1` aggiunge `auction-impulse-*-lvns.csv` e `auction-impulse-*-touched-lvns.csv`; tutti i raw LVN restano inclusi. Gli snapshot M1 e M5 sono dataset distinti; la coverage cumulative mancante su dxFeed resta esplicita.
 
+Analisi LVN ranked sul primo pullback precedente alla risoluzione:
+
+```bash
+python FabioOrderFlow/tools/analyze_auction_impulse_lvn_ranking.py --timeframe M1 --save
+```
+
+Il report `auction-impulse-lvn-ranking-M1-*.json` contiene osservazioni individuali, distribuzioni continue, AUC descrittiva e `selectionLeakage=true`. Non seleziona una soglia e non produce PnL.
+
 Conferma cumulative pre-risoluzione:
 
 ```bash

@@ -133,6 +133,18 @@ Errori:                          0
 
 L'analisi iniziale e' in `docs/research/fabio-auction-playbooks-analysis-2026-07-11.md`. Ha prodotto 73 osservazioni tra balance rotation e NY pullback, ma nessun modello validato. NY SHORT H6 resta una traccia diagnostica su 13 casi; LONG fallisce lo split test.
 
+## Reload Raw Causal LVN Ranking V1 2026-07-12
+
+```text
+Raw LVN / profili con LVN:       23.030 / 383
+Touch occurrences:               31.676
+Rank/bounds/subset errors:        0 / 0 / 0
+First-pullback causal sample:     211
+Continuation / reentry:          129 / 79
+```
+
+`BestRankScore` e `BestProminence` hanno AUC continuation-vs-reentry circa `0,49-0,50`: non discriminano. `MinimumDirectionalProgress` e distanza dall'origine arrivano a circa `0,63` su tutti gli impulsi, ma scendono a `0,54-0,56` usando solo la prima osservazione per data/direzione. Nessuna soglia, shadow o combinazione flow viene promossa. Analisi: `docs/research/auction-impulse-lvn-ranking-analysis-2026-07-12.md`.
+
 ## Reload Runtime NY-Only Verificato 2026-07-12
 
 ```text

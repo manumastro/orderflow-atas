@@ -34,6 +34,15 @@ PULLBACK_FIELDS = COMMON_FIELDS[:-2] + (
 RESOLVED_FIELDS = COMMON_FIELDS[:-2] + (
     "ResolvedBar", "EndReason", "OperationalEntry", "OrderSubmitted",
 )
+IDENTITY_FIELDS = ("ImpulseId", "SessionDate", "Direction", "ChartTimeFrame")
+PULLBACK_EXPORT_FIELDS = IDENTITY_FIELDS + (
+    "PullbackOrdinal", "Bar", "Close", "FrozenProfileRelation", "TouchedLvns",
+    "TouchedLvnMetrics", "EffortResult", "CumulativeTradeCoverage",
+    "MaxCumulativeBuy", "MaxCumulativeSell", "OperationalEntry", "OrderSubmitted",
+)
+RESOLVED_EXPORT_FIELDS = IDENTITY_FIELDS + (
+    "ResolvedBar", "EndReason", "OperationalEntry", "OrderSubmitted",
+)
 INTEGER_FIELDS = {"StartBar", "EndBar", "ImpulseBars", "PullbackOrdinal", "Bar", "ResolvedBar"}
 DECIMAL_FIELDS = {
     "OriginBoundary", "ImpulseHigh", "ImpulseLow", "ImpulsePOC", "ImpulseVAH",
@@ -252,8 +261,8 @@ def save_outputs(report: dict[str, object], datasets: dict[str, list[dict[str, o
     paths["summaryJson"].write_text(json.dumps(report, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
     for key, fields, path_key in (
         ("profiles", COMMON_FIELDS, "profilesCsv"),
-        ("pullbacks", PULLBACK_FIELDS, "pullbacksCsv"),
-        ("resolutions", RESOLVED_FIELDS, "resolutionsCsv"),
+        ("pullbacks", PULLBACK_EXPORT_FIELDS, "pullbacksCsv"),
+        ("resolutions", RESOLVED_EXPORT_FIELDS, "resolutionsCsv"),
         ("lvns", LVN_FIELDS, "lvnsCsv"),
         ("touchedLvns", TOUCHED_LVN_FIELDS, "touchedLvnsCsv"),
     ):
