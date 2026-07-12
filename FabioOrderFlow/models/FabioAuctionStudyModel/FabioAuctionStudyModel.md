@@ -128,6 +128,22 @@ Errori:                          0
 
 L'analisi iniziale e' in `docs/research/fabio-auction-playbooks-analysis-2026-07-11.md`. Ha prodotto 73 osservazioni tra balance rotation e NY pullback, ma nessun modello validato. NY SHORT H6 resta una traccia diagnostica su 13 casi; LONG fallisce lo split test.
 
+## Reload M5 Rithmic Impulse 2026-07-12
+
+```text
+ChartTimeFrame:                   M5
+Date per sessione:               7 / 7
+Cumulative ricevuti / matched:   1.645.204 / 1.370.383
+Impulse READY / RESOLVED:        37 / 37
+LONG / SHORT:                    17 / 20
+Pullback bars AVAILABLE:         96 / 96
+Continuation / Origin reentry:   10 / 21
+Two-sided / Session end:         5 / 1
+OperationalEntries / Orders:     0 / 0
+```
+
+Il lifecycle e il report sono verificati end-to-end su M5. Tutte le 96 barre pullback attraversano almeno un LVN raw: il semplice touch non e' discriminante e resta descrittivo.
+
 ## Reload M1 dxFeed 2026-07-12
 
 ```text

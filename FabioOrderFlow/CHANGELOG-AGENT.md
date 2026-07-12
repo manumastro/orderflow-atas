@@ -1,5 +1,22 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Reload Rithmic M5 2026-07-12 - Impulse Profile Verificato
+
+```text
+Replay:
+- ChartTimeFrame=M5, non M1; range 2026-07-02 -> 2026-07-10, 7 date per sessione.
+- Cumulative ricevuti=1.645.204; matched=1.370.383; coverage pullback AVAILABLE=96/96.
+- ImpulseProfilesReady=37: LONG=17, SHORT=20.
+- ImpulsePullbackBars=96; ImpulseProfilesResolved=37; summary counts coerenti.
+- EndReason: CONTINUATION_NEW_EXTREME=10, ORIGIN_REENTRY=21, TWO_SIDED_RANGE=5, SESSION_END=1.
+- Entries=0; ShadowOrders=0; MR_ENTRY=0; MR_EXIT=0; errori=0.
+
+Osservazione:
+- 96/96 pullback bar attraversano almeno un LVN raw.
+- Il touch di un LVN raw e' descrittivo ma non discriminante; non promuoverlo a conferma.
+- Questo snapshot e' benchmark M5. Serve reload separato con log ChartTimeFrame=M1.
+```
+
 ## Baseline M1 dxFeed e Implementazione 2026-07-12 - New York Impulse Profile
 
 ```text
