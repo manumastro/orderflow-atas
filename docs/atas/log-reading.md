@@ -147,7 +147,13 @@ python FabioOrderFlow/tools/analyze_auction_impulse_confirmations.py --timeframe
 python FabioOrderFlow/tools/report_auction_impulse_shadow.py --save
 ```
 
-La shadow e' una registrazione simulata senza ordine. Parte dalla chiusura della prima conferma per data/direzione e segue il prezzo fino a 30 minuti. `MFE` e' il massimo movimento favorevole; `MAE` il massimo movimento contrario. Solo le date dal `2026-07-13` decidono il test; quelle precedenti servono a verificare il software.
+La shadow e' una registrazione simulata senza ordine. Parte dalla chiusura della prima conferma per data/direzione e segue il prezzo fino a 30 minuti. `MFE` e' il massimo movimento favorevole; `MAE` il massimo movimento contrario. Questi orizzonti sono descrittivi: la decisione a 15 minuti e' superata.
+
+```bash
+python FabioOrderFlow/tools/analyze_auction_impulse_boundary_risk.py --timeframe M1 --save
+```
+
+Il nuovo test usa OHLC delle barre pullback: verifica se il prezzo tocca prima l'estremo `B` o il confine di origine `A`. Un tocco di entrambi nella stessa candela M1 conta come perdita per non inventare un ordine intrabar favorevole. `R` significa unita' di rischio, non PnL.
 
 ## Componenti London
 

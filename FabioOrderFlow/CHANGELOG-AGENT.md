@@ -1,5 +1,41 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Implementazione 2026-07-12 - Boundary Risk V1
+
+```text
+Decisione:
+- la durata fissa H15 e' SUPERSEDED, non era allineata alla risoluzione mediana di 2 barre;
+- path H5/H15/H30 resta descrittivo;
+- nuovo candidato: confirmation close -> primo tocco estremo B o origine A.
+
+Dati aggiunti:
+- PULLBACK_BAR espone Open/High/Low/Close;
+- nessun target, stop, ordine o PnL nel runtime.
+
+Contratto:
+- B prima di A = TARGET_B_FIRST;
+- A prima di B = ORIGIN_A_FIRST;
+- entrambi stessa M1 = AMBIGUOUS_SAME_BAR_AS_LOSS;
+- nessun confine = close di fine sessione;
+- costi simulati=0,5/1,0/1,5 punti; risultato in R.
+
+Gate iniziale congelato prima del reload:
+- minimo 8 LONG e 8 SHORT;
+- a costo 1 punto: mean R >0 e profit factor >=1,25 per ALL/LONG/SHORT;
+- ambigui <=10%; nessuna geometria invalida;
+- pass -> storico esteso minimo 30 casi e 10/direzione; fail -> scarto.
+
+Tool:
+- tools/analyze_auction_impulse_boundary_risk.py, JSON stdout e CSV solo con --save;
+- fixture pass/reject verificata;
+- vecchio report shadow dichiara SUPERSEDED_BY_BOUNDARY_RISK_V1.
+
+Verifica pre-reload:
+- build Release 0 warning / 0 error;
+- DLL SHA-256=63bb76c58c9e8234ff4446d47b82c16484ca955d2880d0bf830e9bf969b00fca;
+- serve reload M1 per popolare OHLC nei pullback e produrre il verdetto reale.
+```
+
 ## Reload 2026-07-12 - Cumulative Confirmation Shadow V1
 
 ```text

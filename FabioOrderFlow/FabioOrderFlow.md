@@ -32,7 +32,8 @@ tools/analyze_fabio_auction_playbooks.py                 balance rotation + NY p
 tools/report_auction_impulse_ledger.py                    profilo causale NY A->B, JSON only
 tools/analyze_auction_impulse_confirmations.py             cumulative confirmation M1/M5, JSON only
 tools/analyze_auction_impulse_lvn_ranking.py               primo pullback e metriche LVN continue, JSON only
-tools/report_auction_impulse_shadow.py                      test prospettico cumulative, path e decisione, JSON only
+tools/report_auction_impulse_shadow.py                      path descrittivo 5/15/30 minuti, JSON only
+tools/analyze_auction_impulse_boundary_risk.py              primo tocco estremo B vs origine A, JSON only
 performance-snapshots/                                 snapshot PnL legacy
 ledger-snapshots/                                      CSV dataset e report JSON del compression ledger
 archive/legacy-research/                               strumenti/snapshot pre-core, non operativi
@@ -150,7 +151,15 @@ Shadow cumulative prospettica, cioe' osservazione futura senza ordini:
 python FabioOrderFlow/tools/report_auction_impulse_shadow.py --save
 ```
 
-Segue il prezzo dalla chiusura della conferma per 30 minuti. `MFE` indica il massimo movimento favorevole; `MAE` il massimo movimento contrario. Il report congela il primo campione di 20 osservazioni con almeno 8 per direzione e restituisce una decisione comprensibile: raccolta, promozione alla simulazione con costi oppure scarto.
+Segue il prezzo dalla chiusura della conferma per 30 minuti. `MFE` indica il massimo movimento favorevole; `MAE` il massimo movimento contrario. Le durate fisse sono ora descrittive e non decidono il candidato.
+
+Primo tocco del vecchio estremo B contro il confine di origine A:
+
+```bash
+python FabioOrderFlow/tools/analyze_auction_impulse_boundary_risk.py --timeframe M1 --save
+```
+
+Usa risultati in `R`, cioe' unita' di rischio, e costi simulati in punti. Se B e A sono toccati nella stessa candela M1, conta una perdita conservativa. Non calcola PnL monetario.
 
 Conferma cumulative pre-risoluzione, M1/M5 separati:
 

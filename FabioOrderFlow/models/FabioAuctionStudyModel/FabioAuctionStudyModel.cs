@@ -659,6 +659,9 @@ internal sealed class FabioAuctionStudyModule
             _impulsePullbackBarCount++;
             fields.Add($"PullbackOrdinal={marker.PullbackOrdinal}");
             fields.Add($"Bar={marker.Record.Bar}");
+            fields.Add($"Open={F(marker.Record.Contribution.Open)}");
+            fields.Add($"High={F(marker.Record.High)}");
+            fields.Add($"Low={F(marker.Record.Low)}");
             fields.Add($"Close={F(marker.Record.Close)}");
             fields.Add($"FrozenProfileRelation={marker.FrozenRelation}");
             fields.Add($"TouchedLvns={FormatLvns(marker.TouchedLvns)}");

@@ -1,5 +1,7 @@
 # New York Impulse Cumulative Shadow - Contratto 2026-07-12
 
+> Decisione a durata fissa superata da `NY_IMPULSE_CONFIRMATION_BOUNDARY_RISK_V1`. I path a 5/15/30 minuti restano descrittivi. Contratto corrente: `docs/research/ny-impulse-boundary-risk-contract-2026-07-12.md`.
+
 ## Fine
 
 Capire se una precisa risposta degli acquisti o delle vendite durante il pullback New York merita di diventare, in futuro, un modello simulato con costi realistici.

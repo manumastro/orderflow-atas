@@ -20,10 +20,6 @@ IMPULSE_READY_MARKER = "AUCTION_IMPULSE_READY"
 IMPULSE_RESOLVED_MARKER = "AUCTION_IMPULSE_RESOLVED"
 SUMMARY_MARKER = "AUCTION_STATE_SUMMARY"
 PROSPECTIVE_START = "2026-07-13"
-MINIMUM_OBSERVATIONS = 20
-MINIMUM_PER_DIRECTION = 8
-MAXIMUM_SESSION_DATES = 40
-MINIMUM_COMPLETE_15_MINUTE_PATHS = 18
 
 ENTRY_FIELDS = (
     "ShadowId", "ImpulseId", "SessionDate", "Direction", "ChartTimeFrame",
@@ -218,99 +214,6 @@ def summarize(records: list[dict[str, object]]) -> dict[str, object]:
     }
 
 
-def first_decision_sample(records: list[dict[str, object]]) -> list[dict[str, object]]:
-    selected: list[dict[str, object]] = []
-    for record in sorted(records, key=lambda item: int(item["ConfirmationBar"])):
-        selected.append(record)
-        directions = Counter(str(item["Direction"]) for item in selected)
-        if len(selected) >= MINIMUM_OBSERVATIONS and all(
-            directions.get(direction, 0) >= MINIMUM_PER_DIRECTION for direction in ("LONG", "SHORT")
-        ):
-            return selected
-    return []
-
-
-def baseline_rate(data: dict[str, object], through_date: str | None) -> float | None:
-    resolutions = {
-        str(record["ImpulseId"]): record for record in data["impulseResolutions"]
-    }
-    eligible = [
-        record for record in data["impulseReady"]
-        if str(record["SessionDate"]) >= PROSPECTIVE_START
-        and (through_date is None or str(record["SessionDate"]) <= through_date)
-        and str(record["ImpulseId"]) in resolutions
-    ]
-    return (
-        sum(resolutions[str(record["ImpulseId"])].get("EndReason") == "CONTINUATION_NEW_EXTREME" for record in eligible)
-        / len(eligible)
-        if eligible else None
-    )
-
-
-def decision(data: dict[str, object], prospective: list[dict[str, object]]) -> dict[str, object]:
-    prospective_dates = {
-        str(record["SessionDate"]) for record in data["impulseReady"]
-        if str(record["SessionDate"]) >= PROSPECTIVE_START
-    }
-    sample = first_decision_sample(prospective)
-    if not sample:
-        status = "REJECTED_RARITY" if len(prospective_dates) >= MAXIMUM_SESSION_DATES else "COLLECTING"
-        return {
-            "status": status,
-            "plainMeaning": (
-                "La conferma e' comparsa troppo raramente per raggiungere il campione previsto entro 40 sessioni New York."
-                if status == "REJECTED_RARITY"
-                else "La prova prospettica sta ancora raccogliendo osservazioni; non e' ancora permessa una conclusione sul modello."
-            ),
-            "validated": False,
-            "promotedToExecutionSimulation": False,
-            "prospectiveSessionDates": len(prospective_dates),
-            "decisionSampleObservations": 0,
-            "checks": {},
-        }
-
-    through_date = max(str(record["SessionDate"]) for record in sample)
-    baseline = baseline_rate(data, through_date)
-    overall_rate = rate(sample, "CONTINUATION_NEW_EXTREME")
-    by_direction = {
-        direction: [record for record in sample if record["Direction"] == direction]
-        for direction in ("LONG", "SHORT")
-    }
-    favorable = median(sample, "H15FavorableMfePoints")
-    adverse = median(sample, "H15AdverseMaePoints")
-    ratio = favorable / adverse if favorable is not None and adverse not in (None, 0.0) else None
-    checks = {
-        "overallContinuationAtLeast60Percent": overall_rate is not None and overall_rate >= 0.60,
-        "longContinuationAtLeast50Percent": (rate(by_direction["LONG"], "CONTINUATION_NEW_EXTREME") or 0) >= 0.50,
-        "shortContinuationAtLeast50Percent": (rate(by_direction["SHORT"], "CONTINUATION_NEW_EXTREME") or 0) >= 0.50,
-        "upliftAtLeast15PercentagePoints": baseline is not None and overall_rate is not None and overall_rate - baseline >= 0.15,
-        "atLeast18Complete15MinutePaths": sum(bool(record["H15Available"]) for record in sample) >= MINIMUM_COMPLETE_15_MINUTE_PATHS,
-        "longMedian15MinuteMovePositive": (median(by_direction["LONG"], "H15DirectionalCloseMovePoints") or 0) > 0,
-        "shortMedian15MinuteMovePositive": (median(by_direction["SHORT"], "H15DirectionalCloseMovePoints") or 0) > 0,
-        "medianFavorableToAdverseRatioAtLeast1Point5": ratio is not None and ratio >= 1.5,
-    }
-    passed = all(checks.values())
-    return {
-        "status": "PROMOTED_TO_EXECUTION_SIMULATION" if passed else "REJECTED",
-        "plainMeaning": (
-            "Il campione prospettico congelato ha superato tutti i controlli e puo' avanzare a una simulazione che includa i costi; non e' ancora autorizzato alcun ordine reale."
-            if passed
-            else "Il primo campione prospettico completo ha fallito almeno un controllo; il candidato shadow viene quindi scartato senza modificarne le regole."
-        ),
-        "validated": False,
-        "promotedToExecutionSimulation": passed,
-        "prospectiveSessionDates": len(prospective_dates),
-        "decisionSampleObservations": len(sample),
-        "decisionSampleThroughDate": through_date,
-        "candidateContinuationRate": overall_rate,
-        "contemporaneousImpulseBaselineRate": baseline,
-        "continuationUplift": overall_rate - baseline if overall_rate is not None and baseline is not None else None,
-        "medianH15FavorableToAdverseRatio": ratio,
-        "checks": checks,
-        "decisionSampleShadowIds": [record["ShadowId"] for record in sample],
-    }
-
-
 def write_csv(path: Path, rows: list[dict[str, object]]) -> None:
     if not rows:
         return
@@ -363,11 +266,8 @@ def main() -> int:
                 "model": "NY_IMPULSE_CUMULATIVE_CONFIRMATION_SHADOW_V1",
                 "plainMeaning": "Osserva il primo pullback con aggressione cumulative valida per data New York e direzione, senza inviare ordini.",
                 "prospectiveStartSessionDate": PROSPECTIVE_START,
-                "minimumObservations": MINIMUM_OBSERVATIONS,
-                "minimumPerDirection": MINIMUM_PER_DIRECTION,
-                "maximumSessionDates": MAXIMUM_SESSION_DATES,
-                "minimumComplete15MinutePaths": MINIMUM_COMPLETE_15_MINUTE_PATHS,
                 "pathMinutes": 30,
+                "fixedHorizonDecision": "SUPERSEDED_BY_NY_IMPULSE_CONFIRMATION_BOUNDARY_RISK_V1",
                 "technicalTerms": {
                     "MFE": "Massima escursione favorevole: il punto piu' lontano raggiunto dal prezzo nella direzione attesa.",
                     "MAE": "Massima escursione contraria: il punto piu' lontano raggiunto dal prezzo contro la direzione attesa.",
@@ -396,7 +296,12 @@ def main() -> int:
                 "pathErrors": path_errors,
                 "nonOperational": non_operational,
             },
-            "decision": decision(data, prospective),
+            "decision": {
+                "status": "SUPERSEDED_BY_BOUNDARY_RISK_V1",
+                "plainMeaning": "Le letture a 5, 15 e 30 minuti restano descrittive. La decisione usa ora quale confine viene toccato per primo, non una durata fissa.",
+                "validated": False,
+                "promotedToExecutionSimulation": False,
+            },
             "observations": observations,
         }
         if args.save:

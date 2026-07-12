@@ -98,7 +98,7 @@ RESOLVED
 - termina a nuovo estremo, rientro dal boundary di origine, two-sided range o session end.
 ```
 
-`READY` non e' una entry. `PULLBACK_BAR` registra location, LVN toccati, effort/result e coverage cumulative senza qualificare il record.
+`READY` non e' una entry. `PULLBACK_BAR` registra OHLC, cioe' apertura, massimo, minimo e chiusura, oltre a location, LVN toccati, effort/result e coverage cumulative. I prezzi OHLC permettono di sapere quale confine e' stato toccato per primo senza creare ordini nel runtime.
 
 ### Raw Causal LVN Ranking V1
 
@@ -124,11 +124,18 @@ Dal prezzo di chiusura della conferma segue ogni barra M1 fino a 30 minuti. `MFE
 
 Il primo campione con 20 osservazioni, almeno 8 per direzione, decide la promozione o lo scarto. Scadenza massima: 40 sessioni New York. Contratto completo: `docs/research/ny-impulse-cumulative-shadow-contract-2026-07-12.md`.
 
+## Boundary Risk V1
+
+La decisione a durata fissa di 15 minuti e' superata. Il candidato `NY_IMPULSE_CONFIRMATION_BOUNDARY_RISK_V1` parte dalla stessa conferma e verifica se viene toccato prima l'estremo `B` oppure il confine di origine `A`. Se entrambi sono toccati nella stessa candela M1, il caso conta conservativamente come perdita.
+
+Il report sottrae costi simulati di `0,5`, `1,0` e `1,5` punti e restituisce risultati in `R`, unita' di rischio, non PnL. Contratto: `docs/research/ny-impulse-boundary-risk-contract-2026-07-12.md`.
+
 ## Report
 
 ```bash
 python FabioOrderFlow/tools/report_auction_impulse_ledger.py --save
 python FabioOrderFlow/tools/report_auction_impulse_shadow.py --save
+python FabioOrderFlow/tools/analyze_auction_impulse_boundary_risk.py --timeframe M1 --save
 ```
 
 Il comando restituisce esclusivamente JSON su stdout e salva profili A->B, barre pullback e risoluzioni. Con `RAW_CAUSAL_V1` salva anche `lvns.csv` e `touched-lvns.csv`, una riga strutturata per livello/occorrenza. `report_auction_state_ledger.py` resta compatibile con snapshot dual-session precedenti e valida il summary NY-only, ma il runtime corrente non emette barre auction-state. Gli aggregati sono descrittivi, senza segnali o PnL.

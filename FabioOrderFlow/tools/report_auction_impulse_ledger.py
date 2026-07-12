@@ -27,7 +27,7 @@ COMMON_FIELDS = (
     "OperationalEntry", "OrderSubmitted",
 )
 PULLBACK_FIELDS = COMMON_FIELDS[:-2] + (
-    "PullbackOrdinal", "Bar", "Close", "FrozenProfileRelation", "TouchedLvns", "TouchedLvnMetrics",
+    "PullbackOrdinal", "Bar", "Open", "High", "Low", "Close", "FrozenProfileRelation", "TouchedLvns", "TouchedLvnMetrics",
     "EffortResult", "CumulativeTradeCoverage", "MaxCumulativeBuy",
     "MaxCumulativeSell", "OperationalEntry", "OrderSubmitted",
 )
@@ -36,7 +36,7 @@ RESOLVED_FIELDS = COMMON_FIELDS[:-2] + (
 )
 IDENTITY_FIELDS = ("ImpulseId", "SessionDate", "Direction", "ChartTimeFrame")
 PULLBACK_EXPORT_FIELDS = IDENTITY_FIELDS + (
-    "PullbackOrdinal", "Bar", "Close", "FrozenProfileRelation", "TouchedLvns",
+    "PullbackOrdinal", "Bar", "Open", "High", "Low", "Close", "FrozenProfileRelation", "TouchedLvns",
     "TouchedLvnMetrics", "EffortResult", "CumulativeTradeCoverage",
     "MaxCumulativeBuy", "MaxCumulativeSell", "OperationalEntry", "OrderSubmitted",
 )
@@ -46,7 +46,7 @@ RESOLVED_EXPORT_FIELDS = IDENTITY_FIELDS + (
 INTEGER_FIELDS = {"StartBar", "EndBar", "ImpulseBars", "PullbackOrdinal", "Bar", "ResolvedBar"}
 DECIMAL_FIELDS = {
     "OriginBoundary", "ImpulseHigh", "ImpulseLow", "ImpulsePOC", "ImpulseVAH",
-    "ImpulseVAL", "Close", "MaxCumulativeBuy", "MaxCumulativeSell",
+    "ImpulseVAL", "Open", "High", "Low", "Close", "MaxCumulativeBuy", "MaxCumulativeSell",
 }
 BOOLEAN_FIELDS = {"OperationalEntry", "OrderSubmitted"}
 LVN_METRIC_FIELDS = (

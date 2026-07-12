@@ -65,7 +65,15 @@ Shadow cumulative New York e percorso successivo:
 python FabioOrderFlow/tools/report_auction_impulse_shadow.py --save
 ```
 
-Salva `auction-impulse-shadow-*-summary.json`, osservazioni e barre del percorso. Una shadow e' un'osservazione senza ordine; il report spiega se il campione prospettico e' ancora in raccolta, e' scartato o puo' passare alla simulazione con costi.
+Salva `auction-impulse-shadow-*-summary.json`, osservazioni e barre del percorso. Una shadow e' un'osservazione senza ordine. Le letture a 5/15/30 minuti sono descrittive e non decidono piu' il candidato.
+
+Primo tocco dell'estremo B contro il confine di origine A:
+
+```bash
+python FabioOrderFlow/tools/analyze_auction_impulse_boundary_risk.py --timeframe M1 --save
+```
+
+Il report salva `auction-impulse-boundary-risk-M1-*-summary.json` e le osservazioni. Restituisce risultati in unita' di rischio con costi simulati, mai PnL monetario.
 
 Analisi LVN ranked sul primo pullback precedente alla risoluzione:
 
