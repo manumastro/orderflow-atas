@@ -10,10 +10,10 @@ Sessione:           New York 09:30-16:00 New York
 Direzioni:          simmetriche LONG e SHORT
 Ordini / PnL:       DISABLED
 Auction-state bars: DISABLED
-Output:             READY + PULLBACK_BAR + RESOLVED + summary
+Output:             READY + PULLBACK + RESOLVED + cumulative shadow + path
 ```
 
-Il modulo non genera setup, shadow entry, ordini, posizioni, stop, target o PnL. London reversion e il ledger dual-session restano baseline storiche e non sono nel percorso runtime.
+Il modulo genera una shadow diagnostica: osserva il prezzo dalla chiusura della conferma, ma non invia ordini e non calcola PnL. Non esistono posizioni, stop o target. London reversion e il ledger dual-session restano baseline storiche e non sono nel percorso runtime.
 
 ## Tesi Dei Transcript
 
@@ -38,6 +38,9 @@ Marker:
 [AUCTION_IMPULSE_READY]
 [AUCTION_IMPULSE_PULLBACK_BAR]
 [AUCTION_IMPULSE_RESOLVED]
+[AUCTION_IMPULSE_SHADOW_ENTRY]       inizio osservazione, nessun ordine
+[AUCTION_IMPULSE_SHADOW_PATH]        ogni barra M1 successiva fino a 30 minuti
+[AUCTION_IMPULSE_SHADOW_RESOLVED]    risultato del lifecycle A->B
 ```
 
 Per velocizzare il replay non viene piu' emessa una riga per ogni barra. In memoria ogni barra NY conserva soltanto i dati necessari:
@@ -111,10 +114,21 @@ DistanceToPocRanges / DistanceToOriginRanges / DistanceToEdgeRanges
 
 `ProminenceRank=1` indica il livello piu' prominente nello stesso profilo, non un livello qualificato. Plateau e livelli con depth zero restano registrati. Contratto completo: `docs/research/auction-impulse-lvn-ranking-contract-2026-07-12.md`.
 
+## Cumulative Confirmation Shadow V1
+
+La shadow e' abilitata soltanto su `ChartTimeFrame=M1`, cioe' un grafico con candele da un minuto. Su M5 il profilo A->B resta disponibile ma `ShadowEnabled=FALSE`, per evitare di mescolare granularita' diverse.
+
+Conserva massimo una conferma per data New York e direzione. Richiede LVN attraversato, candela e delta coerenti con l'impulso, cumulative trade direzionale almeno `30` e maggiore dell'opposto. La barra che ha gia' risolto l'impulso e' esclusa.
+
+Dal prezzo di chiusura della conferma segue ogni barra M1 fino a 30 minuti. `MFE` significa massima distanza favorevole raggiunta dal prezzo; `MAE` significa massima distanza contraria. Le date dal `2026-07-13` sono prospettiche, cioe' non usate per costruire la regola.
+
+Il primo campione con 20 osservazioni, almeno 8 per direzione, decide la promozione o lo scarto. Scadenza massima: 40 sessioni New York. Contratto completo: `docs/research/ny-impulse-cumulative-shadow-contract-2026-07-12.md`.
+
 ## Report
 
 ```bash
 python FabioOrderFlow/tools/report_auction_impulse_ledger.py --save
+python FabioOrderFlow/tools/report_auction_impulse_shadow.py --save
 ```
 
 Il comando restituisce esclusivamente JSON su stdout e salva profili A->B, barre pullback e risoluzioni. Con `RAW_CAUSAL_V1` salva anche `lvns.csv` e `touched-lvns.csv`, una riga strutturata per livello/occorrenza. `report_auction_state_ledger.py` resta compatibile con snapshot dual-session precedenti e valida il summary NY-only, ma il runtime corrente non emette barre auction-state. Gli aggregati sono descrittivi, senza segnali o PnL.
@@ -251,7 +265,8 @@ M5 = baseline separata per confronti precedenti.
 ## Da Verificare
 
 ```text
-- nuove date prospettiche senza modificare il contratto A->B;
-- ranking causale degli LVN raw senza soglia di selezione post-hoc;
-- equivalenza live/historical dei nuovi campi LVN prima di usarli negli analyzer.
+- reload storico: circa 19 shadow di riferimento e zero prospettiche sul chart fermo al 2026-07-10;
+- path progressivo e conteggi summary coerenti, senza ordini o PnL;
+- nuove date dal 2026-07-13 senza modificare il contratto shadow;
+- conclusione automatica al campione minimo oppure scarto per rarita' dopo 40 sessioni.
 ```

@@ -13,6 +13,10 @@ namespace FabioOrderFlow;
 internal sealed class FabioAuctionStudyModule
 {
     private const string StudyMode = "NEW_YORK_IMPULSE_STUDY_NO_TRADES";
+    private const string ShadowModel = "NY_IMPULSE_CUMULATIVE_CONFIRMATION_SHADOW_V1";
+    private const decimal MinimumDirectionalCumulativeTrade = 30m;
+    private const double ShadowPathMinutes = 30d;
+    private static readonly DateOnly ProspectiveStartSessionDate = new(2026, 7, 13);
     private readonly Action<string, bool> _log;
     private readonly string _chartTimeFrame;
     private readonly SessionProfileState _newYork = new("NEW_YORK");
@@ -24,12 +28,21 @@ internal sealed class FabioAuctionStudyModule
     private readonly List<ImpulseMarker> _historicalImpulseMarkers = new();
     private readonly NewYorkImpulseState _newYorkImpulse = new();
     private readonly HashSet<string> _processedImpulseRecords = new();
+    private readonly HashSet<string> _shadowPrimaryDateDirections = new();
+    private readonly Dictionary<string, ImpulseShadowObservation> _shadowsByImpulse = new();
+    private readonly List<ImpulseShadowObservation> _shadowObservations = new();
+    private readonly List<ImpulseShadowMarker> _historicalShadowMarkers = new();
     private List<AuctionBarRecord>? _historicalRecordsByTime;
     private long _historicalCumulativeTradesSeen;
     private long _historicalCumulativeTradesMatched;
     private int _impulseReadyCount;
     private int _impulsePullbackBarCount;
     private int _impulseResolvedCount;
+    private int _shadowEntryCount;
+    private int _shadowProspectiveEntryCount;
+    private int _shadowPathBarCount;
+    private int _shadowResolutionCount;
+    private int _shadowCompletePathCount;
 
     public FabioAuctionStudyModule(
         Action<string, bool> log,
@@ -38,7 +51,7 @@ internal sealed class FabioAuctionStudyModule
         _log = log ?? throw new ArgumentNullException(nameof(log));
         _chartTimeFrame = string.IsNullOrWhiteSpace(chartTimeFrame) ? "UNKNOWN" : chartTimeFrame;
 
-        _log($"[AUCTION_STATE_MODE] StudyMode={StudyMode}, Sessions=NEW_YORK, AuctionStateBars=DISABLED, Symmetry=LONG|SHORT, Profile=NEW_YORK_SESSION_PRIOR_CAUSAL, ImpulseProfile=NEW_YORK_A_TO_B_CAUSAL, LvnRanking=RAW_CAUSAL_V1, FlowSource=CANDLE_FOOTPRINT|CUMULATIVE_TRADES, CumulativeBigTrades=AGGREGATED_PER_BAR, OperationalEntries=DISABLED, ShadowOrders=DISABLED, ChartTimeFrame={_chartTimeFrame}", false);
+        _log($"[AUCTION_STATE_MODE] StudyMode={StudyMode}, Sessions=NEW_YORK, AuctionStateBars=DISABLED, Symmetry=LONG|SHORT, Profile=NEW_YORK_SESSION_PRIOR_CAUSAL, ImpulseProfile=NEW_YORK_A_TO_B_CAUSAL, LvnRanking=RAW_CAUSAL_V1, ShadowStudy={ShadowModel}, ShadowRequiredTimeFrame=M1, ShadowEnabled={(ShadowEnabled ? "TRUE" : "FALSE")}, ShadowProspectiveStart={ProspectiveStartSessionDate:yyyy-MM-dd}, ShadowPathMinutes={ShadowPathMinutes:F0}, FlowSource=CANDLE_FOOTPRINT|CUMULATIVE_TRADES, CumulativeBigTrades=AGGREGATED_PER_BAR, OperationalEntries=DISABLED, ShadowOrders=DISABLED, ChartTimeFrame={_chartTimeFrame}", false);
     }
 
     public void OnBarUpdate(int bar, int currentBar, IndicatorCandle candle)
@@ -78,8 +91,17 @@ internal sealed class FabioAuctionStudyModule
 
     public void LogHistoricalSummary()
     {
-        foreach (var marker in _historicalImpulseMarkers.OrderBy(marker => marker.Bar).ThenBy(marker => marker.Ordinal))
-            LogImpulseMarker(marker);
+        BuildHistoricalShadowObservations();
+        var impulseEvents = _historicalImpulseMarkers.Select(marker => new HistoricalLogEvent(
+            marker.Bar,
+            marker.Ordinal,
+            () => LogImpulseMarker(marker)));
+        var shadowEvents = _historicalShadowMarkers.Select(marker => new HistoricalLogEvent(
+            marker.Bar,
+            marker.Ordinal,
+            () => LogShadowMarker(marker)));
+        foreach (var item in impulseEvents.Concat(shadowEvents).OrderBy(item => item.Bar).ThenBy(item => item.Ordinal))
+            item.Write();
 
         _log(
             $"[AUCTION_STATE_SUMMARY] StudyMode={StudyMode}, " +
@@ -95,6 +117,14 @@ internal sealed class FabioAuctionStudyModule
             $"ImpulseProfilesReady={_impulseReadyCount}, " +
             $"ImpulsePullbackBars={_impulsePullbackBarCount}, " +
             $"ImpulseProfilesResolved={_impulseResolvedCount}, " +
+            $"ShadowModel={ShadowModel}, " +
+            $"ShadowProspectiveStart={ProspectiveStartSessionDate:yyyy-MM-dd}, " +
+            $"ShadowEnabled={(ShadowEnabled ? "TRUE" : "FALSE")}, " +
+            $"ShadowEntries={_shadowEntryCount}, " +
+            $"ShadowProspectiveEntries={_shadowProspectiveEntryCount}, " +
+            $"ShadowPathBars={_shadowPathBarCount}, " +
+            $"ShadowResolutions={_shadowResolutionCount}, " +
+            $"ShadowComplete30MinutePaths={_shadowCompletePathCount}, " +
             $"OperationalEntries=0, ShadowOrders=0",
             false);
     }
@@ -163,6 +193,7 @@ internal sealed class FabioAuctionStudyModule
 
         Increment(_sessionCounts, record.Session);
         Increment(_effortResultCounts, record.EffortResult);
+        ProcessActiveShadowPaths(record);
         if (_processedImpulseRecords.Add(key))
             ProcessNewYorkImpulse(record);
         if (record.IsHistorical)
@@ -274,6 +305,13 @@ internal sealed class FabioAuctionStudyModule
         var touchedLvns = impulse.FrozenLvns
             .Where(lvn => record.Low <= lvn.Price && lvn.Price <= record.High)
             .ToList();
+        var continuation = impulse.Direction == "LONG"
+            ? record.High > impulse.ImpulseHigh
+            : record.Low < impulse.ImpulseLow;
+        var originReentered = impulse.Direction == "LONG"
+            ? record.Close <= impulse.OriginBoundary
+            : record.Close >= impulse.OriginBoundary;
+
         EmitImpulseMarker(new ImpulseMarker
         {
             Kind = "PULLBACK_BAR",
@@ -285,12 +323,9 @@ internal sealed class FabioAuctionStudyModule
             TouchedLvns = touchedLvns
         });
 
-        var continuation = impulse.Direction == "LONG"
-            ? record.High > impulse.ImpulseHigh
-            : record.Low < impulse.ImpulseLow;
-        var originReentered = impulse.Direction == "LONG"
-            ? record.Close <= impulse.OriginBoundary
-            : record.Close >= impulse.OriginBoundary;
+        // A confirmation on the resolution bar already knows the outcome and is not causal.
+        if (!continuation && !originReentered)
+            TryCreateLiveShadow(impulse, record, touchedLvns);
         if (!continuation && !originReentered)
             return;
 
@@ -312,8 +347,270 @@ internal sealed class FabioAuctionStudyModule
             Record = record,
             EndReason = reason
         });
+        ResolveShadow(impulse, record, reason);
         _newYorkImpulse.Active = null;
     }
+
+    private void TryCreateLiveShadow(
+        ImpulseLifecycle impulse,
+        AuctionBarRecord record,
+        IReadOnlyCollection<LvnMetrics> touchedLvns)
+    {
+        if (!ShadowEnabled || record.IsHistorical || impulse.ShadowCreated || !IsShadowConfirmation(impulse, record, touchedLvns))
+            return;
+
+        var primaryKey = GetShadowPrimaryKey(impulse.SessionDate, impulse.Direction);
+        if (!_shadowPrimaryDateDirections.Add(primaryKey))
+            return;
+
+        var shadow = CreateShadowObservation(impulse, record, touchedLvns);
+        impulse.ShadowCreated = true;
+        _shadowObservations.Add(shadow);
+        _shadowsByImpulse[impulse.Id] = shadow;
+        EmitShadowMarker(ImpulseShadowMarker.Entry(shadow));
+    }
+
+    private static bool IsShadowConfirmation(
+        ImpulseLifecycle impulse,
+        AuctionBarRecord record,
+        IReadOnlyCollection<LvnMetrics> touchedLvns)
+    {
+        if (record.CumulativeFlow.TradeCount == 0 || touchedLvns.Count == 0)
+            return false;
+
+        var expectedResult = impulse.Direction == "LONG" ? "BUY_WITH_RESULT" : "SELL_WITH_RESULT";
+        var directionalMaximum = impulse.Direction == "LONG"
+            ? record.CumulativeFlow.MaxBuy
+            : record.CumulativeFlow.MaxSell;
+        var oppositeMaximum = impulse.Direction == "LONG"
+            ? record.CumulativeFlow.MaxSell
+            : record.CumulativeFlow.MaxBuy;
+        return record.EffortResult == expectedResult
+            && directionalMaximum >= MinimumDirectionalCumulativeTrade
+            && directionalMaximum > oppositeMaximum;
+    }
+
+    private ImpulseShadowObservation CreateShadowObservation(
+        ImpulseLifecycle impulse,
+        AuctionBarRecord record,
+        IReadOnlyCollection<LvnMetrics> touchedLvns)
+    {
+        var directionalMaximum = impulse.Direction == "LONG"
+            ? record.CumulativeFlow.MaxBuy
+            : record.CumulativeFlow.MaxSell;
+        var oppositeMaximum = impulse.Direction == "LONG"
+            ? record.CumulativeFlow.MaxSell
+            : record.CumulativeFlow.MaxBuy;
+        return new ImpulseShadowObservation
+        {
+            Id = $"{impulse.Id}:SHADOW",
+            Impulse = impulse,
+            EntryRecord = record,
+            EntryPrice = record.Close,
+            EvaluationCohort = impulse.SessionDate >= ProspectiveStartSessionDate
+                ? "PROSPECTIVE"
+                : "HISTORICAL_REFERENCE",
+            TouchedLvns = touchedLvns.ToList(),
+            DirectionalCumulativeMaximum = directionalMaximum,
+            OppositeCumulativeMaximum = oppositeMaximum
+        };
+    }
+
+    private void ProcessActiveShadowPaths(AuctionBarRecord record)
+    {
+        foreach (var shadow in _shadowObservations.Where(item => !item.PathComplete).ToList())
+        {
+            if (shadow.Impulse.SessionDate != record.SessionDate || record.Bar <= shadow.EntryRecord.Bar)
+                continue;
+            AddShadowPath(shadow, record);
+        }
+    }
+
+    private void AddShadowPath(ImpulseShadowObservation shadow, AuctionBarRecord record)
+    {
+        var elapsedMinutes = (record.EndTimeUtc - shadow.EntryRecord.EndTimeUtc).TotalMinutes;
+        if (elapsedMinutes <= 0)
+            return;
+
+        var favorable = shadow.Impulse.Direction == "LONG"
+            ? record.High - shadow.EntryPrice
+            : shadow.EntryPrice - record.Low;
+        var adverse = shadow.Impulse.Direction == "LONG"
+            ? shadow.EntryPrice - record.Low
+            : record.High - shadow.EntryPrice;
+        shadow.FavorableMfePoints = Math.Max(shadow.FavorableMfePoints, Math.Max(0m, favorable));
+        shadow.AdverseMaePoints = Math.Max(shadow.AdverseMaePoints, Math.Max(0m, adverse));
+        shadow.PathBarOrdinal++;
+        var completesPath = elapsedMinutes >= ShadowPathMinutes;
+        if (completesPath)
+            shadow.PathComplete = true;
+
+        EmitShadowMarker(ImpulseShadowMarker.Path(
+            shadow,
+            record,
+            elapsedMinutes,
+            shadow.Impulse.Direction == "LONG"
+                ? record.Close - shadow.EntryPrice
+                : shadow.EntryPrice - record.Close,
+            completesPath));
+    }
+
+    private void ResolveShadow(ImpulseLifecycle impulse, AuctionBarRecord record, string reason)
+    {
+        if (!_shadowsByImpulse.TryGetValue(impulse.Id, out var shadow) || shadow.Resolved)
+            return;
+        shadow.Resolved = true;
+        shadow.ResolutionRecord = record;
+        shadow.EndReason = reason;
+        EmitShadowMarker(ImpulseShadowMarker.Resolved(shadow));
+    }
+
+    private void BuildHistoricalShadowObservations()
+    {
+        if (!ShadowEnabled || _historicalShadowMarkers.Count > 0)
+            return;
+
+        var grouped = _historicalImpulseMarkers
+            .GroupBy(marker => marker.Impulse.Id)
+            .OrderBy(group => group.First().Impulse.StartBar);
+        var records = _historicalRecords.Values.OrderBy(record => record.Bar).ToList();
+        foreach (var group in grouped)
+        {
+            var markers = group.OrderBy(marker => marker.Bar).ThenBy(marker => marker.Ordinal).ToList();
+            var resolution = markers.FirstOrDefault(marker => marker.Kind == "RESOLVED");
+            if (resolution == null)
+                continue;
+
+            var confirmation = markers.FirstOrDefault(marker =>
+                marker.Kind == "PULLBACK_BAR"
+                && marker.Record.Bar < resolution.Record.Bar
+                && IsShadowConfirmation(marker.Impulse, marker.Record, marker.TouchedLvns));
+            if (confirmation == null)
+                continue;
+
+            var impulse = confirmation.Impulse;
+            var primaryKey = GetShadowPrimaryKey(impulse.SessionDate, impulse.Direction);
+            if (!_shadowPrimaryDateDirections.Add(primaryKey))
+                continue;
+
+            var shadow = CreateShadowObservation(impulse, confirmation.Record, confirmation.TouchedLvns);
+            impulse.ShadowCreated = true;
+            shadow.Resolved = true;
+            shadow.ResolutionRecord = resolution.Record;
+            shadow.EndReason = resolution.EndReason;
+            _shadowObservations.Add(shadow);
+            _shadowsByImpulse[impulse.Id] = shadow;
+            _historicalShadowMarkers.Add(ImpulseShadowMarker.Entry(shadow));
+
+            foreach (var record in records.Where(record =>
+                         record.SessionDate == impulse.SessionDate
+                         && record.Bar > confirmation.Record.Bar))
+            {
+                AddShadowPath(shadow, record);
+                if (shadow.PathComplete)
+                    break;
+            }
+            _historicalShadowMarkers.Add(ImpulseShadowMarker.Resolved(shadow));
+        }
+    }
+
+    private bool ShadowEnabled => string.Equals(_chartTimeFrame, "M1", StringComparison.OrdinalIgnoreCase);
+
+    private void EmitShadowMarker(ImpulseShadowMarker marker)
+    {
+        if (marker.Record.IsHistorical)
+            _historicalShadowMarkers.Add(marker);
+        else
+            LogShadowMarker(marker);
+    }
+
+    private void LogShadowMarker(ImpulseShadowMarker marker)
+    {
+        var shadow = marker.Shadow;
+        var impulse = shadow.Impulse;
+        var key = $"{shadow.Id}:{marker.Kind}:{marker.Record.Bar}:{marker.Ordinal}";
+        if (!_newYorkImpulse.LoggedMarkers.Add(key))
+            return;
+
+        var fields = new List<string>
+        {
+            $"ShadowId={shadow.Id}",
+            $"ImpulseId={impulse.Id}",
+            $"SessionDate={impulse.SessionDate:yyyy-MM-dd}",
+            $"Direction={impulse.Direction}",
+            $"ChartTimeFrame={_chartTimeFrame}",
+            $"EvaluationCohort={shadow.EvaluationCohort}"
+        };
+        string markerName;
+        if (marker.Kind == "ENTRY")
+        {
+            markerName = "[AUCTION_IMPULSE_SHADOW_ENTRY]";
+            _shadowEntryCount++;
+            if (shadow.EvaluationCohort == "PROSPECTIVE")
+                _shadowProspectiveEntryCount++;
+            fields.Add($"ConfirmationBar={shadow.EntryRecord.Bar}");
+            fields.Add($"ConfirmationTimeItaly={MarketTimeZones.ToItaly(shadow.EntryRecord.EndTimeUtc):yyyy-MM-dd HH:mm:ss}");
+            fields.Add($"ShadowEntryPrice={F(shadow.EntryPrice)}");
+            fields.Add($"PullbackOrdinal={FindPullbackOrdinal(impulse, shadow.EntryRecord.Bar)}");
+            fields.Add($"TouchedLvns={FormatLvns(shadow.TouchedLvns)}");
+            fields.Add($"DirectionalCumulativeMax={F(shadow.DirectionalCumulativeMaximum)}");
+            fields.Add($"OppositeCumulativeMax={F(shadow.OppositeCumulativeMaximum)}");
+            fields.Add($"MinimumDirectionalCumulativeTrade={F(MinimumDirectionalCumulativeTrade)}");
+            fields.Add("Meaning=OBSERVATION_START_NO_ORDER");
+        }
+        else if (marker.Kind == "PATH")
+        {
+            markerName = "[AUCTION_IMPULSE_SHADOW_PATH]";
+            _shadowPathBarCount++;
+            if (marker.CompletesPath)
+                _shadowCompletePathCount++;
+            var impulseRange = impulse.ImpulseHigh - impulse.ImpulseLow;
+            fields.Add($"PathBarOrdinal={marker.PathBarOrdinal}");
+            fields.Add($"Bar={marker.Record.Bar}");
+            fields.Add($"BarEndItaly={MarketTimeZones.ToItaly(marker.Record.EndTimeUtc):yyyy-MM-dd HH:mm:ss}");
+            fields.Add($"ElapsedMinutes={marker.ElapsedMinutes:F4}");
+            fields.Add($"Open={F(marker.Record.Contribution.Open)}");
+            fields.Add($"High={F(marker.Record.High)}");
+            fields.Add($"Low={F(marker.Record.Low)}");
+            fields.Add($"Close={F(marker.Record.Close)}");
+            fields.Add($"DirectionalCloseMovePoints={F(marker.DirectionalCloseMovePoints)}");
+            fields.Add($"FavorableMfePoints={F(marker.FavorableMfePoints)}");
+            fields.Add($"AdverseMaePoints={F(marker.AdverseMaePoints)}");
+            fields.Add($"DirectionalCloseMoveRanges={F(SafeDivide(marker.DirectionalCloseMovePoints, impulseRange), 4)}");
+            fields.Add($"FavorableMfeRanges={F(SafeDivide(marker.FavorableMfePoints, impulseRange), 4)}");
+            fields.Add($"AdverseMaeRanges={F(SafeDivide(marker.AdverseMaePoints, impulseRange), 4)}");
+            fields.Add($"CumulativeTradeCoverage={(marker.Record.CumulativeFlow.TradeCount > 0 ? "AVAILABLE" : "MISSING")}");
+            fields.Add($"MaxCumulativeBuy={F(marker.Record.CumulativeFlow.MaxBuy)}");
+            fields.Add($"MaxCumulativeSell={F(marker.Record.CumulativeFlow.MaxSell)}");
+            fields.Add($"Completes30MinutePath={(marker.CompletesPath ? "TRUE" : "FALSE")}");
+        }
+        else
+        {
+            markerName = "[AUCTION_IMPULSE_SHADOW_RESOLVED]";
+            _shadowResolutionCount++;
+            fields.Add($"ResolvedBar={shadow.ResolutionRecord?.Bar}");
+            fields.Add($"EndReason={shadow.EndReason}");
+            fields.Add($"BarsFromConfirmationToResolution={(shadow.ResolutionRecord?.Bar ?? shadow.EntryRecord.Bar) - shadow.EntryRecord.Bar}");
+        }
+
+        fields.Add("OperationalEntry=FALSE");
+        fields.Add("OrderSubmitted=FALSE");
+        fields.Add("PnLComputed=FALSE");
+        _log($"{markerName} {string.Join(", ", fields)}", marker.Record.IsHistorical);
+    }
+
+    private int FindPullbackOrdinal(ImpulseLifecycle impulse, int bar)
+    {
+        return _historicalImpulseMarkers
+            .FirstOrDefault(marker => marker.Impulse.Id == impulse.Id && marker.Kind == "PULLBACK_BAR" && marker.Record.Bar == bar)
+            ?.PullbackOrdinal ?? impulse.PullbackOrdinal;
+    }
+
+    private static string GetShadowPrimaryKey(DateOnly sessionDate, string direction) =>
+        $"{sessionDate:yyyy-MM-dd}:{direction}";
+
+    private static decimal SafeDivide(decimal value, decimal denominator) =>
+        denominator > 0 ? value / denominator : 0m;
 
     private void EmitImpulseMarker(ImpulseMarker marker)
     {
@@ -740,6 +1037,7 @@ internal sealed class FabioAuctionStudyModule
         public Dictionary<decimal, decimal> FrozenProfile { get; set; } = new();
         public ProfileMetrics? FrozenMetrics { get; set; }
         public List<LvnMetrics> FrozenLvns { get; set; } = new();
+        public bool ShadowCreated { get; set; }
     }
 
     private sealed class ImpulseMarker
@@ -753,6 +1051,89 @@ internal sealed class FabioAuctionStudyModule
         public string FrozenRelation { get; init; } = string.Empty;
         public IReadOnlyCollection<LvnMetrics> TouchedLvns { get; init; } = Array.Empty<LvnMetrics>();
         public string EndReason { get; init; } = string.Empty;
+    }
+
+    private sealed class ImpulseShadowObservation
+    {
+        public string Id { get; init; } = string.Empty;
+        public ImpulseLifecycle Impulse { get; init; } = null!;
+        public AuctionBarRecord EntryRecord { get; init; } = null!;
+        public decimal EntryPrice { get; init; }
+        public string EvaluationCohort { get; init; } = string.Empty;
+        public List<LvnMetrics> TouchedLvns { get; init; } = new();
+        public decimal DirectionalCumulativeMaximum { get; init; }
+        public decimal OppositeCumulativeMaximum { get; init; }
+        public int PathBarOrdinal { get; set; }
+        public decimal FavorableMfePoints { get; set; }
+        public decimal AdverseMaePoints { get; set; }
+        public bool PathComplete { get; set; }
+        public bool Resolved { get; set; }
+        public AuctionBarRecord? ResolutionRecord { get; set; }
+        public string EndReason { get; set; } = string.Empty;
+    }
+
+    private sealed class ImpulseShadowMarker
+    {
+        public string Kind { get; init; } = string.Empty;
+        public int Ordinal { get; init; }
+        public int Bar => Record.Bar;
+        public ImpulseShadowObservation Shadow { get; init; } = null!;
+        public AuctionBarRecord Record { get; init; } = null!;
+        public int PathBarOrdinal { get; init; }
+        public double ElapsedMinutes { get; init; }
+        public decimal DirectionalCloseMovePoints { get; init; }
+        public decimal FavorableMfePoints { get; init; }
+        public decimal AdverseMaePoints { get; init; }
+        public bool CompletesPath { get; init; }
+
+        public static ImpulseShadowMarker Entry(ImpulseShadowObservation shadow) => new()
+        {
+            Kind = "ENTRY",
+            Ordinal = 5000,
+            Shadow = shadow,
+            Record = shadow.EntryRecord
+        };
+
+        public static ImpulseShadowMarker Path(
+            ImpulseShadowObservation shadow,
+            AuctionBarRecord record,
+            double elapsedMinutes,
+            decimal directionalCloseMovePoints,
+            bool completesPath) => new()
+        {
+            Kind = "PATH",
+            Ordinal = -100,
+            Shadow = shadow,
+            Record = record,
+            PathBarOrdinal = shadow.PathBarOrdinal,
+            ElapsedMinutes = elapsedMinutes,
+            DirectionalCloseMovePoints = directionalCloseMovePoints,
+            FavorableMfePoints = shadow.FavorableMfePoints,
+            AdverseMaePoints = shadow.AdverseMaePoints,
+            CompletesPath = completesPath
+        };
+
+        public static ImpulseShadowMarker Resolved(ImpulseShadowObservation shadow) => new()
+        {
+            Kind = "RESOLVED",
+            Ordinal = 11000,
+            Shadow = shadow,
+            Record = shadow.ResolutionRecord!
+        };
+    }
+
+    private sealed class HistoricalLogEvent
+    {
+        public HistoricalLogEvent(int bar, int ordinal, Action write)
+        {
+            Bar = bar;
+            Ordinal = ordinal;
+            Write = write;
+        }
+
+        public int Bar { get; }
+        public int Ordinal { get; }
+        public Action Write { get; }
     }
 
     private sealed class CumulativeFlowStats

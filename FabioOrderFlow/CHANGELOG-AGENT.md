@@ -1,5 +1,37 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Implementazione 2026-07-12 - Cumulative Confirmation Shadow V1
+
+```text
+Fine:
+- trasformare l'unico candidato causale completo in un test prospettico decisivo;
+- nessun ordine, posizione, stop, target o PnL.
+
+Candidato:
+- prima conferma per data/direzione;
+- pullback prima della risoluzione + raw LVN attraversato;
+- WITH_RESULT direzionale + cumulative max >=30 e > opposto;
+- shadow abilitata solo con ChartTimeFrame=M1; M5 resta profile-only;
+- shadow price alla close della conferma;
+- path M1 fino a 30 minuti con movimento close, MFE e MAE in punti/range.
+
+Cohort e arresto:
+- <=2026-07-10 HISTORICAL_REFERENCE; >=2026-07-13 PROSPECTIVE;
+- primo campione cronologico: 20 osservazioni, almeno 8 LONG e 8 SHORT;
+- almeno 18 path disponibili a 15 minuti; massimo 40 sessioni;
+- criteri promozione/scarto congelati nel contratto prima dei dati futuri.
+
+Output:
+- AUCTION_IMPULSE_SHADOW_ENTRY/PATH/RESOLVED;
+- tools/report_auction_impulse_shadow.py, JSON stdout e CSV solo con --save;
+- report decisionale COLLECTING|PROMOTED_TO_EXECUTION_SIMULATION|REJECTED|REJECTED_RARITY.
+
+Verifica pre-reload:
+- build Release 0 warning / 0 error;
+- fixture path 5/15/30, conteggi, progressione MFE/MAE e no-order valida;
+- fixture decisionale promozione/scarto valida.
+```
+
 ## Reload e Analisi 2026-07-12 - Raw Causal LVN Ranking V1
 
 ```text

@@ -59,6 +59,14 @@ python FabioOrderFlow/tools/report_auction_impulse_ledger.py --save
 
 Salva `auction-impulse-*-summary.json`, profili, barre pullback e risoluzioni in CSV. Con `LvnRanking=RAW_CAUSAL_V1` aggiunge `auction-impulse-*-lvns.csv` e `auction-impulse-*-touched-lvns.csv`; tutti i raw LVN restano inclusi. Gli snapshot M1 e M5 sono dataset distinti; la coverage cumulative mancante su dxFeed resta esplicita.
 
+Shadow cumulative New York e percorso successivo:
+
+```bash
+python FabioOrderFlow/tools/report_auction_impulse_shadow.py --save
+```
+
+Salva `auction-impulse-shadow-*-summary.json`, osservazioni e barre del percorso. Una shadow e' un'osservazione senza ordine; il report spiega se il campione prospettico e' ancora in raccolta, e' scartato o puo' passare alla simulazione con costi.
+
 Analisi LVN ranked sul primo pullback precedente alla risoluzione:
 
 ```bash

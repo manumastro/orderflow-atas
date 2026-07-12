@@ -14,3 +14,4 @@
 13. Prima di ogni ciclo dichiara domanda, candidato, criterio di promozione, criterio di scarto e dati necessari. Non scegliere questi criteri dopo aver letto gli outcome dello stesso campione.
 14. Chiudi ogni ciclo con una sola conclusione esplicita: `PROMUOVI`, `SCARTA` oppure `INCONCLUDENTE`. Se inconcludente, specifica il test successivo, la numerosita' o scadenza, e la condizione che impedisce di continuare indefinitamente.
 15. Ogni riepilogo finale deve contenere: `Fine perseguito`, `Conclusione`, `Impatto sul modello`, `Prossima azione`, `Criterio di arresto`. Non usare formule vaghe come "servono altri dati" senza un contratto di verifica.
+16. Usa un linguaggio da conversazione tra persone. Spiega ogni termine tecnico o sigla alla prima occorrenza con parole comuni e chiarisci cosa significa concretamente per il modello; non presentare sequenze di marker, metriche o etichette senza tradurle in una conclusione comprensibile.

@@ -9,7 +9,7 @@ Modalita':          NEW_YORK_IMPULSE_STUDY_NO_TRADES
 Sessione runtime:   New York 09:30-16:00 New York
 Ordini / PnL:       DISABLED
 Grafico:            nessun output London o trade
-Output:             profilo A->B + pullback + cumulative flow + risoluzione
+Output:             profilo A->B + pullback + cumulative shadow no-order + risoluzione
 ```
 
 `LondonMeanReversionModel`, `BalanceZoneTracker`, il ledger auction-state dual-session e `PostLondonImpulseModel` non sono inizializzati dall'orchestrator. Restano sorgenti e baseline storiche riproducibili. `london-ny-close-hold` e il suo PnL `+634,25` appartengono soltanto al core legacy.
@@ -32,6 +32,7 @@ tools/analyze_fabio_auction_playbooks.py                 balance rotation + NY p
 tools/report_auction_impulse_ledger.py                    profilo causale NY A->B, JSON only
 tools/analyze_auction_impulse_confirmations.py             cumulative confirmation M1/M5, JSON only
 tools/analyze_auction_impulse_lvn_ranking.py               primo pullback e metriche LVN continue, JSON only
+tools/report_auction_impulse_shadow.py                      test prospettico cumulative, path e decisione, JSON only
 performance-snapshots/                                 snapshot PnL legacy
 ledger-snapshots/                                      CSV dataset e report JSON del compression ledger
 archive/legacy-research/                               strumenti/snapshot pre-core, non operativi
@@ -143,6 +144,14 @@ python FabioOrderFlow/tools/analyze_auction_impulse_lvn_ranking.py --timeframe M
 
 Non seleziona soglie. Esclude la barra che ha gia' risolto l'impulso, confronta continuation/reentry con distribuzioni e AUC descrittiva, e mantiene `selectionLeakage=true`.
 
+Shadow cumulative prospettica, cioe' osservazione futura senza ordini:
+
+```bash
+python FabioOrderFlow/tools/report_auction_impulse_shadow.py --save
+```
+
+Segue il prezzo dalla chiusura della conferma per 30 minuti. `MFE` indica il massimo movimento favorevole; `MAE` il massimo movimento contrario. Il report congela il primo campione di 20 osservazioni con almeno 8 per direzione e restituisce una decisione comprensibile: raccolta, promozione alla simulazione con costi oppure scarto.
+
 Conferma cumulative pre-risoluzione, M1/M5 separati:
 
 ```bash
@@ -184,3 +193,4 @@ Confronta causalmente failed breakout reversion e acceptance continuation, inclu
 - Il changelog contiene solo decisioni operative, risultati reload e comandi essenziali.
 - Ogni doc deve essere leggibile da umano e agente: frasi brevi, nomi file/tag esatti, nessuna narrativa superflua.
 - Ogni risposta e aggiornamento deve chiarire in forma concisa, anche se gia' discusso: `Operativo`, `Diagnostico`, `Cambiato`, `Da verificare`. Non assumere che il lettore ricordi il contesto precedente.
+- Spiegare termini tecnici e sigle alla prima occorrenza con parole comuni; i documenti devono poter essere letti come una conversazione tra persone, non come una lista di marker senza interpretazione.

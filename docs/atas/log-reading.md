@@ -6,7 +6,7 @@ Guida canonica per interpretare i log di `FabioOrderFlow`.
 
 - Il file corrente viene azzerato a ogni inizializzazione indicatore.
 - `WriteItaly=` e' l'ora di scrittura; per il mercato usare `Italy=`, `London=` e `UTC=` inclusi nell'evento.
-- Il modello attivo e' `COMPRESSION_EVENT_LEDGER_NO_TRADES`: non deve emettere `[MR_ENTRY]`, `[MR_EXIT]`, posizioni o PnL.
+- Il modello attivo e' `NEW_YORK_IMPULSE_STUDY_NO_TRADES`: studia gli impulsi New York e non deve emettere `[MR_ENTRY]`, `[MR_EXIT]`, posizioni o PnL.
 - `[MR_EXIT]` resta fonte PnL solo nei log legacy precedenti allo studio.
 
 ## File Corrente
@@ -53,6 +53,9 @@ Marker attivi:
 [AUCTION_IMPULSE_READY]           profilo New York A->B congelato prima del pullback
 [AUCTION_IMPULSE_PULLBACK_BAR]    location e flow di ogni barra dopo B
 [AUCTION_IMPULSE_RESOLVED]        nuovo estremo, origin reentry, two-sided o session end
+[AUCTION_IMPULSE_SHADOW_ENTRY]    inizio osservazione cumulative; non e' un ordine
+[AUCTION_IMPULSE_SHADOW_PATH]     movimento favorevole/contrario dopo la conferma
+[AUCTION_IMPULSE_SHADOW_RESOLVED] risultato dell'impulso associato alla shadow
 ```
 
 ## Come Leggere Un Range
@@ -138,7 +141,13 @@ Su dxFeed storico ATAS puo' restituire `CUM_TRADES_RESPONSE Count=0`: il profilo
 python FabioOrderFlow/tools/analyze_auction_impulse_confirmations.py --timeframe M1 --save
 ```
 
-`NY_IMPULSE_LVN_CUMULATIVE_CONFIRMATION_V1` richiede una barra precedente alla risoluzione, directional `WITH_RESULT`, raw LVN attraversato e cumulative max direzionale `>=30` e maggiore dell'opposto. La soglia 30 viene dal transcript New York. Il raw LVN touch resta descrittivo: sul primo replay e' presente in ogni pullback.
+`NY_IMPULSE_LVN_CUMULATIVE_CONFIRMATION_V1` richiede una barra precedente alla risoluzione, directional `WITH_RESULT`, raw LVN attraversato e cumulative max direzionale `>=30` e maggiore dell'opposto. `WITH_RESULT` significa che delta e prezzo della candela si muovono nella stessa direzione. La soglia 30 viene dal transcript New York. Il raw LVN touch resta descrittivo: sul primo replay e' presente in ogni pullback.
+
+```bash
+python FabioOrderFlow/tools/report_auction_impulse_shadow.py --save
+```
+
+La shadow e' una registrazione simulata senza ordine. Parte dalla chiusura della prima conferma per data/direzione e segue il prezzo fino a 30 minuti. `MFE` e' il massimo movimento favorevole; `MAE` il massimo movimento contrario. Solo le date dal `2026-07-13` decidono il test; quelle precedenti servono a verificare il software.
 
 ## Componenti London
 
