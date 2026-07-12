@@ -1,5 +1,33 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Runtime NY-Only 2026-07-12 - Rimozione Percorsi Non Usati
+
+```text
+Modello effettivamente studiato:
+- NEW_YORK_IMPULSE_STUDY_NO_TRADES;
+- New York 09:30-16:00 New York; LONG e SHORT simmetrici;
+- prior NY value -> impulso A->B -> frozen profile/LVN -> pullback -> cumulative flow -> resolution.
+
+Rimossi dal percorso runtime:
+- LondonMeanReversionModel e replay compression/shadow;
+- BalanceZoneTracker, profilo/disegni London e forwarding trade;
+- sessione London del FabioAuctionStudyModel;
+- AUCTION_STATE_BAR per-barra;
+- developing/rolling 6-12, overlap e LVN sessione/rolling non consumati.
+
+Conservati:
+- sorgenti e snapshot London/dual-session come baseline riproducibile;
+- richieste cumulative sequenziali <=7 giorni;
+- prior NY profile, footprint A->B, raw LVN impulso, pullback, coverage e summary;
+- no-trade strutturale.
+
+Verifica pre-reload:
+- build Release 0 warning / 0 error;
+- report compatibile con vecchio dual-session e nuovo summary-only NY;
+- da verificare su ATAS: LondonBars=0, assenza HISTORICAL_FLOW_FINISH/AUCTION_STATE_BAR,
+  conteggi impulse invariati e riduzione di tempo/dimensione log.
+```
+
 ## Estensione Rithmic M1 a 40 Date 2026-07-12 - Historical Holdout
 
 ```text

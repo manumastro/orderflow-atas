@@ -1,15 +1,13 @@
 # BalanceZoneTracker
 
-Modulo shared affidabile per individuare la sessione London. Oggi conserva anche il precedente stato profile London e inoltra eventi, ma il modello attivo `FabioCompressionStudy` non consuma quelle elaborazioni.
+Baseline shared London. Dal runtime NY-only 2026-07-12 resta compilato ma non viene costruito dall'orchestrator: non calcola profili, non inoltra eventi e non disegna la zona London.
 
 ## Stato Corrente
 
 ```text
-Usato dal modello studio:
-- riconoscimento della sessione London tramite MarketTimeZones
-- ciclo barre e forwarding dei cumulative trades
+Runtime: DISABLED
 
-Ancora implementato, ma non consumato dal modello studio:
+Ancora implementato per riproducibilita' delle baseline:
 - aggregazione volume per price level
 - preview POC / VAH / VAL
 - high / low London e state machine post-London

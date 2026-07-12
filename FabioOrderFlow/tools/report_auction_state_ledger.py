@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Report the dual-session auction-state ledger as JSON and optional CSV."""
+"""Report legacy auction-state bars or validate an NY-only summary as JSON."""
 
 from __future__ import annotations
 
@@ -149,16 +149,29 @@ def build_report(log_path: Path) -> tuple[dict[str, object], list[dict[str, obje
                 absorption_at_location[session][f"{relation}:{effort}"] += 1
 
     operational = [record for record in records if record["OperationalEntry"] or record["OrderSubmitted"]]
+    configured_sessions = tuple(filter(None, mode.get("Sessions", "LONDON|NEW_YORK").split("|")))
+    auction_state_bars_enabled = mode.get("AuctionStateBars", "ENABLED") != "DISABLED"
+    summary_sessions = {
+        "LONDON": int(finish.get("LondonBars", 0)),
+        "NEW_YORK": int(finish.get("NewYorkBars", 0)),
+    }
+    configured_sessions_present = all(
+        (sessions[session] if auction_state_bars_enabled else summary_sessions.get(session, 0)) > 0
+        for session in configured_sessions
+    )
     warnings: list[str] = []
-    for session in ("LONDON", "NEW_YORK"):
-        if sessions[session] == 0:
-            warnings.append(f"No completed {session} bars")
+    if auction_state_bars_enabled:
+        for session in configured_sessions:
+            if sessions[session] == 0:
+                warnings.append(f"No completed {session} bars")
 
     report: dict[str, object] = {
         "generatedAt": datetime.now().astimezone().isoformat(timespec="seconds"),
         "source": {"log": str(log_path), "mode": mode, "summary": finish},
         "contract": {
-            "studyMode": "DUAL_SESSION_AUCTION_STATE_LEDGER_NO_TRADES",
+            "studyMode": mode.get("StudyMode", "UNKNOWN"),
+            "configuredSessions": configured_sessions,
+            "auctionStateBarsEnabled": auction_state_bars_enabled,
             "flowSource": "CANDLE_FOOTPRINT|CUMULATIVE_TRADES",
             "cumulativeBigTradesIncluded": True,
             "signalsGenerated": False,
@@ -168,6 +181,7 @@ def build_report(log_path: Path) -> tuple[dict[str, object], list[dict[str, obje
         "counts": {
             "records": len(records),
             "sessions": dict(sorted(sessions.items())),
+            "summarySessions": summary_sessions,
             "sessionDates": {key: len(value) for key, value in sorted(session_dates.items())},
             "uniqueChartBars": len({record["Bar"] for record in records}),
         },
@@ -184,6 +198,8 @@ def build_report(log_path: Path) -> tuple[dict[str, object], list[dict[str, obje
         "validation": {
             "summaryPresent": True,
             "bothSessionsPresent": sessions["LONDON"] > 0 and sessions["NEW_YORK"] > 0,
+            "configuredSessionsPresent": configured_sessions_present,
+            "summaryOnlyMode": not auction_state_bars_enabled,
             "nonOperational": len(operational) == 0,
             "warnings": warnings,
         },

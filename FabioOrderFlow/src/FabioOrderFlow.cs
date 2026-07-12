@@ -7,8 +7,6 @@ namespace FabioOrderFlow;
 
 public class FabioOrderFlow : Indicator
 {
-    private BalanceZoneTracker? _balanceTracker;
-    private LondonMeanReversionModule? _meanReversionModule;
     private FabioAuctionStudyModule? _auctionStudyModule;
     private const int CumulativeTradesRequestWindowDays = 7;
     private CumulativeTradesRequest? _cumulativeTradesRequest;
@@ -24,11 +22,6 @@ public class FabioOrderFlow : Indicator
     private readonly string _liveLogPath;
     private long _logSequence;
     
-    // Module parameters
-    public bool EnableLondonMeanReversion { get; set; } = true;
-    public bool EnableAuctionStateStudy { get; set; } = true;
-    public bool EnablePostLondonImpulse { get; set; } = false;
-
     public FabioOrderFlow()
     {
         Name = "Fabio Order Flow";
@@ -55,27 +48,13 @@ public class FabioOrderFlow : Indicator
     {
         if (bar == 0)
         {
-            Log($"[ONCALCULATE] Bar 0 - Initializing BalanceZoneTracker");
+            Log("[ONCALCULATE] Bar 0 - Initializing New York impulse study");
             Log($"[INSTRUMENT] Name: {InstrumentInfo?.Instrument}, TickSize: {InstrumentInfo?.TickSize}, Exchange: {InstrumentInfo?.Exchange}, InstrumentTimeZone={InstrumentInfo?.TimeZone}");
             Log($"[CHART] CurrentBar={CurrentBar}, ChartType={ChartInfo?.ChartType}");
             LogChartTradingSessions();
-            _balanceTracker = new BalanceZoneTracker(this, Log, Rectangles, HorizontalLinesTillTouch, GetCandle);
+            _auctionStudyModule = new FabioAuctionStudyModule(Log, ChartInfo?.TimeFrame ?? "UNKNOWN");
+            Log("[MODULE] New York impulse study initialized (no trades, auction-state bar log disabled)");
 
-            if (EnableAuctionStateStudy)
-            {
-                _auctionStudyModule = new FabioAuctionStudyModule(Log, ChartInfo?.TimeFrame ?? "UNKNOWN");
-                Log("[MODULE] Dual-session auction state ledger initialized (no trades)");
-            }
-            
-            // Initialize Mean Reversion module if enabled
-            if (EnableLondonMeanReversion)
-            {
-                var tickSize = InstrumentInfo?.TickSize ?? 1m;
-                _meanReversionModule = new LondonMeanReversionModule(Log, GetCandle, tickSize, ChartInfo?.TimeFrame ?? "UNKNOWN");
-                _balanceTracker.SetMeanReversionModule(_meanReversionModule);
-                Log($"[MODULE] London Mean Reversion module initialized (Live-first, TickSize={tickSize})");
-            }
-            
             return;
         }
 
@@ -86,7 +65,6 @@ public class FabioOrderFlow : Indicator
             Log($"[BAR_CHECK] Bar={bar}, Italy={MarketTimeZones.ToItaly(candle.Time):yyyy-MM-dd HH:mm:ss}, UTC={candle.Time:yyyy-MM-dd HH:mm:ss}, O={candle.Open:F2}, H={candle.High:F2}, L={candle.Low:F2}, C={candle.Close:F2}, V={candle.Volume:F0}");
         }
         
-        _balanceTracker?.OnBarUpdate(bar, candle, CurrentBar);
         _auctionStudyModule?.OnBarUpdate(bar, CurrentBar, candle);
     }
 
@@ -112,7 +90,6 @@ public class FabioOrderFlow : Indicator
 
             _cumulativeTradesWindowCount = _pendingCumulativeTradesWindows.Count;
             Log($"[CUM_TRADES_LOOKBACK] Mode=WindowedSequentialRequests, ChartBeginItaly={MarketTimeZones.ToItaly(chartStartTime):yyyy-MM-dd HH:mm:ss}, ChartEndItaly={MarketTimeZones.ToItaly(chartEndTime):yyyy-MM-dd HH:mm:ss}, RequestWindowDays={CumulativeTradesRequestWindowDays}, WindowCount={_cumulativeTradesWindowCount}, CurrentBar={CurrentBar}");
-            _balanceTracker?.BeginHistoricalCumulativeTrades();
             RequestNextHistoricalCumulativeTradesWindow();
         }
         catch (Exception ex)
@@ -130,7 +107,6 @@ public class FabioOrderFlow : Indicator
         _cumulativeTradesReceived += trades.Count;
         _cumulativeTradesWindowsCompleted++;
         Log($"[CUM_TRADES_RESPONSE] Window={_activeCumulativeTradesWindow.Index}/{_cumulativeTradesWindowCount}, Count={trades.Count}, RequestId={request.RequestId}, BeginItaly={MarketTimeZones.ToItaly(_activeCumulativeTradesWindow.BeginUtc):yyyy-MM-dd HH:mm:ss}, EndItaly={MarketTimeZones.ToItaly(_activeCumulativeTradesWindow.EndUtc):yyyy-MM-dd HH:mm:ss}");
-        _balanceTracker?.AppendHistoricalCumulativeTrades(trades, _activeCumulativeTradesWindow.Index, _cumulativeTradesWindowCount);
         _auctionStudyModule?.AppendHistoricalCumulativeTrades(trades);
 
         _cumulativeTradesRequest = null;
@@ -140,13 +116,11 @@ public class FabioOrderFlow : Indicator
 
     protected override void OnCumulativeTrade(CumulativeTrade trade)
     {
-        _balanceTracker?.OnLiveCumulativeTrade(trade);
         _auctionStudyModule?.OnLiveCumulativeTrade(trade);
     }
 
     protected override void OnUpdateCumulativeTrade(CumulativeTrade trade)
     {
-        _balanceTracker?.OnLiveCumulativeTrade(trade);
         _auctionStudyModule?.OnLiveCumulativeTrade(trade);
     }
 
@@ -178,10 +152,7 @@ public class FabioOrderFlow : Indicator
     {
         if (_pendingCumulativeTradesWindows.Count == 0)
         {
-            _balanceTracker?.CompleteHistoricalCumulativeTrades();
             Log($"[CUM_TRADES_COMPLETE] WindowsCompleted={_cumulativeTradesWindowsCompleted}/{_cumulativeTradesWindowCount}, ReceivedTrades={_cumulativeTradesReceived}");
-            if (_meanReversionModule != null && CurrentBar > 0)
-                _meanReversionModule.ProcessHistoricalPositions(0, CurrentBar - 1);
             _auctionStudyModule?.LogHistoricalSummary();
             return;
         }

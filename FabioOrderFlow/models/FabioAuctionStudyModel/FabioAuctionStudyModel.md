@@ -1,19 +1,19 @@
 # FabioAuctionStudyModel
 
-Ledger diagnostico causale derivato congiuntamente da `transcription.txt` e `trascription_1.txt`.
+Studio causale New York A->B derivato congiuntamente da `transcription.txt` e `trascription_1.txt`.
 
 ## Stato
 
 ```text
-Modalita':          DUAL_SESSION_AUCTION_STATE_LEDGER_NO_TRADES
-Sessioni:           London 08:00-16:00 London
-                    New York 09:30-16:00 New York
+Modalita':          NEW_YORK_IMPULSE_STUDY_NO_TRADES
+Sessione:           New York 09:30-16:00 New York
 Direzioni:          simmetriche LONG e SHORT
 Ordini / PnL:       DISABLED
-Output:             una osservazione per barra/sessione completata
+Auction-state bars: DISABLED
+Output:             READY + PULLBACK_BAR + RESOLVED + summary
 ```
 
-Il modulo non genera setup, shadow entry, ordini, posizioni, stop, target o PnL. Serve a evitare che la discovery venga ristretta prematuramente a un solo lato o a una sola sequenza.
+Il modulo non genera setup, shadow entry, ordini, posizioni, stop, target o PnL. London reversion e il ledger dual-session restano baseline storiche e non sono nel percorso runtime.
 
 ## Tesi Dei Transcript
 
@@ -25,7 +25,7 @@ New York continuation:
 IMBALANCE -> profilo impulso -> LVN/pullback -> aggressione con risultato -> continuation verso nuova balance.
 ```
 
-Le due famiglie restano separate per sessione e stato. Non si usa il modello London durante New York ne' il modello trend durante una balance.
+Le due famiglie restano concettualmente separate. Il runtime corrente studia soltanto New York continuation; London non viene calcolata.
 
 ## Record
 
@@ -33,32 +33,24 @@ Marker:
 
 ```text
 [AUCTION_STATE_MODE]
-[AUCTION_STATE_BAR]
+[AUCTION_STATE_BAR]             DISABLED nel runtime NY-only
 [AUCTION_STATE_SUMMARY]
 [AUCTION_IMPULSE_READY]
 [AUCTION_IMPULSE_PULLBACK_BAR]
 [AUCTION_IMPULSE_RESOLVED]
 ```
 
-Ogni `[AUCTION_STATE_BAR]` include:
+Per velocizzare il replay non viene piu' emessa una riga per ogni barra. In memoria ogni barra NY conserva soltanto i dati necessari:
 
 ```text
-Session / SessionDate / SessionBarOrdinal / ChartTimeFrame
-OHLC / CandleVolume / PriceChange / CloseLocation
-BidVolume / AskVolume / Delta / DeltaImbalance
-MaxBidAtPrice / MaxAskAtPrice
-CumulativeTradeCount / cumulative buy-sell volume / cumulative delta
-MaxCumulativeBuy / MaxCumulativeSell / CumulativeTradeCoverage
-PriorPOC / PriorVAH / PriorVAL / posizione rispetto alla value area precedente
-DevelopingPOC / DevelopingVAH / DevelopingVAL
-Prior6/Prior12 range ed efficienza direzionale
-RangeToPrior12Median / OverlapWithPrevious
-profilo rolling 12 barre
-LVN locali piu' vicini sopra/sotto nel profilo sessione e rolling
-OperationalEntry=FALSE / OrderSubmitted=FALSE
+SessionDate / bar / begin-end UTC / high-low-close
+footprint bid-ask per classificare effort/result
+prior NY POC/VAH/VAL, sempre precedente alla barra corrente
+contributo volume-per-prezzo
+cumulative trade count e max buy/sell
 ```
 
-Il profilo `Prior*` esclude sempre la barra corrente. Il profilo `Developing*` la include ed e' disponibile alla sua close. Gli LVN sono minimi locali raw: il ledger salva prezzo e percentile del volume, senza soglia di qualificazione.
+Non vengono piu' calcolati developing profile, rolling 6/12, overlap o LVN sessione/rolling. Gli LVN raw del profilo impulso congelato restano completi e senza soglia di qualificazione.
 
 ## Effort Versus Result
 
@@ -108,13 +100,12 @@ RESOLVED
 ## Report
 
 ```bash
-python FabioOrderFlow/tools/report_auction_state_ledger.py --save
 python FabioOrderFlow/tools/report_auction_impulse_ledger.py --save
 ```
 
-I comandi restituiscono esclusivamente JSON su stdout. Il secondo salva profili A->B, barre pullback e risoluzioni. Gli aggregati sono descrittivi, senza segnali o PnL.
+Il comando restituisce esclusivamente JSON su stdout e salva profili A->B, barre pullback e risoluzioni. `report_auction_state_ledger.py` resta compatibile con snapshot dual-session precedenti e valida il summary NY-only, ma il runtime corrente non emette barre auction-state. Gli aggregati sono descrittivi, senza segnali o PnL.
 
-## Reload Verificato 2026-07-11
+## Baseline Dual-Session Verificata 2026-07-11
 
 ```text
 Auction bars:                    6.488
@@ -219,8 +210,9 @@ M5 = baseline separata per confronti precedenti.
 ## Da Verificare
 
 ```text
-- reload M1 con Rithmic e cumulative coverage disponibile;
-- conteggi READY/PULLBACK/RESOLVED del nuovo lifecycle;
-- equivalenza live/historical su nuove barre M1;
+- reload M1 della modalita' NEW_YORK_IMPULSE_STUDY_NO_TRADES;
+- LondonBars=0 e assenza HISTORICAL_FLOW_FINISH/AUCTION_STATE_BAR;
+- equivalenza dei 396 READY/RESOLVED e 1.132 pullback sullo stesso chart 40 date;
+- riduzione dimensione log e tempo di replay rispetto alla baseline dual-session;
 - nuove date prospettiche senza modificare il contratto A->B.
 ```

@@ -1,27 +1,27 @@
 # FabioOrderFlow
 
-Indicatore ATAS modulare per order flow su NQ/ES. Il progetto contiene l'orchestrator, il tracker del volume profile e modelli indipendenti. Il modulo attivo e' `LondonMeanReversionModel` in modalita' `FabioCompressionStudy`.
+Indicatore ATAS modulare per order flow su NQ/ES. Il runtime attivo studia esclusivamente il profilo impulso New York A->B tramite `FabioAuctionStudyModel`.
 
 ## Stato Corrente
 
 ```text
-Modalita':          COMPRESSION_EVENT_LEDGER_NO_TRADES
+Modalita':          NEW_YORK_IMPULSE_STUDY_NO_TRADES
+Sessione runtime:   New York 09:30-16:00 New York
 Ordini / PnL:       DISABLED
-Reference profile:  LOG_ONLY
-Grafico:            sola zona London contestuale
-Output:             dual-session auction ledger + compression baseline/shadow
+Grafico:            nessun output London o trade
+Output:             profilo A->B + pullback + cumulative flow + risoluzione
 ```
 
-`london-ny-close-hold` e il suo PnL `+634,25` restano baseline storica del precedente core MR, non un modello in esecuzione.
+`LondonMeanReversionModel`, `BalanceZoneTracker`, il ledger auction-state dual-session e `PostLondonImpulseModel` non sono inizializzati dall'orchestrator. Restano sorgenti e baseline storiche riproducibili. `london-ny-close-hold` e il suo PnL `+634,25` appartengono soltanto al core legacy.
 
 ## Mappa Progetto
 
 ```text
 src/FabioOrderFlow.cs                                  orchestrator ATAS, log, live/replay/storico
 src/MarketTimeZones.cs                                 conversioni UTC/London/Italy/New York
-models/shared/BalanceZoneTracker/                      tracker London corrente; profile legacy non consumato
-models/LondonMeanReversionModel/                       baseline compression/shadow London no-trade
-models/FabioAuctionStudyModel/                          discovery principale London+New York, simmetrica e no-trade
+models/shared/BalanceZoneTracker/                      baseline London compilata, runtime disattivato
+models/LondonMeanReversionModel/                       baseline compression/shadow compilata, runtime disattivato
+models/FabioAuctionStudyModel/                          studio runtime New York A->B, simmetrico e no-trade
 models/PostLondonImpulseModel/                         piano legacy superseded, non operativo
 tools/report_mr_performance.py                         report PnL legacy, solo MR_EXIT
 tools/report_compression_ledger.py                     export/aggregati descrittivi ledger no-trade
@@ -40,37 +40,24 @@ CHANGELOG-AGENT.md                                     baseline, decisioni, relo
 ## Contratto Tra Moduli
 
 ```text
-ATAS OnCalculate
--> BalanceZoneTracker riconosce la sessione London; per ora mantiene anche stato profile legacy e inoltra il flusso barre
--> LondonMeanReversionModel costruisce PreviousDayProfile/PreviousLondonProfile solo per log
--> LondonMeanReversionModel mantiene il lifecycle dinamico SEARCHING/BUILDING/READY/RESOLVED di DynamicCompression
--> LondonMeanReversionModel registra tutte le interazioni High/Low dopo READY, senza qualifica fissa
--> LondonMeanReversionModel registra outcome ledger 1/3/6/12 barre
--> sulla seconda close esterna registra shadow acceptance continuation
--> registra ogni barra chart per 60 minuti e checkpoint H6/H12
--> dopo LOW acceptance valuta il segno flow delle prime 3 barre e registra una seconda shadow confermata
--> classifica ogni evento ledger senza limitare la discovery setup
--> nessun setup operativo, posizione, ordine, stop, target o PnL
-
 ATAS OnCalculate -> FabioAuctionStudyModel
--> registra ogni barra completata London 08:00-16:00 e New York 09:30-16:00
--> mantiene profili sessione e rolling causali, LVN raw, stato VA e aggressione/risultato
--> a New York costruisce il profilo causale dell'impulso A->B e lo congela prima del pullback
--> registra ogni pullback e risoluzione senza produrre trigger
+-> ignora tutte le barre fuori New York 09:30-16:00 New York
+-> mantiene il profilo sessione NY necessario alla prior value area
+-> riconosce l'impulso A->B e congela il footprint prima del pullback
+-> registra READY, pullback e RESOLVED senza setup o trigger
+-> non calcola rolling 6/12, developing value area, London o auction-state per barra
 
 ATAS OnCumulativeTrade / OnUpdateCumulativeTrade
--> BalanceZoneTracker.OnLiveCumulativeTrade
--> LondonMeanReversionModel.OnLiveCumulativeTrade
--> FabioAuctionStudyModel aggrega cumulative big trades per barra senza creare ordini
+-> FabioAuctionStudyModel aggrega cumulative big trades nelle sole barre NY
 
 ATAS OnFinishRecalculate
--> crea richieste CumulativeTrades sequenziali da massimo 7 giorni per coprire tutto il chart
--> inoltra ogni risposta al ledger, trattenendo solo i trade nelle finestre READY -> RESOLVED
--> avvia ProcessHistoricalPositions solo dopo l'ultima risposta
--> TradeCoverage=AVAILABLE/MISSING espone la retention effettiva ATAS per ogni profilo
+-> crea richieste CumulativeTrades sequenziali da massimo 7 giorni sull'intero chart
+-> associa i trade alle sole barre NY trattenute in memoria
+-> dopo l'ultima risposta emette soltanto marker impulse e summary
+-> TradeCoverage=AVAILABLE/MISSING resta esplicito
 ```
 
-`BalanceZoneTracker` funziona correttamente ed e' lasciato invariato: oggi riconosce London, mantiene il suo stato profile legacy e inoltra eventi. La sua zona London grigia e i relativi livelli sono visibili solo come contesto. Il ledger non consuma POC/VAH/VAL, high/low o state machine del tracker. Il refactor futuro, separato dallo studio, lo ridurra' a `LondonTracker`, con la sola responsabilita' di identificare confini e appartenenza alla sessione London. Il ledger non aggiunge oggetti chart.
+`LondonMeanReversionModel` e `BalanceZoneTracker` restano nel progetto ma non sono costruiti, non ricevono barre/trade e non disegnano la zona London. `[AUCTION_STATE_BAR]` e' disabilitato nel runtime corrente; i vecchi snapshot dual-session restano baseline immutabili.
 
 ## Documenti Obbligatori
 
@@ -93,7 +80,7 @@ models/shared/BalanceZoneTracker/BalanceZoneTracker.md       contratto del profi
 
 Regole:
 
-- reload storico completo solo dopo `[HISTORICAL_FLOW_FINISH]`;
+- reload storico completo solo dopo `[AUCTION_STATE_SUMMARY]`;
 - controllare sempre `[CUM_TRADES_LOOKBACK]`, `[CUM_TRADES_RESPONSE]` e `[CUM_TRADES_COMPLETE]`: ogni singola request e' al massimo sette giorni, ma il batch copre l'intero chart;
 - dopo un reload studio non devono apparire nuovi `[MR_ENTRY]` o `[MR_EXIT]`;
 - `[MR_EXIT]` resta l'unica fonte PnL per confronti storici legacy, non per lo studio corrente;
@@ -111,7 +98,7 @@ cd FabioOrderFlow/src && dotnet build -c Release
 cp -f bin/Release/net10.0-windows/FabioOrderFlow.dll "$APPDATA/ATAS/Indicators/FabioOrderFlow.dll"
 ```
 
-Dopo deploy: ricaricare ATAS/indicatore, attendere `[HISTORICAL_FLOW_FINISH]`, validare `Entries=0`, i contatori `LedgerProfiles/LedgerEvents/LedgerOutcomes`, l'assenza di box/marker studio e la zona London grigia, poi aggiornare `CHANGELOG-AGENT.md` con poche righe.
+Dopo deploy: ricaricare ATAS/indicatore, attendere `[AUCTION_STATE_SUMMARY]`, verificare `StudyMode=NEW_YORK_IMPULSE_STUDY_NO_TRADES`, `LondonBars=0`, conteggi impulse coerenti, assenza di `[HISTORICAL_FLOW_FINISH]`, `[AUCTION_STATE_BAR]`, box London e marker operativi; poi aggiornare `CHANGELOG-AGENT.md`.
 
 Report PnL legacy:
 
@@ -129,13 +116,13 @@ python FabioOrderFlow/tools/report_compression_ledger.py --save
 
 Restituisce solo JSON su stdout e salva il report JSON con validation e aggregati flow-covered. Con `--save` salva anche i CSV con chiavi `ProfileLabel`, `EventBar`, `Boundary` e `HorizonBars`. Non introduce filtri, segnali o PnL.
 
-Report auction-state dual-session:
+Report auction-state storico/compatibilita':
 
 ```bash
 python FabioOrderFlow/tools/report_auction_state_ledger.py --save
 ```
 
-Restituisce JSON-only e salva le barre London/New York con profilo causale, LVN, footprint e cumulative big trades. Non genera segnali o PnL.
+Restituisce JSON-only. Nei vecchi run salva le barre London/New York; nel runtime NY-only con `AuctionStateBars=DISABLED` valida il summary senza produrre il CSV per-barra utile alla discovery. Non genera segnali o PnL.
 
 Report impulse profile New York:
 

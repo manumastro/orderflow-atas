@@ -1,13 +1,14 @@
 # LondonMeanReversionModel
 
-Modello attivo di studio `FabioCompressionStudy`.
+Baseline diagnostica congelata `FabioCompressionStudy`. Dal runtime NY-only 2026-07-12 il modello resta compilato ma non viene inizializzato dall'orchestrator e non riceve barre o cumulative trades.
 
 Nessun log del modello apre o gestisce posizioni. `MR_COMPRESSION_LEDGER_*` descrive osservazioni causali live-equivalenti e replay storico, non PnL. Il sorgente attivo non contiene piu' classi o metodi per setup operativi, posizioni, stop, target, breakeven, exit o disegni trade; il contratto no-trade e' strutturale, non soltanto disabilitato da configurazione.
 
 ## Stato Corrente
 
 ```text
-Modalita':              COMPRESSION_EVENT_LEDGER_NO_TRADES
+Runtime:                DISABLED
+Ultima modalita':       COMPRESSION_EVENT_LEDGER_NO_TRADES
 Operativita' trade:     DISABLED
 Reference precedenti:   LOG_ONLY
 Grafico contesto:       zona London grigia, POC/VAH/VAL dal BalanceZoneTracker

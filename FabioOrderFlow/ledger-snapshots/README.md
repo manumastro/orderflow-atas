@@ -34,13 +34,13 @@ Comando compression baseline:
 python FabioOrderFlow/tools/report_compression_ledger.py --save
 ```
 
-Comando dual-session auction-state:
+Comando auction-state storico/compatibilita':
 
 ```bash
 python FabioOrderFlow/tools/report_auction_state_ledger.py --save
 ```
 
-Il secondo salva `auction-state-*-summary.json` e `auction-state-*-bars.csv` con profilo causale, LVN, footprint e cumulative trades per London/New York. Non produce segnali o PnL.
+Per i run precedenti salva `auction-state-*-summary.json` e `auction-state-*-bars.csv` dual-session. Nel runtime NY-only `AuctionStateBars=DISABLED`: valida il summary e non ricostruisce un dataset per-barra. Non produce segnali o PnL.
 
 Analisi playbook dai transcript:
 

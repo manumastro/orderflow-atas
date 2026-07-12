@@ -46,10 +46,10 @@ Marker attivi:
 [MR_SHADOW_LOW_FLOW_CONFIRMATION_ENTRY]    LOW + flow direzionale positivo nelle prime 3 barre
 [MR_SHADOW_LOW_FLOW_CONFIRMATION_OUTCOME]  outcome H6/H12 dalla close di conferma
 [MR_SHADOW_LOW_FLOW_CONFIRMATION_BAR]      path 60 minuti dalla close di conferma
-[HISTORICAL_FLOW_FINISH]          Entries=0, LedgerProfiles=N, LedgerEvents=N, LedgerOutcomes=N
-[AUCTION_STATE_MODE]              ledger ampio London+New York, no-trade
-[AUCTION_STATE_BAR]               profilo causale, LVN, footprint e cumulative flow per barra/sessione
-[AUCTION_STATE_SUMMARY]           copertura dual-session e guardrail no-trade
+[HISTORICAL_FLOW_FINISH]          baseline London disattivata; non deve apparire nel runtime NY-only
+[AUCTION_STATE_MODE]              NEW_YORK_IMPULSE_STUDY_NO_TRADES, Sessions=NEW_YORK
+[AUCTION_STATE_BAR]               baseline dual-session; disabilitato nel runtime NY-only
+[AUCTION_STATE_SUMMARY]           copertura NY, lifecycle impulse e guardrail no-trade
 [AUCTION_IMPULSE_READY]           profilo New York A->B congelato prima del pullback
 [AUCTION_IMPULSE_PULLBACK_BAR]    location e flow di ogni barra dopo B
 [AUCTION_IMPULSE_RESOLVED]        nuovo estremo, origin reentry, two-sided o session end
@@ -135,19 +135,19 @@ python FabioOrderFlow/tools/analyze_auction_impulse_confirmations.py --timeframe
 
 `NY_IMPULSE_LVN_CUMULATIVE_CONFIRMATION_V1` richiede una barra precedente alla risoluzione, directional `WITH_RESULT`, raw LVN attraversato e cumulative max direzionale `>=30` e maggiore dell'opposto. La soglia 30 viene dal transcript New York. Il raw LVN touch resta descrittivo: sul primo replay e' presente in ogni pullback.
 
-## BalanceZoneTracker Corrente
+## Componenti London
 
-`BalanceZoneTracker` identifica London e disegna la zona grigia per orientamento. `[ZONE_READY]`, POC/VAH/VAL, high/low e state machine non partecipano al ledger. Il refactor futuro lo ridurra' a `LondonTracker`, responsabile soltanto di inizio, fine e appartenenza alla sessione London.
+`BalanceZoneTracker` e `LondonMeanReversionModel` sono baseline compilate ma non inizializzate. Nel runtime NY-only non devono apparire `[ZONE_READY]`, `[MR_MODE]`, `[HISTORICAL_FLOW_FINISH]` o disegni London.
 
 ## Verifica Reload
 
 ```text
-1. [MR_MODE] contiene StudyMode=COMPRESSION_EVENT_LEDGER_NO_TRADES.
-2. [HISTORICAL_FLOW_FINISH] contiene Entries=0 e contatori Ledger non nulli.
-3. Nessun nuovo MR_SETUP, MR_ENTRY, MR_EXIT, MR_BREAKEVEN o MR_REPLAY_OPEN.
-4. Il chart mostra la zona London grigia, ma non box turchesi o marker candidati.
-5. `[CUM_TRADES_COMPLETE]` deve mostrare tutte le finestre completate prima del replay.
-6. Per profili senza trade nelle risposte ricevute, `TradeCoverage=MISSING`: non inferire flow assente dal mercato. Il provider potrebbe non conservare quella finestra storica.
+1. [AUCTION_STATE_MODE] contiene StudyMode=NEW_YORK_IMPULSE_STUDY_NO_TRADES.
+2. Sessions=NEW_YORK e AuctionStateBars=DISABLED.
+3. [CUM_TRADES_COMPLETE] mostra tutte le finestre prima di [AUCTION_STATE_SUMMARY].
+4. LondonBars=0; READY/PULLBACK/RESOLVED sono coerenti col report impulse.
+5. Nessun HISTORICAL_FLOW_FINISH, AUCTION_STATE_BAR, MR_ENTRY o MR_EXIT.
+6. TradeCoverage=MISSING non equivale a flow zero.
 ```
 
 ## Report
@@ -162,7 +162,7 @@ Il report performance non valuta il ledger perche' non esistono trade o PnL. Usa
 python FabioOrderFlow/tools/report_auction_state_ledger.py --save
 ```
 
-Il report auction-state e' JSON-only e salva il dataset dual-session. Verifica entrambe le sessioni, guardrail no-trade e copertura cumulative; non seleziona soglie.
+Il report auction-state e' JSON-only. Legge i vecchi dataset dual-session e, nel runtime corrente, valida il summary NY-only senza richiedere righe `[AUCTION_STATE_BAR]`.
 
 ```bash
 python FabioOrderFlow/tools/analyze_fabio_auction_playbooks.py \
