@@ -1,5 +1,35 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Reload 2026-07-12 - Cumulative Confirmation Shadow V1
+
+```text
+Verifica tecnica M1, chart 2026-05-18 -> 2026-07-10:
+- READY/PULLBACK/RESOLVED=396/1.132/396, invariati;
+- ShadowEntries/Resolutions=19/19 su 14 date; LONG/SHORT=11/8;
+- path bars=554; path disponibili a 15/30 minuti=18/18;
+- una shadow per data/direzione; path ordinali e MFE/MAE progressivi validi;
+- OperationalEntries=0; ShadowOrders=0; errori=0.
+
+Riferimento storico, non decisionale:
+- continuation=13/19, 68,4%; LONG=9/11; SHORT=4/8;
+- movimento mediano a 15 minuti=-6,375 punti;
+- LONG=-9,625; SHORT=-4,125;
+- mediana MFE15/MAE15=57,5/49,375, rapporto=1,165;
+- il caso 2026-07-08 LONG 15:52 New York non ha 15 minuti prima della chiusura.
+
+Interpretazione:
+- l'etichetta continuation non implica un prezzo shadow favorevole dopo 15 minuti;
+- applicati allo storico, i criteri futuri fallirebbero movimento LONG/SHORT e rapporto MFE/MAE;
+- lo storico non decide perche' ha contribuito alla costruzione del candidato;
+- stato prospettico=COLLECTING, osservazioni prospettiche=0.
+
+Fix dopo reload:
+- ElapsedMinutes ora usa sempre il punto decimale indipendentemente dalla lingua Windows;
+- report compatibile anche con la virgola decimale del primo log;
+- build 0 warning / 0 error; DLL SHA-256=2764bb93abe2d44b3262928511a27ba5148a240a7fbba590c3b96a43498b8117;
+- nuova DLL da ricaricare prima della prima sessione prospettica.
+```
+
 ## Implementazione 2026-07-12 - Cumulative Confirmation Shadow V1
 
 ```text

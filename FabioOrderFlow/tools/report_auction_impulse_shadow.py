@@ -68,7 +68,7 @@ def parse_value(key: str, value: str) -> object:
     if key in INTEGER_FIELDS:
         return int(value)
     if key in FLOAT_FIELDS:
-        return float(value)
+        return float(value.replace(",", "."))
     if key in BOOLEAN_FIELDS:
         return value.upper() == "TRUE"
     return value

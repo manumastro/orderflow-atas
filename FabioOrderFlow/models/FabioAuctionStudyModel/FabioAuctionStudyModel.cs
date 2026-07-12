@@ -568,7 +568,7 @@ internal sealed class FabioAuctionStudyModule
             fields.Add($"PathBarOrdinal={marker.PathBarOrdinal}");
             fields.Add($"Bar={marker.Record.Bar}");
             fields.Add($"BarEndItaly={MarketTimeZones.ToItaly(marker.Record.EndTimeUtc):yyyy-MM-dd HH:mm:ss}");
-            fields.Add($"ElapsedMinutes={marker.ElapsedMinutes:F4}");
+            fields.Add($"ElapsedMinutes={marker.ElapsedMinutes.ToString("F4", CultureInfo.InvariantCulture)}");
             fields.Add($"Open={F(marker.Record.Contribution.Open)}");
             fields.Add($"High={F(marker.Record.High)}");
             fields.Add($"Low={F(marker.Record.Low)}");

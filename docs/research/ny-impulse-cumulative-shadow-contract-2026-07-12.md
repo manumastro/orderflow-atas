@@ -111,6 +111,14 @@ SCARTA PER RARITA'
 
 Non esiste estensione indefinita del test. `ProminenceRank`, prominence, depth, percentile e location non qualificano questa shadow.
 
+## Verifica tecnica storica
+
+Il reload sul chart M1 terminato il `2026-07-10` ha ricostruito `19` shadow su `14` date: `11` LONG e `8` SHORT. Diciotto hanno almeno 15 e 30 minuti disponibili; una conferma delle 15:52 New York ha soltanto sette minuti prima della chiusura.
+
+Tredici impulsi su diciannove raggiungono un nuovo estremo, ma il movimento mediano a 15 minuti dalla chiusura di conferma e' `-6,375` punti. La massima escursione favorevole mediana e' `57,5` punti e quella contraria `49,375`, rapporto `1,165`.
+
+Questo riferimento rende chiaro il rischio: riconoscere l'esito finale dell'impulso non equivale ad avere un punto di osservazione favorevole. Se i criteri prospettici fossero applicati allo storico, fallirebbero il movimento mediano LONG/SHORT e il rapporto `1,5`. Non e' pero' il verdetto contrattuale, perche' queste date hanno contribuito alla costruzione del candidato. Il verdetto resta riservato alle date dal `2026-07-13`.
+
 ## Vincoli permanenti di questa fase
 
 ```text

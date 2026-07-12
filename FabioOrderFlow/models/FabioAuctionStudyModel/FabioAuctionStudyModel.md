@@ -147,6 +147,21 @@ Errori:                          0
 
 L'analisi iniziale e' in `docs/research/fabio-auction-playbooks-analysis-2026-07-11.md`. Ha prodotto 73 osservazioni tra balance rotation e NY pullback, ma nessun modello validato. NY SHORT H6 resta una traccia diagnostica su 13 casi; LONG fallisce lo split test.
 
+## Reload Cumulative Confirmation Shadow V1 2026-07-12
+
+```text
+Shadow observations / dates:      19 / 14
+LONG / SHORT:                      11 / 8
+Continuation / reentry / 2-sided: 13 / 5 / 1
+Path bars:                         554
+Path disponibili H15 / H30:       18 / 18
+Prospective observations:          0
+```
+
+Il controllo software e' superato: una sola osservazione per data/direzione, progressione del percorso coerente, zero ordini ed errori. `H15` significa lettura 15 minuti dopo la conferma. Il movimento mediano H15 e' `-6,375` punti: LONG `-9,625`, SHORT `-4,125`. La mediana della massima escursione favorevole e' `57,5` punti contro `49,375` contrari, rapporto `1,165`.
+
+In parole comuni, lo storico riconosce spesso una continuation (`13/19`) ma la chiusura scelta come inizio shadow non mostra ancora un vantaggio temporale utilizzabile. Lo storico non puo' decidere il test perche' ha contribuito alla costruzione del candidato; lo stato resta `COLLECTING` con zero osservazioni prospettiche.
+
 ## Reload Raw Causal LVN Ranking V1 2026-07-12
 
 ```text
