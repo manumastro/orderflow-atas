@@ -1,5 +1,28 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Reload NY-Only Verificato 2026-07-12 - Equivalenza e Performance
+
+```text
+Chart M1 40 date:
+- StudyMode=NEW_YORK_IMPULSE_STUDY_NO_TRADES;
+- Sessions=NEW_YORK; AuctionStateBars=DISABLED; LondonBars=0;
+- finestre cumulative=8/8; ricevuti=5.833.055; matched NY=4.170.108;
+- NewYorkBars=13.303; READY/PULLBACK/RESOLVED=396/1.132/396;
+- LONG/SHORT=220/176; continuation/reentry/two-sided/session-end=143/200/49/4;
+- coverage AVAILABLE/MISSING=1.095/37;
+- MR markers=0; AUCTION_STATE_BAR=0; errori=0; operativita'=0.
+
+Equivalenza:
+- profiles/pullbacks/resolutions CSV identici byte-per-byte alla baseline dual-session;
+- analyzer invariato: historical primary=6/11 continuation; formalization=7/8;
+- nessun nuovo snapshot CSV duplicato conservato.
+
+Performance stesso chart:
+- mode -> summary: 180,528s -> 49,630s, -72,5%;
+- cumulative lookback -> summary: 72,630s -> 44,607s, -38,6%;
+- log: 65.627.353 -> 4.075.440 byte, -93,8%.
+```
+
 ## Runtime NY-Only 2026-07-12 - Rimozione Percorsi Non Usati
 
 ```text

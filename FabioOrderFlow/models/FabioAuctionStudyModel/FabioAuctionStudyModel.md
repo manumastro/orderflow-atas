@@ -119,6 +119,21 @@ Errori:                          0
 
 L'analisi iniziale e' in `docs/research/fabio-auction-playbooks-analysis-2026-07-11.md`. Ha prodotto 73 osservazioni tra balance rotation e NY pullback, ma nessun modello validato. NY SHORT H6 resta una traccia diagnostica su 13 casi; LONG fallisce lo split test.
 
+## Reload Runtime NY-Only Verificato 2026-07-12
+
+```text
+Range / timeframe:               2026-05-18 -> 2026-07-10 / M1
+Sessions / LondonBars:           NEW_YORK / 0
+NewYorkBars:                     13.303
+Cumulative ricevuti / matched:  5.833.055 / 4.170.108
+Impulse READY / PULLBACK:       396 / 1.132
+Impulse RESOLVED:               396
+Coverage AVAILABLE / MISSING:   1.095 / 37
+MR / auction-state bar / error: 0 / 0 / 0
+```
+
+I CSV profiles, pullbacks e resolutions sono identici byte-per-byte alla baseline dual-session. Il tempo totale mode-to-summary scende da `180,528s` a `49,630s` (`-72,5%`); il log da `65.627.353` a `4.075.440` byte (`-93,8%`). Il contratto diagnostico e i risultati `6/11` historical e `7/8` formalization restano invariati.
+
 ## Estensione M1 Rithmic a 40 Date 2026-07-12
 
 ```text
@@ -210,9 +225,7 @@ M5 = baseline separata per confronti precedenti.
 ## Da Verificare
 
 ```text
-- reload M1 della modalita' NEW_YORK_IMPULSE_STUDY_NO_TRADES;
-- LondonBars=0 e assenza HISTORICAL_FLOW_FINISH/AUCTION_STATE_BAR;
-- equivalenza dei 396 READY/RESOLVED e 1.132 pullback sullo stesso chart 40 date;
-- riduzione dimensione log e tempo di replay rispetto alla baseline dual-session;
-- nuove date prospettiche senza modificare il contratto A->B.
+- nuove date prospettiche senza modificare il contratto A->B;
+- ranking causale degli LVN raw senza soglia di selezione post-hoc;
+- equivalenza live/historical dei nuovi campi LVN prima di usarli negli analyzer.
 ```

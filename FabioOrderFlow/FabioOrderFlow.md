@@ -59,6 +59,8 @@ ATAS OnFinishRecalculate
 
 `LondonMeanReversionModel` e `BalanceZoneTracker` restano nel progetto ma non sono costruiti, non ricevono barre/trade e non disegnano la zona London. `[AUCTION_STATE_BAR]` e' disabilitato nel runtime corrente; i vecchi snapshot dual-session restano baseline immutabili.
 
+Reload M1 40 date verificato: output impulse identico byte-per-byte, tempo mode-to-summary ridotto del `72,5%` e log ridotto del `93,8%` rispetto al runtime dual-session/compression.
+
 ## Documenti Obbligatori
 
 ```text
