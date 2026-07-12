@@ -50,6 +50,9 @@ Marker attivi:
 [AUCTION_STATE_MODE]              ledger ampio London+New York, no-trade
 [AUCTION_STATE_BAR]               profilo causale, LVN, footprint e cumulative flow per barra/sessione
 [AUCTION_STATE_SUMMARY]           copertura dual-session e guardrail no-trade
+[AUCTION_IMPULSE_READY]           profilo New York A->B congelato prima del pullback
+[AUCTION_IMPULSE_PULLBACK_BAR]    location e flow di ogni barra dopo B
+[AUCTION_IMPULSE_RESOLVED]        nuovo estremo, origin reentry, two-sided o session end
 ```
 
 ## Come Leggere Un Range
@@ -117,6 +120,14 @@ CumulativeTradeCoverage            AVAILABLE | MISSING
 ```
 
 `ABSORBED` descrive delta e risultato prezzo della barra; da solo non e' un setup. London reversion richiede ancora sequenza breakout-rientro-risposta opposta. New York continuation richiede stato di imbalance, location LVN/pullback e aggressione con risultato.
+
+Il lifecycle A->B parte da una transizione inside-value -> close esterna con effort/result coerente. Accumula solo le barre che estendono l'estremo senza rientrare dal boundary di origine, poi congela il profilo prima della prima barra di pullback. `ImpulseLvns` e `TouchedLvns` sono liste `prezzo:percentile` separate da `|`, non livelli qualificati.
+
+```bash
+python FabioOrderFlow/tools/report_auction_impulse_ledger.py --save
+```
+
+Su dxFeed storico ATAS puo' restituire `CUM_TRADES_RESPONSE Count=0`: il profilo footprint resta disponibile, ma ogni pullback avra' `CumulativeTradeCoverage=MISSING`. Non interpretarlo come aggressione zero.
 
 ## BalanceZoneTracker Corrente
 

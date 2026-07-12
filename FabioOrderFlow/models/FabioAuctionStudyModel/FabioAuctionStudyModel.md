@@ -35,6 +35,9 @@ Marker:
 [AUCTION_STATE_MODE]
 [AUCTION_STATE_BAR]
 [AUCTION_STATE_SUMMARY]
+[AUCTION_IMPULSE_READY]
+[AUCTION_IMPULSE_PULLBACK_BAR]
+[AUCTION_IMPULSE_RESOLVED]
 ```
 
 Ogni `[AUCTION_STATE_BAR]` include:
@@ -80,13 +83,36 @@ TradeCoverage=AVAILABLE   almeno un cumulative trade restituito nella barra
 TradeCoverage=MISSING     nessun trade restituito; non equivale a flow zero
 ```
 
+## New York Impulse Profile A->B
+
+Lifecycle causale, senza soglie di selezione:
+
+```text
+BUILDING
+- parte quando la close precedente era nella prior value;
+- la barra corrente chiude fuori value con aggressione nella stessa direzione;
+- accumula le barre che estendono l'estremo senza rientrare dal boundary di origine.
+
+READY
+- la prima barra che non estende chiude l'impulso A->B;
+- il profilo viene congelato prima di includere tale barra;
+- registra POC/VAH/VAL e tutti gli LVN raw del profilo impulso.
+
+RESOLVED
+- ogni barra successiva e' registrata come pullback;
+- termina a nuovo estremo, rientro dal boundary di origine, two-sided range o session end.
+```
+
+`READY` non e' una entry. `PULLBACK_BAR` registra location, LVN toccati, effort/result e coverage cumulative senza qualificare il record.
+
 ## Report
 
 ```bash
 python FabioOrderFlow/tools/report_auction_state_ledger.py --save
+python FabioOrderFlow/tools/report_auction_impulse_ledger.py --save
 ```
 
-Il comando restituisce esclusivamente JSON su stdout e salva summary JSON e CSV barre. Gli aggregati sono descrittivi, senza soglie, segnali o PnL.
+I comandi restituiscono esclusivamente JSON su stdout. Il secondo salva profili A->B, barre pullback e risoluzioni. Gli aggregati sono descrittivi, senza segnali o PnL.
 
 ## Reload Verificato 2026-07-11
 
@@ -102,11 +128,34 @@ Errori:                          0
 
 L'analisi iniziale e' in `docs/research/fabio-auction-playbooks-analysis-2026-07-11.md`. Ha prodotto 73 osservazioni tra balance rotation e NY pullback, ma nessun modello validato. NY SHORT H6 resta una traccia diagnostica su 13 casi; LONG fallisce lo split test.
 
+## Reload M1 dxFeed 2026-07-12
+
+```text
+Chart range:                      2026-07-03 -> 2026-07-10
+Auction bars:                    5.039
+London / New York:               2.879 / 2.160
+Date per sessione:               6 / 6
+Cumulative ricevuti / matched:   0 / 0
+OperationalEntries / Orders:     0 / 0
+Errori:                          0
+```
+
+Il dataset dxFeed e' valido per candle footprint, session profile e geometria A->B. Non e' valido per cumulative big-trade analysis: entrambe le richieste storiche ATAS hanno restituito `Count=0`.
+
+## Timeframe
+
+```text
+M1 = discovery primaria per impulso A->B e microstruttura.
+M5 = baseline separata per confronti precedenti.
+```
+
+`Prior6`, `Prior12`, rolling 12 e H6/H12 sono espressi in barre. Non confrontare direttamente M1 e M5 e non applicare gli analyzer M5 precedenti al CSV M1.
+
 ## Da Verificare
 
 ```text
-- stabilita' live/historical degli update cumulative su nuove barre;
-- profilo causale dell'impulso A->B, distinto dal rolling profile 12 barre;
-- granularita' M1 su chart M1, mantenuta separata da M5;
-- nuove date prospettiche senza modificare i contratti post-hoc.
+- reload M1 con Rithmic e cumulative coverage disponibile;
+- conteggi READY/PULLBACK/RESOLVED del nuovo lifecycle;
+- equivalenza live/historical su nuove barre M1;
+- nuove date prospettiche senza modificare il contratto A->B.
 ```

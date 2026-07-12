@@ -1,5 +1,31 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Baseline M1 dxFeed e Implementazione 2026-07-12 - New York Impulse Profile
+
+```text
+Reload dxFeed M1:
+- Range 2026-07-03 -> 2026-07-10; 8.001 chart bars.
+- Auction bars=5.039; London=2.879; NewYork=2.160; 6 date per sessione.
+- Due finestre cumulative completate ma entrambe Count=0.
+- HistoricalCumulativeTradesSeen/Matched=0/0: footprint disponibile, big-trade coverage MISSING.
+- Compression M1=46 profili/245 eventi/980 outcome; non confrontare H6/H12 con M5.
+- Entries=0; ShadowOrders=0; errori=0.
+
+Nuovo lifecycle diagnostico:
+- NEW_YORK_A_TO_B_CAUSAL in FabioAuctionStudyModel.
+- Inside prior value -> expansion con result -> BUILDING finche' estende l'estremo.
+- READY congela footprint profile A->B prima della prima barra pullback.
+- Registra POC/VAH/VAL, tutti gli LVN raw, pullback bar e risoluzione.
+- EndReason=CONTINUATION_NEW_EXTREME|ORIGIN_REENTRY|TWO_SIDED_RANGE|SESSION_END.
+- Nessuna soglia di selezione, entry, shadow, ordine o PnL.
+- Tool JSON-only tools/report_auction_impulse_ledger.py.
+
+Timeframe:
+- M1 diventa discovery primaria per A->B.
+- M5 resta baseline separata; rolling 12 e H6/H12 sono bar-based.
+- Ricaricare con Rithmic quando torna disponibile per ottenere cumulative coverage.
+```
+
 ## Reload e Analisi 2026-07-11 - Dual-Session Auction Ledger
 
 ```text

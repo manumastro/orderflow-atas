@@ -24,9 +24,15 @@ internal sealed class FabioAuctionStudyModule
     private readonly Dictionary<string, int> _sessionCounts = new();
     private readonly Dictionary<string, int> _effortResultCounts = new();
     private readonly Dictionary<string, AuctionBarRecord> _historicalRecords = new();
+    private readonly List<ImpulseMarker> _historicalImpulseMarkers = new();
+    private readonly NewYorkImpulseState _newYorkImpulse = new();
+    private readonly HashSet<string> _processedImpulseRecords = new();
     private List<AuctionBarRecord>? _historicalRecordsByTime;
     private long _historicalCumulativeTradesSeen;
     private long _historicalCumulativeTradesMatched;
+    private int _impulseReadyCount;
+    private int _impulsePullbackBarCount;
+    private int _impulseResolvedCount;
 
     public FabioAuctionStudyModule(
         Action<string, bool> log,
@@ -35,7 +41,7 @@ internal sealed class FabioAuctionStudyModule
         _log = log ?? throw new ArgumentNullException(nameof(log));
         _chartTimeFrame = string.IsNullOrWhiteSpace(chartTimeFrame) ? "UNKNOWN" : chartTimeFrame;
 
-        _log($"[AUCTION_STATE_MODE] StudyMode={StudyMode}, Sessions=LONDON|NEW_YORK, Symmetry=HIGH_LONG|LOW_SHORT|HIGH_SHORT|LOW_LONG, Profile=CURRENT_SESSION_CAUSAL, RollingProfileBars={RollingProfileBars}, FlowSource=CANDLE_FOOTPRINT|CUMULATIVE_TRADES, CumulativeBigTrades=AGGREGATED_PER_BAR, OperationalEntries=DISABLED, ShadowOrders=DISABLED, ChartTimeFrame={_chartTimeFrame}", false);
+        _log($"[AUCTION_STATE_MODE] StudyMode={StudyMode}, Sessions=LONDON|NEW_YORK, Symmetry=HIGH_LONG|LOW_SHORT|HIGH_SHORT|LOW_LONG, Profile=CURRENT_SESSION_CAUSAL, RollingProfileBars={RollingProfileBars}, ImpulseProfile=NEW_YORK_A_TO_B_CAUSAL, FlowSource=CANDLE_FOOTPRINT|CUMULATIVE_TRADES, CumulativeBigTrades=AGGREGATED_PER_BAR, OperationalEntries=DISABLED, ShadowOrders=DISABLED, ChartTimeFrame={_chartTimeFrame}", false);
     }
 
     public void OnBarUpdate(int bar, int currentBar, IndicatorCandle candle)
@@ -81,6 +87,8 @@ internal sealed class FabioAuctionStudyModule
     {
         foreach (var record in _historicalRecords.Values.OrderBy(record => record.Bar).ThenBy(record => record.Session))
             LogRecord(record);
+        foreach (var marker in _historicalImpulseMarkers.OrderBy(marker => marker.Bar).ThenBy(marker => marker.Ordinal))
+            LogImpulseMarker(marker);
 
         _log(
             $"[AUCTION_STATE_SUMMARY] StudyMode={StudyMode}, " +
@@ -93,6 +101,9 @@ internal sealed class FabioAuctionStudyModule
             $"Neutral={GetCount(_effortResultCounts, "NEUTRAL")}, " +
             $"HistoricalCumulativeTradesSeen={_historicalCumulativeTradesSeen}, " +
             $"HistoricalCumulativeTradesMatched={_historicalCumulativeTradesMatched}, " +
+            $"ImpulseProfilesReady={_impulseReadyCount}, " +
+            $"ImpulsePullbackBars={_impulsePullbackBarCount}, " +
+            $"ImpulseProfilesResolved={_impulseResolvedCount}, " +
             $"OperationalEntries=0, ShadowOrders=0",
             false);
     }
@@ -211,7 +222,8 @@ internal sealed class FabioAuctionStudyModule
             PriorRollingLvnBelow = FindNearestLocalVolumeMinimum(rollingProfile, current.Close, false),
             PriorRollingLvnAbove = FindNearestLocalVolumeMinimum(rollingProfile, current.Close, true),
             RollingProfile = rollingProfileMetrics,
-            RollingBars = rollingContributions.Count
+            RollingBars = rollingContributions.Count,
+            Contribution = current
         };
     }
 
@@ -225,6 +237,8 @@ internal sealed class FabioAuctionStudyModule
     {
         var key = GetRecordKey(record.Session, record.Bar);
         _pendingRecords.Remove(key);
+        if (record.Session == "NEW_YORK" && _processedImpulseRecords.Add(key))
+            ProcessNewYorkImpulse(record);
         if (record.IsHistorical)
         {
             _historicalRecords[key] = record;
@@ -232,6 +246,244 @@ internal sealed class FabioAuctionStudyModule
             return;
         }
         LogRecord(record);
+    }
+
+    private void ProcessNewYorkImpulse(AuctionBarRecord record)
+    {
+        var previous = _newYorkImpulse.PreviousRecord;
+        if (previous != null && previous.SessionDate != record.SessionDate)
+        {
+            if (_newYorkImpulse.Active != null)
+            {
+                EnsureImpulseReady(_newYorkImpulse.Active);
+                ResolveImpulse(_newYorkImpulse.Active, previous, "SESSION_END");
+            }
+            _newYorkImpulse.Active = null;
+            previous = null;
+        }
+
+        var hadActiveImpulse = _newYorkImpulse.Active != null;
+        if (_newYorkImpulse.Active != null)
+            ProcessActiveImpulse(_newYorkImpulse.Active, record);
+        if (!hadActiveImpulse && _newYorkImpulse.Active == null && previous != null)
+            TryStartImpulse(previous, record);
+
+        _newYorkImpulse.PreviousRecord = record;
+    }
+
+    private void TryStartImpulse(AuctionBarRecord previous, AuctionBarRecord record)
+    {
+        var prior = record.PriorProfile;
+        if (prior == null || previous.Close < prior.Val || previous.Close > prior.Vah)
+            return;
+
+        var direction = record.Close > prior.Vah && record.EffortResult == "BUY_WITH_RESULT"
+            ? "LONG"
+            : record.Close < prior.Val && record.EffortResult == "SELL_WITH_RESULT"
+                ? "SHORT"
+                : null;
+        if (direction == null)
+            return;
+
+        var impulse = new ImpulseLifecycle
+        {
+            Id = $"{record.SessionDate:yyyy-MM-dd}:{direction}:{record.Bar}",
+            SessionDate = record.SessionDate,
+            Direction = direction,
+            OriginBoundary = direction == "LONG" ? prior.Vah : prior.Val,
+            StartBar = record.Bar,
+            LastImpulseRecord = record,
+            ImpulseHigh = record.High,
+            ImpulseLow = record.Low
+        };
+        impulse.Contributions.Add(record.Contribution);
+        _newYorkImpulse.Active = impulse;
+    }
+
+    private void ProcessActiveImpulse(ImpulseLifecycle impulse, AuctionBarRecord record)
+    {
+        if (!impulse.IsReady)
+        {
+            var originReentered = impulse.Direction == "LONG"
+                ? record.Close <= impulse.OriginBoundary
+                : record.Close >= impulse.OriginBoundary;
+            var extendsExtreme = impulse.Direction == "LONG"
+                ? record.High > impulse.ImpulseHigh
+                : record.Low < impulse.ImpulseLow;
+
+            if (extendsExtreme && !originReentered)
+            {
+                impulse.Contributions.Add(record.Contribution);
+                impulse.LastImpulseRecord = record;
+                impulse.ImpulseHigh = Math.Max(impulse.ImpulseHigh, record.High);
+                impulse.ImpulseLow = Math.Min(impulse.ImpulseLow, record.Low);
+                return;
+            }
+
+            EnsureImpulseReady(impulse);
+        }
+
+        ProcessImpulsePullback(impulse, record);
+    }
+
+    private void EnsureImpulseReady(ImpulseLifecycle impulse)
+    {
+        if (impulse.IsReady)
+            return;
+
+        impulse.FrozenProfile = BuildProfile(impulse.Contributions);
+        impulse.FrozenMetrics = CalculateProfile(impulse.FrozenProfile);
+        impulse.FrozenLvns = FindLocalVolumeMinima(impulse.FrozenProfile);
+        impulse.IsReady = true;
+        EmitImpulseMarker(new ImpulseMarker
+        {
+            Kind = "READY",
+            Ordinal = 0,
+            Impulse = impulse,
+            Record = impulse.LastImpulseRecord
+        });
+    }
+
+    private void ProcessImpulsePullback(ImpulseLifecycle impulse, AuctionBarRecord record)
+    {
+        impulse.PullbackOrdinal++;
+        var touchedLvns = impulse.FrozenLvns
+            .Where(lvn => record.Low <= lvn.Price && lvn.Price <= record.High)
+            .ToList();
+        EmitImpulseMarker(new ImpulseMarker
+        {
+            Kind = "PULLBACK_BAR",
+            Ordinal = 100 + impulse.PullbackOrdinal,
+            Impulse = impulse,
+            Record = record,
+            PullbackOrdinal = impulse.PullbackOrdinal,
+            FrozenRelation = GetProfileRelation(record.Close, impulse.FrozenMetrics),
+            TouchedLvns = touchedLvns
+        });
+
+        var continuation = impulse.Direction == "LONG"
+            ? record.High > impulse.ImpulseHigh
+            : record.Low < impulse.ImpulseLow;
+        var originReentered = impulse.Direction == "LONG"
+            ? record.Close <= impulse.OriginBoundary
+            : record.Close >= impulse.OriginBoundary;
+        if (!continuation && !originReentered)
+            return;
+
+        var reason = continuation && originReentered
+            ? "TWO_SIDED_RANGE"
+            : continuation
+                ? "CONTINUATION_NEW_EXTREME"
+                : "ORIGIN_REENTRY";
+        ResolveImpulse(impulse, record, reason);
+    }
+
+    private void ResolveImpulse(ImpulseLifecycle impulse, AuctionBarRecord record, string reason)
+    {
+        EmitImpulseMarker(new ImpulseMarker
+        {
+            Kind = "RESOLVED",
+            Ordinal = 10000,
+            Impulse = impulse,
+            Record = record,
+            EndReason = reason
+        });
+        _newYorkImpulse.Active = null;
+    }
+
+    private void EmitImpulseMarker(ImpulseMarker marker)
+    {
+        if (marker.Record.IsHistorical)
+            _historicalImpulseMarkers.Add(marker);
+        else
+            LogImpulseMarker(marker);
+    }
+
+    private void LogImpulseMarker(ImpulseMarker marker)
+    {
+        var key = $"{marker.Impulse.Id}:{marker.Kind}:{marker.Record.Bar}:{marker.Ordinal}";
+        if (!_newYorkImpulse.LoggedMarkers.Add(key))
+            return;
+
+        var impulse = marker.Impulse;
+        var profile = impulse.FrozenMetrics;
+        var common = new List<string>
+        {
+            $"ImpulseId={impulse.Id}",
+            $"SessionDate={impulse.SessionDate:yyyy-MM-dd}",
+            $"Direction={impulse.Direction}",
+            $"ChartTimeFrame={_chartTimeFrame}",
+            $"StartBar={impulse.StartBar}",
+            $"EndBar={impulse.LastImpulseRecord.Bar}",
+            $"ImpulseBars={impulse.Contributions.Count}",
+            $"OriginBoundary={F(impulse.OriginBoundary)}",
+            $"ImpulseHigh={F(impulse.ImpulseHigh)}",
+            $"ImpulseLow={F(impulse.ImpulseLow)}",
+            $"ImpulsePOC={F(profile?.Poc)}",
+            $"ImpulseVAH={F(profile?.Vah)}",
+            $"ImpulseVAL={F(profile?.Val)}",
+            $"ImpulseLvns={FormatLvns(impulse.FrozenLvns)}"
+        };
+
+        string markerName;
+        if (marker.Kind == "READY")
+        {
+            markerName = "[AUCTION_IMPULSE_READY]";
+            _impulseReadyCount++;
+        }
+        else if (marker.Kind == "PULLBACK_BAR")
+        {
+            markerName = "[AUCTION_IMPULSE_PULLBACK_BAR]";
+            _impulsePullbackBarCount++;
+            common.Add($"PullbackOrdinal={marker.PullbackOrdinal}");
+            common.Add($"Bar={marker.Record.Bar}");
+            common.Add($"Close={F(marker.Record.Close)}");
+            common.Add($"FrozenProfileRelation={marker.FrozenRelation}");
+            common.Add($"TouchedLvns={FormatLvns(marker.TouchedLvns)}");
+            common.Add($"EffortResult={marker.Record.EffortResult}");
+            common.Add($"CumulativeTradeCoverage={(marker.Record.CumulativeFlow.TradeCount > 0 ? "AVAILABLE" : "MISSING")}");
+            common.Add($"MaxCumulativeBuy={F(marker.Record.CumulativeFlow.MaxBuy)}");
+            common.Add($"MaxCumulativeSell={F(marker.Record.CumulativeFlow.MaxSell)}");
+        }
+        else
+        {
+            markerName = "[AUCTION_IMPULSE_RESOLVED]";
+            _impulseResolvedCount++;
+            common.Add($"ResolvedBar={marker.Record.Bar}");
+            common.Add($"EndReason={marker.EndReason}");
+        }
+
+        common.Add("OperationalEntry=FALSE");
+        common.Add("OrderSubmitted=FALSE");
+        _log($"{markerName} {string.Join(", ", common)}", marker.Record.IsHistorical);
+    }
+
+    private static List<LvnMetrics> FindLocalVolumeMinima(IReadOnlyDictionary<decimal, decimal> profile)
+    {
+        if (profile.Count < 3)
+            return new List<LvnMetrics>();
+
+        var levels = profile.OrderBy(item => item.Key).ToList();
+        var minima = new List<LvnMetrics>();
+        for (var index = 1; index < levels.Count - 1; index++)
+        {
+            var current = levels[index];
+            if (current.Value > levels[index - 1].Value || current.Value > levels[index + 1].Value)
+                continue;
+            minima.Add(new LvnMetrics
+            {
+                Price = current.Key,
+                VolumePercentile = (decimal)profile.Values.Count(volume => volume <= current.Value) / profile.Count
+            });
+        }
+        return minima;
+    }
+
+    private static string FormatLvns(IReadOnlyCollection<LvnMetrics> lvns)
+    {
+        return lvns.Count == 0
+            ? "NONE"
+            : string.Join("|", lvns.OrderBy(lvn => lvn.Price).Select(lvn => $"{F(lvn.Price)}:{F(lvn.VolumePercentile, 4)}"));
     }
 
     private void LogRecord(AuctionBarRecord record)
@@ -618,7 +870,46 @@ internal sealed class FabioAuctionStudyModule
         public LvnMetrics? PriorSessionLvnAbove { get; init; }
         public LvnMetrics? PriorRollingLvnBelow { get; init; }
         public LvnMetrics? PriorRollingLvnAbove { get; init; }
+        public BarContribution Contribution { get; init; } = new();
         public CumulativeFlowStats CumulativeFlow { get; } = new();
+    }
+
+    private sealed class NewYorkImpulseState
+    {
+        public AuctionBarRecord? PreviousRecord { get; set; }
+        public ImpulseLifecycle? Active { get; set; }
+        public HashSet<string> LoggedMarkers { get; } = new();
+    }
+
+    private sealed class ImpulseLifecycle
+    {
+        public string Id { get; init; } = string.Empty;
+        public DateOnly SessionDate { get; init; }
+        public string Direction { get; init; } = string.Empty;
+        public decimal OriginBoundary { get; init; }
+        public int StartBar { get; init; }
+        public AuctionBarRecord LastImpulseRecord { get; set; } = null!;
+        public decimal ImpulseHigh { get; set; }
+        public decimal ImpulseLow { get; set; }
+        public bool IsReady { get; set; }
+        public int PullbackOrdinal { get; set; }
+        public List<BarContribution> Contributions { get; } = new();
+        public Dictionary<decimal, decimal> FrozenProfile { get; set; } = new();
+        public ProfileMetrics? FrozenMetrics { get; set; }
+        public List<LvnMetrics> FrozenLvns { get; set; } = new();
+    }
+
+    private sealed class ImpulseMarker
+    {
+        public string Kind { get; init; } = string.Empty;
+        public int Ordinal { get; init; }
+        public int Bar => Record.Bar;
+        public ImpulseLifecycle Impulse { get; init; } = null!;
+        public AuctionBarRecord Record { get; init; } = null!;
+        public int PullbackOrdinal { get; init; }
+        public string FrozenRelation { get; init; } = string.Empty;
+        public IReadOnlyCollection<LvnMetrics> TouchedLvns { get; init; } = Array.Empty<LvnMetrics>();
+        public string EndReason { get; init; } = string.Empty;
     }
 
     private sealed class CumulativeFlowStats

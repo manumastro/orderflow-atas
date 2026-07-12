@@ -1,0 +1,114 @@
+{
+  "generatedAt": "2026-07-12T09:58:31+02:00",
+  "source": {
+    "log": "C:\\Users\\emanu\\AppData\\Roaming\\ATAS\\Logs\\FabioOrderFlow.log",
+    "mode": {
+      "StudyMode": "DUAL_SESSION_AUCTION_STATE_LEDGER_NO_TRADES",
+      "Sessions": "LONDON|NEW_YORK",
+      "Symmetry": "HIGH_LONG|LOW_SHORT|HIGH_SHORT|LOW_LONG",
+      "Profile": "CURRENT_SESSION_CAUSAL",
+      "RollingProfileBars": "12",
+      "FlowSource": "CANDLE_FOOTPRINT|CUMULATIVE_TRADES",
+      "CumulativeBigTrades": "AGGREGATED_PER_BAR",
+      "OperationalEntries": "DISABLED",
+      "ShadowOrders": "DISABLED",
+      "ChartTimeFrame": "M1"
+    },
+    "summary": {
+      "StudyMode": "DUAL_SESSION_AUCTION_STATE_LEDGER_NO_TRADES",
+      "LondonBars": "2879",
+      "NewYorkBars": "2160",
+      "BuyWithResult": "1847",
+      "BuyAbsorbed": "595",
+      "SellWithResult": "1881",
+      "SellAbsorbed": "636",
+      "Neutral": "80",
+      "HistoricalCumulativeTradesSeen": "0",
+      "HistoricalCumulativeTradesMatched": "0",
+      "OperationalEntries": "0",
+      "ShadowOrders": "0"
+    }
+  },
+  "contract": {
+    "studyMode": "DUAL_SESSION_AUCTION_STATE_LEDGER_NO_TRADES",
+    "flowSource": "CANDLE_FOOTPRINT|CUMULATIVE_TRADES",
+    "cumulativeBigTradesIncluded": true,
+    "signalsGenerated": false,
+    "pnlComputed": false,
+    "selectionThresholds": []
+  },
+  "counts": {
+    "records": 5039,
+    "sessions": {
+      "LONDON": 2879,
+      "NEW_YORK": 2160
+    },
+    "sessionDates": {
+      "LONDON": 6,
+      "NEW_YORK": 6
+    },
+    "uniqueChartBars": 4499
+  },
+  "descriptive": {
+    "effortResultBySession": {
+      "LONDON": {
+        "BUY_ABSORBED": 380,
+        "BUY_WITH_RESULT": 1035,
+        "NEUTRAL": 57,
+        "SELL_ABSORBED": 384,
+        "SELL_WITH_RESULT": 1023
+      },
+      "NEW_YORK": {
+        "BUY_ABSORBED": 215,
+        "BUY_WITH_RESULT": 812,
+        "NEUTRAL": 23,
+        "SELL_ABSORBED": 252,
+        "SELL_WITH_RESULT": 858
+      }
+    },
+    "priorProfileRelationBySession": {
+      "LONDON": {
+        "ABOVE_VAH": 794,
+        "BELOW_VAL": 437,
+        "INSIDE_VALUE": 1642,
+        "NA": 6
+      },
+      "NEW_YORK": {
+        "ABOVE_VAH": 455,
+        "BELOW_VAL": 339,
+        "INSIDE_VALUE": 1360,
+        "NA": 6
+      }
+    },
+    "outsidePriorValueBySession": {
+      "LONDON": {
+        "ABOVE_VAH": 794,
+        "BELOW_VAL": 437
+      },
+      "NEW_YORK": {
+        "ABOVE_VAH": 455,
+        "BELOW_VAL": 339
+      }
+    },
+    "absorptionOutsidePriorValueBySession": {
+      "LONDON": {
+        "ABOVE_VAH:BUY_ABSORBED": 92,
+        "ABOVE_VAH:SELL_ABSORBED": 102,
+        "BELOW_VAL:BUY_ABSORBED": 63,
+        "BELOW_VAL:SELL_ABSORBED": 52
+      },
+      "NEW_YORK": {
+        "ABOVE_VAH:BUY_ABSORBED": 36,
+        "ABOVE_VAH:SELL_ABSORBED": 63,
+        "BELOW_VAL:BUY_ABSORBED": 27,
+        "BELOW_VAL:SELL_ABSORBED": 31
+      }
+    }
+  },
+  "validation": {
+    "summaryPresent": true,
+    "bothSessionsPresent": true,
+    "nonOperational": true,
+    "warnings": []
+  }
+}

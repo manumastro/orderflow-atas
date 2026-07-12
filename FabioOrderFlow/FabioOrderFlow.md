@@ -29,6 +29,7 @@ tools/analyze_compression_shadow.py                    shadow primo evento offli
 tools/analyze_compression_state_entries.py             shadow state-confirmed offline, JSON only
 tools/analyze_acceptance_path_transitions.py            transizioni path e flow iniziale, JSON only
 tools/analyze_fabio_auction_playbooks.py                 balance rotation + NY pullback, JSON only
+tools/report_auction_impulse_ledger.py                    profilo causale NY A->B, JSON only
 performance-snapshots/                                 snapshot PnL legacy
 ledger-snapshots/                                      CSV dataset e report JSON del compression ledger
 archive/legacy-research/                               strumenti/snapshot pre-core, non operativi
@@ -53,7 +54,8 @@ ATAS OnCalculate
 ATAS OnCalculate -> FabioAuctionStudyModel
 -> registra ogni barra completata London 08:00-16:00 e New York 09:30-16:00
 -> mantiene profili sessione e rolling causali, LVN raw, stato VA e aggressione/risultato
--> osserva entrambe le direzioni senza produrre trigger
+-> a New York costruisce il profilo causale dell'impulso A->B e lo congela prima del pullback
+-> registra ogni pullback e risoluzione senza produrre trigger
 
 ATAS OnCumulativeTrade / OnUpdateCumulativeTrade
 -> BalanceZoneTracker.OnLiveCumulativeTrade
@@ -133,6 +135,14 @@ python FabioOrderFlow/tools/report_auction_state_ledger.py --save
 ```
 
 Restituisce JSON-only e salva le barre London/New York con profilo causale, LVN, footprint e cumulative big trades. Non genera segnali o PnL.
+
+Report impulse profile New York:
+
+```bash
+python FabioOrderFlow/tools/report_auction_impulse_ledger.py --save
+```
+
+M1 e' la granularita' primaria per questo report; M5 resta dataset baseline separato. Con dxFeed il candle footprint e' disponibile, ma se `CUM_TRADES_RESPONSE Count=0` cumulative bubble e relative conferme sono mancanti.
 
 Analisi dei due playbook transcript:
 

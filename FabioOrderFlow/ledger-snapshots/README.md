@@ -51,6 +51,14 @@ python FabioOrderFlow/tools/analyze_fabio_auction_playbooks.py \
 
 Il report conserva tutte le osservazioni `BALANCE_ROTATION_V1` e `NY_IMBALANCE_PULLBACK_V1`, split train/test e `selectionLeakage=true`.
 
+Profilo causale impulso New York:
+
+```bash
+python FabioOrderFlow/tools/report_auction_impulse_ledger.py --save
+```
+
+Salva `auction-impulse-*-summary.json`, profili, barre pullback e risoluzioni in CSV. Gli snapshot M1 e M5 sono dataset distinti; la coverage cumulative mancante su dxFeed resta esplicita.
+
 Non confrontare direttamente `CloseMoveRanges` di HIGH e LOW: il report
 fornisce `averageReversionCloseMoveRanges`, positivo soltanto quando il prezzo
 si muove dal bordo verso l'interno del range.
