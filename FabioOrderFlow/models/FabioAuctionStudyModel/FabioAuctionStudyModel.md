@@ -128,6 +128,32 @@ Errori:                          0
 
 L'analisi iniziale e' in `docs/research/fabio-auction-playbooks-analysis-2026-07-11.md`. Ha prodotto 73 osservazioni tra balance rotation e NY pullback, ma nessun modello validato. NY SHORT H6 resta una traccia diagnostica su 13 casi; LONG fallisce lo split test.
 
+## Reload M1 Rithmic e Conferma Cumulative 2026-07-12
+
+```text
+Date per sessione:               7 / 7
+Cumulative ricevuti / matched:   1.645.204 / 1.370.383
+Impulse READY / RESOLVED:        89 / 89
+LONG / SHORT:                    47 / 42
+Pullback AVAILABLE:              253 / 253
+Continuation / Origin reentry:   35 / 39
+Two-sided:                       15
+OperationalEntries / Orders:     0 / 0
+```
+
+Contratto offline congelato:
+
+```text
+pullback prima della risoluzione
+-> raw LVN attraversato
+-> WITH_RESULT nella direzione impulso
+-> max cumulative direzionale >=30 e > opposto
+```
+
+M1 produce 10 conferme su 5 date, 8 continuation e 2 reentry. Limitando alla prima per data/direzione: 8 osservazioni, 7 continuation e 1 reentry. M5 separato produce 5 continuation su 8 primarie. `Validated=FALSE`, `PromotedToShadow=FALSE`, `selectionLeakage=true`.
+
+Il raw LVN touch e' presente in tutte le barre pullback e non e' discriminante. I prossimi dati devono aggiungere rilevanza/rank causale mantenendo tutti i minimi raw.
+
 ## Reload M5 Rithmic Impulse 2026-07-12
 
 ```text

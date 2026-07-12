@@ -1,5 +1,30 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Reload e Analisi Rithmic M1 2026-07-12 - Cumulative Confirmation
+
+```text
+Replay M1:
+- Range 2026-07-02 -> 2026-07-10; 9.419 chart bars; 7 date per sessione.
+- Auction bars=5.909; London=3.359; NewYork=2.550.
+- Cumulative ricevuti=1.645.204; matched=1.370.383.
+- Impulse READY/RESOLVED=89/89; LONG=47; SHORT=42; pullback AVAILABLE=253/253.
+- EndReason: continuation=35, origin reentry=39, two-sided=15.
+- Entries=0; ShadowOrders=0; MR_ENTRY=0; MR_EXIT=0; errori=0.
+
+NY_IMPULSE_LVN_CUMULATIVE_CONFIRMATION_V1:
+- conferma strettamente prima della barra resolved;
+- touched raw LVN + directional WITH_RESULT + max cumulative >=30 e > opposto;
+- soglia 30 dal transcript New York, non ottimizzata;
+- M1=10 conferme/5 date, 8 continuation e 2 reentry;
+- primarie, massimo una data/direzione=8: 7 continuation e 1 reentry;
+- M5 primarie separate=8: 5 continuation e 3 reentry.
+
+Decisione:
+- Validated=FALSE; PromotedToShadow=FALSE; selectionLeakage=true.
+- Le stesse date M1/M5 non sono test indipendente.
+- Il raw LVN touch e' presente in ogni pullback e non discrimina; prossimo ciclo dedicato al ranking causale LVN.
+```
+
 ## Reload Rithmic M5 2026-07-12 - Impulse Profile Verificato
 
 ```text

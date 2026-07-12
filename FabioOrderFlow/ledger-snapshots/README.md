@@ -59,6 +59,15 @@ python FabioOrderFlow/tools/report_auction_impulse_ledger.py --save
 
 Salva `auction-impulse-*-summary.json`, profili, barre pullback e risoluzioni in CSV. Gli snapshot M1 e M5 sono dataset distinti; la coverage cumulative mancante su dxFeed resta esplicita.
 
+Conferma cumulative pre-risoluzione:
+
+```bash
+python FabioOrderFlow/tools/analyze_auction_impulse_confirmations.py --timeframe M1 --save
+python FabioOrderFlow/tools/analyze_auction_impulse_confirmations.py --timeframe M5 --save
+```
+
+I report `auction-impulse-confirmations-M1|M5-*.json` conservano tutte le conferme e il sottoinsieme primario, massimo una per data/direzione. Non producono PnL.
+
 Non confrontare direttamente `CloseMoveRanges` di HIGH e LOW: il report
 fornisce `averageReversionCloseMoveRanges`, positivo soltanto quando il prezzo
 si muove dal bordo verso l'interno del range.

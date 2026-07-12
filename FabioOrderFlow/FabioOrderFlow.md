@@ -30,6 +30,7 @@ tools/analyze_compression_state_entries.py             shadow state-confirmed of
 tools/analyze_acceptance_path_transitions.py            transizioni path e flow iniziale, JSON only
 tools/analyze_fabio_auction_playbooks.py                 balance rotation + NY pullback, JSON only
 tools/report_auction_impulse_ledger.py                    profilo causale NY A->B, JSON only
+tools/analyze_auction_impulse_confirmations.py             cumulative confirmation M1/M5, JSON only
 performance-snapshots/                                 snapshot PnL legacy
 ledger-snapshots/                                      CSV dataset e report JSON del compression ledger
 archive/legacy-research/                               strumenti/snapshot pre-core, non operativi
@@ -143,6 +144,15 @@ python FabioOrderFlow/tools/report_auction_impulse_ledger.py --save
 ```
 
 M1 e' la granularita' primaria per questo report; M5 resta dataset baseline separato. Con dxFeed il candle footprint e' disponibile, ma se `CUM_TRADES_RESPONSE Count=0` cumulative bubble e relative conferme sono mancanti.
+
+Conferma cumulative pre-risoluzione, M1/M5 separati:
+
+```bash
+python FabioOrderFlow/tools/analyze_auction_impulse_confirmations.py --timeframe M1 --save
+python FabioOrderFlow/tools/analyze_auction_impulse_confirmations.py --timeframe M5 --save
+```
+
+Usa la soglia New York `30` dichiarata nei transcript, richiede directional dominance e non include la barra che ha gia' risolto l'impulso. Il report resta `selectionLeakage=true`, no-trade e non validato finche' non arrivano date prospettiche.
 
 Analisi dei due playbook transcript:
 

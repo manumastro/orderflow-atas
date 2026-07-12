@@ -129,6 +129,12 @@ python FabioOrderFlow/tools/report_auction_impulse_ledger.py --save
 
 Su dxFeed storico ATAS puo' restituire `CUM_TRADES_RESPONSE Count=0`: il profilo footprint resta disponibile, ma ogni pullback avra' `CumulativeTradeCoverage=MISSING`. Non interpretarlo come aggressione zero.
 
+```bash
+python FabioOrderFlow/tools/analyze_auction_impulse_confirmations.py --timeframe M1 --save
+```
+
+`NY_IMPULSE_LVN_CUMULATIVE_CONFIRMATION_V1` richiede una barra precedente alla risoluzione, directional `WITH_RESULT`, raw LVN attraversato e cumulative max direzionale `>=30` e maggiore dell'opposto. La soglia 30 viene dal transcript New York. Il raw LVN touch resta descrittivo: sul primo replay e' presente in ogni pullback.
+
 ## BalanceZoneTracker Corrente
 
 `BalanceZoneTracker` identifica London e disegna la zona grigia per orientamento. `[ZONE_READY]`, POC/VAH/VAL, high/low e state machine non partecipano al ledger. Il refactor futuro lo ridurra' a `LondonTracker`, responsabile soltanto di inizio, fine e appartenenza alla sessione London.
