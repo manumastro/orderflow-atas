@@ -110,6 +110,24 @@ def level_touches(record: dict[str, str], direction: str, target: float, invalid
     return low <= target, high >= invalidation
 
 
+def enrich_pullbacks_from_shadow_paths(
+    pullbacks: list[dict[str, str]],
+    shadow_paths: list[dict[str, str]],
+) -> int:
+    lookup = {
+        (record["ImpulseId"], record["Bar"]): record
+        for record in shadow_paths
+    }
+    matched = 0
+    for record in pullbacks:
+        source = lookup.get((record["ImpulseId"], record["Bar"]))
+        for field in ("Open", "High", "Low"):
+            record[field] = source[field] if source is not None else record.get(field, "")
+        if source is not None:
+            matched += 1
+    return matched
+
+
 def evaluate_observations(
     profiles: list[dict[str, str]],
     pullbacks: list[dict[str, str]],
@@ -298,6 +316,7 @@ def main() -> int:
     parser.add_argument("--profiles", type=Path)
     parser.add_argument("--pullbacks", type=Path)
     parser.add_argument("--resolutions", type=Path)
+    parser.add_argument("--shadow-paths", type=Path, help="Optional tracked shadow path CSV used to hydrate OHLC in legacy pullbacks")
     parser.add_argument("--save", action="store_true")
     parser.add_argument("--output-dir", type=Path, default=Path("FabioOrderFlow") / "ledger-snapshots")
     args = parser.parse_args()
@@ -309,6 +328,9 @@ def main() -> int:
         profiles = load_csv(profile_path)
         pullbacks = load_csv(pullback_path)
         resolutions = load_csv(resolution_path)
+        hydrated_pullbacks = 0
+        if args.shadow_paths:
+            hydrated_pullbacks = enrich_pullbacks_from_shadow_paths(pullbacks, load_csv(args.shadow_paths))
         observations = evaluate_observations(profiles, pullbacks, resolutions)
         report: dict[str, object] = {
             "generatedAt": datetime.now().astimezone().isoformat(timespec="seconds"),
@@ -316,6 +338,7 @@ def main() -> int:
                 "profiles": str(profile_path),
                 "pullbacks": str(pullback_path),
                 "resolutions": str(resolution_path),
+                "shadowPaths": str(args.shadow_paths) if args.shadow_paths else None,
                 "chartTimeFrame": args.timeframe,
             },
             "contract": {
@@ -342,6 +365,7 @@ def main() -> int:
                 "pullbackBars": len(pullbacks),
                 "resolutions": len(resolutions),
                 "observations": len(observations),
+                "pullbacksHydratedFromShadowPaths": hydrated_pullbacks,
             },
             "total": summarize(observations),
             "byDirection": {

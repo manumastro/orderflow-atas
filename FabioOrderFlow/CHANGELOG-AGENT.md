@@ -1,5 +1,33 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Analisi 2026-07-12 - Boundary Risk V1
+
+```text
+Dataset:
+- 396 profili, 1.132 pullback, 19 conferme primarie su 14 date;
+- LONG/SHORT=11/8; target B first=13; origin A first=5; ambiguo same-bar=1;
+- ambigui=5,3%, conteggiati come perdita; geometrie invalide=0.
+
+Geometria mediana:
+- reward=15,75 punti; risk=32,50 punti; reward/risk=0,54.
+
+Costo simulato 1 punto:
+- ALL mean R=+0,394; profit factor=2,161; positivi=68,4%;
+- LONG mean R=+0,681; profit factor=4,171; positivi=81,8%;
+- SHORT mean R=-0,0001; profit factor=1,000; positivi=50,0%.
+
+Decisione congelata:
+- REJECTED_HISTORICAL_FEASIBILITY;
+- SHORT fallisce mean R >0 e profit factor >=1,25;
+- nessuna estensione o raccolta prospettica del modello simmetrico;
+- LONG-only e' una nuova ipotesi post-hoc, non una promozione di questo contratto.
+
+Riproducibilita':
+- 554 path shadow coprono la risoluzione di tutte le 19 osservazioni;
+- 87 pullback OHLC idratati da snapshot tracciato;
+- report canonico boundary-risk M1 salvato.
+```
+
 ## Implementazione 2026-07-12 - Boundary Risk V1
 
 ```text

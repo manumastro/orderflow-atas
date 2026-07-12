@@ -87,6 +87,35 @@ Se il controllo iniziale passa, il successivo campione deve contenere almeno:
 
 Le date aggiunte non possono modificare entry, obiettivo, invalidazione, costi o criteri. Lo storico esteso non e' ancora prospettico, ma evita di continuare a giudicare soltanto le stesse 40 sessioni usate nella discovery.
 
+## Risultato sul campione corrente
+
+```text
+Osservazioni:                 19 su 14 date
+LONG / SHORT:                 11 / 8
+B prima di A:                 13
+A prima di B:                  5
+Ambiguo stessa barra:          1, contato come perdita
+Reward / risk mediano:         0,54
+```
+
+Con costo simulato di `1 punto`:
+
+```text
+ALL:   mean +0,394R; profit factor 2,161
+LONG:  mean +0,681R; profit factor 4,171
+SHORT: mean -0,0001R; profit factor 1,000
+```
+
+Decisione:
+
+```text
+REJECTED_HISTORICAL_FEASIBILITY
+```
+
+SHORT fallisce sia risultato medio positivo sia profit factor minimo `1,25`. Il contratto simmetrico non passa allo storico esteso e non entra in raccolta prospettica.
+
+LONG-only e' una nuova ipotesi suggerita dopo aver letto questi risultati. Gli 11 LONG correnti sono quindi campione di scoperta e non possono validarla; un eventuale contratto LONG separato deve essere congelato e giudicato su date non incluse, per esempio precedenti al `2026-05-18`.
+
 ## Vincoli
 
 ```text

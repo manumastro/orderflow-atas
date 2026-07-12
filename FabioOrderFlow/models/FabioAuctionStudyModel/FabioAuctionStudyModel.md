@@ -154,6 +154,12 @@ Errori:                          0
 
 L'analisi iniziale e' in `docs/research/fabio-auction-playbooks-analysis-2026-07-11.md`. Ha prodotto 73 osservazioni tra balance rotation e NY pullback, ma nessun modello validato. NY SHORT H6 resta una traccia diagnostica su 13 casi; LONG fallisce lo split test.
 
+## Analisi Boundary Risk V1 2026-07-12
+
+Il modello simmetrico confirmation-close -> estremo B / origine A e' respinto. Con costo simulato di 1 punto, LONG produce `+0,681R` medio e profit factor `4,17`; SHORT produce circa `0R` e profit factor `1,00`, sotto il minimo `1,25`. Un caso ambiguo stessa-barra e' contato come perdita.
+
+La media complessiva positiva non supera il requisito dichiarato di sostenibilita' in entrambe le direzioni. Nessuna raccolta prospettica simmetrica. LONG-only resta ipotesi post-hoc da formalizzare separatamente e testare su date non incluse nel campione corrente.
+
 ## Reload Cumulative Confirmation Shadow V1 2026-07-12
 
 ```text
