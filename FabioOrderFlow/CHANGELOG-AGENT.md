@@ -1,5 +1,32 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Implementazione 2026-07-12 - Raw Causal LVN Ranking V1
+
+```text
+Scope:
+- solo profilo impulso New York A->B congelato al READY;
+- tutti gli LVN raw conservati; nessuna soglia o selezione.
+
+Metriche per LVN:
+- volume percentile, adjacent depth, shoulder depth, prominence;
+- prominence rank e rank score interni al profilo;
+- position in impulse range e directional progress;
+- distanze normalizzate da POC, origin boundary e bordo piu' vicino.
+
+Logging/report:
+- LvnRanking=RAW_CAUSAL_V1;
+- READY contiene geometria e metriche complete;
+- PULLBACK contiene solo touch metrics e flow; RESOLVED solo outcome;
+- report idrata tramite ImpulseId e resta compatibile con log legacy;
+- --save aggiunge lvns.csv e touched-lvns.csv strutturati.
+
+Verifica pre-reload:
+- build Release 0 warning / 0 error;
+- fixture ranked: 2 LVN / 1 touch, hydration pullback/resolution coerente;
+- legacy report: 396/1.132/396 ancora leggibile;
+- OperationalEntry=FALSE; Orders=0; PnL=NONE.
+```
+
 ## Reload NY-Only Verificato 2026-07-12 - Equivalenza e Performance
 
 ```text

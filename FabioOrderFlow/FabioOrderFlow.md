@@ -132,7 +132,7 @@ Report impulse profile New York:
 python FabioOrderFlow/tools/report_auction_impulse_ledger.py --save
 ```
 
-M1 e' la granularita' primaria per questo report; M5 resta dataset baseline separato. Con dxFeed il candle footprint e' disponibile, ma se `CUM_TRADES_RESPONSE Count=0` cumulative bubble e relative conferme sono mancanti.
+M1 e' la granularita' primaria per questo report; M5 resta dataset baseline separato. Con dxFeed il candle footprint e' disponibile, ma se `CUM_TRADES_RESPONSE Count=0` cumulative bubble e relative conferme sono mancanti. `RAW_CAUSAL_V1` mantiene tutti gli LVN raw e aggiunge depth, prominence, rank e location; con `--save` produce anche `lvns.csv` e `touched-lvns.csv`.
 
 Conferma cumulative pre-risoluzione, M1/M5 separati:
 

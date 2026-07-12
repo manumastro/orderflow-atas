@@ -57,7 +57,7 @@ Profilo causale impulso New York:
 python FabioOrderFlow/tools/report_auction_impulse_ledger.py --save
 ```
 
-Salva `auction-impulse-*-summary.json`, profili, barre pullback e risoluzioni in CSV. Gli snapshot M1 e M5 sono dataset distinti; la coverage cumulative mancante su dxFeed resta esplicita.
+Salva `auction-impulse-*-summary.json`, profili, barre pullback e risoluzioni in CSV. Con `LvnRanking=RAW_CAUSAL_V1` aggiunge `auction-impulse-*-lvns.csv` e `auction-impulse-*-touched-lvns.csv`; tutti i raw LVN restano inclusi. Gli snapshot M1 e M5 sono dataset distinti; la coverage cumulative mancante su dxFeed resta esplicita.
 
 Conferma cumulative pre-risoluzione:
 

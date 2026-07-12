@@ -121,7 +121,9 @@ CumulativeTradeCoverage            AVAILABLE | MISSING
 
 `ABSORBED` descrive delta e risultato prezzo della barra; da solo non e' un setup. London reversion richiede ancora sequenza breakout-rientro-risposta opposta. New York continuation richiede stato di imbalance, location LVN/pullback e aggressione con risultato.
 
-Il lifecycle A->B parte da una transizione inside-value -> close esterna con effort/result coerente. Accumula solo le barre che estendono l'estremo senza rientrare dal boundary di origine, poi congela il profilo prima della prima barra di pullback. `ImpulseLvns` e `TouchedLvns` sono liste `prezzo:percentile` separate da `|`, non livelli qualificati.
+Il lifecycle A->B parte da una transizione inside-value -> close esterna con effort/result coerente. Accumula solo le barre che estendono l'estremo senza rientrare dal boundary di origine, poi congela il profilo prima della prima barra di pullback. `ImpulseLvns` e `TouchedLvns` restano liste legacy `prezzo:percentile`, non livelli qualificati.
+
+Con `LvnRanking=RAW_CAUSAL_V1`, `ImpulseLvnMetrics` e `TouchedLvnMetrics` aggiungono nell'ordine: prezzo, volume percentile, adjacent depth, shoulder depth, prominence, prominence rank, rank score, position in range, directional progress, distanza da POC, origine e bordo. Nessuna metrica filtra i raw LVN. I marker pullback/resolved non ripetono la geometria statica: il report la ricostruisce dal READY tramite `ImpulseId`.
 
 ```bash
 python FabioOrderFlow/tools/report_auction_impulse_ledger.py --save

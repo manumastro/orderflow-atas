@@ -38,7 +38,7 @@ internal sealed class FabioAuctionStudyModule
         _log = log ?? throw new ArgumentNullException(nameof(log));
         _chartTimeFrame = string.IsNullOrWhiteSpace(chartTimeFrame) ? "UNKNOWN" : chartTimeFrame;
 
-        _log($"[AUCTION_STATE_MODE] StudyMode={StudyMode}, Sessions=NEW_YORK, AuctionStateBars=DISABLED, Symmetry=LONG|SHORT, Profile=NEW_YORK_SESSION_PRIOR_CAUSAL, ImpulseProfile=NEW_YORK_A_TO_B_CAUSAL, FlowSource=CANDLE_FOOTPRINT|CUMULATIVE_TRADES, CumulativeBigTrades=AGGREGATED_PER_BAR, OperationalEntries=DISABLED, ShadowOrders=DISABLED, ChartTimeFrame={_chartTimeFrame}", false);
+        _log($"[AUCTION_STATE_MODE] StudyMode={StudyMode}, Sessions=NEW_YORK, AuctionStateBars=DISABLED, Symmetry=LONG|SHORT, Profile=NEW_YORK_SESSION_PRIOR_CAUSAL, ImpulseProfile=NEW_YORK_A_TO_B_CAUSAL, LvnRanking=RAW_CAUSAL_V1, FlowSource=CANDLE_FOOTPRINT|CUMULATIVE_TRADES, CumulativeBigTrades=AGGREGATED_PER_BAR, OperationalEntries=DISABLED, ShadowOrders=DISABLED, ChartTimeFrame={_chartTimeFrame}", false);
     }
 
     public void OnBarUpdate(int bar, int currentBar, IndicatorCandle candle)
@@ -257,7 +257,7 @@ internal sealed class FabioAuctionStudyModule
 
         impulse.FrozenProfile = BuildProfile(impulse.Contributions);
         impulse.FrozenMetrics = CalculateProfile(impulse.FrozenProfile);
-        impulse.FrozenLvns = FindLocalVolumeMinima(impulse.FrozenProfile);
+        impulse.FrozenLvns = FindLocalVolumeMinima(impulse.FrozenProfile, impulse);
         impulse.IsReady = true;
         EmitImpulseMarker(new ImpulseMarker
         {
@@ -331,22 +331,12 @@ internal sealed class FabioAuctionStudyModule
 
         var impulse = marker.Impulse;
         var profile = impulse.FrozenMetrics;
-        var common = new List<string>
+        var fields = new List<string>
         {
             $"ImpulseId={impulse.Id}",
             $"SessionDate={impulse.SessionDate:yyyy-MM-dd}",
             $"Direction={impulse.Direction}",
-            $"ChartTimeFrame={_chartTimeFrame}",
-            $"StartBar={impulse.StartBar}",
-            $"EndBar={impulse.LastImpulseRecord.Bar}",
-            $"ImpulseBars={impulse.Contributions.Count}",
-            $"OriginBoundary={F(impulse.OriginBoundary)}",
-            $"ImpulseHigh={F(impulse.ImpulseHigh)}",
-            $"ImpulseLow={F(impulse.ImpulseLow)}",
-            $"ImpulsePOC={F(profile?.Poc)}",
-            $"ImpulseVAH={F(profile?.Vah)}",
-            $"ImpulseVAL={F(profile?.Val)}",
-            $"ImpulseLvns={FormatLvns(impulse.FrozenLvns)}"
+            $"ChartTimeFrame={_chartTimeFrame}"
         };
 
         string markerName;
@@ -354,53 +344,143 @@ internal sealed class FabioAuctionStudyModule
         {
             markerName = "[AUCTION_IMPULSE_READY]";
             _impulseReadyCount++;
+            fields.Add($"StartBar={impulse.StartBar}");
+            fields.Add($"EndBar={impulse.LastImpulseRecord.Bar}");
+            fields.Add($"ImpulseBars={impulse.Contributions.Count}");
+            fields.Add($"OriginBoundary={F(impulse.OriginBoundary)}");
+            fields.Add($"ImpulseHigh={F(impulse.ImpulseHigh)}");
+            fields.Add($"ImpulseLow={F(impulse.ImpulseLow)}");
+            fields.Add($"ImpulsePOC={F(profile?.Poc)}");
+            fields.Add($"ImpulseVAH={F(profile?.Vah)}");
+            fields.Add($"ImpulseVAL={F(profile?.Val)}");
+            fields.Add($"ImpulseLvns={FormatLvns(impulse.FrozenLvns)}");
+            fields.Add($"ImpulseLvnMetrics={FormatLvnMetrics(impulse.FrozenLvns)}");
         }
         else if (marker.Kind == "PULLBACK_BAR")
         {
             markerName = "[AUCTION_IMPULSE_PULLBACK_BAR]";
             _impulsePullbackBarCount++;
-            common.Add($"PullbackOrdinal={marker.PullbackOrdinal}");
-            common.Add($"Bar={marker.Record.Bar}");
-            common.Add($"Close={F(marker.Record.Close)}");
-            common.Add($"FrozenProfileRelation={marker.FrozenRelation}");
-            common.Add($"TouchedLvns={FormatLvns(marker.TouchedLvns)}");
-            common.Add($"EffortResult={marker.Record.EffortResult}");
-            common.Add($"CumulativeTradeCoverage={(marker.Record.CumulativeFlow.TradeCount > 0 ? "AVAILABLE" : "MISSING")}");
-            common.Add($"MaxCumulativeBuy={F(marker.Record.CumulativeFlow.MaxBuy)}");
-            common.Add($"MaxCumulativeSell={F(marker.Record.CumulativeFlow.MaxSell)}");
+            fields.Add($"PullbackOrdinal={marker.PullbackOrdinal}");
+            fields.Add($"Bar={marker.Record.Bar}");
+            fields.Add($"Close={F(marker.Record.Close)}");
+            fields.Add($"FrozenProfileRelation={marker.FrozenRelation}");
+            fields.Add($"TouchedLvns={FormatLvns(marker.TouchedLvns)}");
+            fields.Add($"TouchedLvnMetrics={FormatLvnMetrics(marker.TouchedLvns)}");
+            fields.Add($"EffortResult={marker.Record.EffortResult}");
+            fields.Add($"CumulativeTradeCoverage={(marker.Record.CumulativeFlow.TradeCount > 0 ? "AVAILABLE" : "MISSING")}");
+            fields.Add($"MaxCumulativeBuy={F(marker.Record.CumulativeFlow.MaxBuy)}");
+            fields.Add($"MaxCumulativeSell={F(marker.Record.CumulativeFlow.MaxSell)}");
         }
         else
         {
             markerName = "[AUCTION_IMPULSE_RESOLVED]";
             _impulseResolvedCount++;
-            common.Add($"ResolvedBar={marker.Record.Bar}");
-            common.Add($"EndReason={marker.EndReason}");
+            fields.Add($"ResolvedBar={marker.Record.Bar}");
+            fields.Add($"EndReason={marker.EndReason}");
         }
 
-        common.Add("OperationalEntry=FALSE");
-        common.Add("OrderSubmitted=FALSE");
-        _log($"{markerName} {string.Join(", ", common)}", marker.Record.IsHistorical);
+        fields.Add("OperationalEntry=FALSE");
+        fields.Add("OrderSubmitted=FALSE");
+        _log($"{markerName} {string.Join(", ", fields)}", marker.Record.IsHistorical);
     }
 
-    private static List<LvnMetrics> FindLocalVolumeMinima(IReadOnlyDictionary<decimal, decimal> profile)
+    private static List<LvnMetrics> FindLocalVolumeMinima(
+        IReadOnlyDictionary<decimal, decimal> profile,
+        ImpulseLifecycle impulse)
     {
         if (profile.Count < 3)
             return new List<LvnMetrics>();
 
         var levels = profile.OrderBy(item => item.Key).ToList();
+        var maxVolume = levels.Max(item => item.Value);
+        var volumePercentiles = new Dictionary<decimal, decimal>();
+        var cumulativeLevels = 0;
+        foreach (var group in levels.GroupBy(item => item.Value).OrderBy(group => group.Key))
+        {
+            cumulativeLevels += group.Count();
+            volumePercentiles[group.Key] = (decimal)cumulativeLevels / levels.Count;
+        }
+
+        var leftPeaks = new decimal[levels.Count];
+        var rightPeaks = new decimal[levels.Count];
+        var runningPeak = levels[0].Value;
+        for (var index = 1; index < levels.Count; index++)
+        {
+            leftPeaks[index] = runningPeak;
+            runningPeak = Math.Max(runningPeak, levels[index].Value);
+        }
+        runningPeak = levels[^1].Value;
+        for (var index = levels.Count - 2; index >= 0; index--)
+        {
+            rightPeaks[index] = runningPeak;
+            runningPeak = Math.Max(runningPeak, levels[index].Value);
+        }
+
+        var impulseRange = impulse.ImpulseHigh - impulse.ImpulseLow;
+        var directionalRange = impulse.Direction == "LONG"
+            ? impulse.ImpulseHigh - impulse.OriginBoundary
+            : impulse.OriginBoundary - impulse.ImpulseLow;
         var minima = new List<LvnMetrics>();
         for (var index = 1; index < levels.Count - 1; index++)
         {
             var current = levels[index];
             if (current.Value > levels[index - 1].Value || current.Value > levels[index + 1].Value)
                 continue;
+
+            var adjacentShoulder = Math.Min(levels[index - 1].Value, levels[index + 1].Value);
+            var broadShoulder = Math.Min(leftPeaks[index], rightPeaks[index]);
+            var prominenceVolume = Math.Max(0m, broadShoulder - current.Value);
+            var positionInRange = impulseRange > 0
+                ? (current.Key - impulse.ImpulseLow) / impulseRange
+                : 0m;
+            var directionalProgress = directionalRange > 0
+                ? impulse.Direction == "LONG"
+                    ? (current.Key - impulse.OriginBoundary) / directionalRange
+                    : (impulse.OriginBoundary - current.Key) / directionalRange
+                : 0m;
+
             minima.Add(new LvnMetrics
             {
                 Price = current.Key,
-                VolumePercentile = (decimal)profile.Values.Count(volume => volume <= current.Value) / profile.Count
+                VolumePercentile = volumePercentiles[current.Value],
+                AdjacentDepth = RelativeDepth(current.Value, adjacentShoulder),
+                ShoulderDepth = RelativeDepth(current.Value, broadShoulder),
+                Prominence = maxVolume > 0 ? prominenceVolume / maxVolume : 0m,
+                PositionInRange = positionInRange,
+                DirectionalProgress = directionalProgress,
+                DistanceToPocRanges = impulseRange > 0 && impulse.FrozenMetrics != null
+                    ? Math.Abs(current.Key - impulse.FrozenMetrics.Poc) / impulseRange
+                    : 0m,
+                DistanceToOriginRanges = impulseRange > 0
+                    ? Math.Abs(current.Key - impulse.OriginBoundary) / impulseRange
+                    : 0m,
+                DistanceToEdgeRanges = impulseRange > 0
+                    ? Math.Min(current.Key - impulse.ImpulseLow, impulse.ImpulseHigh - current.Key) / impulseRange
+                    : 0m
             });
         }
-        return minima;
+
+        var ranked = minima
+            .OrderByDescending(lvn => lvn.Prominence)
+            .ThenByDescending(lvn => lvn.ShoulderDepth)
+            .ThenBy(lvn => lvn.VolumePercentile)
+            .ThenBy(lvn => lvn.Price)
+            .ToList();
+        for (var index = 0; index < ranked.Count; index++)
+        {
+            ranked[index].ProminenceRank = index + 1;
+            ranked[index].ProminenceRankScore = ranked.Count == 1
+                ? 1m
+                : 1m - (decimal)index / (ranked.Count - 1);
+        }
+        return minima.OrderBy(lvn => lvn.Price).ToList();
+    }
+
+    private static decimal RelativeDepth(decimal volume, decimal shoulderVolume)
+    {
+        return shoulderVolume > 0
+            ? Math.Max(0m, shoulderVolume - volume) / shoulderVolume
+            : 0m;
     }
 
     private static string FormatLvns(IReadOnlyCollection<LvnMetrics> lvns)
@@ -408,6 +488,27 @@ internal sealed class FabioAuctionStudyModule
         return lvns.Count == 0
             ? "NONE"
             : string.Join("|", lvns.OrderBy(lvn => lvn.Price).Select(lvn => $"{F(lvn.Price)}:{F(lvn.VolumePercentile, 4)}"));
+    }
+
+    private static string FormatLvnMetrics(IReadOnlyCollection<LvnMetrics> lvns)
+    {
+        return lvns.Count == 0
+            ? "NONE"
+            : string.Join("|", lvns.OrderBy(lvn => lvn.Price).Select(lvn => string.Join(":", new[]
+            {
+                F(lvn.Price),
+                F(lvn.VolumePercentile, 4),
+                F(lvn.AdjacentDepth, 4),
+                F(lvn.ShoulderDepth, 4),
+                F(lvn.Prominence, 4),
+                lvn.ProminenceRank.ToString(CultureInfo.InvariantCulture),
+                F(lvn.ProminenceRankScore, 4),
+                F(lvn.PositionInRange, 4),
+                F(lvn.DirectionalProgress, 4),
+                F(lvn.DistanceToPocRanges, 4),
+                F(lvn.DistanceToOriginRanges, 4),
+                F(lvn.DistanceToEdgeRanges, 4)
+            })));
     }
 
     private static List<AuctionBarRecord> FindRecordsForTrade(IReadOnlyList<AuctionBarRecord> records, DateTime tradeTimeUtc)
@@ -720,5 +821,15 @@ internal sealed class FabioAuctionStudyModule
     {
         public decimal Price { get; init; }
         public decimal VolumePercentile { get; init; }
+        public decimal AdjacentDepth { get; init; }
+        public decimal ShoulderDepth { get; init; }
+        public decimal Prominence { get; init; }
+        public int ProminenceRank { get; set; }
+        public decimal ProminenceRankScore { get; set; }
+        public decimal PositionInRange { get; init; }
+        public decimal DirectionalProgress { get; init; }
+        public decimal DistanceToPocRanges { get; init; }
+        public decimal DistanceToOriginRanges { get; init; }
+        public decimal DistanceToEdgeRanges { get; init; }
     }
 }

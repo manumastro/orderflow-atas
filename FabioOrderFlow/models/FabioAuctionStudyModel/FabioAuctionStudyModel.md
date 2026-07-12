@@ -97,13 +97,27 @@ RESOLVED
 
 `READY` non e' una entry. `PULLBACK_BAR` registra location, LVN toccati, effort/result e coverage cumulative senza qualificare il record.
 
+### Raw Causal LVN Ranking V1
+
+Ogni minimo locale raw resta nel profilo. Al `READY`, prima del pullback, riceve:
+
+```text
+VolumePercentile
+AdjacentDepth / ShoulderDepth
+Prominence / ProminenceRank / ProminenceRankScore
+PositionInRange / DirectionalProgress
+DistanceToPocRanges / DistanceToOriginRanges / DistanceToEdgeRanges
+```
+
+`ProminenceRank=1` indica il livello piu' prominente nello stesso profilo, non un livello qualificato. Plateau e livelli con depth zero restano registrati. Contratto completo: `docs/research/auction-impulse-lvn-ranking-contract-2026-07-12.md`.
+
 ## Report
 
 ```bash
 python FabioOrderFlow/tools/report_auction_impulse_ledger.py --save
 ```
 
-Il comando restituisce esclusivamente JSON su stdout e salva profili A->B, barre pullback e risoluzioni. `report_auction_state_ledger.py` resta compatibile con snapshot dual-session precedenti e valida il summary NY-only, ma il runtime corrente non emette barre auction-state. Gli aggregati sono descrittivi, senza segnali o PnL.
+Il comando restituisce esclusivamente JSON su stdout e salva profili A->B, barre pullback e risoluzioni. Con `RAW_CAUSAL_V1` salva anche `lvns.csv` e `touched-lvns.csv`, una riga strutturata per livello/occorrenza. `report_auction_state_ledger.py` resta compatibile con snapshot dual-session precedenti e valida il summary NY-only, ma il runtime corrente non emette barre auction-state. Gli aggregati sono descrittivi, senza segnali o PnL.
 
 ## Baseline Dual-Session Verificata 2026-07-11
 

@@ -23,11 +23,11 @@ SUMMARY_MARKER = "AUCTION_STATE_SUMMARY"
 COMMON_FIELDS = (
     "ImpulseId", "SessionDate", "Direction", "ChartTimeFrame", "StartBar",
     "EndBar", "ImpulseBars", "OriginBoundary", "ImpulseHigh", "ImpulseLow",
-    "ImpulsePOC", "ImpulseVAH", "ImpulseVAL", "ImpulseLvns",
+    "ImpulsePOC", "ImpulseVAH", "ImpulseVAL", "ImpulseLvns", "ImpulseLvnMetrics",
     "OperationalEntry", "OrderSubmitted",
 )
 PULLBACK_FIELDS = COMMON_FIELDS[:-2] + (
-    "PullbackOrdinal", "Bar", "Close", "FrozenProfileRelation", "TouchedLvns",
+    "PullbackOrdinal", "Bar", "Close", "FrozenProfileRelation", "TouchedLvns", "TouchedLvnMetrics",
     "EffortResult", "CumulativeTradeCoverage", "MaxCumulativeBuy",
     "MaxCumulativeSell", "OperationalEntry", "OrderSubmitted",
 )
@@ -40,6 +40,19 @@ DECIMAL_FIELDS = {
     "ImpulseVAL", "Close", "MaxCumulativeBuy", "MaxCumulativeSell",
 }
 BOOLEAN_FIELDS = {"OperationalEntry", "OrderSubmitted"}
+LVN_METRIC_FIELDS = (
+    "Price", "VolumePercentile", "AdjacentDepth", "ShoulderDepth", "Prominence",
+    "ProminenceRank", "ProminenceRankScore", "PositionInRange", "DirectionalProgress",
+    "DistanceToPocRanges", "DistanceToOriginRanges", "DistanceToEdgeRanges",
+)
+LVN_FIELDS = (
+    "ImpulseId", "SessionDate", "Direction", "ChartTimeFrame", "StartBar",
+) + LVN_METRIC_FIELDS
+TOUCHED_LVN_FIELDS = (
+    "ImpulseId", "SessionDate", "Direction", "ChartTimeFrame", "StartBar",
+    "PullbackOrdinal", "Bar", "EffortResult", "CumulativeTradeCoverage",
+    "MaxCumulativeBuy", "MaxCumulativeSell",
+) + LVN_METRIC_FIELDS
 
 
 def default_log() -> Path:
@@ -88,6 +101,42 @@ def convert(record: dict[str, str], fields: tuple[str, ...]) -> dict[str, object
     return converted
 
 
+def parse_lvn_metrics(value: object) -> list[dict[str, object]]:
+    if not value or value == "NONE":
+        return []
+    records: list[dict[str, object]] = []
+    for encoded in str(value).split("|"):
+        values = encoded.split(":")
+        if len(values) != len(LVN_METRIC_FIELDS):
+            raise ValueError(f"Invalid LVN metric record with {len(values)} fields: {encoded}")
+        record: dict[str, object] = {}
+        for field, raw in zip(LVN_METRIC_FIELDS, values, strict=True):
+            record[field] = int(raw) if field == "ProminenceRank" else number(raw)
+        records.append(record)
+    return records
+
+
+def expand_lvn_rows(
+    profiles: list[dict[str, object]],
+    pullbacks: list[dict[str, object]],
+) -> tuple[list[dict[str, object]], list[dict[str, object]]]:
+    identity_fields = ("ImpulseId", "SessionDate", "Direction", "ChartTimeFrame", "StartBar")
+    lvns: list[dict[str, object]] = []
+    for profile in profiles:
+        identity = {field: profile[field] for field in identity_fields}
+        lvns.extend({**identity, **metrics} for metrics in parse_lvn_metrics(profile["ImpulseLvnMetrics"]))
+
+    touched: list[dict[str, object]] = []
+    pullback_fields = identity_fields + (
+        "PullbackOrdinal", "Bar", "EffortResult", "CumulativeTradeCoverage",
+        "MaxCumulativeBuy", "MaxCumulativeSell",
+    )
+    for pullback in pullbacks:
+        context = {field: pullback[field] for field in pullback_fields}
+        touched.extend({**context, **metrics} for metrics in parse_lvn_metrics(pullback["TouchedLvnMetrics"]))
+    return lvns, touched
+
+
 def latest_run(lines: list[str]) -> tuple[dict[str, str], list[dict[str, object]], list[dict[str, object]], list[dict[str, object]], dict[str, str]]:
     starts = [index for index, line in enumerate(lines) if f"[{MODE_MARKER}]" in line]
     if not starts:
@@ -103,16 +152,24 @@ def latest_run(lines: list[str]) -> tuple[dict[str, str], list[dict[str, object]
     mode = raw_fields(event_body(lines[start], MODE_MARKER))
     if mode.get("ImpulseProfile") != "NEW_YORK_A_TO_B_CAUSAL":
         raise ValueError("The latest run does not include the causal impulse profiler; reload the updated DLL")
-    ready = [
-        convert(raw_fields(event_body(line, READY_MARKER)), COMMON_FIELDS)
+    ready_raw = [
+        raw_fields(event_body(line, READY_MARKER))
         for line in run if f"[{READY_MARKER}]" in line
     ]
+    common_by_impulse = {record["ImpulseId"]: record for record in ready_raw}
+
+    def hydrate(line: str, marker: str) -> dict[str, str]:
+        marker_record = raw_fields(event_body(line, marker))
+        common = common_by_impulse.get(marker_record.get("ImpulseId", ""), {})
+        return {**common, **marker_record}
+
+    ready = [convert(record, COMMON_FIELDS) for record in ready_raw]
     pullbacks = [
-        convert(raw_fields(event_body(line, PULLBACK_MARKER)), PULLBACK_FIELDS)
+        convert(hydrate(line, PULLBACK_MARKER), PULLBACK_FIELDS)
         for line in run if f"[{PULLBACK_MARKER}]" in line
     ]
     resolved = [
-        convert(raw_fields(event_body(line, RESOLVED_MARKER)), RESOLVED_FIELDS)
+        convert(hydrate(line, RESOLVED_MARKER), RESOLVED_FIELDS)
         for line in run if f"[{RESOLVED_MARKER}]" in line
     ]
     summary = raw_fields(event_body(lines[finish_index], SUMMARY_MARKER))
@@ -128,12 +185,18 @@ def build_report(log_path: Path) -> tuple[dict[str, object], dict[str, list[dict
         if record.get("OperationalEntry") or record.get("OrderSubmitted")
     ]
     coverage = Counter(str(record["CumulativeTradeCoverage"]) for record in pullbacks)
+    lvn_rows, touched_lvn_rows = expand_lvn_rows(ready, pullbacks)
     report: dict[str, object] = {
         "generatedAt": datetime.now().astimezone().isoformat(timespec="seconds"),
         "source": {"log": str(log_path), "mode": mode, "summary": summary},
         "contract": {
             "model": "NEW_YORK_A_TO_B_CAUSAL",
             "profileFrozenBeforePullback": True,
+            "lvnRanking": mode.get("LvnRanking", "LEGACY_RAW"),
+            "lvnMetricSchema": [
+                *LVN_METRIC_FIELDS,
+            ],
+            "allRawLvnsRetained": True,
             "selectionThresholds": [],
             "signalsGenerated": False,
             "pnlComputed": False,
@@ -148,6 +211,8 @@ def build_report(log_path: Path) -> tuple[dict[str, object], dict[str, list[dict
             "endReasons": dict(sorted(Counter(str(record["EndReason"]) for record in resolved).items())),
             "pullbackCoverage": dict(sorted(coverage.items())),
             "sessionDates": len({str(record["SessionDate"]) for record in ready}),
+            "rankedRawLvns": len(lvn_rows),
+            "rankedTouchedLvnOccurrences": len(touched_lvn_rows),
         },
         "validation": {
             "summaryPresent": True,
@@ -163,7 +228,13 @@ def build_report(log_path: Path) -> tuple[dict[str, object], dict[str, list[dict
         "pullbackBars": pullbacks,
         "resolutions": resolved,
     }
-    return report, {"profiles": ready, "pullbacks": pullbacks, "resolutions": resolved}
+    return report, {
+        "profiles": ready,
+        "pullbacks": pullbacks,
+        "resolutions": resolved,
+        "lvns": lvn_rows,
+        "touchedLvns": touched_lvn_rows,
+    }
 
 
 def save_outputs(report: dict[str, object], datasets: dict[str, list[dict[str, object]]], directory: Path) -> dict[str, str]:
@@ -175,12 +246,16 @@ def save_outputs(report: dict[str, object], datasets: dict[str, list[dict[str, o
         "profilesCsv": base.with_name(f"{base.name}-profiles.csv"),
         "pullbacksCsv": base.with_name(f"{base.name}-pullbacks.csv"),
         "resolutionsCsv": base.with_name(f"{base.name}-resolutions.csv"),
+        "lvnsCsv": base.with_name(f"{base.name}-lvns.csv"),
+        "touchedLvnsCsv": base.with_name(f"{base.name}-touched-lvns.csv"),
     }
     paths["summaryJson"].write_text(json.dumps(report, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
     for key, fields, path_key in (
         ("profiles", COMMON_FIELDS, "profilesCsv"),
         ("pullbacks", PULLBACK_FIELDS, "pullbacksCsv"),
         ("resolutions", RESOLVED_FIELDS, "resolutionsCsv"),
+        ("lvns", LVN_FIELDS, "lvnsCsv"),
+        ("touchedLvns", TOUCHED_LVN_FIELDS, "touchedLvnsCsv"),
     ):
         with paths[path_key].open("w", encoding="utf-8", newline="") as handle:
             writer = csv.DictWriter(handle, fieldnames=fields, extrasaction="ignore")
