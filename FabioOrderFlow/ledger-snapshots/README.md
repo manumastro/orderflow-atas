@@ -66,7 +66,7 @@ python FabioOrderFlow/tools/analyze_auction_impulse_confirmations.py --timeframe
 python FabioOrderFlow/tools/analyze_auction_impulse_confirmations.py --timeframe M5 --save
 ```
 
-I report `auction-impulse-confirmations-M1|M5-*.json` conservano tutte le conferme e il sottoinsieme primario, massimo una per data/direzione. Non producono PnL.
+I report `auction-impulse-confirmations-M1|M5-*.json` conservano tutte le conferme e il sottoinsieme primario, massimo una per data/direzione. Separano inoltre lo storico precedente al `2026-07-02` dal campione usato per formalizzare il contratto. Non producono PnL.
 
 Non confrontare direttamente `CloseMoveRanges` di HIGH e LOW: il report
 fornisce `averageReversionCloseMoveRanges`, positivo soltanto quando il prezzo

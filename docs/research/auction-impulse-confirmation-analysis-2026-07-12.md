@@ -97,6 +97,43 @@ SHORT:                      3/5 continuation
 
 M1 mostra una separazione descrittiva migliore, ma non e' un test indipendente: le date coincidono e gli impulsi dei due timeframe non hanno corrispondenza uno-a-uno.
 
+## Estensione M1 a 40 Date
+
+Il contratto e' stato rieseguito senza modifiche sul chart esteso `2026-05-18 -> 2026-07-10`:
+
+```text
+Chart bars:                       40.232
+Auction records:                  27.651
+London / New York:                14.348 / 13.303
+Date per sessione:                40 / 40
+Cumulative ricevuti / matched:    5.833.055 / 4.854.494
+Impulse READY / RESOLVED:         396 / 396
+Pullback AVAILABLE / MISSING:     1.095 / 37
+Entries / ShadowOrders / errori:  0 / 0 / 0
+```
+
+I `37` pullback senza coverage sono concentrati su `2026-05-18` e `2026-06-26`; sono esclusi dalla conferma e non interpretati come flow zero.
+
+Separazione congelata:
+
+```text
+Historical holdout:       SessionDate < 2026-07-02
+Formalization sample:     SessionDate >= 2026-07-02
+```
+
+Historical holdout:
+
+```text
+Profile baseline:                 307 profili, 108 continuation = 35,2%
+Conferme:                         13 su 9 date, 7 continuation = 53,8%
+Conferme primarie:                11 su 9 date, 6 continuation = 54,5%
+Primarie LONG:                    4/6 continuation
+Primarie SHORT:                   2/5 continuation
+Altri outcome primari:            4 origin reentry, 1 two-sided
+```
+
+Il risultato resta sopra il baseline descrittivo dei profili, ma scende nettamente rispetto a `7/8` del campione di formalizzazione. Lo storico aggiuntivo e' precedente, non prospettico, e non valida il contratto.
+
 ## Limite LVN
 
 Tutte le barre pullback M1 e M5 attraversano almeno un LVN raw. Il profilo contiene molti minimi locali e plateau, come richiesto dal ledger senza soglia di qualificazione.
@@ -120,4 +157,4 @@ PnL=NONE
 selectionLeakage=true
 ```
 
-Il contratto e' congelato per nuove date prospettiche. Servono almeno nuove sessioni non usate nella formalizzazione prima di valutare una shadow live. LONG e SHORT restano separati e nessun risultato M1 viene mescolato con M5.
+Il contratto resta congelato per nuove date prospettiche. Lo storico aggiuntivo indebolisce il risultato iniziale: nessuna shadow live viene aperta. Servono sessioni future non usate nella formalizzazione; LONG e SHORT restano separati e nessun risultato M1 viene mescolato con M5.

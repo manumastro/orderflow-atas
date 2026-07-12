@@ -13,6 +13,7 @@ from datetime import datetime
 from pathlib import Path
 
 TRANSCRIPT_NEW_YORK_BIG_TRADE = 30.0
+FORMALIZATION_SAMPLE_START = "2026-07-02"
 
 
 def load_csv(path: Path) -> list[dict[str, str]]:
@@ -110,6 +111,29 @@ def primary_by_date_direction(confirmations: list[dict[str, object]]) -> list[di
     return selected
 
 
+def profile_summary(
+    profiles: list[dict[str, str]],
+    resolutions: list[dict[str, str]],
+) -> dict[str, object]:
+    resolution_by_impulse = {record["ImpulseId"]: record for record in resolutions}
+    joined = [
+        (profile, resolution_by_impulse[profile["ImpulseId"]])
+        for profile in profiles
+        if profile["ImpulseId"] in resolution_by_impulse
+    ]
+    continuation_count = sum(
+        resolution["EndReason"] == "CONTINUATION_NEW_EXTREME"
+        for _, resolution in joined
+    )
+    return {
+        "profiles": len(joined),
+        "dates": len({profile["SessionDate"] for profile, _ in joined}),
+        "directions": dict(sorted(Counter(profile["Direction"] for profile, _ in joined).items())),
+        "endReasons": dict(sorted(Counter(resolution["EndReason"] for _, resolution in joined).items())),
+        "cleanContinuationRate": continuation_count / len(joined) if joined else None,
+    }
+
+
 def group_summary(records: list[dict[str, object]]) -> dict[str, object]:
     def rate(reason: str, selected: list[dict[str, object]]) -> float | None:
         return sum(record["endReason"] == reason for record in selected) / len(selected) if selected else None
@@ -156,6 +180,22 @@ def main() -> int:
 
         confirmations = find_confirmations(profiles, pullbacks, resolutions)
         primary = primary_by_date_direction(confirmations)
+        historical_profiles = [
+            record for record in profiles
+            if record["SessionDate"] < FORMALIZATION_SAMPLE_START
+        ]
+        formalization_profiles = [
+            record for record in profiles
+            if record["SessionDate"] >= FORMALIZATION_SAMPLE_START
+        ]
+        historical_confirmations = [
+            record for record in confirmations
+            if str(record["sessionDate"]) < FORMALIZATION_SAMPLE_START
+        ]
+        formalization_confirmations = [
+            record for record in confirmations
+            if str(record["sessionDate"]) >= FORMALIZATION_SAMPLE_START
+        ]
         report: dict[str, object] = {
             "generatedAt": datetime.now().astimezone().isoformat(timespec="seconds"),
             "source": {
@@ -173,6 +213,7 @@ def main() -> int:
                 "minimumDirectionalCumulativeTrade": TRANSCRIPT_NEW_YORK_BIG_TRADE,
                 "thresholdSource": "Fabio transcript, not optimized on this dataset",
                 "primaryIndependence": "first confirmation per session date and direction",
+                "formalizationSampleStart": FORMALIZATION_SAMPLE_START,
                 "selectionLeakage": True,
                 "operationalEntry": False,
                 "ordersSubmitted": False,
@@ -185,12 +226,32 @@ def main() -> int:
             },
             "allConfirmations": group_summary(confirmations),
             "primaryConfirmations": group_summary(primary),
+            "segments": {
+                "historicalHoldout": {
+                    "dateRule": f"SessionDate < {FORMALIZATION_SAMPLE_START}",
+                    "isProspective": False,
+                    "profileBaseline": profile_summary(historical_profiles, resolutions),
+                    "allConfirmations": group_summary(historical_confirmations),
+                    "primaryConfirmations": group_summary(
+                        primary_by_date_direction(historical_confirmations)
+                    ),
+                },
+                "formalizationSample": {
+                    "dateRule": f"SessionDate >= {FORMALIZATION_SAMPLE_START}",
+                    "isProspective": False,
+                    "profileBaseline": profile_summary(formalization_profiles, resolutions),
+                    "allConfirmations": group_summary(formalization_confirmations),
+                    "primaryConfirmations": group_summary(
+                        primary_by_date_direction(formalization_confirmations)
+                    ),
+                },
+            },
             "confirmations": confirmations,
             "primaryObservationIds": [record["impulseId"] for record in primary],
             "decision": {
                 "validated": False,
                 "promotedToShadow": False,
-                "reason": "The same seven-date sample was used to formalize the lifecycle; independent prospective dates are required.",
+                "reason": "The older historical holdout weakens the formalization result and is not prospective; independent future dates are required.",
             },
         }
         if args.save:

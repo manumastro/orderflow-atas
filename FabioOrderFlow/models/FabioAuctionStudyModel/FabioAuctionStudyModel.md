@@ -128,6 +128,29 @@ Errori:                          0
 
 L'analisi iniziale e' in `docs/research/fabio-auction-playbooks-analysis-2026-07-11.md`. Ha prodotto 73 osservazioni tra balance rotation e NY pullback, ma nessun modello validato. NY SHORT H6 resta una traccia diagnostica su 13 casi; LONG fallisce lo split test.
 
+## Estensione M1 Rithmic a 40 Date 2026-07-12
+
+```text
+Range:                           2026-05-18 -> 2026-07-10
+Date per sessione:              40 / 40
+Cumulative ricevuti / matched:  5.833.055 / 4.854.494
+Finestre complete:              8 / 8
+Impulse READY / RESOLVED:       396 / 396
+Pullback AVAILABLE / MISSING:   1.095 / 37
+OperationalEntries / Orders:    0 / 0
+```
+
+Applicazione invariata del contratto a `SessionDate < 2026-07-02`:
+
+```text
+Profile continuation baseline:  108/307 = 35,2%
+Primary confirmations:          11 su 9 date
+Clean continuation:             6/11 = 54,5%
+LONG / SHORT:                   4/6 / 2/5
+```
+
+Il risultato e' superiore al baseline descrittivo, ma molto inferiore al `7/8` del campione di formalizzazione. `Validated=FALSE`, `PromotedToShadow=FALSE`, storico precedente non prospettico.
+
 ## Reload M1 Rithmic e Conferma Cumulative 2026-07-12
 
 ```text

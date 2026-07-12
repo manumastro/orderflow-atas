@@ -152,7 +152,7 @@ python FabioOrderFlow/tools/analyze_auction_impulse_confirmations.py --timeframe
 python FabioOrderFlow/tools/analyze_auction_impulse_confirmations.py --timeframe M5 --save
 ```
 
-Usa la soglia New York `30` dichiarata nei transcript, richiede directional dominance e non include la barra che ha gia' risolto l'impulso. Il report resta `selectionLeakage=true`, no-trade e non validato finche' non arrivano date prospettiche.
+Usa la soglia New York `30` dichiarata nei transcript, richiede directional dominance e non include la barra che ha gia' risolto l'impulso. Il report separa automaticamente `SessionDate < 2026-07-02` come historical holdout dal campione di formalizzazione successivo. Resta `selectionLeakage=true`, no-trade e non validato finche' non arrivano date prospettiche.
 
 Analisi dei due playbook transcript:
 

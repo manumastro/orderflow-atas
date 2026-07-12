@@ -1,5 +1,28 @@
 # CHANGELOG AGENT - FabioOrderFlow
 
+## Estensione Rithmic M1 a 40 Date 2026-07-12 - Historical Holdout
+
+```text
+Replay M1:
+- Range 2026-05-18 -> 2026-07-10; chart bars=40.232; 40 date per sessione.
+- Auction records=27.651; London=14.348; NewYork=13.303.
+- Cumulative ricevuti=5.833.055; matched=4.854.494; finestre=8/8.
+- Impulse READY/RESOLVED=396/396; pullback=1.132.
+- Coverage AVAILABLE=1.095; MISSING=37, concentrati su 2026-05-18 e 2026-06-26.
+- Entries=0; ShadowOrders=0; MR_ENTRY=0; MR_EXIT=0; errori=0.
+
+Contratto congelato, historical holdout SessionDate < 2026-07-02:
+- baseline profili=108/307 continuation, 35,2%;
+- conferme=7/13 continuation, 53,8%;
+- primarie=6/11 continuation, 54,5%; LONG=4/6; SHORT=2/5;
+- campione formalizzazione primario resta 7/8, 87,5%.
+
+Decisione:
+- Il risultato iniziale si indebolisce sullo storico aggiuntivo.
+- Validated=FALSE; PromotedToShadow=FALSE; selectionLeakage=true.
+- Lo storico precedente non sostituisce date prospettiche future.
+```
+
 ## Reload e Analisi Rithmic M1 2026-07-12 - Cumulative Confirmation
 
 ```text
