@@ -1,17 +1,55 @@
 # orderflow-atas - Agent Guide
-1. Runtime attivo: `FabioOrderFlow` / `FabioAuctionStudyModel` esclusivamente per New York impulse A->B; `LondonMeanReversionModel` e `BalanceZoneTracker` restano baseline compilate ma non inizializzate.
-2. Prima di agire leggi: `FabioOrderFlow/FabioOrderFlow.md`, `FabioOrderFlow/CHANGELOG-AGENT.md` e i `.md` dei modelli coinvolti.
-3. Codice studio: `FabioOrderFlow/models/FabioAuctionStudyModel/FabioAuctionStudyModel.cs` e `FabioOrderFlow/models/LondonMeanReversionModel/LondonMeanReversionModel.cs`.
-4. Log: usa `docs/atas/log-reading.md`; PnL solo da `[MR_EXIT]` legacy, mai dai ledger.
-5. Storico ATAS: richieste sequenziali da massimo 7 giorni ciascuna sull'intero chart; controlla `CUM_TRADES_LOOKBACK`.
-6. Build: `cd FabioOrderFlow/src && dotnet build -c Release`.
-7. Deploy DLL in `%APPDATA%/ATAS/Indicators/FabioOrderFlow.dll`.
-8. Non toccare PostLondonImpulse salvo richiesta.
-9. Docs: scrivi per umano+agente; progetto=procedure, modello=strategia+contratto codice, changelog=decisioni/reload.
-10. Lavora una cosa alla volta: mantieni sempre lo scopo scelto inizialmente, non mischiare local profile, retest, filtri o nuove entry nello stesso ciclo.
-11. Ogni risposta deve essere chiarificatrice, umanamente comprensibile e concisa anche se il tema e' gia' stato discusso: riepiloga sempre cosa e' operativo, cosa e' solo diagnostico, cosa e' cambiato e cosa resta da verificare; non dare per scontato il contesto precedente.
-12. Mantieni sempre la prospettiva sul fine: arrivare a un modello causale, validato e infine eseguibile. Una diagnostica e' utile solo se elimina un'ipotesi, promuove un candidato o definisce un test decisivo.
-13. Prima di ogni ciclo dichiara domanda, candidato, criterio di promozione, criterio di scarto e dati necessari. Non scegliere questi criteri dopo aver letto gli outcome dello stesso campione.
-14. Chiudi ogni ciclo con una sola conclusione esplicita: `PROMUOVI`, `SCARTA` oppure `INCONCLUDENTE`. Se inconcludente, specifica il test successivo, la numerosita' o scadenza, e la condizione che impedisce di continuare indefinitamente.
-15. Ogni riepilogo finale deve contenere: `Fine perseguito`, `Conclusione`, `Impatto sul modello`, `Prossima azione`, `Criterio di arresto`. Non usare formule vaghe come "servono altri dati" senza un contratto di verifica.
-16. Usa un linguaggio da conversazione tra persone. Spiega ogni termine tecnico o sigla alla prima occorrenza con parole comuni e chiarisci cosa significa concretamente per il modello; non presentare sequenze di marker, metriche o etichette senza tradurle in una conclusione comprensibile.
+
+## Stato
+
+Il repository e' una base neutra per studiare il corso in `fabio_course/` e, solo in seguito, progettare un nuovo indicatore ATAS.
+
+Non esiste un modello attivo. Non assumere che il futuro modello sia mean reversion, continuation o una combinazione predeterminata di tecniche.
+
+## Fonte Attiva
+
+Prima di formulare ipotesi o modificare il runtime, leggere integralmente:
+
+```text
+fabio_course/fabio1.txt
+fabio_course/fabio2.txt
+fabio_course/fabio3.txt
+```
+
+I vecchi transcript YouTube, i modelli precedenti e i relativi risultati non fanno parte della baseline corrente.
+
+## Regole Di Lavoro
+
+1. Studiare il corso come un sistema completo: contesto, regime d'asta, prezzo e valore, profilo, volume, partecipanti, timing, esecuzione e gestione.
+2. Non trasformare una singola tecnica o frase del corso in un modello prima di aver definito come si collega agli altri elementi.
+3. Separare sempre osservazione del mercato, interpretazione, ipotesi testabile e regola implementabile.
+4. Dichiarare prima di ogni test domanda, dati necessari, criterio di promozione e criterio di scarto.
+5. Evitare soglie ricavate dallo stesso campione usato per giudicarle; dichiarare esplicitamente ogni selezione post-hoc.
+6. Non introdurre ordini reali, PnL o automazione operativa senza una richiesta esplicita e una validazione separata.
+7. Mantenere il runtime neutro finche' non esiste un contratto di modello documentato e approvato.
+8. Scrivere documentazione comprensibile sia a una persona sia a un agente: spiegare i termini tecnici alla prima occorrenza.
+9. Conservare una sola fonte canonica per ogni decisione; rimuovere output intermedi non piu' utili.
+10. Non modificare la documentazione API ATAS in `docs/atas/api/` salvo necessita' tecnica specifica.
+
+## Struttura
+
+```text
+fabio_course/                 fonte didattica attiva
+FabioOrderFlow/src/           scheletro indicatore ATAS
+FabioOrderFlow/FabioOrderFlow.md  stato e procedure del progetto
+docs/atas/api/                riferimento tecnico locale ATAS
+```
+
+## Build E Deploy
+
+```bash
+cd FabioOrderFlow/src
+dotnet build -c Release
+```
+
+DLL:
+
+```text
+FabioOrderFlow/src/bin/Release/net10.0-windows/FabioOrderFlow.dll
+%APPDATA%/ATAS/Indicators/FabioOrderFlow.dll
+```

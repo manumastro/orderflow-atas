@@ -1,0 +1,1001 @@
+00:10
+Hello everyone, how is it going?
+
+00:14
+Yes, we just started, Ryan.
+
+00:19
+We were setting up correctly live.
+
+00:27
+And you see it.
+
+00:34
+Hi beautiful people! Fine bro, andiamo! L'Oto Italian, nice!
+
+00:42
+Nice, nice, nice. Today we explain different logic. We go through templates that can  help you in this process of intraday or scalping. And as promised, we also check how we can frame a model that can give you the correct bias already from the beginning of the session. So it's putting you in the right direction. Now I want to know, is it visible, everything, because...
+
+01:11
+I have everything green so it should go. You should be able to see NASDAQ chart. This is a new template. Is it visible correctly?
+
+01:25
+Should work.
+
+01:28
+Can you see it? Because I see someone says, I haven't started.
+
+01:34
+Yes, perfect. So guys, this template is for
+
+01:39
+getting you an advantage  on  trailing the position  in profits. And this template is not mine. This template got created by Rodolfo, the father of Antonio, and  have multiple benefits for scalper. We will go through it in the middle of the session. And we will start with the framing of the session because in the previous lesson, we explain everything about the pre-market profile.
+
+02:09
+but we didn't went in details  on how to  read the actual volume. So you can do this by yourself, then you can go and have a model that does this for you if you are a lazy.  And  then if you are, for example, an intraday trader, we have a model that lets you use  the bias of the day in a really objective way. So we will make people happy that want to become discretionary scalper.
+
+02:38
+people that prefer a quantitative model for the bias identification. And then I will give you this template that it's amazing for people that want to have a time chart that also gives you deep information inside the candle. And we will go through it later.  We start... Let me check if everything works correctly. Give me one second. I make sure that...
+
+03:06
+Everything is working properly. Yes, you should be able to see my screen.
+
+03:14
+should be able to see my screen here. eh This is the previous lesson about Profile, because before I always like to go to the explanation, then we go to the practice. So also today, yes, we will chart together, we will make analysis. Of course, it's not financial advice and everything. Today I only had 20 minutes to trade.  Not a big session, but still a profitable one. eh Perfect.
+
+03:44
+Perfect.  Let's go. So in the previous session, you asked me, Fabio, there is  a quantitative model to understand the bias.  Yes, we will go through it today. We will go before in theory and then in practice.
+
+04:08
+So there are beginners, are advanced, and they want to know which method you can use for intraday to have the probability of the session going in your direction. And you need to have three kinds of information. The first information that you need to have is context.  And you can take context from previous...
+
+04:30
+Five sessions,  okay? So you will mark the previous five sessions to understand  what you can do m with the direction of the day and where you can take profit, okay? Now, the first point is context. I will create multiple contexts to let you understand how you can frame it, okay? The first one is the following one. The session, the previous session,
+
+04:59
+have a value area. Let's do like this. Let's like this. Okay. This is the value area.
+
+05:06
+of the previous session.  So you add previous day,  consolidate in here, some spike. eh The previous session closed like this. Perfect. Then we have the session of the day before the previous.
+
+05:30
+Let me put it this way, perfect. And the session before can be, for example, like this and then directionally in the end. And today we are here. Let's say that we are here. How can I understand, in a really objective way, where is the majority of the probability? So, some people will say we will go reverse, some people will say we will continue down, but they never did.
+
+05:59
+a statistical model that it's able to give us a context of the probability. For this, there are some statistics that were created by Jim Dalton, some others from  Volume Trader, but we want to make our own. We want to observe and we want to use our experience to create something that is reliable. There is someone in the chat that  is already into order flow analysis and volume analysis.
+
+06:28
+and knows if we start about this, session, what's the majority of the probab... what's major probability of the day of going down or up and why.
+
+06:44
+Yes, you can use also only cached session. I prefer to use full day.  You can use cached session if you, for example, want to have only the majority of the volume of the day.
+
+06:59
+But we can use also pull this method you can use for full day or cache session.
+
+07:07
+There is Patrick saying 50%.
+
+07:11
+I at skew. Okay, I explain you my model. It's a really objective model, so  there is no discretionary in this. The first information that you need to understand is  if in phase one, okay, this is one day, one full day. This is phase two.
+
+07:31
+eh So let's say that we have two pieces of information.
+
+07:38
+And we need to understand.
+
+07:45
+what we have expect from phase 3.  Now, the market tends to continue in the direction of the accepted value.  So all the mean reverting traders, the traders that try to go reversal to the market, ends up like Robert Kiyosaki or Michael Burry. Why? Because they always  try to tie in the top.
+
+08:14
+But if the market is saying, OK, the fundamentals can be long, OK, if the market is saying, look, for one full day, for 24 hours of interaction between buyers and sellers, for 24 hours, in the end, the battle got won by sellers. We accepted value lower.  after another 24 hours, the sellers are willing to protect.
+
+08:44
+their position. Okay, what's the probability of the direction of the day that we are currently watching,
+
+08:54
+Remove all the discretionary. Remove, ah, there is the POC reversal, there is the order flow, there is... Think in simple terms, okay? Let's make at least the quantitative analysis of trading easier. Perfect, okay? Why? Because you tend to continue in the direction of the last acceleration. If you are in the car and you are 200 kilometers per hour,
+
+09:24
+and you start to break, even if you start to break, you have a drift. Okay?  Even if you start to break, you have a drift, then you can rebalance, but you have a drift. This is the majority of the probability. The problem is that people forget about the full profile and they only watch the single leg. I will make you an example.  If all price action traders can relate, please type one in chat. Okay? What I was doing also before,
+
+09:53
+For example, I have an accumulation, The accumulation is down for the day, so we are below the value area, we are like this,  but I see a high and a breakout.  What price action traders start doing?  Ah, I have a demand here, I will break the value area alone. Is it true or no? Let's see how many people.
+
+10:20
+Okay, so they try to go in the direction of the last break. But you need to remember that these pieces of information, it's 5 % of the session, okay? The session already told you that for nine, 10, 12 hours, they are protecting the eyesight, okay? So which kind of information is making you think that they will break now? Hope 83 % can relate, 84, okay? Hope.
+
+10:51
+And a lot of times what happens is that you try to take this long, the market gives you a little bit of profit and then goes back to the balance because the market always goes back to the balance. So this method for identifying bias is not valid from my point of view. If you are profitable with it, you can use it. But the quantitative method I use, it's easier. It's way easier. Now, let's go on
+
+11:20
+actual profile. On the actual profile of the day, the probability that we have is down because we accepted value. Perfect. Now, if we accepted value here, what we can expect is that price will  revert from two major points,  three major points that we need to mark, that you need to have on the charts. uh So if
+
+11:48
+We are opening here, and this is the previous session, the last point of extreme protection of the sellers is this one. Is it clear for everyone in the chat?
+
+12:05
+pulled on C charts.
+
+12:10
+I'm not seeing.
+
+12:13
+Yes, yes, it's the app. I'm not using charts. I want to explain before theory and then we go in practice. Okay? Is it clear? This is the protection level of the sellers. Why? Because it's where the sellers protected their standpoint of fair value. Perfect. This is the most important level. Then you can mark a second level. The second level is the POC. So let's make the Gauss distribution.
+
+12:42
+if this is the full day.
+
+12:47
+Okay. And we know that the majority of the volume got traded here. You have a wall. You have a wall made of value area high.
+
+13:02
+and POC
+
+13:07
+that we will continue for the session lower. Why? Because you have multiple information. Last accepted value, short. Okay, first piece of information, perfect.  Second piece of information, value area I plus POC cluster. Okay, so you have the direction and you have the location. What you need to add from the discretionary side, the timing.
+
+13:38
+Okay, the timing. Why I say three areas? Because this is more rare, but in super directional day, in really super directional day, to it, Trump or something like this, the market opened the session, test the value area low and collapse. But this one, it's really not so common. Okay, it's not so common. Here.
+
+14:02
+It's your opportunity window. Fabio, what can I use here? You can use deep trades, you can use order flow, you can use structure, and this is usually where your trend following model perform the best. Okay? Is it clear? Let me check if it's clear. The theory app, is it clear? The logic behind.
+
+14:29
+Then of course we go on charts.
+
+14:33
+Of course we go on charts.
+
+14:45
+96 % yes, amazing. amazing. Now, let's go in practice. Let's see some sessions together about this. Just let me bring the secondary screen. Just give me one minute. It's normal that you cannot see the screen now because I'm changing and connecting the second screen. So I can use what I prefer as a 49 wide to give you the multi-session profile.
+
+15:15
+Give me one second. Here we go.
+
+15:20
+In the meantime, I open, because I need one minute to connect this one. I open the Q &A so you can text anything. And I will go here. It's normal that you don't see, yeah? I'm changing the main screen.
+
+15:41
+Do this.
+
+15:49
+go here
+
+15:54
+Of course, all this template will be available for you, don't worry.
+
+16:00
+Just give me one second that I'm putting everything for you to make sure that we have.
+
+16:08
+That everything is clear. What a session long. What a session long. A shul-dev hold.
+
+16:19
+Should that hold more?
+
+16:34
+Now you should be able to see.
+
+16:38
+the screen. Let me check. Here we go. Is it visible?
+
+16:45
+Oh, let's go through the Q &A. Yes, we go through the Q &A before. Fabio, please draw a profile. There is a tool that does this for you. Amazing.  I like that you appreciate. Wi-Fi session instead of one session used as context. Really good question. I will explain to you immediately. So let's remove everything here, considering that it's OK.
+
+17:11
+Let's remove everything. So if you take only one session.
+
+17:18
+You have what the market is doing at the moment. Okay. So how it is developing, but you don't where it's coming from. Okay. It's coming from down. It's coming from up. We have a cluster of profile here. No, I can give you an example to make you understand deeply. If your company is making for this quarter,  75 million profit. Is it good?
+
+17:47
+Compared to what? Is it good if you were making  one billion  in the last quarter? No,  you are failing, okay, because probably you have cost. But if your company was making 20 million, this is a huge jump. You understand the lack of context.  It's the reason you are confused. Is it clear guys in the chat? Can you give me a check?
+
+18:15
+If you lack context in everything in life, oh Fabio, I'm only doing six figures per year. Okay, you started that you are asking your mom and your grandma money. You are a good point. If you were a billionaire and now you are making less than six figures, we have a problem. You need a context. Okay, perfect. So here, if you ignore all the previous information, you are blind because you only know today price action.
+
+18:45
+So if you are a scalper, you don't need, but you ask me for a specific model to time the multi-day or intraday. So we are going to it. eh It's not about time frame. This is a distribution of the price. So you have it for multi-day for single day. This is a template usually used by Andrea. And it's a template that includes multiple indicators. You have the volume profile. You can...
+
+19:14
+activate, deactivate, you have the TPO,  time, price, opportunity. So you have the distribution of the price,  the time the price spent and the volume of the price. So for example, if we go like this and we remove this one, we have, let me use this one, we have the composite. What is the composite? Let me explain for you. What we are having here  is the cumulative  of
+
+19:43
+all the profile that we see on charts.  So for the cumulative of all the profile that you see on charts, we are here at the moment.  So we are in balance. We are not in a super trend for the week or for the month. We are balanced. We are not above value area high or below value area low. Perfect.  This is all the information available. Now let's go on the single one, the daily one.
+
+20:13
+Okay, of the cache session. As you can see, you have 18, 19, 20, 21, 24, 25. Okay, and you have all the most important levels for the session. Now, what I want to make for you, I want to remove, let me try to remove, to keep only the POC, to remove the PIC and VALLEY. Perfect, I want so clean, okay?
+
+20:42
+I want it so clean. what we are seeing here and what we will do together now,  as you can see, we are pretty balanced for the week. But I will start explaining, for example, from the beginning of November. Let's go from the beginning of November. OK, perfect. So what we are seeing here, we are in balance. OK, this day close. Perfect. This is where the balance was. The buyers and sellers are interacting.
+
+21:11
+Really fair.  The context of premium and discount is here. Here we are premium compared to the distribution. Look how you have an aha moment today. Okay.  Ah, so I can make objective premium or discount in the multi-day. Yes, you can have an objective frame of premium discount. Now, what I was explaining to you is this one. Look, we go.
+
+21:42
+Here. We remove everything.
+
+21:47
+And we do this, we draw what we are seeing because you need to understand it. We are coming from this context.  This was the previous balance of October, last day of October. We are here. So we close the first day of November here.  What the market is saying to you, the next day, you will try to short from the premium side or for the POC or you will try to go long.
+
+22:19
+We are going through it, okay? We are going through it. What will we do, guys? I explain this to you. We are doing theory and then practice.
+
+22:30
+Everything that I explain to you is what I use. I don't waste your time guys. Remember this. Okay, I come to the to the live showing you
+
+22:42
+how much I made for the session, you can see here, okay? And what you see is what I use  every day. Now, this is the probability that we have, okay? That we will continue short. And as you can see, what people maybe can have some difficulty understanding is that premium means  that the value of this day, they try to build value above, but this value,
+
+23:12
+didn't got accepted.  So if this value didn't got accepted, it means  that there is uh strong selling pressure here. So for the next day, if we try to short when we are expensive, this would have been a good trade or no,
+
+23:32
+Don't worry, we will upload everything. Every lesson we do, we will upload this template. You can make practice. I want to build also a system that is capable of identifying the multi-day em direction.  So if you have this context, try the short here.  An amazing trade. And as you can see, the price tried to explore new areas, but it got stopped here.  Let's go on.  Next day.
+
+24:01
+is completely directional short. So you have  one, two...
+
+24:11
+and three full days of short direction.  Now, what I want to explain to you is important. If you remember, I explained to you two areas of relevance. So if we go here,  let's say that we took this short, we make an amazing profit for the day, the price goes here, we are intraday trader, let's say that we close, we go back to value area low, we close with an amazing profit. Perfect. Now,
+
+24:41
+The next day, we are still short. Of course, yes. Okay. Because we absorbed again this expensive price.  So the sellers are in control here and we are at the same level of POC. Now I give you two levels. The value area high, that is this horizontal price and you can make the full area because it's this and this. So it's the full red area. You can refine it a little bit.
+
+25:11
+to make it more precise, but it's still the same. And the second level is the POC.  So this red level. Can you see the next day after the opening how much the price rejected again the expensive price and collapsed?  Now what I explained to you in the previous sessions is that you can have multiple profile shape.
+
+25:38
+You can have the balance after these lessons, guys, you will not have headache anymore to try to guess the strategy of song guru. You will have really a lot of clarity in how to read volume. If this is the balance, so the volume is distributing inside this range. Then we have another balance day. Perfect. Another balance day. Amazing. We can still short the top. Then when you have direction, you have this shape.
+
+26:06
+where the majority of the volume is concentrated on the downside, it means that 70 % of the volume gets traded, okay, here in the B shape, and in this case, the sellers are willing to protect the direction. So in this day, the trend following strategy works amazingly. Let me see if I'm doing my best to make you understand really clearly  everything to go from the theory to the practice.
+
+26:38
+Let's see, I want at least 75%. I  understand that for new traders it can require to rewatch the recording, but I think we are going to step by step. So if you didn't skip the previous lessons, you are capable of understanding everything that I'm saying. Let's check.
+
+26:58
+Okay? 83%, amazing. Okay, if it's not clear, it means  that you didn't watch again the previous sessions. It's important, guys. Don't try to take trades when I do live charting only to make some money. Try to understand the procedure because I will not trade in your room side by side. You will be on your own when you practice. Perfect. Now we go back to the charting platform.
+
+27:28
+We go back to the charting platform and we see that after the test of the POC, the market gives you an amazing trend following date and rejection. And this is what I was saying to you. This is what I was saying to you. Sometimes  in the cash session and the reason you can also use the full session is because the markets don't test in New York, but maybe test in London. It's okay. Okay. It's still giving you an information related to
+
+27:58
+Who is dominating this level and who is dominating this level? Sellers. In this case, you didn't accept it above the fair value high. Perfect. When we have a switch? So let's start again our reasoning. We started the new direction from this  area.  We watch how the price collapsed  using a new cup. You could have taken trend following trades for these three days.
+
+28:27
+you have the closing of  the week and you have the price here in the cash session. So what does it mean? That during the London, they accepted higher prices.  In this case, you are  not aligned with the main direction. You are in a retracement phase.  Why? Because the origin of the movement didn't got broken, but this value area got accepted on the high side. It's like a trend.
+
+28:56
+Okay, so you have impulse  retracement that can be a new trend if you break this level and potential new impulse down, but we need to go through it. If we go on, we see that the price is  in a context of choppy for three full days. And you can see that every time the price tries to accept
+
+29:21
+value area high, so expensive price, it get rejected. Which kind of information is this for you?
+
+29:32
+Which kind of information is this for you guys?
+
+29:38
+The clarity is absolutely the top, amazing, Nash.  You can use this for daily profile, you can use this for cache session, you can use this if you want to draw the swing point of the intraday short, perfect. And another piece of information, a trick that you can use is the balance of the POC.  When I understood how to use this properly, I had a ha-ha moment. I want to explain to you like this, I want to remove...
+
+30:07
+the value area, just follow me, okay? Follow everything I'm doing. And I want to remove the VWAP. I want to remove also if it, ah, okay, it already removed, perfect. Ignore everything else. You see how the POC is giving you the control, point of control. Who is controlling? Okay, the sellers are protecting.
+
+30:36
+But we don't have a trend. Cell in control. Perfect.
+
+30:42
+Cell in control. Perfect. Switch retracement. But you can see this kind of information. POC.
+
+30:53
+POC
+
+30:57
+You see. Have you ever had a moment in your career where you started studying maybe WICO for some discretionary price action concept and you are always trying to understand  is this an accumulation? We will start to go long from here or is this a distribution? Just study. Where is the control point? Who interacted the most? Sellers are going down. You see one, two, three. Okay.
+
+31:25
+Don't try to guess it by, no, but the last broke, three days where the accepted value point is lower. What they want to say to you guys? What they want to say to you? Okay, they want to say to you that the value is getting lower. And look at this  moment. Low day, okay, perfect. Accepted low. You can load your trend following strategies now. Bam.
+
+31:54
+Again, low day, what you can expect? Continuation. Bam, low day, what you can expect? Bam, what you can expect? Another short day. Then the market try to switch. Perfect. The market try to switch and now we cannot search for short after this day because the market went here. Okay? And now we accept again this.
+
+32:22
+I want to accept again the value area, to activate, sorry, again the value area. Why? Because now you need context. Why you need context? Because I want you to understand something, okay? You remember when I told you that when you are in directional, okay, like here, you need always to mark where this wind point started. So from here, we have a rejection of the value and we collapse. From here, you have three days of balance, okay?
+
+32:51
+Three days of balance where again they distribute, they distribute, and they distribute. Perfect. Which level is the protection level that they say from the beginning to you? The value area. You mark and you want to see if it's a retracement or a long term switch.
+
+33:14
+Is this a retracement or a long-term switch, guys? They broke the balance point of the sellers, where the sellers are protecting. So the swing point was this, from here to here, perfect. Now they started to retrace. Did they broke  the control point of the sellers?  All the protection of the value area. Look at Brian, finally connected. This works for everything. I'm not explaining to you how NASDAQ move.
+
+33:42
+I'm explaining to you how market move, how it works without fancy algorithm stuff. How professionals trade. Let's go on the pool.
+
+33:55
+Is it clear?
+
+34:00
+If you have a swing trading model,  if you have an intraday, if you have a scalping model, and you can understand that when you have this conditional line, you can take a scalp year and keep for the full session. This is how you make performance like the one I did. 93 % of understanding. Amazing. Amazing. Crystal clear. Aha moment. I told you, I promised you.
+
+34:26
+that you will have a moment, but let's continue because this is practical. There is zero theory about this. Now what we see, we see that the market again, try to break down on the low side now. Okay. And the market break down on the low side. So we have an acceptance of the POC. Okay. So again, the market switch gears to go short. After this,  you see that they start to distribute.
+
+34:56
+Okay, so you have the POC here. You have the POC here.
+
+35:04
+So what's the actual context of the market? We have a wall here. Okay, we have a wall of sellers and we have buyers starting to protect, you see, they are not accepting the value area law. They are not accepting again the value area law and we have a really strong POC. So in the following days, I already know the dealing range. I know that there is a huge probability that we will play out from here to seek this level again. And then.
+
+35:34
+probably going back down. So from here to go here.
+
+35:40
+Make sense? One in chat. Okay, this is the play that we will see. Now,  when you have a summary, now you understand why you are in balance profile. And look how everything connects perfectly. If you want to see everything in one, I marked this level discretionally, but look at the value area high of the composite. You see it here. Exactly pinpoint where I marked you. And the value area low, exact.
+
+36:10
+pinpoint where I marked you. here. When you understand that it's not the tool that is making you profitable, but it's the complete understanding of how markets move and volume, you know where you can go from here. And this is  a quantitative model to understand the bias in multi-day. Now we will go  on the low time frame. But before everything, I want to know if how is it you are understanding, is it clear?
+
+36:39
+Volume is already helping you from the starting of the boot camp Because the only reason we are making this boot camp is to give you an end start in How volume moves and how the flow moves so you don't need to buy anything else?  you only need the platform. You only need volume and you can have a guidance
+
+37:01
+Perfect. Absolutely. Now what's happening here? Let's go in the balance.  Okay. This is the balance. What's happening here is that if we remove the composite,  we see that we have a sensitive level here and we try to accept lower value here. You see? They try to accept lower value, but can you see that they are having success by breaking the previous value area? Yes or no?
+
+37:32
+in the short term. So the day of today and the previous day is having success, no, they are auctioning higher. So the  minimum point they can reach is the POC. And the second level of interest is the value area high.
+
+37:50
+Okay, perfect. Now let's go to volume.
+
+37:59
+When we go to the intraday analysis, let me take this template that it's  giving you more information, okay? When you have this information here, you can see  something really objective. I don't want to scare you with too many indicators, so let's remove this, let's remove this, let's remove also the deep trades, and let's live the nature of the market. Just give me one second that is loading everything.
+
+38:28
+you want to do swing trading, this one, it's a game changer.  Understanding the profile shape, it's a game changer.
+
+38:41
+Okay, now let's go through the profile because you remember when I traded on World of Ridsdom, on the channel of Andrea, on my channel, or when we did the live charting together, I always need multiple information, okay? So the first information that I want to show you is the VWAP. What is the VWAP? It's a volume weighted average price. It's showing you who is in control. Who is in control at the moment from...
+
+39:10
+5.14 European time, okay?
+
+39:17
+Who is in control? The buyers are in control, fear. And  we are where in this distribution? We are above the value area. What does it mean that connecting the dots,  we are above the value. Okay, so we are auctioning higher.
+
+39:41
+The volume are protected from  all these volume that got built during the day. So all this  value area here.  And what we have? We have multiple horizontal level. So we need to understand from where the buyers  got the most aggressive. here, I'm going through it, Brian, and you will understand  why I started with.
+
+40:09
+It's Khalidro to show you the theory and then to practice because I think in this way we can also reach 90 % of understanding. Now, you know that institutions use VWAP to trade. Institutions always use VWAP to trade. They time the market and they use the VWAP as a point where it's fair to enter for them. So here you have the static value. Static value.
+
+40:38
+Auctioning high up, but this is the distribution. You don't have dynamic value. Dynamic value is  the WAP. And now you will see something really interesting.  If you go on  all this information,  in  all the value area, all the value area, so all this area here, the horizontal point where you have the most aggression from buyers is this one.
+
+41:08
+You can see this. Let me draw it for you on the full scale.  I will make it green so we can take the exact horizontal point. This is the level, so I will make it precise  and bring it here.  Let's  remove the magnet.  Let's make it horizontally here.  Look where. Where they built the most amount of delta.
+
+41:36
+exactly when the price was on the view up. So  all this movement is now overextended. We are premium, that's what I mean. You always have a premium price and a cheap price.  Here price was cheap, the direction was clear, price was cheap. So institutions started accumulating here and here.
+
+42:04
+Now we are above the fair value and as you can see there are people  buying like crazy. So what's happening here?
+
+42:16
+that these people are giving a counterpart for the one that are selling the boat here. You need always to understand that VWAP is the rhythm, rhythm of the market. The rhythm, I think this is the pronunciation. The rhythm, how is the pronunciation, guys?  So it's the time of the market, how the market dance.
+
+42:44
+How the market dance. And this is  the best way to understand how to use lower time frame and multi-session bias. Thank you guys for helping me in English. A multi-session bias to use a quantitative model to understand what the market wants to do.  the market wants to go long.
+
+43:14
+Let's do a work together. Let's mark the levels that are most interesting. So the view up is  really down.  In all this area, what's the most interesting price level that we have? So, of course the value area high. It's a potential continuation point.
+
+43:34
+Of course we have the bwap that is auctioning higher and soon will reach this cluster. So we have this  discount area here.
+
+43:47
+And then we have this amazing piece of information.
+
+43:58
+And then we have an amazing piece of information here, that is that these sellers, this delta, is not providing you any rejection. So these sellers are getting completely crushed. eh And the buyers are still auctioning higher. So we will see what happens here. Now we want to add another piece of information. What is this other piece of information? The deep trades.
+
+44:27
+You have multiple visual. You can use balls, can use diamonds, can use squares with numbers. Today we will go with squares with numbers. So you can have an accurate visualization of what the price is doing. So what the price is doing, you can see here.
+
+44:45
+The auction high is failing. They got completely absorbed. The delta on the sell side is really strong and they are popping big trades like crazy here.  bam. What do we expect? We expect that this battle will define if we will crash these buyers or we will auction higher. And in trading, you have a lot of decision points. You see this point, this delta point? It's where the sellers got absorbed.
+
+45:16
+Will they have the number inside of the bubbles? We already have. Look, this is a... I will make for you even more clear.
+
+45:25
+We will go on text settings  and put 15.  I think it's easier to see on live stream. But here the sellers are in complete control from the last point because the sellers delta got rewarded. The buyers got absorbed and we are expensive on the auction. Okay. So what we want to see it's rebalance. Rebalance we want to see. And when you see rebalance, you want to see also these buyers got crashed.
+
+45:55
+Ok, the buyers got crashed because they will try to absorb here, but the momentum sell will...  Ok, this is not some insight backtesting, this is live market, I'm explaining you how market auction and moves. We got the most important candles in all the previous actions. The most amount of momentum from here. This is a scalp, you can make a scalp here.
+
+46:23
+Of course, it's not financial advice and everything. It's a really short scale because you go from here to the balance point of the bias. But it's still an information that you can use to time.
+
+46:37
+Okay. Perfect. Now let's go on the levels. Let's clean everything.
+
+46:44
+I activated one order.
+
+46:48
+Give me one second, guys. Let me go to the second screen because for error I activated one order. Let's put this one here  and let's go here. No. So what happened here? Check. Because I have also interactive open.
+
+47:19
+Okay.
+
+47:33
+It will be  visible again.
+
+47:39
+I didn't activate anything, but it gave me the order from interactive. I don't know what happened. Still like this. Now let's remove here because we are not trading at the moment and they want to go on  a really simple and clean ways to time. So we go here, we go on deep trades and now we read the interaction. Was it profit or loss? No, nothing.
+
+48:07
+Just fill the short, but I close immediately. I click somewhere because I'm with three screen open, but we are still, the profit of the day is still this, but I only traded 20 minutes. We could have done a lot more. So you see what's happening now. We time perfectly the aggression of the sellers. You see?
+
+48:28
+Now for all the price action trader, I want to make life easier. You see what we have here. Aggression rewarded. Where the price is stopping, at the rewarded aggression. Perfect.
+
+48:43
+example level.
+
+48:48
+Now, what we have here? We have here really aggressive sellers getting... What is this piece of information, guys? Reward or no? Are they getting rewarded or no? No, they were not getting rewarded. So the auction is higher. uh We saw an amazing short, but still we see the passive orders of the buyers protecting.
+
+49:17
+You see how they try to stop it. And now we make our favorite trick because then I come from price action and I paired it with volume to have an amazing timing. So we do our favorite trick.  Amazing. Where we could expect some acceleration? We could expect some acceleration at the break of the main volume.  The break of the main volume of the day we can expect, boom, acceleration short.
+
+49:47
+and also at value area low. This is the point where the buyers either they protect, either they collapse.  This one, like in the first session that we saw, this one that we saw, this short here,  you can think, but it's only one minute, okay. But if you time the market here, it's a one, two, four, one, two, three, one, two, five. Look at this. Look at this. This is real time.
+
+50:17
+So we were expensive in the auction, we understood from where the sellers were in control and we are checking who is getting rewarded and not. Unfortunately, I clicked somewhere and I closed the short but we would have made another 5000 here. Okay, just I want to be concentrated on you guys. What I told you, when we reach this level, we will accelerate. Look at this candle. This is the biggest candle in all this auction.
+
+50:43
+Okay, where is the first point of protection?
+
+50:48
+value area
+
+50:52
+Okay, where is the first point of acceleration?  If they accept, because we go in a trend auction, but we have one really aggressive buyers here.
+
+51:06
+that is willing to protect this position.
+
+51:12
+These buyers are willing to protect this position.
+
+51:22
+more bits. Okay.
+
+51:27
+Yes, this one is the leg. This one is the leg. What happened?
+
+51:34
+What happened here?
+
+51:37
+We are in the value area law of this last piece of information. The buyers are protecting and we are here.
+
+51:49
+I know this motherfucker really well. After 10 years, I know how he reacts.  It's not saying that buyers are taking control back again, but this would have been an amazing short and the pin point is perfect.
+
+52:06
+They try to go short, but there is a wall here.  There is a wall. So buyers are showing that they are willing to step in from this horizontal level and already from the value area.
+
+52:27
+Okay? Not failed yet. We need to wait. We need to wait. Okay? Because the price is trying to auction higher.  Remember that this is the POC of this whole distribution. So I'm taking all this area. Okay? So as you can see, we are below the value area law. Okay? And the market is protecting it. The auction for the long term, it's higher. We already saw
+
+52:57
+from here. So what we can expect? We expect this. We were premium, we went to retrace and take some power, and now they are testing the horizontal level that we saw. Which horizontal level we saw before? This horizontal level, this cluster. Here is the POC. This is where they are just accepting.
+
+53:26
+Guys, in 10 minutes we saw, with a precision that is embarrassing, the top of the range  and the bottom of the range. Live, not on Twitter of the day before.
+
+53:46
+Let me check if it's clear.
+
+53:51
+Look how much the cellulans are protecting the POC.
+
+53:58
+Yes.  It's clear. Sometimes I repeat myself and I understand that I can be boring, but it's only because I want everyone here to understand how I got profitable in these markets and how I still today leap out of trading by using this concept day by day by day by day. Anyway, this is the same concept that they used in the four quarters of the World Trading Cup.
+
+54:28
+and they still work amazingly.
+
+54:32
+Oh, this is a really good Satisfaction for me, 90 %
+
+54:37
+90%.
+
+54:43
+Perfect.  So at the end of this live, if you like it, I want to put a template in the cloud with this exact profile, because I would like that you make some exercise from today till Thursday that we have our next session. So I will copy this and put in the cloud. So you can go here. Sorry, you can go here on template, load, and you can go on cloud. Okay. And you can find my template here also on share.
+
+55:13
+Okay, I will make sure to make this for you today as soon as I finish the session and I will give you this one and also this one because I think it's amazing the visual that you are. Look at this.
+
+55:29
+Yeah, Osset, this is the point, okay? I had a really good conversation with one  trader that I'm really close to. He's making big numbers than me. He's working for HedgeFound, and he's an algorithmic trader. lives  in my building, okay? We had a really long talk. Sometimes  I ask some advice on psychology because I'm a private trader, okay? I don't have the infrastructure to manage billions.
+
+55:59
+So sometimes I ask him advice, how you can manage this kind of capital, because for example, I can have a good session for the day is 10,000, an amazing session is 30, 40, $50,000 for the day, but I never made like 200, 300, 400, 500,000 per day. This is the numbers that he's making. So I think I can learn a lot from him in the psychology. And at the same time, he told me, know, Fabio, that my biggest problem is edge decay. What is edge decay? It's when you...
+
+56:27
+You start to use something and then you notice that something don't work anymore. So the market are changing.  And he told me, you don't understand that you have the biggest benefit. And this benefit is the fact that order flow cannot be overfit. Why order flow cannot be overfit? Because you are reading not some indicators, you are reading real time information. Okay. You're reading real time information. So this one cannot stop working.
+
+56:58
+because it's the nature of the market. Okay.
+
+57:06
+make clear why did you plot the volume was winning  not the current price because I wanted to see this expansion I wanted to see this whole expansion look at this this is the horizontal level of aggression 104 contract is a lot guys okay and sellers  the same sellers that sold there are showing their strength okay showing the strength now if we go here
+
+57:35
+And the reason it can be really useful to use numbers is because you can compare, OK? These are 104, these are 83, this is 109. So the biggest is 109 here. So you can understand that in these two contexts, the absorption of the 83 is smaller than this 104. So makes sense that they are protecting here. But I think still this level will be this it really soon.
+
+58:01
+Hey, no, I don't read gold guys. Remember from me you will always have something that it's used in markets.  I don't want to be someone that holds  and don't execute.  I don't feel confident giving you only because you ask me something about gold if I don't use it because I think this is how fake guru are born. They tell you to use something that they don't use themselves. So how can you respect them?
+
+58:36
+Okay. Can't believe how much value you are giving us.  Thank you.  Yeah. I'm really happy with this, Yacine. I'm happy that you...  This is my process of understanding the market. Of course, we need still two weeks of bootcamp to get in details because there is a lot of concept that we need to go through. We need to watch multiple sessions like this when we go through life because you need to analyze like me. Okay. You need to start analyzing like me and you need time.
+
+59:07
+Where you explain everything is literally unlocked everything for me. Perfect. Okay, so I will make sure and I will make  an announcement in the discord that all the template that we are seeing here gets uploaded today maximum tomorrow morning in the platform so you can use them. Okay. I'm already live from one hour, but I don't want to stop. So if you are not bothered busy or stuff, we can continue to chart more.  love to do this. Okay. So
+
+59:37
+At the moment, you see, if you remove everything that can be noise...
+
+59:43
+You have a really clear point of protection of the cellar. Look how much it's clear.  Point of protection of the cellar.
+
+59:55
+protection of the buyers, this is weak, so I will make it low green. uh And the next point of expansion that is deep green because it's stronger, here.
+
+01:00:10
+This is the actual frame, but this is the short term frame. Now, if we go on the higher time frame, we see that the price is auctioning here, so it's still above the value area.  What does it mean? That it's really, there is a huge probability that we will have a trend because this level here, it's the point of control. So it's the point where the value of the previous day was.  So what you can see is that
+
+01:00:40
+you have a protection from the buyers and you continue to auction. For example, if they break here,  here it's another information.
+
+01:00:49
+Here is another information. 129, they got absorbed or they got rewarded. These sellers. Results or not?
+
+01:01:00
+Results or no? Ciao!
+
+01:01:05
+This is the biggest aggression.  104,  109, 83.
+
+01:01:12
+Okay? You see here, they got absorbed or not? They got absorbed.
+
+01:01:19
+What does it mean? It means that the interaction of the sellers show a lot of interest because they are really interested in going short.
+
+01:01:32
+There is not enough power!
+
+01:01:37
+So now  you need to adapt your understanding of the market. Look at, isn't this amazing?
+
+01:01:50
+Isn't this amazing? All live. Already when you see the absorption, this kind of execution, machine gun 1 to 1, 1 to 2, are amazing.
+
+01:02:06
+eh And as you can see, again, from where we see that the price is trying to protect, from 104, but in absolute numbers.
+
+01:02:21
+this one in absolute numbers is stronger.  So we want to mark it. And then we need to build the scenario because the scenario is saying us that we are auctioning higher.
+
+01:02:35
+So we are accepting  new values. We have a target.
+
+01:02:41
+Yes, they are trying to protect. You see, still from this horizontal level, week one, week two, week three, they never managed to accept. You see the battle, you see this is a rejection. Here is the battle. Buyers trying here, sellers trying here.
+
+01:03:04
+It's really easy, Mega. You go here, if you want, this.  You go  on Text Settings,  Plot Settings, and you put text. And it shows you all the big traits.  All the relevant big traits.
+
+01:03:23
+Again, I want you to activate your brain, okay? I don't want you to get lazy.
+
+01:03:32
+What we have here? What's happening here?
+
+01:03:36
+I want to give a check on your understanding of order flow. What happened here?
+
+01:03:46
+What happened? The sellers got rewarded. We are in compression.  We are in compression between these two areas.
+
+01:03:59
+They didn't manage to accept, because this is the POC, they didn't manage to accept lower. They are trying to understand what we can have here. eh See, we are closed. If we draw what the price did here, you see that we are in balance.  You take from when the price is stationary here. eh See, we are in complete balance. When we go above, you see?
+
+01:04:28
+When you go above,  week printed and they reload, print and reload. This market scenario is the scenario that you can have for days, weeks,  hours,  and is when trend following traders get completely destroyed because they don't understand that they are in compression. Okay, so maybe the market does one week, two weeks, three weeks, four weeks, and they get liquidated five times, then the markets break, but they don't have the margin and they don't take the movement.
+
+01:04:59
+The risk management I use in my strategy, considering that my personal account is pretty big, I risk 0.25%. Squeezing coming, he's saying, Karim.
+
+01:05:11
+Squeezing coming. Let's go. Okay. Let's check everything. I remove the levels because you already know the levels. Okay. We already marked and we go through the full understanding here.
+
+01:05:25
+The full understanding is clear for us. Value area low rejected. Value area high target. So in this scenario, the probability that we will auction higher and squeeze this high with a really strong aggression is what I can see now. uh The problem is that the decision level is this one and the market
+
+01:05:54
+Don't seems to break it. So we are still...
+
+01:06:03
+What they are doing? Compressing, compressing, compressing. This is the aggressor. This one.
+
+01:06:15
+This is the aggressor again, because the aggressor is short. This is where they are defending.
+
+01:06:21
+Let's analyze together. Already they protected this level. Really good.
+
+01:06:31
+You see, look at this. Guys, this is not random. You cannot see this from chart. You need to have volume.
+
+01:06:53
+This is really important what's happening here. You see how much the candle is going fast. Aggressive, bam, rebalancing, aggressive, rebalancing, aggressive, rebalancing.
+
+01:07:10
+See? Every... how many times? 1, 2, 3, 4. And now... BAM! 252! Look at this battle! 252, 250! What they are saying to you? What they are saying to you? 149! What happened to them? Look at this!
+
+01:07:34
+This is a huge piece of information.
+
+01:07:41
+And this is a huge piece of information because it's more important than this area. So, they are still compressing but now the range gets smaller. What will happen when we break the range? Explosion!
+
+01:08:00
+I love to do this session of charting with you. I love.
+
+01:08:07
+Let's see what they do. Remember that the data are adding at the moment. The data are adding. You see this is the POC at the moment. So the majority of the volume of the distribution is traded here. This is important to understand because this one is the magnet.  You don't want to interact in the magnet because the market...
+
+01:08:34
+If it breaks here you have a squeeze, if it breaks here you have a squeeze. You need to observe now.
+
+01:08:42
+Who is getting rewarded?
+
+01:08:47
+they try again to bridge this level. You  see, these levels  are the closest you can get to understand
+
+01:09:05
+to understand the intention of the big players. Guys, 250 contracts, 500 total here, it's a lot of volume.
+
+01:09:14
+Yes, yes, or try again
+
+01:09:20
+Now the market is compressing. The market is just chilling and compressing here.
+
+01:09:34
+Nothing else. But as you can see, they are accepting lower lower value. This one,  not even the time to say, but this one, it's a gap.  So I want to see it recovered because the statistics say that gap intraday are getting recovered. This one got recovered almost total. eh This one just got recovered. And usually, the gaps get you a continuation in the direction of it.
+
+01:10:02
+of which it got created, okay? Because the gaps are inefficient price  action delivery. It's a lot of pressure. So when they got rebalanced and rejected, okay, they are a really important part of information. Back on more contracts. Not yet, not yet. Not a lot of contracts here. Not huge big trades.
+
+01:10:29
+We are still in the same  guys. didn't do anything. The market is stuck for the last 15 minutes.  See,  they had this intraday gap rejected 250 500 contract gap rejected the rejection and they want to squeeze. Okay, they want to squeeze.
+
+01:10:50
+And if they squeeze with this contract, 500 here, they will go down. But you see, the market is not letting them. This is still the level of absorption.
+
+01:11:12
+Buyers are getting rewarded.
+
+01:11:16
+I love it. Okay.
+
+01:11:22
+the level, mark the level, mark the exact price level of aggression of the buy-outs without result unfortunately. Because this is where you have a huge absorption and this is where you have a huge absorption on the other side.
+
+01:11:38
+The auction of the long term, we are here above the value area i, above the value area i of the previous day, below the POC, level of attraction.
+
+01:11:52
+Actual condition, failed auction of the seller.  So this 500 didn't got rewarded. So we have the same information we have here. Identical information. And we go, look, test again. Test again, where? Horizontal level.  One, two, three. No, inside the compression area, I'm never straight. Because  if you want to be precise,
+
+01:12:21
+You need to be in an external area like this one,  or this one. If you trade on the POC, you will get this kind of price action, that is garbage. eh If you have this huge piece of information, you can play reversal, eh but still the market will  go up and down, up and down, because you are in the point, in all this price, you are in the point where most volume got traded.
+
+01:12:49
+Okay, here, this horizontal level. So the price will gravitate around the POC. Till you don't get the clear direction. And the clear direction is either this, okay, either this you need to break. Now,  yes, 0.25 per trade. But you can decide, like, my trading is not my advice. It's how I  am confident executing. I'm really conservative.
+
+01:13:17
+But I'm conservative because I execute a lot of contracts, okay? If you want to start with micro, if you want to go chill, or if you are more aggressive trader but you need to have a good win rate to be able to survive, okay? You need it, okay. Now, after we mark everything, okay, I want to ask you, is this price random?  Are these price levels random? You see...
+
+01:13:44
+This horizontal level that I marked for you 149, what he did? He rejected. This horizontal level, do you see that it's giving you a piece of information that is so much value? Is it clear? Look, now the volume is stepping in. The volume is stepping in. 250, 250, 254, 282. There is some big fat finger here.
+
+01:14:14
+that is absorbing the hell out of the mother of the sellers.  people, crystal clear. Now it's time to...  something like this, okay? Because all these sellers didn't receive any reward.
+
+01:14:34
+Zero!  Also intra candle sellers. Look at this. Look at this. They are back  intra gap. So what you want to see is the rebalance of the intra gap. prints...  Look at this.  Look at this.  Okay. You want to see rejection. Maybe we go here. Because now this level got broken. So it's not so much relevant. Now this one is relevant. But it's a protection on the upside.
+
+01:15:04
+Not yesterday, not the day before. Now. Read the market now. Trust people that read the market now because they are the only ones that are capable of teaching you something.
+
+01:15:22
+Look at this horizontal level. Look at this auction.
+
+01:15:29
+They are getting to the decision level. They are getting to the decision level.
+
+01:15:42
+They are getting at it. Look how much sellers are trying to protect.
+
+01:15:49
+This is a retracement, Brian. Usually you have retracement from this is the top of the range. So if you want to trade in compression, you can take a one to two, one to three, one to four here and then create a buy stop here.  So if it squeeze, you are on the train. Okay. As you can see auction higher, they are willing to buy at higher prices. Okay.
+
+01:16:16
+So if buyers are willing to buy at higher prices, the momentum is clear now.
+
+01:16:24
+Okay.
+
+01:16:29
+They are auctioning higher.
+
+01:16:42
+Look at this. The auction of the seller responsive closed the gap here, this micro gap,  and they got rejected at the decision point. Let's go to the long term. We are here.  So what we want to do is we want to reach  the top of the range that is the one that we marked here.  Top of the range is really far, it's this one.  For a scalp, it's really far.
+
+01:17:12
+It's a huge risk to reward if you long from the compression. But  the POC of the previous day, it's super far. So this one is more a scalp to intraday because scalp, you enter here, you close here. Okay. Or you try to take the squeeze.
+
+01:17:31
+Now these buyers got...
+
+01:17:37
+They are in the full body of the candle.  And these sellers are trying to get back into the range. You have two protection levels. This one, the gap got already closed. So the first level, if they want to go down, is this one. So it's really far.  But if you consider, for example, the external range and you want to trade in compression here on this rejection, already when you see this, you can trail your stop loss below here.
+
+01:18:07
+Okay, you can protect yourself. And as you can see, they want to auction higher.
+
+01:18:14
+If you take a buy stop, where can you put the stop loss? So let's say that you have a buy stop here.  You can protect yourself  below the area of aggression.  Which one is the last area of aggression? If we break from here, it can be this week. But at the moment, as you can see, there is a wall here.
+
+01:18:39
+So let's say that what you expect here is that if we break this wall, you will have a long candle like this.  Then you will see a rebalance of the long big trade that still didn't, oh no, yeah, it printed.  So explosion, rebalance of the big order  after the acceptance, and then you continue.  And it's like a stare. You accept, you validate, you continue. You accept, you validate, you continue.
+
+01:19:08
+Let's think about project manager with business. Did they accept it? Yes or no?
+
+01:19:16
+They accepted this value, yes or no guys?
+
+01:19:24
+They didn't accept it, you see? Buyers failed. And if buyers failed, this is not a successful auction.
+
+01:19:36
+What does it mean? That you will revisit  the point where the buyers were in control. Which one is the point that created this auction higher? Is this low balance?  Or,  more important, this one, that is the last clear battle of the big players?
+
+01:20:02
+So you have these two points. This one is weak because they already told you that from here they didn't accept it. They will try again. Let's see. They can.
+
+01:20:15
+Here yes,  here it's failed. They failed the option, unfortunately.
+
+01:20:31
+Okay, is the aggressive level, this is the conservative level. The target is really far. We need to do a huge squeeze to reach the target. But I want to make it for you, to continue in the session with you and to understand. I don't care if someone is bored, they can go out. I'm not watching at the time. I will continue. I think you need to understand the live market, condition how the market moves. So we have this bootcamp, we are not watching at the clock.
+
+01:21:01
+It's late, you already did one hour, we don't care, we continue.  This is the best that you can get for education because you see live market application of the concept that we started together.
+
+01:21:25
+Look how much they are trying. They are trying. They are auctioning higher. I want a big trade here. I a big trade here, above the round number.
+
+01:21:40
+Look at this gap.
+
+01:21:47
+You
+
+01:21:50
+Ahhhh this NASDAQ This amazing motherfucker
+
+01:22:03
+You see when I tell you that there is a really big statistic that when they create a gap, they balance and restart. Like,  reload, because the market maker ate this,  reload, and then we will continue to the next station. Which one is the next station? Next station, is this one. So if they want to continue the aggressive auction, they will go there. And the value area high.
+
+01:22:29
+ah We just reached the value area, I didn't saw it. eh
+
+01:22:37
+This is where the last buyer got absorbed, the strong buyer got absorbed, but the auction is really clear. I think still we will get our target. Still we will get our target.
+
+01:22:54
+Rebalance again on the move up, see? Again, two, three times.
+
+01:23:03
+Now big players are not participating, so they are not loading heavy, they created this accumulation. The last aggressive players you have here. Buy and buy. No aggressive sellers here.
+
+01:23:19
+So you have this horizontal.
+
+01:23:31
+Here you don't have anything that is relevant of aggressive buyers. You have this horizontal and of course the starting of the move. Yes guys, this is order flow so it works for all the assets. Just I love NASDAQ, I use NASDAQ but it's totally up to you.  In the meantime I was talking, they validated again the big players.
+
+01:24:06
+Yeah, now they are going in momentum phase.  Now they are going in momentum phase. You see, I showed you live already in the first three sessions how they feel, okay? If they want to switch the bias, the first thing they need to do is to crack heavy  the aggressive market participants. But as soon as they,  if they continue to accept them, sorry, like here, okay?
+
+01:24:36
+the probability that you will have a continuation of the auction is higher. You see they hit another gap on the same level. Here they hit a gap.  So when they do a gap it means  that the pressure is really strong so you usually see rebalance  and if the candle print green so if this is all a fake and you close here that Nasdaq does a lot of times you have another squeeze.  So you have an attempt
+
+01:25:04
+create an auction higher and you get like a stare to the next point and here they start deciding I want to go higher more or you want to take profit if you took a sniper you are already one to five one to six okay you see how this candle does usually gap okay down they went to validate again the value area
+
+01:25:28
+Yes, momentum meets when you have a really strong move, When you have an auction higher.
+
+01:25:51
+What's happening here? What's happening? You see? They are building an horizontal level. They don't manage to accept. Why? Because there is this, there is the previous auction protecting it. So probably they will push again here again, you see? Exactly on the pinpoint. And here, if the auction want to continue long, you will see again, buyers reloading, they will print a week. Okay? And go up.
+
+01:26:22
+You
+
+01:26:31
+Guys, try to understand, don't execute.  Try to understand the logic, because you will always have time to execute. But the bootcamp is only for this month. So you don't have unlimited time to get live interaction. You can always execute all your life. During the live, try to understand. You have  all the time of the life to make money trading.
+
+01:27:00
+You see that this  condition.
+
+01:27:04
+It's really similar to this one.
+
+01:27:11
+Notice, look here. Why? Look here, look here. Now,  this is two different scenarios. This one is protection. eh So, buyers were defending here, were protecting. Here, the buyers are aggressive. They show clearly the direction they want to take. And they are protecting this area, as you can see.
+
+01:27:46
+Is it possible to determine the minimum amount of deep trades using the ATR pressure?  Antonio built a system that is capable of filtering the correct number of big trades to use. So of course you can use. We will go through it in the next session, I think Thursday. It will be ready for everyone. So I will explain you how to use and how to set it. You see they are again stuck and trying to auction lower. They are trying to break lower.
+
+01:28:17
+This candle is developing, but they are still showing the attempt to break.
+
+01:28:25
+Break wall. Peace.
+
+01:28:30
+uh I love to do live analysis with the chat together to see if you understand if there is any difficulty.
+
+01:28:41
+Now I want to ask everyone, this candle here,  that is printing now, it's a candle of aggression?  It's showing a clear changing direction? Or it's a candle that is still deciding what they want to do? As you can see, this is the first candle that is switching the auction.  Why switching the auction? Because we were protecting the auction higher.
+
+01:29:10
+indecision, indecision, indecision, indecision, aggression lower. Okay? So probably they are going to revisit the protection point of the buyers.
+
+01:29:25
+Red  dildo. Exactly. This is how you can start to implement tool by tool. So I explained you before how you can use VWAP to either trail your stop loss  or to understand the main pressure. Now  we checked also the profile shape of the multi-day to understand the complete scenario of the day.
+
+01:29:53
+Now we are going through the execution.  how can you time the market using actual order flow? This one is not valid like the one before, because it's already rebalanced this week.
+
+01:30:11
+red stick keep expanding lower. I only see that exactly. And this is what you need to understand. Did they change the whole  auction? So if  this is the starting point, okay, and this is where we are at the moment, okay, did they change the auction? Did they break the initial move? No. If this is retracement, yes, what are we doing? We are going back to POC. Okay, we are going back to POC and today
+
+01:30:40
+conservative protection level. Now we need to check if buyers are willing to step in. And if they are willing to step in, I expect to see again cumulative auction aggression.  So I expect to see them pushing on the gas from discount area, because for them this is discount area, because the actual profile is this. uh So they buy discounts.
+
+01:31:07
+And now they are going back premium. Why premium? Because we are in the value area high. What is our final target that I want to check with you? It's this one. It's really aggressive, it's far, but still the setup is valid. And the setup is completely valid.
+
+01:31:28
+Yeah, it's zoomed. But if you see here what they did.
+
+01:31:34
+Initiative Auction Sell, Initiative Auction Buy. So they want to go short and the buyers are willing to protect the short from here, not from here. Here is expensive, but from here they are willing to go.
+
+01:31:52
+And if you take even less piece of information, so you only take here, you see that on this wing information, we are cheap.  We are on the downside. So if you are a buyer here, you don't want to pay premium to get aligned with your direction. You want to buy discount. And this is the reason the VWAP works amazingly.
+
+01:32:35
+Is it possible this buyer taking take profit? This one you don't know. Because you don't know the intention of the market participants. You don't know if it's because they want to hold. You don't know if they want to cover an option. You don't know if they want to buy long term. You don't know if they are taking profit. Okay. You don't know. If you can filter this and say, okay, this is the account of JP Morgan, this will that
+
+01:33:05
+will be the most expensive tool on the planet. You can know that here there is interest, but you cannot know of who and what they are doing. If they are buying for long term, for short term, if they will close this contract here, this one is an information that you cannot have, unfortunately.
+
+01:33:26
+Yeah, I'm getting annoying, one hour and 40, I can understand that someone is bored. But I think it's the most amazing understanding of the market you can have live.
+
+01:33:38
+As you can see, they are back at this level. The previous level they accepted with aggressive buyers are now point of what? Of rejection. So this is the crossing road. This is the crossing road. You see buyers back here. The auction started.
+
+01:34:04
+This one works on level one data.  The new ones work on NBO, so they work on level two data.
+
+01:34:14
+Of course we continue our tour.
+
+01:34:22
+Price got down because of head and shoulder. Andreas.
+
+01:34:29
+I don't believe in chart patterns.
+
+01:34:34
+They are discretionary for me.
+
+01:34:38
+Order flow is really clear.
+
+01:34:47
+they managed to accept the gain higher, now we are getting back in compression.
+
+01:34:53
+Let's do the exercise that we did the last time.  We take all this.  Perfect. If we take all this information, we can see that the majority of the volume of the buyers is stuck at the top. This is where the majority of the buyers volume is stuck. This is an important information because if you manage to recover it  and go back here, you will see also the same buyers.
+
+01:35:21
+stepping in and reload.  And what is the sellers volume stacked here? All on the downside. These are trapped sellers.  Here there is a huge trap sellers level. All this huge trap sellers level.
+
+01:35:40
+And this is the reason you saw this explosion of the market up. eh Now, 70 % of the time, the market creates auction, rebalance.  Now we are back in the balance. So it's like here. You have a level up, you have a level down. This is so enlightening and brain opening education for me. is so logical and makes so much sense. Because you... I think that...
+
+01:36:08
+the benefit of order flow is that you can do an analysis that is backed by data. So my personal experience, okay, when I was doing presection, I was usually thinking about the fact that  it's not clear to me who is in control because a break of structure is not enough. Let's say, for example, here, okay, this break of structure will send everyone short. The point is that this break of structure
+
+01:36:37
+is valid till the scenario don't change. Here the scenario change. So I have an information that is saying to me, look, there is a huge absorption. You don't want to go short. You want to go long. In the sense, so if you want to use structure, you will search for short, short, short, short. You will take four stop loss. Okay. Same stuff here. If you only watch structure, you see this low, you see breakout and you think, ah, it's invalidated. We will go short.
+
+01:37:05
+With volume you know that you have aggressive area and consolidation area. This level didn't got broken at all.  It got tested, but it didn't got broken. And this is the reason I explained to you if you execute that in compression, you can go to breakeven here. Zero risk. If it goes, you make a huge risk reward. If not, you lose zero.  All this information that you can stack up.
+
+01:37:31
+with  only price.
+
+01:37:35
+It's not so easy, but not because you are not good, but because you lack information.
+
+01:37:41
+I'm new into trading, had only few months of learning but still not profitable. I'm all the time into brekiman era but with those lessons start to be more clear. Amazing.
+
+01:37:59
+The small area  is the delta profile. So you can have it fixed on the right, like the one that I showed you in the beginning of the session. And this is a way to make it more objective.  But when you chart in real time, you can  use your experience.  And I love to use my experience because it's giving me an edge. And understand that if this was the previous balance area, you see here they balance, they balance, I want to know
+
+01:38:27
+from the beginning of the swing point to the end. I want to know this piece of information, or if I want to include the accumulation, I will take this one. What happens here? They break, they rebalance the value very high, and they are auctioning higher. Again, you see what happened. They are getting aggressive at higher prices, not with a small amount of volume. 137.85.91, this is the all-time high of the auction.
+
+01:38:56
+It's higher than all of this.  And where do you go? To the next level. eh You go to balance to the next one. They just reach...
+
+01:39:08
+lying. So when you know, feel which moment your idea is valid. So if this level gets invalidated, I know that my idea is not valid anymore. So what I can do instead of taking the risk, if I enter here, I can put my stop loss to zero and take the squeeze. You will never see movements that don't have a retracement. So you need to understand that if your idea is validated by volume, you need to keep it as long as volume gives you
+
+01:39:40
+confirmation here in this auction there are aggressive sellers 100 to 100, no zero okay in the deep trades of course here as you can see they validated so if you have a break even here you can put here and ride it  take profit the level that we saw take profit okay this one maybe you only make one two three setup per day but this one it's a one two how much is it
+
+01:40:09
+Let's say that you have the aggressive entry protected below the area here.  You have the value area law rejection. This one is aggressive. This setup, you need to have a lot of experience. This one is aggressive. Then you have the momentum setup. So the auction hire and you want to take a quick scalp  and you want to make this or you make one to one with a high probability  or
+
+01:40:36
+You want to make the reload of this level, you take stop loss and you reload when you break.
+
+01:40:43
+Guys, I hope that you like this session. I want to make always the same ritual that we have.
+
+01:40:55
+This is something that we are really famous for in the community. Tell me what you think about this lesson in the chat. What's your experience with this platform and this bootcamp? What's your experience, guys?
+
+01:41:29
+Amazing.
+
+01:41:33
+Amazing.
+
+01:41:36
+Okay, so  I did practically two hours of live charting,  one hour of explanation and one hour of live charting. We started from this short, we saw this reload, this long loading here, this rejection, and we created this scenario long, amazing session. I couldn't trade because it was explaining, but this one would have been an amazing reload of the profit that I made before session.
+
+01:42:04
+would have closed with an amazing profit. I hope you enjoyed this bootcamp. I hope you enjoy this  platform. I love it. And see you in the next lesson. Bye, guys.

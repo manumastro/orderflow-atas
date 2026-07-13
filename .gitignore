@@ -6,6 +6,9 @@ obj/
 *.log
 *-logs/
 
+# Superseded source material kept only in the local workspace
+fabio_youtube_live_transcripts/
+
 # IDE
 .vs/
 .vscode/

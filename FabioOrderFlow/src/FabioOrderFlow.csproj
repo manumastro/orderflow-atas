@@ -13,19 +13,6 @@
       <HintPath>C:\Program Files (x86)\ATAS Platform\ATAS.Indicators.dll</HintPath>
       <Private>false</Private>
     </Reference>
-    <Reference Include="ATAS.DataFeedsCore">
-      <HintPath>C:\Program Files (x86)\ATAS Platform\ATAS.DataFeedsCore.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <!-- Include models structure -->
-    <Compile Include="../models/**/*.cs" />
   </ItemGroup>
 
 </Project>

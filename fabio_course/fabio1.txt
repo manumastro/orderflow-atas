@@ -1,0 +1,659 @@
+00:00
+Okay guys,  if everything is clear, I would like to start with the lesson. So if the voice is okay, and you are ready, text one, and we will start with the first topic. We will use Excalibro, an amazing application for explanation that you already use on YouTube to explain the psychology of the market. And we will go through the first lesson with this one. Okay? Then we will go to practical example.
+
+00:28
+Amazing. Everything is clear. Perfect. Perfect. OK. So this is the platform that we will use and we will start with this. I want to give you some data while I explain.  I will not be able to check the chat because I'm managing actually three screens. So every five minutes I will stop and you will let me know if there is  any question. OK. Let's start with this one. The first one that is so important to understand.
+
+00:58
+is the concept of retail volume. This is the data that you can get updated to 2024. There are multiple institutions that are providing this data. For example, the BIS. The BIS is providing this kind of data and is giving you the actual percentage of retail that makes the market for the futures, for the equities.
+
+01:27
+for the global forex. For retail, we include  all the non-professional traders or traders that don't work for institutions and don't move enough  volume to be classified as institutions. From this lesson, you will understand why your small $500 stop loss is  not interesting for them  and why we cannot base our narrative of trading on
+
+01:57
+something like this, because this is not how the market moves. And you need to understand the market regime and shape  to understand how to jump on a trend, when to stop, which market condition you are in. Okay, let's see if someone knows.
+
+02:14
+No, no, I'm not drawing. I'm talking. I didn't froze. Okay, it's your connection. In this case, guys, how much is the percentage of us retail in the market? How much is the retail volume? Let's check. There is someone that can go close to it. Yes, of course I can expand.
+
+02:37
+The retail volume from data is  3.5
+
+02:44
+6%. This is the maximum that we make. Now, this 3.5 to 6 % is the data that is clearly stated in the futures market. Now, I want to ask you something because  before understanding order flow analysis and volume, you need to rewire what you think really moves the market.  So, if you have a business
+
+03:13
+I want to make this example, if you have a business.
+
+03:21
+where you need to take a decision. Would you make a decision that is changing the business objective to make, let's say, average 5 % of...
+
+03:40
+lines happy. Would you make something like this?
+
+03:46
+As a business owner, would you make a choice?
+
+03:53
+that is giving you direction for the day to get 5 % of the total client. Okay. Or you will be more interested in the 95%. Okay.  So what I want to make you understand, first of all, is that they don't come for your MetaTrader stop loss. Okay. They are not interesting in something like this.
+
+04:23
+But what creates anyway, and on this you are right, the liquidity sweeps  as they get cold,  is  the behavior of the liquidity in certain market conditions. For example, during NFP you see huge movement.  Why you see huge movement? Because the actual condition of the liquidity  is different.
+
+04:54
+So this creates something like an illusion that they want.
+
+05:00
+just to take you out.
+
+05:04
+before starting.  This concept here  is not totally wrong. There are the concept of stop runs, but it's not what moves the market.  What moves the market is  composed of the order flow pressure, uh the fundamental reason, and the options pressure. It's these three kinds of information.  Based on this,
+
+05:33
+I use the most immediate information that I can get on the market that is completely based  on the immediate order flow print. What is immediate order flow print? It's when I see an order from a big player, a big institution with a threshold, for example, of 60 contracts. 60 contracts of NASDAQ, it's volume. It's  important volume.  Having this at one level,
+
+06:03
+It's some important piece of information and you will see a lot of them during your session. And you can based on this, as you saw me trading in live podcast in the World Trading Cup, as a narrative.  Now on top of this,  we need to understand who is important for us as a market participants. Okay. And I want to give you the multiple
+
+06:30
+understanding of who is participating in this market. You have something that is impossible for us retail traders to do, that is high frequency trading. High frequency trading needs  something that is  not possible for us, it's only possible for big institutions. For example, let's say you are Citibank, in the market making space and you want to open also the HFT, you need infrastructure.
+
+06:58
+that we as retail traders cannot have because they cost billions. You need to have the most advanced technology. So the  HFT for us have some kind of technological...
+
+07:16
+So in this case  we will need too much capital to start getting into this. Also market making at the moment is super competitive and it's done by the biggest player at the moment is Citibank. I'm not wrong.  So in the market you have HFT algo. This is an algo that really exists, does a lot of execution based on speed so they don't have
+
+07:45
+an informational edge. They have a technological edge. They are faster.  Then you have market making and all the market makers as  players in the market. And then you have the speculators.  The speculators include
+
+08:06
+Peculators include the prop desk, include the edge fonts player, include retail traders, course, include institutions, and then you have a huge amount of approach that you can have. You can be a macro edge font, because for example, the edge font.
+
+08:26
+can be based on macro data, okay? So you can be mainly a fundamental trader  or you can be an order flow trader, okay?  Or you can be...
+
+08:44
+quantitative.
+
+08:49
+So you use data. One example is Medallion from Jim Simmons. He was using data to get an edge. Market making provides liquidity, making money out of it. Get an edge. They have technology for this.  HFT is faster. They provide technological edge. eh So all these kind of players are participating in the market.
+
+09:17
+The retail traders from home make an average of 5%. The rest of 95 % is made by them. So we need to understand, if we want to make something in this market, we need to understand what these players use and what we can do from home. Is it clear, guys? Now we will go in the platform, guys. I'm just putting...
+
+09:45
+the information that you need to have in the brain because you need to understand who is composing this market. This is the most competitive market in the world. There are the best players, the best PhD students, the best institutions. You cannot think that a candle is the reason why the market is moving. Okay, this is really important as a starting point.  a starting point. Okay, now that we understood who is participating in this market.
+
+10:14
+We need to go  on what's the nature of the market, okay? What's the nature of the market and how the market moves? And everyone, can you text at three in chat?
+
+10:31
+Can you text a tree in chat if you started with candlestick analogies? How many of you are using this method to understand the direction of the day?
+
+10:48
+So if this breaks,  then I'm short. I'm short till this one breaks.  Then I go here. So you  don't have, don't start it or don't have an understanding of what is a shape, what is the auction market theory. How many of them started like this? Okay. A lot.  Not until your chart fanatic episode. Amazing. So.
+
+11:17
+What I want to do today is to rewire the way you look at market. And we need to start by this,  by  cleaning everything we have here and starting with the auction profile.  Starting with the auction profile. I remember guys, this one, this bootcamp will be more than 10, 12 hours. So be patient if you are experienced.
+
+11:45
+understand that there are people that are starting and they don't want to leave anyone behind. Okay. So I will not leave anything out of this bootcamp because I don't do education. Usually I'm a trader. You saw me trading live. You saw him in the World Trading Cup. see him in any live trading episode. And I made an exception to make sure that everyone that land on this platform is capable to using this properly. Okay.
+
+12:14
+beginners and experience. So we will go through different modules in this lesson to understand the real language of the market, the ANT, the Auction Market Theory. The Auction Market Theory, it's a theory that is not based only on financial markets, but is based  on what is the reason  the market is going up or down
+
+12:43
+in which profile condition you are, because you need to have a model that is  clear. If you are always subjective in what you do, you will not have the consistency to be profitable. And I want to ask everyone else here, Have you ever text five in chat? If you ever after three months, six months, one year, two years of trading, be honest, okay? Being to the point where you have a strategy,
+
+13:12
+But you always have this confusion because you don't have a proven edge with numbers on how to identify the bias for the day. Will we go up? Will we go down? What I do? Oh, I lost three trades. Let me double the risk. You sometimes you stop thinking and you think about yourself.  Am I wrong? Or the problem is that I didn't understood how the market moves. Am I wrong or I don't have an edge? Okay, this is where I was at.
+
+13:43
+Years and years ago,  I see it with myself and I try to understand, is it me that I'm not made for trading or what they are teaching me outside doesn't work? So a good solution for this  is to have a model, a model that is based on the real nature of the market. And we will start with the module one.
+
+14:09
+The Module 1 requires  that you understand that the market is an auction. What is an auction? An auction is when, for example, someone is interested in a  Mustang 1969, specific Mustang. This Mustang price  is subject to the offer.
+
+14:37
+If a new information about this car comes  out, for example, the Mustang factory says from the next year this car will not be produced anymore or it will become electric. What do you think will happen to the auction? So if this was the auction, let's say that this is a website where you can buy the Mustang.
+
+15:08
+This is a website where you can buy the Mustang and the Mustang is going like this. This is a balanced market condition. When in the market there is a new information that gets priced, you have an out of balance. An out of balance is not a condition that is strange, the market will need to rebalance. No. What is happening here is that the price of the auction
+
+15:37
+is putting the new information and you don't know where the information will bring the price to balance again. You only know that you went from a balance regime to an imbalance regime. And I can already say to you that if you use the same trading model here and here,  you are doomed to fail.
+
+16:06
+Who can explain me why in the chat? This is what I was doing guys. I was trading trend following model. I was making a lot of money here and get cracked here completely.
+
+16:19
+Who can explain me why? Yes, I can make the drawing bigger, of course. Let me cancel everything. Who can explain me why? You get stopped out constantly, but why? Because the price in this condition is rotational. It's rotational. We will go through it  in details. I don't want that  anyone in this bootcamp have a single doubt about auction market theory at the end of the month. Okay?
+
+16:49
+So we understood that price moves up or down based on the information that is available and always negotiate at a fair price.  if this,  I make the drawings bigger like the guy asked, is the shape, this one is the fair value. This one is the fair value. Perfect. If the price start to auction up,
+
+17:21
+Okay? The fair value now is this. Okay? It's developing up. Why this is happening? There is a manipulation. No. What's happening here is that  all these market participants  agreed, because no one got aggressive on this level,  agreed that we are providing an auction up. And if we are providing an auction up,
+
+17:49
+All these points are crazy snipers, but we will go through it when we go in the practical example. As of now, I want to know if the first module  is clear, that the market is an auction and that the information that are available at the moment are getting priced. Your role as a trader is understanding the shape at the moment and the model to put based on the information that you have. Is it clear guys? One in chat?
+
+18:20
+We will go through it Giuseppe, we will go to the daily bias, we will go also on the session of today. I will show you the session of today and I will explain you what execution I took and why. Because I'm a practical trader, I do this for a living, okay? I'm not a theory book, but I need before to go to chart to make you understand all the process that goes on in my brain.
+
+18:46
+Okay, perfect. Now let's go on.  Second module. On the second module, you need to understand...
+
+18:58
+I think I think bigger.
+
+19:05
+On the second module, you need to understand the concept of value.
+
+19:18
+The concept of value is what is  respected and accepted by the market participants at a specific moment. Let's say that we have this starting of the session, New York  open, here, the market starts like this.
+
+19:48
+Okay, perfect. You know what you do as a trader? You take, tell me if I'm wrong  or if I'm correct. Today you will understand why you still after years lose money. You will take this law and if the price break out, you say, I will be short.  Okay, because the structure changed. Is it real or not? Okay, what really happens here is that if you go deeper,
+
+20:18
+and try to understand from all the information available what the market is telling you. The market is telling you that you have the price here,  but the value, the fair value.
+
+20:34
+of the auction,  it's here.  What is the fair value? The most contracted price level, the POC. This one is the level where  all these market participants agree that it's a fair. This is where the level of the value of the day is. So, if I'm telling you, okay, that iPhone costs 1500, okay,
+
+21:03
+and you can get it at 1,200 you will think no the structure changed the iphone will go to zero  so i sell my iphone or you will think fuck it's a discount the value is 1,500 i can buy 250 less it's an opportunity how you think of course it's recorded
+
+21:28
+You'll see. What? How you think?
+
+21:34
+Yes, of course we will have Q &A guys. Just let me explain then we go through Q &A before going on the charts.
+
+21:45
+Buy it for cheaper. It's an opportunity. Of course. Okay. So what I want you to  understand in the module two is that price and value are two completely different information that you have. Okay. So to rewire, price and value, okay, are different information that can be not coherent for the session. Balance.
+
+22:14
+and imbalance  are the only two market regime that you can have. Guys, it's not rocket science,  okay? It's not rocket science. Here, what you need to have clear in your mind is that you cannot have 25 shape of the session. You cannot have 20 regime. You can have a balance regime.
+
+22:41
+and you can have an imbalance regime. How I trade? In the balance regime, I go range, bounce. I try to fade the move. So if the market is agreeing on what they are doing,  so this is the shape.  This is the shape for the day.
+
+23:11
+What I want to do is not trying to get along here and arrive here, because this is the reason why you take a lot of stop loss, What I want to do is  buy this count.
+
+23:26
+sell when it's expensive and always have a breakeven or a partial take profit at the fair value. Is it this simple? No, it's not this simple. You need to have proper confirmation. You need to make multiple analyses on the chart. That's the reason we will take more than 10 hours of education. But this  is the moment
+
+23:53
+where the profile is balanced, where the strategy of
+
+23:59
+mean reverting works.  They work best here. There is any algorithmic trader in the chat. We will go through the practical part, Patrizia. There is any algorithmic trader in the chat.  One, if there is any algorithmic trader in the chat. What is the problem about algorithmic trading? The problem about algorithmic trading is that the market changes really fast. The market goes to
+
+24:28
+uh consolidation, from consolidation to unfollowing, then it can have multiple weeks of compression, really tiny compression, okay? What happens in your,  oh, you see, I algo trade but not anymore, I get eaten by fees, why, Curtis? Because there are market conditions where the algo is not capable to adapt.
+
+24:51
+So if you continue to go trend following and this profile is lasting for two weeks, you lose a huge amount of money. Okay. You need a huge amount of money here on the imbalance shape. It's the day that I love. Okay.  Everyone was scared about Trump tweet. I was riding the out of balance till the end of the day guys. Okay. This is out of balance.  All this.
+
+25:22
+opportunity. But Fabio, how can I take sniper? Forget sniper. Understand how the market moves before. Then you will understand how to take snipers. Okay? This is what you need to study.  Only two market regime that bring to only two models. If you want to trade order flow,  these are the prime model and we will go through how you can use it.
+
+25:52
+oh Is it clear? We can go to model 3. 1 in chart if everything is clear.
+
+26:04
+Of we will go in deep charts to see it.
+
+26:08
+So to have a recap, you can have balance, moments or session. You can have imbalance session, directional auction.  And you can have neutral days completely, where they go before from a consolidation to a trend, from a consolidation to a trend. And you can take all the opportunity switching models. These are the most difficult one.  In the module three of the profile,
+
+26:38
+The option, why it keep only these shapes? He likes those. He don't want to cancel. Perfect. OK. In the module 3.
+
+26:50
+We go.
+
+26:57
+On the concept of price  magnet behavior of sensitive points
+
+27:13
+Okay, and we will go through the concept of value acceptance and value rejection. Okay, we will go through all of them today. Let me check the chart if everything is clear. Amazing, amazing. Okay, perfect. If you have any question guys, after I finish the module three, we will open Q &A and we will go through everything. Now for this one.
+
+27:42
+What is  the concept of price magnet? The concept of price magnet is the POC. This is where the auction is stable. So if you have a day that is rotational, the best reverting setup that you can take  are those back to POC. Because from the statistical distribution, OK, now I made
+
+28:11
+too high, but let's consider it here. This is the level where the most amount of time got spent by price and the most amount of volume get traded here. So this is where market participants think the price is fair. Okay? So this one was the option of the POC. It can be magnet or it can be rejection.
+
+28:35
+When it is rejection, you need to understand this really clearly because we will go through practical example of this.
+
+28:46
+See you later, peace.
+
+28:50
+When you are in the profile, so you are closed inside, it acts as a magnet. When you go  out, and you need to think about this, because this is really important to understand, okay? When you have a shape here,
+
+29:07
+and you are closed inside and the day after you create a new value. Listen to what I'm saying.  So you are here consolidated here. Okay. Then you have a new information in the price.  Perfect. And the market.
+
+29:31
+Start to balance here. Okay, perfect. Now, the role of the POC is different. When you have a new information, when you are inside here, the POC was a magnet. When you are  out of the balance and the price is giving you a new information, the POC becomes,  who knows it? A rejector. Okay?
+
+30:01
+Think about why. All these market participants agreed that this  one is a new fair value. So breaking this one from the aggressive buyers, it's okay. There was no protection of aggression.  So if all these market participants plotted this,  this means  that when the price will go back here,
+
+30:29
+All this accumulation is stepping in to protect this level. For the Swin Traders,  this one is the prime setups that I'm using from years. I don't know if you know guys, but other than a scalper, I'm also a Swin Trader. I trade using the COT, the seasonality, the bank report, and I time this market condition to get the best reversal point.
+
+30:58
+and continuation of the move. I wanted to explain this, that it's not really useful in scalping, but it's amazing in twin trading, because I want you to have a comprehensive understanding of how the profile is amazing to use, and is giving you an objective information. So in this case, we understood when it's a rejector and when it's a magnet. Now we need to go through the concept of
+
+31:27
+High volume node and low volume node. High volume node is when the price  spent a lot of time. So it means that the liquidity is really thick. This is a high volume node. The price spent a lot of time here, okay? And this one is a low volume node. It's a typical concept of imbalance.  No, it's not hard to pull. It's hard only
+
+31:56
+If the person that is explaining it to you is not a trader and it overcomplicate the concept.  This one, it's what you remember the player of before, what market makers hate. Market makers hate this.  They don't like it at all because it's inefficient price. eh It's a concept where
+
+32:25
+the aggression of the volume didn't  transacted in a balanced behavior. And this one, it's a movement that  usually you will see the balance.  This one in the price action community is called a fair value gap.  This is where it comes from. This one here, this concept here happens consistently because the markets
+
+32:53
+needs to transact efficiently for the market participants that we saw before. So this is a concept that can be called low volume node.  Low volume node. And I want to explain you like this because we will go in profile shape behavior.
+
+33:14
+Okay, let's say that we have.
+
+33:20
+this day.  The market opens with a big profile here.
+
+33:29
+and a really thin profile down. This is the information that we have available at the moment. Perfect. This is the value area high. Let's say that this is the value area low. This low volume node that is also...
+
+33:51
+supported by the value area law, this concept is really simple. 70 % of the volume is transacted here.
+
+34:06
+you have an outside boundaries, think about this as a wall, okay? All the participants of this auction are stepping in to protect this level. All the participants of this auction are stepping in to protect this level. So the profile shape that you see here is typically this, okay? I like to make analogy when I explain. Consider
+
+34:36
+medieval battle, okay? When the army already destroy the front door, they enter, okay? They destroy the protection of the front door and all the soldiers start to assault the castle from the inside, the probability, okay, that the battle will continue is really high, okay? And in this case,
+
+35:05
+This small information that I pair
+
+35:10
+big trades.
+
+35:14
+This is how you saw me trading live in front of the world. I don't know why it's this color. I wanted red, but it's okay. This is the information that you saw me trading in all the podcasts. Why? For true main information, the low volume node...
+
+35:39
+Usually.
+
+35:42
+provide amazing squeeze. You remember squeeze? Type three in chat if you remember  the  concept guys that I did with the reads. Also in the new podcast there is a This one, it's a behavior when the condition  of the market is
+
+36:11
+really low on liquidity on the downside and when you see support from aggression
+
+36:21
+you can capitalize with amazing risk to reward on the collapse. This one is one of my favorite setup, one that I trade consistently. Now we need to pair this  with the understanding of the high volume node now, because you can have also double profile shape. I will go through it.
+
+36:47
+But I think if you understood the concept, I'm sure that there will be person in the chat that will be able to understand clearly this. You can have double shape for the day, something like this.  Low volume node and high volume node. Perfect. Now.
+
+37:09
+If we are here,  this  value area high.
+
+37:17
+We see a lot of aggression of the big trades here. eh
+
+37:24
+And you want to short  ear.
+
+37:29
+Which level do you expect to protect price?
+
+37:39
+I predicted it a few times yesterday when Andrea was live streaming Amazing Brian. Where do you expect?
+
+37:48
+This is a double distribution exactly, but it's really important to understand this because in double distribution...
+
+37:57
+And this is where the understanding of the high volume node comes handy. You have a wall here.  So you can expect that yes, you have a squeeze, yes, you have a collapse, yes, all the market makers will be super happy for this to be rebalanced. But you can also expect that here there will be a protection point.
+
+38:20
+Okay?
+
+38:23
+To understand, considering how the profile gets created, the low volume nodes are levels that are
+
+38:35
+that are not having
+
+38:39
+big time of the price being stationary there.  the price is not moving slowly, it's accelerating, it's squeezing.
+
+38:51
+You can see there is no structure here. Here there is a big distribution. Here there is a big accumulation. Here it's where we can bet on this movement entering here, capitalizing on a big risk to reward. This is really valuable guys, but you need to understand this practically.  This is module three. So putting in the context the shape of the session, the AMT,
+
+39:21
+the levels that are important, the  scenarios. Are we in balance? Are we in trend? Are we in a transition? So we want to understand. And the playbook. The playbook.
+
+39:38
+me a second that I cancel everything.
+
+39:44
+The Playbook can be.
+
+39:48
+Fade.
+
+39:54
+for balance  market completion. Then we can have trend or imbalance. So jumping on the trend, then we can have the reversal for balance market rejection.  And then we can have the momentum for imbalance.  So you have, in the end of the day,
+
+40:28
+Trends, models, when there is imbalance.
+
+40:36
+mean reverting model when there is balance.  In this way, in the first hour, we already clear  how the shape of the volume of the session is giving you an insight of which model to use, how to use it, and why  you don't need anymore to get crazy by understanding is this a breakout?
+
+41:04
+this is not a breakout what I need to do. Okay?
+
+41:10
+Look at this comment, Brian, when I was trading using  SMC, smart money concept, I got my ass kicked  inside high volume nose and now I know why. How many people can relate? 5 in chat if you can relate.
+
+41:28
+Many of you are great traders,  many of you will be great traders, but if you try to decode an alphabet, okay, or a book of a language that you don't know, you will blame yourself. You will start blaming psychology, you will start blaming, eh, but there is management, eh, but it's the platform. The problem is that the information that you are putting in are wrong. And I want to ask you something.
+
+41:58
+Okay, if the person that you are taking information on is not trading himself.
+
+42:13
+Can it be this the reason why you are failing instead of blaming yourself? Yes or no? Because in the beginning of my journey I took for two years information from an influencer, not a trader.  And the influencer will give you the information that sounds nice.  Ah, easy.
+
+42:39
+eh But they don't have any performance,  any live competition, any live trading,  nothing. This method that I'm explaining here got proven by 2400 execution. This is important to understand. What I'm teaching and preaching is what I'm using. Let's go on with the Q &A. Before we go to the chart. Now you should be able to see the Q &A.
+
+43:10
+Let's see.
+
+43:15
+Try to text something in the Q &A if it's visible. It's not the chat.
+
+43:21
+Oh, it works.  So let's go to reply to everyone in the Q &A. Compliments about the live. Thank you guys, but it's not finished yet. We need to go on the live.
+
+43:34
+So let's start. Where to put your volume profile when trading New York and London Session Base? I will explain to you, Philip. I will explain to you.  When we go to chart, I will explain.
+
+43:49
+Is the previous session or the profile shape important? Yes,  it's really important if you want to understand what's the actual market regime and also if you are a swing trader. It's really important, guys.
+
+44:07
+How do we discover pre-market if the day will be balanced or imbalanced? So, you can use the data that are available from the London session and the previous day. You can build a scenario. I will explain you how. Okay? I will explain you how. Do you take into account headlines? Like if Trump says something. So, of course it's important to understand if we can expect volatility.
+
+44:36
+But the code that I use to understand the market will be always the same. So I'm really happy if Trump tweets, I know that it's guaranteed that I will have this. So I already know which profile to use. I already know that I will have a trend model for the day or a momentum model.
+
+45:07
+Perfect. Float volume profile, we will go in the platform. When do you know how to stop your trades? And this one, it's more advanced guys. That's the reason we have hours and hours of sessions.
+
+45:23
+You can save the model on it if you like what you set in DeepCharts. You can save the model or the workspace and every time it will open like you want.
+
+45:43
+Big trades, how to filter the bubbles as there are too many. I explained before but we will go. Yes, you can take profit at fair value.
+
+45:57
+Okay, I see that the main questions are related to profile. Okay, let's go, let's go. All the questions are practical.
+
+46:08
+All the questions are practical. So I think I can clear all the questions that you have directly on the charts. One in chart.
+
+46:18
+Not on this live. IEVB nasdaqf port will be explained in the advanced session because they are advanced indicator and before you need to understand this.
+
+46:31
+Perfect, let's go.
+
+46:43
+Let's clean everything.
+
+46:48
+Okay.
+
+46:54
+And let's go at this morning. Okay, this is today. Let's go at this morning. Let's say that you want to trade... Let's say that you want to trade the New York Session. Okay? But all this kind of information are not available. So we will start with pre-session analysis. Is it visible, my chart, guys?
+
+47:15
+Is it visible?
+
+47:18
+So you will take into account the information that you have before. And the information that you have before for the day are a clear low. You plot this during the night. So it's really clear the boundaries of where the players are getting the price protected and a clear high. Okay? Not difficult. This is your business  range.
+
+47:49
+Okay, this is the business range. This is where before your session you were doing business, is it clear?
+
+47:59
+So the first thing that I want you to do.
+
+48:07
+is plotting the profile of the pre-session.  If you want to make it simple, you can also put here from this morning, from the London session, but it's the same.  If you put less information, I want to show you something.
+
+48:24
+is exactly the same. You see? Look at the high value area and low volume area. Look here. Look here. Okay. It's the same. Why? Because the profile is really coherent. Now, this is the pre-market. Okay. This day, does it seems to you a profile that is  skew on the downside and to be skew on the downside, I want to show you because you can have
+
+48:55
+multiple pre-session profile. So let's, before explaining pre-session profile.
+
+49:11
+You can have.
+
+49:14
+this precession profile.
+
+49:20
+where you are balanced,  the most amount of volume get transacted in the middle. And in the precession you are still here inside somewhere.
+
+49:35
+Okay? Perfect.
+
+49:39
+The second scenario is that you have a profile like this.
+
+49:49
+So you have a huge pressure on the law.  This is where  70 % of the volume get transacted and you have the blue. So you see this one, the blue, it's all on the low side. It means  that the player are preparing to destroy the entrance of the castle.  If you have a profile like this and you start to see big trades here, you can expect a really amazing
+
+50:18
+Squeeze.
+
+50:21
+eh The second one is the opposite of this.
+
+50:27
+All the volume on the top empty on the bottom so the players
+
+50:36
+build an amazing accumulation and the probability is higher that we will break out. uh Now, I want to ask something to the chat. In the first three years of my life, I was there trying to understand, is this an accumulation? Is this a distribution? Is this a spring of Wyckoff, but we got liquidity taken? You have this information. You have the summary of
+
+51:03
+all the interaction between buyers and sellers before the opening. Is it clear guys which kind of valuable information is it? There is not me, Messi, Nelio, Richard, Ray. There is something that is totally clear. There is not subjective. Now let's see in the chart. Watch this profile.  So blue in the middle, blue at the top, blue at the bottom.
+
+51:32
+Which profile do we have in precession?
+
+51:46
+Middle. You see? It's not someone on top. Middle. Everyone middle. Blue in the middle. Blue in the middle. Blue in the middle. What does it mean, guys? It means  that what we can expect... Maybe we are going a little bit too deep for the first session. I was planning to explain this advance in the second and third, but it's okay. It's okay. Okay?
+
+52:14
+So this is the profile shape. So what we can expect? We can expect that sellers  will start to protect the market here.
+
+52:26
+and the value area law.  Buyers will start to protect the market here.
+
+52:37
+Okay, buyers will start to protect the market here and we want to get a deeper information. Okay, we want to get the deeper information. We have the business zone where buyers and sellers will step in. Perfect. This is from the actual profile. This one that you have on the left, okay, this one that you have on the left is the Delta profile. Now I want you to ask an amazing question. In all this price level,
+
+53:06
+Precession, we are not taking into consideration the opening.  Which horizontal level is the horizontal level where the sellers were the most aggressive? Now imagine a presection trader.  I think it's this candle, it can be this, oh, look at this one, it's this one. No, no, for me it's this one. Okay, you know how does a volume trader...
+
+53:32
+Check the profile, which one is the level where the delta is the highest. This is the protection level. Either they reach, and we have a huge rejection, either they don't reach at all, because sellers will want to protect.  And  buyers have the same level of protection,  but here.
+
+53:59
+super valuable pieces of information.
+
+54:05
+If we break this level, we will collapse down at the opening. We will have a trend down. If we break this level, we will have a trend up. Till we don't do this, we have fading options. So if you touch ever this level, you have an amazing short, at least to the poke. Okay? Not for me, but for you, I think it can be trade. Okay, trade. Don't talk on Twitter, trade.
+
+54:35
+Now, here...
+
+54:39
+These are the levels. Let's remove all this mess. Look how we start before the session. Before the session, we have an amazing cell level. We have a by level that if broken is giving us a trend following day. OK. And we have the level exactly where sellers will start to interact.
+
+55:03
+Okay, let's put... Buyers protection is this one.  so buyers will start to interact here and this is the last protection level. This is the last protection level of the sellers. Perfect. Now, let's put some valuable information with the big trades. Okay, and you can see that they are few because  they are in London.
+
+55:33
+And now we swipe to the right.
+
+55:38
+Does it make sense to you what happened today in the New York Session opening?  Ah, trading can be also easy, so it don't need to be overcomplicated. Do you see it guys? The auction that took place won here. This level got marked before, Buyers, breath.
+
+56:05
+completely destroyed buyers. No result. Oh Fabio, I didn't got the trade. You have another entry here.
+
+56:14
+Okay, amazing. You see this protection level? Got broken with this candle. Why got broken guys? I don't know if it's visible. Big bias aggression. Now this level will not be recovered. Now it works your model. Now you can go trend following. Okay, look at the collapse that you have. Amazing shot.
+
+56:43
+Okay? Amazing short. I think I can also make a pull. Let's see.
+
+56:55
+Let's if someone had the haha moment.
+
+57:05
+You can vote, I'm opening the poll, okay? Going on with the session, we have another amazing information, Because when you break, when you break, this one now becomes...
+
+57:21
+level of protection cell, okay? A level of protection cell. And we need to update. We need to update. Okay, so what was only here now, we will bring it on with us.  And as you see, as you see, from when they broke, okay, look here, look at the block. You see that as I drag, bam, the volume start to build, volume start to build, volume start to build.
+
+57:50
+Another piece of information that we need to put into account, you see that the buyers try to push through this protection level with all these big trades,  huge amount of big trades, but they failed and it went back up.  When we have a confirmation that we are switching gears,  we are going back in consolidation.
+
+58:17
+from this acceptance of the big trades. We show you something. 90 % of people mind blow crazy. 90 % of people mind blow crazy, guys. We'll show you something here. We take the same information. You see that we went back to balance profile. This one is what in price action is called takeout. The price gave us an amazing trend. Now what we can expect is from here.
+
+58:46
+that the same sellers will step in. This is a really strong protection point of the sellers.  Soon you can expect that the sellers that protected before will continue to protect this level.  We'll continue because all these buyers got absorbed and now we are in the upper range of  the balance.  Now we are in the upper range of the balance.
+
+59:16
+So if we take  all the price of the day into consideration, as you can see, this one was the last level of protection.  So now  you can not use trend following models because you are in a balanced scenario.
+
+59:32
+Okay, now you're in a balanced scenario. Now I will give you an information to do some kind of trading that it's a little bit more complex guys. It's what I love to do, but it's qualifying for you amazing areas. Okay. Let's say that you are here. Okay. Let's say that you don't want to take  one or two trades per day, but you want to do really the scalper.
+
+01:00:01
+You want to have multiple execution per day. I need to clarify here that as always, this is not a signal service. This is not financial advice. It's all for education and not for ah solicitating anyone to do anything. I'm sharing my experience and how I trade. That's the thing that I'm doing. Now, what I want to explain to you, and this is something that is more complex and needs to be supported by a little bit more of experience,
+
+01:00:30
+is qualifying the price wings.  What do I mean with qualifying the price wings? Understanding the shape of the market. And you can do this, I love to do this.
+
+01:00:51
+with the range charts.  With the range charts I don't use the trades,  but I just use these for profile proposing.  Why? Because it's really interesting when it comes  to what is happening. When you become a little bit more advanced, you can understand when the market moves  from  one condition to the other.
+
+01:01:21
+Okay, you don't need to watch the full day, but you can watch the single profile swings.  For example, in this condition here, guys, what is the situation that we are having? Do we all agree that it's a balanced profile? Yes or no? This is a balanced profile. Okay? The market tries to go down, it got absorbed, and it stays balanced, as you can see, for a lot of time. It stays balanced, stays balanced, stays balanced, stays balanced, stays balanced.
+
+01:01:50
+Out of balance, okay, you see that the volume is starting to build on top. Okay, look, the profile is starting to build on top. Perfect. So what we are having here, we are having here a switch from.
+
+01:02:06
+condition of balance
+
+01:02:12
+with the protection point that we can also see together. If we go here,  we see the protection point. You see the protection point, guys? Perfect. The protection point of the sellers is this one. So if this level gets broken, we can see a continuation.  The protection point of the buyers, look at this one. Look at this delta of the buyers.
+
+01:02:41
+This is the sniper level, okay? So if you exit out of the range and you broke this one and you go in a trend profile shape, you can expect a reaction on this green level. And as you can see, it didn't react at all because this stuff doesn't work.  This level was visible from this shape. I'm teaching you how to fish, I'm teaching you how to fish.
+
+01:03:10
+Now let's incorporate other information.  I think it's really too much stuff for the first life. So I will explain this to you and then I will let you process all this information.  Because you don't have only the profile shape information, but you have also the directional swing. And this is what I was...
+
+01:03:40
+trying to explain to you.
+
+01:03:43
+The directional swing is another piece of information that you can incorporate.  And the profile swing information is giving you something amazing because it's giving you the concept of discount pricing.  Now you have the balance area, you have the level of where the buyers put the most amount in accumulation, and you have from where the price is considered discounted.
+
+01:04:13
+With this kind of information you have usually a level, a level that is composed of discount area plus
+
+01:04:24
+the point of accumulation. This one is  an information  that when you become  really good at understanding the regime, and this one takes at least two months, okay, two months of practice, don't expect that you can master this in one or two sessions. You will be disappointed. You need to watch market, you need to use profile, you need to attend to the live, ask questions, and I will  be here in this.
+
+01:04:53
+month to help. uh So  any question that you have in live session will be cleared.
+
+01:05:01
+Now, when we go back...
+
+01:05:06
+the time frame that we were watching before,  so one minute, we have all the other kind of information that step in. And you have two potential confirmation that you can use. The safest one is the momentum. So when you see that buyers get deep in control from here, so this one,
+
+01:05:36
+is a potential execution.
+
+01:05:41
+that you can play. Okay. And you can say, no, but it's nothing exceptional. It's not a one to 10, one to 20 risk to reward. I know it's a one to 3.66, but it's a safe trade. What does it mean that it's a safe trade? That it's an execution that it's backed by data. Okay. This sniper, like everyone wants to do, is putting a limit here with a protection a little bit below.
+
+01:06:11
+But this one, if you don't have at least six months of experience, I don't advise. In the meantime, I want to show you how price fills the level that I mark for you.  This is the level that we mark. This is the kind of reaction that you have.  This is the kind of reaction. Now, let's see some live market interaction here.
+
+01:06:35
+Okay. Let's see some live market interaction. What happened on the lower timeframe? The lower timeframe, the buyers got completely wrecked. What I can expect here, I can expect that in this short timeframe, when we go out of this profile,  probably with this candle, we will continue to see acceleration. Okay. Why? Because we are switching.
+
+01:07:05
+to from the balance regime to the trend following regime. So now the sellers want to find new balance and they are willing to crash these aggressive buyers. This is what they want to do.  And as you can see, you can also see the interaction of the passive orders because the buyers are protecting. You see these aggressive sellers here. They had a result. No.
+
+01:07:33
+This is how you watch the live interaction.  The buyers got  absorbed heavily on the level here. Now they are fighting like races. you have protection area of the buyers, protection area of the sellers. Here the sellers step in, here the buyers step in.
+
+01:08:02
+Okay? How do you this switch is coming? You  don't know till you don't see it. So till this level hold, you don't have a switch short. Okay? Now the buyers, what they are doing? They crash these sellers and they are trying to reclaim higher level. As you can see, there is a strong protection. Now let's understand live this condition. We topped in a level of higher.
+
+01:08:33
+profile that got absorbed. So we know that here the sellers are really jealous.  They are protecting, but we could expect from this. perfect. At the same point, we know that buyers are protecting this level. Perfect. What we know, what is the piece of information of the puzzle that we can use? The piece of information of the puzzle that we can use is that if
+
+01:09:01
+this level gets wrecked. uh If this level gets wrecked, we can collapse  down.
+
+01:09:13
+No, it's not a signal service. I'm explaining a concept. uh I'm explaining a concept. This one is the profile interaction. If you want to have  super clear and detailed interaction, you can put 100.
+
+01:09:36
+When there are too many big trades, you can filter out and it's really interesting to see what it got filtered out here. You see that all this data that I didn't even mention to you is not relevant. eh What is the most relevant? Buyers that got absorbed.
+
+01:09:56
+buyers that got absorbed, sellers that are ready to get wrecked now. This is the moment where... Guys, not even the time to say this is the moment. Why? Because I have experience with this model. I saw this condition happening 10,000 times. 10,000 times. I spent half of my life on it.
+
+01:10:22
+Live!
+
+01:10:25
+life. Guys, I hope that you love this session. It's only the first one. It's only the first one.  Now give me a feedback in the chat that they will republish on Instagram to show everyone the movement that we are building together.
+
+01:10:55
+Amazing.
+
+01:11:19
+You blocked the chat guys.  You blocked the chat. Amazing. Have an amazing evening guys. See you in the next one  on Thursday, if I'm not wrong. And continue to study the platform. Don't execute till you are not confident enough.
