@@ -16,7 +16,9 @@ fabio_course/fabio2.txt
 fabio_course/fabio3.txt
 ```
 
-I vecchi transcript YouTube, i modelli precedenti e i relativi risultati non fanno parte della baseline corrente.
+La mappa derivata `fabio_course/fabio-course-model-map.md` collega le tre lezioni, ma non le sostituisce e non e' una specifica operativa.
+
+I vecchi transcript YouTube, i modelli precedenti e i relativi risultati non fanno parte della baseline corrente. Possono essere consultati soltanto quando viene richiesto esplicitamente un confronto storico.
 
 ## Regole Di Lavoro
 
@@ -34,7 +36,7 @@ I vecchi transcript YouTube, i modelli precedenti e i relativi risultati non fan
 ## Struttura
 
 ```text
-fabio_course/                 fonte didattica attiva
+fabio_course/                 fonte didattica attiva e mappa derivata
 FabioOrderFlow/src/           scheletro indicatore ATAS
 FabioOrderFlow/FabioOrderFlow.md  stato e procedure del progetto
 docs/atas/api/                riferimento tecnico locale ATAS
