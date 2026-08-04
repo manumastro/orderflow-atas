@@ -17,3 +17,4 @@
 - 2026-08-04 - Recorder storico aggiornato a fof-historical-cumulative-context-v3 dopo smoke test: ATAS accetta una sola richiesta CumulativeTrades pendente, quindi le finestre storiche vengono inviate in sequenza dopo ogni risposta.
 - 2026-08-04 - Recorder storico aggiornato a fof-historical-cumulative-context-v4: la cattura viene limitata agli ultimi sette giorni calendario dal fondo del chart, ignorando lo storico extra precaricato da ATAS.
 - 2026-08-04 - Inventario storico v4 generato end-to-end dal log ATAS: snapshot gzip, CSV candle/eventi, summary JSON e report docs/research/historical-cumulative-context-inventory-2026-08-04.md; ATAS ha restituito 1.979.092 CumulativeTrade, di cui 1.704.616 dentro la finestra richiesta.
+- 2026-08-04 - Recorder storico aggiornato a fof-historical-cumulative-context-v5: gli eventi CumulativeTrade fuori dalla finestra richiesta vengono contati ma non loggati, dopo evidenza v4 di record ATAS extra-sessione.

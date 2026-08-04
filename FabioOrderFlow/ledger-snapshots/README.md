@@ -41,5 +41,6 @@ python FabioOrderFlow/tools/report_historical_cumulative_context.py \
   --candles-csv FabioOrderFlow/ledger-snapshots/historical-cumulative-context-2026-08-04-v4-candles.csv \
   --events-csv FabioOrderFlow/ledger-snapshots/historical-cumulative-context-2026-08-04-v4-events.csv \
   --summary-json FabioOrderFlow/ledger-snapshots/historical-cumulative-context-2026-08-04-v4-summary.json \
-  --report docs/research/historical-cumulative-context-inventory-2026-08-04.md
+  --report docs/research/historical-cumulative-context-inventory-2026-08-04.md \
+  --schema fof-historical-cumulative-context-v4
 ```

@@ -17,7 +17,7 @@ from pathlib import Path
 from statistics import mean, median
 from typing import Any
 
-DEFAULT_SCHEMA = "fof-historical-cumulative-context-v4"
+DEFAULT_SCHEMA = "fof-historical-cumulative-context-v5"
 MARKER = "FofHistoricalContext "
 
 CANDLE_COLUMNS = [
@@ -290,6 +290,22 @@ def relation_to_request(event_time: datetime, begin_time: datetime, end_time: da
     return "inside-request"
 
 
+def response_returned_records(response: dict[str, Any]) -> int:
+    return int(response.get("returnedRecords", response.get("records", 0)))
+
+
+def response_logged_records(response: dict[str, Any]) -> int:
+    return int(response.get("loggedRecords", response.get("records", 0)))
+
+
+def response_skipped_before(response: dict[str, Any]) -> int:
+    return int(response.get("skippedBeforeRequest", 0))
+
+
+def response_skipped_after(response: dict[str, Any]) -> int:
+    return int(response.get("skippedAfterRequest", 0))
+
+
 def empty_day_summary() -> dict[str, Any]:
     return {
         "events": 0,
@@ -355,7 +371,10 @@ def extract_selected_range(
         "eventCountInsideRequest": 0,
         "eventCountBeforeRequest": 0,
         "eventCountAfterRequest": 0,
-        "responseRecords": sum(int(item.get("records", 0)) for item in selected.responses.values()),
+        "responseReturnedRecords": sum(response_returned_records(item) for item in selected.responses.values()),
+        "responseLoggedRecords": sum(response_logged_records(item) for item in selected.responses.values()),
+        "responseSkippedBeforeRequest": sum(response_skipped_before(item) for item in selected.responses.values()),
+        "responseSkippedAfterRequest": sum(response_skipped_after(item) for item in selected.responses.values()),
         "tickVolumeMismatchCount": 0,
         "emptyTickEvents": 0,
         "malformedMatchingLines": 0,
@@ -598,8 +617,11 @@ def build_report(summary: dict[str, Any], artifacts: dict[str, dict[str, Any]]) 
     range_payload = summary["range"]
     security = range_payload.get("security") or {}
     direction_summary = summary["directionSummary"]
-    response_records = int(summary.get("responseRecords", 0))
     event_count = int(summary.get("eventCount", 0))
+    response_records = int(summary.get("responseReturnedRecords", summary.get("responseRecords", 0)))
+    response_logged_records = int(summary.get("responseLoggedRecords", event_count))
+    response_skipped_before = int(summary.get("responseSkippedBeforeRequest", 0))
+    response_skipped_after = int(summary.get("responseSkippedAfterRequest", 0))
     inside_count = int(summary.get("eventCountInsideRequest", 0))
     before_count = int(summary.get("eventCountBeforeRequest", 0))
     after_count = int(summary.get("eventCountAfterRequest", 0))
@@ -691,16 +713,19 @@ Il recorder `v4` ha correttamente limitato la cattura agli ultimi sette giorni d
 ```text
 Snapshot records:             {fmt_int(int(summary['snapshotRecordCount']))}
 Chart candles:                {fmt_int(int(summary['candleCount']))}
+ATAS returned records:       {fmt_int(response_records)}
+ATAS logged records:         {fmt_int(response_logged_records)}
 Historical CumulativeTrade:   {fmt_int(event_count)}
-ATAS response records:        {fmt_int(response_records)}
 Inside requested window:      {fmt_int(inside_count)}
 Before requested window:      {fmt_int(before_count)}
 After requested window:       {fmt_int(after_count)}
+Response skipped before:      {fmt_int(response_skipped_before)}
+Response skipped after:       {fmt_int(response_skipped_after)}
 Tick-volume mismatches:       {fmt_int(int(summary['tickVolumeMismatchCount']))}
 Empty tick events:            {fmt_int(int(summary['emptyTickEvents']))}
 ```
 
-`historical-cumulative-response` viene scritto dopo la serializzazione degli eventi ricevuti, quindi la presenza della risposta nel log conferma che la richiesta e' terminata. In questa cattura ATAS ha restituito anche record fuori dalla finestra richiesta: il parser li conserva nello snapshot come evidenza e li marca nel CSV con `timeRelationToRequest`.
+`historical-cumulative-response` viene scritto dopo la serializzazione degli eventi ricevuti, quindi la presenza della risposta nel log conferma che la richiesta e' terminata. In questa cattura ATAS ha restituito anche record fuori dalla finestra richiesta: il parser li conserva nello snapshot come evidenza e li marca nel CSV con `timeRelationToRequest`. Dallo schema `v5`, il recorder puo' scartare questi eventi prima del log e registrarli solo nei conteggi `skippedBeforeRequest`/`skippedAfterRequest`.
 
 ## Relazione Con La Richiesta
 

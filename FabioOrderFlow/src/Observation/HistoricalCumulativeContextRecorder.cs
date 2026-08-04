@@ -6,7 +6,7 @@ namespace FabioOrderFlow.Observation;
 
 public sealed class HistoricalCumulativeContextRecorder : Indicator
 {
-    private const string Schema = "fof-historical-cumulative-context-v4";
+    private const string Schema = "fof-historical-cumulative-context-v5";
     private static readonly TimeSpan MaximumHistoricalRequestDuration = TimeSpan.FromDays(7);
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
     private readonly object _sync = new();
@@ -124,11 +124,28 @@ public sealed class HistoricalCumulativeContextRecorder : Indicator
                 return;
         }
 
-        var count = 0;
+        var returnedCount = 0;
+        var loggedCount = 0;
+        var skippedBeforeRequest = 0;
+        var skippedAfterRequest = 0;
 
         foreach (var trade in cumulativeTrades)
         {
-            count++;
+            returnedCount++;
+
+            if (trade.Time < state.BeginTime)
+            {
+                skippedBeforeRequest++;
+                continue;
+            }
+
+            if (trade.Time > state.EndTime)
+            {
+                skippedAfterRequest++;
+                continue;
+            }
+
+            loggedCount++;
             LogObservation(CaptureTrade(state, request, trade));
         }
 
@@ -141,7 +158,10 @@ public sealed class HistoricalCumulativeContextRecorder : Indicator
             state.RequestCount,
             request.BeginTime,
             request.EndTime,
-            count,
+            returnedCount,
+            loggedCount,
+            skippedBeforeRequest,
+            skippedAfterRequest,
             DateTime.UtcNow));
 
         var nextRequestIndex = state.RequestIndex + 1;
@@ -410,7 +430,10 @@ public sealed class HistoricalCumulativeContextRecorder : Indicator
         int RequestCount,
         DateTime BeginTime,
         DateTime EndTime,
-        int Records,
+        int ReturnedRecords,
+        int LoggedRecords,
+        int SkippedBeforeRequest,
+        int SkippedAfterRequest,
         DateTime ReceivedAtUtc);
 
     private sealed record HistoricalCandleObservation(

@@ -17,10 +17,10 @@ Questo report documenta la prima cattura storica valida del recorder **Fabio His
 
 | Artefatto | Path | Bytes | SHA-256 |
 | --- | --- | --- | --- |
-| snapshot | FabioOrderFlow/ledger-snapshots/historical-cumulative-context-2026-08-04-v4.jsonl.gz | 66.994.818 | fe946eb49a3e3e1d6ec769cc246ef347e275b2f3dabb798fe48266d94f95829f |
+| snapshot | FabioOrderFlow/ledger-snapshots/historical-cumulative-context-2026-08-04-v4.jsonl.gz | 66.994.818 | 8873ed16b70bffa0eff4f646540b4ffcc16a5eb48f9922328914a0d54cd12769 |
 | candlesCsv | FabioOrderFlow/ledger-snapshots/historical-cumulative-context-2026-08-04-v4-candles.csv | 1.326.674 | 6609fd96cd90a023506a1a62727cbbef41499b4886e99631ec666667abc9b8fc |
 | eventsCsv | FabioOrderFlow/ledger-snapshots/historical-cumulative-context-2026-08-04-v4-events.csv | 551.542.586 | 0f9ed7f19adee10b590110a4b6b1423257342040425e5aa3e51d9085a931de18 |
-| summaryJson | FabioOrderFlow/ledger-snapshots/historical-cumulative-context-2026-08-04-v4-summary.json | 71.636 | 7d24aeb7384f7977fd49409486d8ad852088c052c74094ed2f9af0c11a2ef5bb |
+| summaryJson | FabioOrderFlow/ledger-snapshots/historical-cumulative-context-2026-08-04-v4-summary.json | 71.756 | b2a0aa0db2e19d77ee28f1fae7d4b35ce38b6eeb2b53e19153eafa91a1e70af6 |
 
 Il log sorgente ATAS non viene versionato. Al momento della lettura misurava `9.855.336.194` byte.
 
@@ -45,16 +45,19 @@ Il recorder `v4` ha correttamente limitato la cattura agli ultimi sette giorni d
 ```text
 Snapshot records:             1.985.996
 Chart candles:                6.901
+ATAS returned records:       1.979.092
+ATAS logged records:         1.979.092
 Historical CumulativeTrade:   1.979.092
-ATAS response records:        1.979.092
 Inside requested window:      1.704.616
 Before requested window:      274.460
 After requested window:       16
+Response skipped before:      0
+Response skipped after:       0
 Tick-volume mismatches:       0
 Empty tick events:            0
 ```
 
-`historical-cumulative-response` viene scritto dopo la serializzazione degli eventi ricevuti, quindi la presenza della risposta nel log conferma che la richiesta e' terminata. In questa cattura ATAS ha restituito anche record fuori dalla finestra richiesta: il parser li conserva nello snapshot come evidenza e li marca nel CSV con `timeRelationToRequest`.
+`historical-cumulative-response` viene scritto dopo la serializzazione degli eventi ricevuti, quindi la presenza della risposta nel log conferma che la richiesta e' terminata. In questa cattura ATAS ha restituito anche record fuori dalla finestra richiesta: il parser li conserva nello snapshot come evidenza e li marca nel CSV con `timeRelationToRequest`. Dallo schema `v5`, il recorder puo' scartare questi eventi prima del log e registrarli solo nei conteggi `skippedBeforeRequest`/`skippedAfterRequest`.
 
 ## Relazione Con La Richiesta
 
