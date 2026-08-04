@@ -123,6 +123,20 @@ Sospendere se:
 
 In caso di sospensione, documentare la causa e raccogliere una nuova sessione. Non compensare dati mancanti con barre, soglie o inferenze post-hoc.
 
+## Smoke Test Del 2026-08-04
+
+Il recorder e' stato caricato e ha confermato la ricezione di raw trade e stati `CumulativeTrade` su `NQU6@CME`:
+
+```text
+primo raw trade osservato:  2026-08-04T12:35:43.1007481
+raw trade registrati:       6.490
+CumulativeTrade nuovi:      4.121
+CumulativeTrade update:    11.666
+errori JSON:                    0
+```
+
+Il test e' **escluso dal campione**: il primo trade osservato e' successivo alle 09:30 America/New_York e il profilo di sessione non e' completo. Serve una nuova istanza caricata non oltre le 09:30 per produrre dati valutabili.
+
 ## Fuori Scope
 
 - VAH, VAL, HVN, LVN, VWAP, profilo composito e classificazione di regime;

@@ -22,7 +22,7 @@ Lo stato operativo e le decisioni canoniche sono descritti in questo documento e
 
 La descrizione della sessione e' completata in `../docs/research/cumulative-trade-footprint-description-2026-08-04.md`. Il risultato conferma soltanto la co-occorrenza riproducibile tra eventi aggregati e footprint di barra nella sessione osservata; non approva soglie, segnali o modelli.
 
-La prossima fase e' definita e approvata in `../docs/research/session-location-and-price-response-collection-contract.md`. `Fabio Session Location Recorder` e' implementato e attende una nuova raccolta live: nessuna location di POC o risposta prezzo e' ancora stata calcolata o interpretata.
+La prossima fase e' definita e approvata in `../docs/research/session-location-and-price-response-collection-contract.md`. `Fabio Session Location Recorder` e' implementato e attende una nuova raccolta live: il smoke test del 2026-08-04 ha confermato il logging, ma e' escluso dal campione perche' avviato dopo le 09:30 America/New_York. Nessuna location di POC o risposta prezzo e' ancora stata calcolata o interpretata.
 
 ## Fonte Di Ricerca
 
