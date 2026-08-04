@@ -5,4 +5,4 @@
 - 2026-08-04 - Contratto descrittivo di volume, tick e footprint della sessione aperto in docs/research/cumulative-trade-footprint-description-contract.md.
 - 2026-08-04 - Descrizione riproducibile della sessione live completata in docs/research/cumulative-trade-footprint-description-2026-08-04.md; nessuna soglia, segnale o modello approvato.
 - 2026-08-04 - Diario storico esteso all'avvio del repository e alla discontinuita' di baseline in docs/research/project-history-and-baseline.md.
-- 2026-08-04 - Contratto per raccolta live di POC di sessione e risposta prezzo a 300 secondi pronto per approvazione in docs/research/session-location-and-price-response-collection-contract.md.
+- 2026-08-04 - Contratto per raccolta live di POC di sessione e risposta prezzo a 300 secondi approvato; Fabio Session Location Recorder implementato in FabioOrderFlow/src/Observation/SessionLocationPriceResponseRecorder.cs.

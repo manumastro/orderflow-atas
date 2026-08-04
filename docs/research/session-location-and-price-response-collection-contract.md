@@ -4,12 +4,12 @@
 
 ```text
 Tipo:                 contratto osservativo di raccolta live
-Stato:                pronto per approvazione prima di modificare il recorder
+Stato:                approvato dall'utente nel dialogo corrente
 Campione:             una sola sessione cash del future Mini
 Modello attivo:       nessuno
 Segnali:              nessuno
 Ordini / PnL:         nessuno
-Runtime modificato:   no
+Runtime modificato:   secondo recorder osservativo separato
 ```
 
 Questo contratto segue la descrizione di volume, tick e footprint della sessione del 2026-08-04. Non converte un `CumulativeTrade` in un segnale e non prova l'equivalenza con DeepCharts `Aggregate`.
@@ -66,7 +66,20 @@ L'unita' primaria resta un `CumulativeTrade` finale. `OnNewTrade(MarketDataArg)`
 
 La POC di sessione e' un fatto di volume aggregato fino all'evento. Non e' automaticamente valore, supporto, resistenza, protezione o location sufficiente per un playbook.
 
-## Regole Di Raccolta
+### Strategia Di Registrazione Senza Look-Ahead
+
+Il recorder non calcola POC, location o outcome in tempo reale. Registra invece due flussi JSON separati, entrambi con configurazione di sessione e sequenza locale:
+
+```text
+raw trade:         MarketDataArg Trade dentro la sessione dichiarata
+evento aggregato:  ogni stato OnCumulativeTrade / OnUpdateCumulativeTrade
+```
+
+Il report ordina i raw trade per `Time` e sequenza locale, costruisce il profilo usando solo trade con `Time <= ultimo tick dell'evento` e misura il percorso futuro con trade strettamente successivi. Questo evita che un callback ritardato o una barra gia' chiusa inserisca dati futuri nella location iniziale.
+
+Per ogni `EventId`, lo stato finale viene scelto in modo deterministico: massimo `TotalVolume`, poi ultimo `LastTickTime`, poi maggiore `UpdateNumber`. Le parita' residue devono restare documentate nel report invece di essere risolte manualmente.
+
+### Regole Di Raccolta
 
 1. Avviare il recorder prima o all'inizio della sessione dichiarata; un avvio successivo rende incompleto il profilo e scarta gli eventi precedenti all'avvio.
 2. Aggiornare il profilo live con i soli trade di sessione ricevuti fino al tempo dell'evento; non leggere barre o profile data successivi per costruire la location iniziale.
@@ -120,7 +133,13 @@ In caso di sospensione, documentare la causa e raccogliere una nuova sessione. N
 
 ## Modifica Runtime Ammessa Dopo Approvazione
 
-Dopo approvazione, e solo per la raccolta definita qui, e' ammesso un secondo recorder osservativo separato o un'estensione del recorder esistente che emetta record JSON. Non puo' scrivere sul chart, classificare eventi, filtrare volume o inviare ordini.
+Il recorder autorizzato e' `FabioOrderFlow/src/Observation/SessionLocationPriceResponseRecorder.cs`, indicatore separato denominato **Fabio Session Location Recorder**. Emette esclusivamente JSON con prefisso `FofSessionObservation` nel log ATAS:
+
+- configurazione e primo trade osservato della sessione;
+- raw `MarketDataArg` di tipo `Trade` nella sessione dichiarata;
+- stati `CumulativeTrade` e aggiornamenti, con tick costituenti e metadati dello strumento.
+
+Non calcola o disegna POC, non filtra volume, non emette marker e non invia ordini. Il calcolo di profilo e risposta e' ammesso solo nel report offline disciplinato da questo contratto.
 
 ## Output Canonico Previsto
 

@@ -6,13 +6,13 @@ Base neutra per un futuro indicatore ATAS derivato dallo studio completo del cor
 
 ```text
 Modello attivo:             NESSUNO
-Analisi runtime:            registratore osservativo separato
+Analisi runtime:            due recorder osservativi separati
 Richieste cumulative:       storico chart fino a 7 giorni + eventi live
 Segnali / ordini / PnL:     NESSUNO
 Output grafico:             NESSUNO
 ```
 
-`src/FabioOrderFlow.cs` resta uno scheletro neutro. `src/Observation/CumulativeTradeObservationRecorder.cs` e' l'unico runtime di ricerca ammesso: registra eventi `CumulativeTrade` e il loro delta di volume, footprint della barra, tick costituenti e identificativo dello strumento/connettore nei log ATAS. Non applica filtri di dimensione, outcome, classificazioni o logica di mercato.
+`src/FabioOrderFlow.cs` resta uno scheletro neutro. `src/Observation/CumulativeTradeObservationRecorder.cs` registra `CumulativeTrade`, delta di volume e footprint della barra. `src/Observation/SessionLocationPriceResponseRecorder.cs` registra raw trade di una sessione dichiarata e stati `CumulativeTrade` per una futura ricostruzione offline di POC e risposta. Nessuno dei due applica filtri di dimensione, outcome, classificazioni o logica di mercato.
 
 La cattura iniziale del 2026-08-04 ha promosso il registratore allo studio descrittivo di una sola sessione; il report canonico e' `../docs/research/atas-cumulative-trade-capture-validation-2026-08-04.md`. Questa decisione non promuove H1 sulla parita' con DeepCharts `Aggregate`.
 
@@ -22,7 +22,7 @@ Lo stato operativo e le decisioni canoniche sono descritti in questo documento e
 
 La descrizione della sessione e' completata in `../docs/research/cumulative-trade-footprint-description-2026-08-04.md`. Il risultato conferma soltanto la co-occorrenza riproducibile tra eventi aggregati e footprint di barra nella sessione osservata; non approva soglie, segnali o modelli.
 
-La prossima fase e' definita, ma non ancora approvata per il runtime, in `../docs/research/session-location-and-price-response-collection-contract.md`: richiede una nuova raccolta live con POC di sessione congelato e percorso del prezzo di 300 secondi. Nessuna modifica al recorder e' ammessa prima dell'approvazione del contratto.
+La prossima fase e' definita e approvata in `../docs/research/session-location-and-price-response-collection-contract.md`. `Fabio Session Location Recorder` e' implementato e attende una nuova raccolta live: nessuna location di POC o risposta prezzo e' ancora stata calcolata o interpretata.
 
 ## Fonte Di Ricerca
 
@@ -38,14 +38,15 @@ Le lezioni devono essere considerate insieme. Il corso comprende piu' livelli di
 
 ```text
 src/FabioOrderFlow.cs                         scheletro indicatore ATAS neutro
-src/Observation/CumulativeTradeObservationRecorder.cs  registratore CumulativeTrade
+src/Observation/CumulativeTradeObservationRecorder.cs  registratore CumulativeTrade e footprint
+src/Observation/SessionLocationPriceResponseRecorder.cs recorder raw trade e CumulativeTrade di sessione
 src/FabioOrderFlow.csproj                     configurazione build
 src/deploy.bat                                build e deploy Windows
 src/deploy.sh                                 build e deploy da shell
 docs/atas/api/                                documentazione tecnica locale ATAS
 ```
 
-Non esistono modelli direzionali, tool strategici o automazione. Il contratto osservativo attivo e' `../docs/research/participation-effort-result-observation-contract.md`.
+Non esistono modelli direzionali, tool strategici o automazione. I contratti attivi sono `../docs/research/participation-effort-result-observation-contract.md` e `../docs/research/session-location-and-price-response-collection-contract.md`.
 
 ## Build
 
@@ -80,9 +81,17 @@ Dopo il deploy, rimuovere e riaggiungere l'indicatore al chart oppure riavviare 
 
 ## Raccolta Osservativa
 
-Caricare **Fabio Cumulative Trade Recorder** sul chart del future Mini da confrontare con DeepCharts. Il recorder non disegna nulla e usa il log standard ATAS con righe JSON prefissate da `FofObservation`.
+### Recorder Di Location Sessione
 
-Al termine del caricamento chiede lo storico `CumulativeTrade` dell'intervallo visibile solo se questo copre al massimo sette giorni; per intervalli piu' estesi emette un record `historical-request-skipped` senza troncare i dati. Per il confronto, registrare esternamente le impostazioni DeepCharts, inclusi `Base Dati = Aggregate Trades`, Min/Max, strumento, contratto, sessione e fuso orario.
+Caricare **Fabio Session Location Recorder** su un chart a 1 minuto del future Mini. Prima di avviarlo, compilare le quattro proprieta' `Session name`, `Session clock time zone`, `Session start (HH:mm)` e `Session end (HH:mm)` con la sessione che si intende osservare. Il fuso e' una dichiarazione dell'utente sul clock `MarketDataArg.Time`; il recorder non lo converte o lo assume.
+
+Il recorder deve essere caricato non oltre l'inizio configurato della sessione. Scrive raw trade e stati `CumulativeTrade` nei log ATAS con prefisso `FofSessionObservation`; non calcola POC nel chart, non mostra marker e non produce segnali. La ricostruzione di POC e percorso di 300 secondi avverra' solo dopo che una sessione completa soddisfera' il contratto `../docs/research/session-location-and-price-response-collection-contract.md`.
+
+### Recorder Cumulative Trade
+
+Caricare **Fabio Cumulative Trade Recorder** sul chart del future Mini. Il recorder non disegna nulla e usa il log standard ATAS con righe JSON prefissate da `FofObservation`.
+
+Al termine del caricamento chiede lo storico `CumulativeTrade` dell'intervallo visibile solo se questo copre al massimo sette giorni; per intervalli piu' estesi emette `historical-request-skipped` senza troncare i dati. Rimane il recorder adatto a verificare composizione, aggiornamenti e footprint del singolo evento.
 
 Il contratto osservativo originario e' `../docs/research/participation-effort-result-observation-contract.md`; la cattura tecnica e' documentata in `../docs/research/atas-cumulative-trade-capture-validation-2026-08-04.md`.
 
