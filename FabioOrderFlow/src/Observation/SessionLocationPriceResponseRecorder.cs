@@ -6,7 +6,7 @@ namespace FabioOrderFlow.Observation;
 
 public sealed class SessionLocationPriceResponseRecorder : Indicator
 {
-    private const string Schema = "fof-session-observation-v1";
+    private const string Schema = "fof-session-observation-v2";
     private const string SessionName = "NQ US Cash";
     private const string SessionClockTimeZone = "America/New_York";
     private const string SessionStartText = "09:30";

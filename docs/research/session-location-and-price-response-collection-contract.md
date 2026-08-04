@@ -137,7 +137,7 @@ CumulativeTrade update:    11.666
 errori JSON:                    0
 ```
 
-Il test e' **escluso dal campione**: la versione caricata allora interpretava erroneamente `MarketDataArg.Time` come America/New_York. Il primo raw `2026-08-04T12:35:43.1007481` era in realta' `08:35:43 America/New_York`, quindi appartiene al pre-market e non a una raccolta avviata correttamente alle 09:30. La versione successiva conserva UTC e applica la conversione esplicita.
+Il test e' **escluso dal campione**: la versione `fof-session-observation-v1` caricata allora interpretava erroneamente `MarketDataArg.Time` come America/New_York. Il primo raw `2026-08-04T12:35:43.1007481` era in realta' `08:35:43 America/New_York`, quindi appartiene al pre-market e non a una raccolta avviata correttamente alle 09:30. La versione `fof-session-observation-v2` conserva UTC, applica la conversione esplicita e non deve essere mescolata al log v1.
 
 ## Fuori Scope
 
