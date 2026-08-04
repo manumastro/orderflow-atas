@@ -4,7 +4,7 @@
 
 ```text
 Tipo:                 raccolta osservativa storica da chart ATAS
-Schema log:           fof-historical-cumulative-context-v1
+Schema log:           fof-historical-cumulative-context-v2
 Prefisso log:         FofHistoricalContext
 Modello attivo:       nessuno
 Segnali / ordini:     nessuno
@@ -26,9 +26,11 @@ RequestForCumulativeTrades(CumulativeTradesRequest)
 OnCumulativeTradesResponse(CumulativeTradesRequest, IEnumerable<CumulativeTrade>)
 ```
 
-`CumulativeTradesRequest(beginTime, endTime, 0, 0)` richiede tutti gli aggregati storici del range indicato senza filtro di volume. Il limite documentato e' sette giorni per richiesta.
+`CumulativeTradesRequest(beginTime, endTime, 0, 0)` richiede tutti gli aggregati storici del range indicato senza filtro di volume. Il limite documentato e' sette giorni per richiesta. Se il chart contiene un range piu' lungo, il recorder lo divide in finestre consecutive da massimo sette giorni e invia una richiesta ATAS per ogni finestra.
 
 Il contesto storico viene preso dalle candle caricate nel chart tramite `GetCandle(bar)`. Per ogni candle vengono salvati OHLC, volume, bid, ask, delta, ticks, VWAP, value area, POC di candle e tutti i livelli footprint disponibili con ask, bid, volume, delta, ticks, between e time.
+
+Il recorder usa schema `fof-historical-cumulative-context-v2`. Lo schema `v1` e' stato usato solo nel primo smoke test e poteva emettere `historical-context-skipped` quando il chart superava sette giorni.
 
 ## Cosa Non Fa
 
@@ -40,29 +42,31 @@ Il confronto corretto e':
 fof-session-observation-v2:
   raw trade live + CumulativeTrade live + POC in sviluppo tick-by-tick + risposta raw a 300s
 
-fof-historical-cumulative-context-v1:
+fof-historical-cumulative-context-v2:
   candle/footprint storici caricati + CumulativeTrade storici + risposta futura ricostruibile da candle/barre
 ```
+
+Le finestre cumulative hanno un confine temporale condiviso per evitare buchi tra due richieste ATAS. Un parser offline deve quindi deduplicare eventuali `CumulativeTrade` identici emessi esattamente sul confine tra due finestre.
 
 ## Uso Operativo
 
 1. Aprire in ATAS un chart del future Mini NQ con il periodo storico desiderato gia' caricato.
-2. Tenere il range visibile/caricato entro sette giorni.
+2. Preferire un range compatto: il recorder puo' dividerlo in richieste da massimo sette giorni, ma il log cresce con ogni candle e ogni `CumulativeTrade` storico.
 3. Caricare **Fabio Historical Cumulative Context Recorder**.
 4. Attendere il ricalcolo e la risposta storica ATAS.
 5. Leggere i log `FofHistoricalContext` dal log applicativo ATAS.
 
-Il recorder usa il range effettivamente caricato nel chart: `GetCandle(0).Time` come inizio e `GetCandle(CurrentBar - 1).LastTime` come fine. Se il range supera sette giorni o non contiene barre, registra uno skip esplicito e non invia la richiesta storica.
+Il recorder usa il range effettivamente caricato nel chart: `GetCandle(0).Time` come inizio e `GetCandle(CurrentBar - 1).LastTime` come fine. Se il range non contiene barre, registra uno skip esplicito. Se il range supera sette giorni, non tronca i dati: emette piu' `historical-cumulative-requested`, uno per finestra ATAS valida.
 
 ## Record Emessi
 
 ```text
-historical-context-started        range, strumento e descrizione richiesta
+historical-context-started        range, strumento e numero di finestre richiesta
 chart-candle                      candle storica con footprint levels
-historical-cumulative-requested   richiesta CumulativeTradesRequest inviata
-historical-cumulative-trade       CumulativeTrade storico con ticks interni
-historical-cumulative-response    conteggio finale della risposta
-historical-context-skipped        motivo di esclusione del range
+historical-cumulative-requested   richiesta CumulativeTradesRequest inviata, con requestSequence/requestCount
+historical-cumulative-trade       CumulativeTrade storico con ticks interni e finestra richiesta
+historical-cumulative-response    conteggio finale della risposta per finestra
+historical-context-skipped        motivo di esclusione del range vuoto
 ```
 
 ## Regole Di Interpretazione
