@@ -1,52 +1,25 @@
-# orderflow-atas - Agent Guide
+# orderflow-atas - Guida Per L'Agente
 
-## Stato
+Questo repository serve prima a capire il corso in `fabio_course/` e poi, solo se i dati lo giustificano, a progettare un indicatore ATAS. Al momento non esiste un modello attivo: non assumere in anticipo ne' mean reversion ne' continuation.
 
-Il repository e' una base neutra per studiare il corso in `fabio_course/` e, solo in seguito, progettare un nuovo indicatore ATAS.
+## Prima Di Lavorare
 
-Non esiste un modello attivo. Non assumere che il futuro modello sia mean reversion, continuation o una combinazione predeterminata di tecniche.
+1. Leggi `FabioOrderFlow/FabioOrderFlow.md`, che contiene lo stato operativo corrente.
+2. Quando devi formulare un'ipotesi o toccare il runtime, leggi per intero `fabio_course/fabio1.txt`, `fabio_course/fabio2.txt` e `fabio_course/fabio3.txt`. La mappa del corso aiuta a orientarsi, ma non sostituisce le lezioni.
+3. Considera il corso come un insieme: contesto, asta, valore, profilo, volume, partecipanti, timing, esecuzione e gestione vanno tenuti collegati.
 
-## Fonte Attiva
+## Come Ragionare
 
-Prima di formulare ipotesi o modificare il runtime, leggere integralmente:
+- Distingui sempre il fatto osservato, la sua possibile lettura, l'ipotesi testabile e la regola implementabile.
+- Prima di ogni test scrivi domanda, dati necessari, selezione del campione, criterio di promozione e criterio di scarto. Non scegliere soglie dopo aver visto il risultato.
+- Un singolo giorno puo' suggerire una domanda, non validare un modello. Tieni conto della sovrapposizione tra eventi e della dipendenza tra osservazioni.
+- Mantieni il runtime neutro finche' non esiste un contratto di modello approvato. Niente ordini reali, PnL o automazione operativa senza una richiesta e una validazione separate.
 
-```text
-fabio_course/fabio1.txt
-fabio_course/fabio2.txt
-fabio_course/fabio3.txt
-```
+## Documentare E Comunicare
 
-La mappa derivata `fabio_course/fabio-course-model-map.md` collega le tre lezioni, ma non le sostituisce e non e' una specifica operativa.
+Scrivi in modo comprensibile a una persona e a un agente: spiega un termine tecnico alla prima occorrenza, usa frasi brevi e non lasciare decisioni importanti solo nella conversazione. Per ogni fase sostanziale aggiorna il documento canonico pertinente e aggiungi una sola riga datata a `FabioOrderFlow/progress.txt`.
 
-I vecchi transcript YouTube, i modelli precedenti e i relativi risultati non fanno parte della baseline corrente. Possono essere consultati soltanto quando viene richiesto esplicitamente un confronto storico.
-
-## Regole Di Lavoro
-
-1. Studiare il corso come un sistema completo: contesto, regime d'asta, prezzo e valore, profilo, volume, partecipanti, timing, esecuzione e gestione.
-2. Non trasformare una singola tecnica o frase del corso in un modello prima di aver definito come si collega agli altri elementi.
-3. Separare sempre osservazione del mercato, interpretazione, ipotesi testabile e regola implementabile.
-4. Dichiarare prima di ogni test domanda, dati necessari, criterio di promozione e criterio di scarto.
-5. Evitare soglie ricavate dallo stesso campione usato per giudicarle; dichiarare esplicitamente ogni selezione post-hoc.
-6. Non introdurre ordini reali, PnL o automazione operativa senza una richiesta esplicita e una validazione separata.
-7. Mantenere il runtime neutro finche' non esiste un contratto di modello documentato e approvato.
-8. Scrivere documentazione comprensibile sia a una persona sia a un agente: spiegare i termini tecnici alla prima occorrenza.
-9. Conservare una sola fonte canonica per ogni decisione; rimuovere output intermedi non piu' utili.
-10. Non modificare la documentazione API ATAS in `docs/atas/api/` salvo necessita' tecnica specifica.
-
-## Tracciamento Del Progresso
-
-Per ogni attivita' sul repository, l'agente deve prima consultare `FabioOrderFlow/FabioOrderFlow.md`, che e' lo stato operativo canonico del progetto. Il documento richiama il diario cronologico `FabioOrderFlow/progress.txt`.
-
-Al completamento di ogni fase sostanziale, aggiornare lo stato nel file `.md` pertinente e aggiungere una sola riga tratteggiata, datata e fattuale a `FabioOrderFlow/progress.txt`. Il diario non sostituisce contratti o report: deve puntare al file canonico che contiene domanda, dati, criteri e decisione. Non lasciare progresso, decisioni o limitazioni soltanto nella conversazione.
-
-## Struttura
-
-```text
-fabio_course/                 fonte didattica attiva e mappa derivata
-FabioOrderFlow/src/           scheletro indicatore ATAS
-FabioOrderFlow/FabioOrderFlow.md  stato e procedure del progetto
-docs/atas/api/                riferimento tecnico locale ATAS
-```
+Conserva una fonte canonica per ogni decisione e non accumulare output intermedi inutili. Non modificare `docs/atas/api/` salvo necessita' tecnica concreta.
 
 ## Build E Deploy
 
@@ -55,9 +28,4 @@ cd FabioOrderFlow/src
 dotnet build -c Release
 ```
 
-DLL:
-
-```text
-FabioOrderFlow/src/bin/Release/net10.0-windows/FabioOrderFlow.dll
-%APPDATA%/ATAS/Indicators/FabioOrderFlow.dll
-```
+La DLL viene prodotta in `FabioOrderFlow/src/bin/Release/net10.0-windows/FabioOrderFlow.dll` e, con il deploy, copiata in `%APPDATA%/ATAS/Indicators/FabioOrderFlow.dll`.

@@ -22,7 +22,7 @@ Lo stato operativo e le decisioni canoniche sono descritti in questo documento e
 
 La descrizione della sessione e' completata in `../docs/research/cumulative-trade-footprint-description-2026-08-04.md`. Il risultato conferma soltanto la co-occorrenza riproducibile tra eventi aggregati e footprint di barra nella sessione osservata; non approva soglie, segnali o modelli.
 
-La prossima fase, raccolta e report sono disciplinati da `../docs/research/session-location-and-price-response-collection-contract.md`. `Fabio Session Location Recorder` ha completato una raccolta live valida il 2026-08-04: `fof-session-observation-v2` e' iniziato alle 09:30 America/New_York e ha prodotto `57.534` eventi completi con percorso di 300 secondi. Il report descrittivo e' `../docs/research/session-location-and-price-response-description-2026-08-04.md`; non interpreta i risultati e non approva un modello.
+La raccolta del 2026-08-04 e il report sono disciplinati da `../docs/research/session-location-and-price-response-collection-contract.md`. `Fabio Session Location Recorder` ha prodotto `57.534` eventi completi con percorso di 300 secondi; il report descrittivo e' `../docs/research/session-location-and-price-response-description-2026-08-04.md`. L'esplorazione con finestre non sovrapposte ha lasciato solo nove osservazioni e non consente un confronto tra location; il risultato e' in `../docs/research/session-location-non-overlap-exploration-2026-08-04.md`. La prossima fase e' la replica fissa su cinque sessioni complete, definita in `../docs/research/session-location-multi-session-replication-contract.md`. Nessuno di questi passaggi approva un modello.
 
 ## Fonte Di Ricerca
 
