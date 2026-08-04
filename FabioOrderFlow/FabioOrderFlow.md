@@ -22,7 +22,7 @@ Lo stato operativo e le decisioni canoniche sono descritti in questo documento e
 
 La descrizione della sessione e' completata in `../docs/research/cumulative-trade-footprint-description-2026-08-04.md`. Il risultato conferma soltanto la co-occorrenza riproducibile tra eventi aggregati e footprint di barra nella sessione osservata; non approva soglie, segnali o modelli.
 
-La prossima fase e' definita e approvata in `../docs/research/session-location-and-price-response-collection-contract.md`. `Fabio Session Location Recorder` e' implementato e attende una nuova raccolta live: il smoke test del 2026-08-04 ha confermato il logging, ma e' escluso perche' la prima versione interpretava UTC come clock New York. La versione attuale conserva UTC e converte esplicitamente in America/New_York. Nessuna location di POC o risposta prezzo e' ancora stata calcolata o interpretata.
+La prossima fase e' definita e approvata in `../docs/research/session-location-and-price-response-collection-contract.md`. `Fabio Session Location Recorder` ha completato una raccolta live valida il 2026-08-04: `fof-session-observation-v2` e' iniziato alle 09:30 America/New_York e ha superato la soglia di 2.500 eventi con percorso completo di 300 secondi. Il report di POC, location e risposta prezzo e' ancora da eseguire; nessun risultato e' stato interpretato.
 
 ## Fonte Di Ricerca
 

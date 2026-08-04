@@ -139,6 +139,12 @@ errori JSON:                    0
 
 Il test e' **escluso dal campione**: la versione `fof-session-observation-v1` caricata allora interpretava erroneamente `MarketDataArg.Time` come America/New_York. Il primo raw `2026-08-04T12:35:43.1007481` era in realta' `08:35:43 America/New_York`, quindi appartiene al pre-market e non a una raccolta avviata correttamente alle 09:30. La versione `fof-session-observation-v2` conserva UTC, applica la conversione esplicita e non deve essere mescolata al log v1.
 
+## Raccolta Valida Del 2026-08-04
+
+Il recorder `fof-session-observation-v2` e' stato ricaricato prima dell'apertura e ha registrato il primo raw trade alle `2026-08-04T09:30:00.0004456 America/New_York` (`2026-08-04T13:30:00.0004456` UTC). Al controllo delle `10:16:28 America/New_York` il flusso copriva almeno `57.052` eventi aggregati con una finestra completa di 300 secondi, oltre la soglia di raccolta di `2.500` eventi completi.
+
+La raccolta e' pronta per il report offline. Lo schema v1 escluso non deve essere incluso nel parser o nelle statistiche.
+
 ## Fuori Scope
 
 - VAH, VAL, HVN, LVN, VWAP, profilo composito e classificazione di regime;
