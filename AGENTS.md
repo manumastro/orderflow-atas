@@ -33,6 +33,12 @@ I vecchi transcript YouTube, i modelli precedenti e i relativi risultati non fan
 9. Conservare una sola fonte canonica per ogni decisione; rimuovere output intermedi non piu' utili.
 10. Non modificare la documentazione API ATAS in `docs/atas/api/` salvo necessita' tecnica specifica.
 
+## Tracciamento Del Progresso
+
+Per ogni attivita' sul repository, l'agente deve prima consultare `FabioOrderFlow/FabioOrderFlow.md`, che e' lo stato operativo canonico del progetto. Il documento richiama il diario cronologico `FabioOrderFlow/progress.txt`.
+
+Al completamento di ogni fase sostanziale, aggiornare lo stato nel file `.md` pertinente e aggiungere una sola riga tratteggiata, datata e fattuale a `FabioOrderFlow/progress.txt`. Il diario non sostituisce contratti o report: deve puntare al file canonico che contiene domanda, dati, criteri e decisione. Non lasciare progresso, decisioni o limitazioni soltanto nella conversazione.
+
 ## Struttura
 
 ```text

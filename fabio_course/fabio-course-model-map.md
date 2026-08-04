@@ -107,14 +107,23 @@ Il cuore universale non e' un terzo setup separato da mean reversion e continuat
 | Range Chart | Pulire il rumore della segmentazione temporale e isolare forma e transizioni delle singole oscillazioni | Un grafico usato da Fabio per leggere i singoli big trades nel setup Sniper |
 | Grafico a 1 o 5 minuti | Tornare alla sequenza temporale per conferma, timing e gestione | La causa del movimento; il timeframe e' una scelta di visualizzazione |
 | Profilo delta orizzontale | Localizzare il massimo sforzo aggressivo per prezzo | La prova dell'identita' o dell'intenzione del partecipante |
-| Deep Trades / big trades | Visualizzare esecuzioni aggressive rilevanti e confrontarle con il risultato | Un segnale autonomo o una soglia universale |
+| Big Trades configurato da Fabio | Visualizzare esecuzioni aggressive rilevanti aggregate e confrontarle con il risultato | Un segnale autonomo o una soglia universale |
+| Deep Trades attuale | Collegare ordine aggressivo e liquidita' passiva tramite MBO/Level 2 | Lo strumento Level 1 configurato nelle tre lezioni |
 | TPO | Time Price Opportunity: mostrare quanto tempo il prezzo ha trascorso nelle diverse zone | Il volume effettivamente eseguito |
 | Profilo composito | Aggregare piu' sessioni per descrivere il regime superiore | Il timing dell'entrata intraday |
 | VWAP | Rappresentare un valore dinamico e distinguere premio da sconto | Un bias completo senza contesto e profilo |
 
 Nel video 2 Fabio specifica che la lettura dei big trades va effettuata sul future Mini. I dati del Micro producono stampe diverse e non sono intercambiabili. Questo e' un requisito della fonte dati, non una regola direzionale.
 
-Nel video 3 afferma che la lettura mostrata funziona con dati Level 1 e cita strumenti successivi basati su MBO/Level 2. Non identifica pero' in modo sufficiente quali moduli richiedano ciascun feed: questa dipendenza resta da verificare tecnicamente.
+Nel video 3 Fabio afferma che lo strumento mostrato funziona con dati Level 1 e che le nuove versioni useranno MBO/Level 2. La verifica diretta del suo workspace aggiunge il parametro mancante: `Base Dati = Aggregate Trades`.
+
+La documentazione DeepCharts distingue:
+
+- `Volume`: ogni fill grezzo dell'exchange;
+- `Order`: raggruppamento per aggressor ID, richiede MBO live;
+- `Aggregate`: algoritmo proprietario basato su velocita' e clustering del tape.
+
+Il corso usa quindi l'input `Aggregate`, non `Volume` e non `Order/MBO`. Le forme scelte da Fabio sono stili grafici del vecchio Big Trades; non sono le quattro classificazioni del nuovo Deep Trades MBO.
 
 ## Soglie Numeriche E Deep Trades
 
@@ -131,7 +140,29 @@ Nello stesso video porta il filtro visuale a `100` quando il grafico e' troppo a
 
 A `01:27:46` del video 3 viene citato un filtro adattivo costruito sulla pressione/ATR, ma la spiegazione e' rimandata a una lezione successiva non disponibile. `ATR` indica l'Average True Range, una misura della volatilita'. Non possiamo ricostruire quel filtro dai tre video.
 
-Infine, i termini Deep Trades, big trades e "cumulative auction aggression" non devono essere associati automaticamente alla classe `CumulativeTrade` dell'API ATAS. Il corso non fornisce questo mapping tecnico. Anche l'assenza di stampe oltre il filtro non equivale ad assenza di partecipazione o a flusso zero.
+### Corrispondenza Con Le API ATAS
+
+Il delta footprint non sostituisce i big trades: misura lo sforzo aggregato *per prezzo*; il Big Trades `Aggregate` segnala un evento di aggressione ottenuto aggregando il tape. Le fonti ATAS vanno quindi tenute separate.
+
+| Informazione del corso | API ATAS | Decisione |
+|---|---|---|
+| Volume profile, POC, VAH/VAL, HVN/LVN | `IndicatorCandle.GetAllPriceLevels()` e `PriceVolumeInfo.Volume` | Corrispondenza diretta |
+| Delta orizzontale e massimo sforzo per prezzo | `PriceVolumeInfo.Ask - PriceVolumeInfo.Bid` | Corrispondenza diretta |
+| Evento big trade aggregato | `CumulativeTrade`, `OnCumulativeTrade` e `OnUpdateCumulativeTrade` | Sorgente primaria ATAS |
+| Fill costituenti per audit dell'evento | `CumulativeTrade.Ticks` e, in tempo reale, `OnNewTrade(MarketDataArg)` | Diagnostica e confronto |
+| Aggressor ID / MBO | `OnNewTrade` con `AggressorExchangeOrderId` e sottoscrizione MBO | Fuori dalla replica del corso |
+
+`CumulativeTrade` e' ora la scelta corretta per la prima architettura osservativa ATAS, perche' rispecchia la proprieta' rilevante del workspace di Fabio: aggregare piu' esecuzioni in un evento aggressivo. Non e' tuttavia un'equivalenza di algoritmo: DeepCharts non pubblica la propria logica `Aggregate`, mentre ATAS definisce il proprio criterio di trade cumulativo. La validazione dovra' confrontare gli eventi sullo stesso flusso Mini e alla stessa soglia, non presumere che tutti i marker coincidano.
+
+`OnNewTrade` non e' la sorgente primaria del modello, ma va conservato per diagnosticare come un `CumulativeTrade` si compone. Il footprint resta necessario per localizzare sforzo, POC e delta per livello. Il prezzo successivo stabilisce infine il risultato: follow-through, assorbimento, accettazione o rifiuto.
+
+Anche l'espressione "cumulative auction aggression" non va associata automaticamente alla classe `CumulativeTrade`: nel corso descrive il comportamento dell'asta, non un contratto API. L'assenza di eventi oltre filtro non equivale ad assenza di partecipazione o a flusso zero.
+
+Fonti pubbliche consultate:
+
+- `https://www.deepcharts.com/helpcenter/article/big-trades`
+- `https://www.deepcharts.com/helpcenter/article/deep-trades-deepchart`
+- `https://helpdesk.deepcharts.com/portal/en/kb/articles/different-types-of-input-data-for-indicators`
 
 ## Video 1 - Grammatica Dell'Asta
 

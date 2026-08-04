@@ -1,0 +1,5 @@
+- 2026-08-04 - Mappa completa del corso e distinzione Big Trades Aggregate/Deep Trades documentate in fabio_course/fabio-course-model-map.md.
+- 2026-08-04 - Contratto osservativo CumulativeTrade e recorder ATAS separato definiti in docs/research/participation-effort-result-observation-contract.md.
+- 2026-08-04 - Cattura live e storico ATAS validati; il recorder e' promosso allo studio descrittivo di una sessione in docs/research/atas-cumulative-trade-capture-validation-2026-08-04.md.
+- 2026-08-04 - Contratto descrittivo di volume, tick e footprint della sessione aperto in docs/research/cumulative-trade-footprint-description-contract.md.
+- 2026-08-04 - Descrizione riproducibile della sessione live completata in docs/research/cumulative-trade-footprint-description-2026-08-04.md; nessuna soglia, segnale o modello approvato.

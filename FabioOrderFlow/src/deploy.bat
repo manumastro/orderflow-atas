@@ -2,7 +2,7 @@
 setlocal
 
 echo ================================================
-echo  FabioOrderFlow - Build and deploy neutral shell
+echo  FabioOrderFlow - Build and deploy research indicators
 echo ================================================
 echo.
 

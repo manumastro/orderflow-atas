@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "Building neutral FabioOrderFlow shell..."
+echo "Building FabioOrderFlow research indicators..."
 dotnet build -c Release
 
 atas_ind="${APPDATA}/ATAS/Indicators"
