@@ -40,15 +40,17 @@ Il recorder non espone configurazioni. Il perimetro e' fisso e viene scritto in 
 
 ```text
 strumento:            future Mini NQ caricato nel chart
+raw feed clock:       UTC, verificato sul feed NQU6 del 2026-08-04
 sessione:             NQ US Cash
-clock dichiarato:     America/New_York
-inizio / fine:        09:30 - 16:00
+session clock:        America/New_York
+inizio / fine:        09:30 - 16:00 America/New_York
+conversione:          UTC -> Eastern Standard Time, inclusa l'ora legale
 chart:                grafico a 1 minuto per il riferimento temporale
 avvio recorder:       non oltre le 09:30 America/New_York
 orizzonte risposta:   300 secondi dal tick finale dell'evento
 ```
 
-Il perimetro e' valido solo se `MarketDataArg.Time` del feed usa il clock America/New_York. Il recorder non converte timestamp, non sceglie un fuso alternativo e non offre impostazioni modificabili.
+Ogni raw trade conserva `Time` del feed UTC e `SessionTime` convertito in America/New_York. Il recorder non accetta un fuso alternativo e non offre impostazioni modificabili. Un feed che non espone UTC richiede un nuovo contratto, non una conversione implicita.
 
 ## Unita' Di Osservazione E Campi Congelati
 
@@ -68,14 +70,14 @@ La POC di sessione e' un fatto di volume aggregato fino all'evento. Non e' autom
 
 ### Strategia Di Registrazione Senza Look-Ahead
 
-Il recorder non calcola POC, location o outcome in tempo reale. Registra invece due flussi JSON separati, entrambi con configurazione di sessione e sequenza locale:
+Il recorder non calcola POC, location o outcome in tempo reale. Registra invece due flussi JSON separati, entrambi con sessione fissa e sequenza locale:
 
 ```text
 raw trade:         MarketDataArg Trade dentro la sessione dichiarata
 evento aggregato:  ogni stato OnCumulativeTrade / OnUpdateCumulativeTrade
 ```
 
-Il report ordina i raw trade per `Time` e sequenza locale, costruisce il profilo usando solo trade con `Time <= ultimo tick dell'evento` e misura il percorso futuro con trade strettamente successivi. Questo evita che un callback ritardato o una barra gia' chiusa inserisca dati futuri nella location iniziale.
+Ogni record conserva il timestamp raw UTC e il tempo America/New_York derivato. Il report ordina i raw trade per `Time` e sequenza locale, costruisce il profilo usando solo trade con `Time <= ultimo tick dell'evento` e misura il percorso futuro con trade strettamente successivi. Questo evita che un callback ritardato o una barra gia' chiusa inserisca dati futuri nella location iniziale.
 
 Per ogni `EventId`, lo stato finale viene scelto in modo deterministico: massimo `TotalVolume`, poi ultimo `LastTickTime`, poi maggiore `UpdateNumber`. Le parita' residue devono restare documentate nel report invece di essere risolte manualmente.
 
@@ -135,7 +137,7 @@ CumulativeTrade update:    11.666
 errori JSON:                    0
 ```
 
-Il test e' **escluso dal campione**: il primo trade osservato e' successivo alle 09:30 America/New_York e il profilo di sessione non e' completo. Serve una nuova istanza caricata non oltre le 09:30 per produrre dati valutabili.
+Il test e' **escluso dal campione**: la versione caricata allora interpretava erroneamente `MarketDataArg.Time` come America/New_York. Il primo raw `2026-08-04T12:35:43.1007481` era in realta' `08:35:43 America/New_York`, quindi appartiene al pre-market e non a una raccolta avviata correttamente alle 09:30. La versione successiva conserva UTC e applica la conversione esplicita.
 
 ## Fuori Scope
 

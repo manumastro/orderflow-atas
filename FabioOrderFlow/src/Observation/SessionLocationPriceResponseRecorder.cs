@@ -13,6 +13,8 @@ public sealed class SessionLocationPriceResponseRecorder : Indicator
     private const string SessionEndText = "16:00";
     private static readonly TimeSpan SessionStart = new(9, 30, 0);
     private static readonly TimeSpan SessionEnd = new(16, 0, 0);
+    private static readonly TimeZoneInfo NewYorkTimeZone =
+        TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
     private readonly object _sync = new();
     private readonly Dictionary<CumulativeTrade, EventState> _events =
@@ -48,7 +50,7 @@ public sealed class SessionLocationPriceResponseRecorder : Indicator
         if (!string.Equals(trade.DataType.ToString(), "Trade", StringComparison.Ordinal))
             return;
 
-        if (!TryGetActiveSession(trade.Time, out var session))
+        if (!TryGetActiveSession(trade.Time, out var session, out var sessionTime))
             return;
 
         long sequence;
@@ -61,6 +63,7 @@ public sealed class SessionLocationPriceResponseRecorder : Indicator
             session.ToSnapshot(),
             sequence,
             trade.Time,
+            sessionTime,
             DateTime.UtcNow,
             trade.Price,
             trade.Volume,
@@ -80,7 +83,7 @@ public sealed class SessionLocationPriceResponseRecorder : Indicator
 
     private void RecordCumulativeTrade(CumulativeTrade trade, string source)
     {
-        if (!TryGetActiveSession(trade.Time, out var session))
+        if (!TryGetActiveSession(trade.Time, out var session, out var eventSessionTime))
             return;
 
         var ticks = trade.Ticks.Select(tick => new TickSnapshot(
@@ -91,6 +94,8 @@ public sealed class SessionLocationPriceResponseRecorder : Indicator
             tick.DataType.ToString())).ToArray();
         var firstTickTime = ticks.Length == 0 ? trade.Time : ticks.Min(tick => tick.Time);
         var lastTickTime = ticks.Length == 0 ? trade.Time : ticks.Max(tick => tick.Time);
+        var firstTickSessionTime = ToNewYorkTime(firstTickTime);
+        var lastTickSessionTime = ToNewYorkTime(lastTickTime);
 
         EventState state;
         decimal incrementalVolume;
@@ -118,8 +123,11 @@ public sealed class SessionLocationPriceResponseRecorder : Indicator
             state.EventId,
             updateNumber,
             trade.Time,
+            eventSessionTime,
             firstTickTime,
+            firstTickSessionTime,
             lastTickTime,
+            lastTickSessionTime,
             DateTime.UtcNow,
             trade.Direction.ToString(),
             trade.Volume,
@@ -136,23 +144,24 @@ public sealed class SessionLocationPriceResponseRecorder : Indicator
                 security?.TickSize)));
     }
 
-    private bool TryGetActiveSession(DateTime eventTime, out ActiveSession session)
+    private bool TryGetActiveSession(DateTime rawTime, out ActiveSession session, out DateTime sessionTime)
     {
         session = null!;
+        sessionTime = ToNewYorkTime(rawTime);
 
-        if (eventTime.TimeOfDay < SessionStart || eventTime.TimeOfDay >= SessionEnd)
+        if (sessionTime.TimeOfDay < SessionStart || sessionTime.TimeOfDay >= SessionEnd)
             return false;
 
         var sessionStarted = false;
 
         lock (_sync)
         {
-            if (_activeSession is null || _activeSession.Date != eventTime.Date)
+            if (_activeSession is null || _activeSession.Date != sessionTime.Date)
             {
                 _events.Clear();
                 _nextEventId = 0;
                 _nextRawSequence = 0;
-                _activeSession = new ActiveSession(eventTime.Date, eventTime);
+                _activeSession = new ActiveSession(sessionTime.Date, rawTime, sessionTime);
                 sessionStarted = true;
             }
 
@@ -166,10 +175,19 @@ public sealed class SessionLocationPriceResponseRecorder : Indicator
                 "session-first-trade-observed",
                 session.ToSnapshot(),
                 DateTime.UtcNow,
-                "The recorder cannot prove that it was loaded before 09:30 America/New_York; verify the first observed trade time in the report."));
+                "Raw feed time is interpreted as UTC and converted to America/New_York; verify that the first observed session time is not later than 09:30."));
         }
 
         return true;
+    }
+
+    private static DateTime ToNewYorkTime(DateTime rawTime)
+    {
+        var utcTime = rawTime.Kind == DateTimeKind.Utc
+            ? rawTime
+            : DateTime.SpecifyKind(rawTime, DateTimeKind.Utc);
+
+        return TimeZoneInfo.ConvertTimeFromUtc(utcTime, NewYorkTimeZone);
     }
 
     private void LogObservation<T>(T observation)
@@ -193,7 +211,8 @@ public sealed class SessionLocationPriceResponseRecorder : Indicator
 
     private sealed record ActiveSession(
         DateTime Date,
-        DateTime FirstObservedTradeTime)
+        DateTime FirstObservedRawTradeTime,
+        DateTime FirstObservedSessionTime)
     {
         public SessionSnapshot ToSnapshot() => new(
             $"{Date:yyyyMMdd}-{SessionName}",
@@ -201,7 +220,8 @@ public sealed class SessionLocationPriceResponseRecorder : Indicator
             SessionClockTimeZone,
             SessionStartText,
             SessionEndText,
-            FirstObservedTradeTime);
+            FirstObservedRawTradeTime,
+            FirstObservedSessionTime);
     }
 
     private sealed record SessionSnapshot(
@@ -210,7 +230,8 @@ public sealed class SessionLocationPriceResponseRecorder : Indicator
         string ClockTimeZone,
         string Start,
         string End,
-        DateTime FirstObservedTradeTime);
+        DateTime FirstObservedRawTradeTime,
+        DateTime FirstObservedSessionTime);
 
     private sealed record SessionNotice(
         string Schema,
@@ -225,6 +246,7 @@ public sealed class SessionLocationPriceResponseRecorder : Indicator
         SessionSnapshot Session,
         long Sequence,
         DateTime Time,
+        DateTime SessionTime,
         DateTime ReceivedAtUtc,
         decimal Price,
         decimal Volume,
@@ -238,8 +260,11 @@ public sealed class SessionLocationPriceResponseRecorder : Indicator
         int EventId,
         int UpdateNumber,
         DateTime EventTime,
+        DateTime EventSessionTime,
         DateTime FirstTickTime,
+        DateTime FirstTickSessionTime,
         DateTime LastTickTime,
+        DateTime LastTickSessionTime,
         DateTime ReceivedAtUtc,
         string Direction,
         decimal TotalVolume,

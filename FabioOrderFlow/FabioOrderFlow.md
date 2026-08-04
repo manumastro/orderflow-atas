@@ -22,7 +22,7 @@ Lo stato operativo e le decisioni canoniche sono descritti in questo documento e
 
 La descrizione della sessione e' completata in `../docs/research/cumulative-trade-footprint-description-2026-08-04.md`. Il risultato conferma soltanto la co-occorrenza riproducibile tra eventi aggregati e footprint di barra nella sessione osservata; non approva soglie, segnali o modelli.
 
-La prossima fase e' definita e approvata in `../docs/research/session-location-and-price-response-collection-contract.md`. `Fabio Session Location Recorder` e' implementato e attende una nuova raccolta live: il smoke test del 2026-08-04 ha confermato il logging, ma e' escluso dal campione perche' avviato dopo le 09:30 America/New_York. Nessuna location di POC o risposta prezzo e' ancora stata calcolata o interpretata.
+La prossima fase e' definita e approvata in `../docs/research/session-location-and-price-response-collection-contract.md`. `Fabio Session Location Recorder` e' implementato e attende una nuova raccolta live: il smoke test del 2026-08-04 ha confermato il logging, ma e' escluso perche' la prima versione interpretava UTC come clock New York. La versione attuale conserva UTC e converte esplicitamente in America/New_York. Nessuna location di POC o risposta prezzo e' ancora stata calcolata o interpretata.
 
 ## Fonte Di Ricerca
 
@@ -85,7 +85,7 @@ Dopo il deploy, rimuovere e riaggiungere l'indicatore al chart oppure riavviare 
 
 Caricare **Fabio Session Location Recorder** su un chart a 1 minuto del future Mini NQ. Non richiede proprieta' da configurare: registra soltanto la sessione fissa **NQ US Cash**, dalle `09:30` alle `16:00` sul clock `America/New_York` del feed.
 
-Caricarlo non oltre le `09:30 America/New_York`. Scrive raw trade e stati `CumulativeTrade` nei log ATAS con prefisso `FofSessionObservation`; non calcola POC nel chart, non mostra marker e non produce segnali. La ricostruzione di POC e percorso di 300 secondi avverra' solo dopo che una sessione completa soddisfera' il contratto `../docs/research/session-location-and-price-response-collection-contract.md`. Se il feed non espone `MarketDataArg.Time` sul clock America/New_York, la raccolta va scartata invece di adattare orari nel recorder.
+Caricarlo non oltre le `09:30 America/New_York`. Scrive raw trade e stati `CumulativeTrade` nei log ATAS con prefisso `FofSessionObservation`; non calcola POC nel chart, non mostra marker e non produce segnali. `MarketDataArg.Time` viene conservato come UTC e il recorder aggiunge il corrispondente tempo di sessione America/New_York, inclusa l'ora legale. La ricostruzione di POC e percorso di 300 secondi avverra' solo dopo che una sessione completa soddisfera' il contratto `../docs/research/session-location-and-price-response-collection-contract.md`. Un feed che non espone UTC richiede un nuovo contratto invece di un adattamento automatico.
 
 ### Recorder Cumulative Trade
 
