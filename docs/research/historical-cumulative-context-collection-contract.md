@@ -4,7 +4,7 @@
 
 ```text
 Tipo:                 raccolta osservativa storica da chart ATAS
-Schema log:           fof-historical-cumulative-context-v3
+Schema log:           fof-historical-cumulative-context-v4
 Prefisso log:         FofHistoricalContext
 Modello attivo:       nessuno
 Segnali / ordini:     nessuno
@@ -26,11 +26,11 @@ RequestForCumulativeTrades(CumulativeTradesRequest)
 OnCumulativeTradesResponse(CumulativeTradesRequest, IEnumerable<CumulativeTrade>)
 ```
 
-`CumulativeTradesRequest(beginTime, endTime, 0, 0)` richiede tutti gli aggregati storici del range indicato senza filtro di volume. Il limite documentato e' sette giorni per richiesta. Se il chart contiene un range piu' lungo, il recorder lo divide in finestre consecutive da massimo sette giorni e invia una richiesta ATAS alla volta: la finestra successiva parte solo dopo `OnCumulativeTradesResponse` della precedente. Questo rispetta anche il vincolo runtime osservato in ATAS: `Previous request hasn't been processed yet`.
+`CumulativeTradesRequest(beginTime, endTime, 0, 0)` richiede tutti gli aggregati storici del range indicato senza filtro di volume. Il limite documentato e' sette giorni per richiesta. Il recorder quindi limita la cattura agli ultimi sette giorni calendario disponibili nel chart: `loadedEndTime - 7 giorni` fino a `loadedEndTime`. Se ATAS ha caricato piu' storico del previsto, la parte precedente resta esclusa. Le richieste sono comunque serializzate: se in futuro una finestra fosse spezzata, la successiva partirebbe solo dopo `OnCumulativeTradesResponse` della precedente. Questo rispetta anche il vincolo runtime osservato in ATAS: `Previous request hasn't been processed yet`.
 
 Il contesto storico viene preso dalle candle caricate nel chart tramite `GetCandle(bar)`. Per ogni candle vengono salvati OHLC, volume, bid, ask, delta, ticks, VWAP, value area, POC di candle e tutti i livelli footprint disponibili con ask, bid, volume, delta, ticks, between e time.
 
-Il recorder usa schema `fof-historical-cumulative-context-v3`. Lo schema `v1` e' stato usato solo nel primo smoke test e poteva emettere `historical-context-skipped` quando il chart superava sette giorni. Lo schema `v2` ha verificato il chunking, ma inviava le finestre troppo rapidamente per ATAS; resta escluso dai report completi.
+Il recorder usa schema `fof-historical-cumulative-context-v4`. Lo schema `v1` e' stato usato solo nel primo smoke test e poteva emettere `historical-context-skipped` quando il chart superava sette giorni. Lo schema `v2` ha verificato il chunking, ma inviava le finestre troppo rapidamente per ATAS. Lo schema `v3` ha serializzato correttamente le richieste, ma seguiva tutto il range caricato dal chart. Gli schemi precedenti restano esclusi dai report completi.
 
 ## Cosa Non Fa
 
@@ -42,7 +42,7 @@ Il confronto corretto e':
 fof-session-observation-v2:
   raw trade live + CumulativeTrade live + POC in sviluppo tick-by-tick + risposta raw a 300s
 
-fof-historical-cumulative-context-v3:
+fof-historical-cumulative-context-v4:
   candle/footprint storici caricati + CumulativeTrade storici + risposta futura ricostruibile da candle/barre
 ```
 
@@ -51,17 +51,17 @@ Le finestre cumulative hanno un confine temporale condiviso per evitare buchi tr
 ## Uso Operativo
 
 1. Aprire in ATAS un chart del future Mini NQ con il periodo storico desiderato gia' caricato.
-2. Preferire un range compatto: il recorder puo' dividerlo in richieste da massimo sette giorni, ma il log cresce con ogni candle e ogni `CumulativeTrade` storico.
+2. Il recorder cattura al massimo gli ultimi sette giorni calendario disponibili dal fondo del chart. Il log cresce con ogni candle e ogni `CumulativeTrade` storico, quindi evitare di lasciarlo attivo inutilmente dopo lo smoke test.
 3. Caricare **Fabio Historical Cumulative Context Recorder**.
 4. Attendere il ricalcolo e la risposta storica ATAS.
 5. Leggere i log `FofHistoricalContext` dal log applicativo ATAS.
 
-Il recorder usa il range effettivamente caricato nel chart: `GetCandle(0).Time` come inizio e `GetCandle(CurrentBar - 1).LastTime` come fine. Se il range non contiene barre, registra uno skip esplicito. Se il range supera sette giorni, non tronca i dati: emette piu' `historical-cumulative-requested`, uno per finestra ATAS valida e sempre dopo la chiusura della finestra precedente.
+Il recorder usa il range effettivamente caricato nel chart solo per trovare `loadedEndTime`, cioe' `GetCandle(CurrentBar - 1).LastTime`. La cattura e' poi limitata a `loadedEndTime - 7 giorni` -> `loadedEndTime`, oppure all'intero chart se contiene meno di sette giorni. Se il range non contiene barre utili, registra uno skip esplicito.
 
 ## Record Emessi
 
 ```text
-historical-context-started        range, strumento e numero di finestre richiesta
+historical-context-started        capture range, loaded range e numero di finestre richiesta
 chart-candle                      candle storica con footprint levels
 historical-cumulative-requested   richiesta CumulativeTradesRequest inviata, con requestSequence/requestCount
 historical-cumulative-trade       CumulativeTrade storico con ticks interni e finestra richiesta

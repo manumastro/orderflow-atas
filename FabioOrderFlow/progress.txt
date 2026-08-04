@@ -15,3 +15,4 @@
 - 2026-08-04 - Recorder storico neutro aggiunto per candle/footprint caricati nel chart e CumulativeTrade storici ATAS entro sette giorni; contratto in docs/research/historical-cumulative-context-collection-contract.md.
 - 2026-08-04 - Recorder storico aggiornato a fof-historical-cumulative-context-v2: i range chart oltre sette giorni vengono divisi in richieste ATAS consecutive entro il limite documentato, invece di essere scartati.
 - 2026-08-04 - Recorder storico aggiornato a fof-historical-cumulative-context-v3 dopo smoke test: ATAS accetta una sola richiesta CumulativeTrades pendente, quindi le finestre storiche vengono inviate in sequenza dopo ogni risposta.
+- 2026-08-04 - Recorder storico aggiornato a fof-historical-cumulative-context-v4: la cattura viene limitata agli ultimi sette giorni calendario dal fondo del chart, ignorando lo storico extra precaricato da ATAS.

@@ -6,7 +6,7 @@ namespace FabioOrderFlow.Observation;
 
 public sealed class HistoricalCumulativeContextRecorder : Indicator
 {
-    private const string Schema = "fof-historical-cumulative-context-v3";
+    private const string Schema = "fof-historical-cumulative-context-v4";
     private static readonly TimeSpan MaximumHistoricalRequestDuration = TimeSpan.FromDays(7);
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
     private readonly object _sync = new();
@@ -52,42 +52,52 @@ public sealed class HistoricalCumulativeContextRecorder : Indicator
 
             var first = GetCandle(0);
             var last = GetCandle(CurrentBar - 1);
-            var beginTime = first.Time;
-            var endTime = last.LastTime;
-            var duration = endTime - beginTime;
+            var loadedBeginTime = first.Time;
+            var loadedEndTime = last.LastTime;
+            var loadedDuration = loadedEndTime - loadedBeginTime;
+            var captureEndTime = loadedEndTime;
+            var captureBeginTime = loadedDuration > MaximumHistoricalRequestDuration
+                ? captureEndTime - MaximumHistoricalRequestDuration
+                : loadedBeginTime;
+            var captureDuration = captureEndTime - captureBeginTime;
+            var capturedBars = CreateCapturedBarIndexes(captureBeginTime, captureEndTime);
             var range = new ChartRangeSnapshot(
-                CreateRangeId(beginTime, endTime),
-                beginTime,
-                endTime,
+                CreateRangeId(captureBeginTime, captureEndTime),
+                captureBeginTime,
+                captureEndTime,
+                capturedBars.Count,
+                captureDuration.TotalDays,
+                loadedBeginTime,
+                loadedEndTime,
                 CurrentBar,
-                duration.TotalDays,
+                loadedDuration.TotalDays,
                 CaptureSecurity());
 
-            if (duration <= TimeSpan.Zero)
+            if (captureDuration <= TimeSpan.Zero || capturedBars.Count == 0)
             {
                 LogObservation(new HistoricalNotice(
                     Schema,
                     "historical-context-skipped",
                     range,
-                    beginTime,
-                    endTime,
+                    captureBeginTime,
+                    captureEndTime,
                     DateTime.UtcNow,
-                    "The loaded chart range is empty or invalid."));
+                    "The loaded chart range is empty or has no bars inside the capped historical capture range."));
                 return;
             }
 
-            var requestWindows = CreateRequestWindows(beginTime, endTime);
+            var requestWindows = CreateRequestWindows(captureBeginTime, captureEndTime);
 
             LogObservation(new HistoricalNotice(
                 Schema,
                 "historical-context-started",
                 range,
-                beginTime,
-                endTime,
+                captureBeginTime,
+                captureEndTime,
                 DateTime.UtcNow,
-                $"Logging loaded chart candles and requesting historical CumulativeTrade records across {requestWindows.Count} ATAS request window(s), each no longer than seven days."));
+                $"Logging capped chart candles and requesting the most recent {captureDuration.TotalDays:F2} day(s) of historical CumulativeTrade records across {requestWindows.Count} ATAS request window(s). Loaded chart duration was {loadedDuration.TotalDays:F2} day(s)."));
 
-            for (var bar = 0; bar < CurrentBar; bar++)
+            foreach (var bar in capturedBars)
                 LogObservation(CaptureCandle(range, bar));
 
             RequestCumulativeTradesWindow(range, requestWindows, 0);
@@ -246,6 +256,26 @@ public sealed class HistoricalCumulativeContextRecorder : Indicator
                 level.Time);
     }
 
+    private IReadOnlyList<int> CreateCapturedBarIndexes(DateTime beginTime, DateTime endTime)
+    {
+        var bars = new List<int>();
+
+        for (var bar = 0; bar < CurrentBar; bar++)
+        {
+            var candle = GetCandle(bar);
+
+            if (candle.LastTime <= beginTime)
+                continue;
+
+            if (candle.Time >= endTime)
+                break;
+
+            bars.Add(bar);
+        }
+
+        return bars;
+    }
+
     private static IReadOnlyList<CumulativeRequestWindow> CreateRequestWindows(DateTime beginTime, DateTime endTime)
     {
         var windows = new List<CumulativeRequestWindow>();
@@ -343,6 +373,10 @@ public sealed class HistoricalCumulativeContextRecorder : Indicator
         DateTime EndTime,
         int BarCount,
         double DurationDays,
+        DateTime LoadedBeginTime,
+        DateTime LoadedEndTime,
+        int LoadedBarCount,
+        double LoadedDurationDays,
         SecuritySnapshot Security);
 
     private sealed record HistoricalNotice(
