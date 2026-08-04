@@ -625,6 +625,34 @@ def build_report(summary: dict[str, Any], artifacts: dict[str, dict[str, Any]]) 
     inside_count = int(summary.get("eventCountInsideRequest", 0))
     before_count = int(summary.get("eventCountBeforeRequest", 0))
     after_count = int(summary.get("eventCountAfterRequest", 0))
+    response_was_filtered = response_logged_records != response_records or response_skipped_before > 0 or response_skipped_after > 0
+
+    if response_was_filtered:
+        response_paragraph = (
+            "`historical-cumulative-response` viene scritto dopo la serializzazione degli eventi accettati, "
+            "quindi la presenza della risposta nel log conferma che la richiesta e' terminata. ATAS ha "
+            "restituito anche record fuori dalla finestra richiesta; il recorder li ha esclusi dal log e "
+            "li ha conservati solo nei conteggi `skippedBeforeRequest`/`skippedAfterRequest`."
+        )
+        window_limit = (
+            "- ATAS puo' ampliare la risposta rispetto al begin/end richiesto, probabilmente per sessione "
+            "ETH/caricamento interno. Questo snapshot contiene solo gli eventi accettati dentro finestra; "
+            "i record esclusi restano verificabili nei conteggi della risposta."
+        )
+    else:
+        response_paragraph = (
+            "`historical-cumulative-response` viene scritto dopo la serializzazione degli eventi ricevuti, "
+            "quindi la presenza della risposta nel log conferma che la richiesta e' terminata. In questa "
+            "cattura ATAS ha restituito anche record fuori dalla finestra richiesta: il parser li conserva "
+            "nello snapshot come evidenza e li marca nel CSV con `timeRelationToRequest`. Dallo schema `v5`, "
+            "il recorder puo' scartare questi eventi prima del log e registrarli solo nei conteggi "
+            "`skippedBeforeRequest`/`skippedAfterRequest`."
+        )
+        window_limit = (
+            "- I record fuori finestra mostrano che ATAS puo' arrotondare o ampliare la risposta rispetto al "
+            "begin richiesto, probabilmente per sessione ETH/caricamento interno. Qualsiasi analisi successiva "
+            "deve scegliere esplicitamente se usare tutti i record restituiti o solo `inside-request`."
+        )
 
     artifact_rows = [
         [name, info["path"], fmt_int(int(info["bytes"])), info["sha256"]]
@@ -706,7 +734,7 @@ Loaded bars:          {fmt_int(int(range_payload.get('loadedBarCount', 0)))}
 Request count:        {max((int(item.get('requestCount', 0)) for item in summary.get('requests', [])), default=1)}
 ```
 
-Il recorder `v4` ha correttamente limitato la cattura agli ultimi sette giorni disponibili dal fondo del chart. ATAS aveva precaricato piu' storico (`loadedDurationDays` > 7), ma il capture range resta di sette giorni.
+Il recorder `{summary['schema']}` ha correttamente limitato la cattura agli ultimi sette giorni disponibili dal fondo del chart. ATAS aveva precaricato piu' storico (`loadedDurationDays` > 7), ma il capture range resta di sette giorni.
 
 ## Conteggi
 
@@ -725,13 +753,13 @@ Tick-volume mismatches:       {fmt_int(int(summary['tickVolumeMismatchCount']))}
 Empty tick events:            {fmt_int(int(summary['emptyTickEvents']))}
 ```
 
-`historical-cumulative-response` viene scritto dopo la serializzazione degli eventi ricevuti, quindi la presenza della risposta nel log conferma che la richiesta e' terminata. In questa cattura ATAS ha restituito anche record fuori dalla finestra richiesta: il parser li conserva nello snapshot come evidenza e li marca nel CSV con `timeRelationToRequest`. Dallo schema `v5`, il recorder puo' scartare questi eventi prima del log e registrarli solo nei conteggi `skippedBeforeRequest`/`skippedAfterRequest`.
+{response_paragraph}
 
 ## Relazione Con La Richiesta
 
 {markdown_table(['Relazione', 'Eventi'], relation_rows)}
 
-Evento piu' antico restituito: `{summary['firstEventTime']}`. Evento piu' recente restituito: `{summary['lastEventTime']}`. Dentro la finestra richiesta: `{summary['firstInsideRequestEventTime']}` -> `{summary['lastInsideRequestEventTime']}`.
+Evento piu' antico nel dataset: `{summary['firstEventTime']}`. Evento piu' recente nel dataset: `{summary['lastEventTime']}`. Dentro la finestra richiesta: `{summary['firstInsideRequestEventTime']}` -> `{summary['lastInsideRequestEventTime']}`.
 
 ## Lato E Volume
 
@@ -750,7 +778,7 @@ Evento piu' antico restituito: `{summary['firstEventTime']}`. Evento piu' recent
 ## Limiti
 
 - I record storici sono `CumulativeTrade` ATAS, non un backfill raw tick-by-tick equivalente a `OnNewTrade`.
-- I record fuori finestra mostrano che ATAS puo' arrotondare o ampliare la risposta rispetto al begin richiesto, probabilmente per sessione ETH/caricamento interno. Qualsiasi analisi successiva deve scegliere esplicitamente se usare tutti i record restituiti o solo `inside-request`.
+{window_limit}
 - Le righe evento sono fortemente non indipendenti nel tempo. Questo inventario non fornisce probabilita', edge o regole di esecuzione.
 - Il contesto candle/footprint e' quello caricato dal chart, con granularita' di barra, non una ricostruzione tick-by-tick del POC di sessione live.
 
