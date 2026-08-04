@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-using System.Globalization;
 using System.Text.Json;
 using ATAS.Indicators;
 using Utils.Common.Logging;
@@ -9,6 +7,12 @@ namespace FabioOrderFlow.Observation;
 public sealed class SessionLocationPriceResponseRecorder : Indicator
 {
     private const string Schema = "fof-session-observation-v1";
+    private const string SessionName = "NQ US Cash";
+    private const string SessionClockTimeZone = "America/New_York";
+    private const string SessionStartText = "09:30";
+    private const string SessionEndText = "16:00";
+    private static readonly TimeSpan SessionStart = new(9, 30, 0);
+    private static readonly TimeSpan SessionEnd = new(16, 0, 0);
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
     private readonly object _sync = new();
     private readonly Dictionary<CumulativeTrade, EventState> _events =
@@ -16,25 +20,11 @@ public sealed class SessionLocationPriceResponseRecorder : Indicator
     private ActiveSession? _activeSession;
     private int _nextEventId;
     private long _nextRawSequence;
-    private bool _configurationErrorLogged;
-    private bool _configurationChangedLogged;
 
     public SessionLocationPriceResponseRecorder()
     {
         Name = "Fabio Session Location Recorder";
     }
-
-    [Display(Name = "Session name", GroupName = "Session", Order = 10)]
-    public string SessionName { get; set; } = "Unconfigured";
-
-    [Display(Name = "Session clock time zone", GroupName = "Session", Order = 20)]
-    public string SessionClockTimeZone { get; set; } = "Unconfigured";
-
-    [Display(Name = "Session start (HH:mm)", GroupName = "Session", Order = 30)]
-    public string SessionStart { get; set; } = "";
-
-    [Display(Name = "Session end (HH:mm)", GroupName = "Session", Order = 40)]
-    public string SessionEnd { get; set; } = "";
 
     protected override void OnCalculate(int bar, decimal value)
     {
@@ -48,8 +38,6 @@ public sealed class SessionLocationPriceResponseRecorder : Indicator
             _activeSession = null;
             _nextEventId = 0;
             _nextRawSequence = 0;
-            _configurationErrorLogged = false;
-            _configurationChangedLogged = false;
         }
 
         base.OnRecalculate();
@@ -152,13 +140,7 @@ public sealed class SessionLocationPriceResponseRecorder : Indicator
     {
         session = null!;
 
-        if (!TryGetRequestedConfiguration(out var configuration, out var error))
-        {
-            LogConfigurationErrorOnce(error);
-            return false;
-        }
-
-        if (eventTime.TimeOfDay < configuration.Start || eventTime.TimeOfDay >= configuration.End)
+        if (eventTime.TimeOfDay < SessionStart || eventTime.TimeOfDay >= SessionEnd)
             return false;
 
         var sessionStarted = false;
@@ -170,19 +152,8 @@ public sealed class SessionLocationPriceResponseRecorder : Indicator
                 _events.Clear();
                 _nextEventId = 0;
                 _nextRawSequence = 0;
-                _configurationChangedLogged = false;
-                _activeSession = new ActiveSession(eventTime.Date, configuration, eventTime);
+                _activeSession = new ActiveSession(eventTime.Date, eventTime);
                 sessionStarted = true;
-            }
-            else if (_activeSession.Configuration != configuration && !_configurationChangedLogged)
-            {
-                _configurationChangedLogged = true;
-                LogObservation(new SessionNotice(
-                    Schema,
-                    "configuration-changed",
-                    _activeSession.ToSnapshot(),
-                    DateTime.UtcNow,
-                    "The active session keeps its original configuration; reload before the next session to apply changes."));
             }
 
             session = _activeSession;
@@ -195,52 +166,10 @@ public sealed class SessionLocationPriceResponseRecorder : Indicator
                 "session-first-trade-observed",
                 session.ToSnapshot(),
                 DateTime.UtcNow,
-                "The recorder cannot prove that it was loaded before the configured session start; verify the first observed trade time in the report."));
+                "The recorder cannot prove that it was loaded before 09:30 America/New_York; verify the first observed trade time in the report."));
         }
 
         return true;
-    }
-
-    private bool TryGetRequestedConfiguration(out SessionConfiguration configuration, out string error)
-    {
-        configuration = null!;
-
-        if (string.IsNullOrWhiteSpace(SessionName) || string.Equals(SessionName, "Unconfigured", StringComparison.OrdinalIgnoreCase))
-        {
-            error = "Session name must be declared before recording.";
-            return false;
-        }
-
-        if (string.IsNullOrWhiteSpace(SessionClockTimeZone) || string.Equals(SessionClockTimeZone, "Unconfigured", StringComparison.OrdinalIgnoreCase))
-        {
-            error = "Session clock time zone must be declared before recording.";
-            return false;
-        }
-
-        if (!TimeSpan.TryParseExact(SessionStart, @"hh\:mm", CultureInfo.InvariantCulture, out var start)
-            || !TimeSpan.TryParseExact(SessionEnd, @"hh\:mm", CultureInfo.InvariantCulture, out var end)
-            || start >= end)
-        {
-            error = "Session start and end must use HH:mm and describe one same-day session.";
-            return false;
-        }
-
-        configuration = new SessionConfiguration(SessionName, SessionClockTimeZone, start, end);
-        error = string.Empty;
-        return true;
-    }
-
-    private void LogConfigurationErrorOnce(string error)
-    {
-        lock (_sync)
-        {
-            if (_configurationErrorLogged)
-                return;
-
-            _configurationErrorLogged = true;
-        }
-
-        LogObservation(new ConfigurationNotice(Schema, "configuration-invalid", DateTime.UtcNow, error));
     }
 
     private void LogObservation<T>(T observation)
@@ -262,23 +191,16 @@ public sealed class SessionLocationPriceResponseRecorder : Indicator
         public int Updates { get; set; }
     }
 
-    private sealed record SessionConfiguration(
-        string Name,
-        string ClockTimeZone,
-        TimeSpan Start,
-        TimeSpan End);
-
     private sealed record ActiveSession(
         DateTime Date,
-        SessionConfiguration Configuration,
         DateTime FirstObservedTradeTime)
     {
         public SessionSnapshot ToSnapshot() => new(
-            $"{Date:yyyyMMdd}-{Configuration.Name}",
-            Configuration.Name,
-            Configuration.ClockTimeZone,
-            Configuration.Start.ToString(@"hh\:mm", CultureInfo.InvariantCulture),
-            Configuration.End.ToString(@"hh\:mm", CultureInfo.InvariantCulture),
+            $"{Date:yyyyMMdd}-{SessionName}",
+            SessionName,
+            SessionClockTimeZone,
+            SessionStartText,
+            SessionEndText,
             FirstObservedTradeTime);
     }
 
@@ -289,12 +211,6 @@ public sealed class SessionLocationPriceResponseRecorder : Indicator
         string Start,
         string End,
         DateTime FirstObservedTradeTime);
-
-    private sealed record ConfigurationNotice(
-        string Schema,
-        string Type,
-        DateTime ReceivedAtUtc,
-        string Detail);
 
     private sealed record SessionNotice(
         string Schema,

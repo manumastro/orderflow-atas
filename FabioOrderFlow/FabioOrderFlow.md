@@ -83,9 +83,9 @@ Dopo il deploy, rimuovere e riaggiungere l'indicatore al chart oppure riavviare 
 
 ### Recorder Di Location Sessione
 
-Caricare **Fabio Session Location Recorder** su un chart a 1 minuto del future Mini. Prima di avviarlo, compilare le quattro proprieta' `Session name`, `Session clock time zone`, `Session start (HH:mm)` e `Session end (HH:mm)` con la sessione che si intende osservare. Il fuso e' una dichiarazione dell'utente sul clock `MarketDataArg.Time`; il recorder non lo converte o lo assume.
+Caricare **Fabio Session Location Recorder** su un chart a 1 minuto del future Mini NQ. Non richiede proprieta' da configurare: registra soltanto la sessione fissa **NQ US Cash**, dalle `09:30` alle `16:00` sul clock `America/New_York` del feed.
 
-Il recorder deve essere caricato non oltre l'inizio configurato della sessione. Scrive raw trade e stati `CumulativeTrade` nei log ATAS con prefisso `FofSessionObservation`; non calcola POC nel chart, non mostra marker e non produce segnali. La ricostruzione di POC e percorso di 300 secondi avverra' solo dopo che una sessione completa soddisfera' il contratto `../docs/research/session-location-and-price-response-collection-contract.md`.
+Caricarlo non oltre le `09:30 America/New_York`. Scrive raw trade e stati `CumulativeTrade` nei log ATAS con prefisso `FofSessionObservation`; non calcola POC nel chart, non mostra marker e non produce segnali. La ricostruzione di POC e percorso di 300 secondi avverra' solo dopo che una sessione completa soddisfera' il contratto `../docs/research/session-location-and-price-response-collection-contract.md`. Se il feed non espone `MarketDataArg.Time` sul clock America/New_York, la raccolta va scartata invece di adattare orari nel recorder.
 
 ### Recorder Cumulative Trade
 

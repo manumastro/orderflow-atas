@@ -36,19 +36,19 @@ Questi campi non possono essere ricostruiti in modo causale dal log esistente. U
 
 ## Ambiente Di Raccolta
 
-Prima dell'avvio, registrare senza inferenza:
+Il recorder non espone configurazioni. Il perimetro e' fisso e viene scritto in ogni record:
 
 ```text
-strumento:            future Mini e contratto esatto
-venue / connector:    valori ATAS disponibili
-sessione:             nome, inizio e fine dichiarati dall'utente
-fuso orario:          identificatore esplicito della sessione
+strumento:            future Mini NQ caricato nel chart
+sessione:             NQ US Cash
+clock dichiarato:     America/New_York
+inizio / fine:        09:30 - 16:00
 chart:                grafico a 1 minuto per il riferimento temporale
-avvio recorder:       non oltre l'inizio dichiarato della sessione
+avvio recorder:       non oltre le 09:30 America/New_York
 orizzonte risposta:   300 secondi dal tick finale dell'evento
 ```
 
-Il contratto non assume automaticamente che un timestamp ATAS sia America/New_York. Il fuso della sessione deve essere registrato come configurazione esplicita.
+Il perimetro e' valido solo se `MarketDataArg.Time` del feed usa il clock America/New_York. Il recorder non converte timestamp, non sceglie un fuso alternativo e non offre impostazioni modificabili.
 
 ## Unita' Di Osservazione E Campi Congelati
 
@@ -81,7 +81,7 @@ Per ogni `EventId`, lo stato finale viene scelto in modo deterministico: massimo
 
 ### Regole Di Raccolta
 
-1. Avviare il recorder prima o all'inizio della sessione dichiarata; un avvio successivo rende incompleto il profilo e scarta gli eventi precedenti all'avvio.
+1. Caricare il recorder non oltre le 09:30 America/New_York; un avvio successivo rende incompleto il profilo e scarta gli eventi precedenti all'avvio.
 2. Aggiornare il profilo live con i soli trade di sessione ricevuti fino al tempo dell'evento; non leggere barre o profile data successivi per costruire la location iniziale.
 3. Congelare il profilo al tick finale dell'evento e non ricalcolarlo quando il POC cambia dopo.
 4. Misurare la risposta con i raw trade ricevuti dopo il tick finale; non inferirla da barre che includono scambi precedenti all'evento.
@@ -92,8 +92,8 @@ Per ogni `EventId`, lo stato finale viene scelto in modo deterministico: massimo
 
 ```text
 obiettivo:       almeno 2.500 eventi CumulativeTrade finali completi
-copertura:       una sola sessione cash dichiarata del future Mini
-profilo:         avviato non oltre l'inizio della sessione
+copertura:       una sola sessione NQ US Cash, 09:30-16:00 America/New_York
+profilo:         recorder caricato non oltre le 09:30
 risposta:        finestra completa di 300 secondi per ogni evento valutabile
 ```
 
@@ -105,7 +105,7 @@ La raccolta puo' essere promossa al report descrittivo solo se:
 
 - almeno 2.500 eventi finali hanno profilo sessione e finestra futura completi;
 - la somma del volume dei tick coincide con il volume finale per ogni evento completo;
-- ogni evento completo dichiara sessione, fuso, strumento, contratto e connector;
+- ogni evento completo dichiara sessione fissa, fuso, strumento, contratto e connector;
 - POC multipli, livelli mancanti ed eventi incompleti sono conservati e contati;
 - la POC usata per ogni evento e' congelata prima del percorso futuro.
 
@@ -115,8 +115,8 @@ Il report ammesso potra' descrivere distribuzioni congiunte di evento, location 
 
 Sospendere se:
 
-- il recorder viene avviato dopo l'inizio della sessione e non puo' ricostruire il profilo completo;
-- il fuso o i confini della sessione non sono dichiarati;
+- il recorder viene avviato dopo le 09:30 e non puo' ricostruire il profilo completo;
+- il feed non espone `MarketDataArg.Time` sul clock America/New_York;
 - i trade ricevuti non permettono di delimitare il percorso dei 300 secondi;
 - la POC viene calcolata usando dati posteriori all'evento;
 - gli eventi completi non raggiungono la copertura dichiarata.
@@ -135,7 +135,7 @@ In caso di sospensione, documentare la causa e raccogliere una nuova sessione. N
 
 Il recorder autorizzato e' `FabioOrderFlow/src/Observation/SessionLocationPriceResponseRecorder.cs`, indicatore separato denominato **Fabio Session Location Recorder**. Emette esclusivamente JSON con prefisso `FofSessionObservation` nel log ATAS:
 
-- configurazione e primo trade osservato della sessione;
+- configurazione e primo trade osservato della sessione fissa NQ US Cash;
 - raw `MarketDataArg` di tipo `Trade` nella sessione dichiarata;
 - stati `CumulativeTrade` e aggiornamenti, con tick costituenti e metadati dello strumento.
 
