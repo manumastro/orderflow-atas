@@ -6,6 +6,11 @@ obj/
 *.log
 *-logs/
 
+# Reproducible local observation archives; their hashes are tracked in reports.
+FabioOrderFlow/ledger-snapshots/*.jsonl.gz
+FabioOrderFlow/ledger-snapshots/*.csv
+FabioOrderFlow/ledger-snapshots/*.json
+
 # Superseded source material kept only in the local workspace
 fabio_youtube_live_transcripts/
 

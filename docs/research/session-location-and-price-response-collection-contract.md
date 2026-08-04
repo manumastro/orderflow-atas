@@ -118,7 +118,7 @@ Il report ammesso potra' descrivere distribuzioni congiunte di evento, location 
 Sospendere se:
 
 - il recorder viene avviato dopo le 09:30 e non puo' ricostruire il profilo completo;
-- il feed non espone `MarketDataArg.Time` sul clock America/New_York;
+- il feed non espone `MarketDataArg.Time` sul clock UTC verificato dal contratto;
 - i trade ricevuti non permettono di delimitare il percorso dei 300 secondi;
 - la POC viene calcolata usando dati posteriori all'evento;
 - gli eventi completi non raggiungono la copertura dichiarata.
@@ -157,7 +157,7 @@ La raccolta e' pronta per il report offline. Lo schema v1 escluso non deve esser
 
 Il recorder autorizzato e' `FabioOrderFlow/src/Observation/SessionLocationPriceResponseRecorder.cs`, indicatore separato denominato **Fabio Session Location Recorder**. Emette esclusivamente JSON con prefisso `FofSessionObservation` nel log ATAS:
 
-- configurazione e primo trade osservato della sessione fissa NQ US Cash;
+- schema del recorder e primo trade osservato della sessione fissa NQ US Cash;
 - raw `MarketDataArg` di tipo `Trade` nella sessione dichiarata;
 - stati `CumulativeTrade` e aggiornamenti, con tick costituenti e metadati dello strumento.
 
@@ -180,4 +180,5 @@ Alla conclusione, aggiornare `FabioOrderFlow/FabioOrderFlow.md` e aggiungere una
 - `docs/research/participation-effort-result-observation-contract.md`
 - `docs/research/cumulative-trade-footprint-description-contract.md`
 - `docs/research/cumulative-trade-footprint-description-2026-08-04.md`
+- `docs/research/session-location-and-price-response-description-2026-08-04.md`
 - `docs/atas/guides/md_DataFeedsCore_2Docs_2en_20025__ReceivingProcessingData.md`
