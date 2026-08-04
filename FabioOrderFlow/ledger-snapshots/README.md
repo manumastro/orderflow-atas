@@ -31,3 +31,15 @@ python FabioOrderFlow/tools/report_session_forensic_case_study.py \
   --report docs/research/session-forensic-case-study-2026-08-04.md \
   --non-overlap-summary-json FabioOrderFlow/ledger-snapshots/session-location-2026-08-04-v2-non-overlap-summary.json
 ```
+
+Generate the 2026-08-04 historical cumulative context inventory from the ATAS application log with:
+
+```bash
+python FabioOrderFlow/tools/report_historical_cumulative_context.py \
+  --source-log "$APPDATA/ATAS/Logs/app_20260804.log" \
+  --snapshot FabioOrderFlow/ledger-snapshots/historical-cumulative-context-2026-08-04-v4.jsonl.gz \
+  --candles-csv FabioOrderFlow/ledger-snapshots/historical-cumulative-context-2026-08-04-v4-candles.csv \
+  --events-csv FabioOrderFlow/ledger-snapshots/historical-cumulative-context-2026-08-04-v4-events.csv \
+  --summary-json FabioOrderFlow/ledger-snapshots/historical-cumulative-context-2026-08-04-v4-summary.json \
+  --report docs/research/historical-cumulative-context-inventory-2026-08-04.md
+```
