@@ -1,5 +1,10 @@
-- 2026-08-04 - Mappa completa del corso e distinzione Big Trades Aggregate/Deep Trades documentate in fabio_course/fabio-course-model-map.md.
+- 2026-06-13 - Repository di ricerca ATAS/order flow avviato; origine e perimetro storico in docs/research/project-history-and-baseline.md.
+- 2026-06-14 - Documentazione API ATAS locale, prime procedure di build e indicatori sperimentali aggiunti; fase storica in docs/research/project-history-and-baseline.md.
+- 2026-06-15 - 2026-07-12 - Esperimenti su trend, mean reversion, profili e shadow study eseguiti e poi ritirati; non sono baseline attiva, vedi docs/research/project-history-and-baseline.md.
+- 2026-07-13 - Repository resettato alla baseline neutra del corso con commit a2e54a3 e tag course-neutral-baseline; dettagli in docs/research/project-history-and-baseline.md.
+- 2026-07-13 - Mappa completa del corso e distinzione Big Trades Aggregate/Deep Trades documentate in fabio_course/fabio-course-model-map.md.
 - 2026-08-04 - Contratto osservativo CumulativeTrade e recorder ATAS separato definiti in docs/research/participation-effort-result-observation-contract.md.
 - 2026-08-04 - Cattura live e storico ATAS validati; il recorder e' promosso allo studio descrittivo di una sessione in docs/research/atas-cumulative-trade-capture-validation-2026-08-04.md.
 - 2026-08-04 - Contratto descrittivo di volume, tick e footprint della sessione aperto in docs/research/cumulative-trade-footprint-description-contract.md.
 - 2026-08-04 - Descrizione riproducibile della sessione live completata in docs/research/cumulative-trade-footprint-description-2026-08-04.md; nessuna soglia, segnale o modello approvato.
+- 2026-08-04 - Diario storico esteso all'avvio del repository e alla discontinuita' di baseline in docs/research/project-history-and-baseline.md.

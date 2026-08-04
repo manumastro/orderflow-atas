@@ -18,7 +18,7 @@ La cattura iniziale del 2026-08-04 ha promosso il registratore allo studio descr
 
 ## Progresso
 
-Lo stato operativo e le decisioni canoniche sono descritti in questo documento e nei contratti/report richiamati. Il diario cronologico essenziale e' [progress.txt](progress.txt): ogni riga indica la fase conclusa e il file `.md` che ne contiene i dettagli.
+Lo stato operativo e le decisioni canoniche sono descritti in questo documento e nei contratti/report richiamati. Il diario cronologico essenziale e' [progress.txt](progress.txt): ogni riga indica la fase conclusa e il file `.md` che ne contiene i dettagli. La sintesi dell'avvio del repository, degli esperimenti ritirati e del reset neutro e' `../docs/research/project-history-and-baseline.md`.
 
 La descrizione della sessione e' completata in `../docs/research/cumulative-trade-footprint-description-2026-08-04.md`. Il risultato conferma soltanto la co-occorrenza riproducibile tra eventi aggregati e footprint di barra nella sessione osservata; non approva soglie, segnali o modelli. Un eventuale passo successivo richiede un nuovo contratto per location di profilo e risposta futura del prezzo.
 
