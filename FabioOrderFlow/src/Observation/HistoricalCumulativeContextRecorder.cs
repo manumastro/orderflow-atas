@@ -6,7 +6,7 @@ namespace FabioOrderFlow.Observation;
 
 public sealed class HistoricalCumulativeContextRecorder : Indicator
 {
-    private const string Schema = "fof-historical-cumulative-context-v2";
+    private const string Schema = "fof-historical-cumulative-context-v3";
     private static readonly TimeSpan MaximumHistoricalRequestDuration = TimeSpan.FromDays(7);
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
     private readonly object _sync = new();
@@ -90,35 +90,7 @@ public sealed class HistoricalCumulativeContextRecorder : Indicator
             for (var bar = 0; bar < CurrentBar; bar++)
                 LogObservation(CaptureCandle(range, bar));
 
-            for (var requestSequence = 0; requestSequence < requestWindows.Count; requestSequence++)
-            {
-                var window = requestWindows[requestSequence];
-                var request = new CumulativeTradesRequest(window.BeginTime, window.EndTime, 0, 0);
-
-                lock (_sync)
-                {
-                    _pendingRequests[request.RequestId] = new RequestState(
-                        range,
-                        requestSequence + 1,
-                        requestWindows.Count,
-                        request.BeginTime,
-                        request.EndTime);
-                }
-
-                RequestForCumulativeTrades(request);
-                LogObservation(new HistoricalRequestNotice(
-                    Schema,
-                    "historical-cumulative-requested",
-                    range,
-                    request.RequestId,
-                    requestSequence + 1,
-                    requestWindows.Count,
-                    request.BeginTime,
-                    request.EndTime,
-                    request.MinVolume,
-                    request.MaxVolume,
-                    DateTime.UtcNow));
-            }
+            RequestCumulativeTradesWindow(range, requestWindows, 0);
         }
         catch (Exception exception)
         {
@@ -161,6 +133,20 @@ public sealed class HistoricalCumulativeContextRecorder : Indicator
             request.EndTime,
             count,
             DateTime.UtcNow));
+
+        var nextRequestIndex = state.RequestIndex + 1;
+
+        if (nextRequestIndex >= state.RequestWindows.Count)
+            return;
+
+        try
+        {
+            RequestCumulativeTradesWindow(state.Range, state.RequestWindows, nextRequestIndex);
+        }
+        catch (Exception exception)
+        {
+            this.LogError("FofHistoricalContext request failed.", exception);
+        }
     }
 
     private HistoricalCandleObservation CaptureCandle(ChartRangeSnapshot range, int bar)
@@ -283,6 +269,44 @@ public sealed class HistoricalCumulativeContextRecorder : Indicator
         return windows;
     }
 
+    private void RequestCumulativeTradesWindow(
+        ChartRangeSnapshot range,
+        IReadOnlyList<CumulativeRequestWindow> requestWindows,
+        int requestIndex)
+    {
+        var window = requestWindows[requestIndex];
+        var request = new CumulativeTradesRequest(window.BeginTime, window.EndTime, 0, 0);
+        var state = new RequestState(range, requestWindows, requestIndex, request.BeginTime, request.EndTime);
+
+        lock (_sync)
+            _pendingRequests[request.RequestId] = state;
+
+        try
+        {
+            RequestForCumulativeTrades(request);
+        }
+        catch
+        {
+            lock (_sync)
+                _pendingRequests.Remove(request.RequestId);
+
+            throw;
+        }
+
+        LogObservation(new HistoricalRequestNotice(
+            Schema,
+            "historical-cumulative-requested",
+            range,
+            request.RequestId,
+            state.RequestSequence,
+            state.RequestCount,
+            request.BeginTime,
+            request.EndTime,
+            request.MinVolume,
+            request.MaxVolume,
+            DateTime.UtcNow));
+    }
+
     private static string CreateRangeId(DateTime beginTime, DateTime endTime) =>
         $"{beginTime:yyyyMMddTHHmmss}-{endTime:yyyyMMddTHHmmss}";
 
@@ -300,10 +324,14 @@ public sealed class HistoricalCumulativeContextRecorder : Indicator
 
     private sealed record RequestState(
         ChartRangeSnapshot Range,
-        int RequestSequence,
-        int RequestCount,
+        IReadOnlyList<CumulativeRequestWindow> RequestWindows,
+        int RequestIndex,
         DateTime BeginTime,
-        DateTime EndTime);
+        DateTime EndTime)
+    {
+        public int RequestSequence => RequestIndex + 1;
+        public int RequestCount => RequestWindows.Count;
+    }
 
     private sealed record CumulativeRequestWindow(
         DateTime BeginTime,

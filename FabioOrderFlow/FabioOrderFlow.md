@@ -92,7 +92,7 @@ Caricarlo non oltre le `09:30 America/New_York`. Scrive raw trade e stati `Cumul
 
 Caricare **Fabio Historical Cumulative Context Recorder** su un chart del future Mini NQ con il periodo storico gia' caricato. Ogni richiesta `CumulativeTradesRequest` resta entro sette giorni, limite documentato da ATAS; se il chart contiene un range piu' lungo, il recorder lo divide in finestre consecutive.
 
-Il recorder scrive righe JSON con prefisso `FofHistoricalContext` e schema `fof-historical-cumulative-context-v2`: candle/footprint storici del chart, value area, VWAP, POC di candle, livelli footprint e risposta storica `CumulativeTrade` con ticks interni. Non riceve raw trade storici arbitrari e quindi non sostituisce il recorder live `fof-session-observation-v2`; serve a costruire case study storici con contesto d'asta da candle e aggregati ATAS.
+Il recorder scrive righe JSON con prefisso `FofHistoricalContext` e schema `fof-historical-cumulative-context-v3`: candle/footprint storici del chart, value area, VWAP, POC di candle, livelli footprint e risposta storica `CumulativeTrade` con ticks interni. Divide i range oltre sette giorni in richieste consecutive, ma mantiene una sola richiesta ATAS pendente alla volta. Non riceve raw trade storici arbitrari e quindi non sostituisce il recorder live `fof-session-observation-v2`; serve a costruire case study storici con contesto d'asta da candle e aggregati ATAS.
 
 Il contratto e' `../docs/research/historical-cumulative-context-collection-contract.md`.
 
