@@ -18,3 +18,16 @@ python FabioOrderFlow/tools/report_session_location_response.py \
   --summary-json FabioOrderFlow/ledger-snapshots/session-location-2026-08-04-v2-summary.json \
   --report docs/research/session-location-and-price-response-description-2026-08-04.md
 ```
+
+Generate the 2026-08-04 forensic case study from the existing local artifacts with:
+
+```bash
+python FabioOrderFlow/tools/report_session_forensic_case_study.py \
+  --snapshot FabioOrderFlow/ledger-snapshots/session-location-2026-08-04-v2.jsonl.gz \
+  --events-csv FabioOrderFlow/ledger-snapshots/session-location-2026-08-04-v2-events.csv \
+  --anchors-csv FabioOrderFlow/ledger-snapshots/session-forensic-2026-08-04-anchors.csv \
+  --timeline-csv FabioOrderFlow/ledger-snapshots/session-forensic-2026-08-04-timeline.csv \
+  --summary-json FabioOrderFlow/ledger-snapshots/session-forensic-2026-08-04-summary.json \
+  --report docs/research/session-forensic-case-study-2026-08-04.md \
+  --non-overlap-summary-json FabioOrderFlow/ledger-snapshots/session-location-2026-08-04-v2-non-overlap-summary.json
+```
