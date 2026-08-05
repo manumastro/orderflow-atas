@@ -44,6 +44,20 @@ python FabioOrderFlow/tools/report_historical_cumulative_context.py \
   --report docs/research/historical-cumulative-context-inventory-2026-08-04-v5.md
 ```
 
+Generate the 2026-08-04 NQ US Cash historical description from the `v5` local inventory with:
+
+```bash
+python FabioOrderFlow/tools/report_historical_cumulative_cash_session.py \
+  --events-csv FabioOrderFlow/ledger-snapshots/historical-cumulative-context-2026-08-04-v5-events.csv \
+  --candles-csv FabioOrderFlow/ledger-snapshots/historical-cumulative-context-2026-08-04-v5-candles.csv \
+  --summary-json FabioOrderFlow/ledger-snapshots/historical-cumulative-context-2026-08-04-v5-summary.json \
+  --cash-events-csv FabioOrderFlow/ledger-snapshots/historical-cumulative-context-2026-08-04-v5-cash-events.csv \
+  --anchors-csv FabioOrderFlow/ledger-snapshots/historical-cumulative-context-2026-08-04-v5-cash-anchors.csv \
+  --non-overlap-events-csv FabioOrderFlow/ledger-snapshots/historical-cumulative-context-2026-08-04-v5-cash-non-overlap-events.csv \
+  --cash-summary-json FabioOrderFlow/ledger-snapshots/historical-cumulative-context-2026-08-04-v5-cash-summary.json \
+  --report docs/research/historical-cumulative-cash-session-description-2026-08-04.md
+```
+
 Reproduce the earlier `v4` evidence inventory with:
 
 ```bash
