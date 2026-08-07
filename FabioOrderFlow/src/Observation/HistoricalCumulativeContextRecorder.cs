@@ -1,9 +1,11 @@
+using System.ComponentModel;
 using System.Text.Json;
 using ATAS.Indicators;
 using Utils.Common.Logging;
 
 namespace FabioOrderFlow.Observation;
 
+[DisplayName("Fabio Historical Cumulative Context Recorder")]
 public sealed class HistoricalCumulativeContextRecorder : Indicator
 {
     private const string Schema = "fof-historical-cumulative-context-v5";

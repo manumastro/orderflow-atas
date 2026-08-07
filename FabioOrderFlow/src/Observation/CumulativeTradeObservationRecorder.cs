@@ -1,9 +1,11 @@
+using System.ComponentModel;
 using System.Text.Json;
 using ATAS.Indicators;
 using Utils.Common.Logging;
 
 namespace FabioOrderFlow.Observation;
 
+[DisplayName("Fabio Cumulative Trade Recorder")]
 public sealed class CumulativeTradeObservationRecorder : Indicator
 {
     private const string Schema = "fof-observation-v1";

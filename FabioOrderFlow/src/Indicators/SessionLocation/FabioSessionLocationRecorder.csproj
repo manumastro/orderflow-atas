@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>FabioSessionLocationRecorder</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\Observation\SessionLocationPriceResponseRecorder.cs" Link="SessionLocationPriceResponseRecorder.cs" />
+  </ItemGroup>
+</Project>

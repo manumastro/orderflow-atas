@@ -1,9 +1,11 @@
+using System.ComponentModel;
 using System.Text.Json;
 using ATAS.Indicators;
 using Utils.Common.Logging;
 
 namespace FabioOrderFlow.Observation;
 
+[DisplayName("Fabio Session Location Recorder")]
 public sealed class SessionLocationPriceResponseRecorder : Indicator
 {
     private const string Schema = "fof-session-observation-v2";

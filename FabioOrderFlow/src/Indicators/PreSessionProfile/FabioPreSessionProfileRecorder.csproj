@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>FabioPreSessionProfileRecorder</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\Observation\PreSessionProfileRecorder.cs" Link="PreSessionProfileRecorder.cs" />
+  </ItemGroup>
+</Project>

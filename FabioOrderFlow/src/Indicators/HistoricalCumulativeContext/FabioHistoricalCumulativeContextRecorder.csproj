@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>FabioHistoricalCumulativeContextRecorder</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\Observation\HistoricalCumulativeContextRecorder.cs" Link="HistoricalCumulativeContextRecorder.cs" />
+  </ItemGroup>
+</Project>
