@@ -1,18 +1,14 @@
 # orderflow-atas - Guida Per L'Agente
 
-Questo repository serve prima a capire il corso in `fabio_course/` e poi, solo se i dati lo giustificano, a progettare un indicatore ATAS. Al momento non esiste un modello attivo: non assumere in anticipo ne' mean reversion ne' continuation.
-
-## Prima Di Lavorare
-
-1. Leggi `FabioOrderFlow/FabioOrderFlow.md`, che contiene lo stato operativo corrente.
-2. Quando devi formulare un'ipotesi o toccare il runtime, leggi per intero `fabio_course/fabio1.txt`, `fabio_course/fabio2.txt` e `fabio_course/fabio3.txt`. La mappa del corso aiuta a orientarsi, ma non sostituisce le lezioni.
-3. Considera il corso come un insieme: contesto, asta, valore, profilo, volume, partecipanti, timing, esecuzione e gestione vanno tenuti collegati.
+Questo repository serve prima a capire il corso in `fabio_course/` e poi, solo se i dati lo giustificano, a progettare un indicatore ATAS. Al momento non esiste un modello attivo.
 
 ## Documentare E Comunicare
 
 Scrivi in modo comprensibile a una persona e a un agente: spiega un termine tecnico alla prima occorrenza, usa frasi brevi e non lasciare decisioni importanti solo nella conversazione. Per ogni fase sostanziale aggiorna il documento canonico pertinente e aggiungi una sola riga datata a `FabioOrderFlow/progress.txt`.
 
 Conserva una fonte canonica per ogni decisione e non accumulare output intermedi inutili. Non modificare `docs/atas/api/` salvo necessita' tecnica concreta.
+
+In `docs/atas/api/` trovi la documentazione dell'API di ATAS.
 
 ## Build E Deploy
 
