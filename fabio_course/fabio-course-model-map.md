@@ -498,6 +498,103 @@ Fabio presenta la logica come applicabile a:
 
 Questa e' una dichiarazione didattica. L'universalita' empirica non e' dimostrata dalle tre lezioni e deve essere verificata separatamente per strumento, feed e orizzonte.
 
+## Q1 Live 1 - Fondamentali Come Contesto, Non Come Trigger
+
+La prima parte del live `fabio_live_charting_1_q1.txt` rende esplicito il livello di contesto che nelle tre lezioni era soltanto citato. Fabio propone di combinare cinque fonti, ma con orizzonti diversi:
+
+| Fonte | Domanda a cui risponde | Orizzonte utile | Non puo' stabilire da sola |
+|---|---|---|---|
+| Scenario macro e calendario (CPI, Fed, occupazione, ecc.) | Quale informazione puo' cambiare rapidamente aspettative, volatilita' e liquidita'? | Giorni, settimana, momento del rilascio | Direzione certa prima del dato o entrata intraday |
+| Report e ricerca delle banche | Qual e' lo scenario argomentato da grandi case di ricerca? | Settimane o trimestri | Causalita' certa o timing; sono opinioni e possono essere pubblicate dopo il posizionamento |
+| COT, Commitment of Traders | Come erano aggregate e come sono cambiate le posizioni dichiarabili sui futures? | Settimane, non scalping | Identita', intento, prezzo di carico, copertura, o flusso live |
+| Profilo multi-sessione | Dove il mercato ha effettivamente accettato o rifiutato valore? | Giorni e sessione corrente | Il motivo economico dell'azione |
+| Order flow live | Chi ottiene risultato al livello ora osservato? | Secondi e minuti | Il motivo, l'identita' o la durata della posizione |
+
+La catena concettuale corretta e' quindi:
+
+```text
+macro/calendario + posizionamento COT + ricerca esterna
+    -> scenario condizionale di rischio e direzione superiore
+    -> verifica con valore accettato nel profilo multi-sessione
+    -> attesa di location e conferma dall'order flow
+    -> esecuzione oppure nessuna operazione
+```
+
+Un esempio: una settimana con CPI imminente e prezzo compresso non richiede di anticipare un long o uno short. Richiede di riconoscere che il rilascio puo' trasformare rapidamente balance, liquidita' e volatilita'. Dopo il dato, il profilo e l'order flow servono a osservare se il mercato accetta una nuova area di valore oppure rifiuta il primo movimento.
+
+### COT: Cosa Mostra Davvero
+
+Nel live Fabio confronta S&P 500, Nasdaq e Dow Jones: posizione netta e variazione dell'ultima pubblicazione. Il suo calcolo didattico e':
+
+```text
+variazione netta = variazione long - variazione short
+```
+
+Una diminuzione della misura netta, o un aumento delle posizioni short superiore a quello delle long, descrive un **cambiamento netto verso lo short** nel gruppo selezionato. E' un input di contesto, non la prova che il gruppo stia vendendo direzionalmente in quel momento. Long e short sono sempre contratti aperti da due controparti: il report aggregato non dice se una posizione e' speculazione, hedge, spread, arbitraggio o sostituzione di un'esposizione in cash/opzioni.
+
+Correzioni necessarie rispetto alla formulazione del live:
+
+- `non-commercial` e `asset manager` non sono sinonimi. Nel report **Legacy** il gruppo e' `Non-Commercial`; nel report **Disaggregated** esistono categorie distinte come `Asset Manager/Institutional` e `Leveraged Funds`. Non vanno fusi senza dichiarare quale report e quale categoria si sta usando.
+- il COT e' settimanale e ritardato: fotografa normalmente le posizioni al martedi e viene pubblicato il venerdi. Non e' un feed di intenzione in tempo reale e non e' adatto a hyperscalping.
+- il numero di contratti non equivale al rischio economico o ai "miliardi di esposizione" senza specificare contratto, moltiplicatore, prezzo, scadenza, spread e coperture. Per gli equity index futures, inoltre, il notional non identifica il rischio netto dell'intero portafoglio.
+- una variazione short non dimostra da sola "distribuzione" e non rende inevitabile un ribasso. Il confronto con prezzo e valore deve essere formulato come coerenza descrittiva, poi verificato fuori campione.
+
+### Metodo Di Lettura Prudente
+
+1. Fissare prima l'universo: future, scadenza, report COT e categoria. Per evitare ambiguita', non confrontare `Legacy Non-Commercial` con `Disaggregated Asset Manager` come se fossero la stessa serie.
+2. Registrare data di osservazione e data di pubblicazione. Alla data del venerdi il mercato puo' gia' aver cambiato sostanzialmente posizione rispetto al martedi.
+3. Separare livello e flusso: la posizione netta descrive lo stock aggregato; la variazione settimanale descrive il flusso netto del periodo. Nessuno dei due e' un segnale di entrata.
+4. Confrontare i mercati correlati solo dopo aver dichiarato la regola di aggregazione. La soglia del `30%` citata da Fabio e' una soglia personale, non validata dalle fonti disponibili.
+5. Formulare scenari contrapposti e falsificabili. Esempio: "contesto COT piu' short; cerco coerenza solo se il valore multi-sessione continua a essere accettato piu' in basso". Se il valore viene accettato piu' in alto, il COT non autorizza a forzare lo short.
+6. Usare il calendario per gestire il rischio di regime, non per indovinare il dato. Il dato macro inatteso puo' rendere obsoleto il contesto settimanale.
+7. Ammettere un trade soltanto dopo la conferma locale gia' insegnata dal corso: location, sforzo, risultato e accettazione/rifiuto.
+
+Questa integrazione chiarisce anche la frase del video 1: COT, stagionalita' e report bancari possono aiutare lo **swing context**, mentre profilo e order flow descrivono il comportamento effettivamente osservabile. Nessuna delle cinque fonti identifica con certezza il "perche'" di una singola stampa o chi sia il partecipante.
+
+### Mappatura ATAS Del COT Q1
+
+L'installazione ATAS contiene lo snapshot nativo `COT Chart`, composto da tre pannelli su chart Daily. La documentazione locale in `docs/atas/` e' documentazione tecnica per indicatori custom; le guide prodotto ufficiali sono online, nell'indice [Indicators](https://help.atas.net/it/support/solutions/72000351608).
+
+| Indicatore ATAS | Documentazione ufficiale | Aderenza alla lettura di Fabio |
+|---|---|---|
+| `COT Index` | indice stocastico costruito su posizioni nette; `Mode` selezionabile: fra gli altri `Non-Commercial`, `Managed`, `Leveraged Funds`; soglie 20/80 | Non replica le colonne Long/Short di Tradingster. Utile soltanto come lettura normalizzata separata |
+| `COT Net positions` | report CFTC settimanale del netto Long - Short; serie `Large Speculators`, `Commercial`, `Small Traders`, con zero line | E' il proxy grafico piu' vicino alla vista di Fabio, ma mostra solo il netto e ATAS non lo etichetta `Non-Commercial` |
+| `COT Open Interest` | linea del volume totale delle posizioni aperte | Contesto opzionale, non mostrato nel ragionamento del live |
+
+Il setup ATAS minimo e coerente con il transcript e':
+
+```text
+strumento: NQ o MNQ, verificando che data e valore coincidano con il report esterno scelto
+chart: Daily o Weekly, con storico sufficiente per la serie COT
+indicatore: COT Net positions in pannello inferiore
+serie visibile: Large Speculators
+serie nascoste: Commercial, Small Traders, serie aggregata COT Net positions
+riferimento: zero line visibile
+```
+
+ATAS descrive `Large Speculators` come posizioni dei principali operatori, `Commercial` come fondi/gestori e `Small Traders` come piccoli operatori. Il live chiama il gruppo osservato `Non-Commercial`; la serie `Large Speculators` e' perciò il proxy piu' vicino, non una equivalenza Legacy attestata dalla documentazione ATAS. Prima di usarla come tale, confrontare stesso strumento, data del report e valore netto con Tradingster/CFTC.
+
+Il netto replica la parte aritmetica centrale del live:
+
+```text
+net = long - short
+variazione del netto = variazione long - variazione short
+```
+
+Per esempio, `+20.000 long` e `+35.000 short` producono una discesa del netto di `15.000`; ATAS puo' visualizzare quest'ultima. Non puo' dire se la variazione e' nata da nuovi short, da chiusure di long, o dalla loro combinazione. Per replicare esattamente le colonne Long, Short e le rispettive variazioni citate da Fabio, Tradingster o il report CFTC restano quindi necessari.
+
+`COT HighLow`, `COT Williams Index` e `COT Open Interest` non vanno aggiunti per imitare il live: sono trasformazioni o informazioni ulteriori. Anche `COT Index`, pur potendo selezionare `Non-Commercial`, `Managed` o `Leveraged Funds`, e' un oscillatore normalizzato e non sostituisce la lettura Long/Short grezza di Fabio.
+
+Il chart COT non sostituisce il `profile framing`. La disposizione coerente e' separata:
+
+```text
+Chart 1: COT Net positions, Daily/Weekly -> solo contesto settimanale
+Chart 2: NQ Mini, M5 -> volume profile, cinque sessioni/composito, valore e livelli
+Chart 3: NQ Mini, M1/M5 -> order flow per timing e conferma
+```
+
+Nel live Q1, Fabio costruisce esplicitamente il profilo della `cash session` e ne usa POC, value area e high/low come riferimenti. Cita il pre-market come livello aggiuntivo, ma non offre in questa lezione una regola per preferire full session, cash o una particolare fascia oraria. Quella scelta va quindi tenuta dichiarata e studiata separatamente; il COT non deve sovrascrivere un nuovo valore accettato sul profilo.
+
 ## Il Modello Di Fabio In Una Frase
 
 ```text
@@ -636,7 +733,7 @@ La mappa non conserva ogni frase delle lezioni. Esclude deliberatamente:
 - risultati economici, classifiche e numerosita' personali dichiarate;
 - percentuale di rischio personale e gestione manuale mostrata in hyperscalping;
 - commenti della chat, promozione della piattaforma e disclaimer;
-- COT, stagionalita' e report bancari citati per lo swing trading ma non insegnati nelle tre lezioni;
+- stagionalita' e report bancari citati per lo swing trading ma non definiti operativamente nelle fonti disponibili; il COT e' introdotto nel live Q1, con cautele documentate nella sezione dedicata;
 - indicatori avanzati IEVB/NASDAQF, filtro pressione/ATR e strumenti MBO rimandati a lezioni non disponibili.
 
 Questi elementi possono diventare fonti separate soltanto se verranno fornite le lezioni che li definiscono.
@@ -663,6 +760,7 @@ Prima di ottenere un contratto implementabile devono essere definite:
 | Video 1 | `05:33` esempio dei 60 contratti; `12:14` Auction Market Theory; `15:08` balance/imbalance; `19:05` prezzo e valore; `22:14` due regimi; `27:13` POC; `31:27` HVN/LVN; `39:44` quattro playbook; `46:54` pre-sessione; `59:32` cambio di regime; `01:00:51` Range Charts/profile proposing; `01:02:41` Sniper level; `01:05:06` momentum contro Sniper |
 | Video 2 | `03:17` livelli di protezione; `06:24` sforzo e risultato; `09:16` natura frattale; `16:24` fallimento contro risultato; `23:40` reazione contro previsione; `27:02` ancoraggio funzionale del profilo; `34:23` skew e accumulazione; `35:27` validita' fino alla VAL; `36:31` massimo sforzo; `38:11` flip dell'asta; `56:27` cambio di dominanza; `01:12:56` profilo direzionale o di consolidamento; `01:16:08` limite della finestra temporale; `01:21:03` approccio ibrido; `01:22:57` dati Mini, non Micro |
 | Video 3 | `04:30` cinque sessioni; `06:44` full day o cash; `07:45` valore accettato; `13:07` direzione/location/timing; `19:14` TPO e composito; `31:25` progressione dei POC; `32:22` retracement o switch; `36:10` bias quantitativo; `38:41` VWAP; `42:44` bias multi-sessione; `01:03:36` compressione; `01:08:07` POC magnete; `01:18:39` accetta/valida/continua; `01:24:06` momentum; `01:27:46` filtro adattivo rimandato; `01:32:35` intenzione non osservabile; `01:37:59` profilo oggettivo/discrezionale |
+| Q1 Live 1 | `05:36` report di ricerca e visione fondamentale; `10:12` CPI e compressione; `26:08` introduzione COT; `27:07` confronto COT indici; `31:05` integrazione con profile framing; `32:40` metrica cross-index; `38:30` esempio storico; `48:34` framework fondamentali + profilo + conferma |
 
 ## Impatto Sul Progetto
 
