@@ -20,9 +20,5 @@
       <HintPath>C:\Program Files (x86)\ATAS Platform\Utils.Common.dll</HintPath>
       <Private>false</Private>
     </Reference>
-    <Reference Include="OFT.Rendering">
-      <HintPath>C:\Program Files (x86)\ATAS Platform\OFT.Rendering.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
   </ItemGroup>
 </Project>

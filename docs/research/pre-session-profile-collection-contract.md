@@ -109,7 +109,7 @@ Questi campi descrivono cosa e' successo dopo l'apertura. Non emettono `long`, `
 
 L'overlay non sostituisce il Fixed Profile nativo di ATAS e non tenta di ricrearne l'istogramma. Visualizza invece i livelli risultanti dal profilo sul pannello prezzi. Il costruttore fissa `Panel = IndicatorDataProvider.CandlesPanel` e impedisce di spostare l'istanza in un pannello separato; non mostra marker di entrata, alert, ordini o classificazioni direzionali.
 
-Durante la finestra primaria, da `18:00` ET fino a `09:29` ET, l'overlay evidenzia tutta e sola la fascia temporale del pre-market, per l'intera altezza del pannello prezzi. Disegna inoltre una linea per il massimo provvisorio e una per il minimo provvisorio del business range.
+Durante la finestra primaria, da `18:00` ET fino a `09:29` ET, l'overlay non disegna alcuno sfondo, rettangolo o pannello aggiuntivo. Disegna soltanto una linea per il massimo provvisorio e una per il minimo provvisorio del business range.
 
 Un nuovo estremo non riavvia la finestra e non invalida il profilo: aggiorna il bordo del range. Questa scelta rende visibile il fatto che il low/high finale non e' noto al momento dell'apertura della pre-sessione.
 
@@ -123,7 +123,7 @@ massimo delta positivo grezzo
 massimo delta negativo grezzo
 ```
 
-Nessuna linea, banda prezzo o rettangolo viene prolungato a destra nell'orario cash. POC, VAL, VAH e delta non sono mostrati durante la pre-sessione come valori finali: sarebbero soggetti a look-ahead. In presenza di copertura incompleta l'indicatore scrive `incomplete` e non disegna i livelli finali.
+Nessuna linea o banda prezzo viene prolungata a destra nell'orario cash. POC, VAL, VAH e delta non sono mostrati durante la pre-sessione come valori finali: sarebbero soggetti a look-ahead. In presenza di copertura incompleta l'indicatore scrive `incomplete` e non disegna i livelli finali.
 
 I nomi delle serie nel pannello ATAS dichiarano `Pre`, `Business`, `Value` o `Delta`; nessuna serie e' chiamata supporto, resistenza, protection, long o short. Il confronto London resta nel log e non viene sovrapposto per default, per evitare di confondere il range completo con una selezione temporale piu' corta.
 

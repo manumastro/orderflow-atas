@@ -2,7 +2,6 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Text.Json;
 using ATAS.Indicators;
-using OFT.Rendering.Context;
 using Utils.Common.Logging;
 
 namespace FabioOrderFlow.Observation;
@@ -25,7 +24,6 @@ public sealed class PreSessionProfileRecorder : Indicator
     private static readonly TimeZoneInfo NewYorkTimeZone =
         TimeZoneInfo.FindSystemTimeZoneById(WindowsTimeZoneId);
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
-    private static readonly Color PreSessionWindowColor = Color.FromArgb(24, 63, 123, 93);
 
     private readonly Dictionary<DateTime, CandleSnapshot> _preSessionCandles = [];
     private readonly Dictionary<DateTime, CandleSnapshot> _openingCandles = [];
@@ -85,9 +83,6 @@ public sealed class PreSessionProfileRecorder : Indicator
         Name = "Fabio Pre-Session Profile Recorder";
         Panel = IndicatorDataProvider.CandlesPanel;
         DenyToChangePanel = true;
-        DrawAbovePrice = false;
-        EnableCustomDrawing = true;
-        SubscribeToDrawingEvents(DrawingLayouts.Historical | DrawingLayouts.LatestBar);
         DataSeries[0].IsHidden = true;
         DataSeries.Add(_businessHighLine);
         DataSeries.Add(_businessLowLine);
@@ -353,34 +348,6 @@ public sealed class PreSessionProfileRecorder : Indicator
             SetLevel(_maximumPositiveDeltaLine, bar, GetExtremePrice(profile.MaxPositiveDelta));
             SetLevel(_maximumNegativeDeltaLine, bar, GetExtremePrice(profile.MaxNegativeDelta));
         }
-    }
-
-    protected override void OnRender(RenderContext context, DrawingLayouts layout)
-    {
-        if (_preSessionFirstBar is null || _preSessionLastBar is null)
-            return;
-
-        var firstVisibleBar = Math.Max(_preSessionFirstBar.Value, FirstVisibleBarNumber);
-        var lastVisibleBar = Math.Min(_preSessionLastBar.Value, LastVisibleBarNumber);
-        if (firstVisibleBar > lastVisibleBar)
-            return;
-
-        var container = Container;
-        var chart = ChartInfo;
-        if (container is null || chart is null)
-            return;
-
-        var region = container.Region;
-        var left = Math.Max(region.Left, chart.GetXByBar(firstVisibleBar));
-        var right = Math.Min(
-            region.Right,
-            (int)(chart.GetXByBar(lastVisibleBar) + chart.PriceChartContainer.BarsWidth));
-        if (right <= left || region.Height <= 0)
-            return;
-
-        context.FillRectangle(
-            PreSessionWindowColor,
-            new Rectangle(left, region.Top, right - left, region.Height));
     }
 
     private static decimal? GetExtremePrice(DeltaExtremeSummary? extreme) =>
