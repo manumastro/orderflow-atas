@@ -636,7 +636,7 @@ public sealed class DataBridge : Indicator
     // ---------------------------------------------------------------- utilita'
 
     private IOnlineDataProvider OnlineDataProvider()
-        => DataProvider as IOnlineDataProvider
+        => DataProvider?.OnlineDataProvider
            ?? throw new BridgeException(503, "online data provider is not available on this chart");
 
     private static double? Safe(Func<double?> read)

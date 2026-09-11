@@ -35,7 +35,8 @@ DEFAULT_WINDOW_DAYS = 7
 
 def parse_time(raw: str) -> datetime:
     """Accetta 'YYYY-MM-DD' oppure un ISO completo. L'assenza di fuso significa UTC."""
-    value = datetime.fromisoformat(raw)
+    # Python 3.9 non accetta la 'Z' finale in fromisoformat: va tradotta.
+    value = datetime.fromisoformat(raw.replace("Z", "+00:00"))
     if value.tzinfo is None:
         value = value.replace(tzinfo=timezone.utc)
     return value.astimezone(timezone.utc)
@@ -116,16 +117,23 @@ def fetch_cumulative(base: str, args) -> dict:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--base", default=DEFAULT_BASE, help=f"URL del bridge (default {DEFAULT_BASE})")
-    parser.add_argument("--out", help="scrive la risposta su file invece che a video")
-    sub = parser.add_subparsers(dest="command", required=True)
+    # `--out` e' accettato sia prima sia dopo il sottocomando: argparse lo consente
+    # solo dichiarandolo anche su ogni sottoparser, tramite un parent comune.
+    common = argparse.ArgumentParser(add_help=False)
+    common.add_argument("--out", help="scrive la risposta su file invece che a video")
+    parser.add_argument("--out", help=argparse.SUPPRESS)
+    sub = parser.add_subparsers(dest="command", required=True, parser_class=lambda **kw: argparse.ArgumentParser(**kw))
+
+    def add(name):
+        return sub.add_parser(name, parents=[common])
 
     for name in ("health", "instrument", "limits"):
-        sub.add_parser(name)
+        add(name)
 
-    session = sub.add_parser("session")
+    session = add("session")
     session.add_argument("--at", help="istante da interrogare, default adesso")
 
-    rollovers = sub.add_parser("rollovers")
+    rollovers = add("rollovers")
     rollovers.add_argument("--from", dest="begin", required=True)
     rollovers.add_argument("--to", dest="end", required=True)
     rollovers.add_argument(
@@ -134,7 +142,7 @@ def main() -> None:
         choices=["ExpirationDate", "VolumeBasedCurrentEnd", "VolumeBasedNextStart"],
     )
 
-    profile = sub.add_parser("profile")
+    profile = add("profile")
     profile.add_argument(
         "--period",
         default="CurrentDay",
@@ -143,14 +151,14 @@ def main() -> None:
     profile.add_argument("--session", type=int, help="identificatore di sessione ATAS")
     profile.add_argument("--no-levels", action="store_true", help="omette il volume per prezzo")
 
-    candles = sub.add_parser("candles")
+    candles = add("candles")
     candles.add_argument("--from", dest="begin")
     candles.add_argument("--to", dest="end")
     candles.add_argument("--from-bar", type=int)
     candles.add_argument("--to-bar", type=int)
     candles.add_argument("--levels", action="store_true", help="include il footprint di ogni barra")
 
-    cumulative = sub.add_parser("cumulative")
+    cumulative = add("cumulative")
     cumulative.add_argument("--from", dest="begin", required=True)
     cumulative.add_argument("--to", dest="end", required=True)
     cumulative.add_argument("--min-volume", type=int, default=0)
@@ -159,7 +167,7 @@ def main() -> None:
     cumulative.add_argument("--ticks", action="store_true", help="include i tick di ogni trade aggregato")
     cumulative.add_argument("--window-days", type=int, default=DEFAULT_WINDOW_DAYS)
 
-    depth = sub.add_parser("depth")
+    depth = add("depth")
     depth.add_argument("--from", dest="begin", required=True)
     depth.add_argument("--to", dest="end", required=True)
     depth.add_argument("--period-seconds", type=int, default=60)
