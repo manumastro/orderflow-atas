@@ -609,7 +609,7 @@ Nota aritmetica: sul Nasdaq il netto migliora di 15.851 contratti quasi interame
 
 #### Verifica Quantitativa
 
-Le pagine legacy caricano nel browser l'intera serie settimanale degli ultimi dieci anni, non solo l'ultimo punto mostrato in tabella. Questo ha permesso di estrarre i quattro indici e di verificare in modo descrittivo la metrica cross-index: il risultato, le due definizioni numeriche usate e i suoi limiti sono in [docs/research/cot-tradingster-cross-index-2026-09-11.md](../docs/research/cot-tradingster-cross-index-2026-09-11.md). In sintesi, nella forma piu' letterale la regola non separa la risposta di prezzo successiva; nella forma piu' selettiva la separa, ma su troppe poche settimane per concludere. Il COT resta contesto, non trigger.
+Le pagine legacy caricano nel browser l'intera serie settimanale degli ultimi dieci anni, non solo l'ultimo punto mostrato in tabella. Questo ha permesso di estrarre i quattro indici e di verificare in modo descrittivo la metrica cross-index: il risultato, le due definizioni numeriche usate e i suoi limiti sono in [docs/research/cot/tradingster-cross-index-2026-09-11.md](../docs/research/cot/tradingster-cross-index-2026-09-11.md). In sintesi, nella forma piu' letterale la regola non separa la risposta di prezzo successiva; nella forma piu' selettiva la separa, ma su troppe poche settimane per concludere. Il COT resta contesto, non trigger.
 
 #### Limiti Della Fonte
 

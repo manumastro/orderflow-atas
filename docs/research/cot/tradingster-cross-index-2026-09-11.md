@@ -59,7 +59,7 @@ Le due letture sono **divergenti**: nella stessa settimana il flusso e' long su 
 
 Nota aritmetica: sul Nasdaq il netto migliora di 15.851 contratti quasi interamente per **chiusura di short** (-15.049), non per apertura di long (+802). Il netto da solo non distingue i due casi: e' esattamente l'informazione che l'indicatore ATAS `COT Net positions` non puo' restituire e la ragione tecnica per cui la fonte esterna resta necessaria.
 
-![Netto Non-Commercial del Nasdaq-100 isolato sui dieci anni, con il prezzo sopra](images/nq-noncommercial-net-10y.png)
+![Netto Non-Commercial del Nasdaq-100 isolato sui dieci anni, con il prezzo sopra](../images/nq-noncommercial-net-10y.png)
 
 L'immagine riproduce il passaggio del live in cui Fabio nasconde `Commercial` e `Non-Reportable` per isolare la serie speculativa. Mostra anche perche' il livello attuale non e' un estremo: il netto Nasdaq oscilla quasi sempre fra -50.000 e +60.000 dal 2018, con un massimo di +162.662 nel 2016-17 e un minimo di -134.311 nell'aprile 2020. Il +25.890 di oggi e' un valore centrale, non un'ala della distribuzione.
 

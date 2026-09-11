@@ -117,4 +117,4 @@ Il punto di studio corretto per il prossimo giorno e' quindi: quando il prezzo r
 
 ## Seguito
 
-Il recorder **Fabio Pre-Session Profile Recorder** implementa la stessa finestra e scrive `FofPreSession` nel log ATAS. Il suo schema e' documentato in `docs/research/pre-session-profile-collection-contract.md`. La prima raccolta runtime va verificata dopo il caricamento dell'indicatore sul chart a un minuto; solo allora il case study storico e l'output live possono essere confrontati campo per campo.
+Il recorder **Fabio Pre-Session Profile Recorder** implementa la stessa finestra e scrive `FofPreSession` nel log ATAS. Il suo schema e' documentato in `docs/research/sessioni/contratto-profilo-pre-sessione.md`. La prima raccolta runtime va verificata dopo il caricamento dell'indicatore sul chart a un minuto; solo allora il case study storico e l'output live possono essere confrontati campo per campo.
