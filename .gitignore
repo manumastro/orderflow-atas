@@ -22,3 +22,6 @@ fabio_youtube_live_transcripts/
 # OS
 Thumbs.db
 .DS_Store
+
+# Playwright MCP output
+.playwright-mcp/

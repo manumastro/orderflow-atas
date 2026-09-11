@@ -551,6 +551,75 @@ Correzioni necessarie rispetto alla formulazione del live:
 
 Questa integrazione chiarisce anche la frase del video 1: COT, stagionalita' e report bancari possono aiutare lo **swing context**, mentre profilo e order flow descrivono il comportamento effettivamente osservabile. Nessuna delle cinque fonti identifica con certezza il "perche'" di una singola stampa o chi sia il partecipante.
 
+### Tradingster: Struttura Della Fonte Esterna
+
+Nel live Q1 (`26:21`-`28:03`) Fabio non usa un indicatore: apre `tradingster.com`, sezione `Commitment of Traders`, categoria `Indexes`, e sceglie esplicitamente la vista **legacy** ("you don't need to click not COT futures, not COT legacy... you go in the section indices and you click on the legacy one"). La fonte va quindi descritta con precisione, perche' il sito espone due report diversi per lo stesso strumento e la scelta cambia le categorie disponibili.
+
+| Vista Tradingster | URL | Report CFTC sottostante | Categorie di trader |
+|---|---|---|---|
+| `COT Legacy Futures` | `/cot/legacy-futures/<codice>` | Legacy, futures only | `Non-Commercial` (Long, Short, Spreads), `Commercial`, `Total`, `Non-Reportable` |
+| `COT Futures` (finanziari) | `/cot/futures/fin/<codice>` | TFF, Traders in Financial Futures | `Dealer/Intermediary`, `Asset Manager/Institutional`, `Leveraged Funds`, `Other Reportables`, `Non-Reportable` |
+| `COT Futures` (materie prime) | `/cot/futures/disagg/<codice>` | Disaggregated | `Producer/Merchant`, `Swap Dealer`, `Managed Money`, `Other Reportables` |
+
+Codici dei contratti citati nel live:
+
+```text
+S&P 500 (x $50)      13874+
+Nasdaq-100 Mini      209742
+Dow Jones (x $5)     124603
+Russell 2000 Mini    239742
+```
+
+Questa tabella chiarisce definitivamente l'ambiguita' gia' segnalata: quando Fabio dice "non-commercial is asset manager" sta unendo due nomenclature che su Tradingster vivono in **pagine diverse**. `Non-Commercial` esiste solo nella vista legacy; `Asset Manager/Institutional` e `Leveraged Funds` esistono solo nella vista TFF. Poiche' lui apre la vista legacy, il gruppo effettivamente letto nel live e' `Non-Commercial` del report Legacy futures-only, cioe' un aggregato che contiene sia asset manager sia leveraged funds sia altri speculatori reportabili.
+
+#### Cosa Mostra Una Pagina Legacy
+
+Ogni pagina legacy contiene, nell'ordine:
+
+```text
+riga posizioni assolute       Long, Short, Spreads per ciascuna categoria
+riga "Changes from"           variazione rispetto al report precedente
+riga "Percent of Open Interest"
+riga "Number of Traders"
+grafici: Long vs. Short, Prices & Net Positions, Positions: Long, Positions: Short
+```
+
+I grafici sono la parte che Fabio usa nella seconda meta' del passaggio (`35:45`-`38:30`), quando nasconde `Non-Reportable` e `Commercial` per isolare visivamente la serie speculativa e cercare i massimi di esposizione storica. La sequenza operativa che descrive e' quindi:
+
+```text
+1. aprire la pagina legacy dell'indice
+2. leggere il livello assoluto Non-Commercial Long contro Short -> skew di fondo
+3. leggere la riga Changes -> flusso dell'ultima settimana
+4. ripetere su S&P 500, Nasdaq, Dow (ed eventualmente Russell) -> coerenza cross-index
+5. isolare la serie nel grafico -> confronto con estremi storici e con il prezzo
+```
+
+#### Esempio Riproducibile Con Dati Reali
+
+Report `as of` 2026-09-01 (osservato l'11 settembre 2026), vista legacy futures only:
+
+| | NC Long | NC Short | Netto | Delta Long | Delta Short | Delta netto |
+|---|---|---|---|---|---|---|
+| S&P 500 `13874+` | 231.701 | 321.072 | -89.371 | +1.959 | +13.156 | -11.197 |
+| Nasdaq-100 Mini `209742` | 89.434 | 63.544 | +25.890 | +802 | -15.049 | +15.851 |
+
+Le due letture sono **divergenti**: nella stessa settimana lo skew di flusso e' short sull'S&P 500 e long sul Nasdaq. Con la metrica cross-index proposta nel live (maggioranza degli indici con variazione forte nella stessa direzione) questa settimana non produce alcun consenso, e quindi nessun contesto direzionale. E' l'esito piu' utile da registrare: la regola, applicata onestamente, deve poter restituire "nessun segnale".
+
+Nota aritmetica: sul Nasdaq il netto migliora di 15.851 contratti quasi interamente per **chiusura di short** (-15.049), non per apertura di long (+802). Il netto da solo non distingue i due casi; e' esattamente l'informazione che ATAS non puo' restituire e per cui la fonte esterna resta necessaria.
+
+#### Verifica Quantitativa
+
+Le pagine legacy caricano nel browser l'intera serie settimanale degli ultimi dieci anni, non solo l'ultimo punto mostrato in tabella. Questo ha permesso di estrarre i quattro indici e di verificare in modo descrittivo la metrica cross-index: il risultato, le due definizioni numeriche usate e i suoi limiti sono in [docs/research/cot-tradingster-cross-index-2026-09-11.md](../docs/research/cot-tradingster-cross-index-2026-09-11.md). In sintesi, nella forma piu' letterale la regola non separa la risposta di prezzo successiva; nella forma piu' selettiva la separa, ma su troppe poche settimane per concludere. Il COT resta contesto, non trigger.
+
+#### Limiti Della Fonte
+
+- Tradingster e' un visualizzatore, non la fonte primaria: i dati provengono dai rilasci CFTC del venerdi, riferiti al martedi precedente. In caso di dubbio la fonte da citare e' il file CFTC.
+- Il sito non documenta un'API ne' un export; ogni raccolta sistematica va fatta dai file CFTC, non scrapando le pagine.
+- Il report legacy e' futures only: esiste anche la variante futures + options, con numeri diversi. Prima di confrontare due osservazioni occorre dichiarare quale delle due si sta usando.
+- `Spreads` nella riga Non-Commercial non e' esposizione direzionale; sommarlo a Long o Short falsa il netto.
+- I contratti hanno moltiplicatori diversi (S&P $50, Dow $5, NQ mini $20): confrontare numeri di contratti fra indici senza normalizzare non misura esposizione economica comparabile.
+- Il codice `209742` e' il Nasdaq-100 **Mini**; il micro (MNQ) e il contratto grande hanno codici propri. Verificare sempre che il codice corrisponda allo strumento operato in ATAS.
+
 ### Mappatura ATAS Del COT Q1
 
 L'installazione ATAS contiene lo snapshot nativo `COT Chart`, composto da tre pannelli su chart Daily. La documentazione locale in `docs/atas/` e' documentazione tecnica per indicatori custom; le guide prodotto ufficiali sono online, nell'indice [Indicators](https://help.atas.net/it/support/solutions/72000351608).

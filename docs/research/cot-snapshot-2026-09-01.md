@@ -1,0 +1,65 @@
+# Lettura Istituzionale Del COT: Report 2026-09-01
+
+Fonte: Tradingster, report Legacy futures only, categoria `Non-Commercial`, rilevazione di martedi' 2026-09-01. Dati e metodo in [cot-tradingster-cross-index-2026-09-11.md](cot-tradingster-cross-index-2026-09-11.md).
+
+`Non-Commercial` e' l'aggregato degli speculatori reportabili: comprende asset manager e leveraged funds, ma non li separa. E' cio' che il live Q1 chiama "istituzioni".
+
+## Le Due Domande
+
+Il live insegna a leggere due cose distinte, e a non confonderle:
+
+```text
+livello   quanto sono gia' posizionati        -> stock, cambia lentamente
+flusso    cosa hanno fatto questa settimana   -> variazione, e' l'informazione nuova
+```
+
+## Livello
+
+| Mercato | Long | Short | Netto | Percentile 10 anni |
+|---|---|---|---|---|
+| Dow x $5 | 26.546 | 9.218 | **+17.328** | 66% |
+| Nasdaq-100 Mini | 89.434 | 63.544 | **+25.890** | 71% |
+| S&P 500 | 231.701 | 321.072 | **-89.371** | 18% |
+| Russell 2000 Mini | 63.898 | 135.561 | **-71.663** | 10% |
+
+Nessuno dei quattro e' a un estremo decennale. Il piu' sbilanciato e' il Russell, con short quasi doppi dei long e un netto vicino al minimo del decennio.
+
+## Flusso
+
+Variazione del netto Non-Commercial, cumulata all'indietro dal report:
+
+| Mercato | 1 settimana | 4 settimane | 8 settimane | 13 settimane |
+|---|---|---|---|---|
+| Nasdaq-100 Mini | **+15.851** | +40.529 | +23.827 | +40.839 |
+| Dow x $5 | +1.771 | -2.723 | +5.848 | +21.785 |
+| S&P 500 | **-11.196** | -61.364 | -45.385 | +124.938 |
+| Russell 2000 Mini | **-20.085** | -36.936 | -40.654 | -56.739 |
+
+## Cosa Dice, In Una Frase
+
+**Non c'e' una direzione di mercato: c'e' una rotazione dentro l'azionario.** Gli speculatori reportabili comprano Nasdaq e Dow e vendono S&P 500 e soprattutto Russell 2000, e lo fanno in modo coerente su una e quattro settimane.
+
+Tre osservazioni che ne derivano:
+
+1. **Il Russell e' l'unica lettura univoca.** Short in ogni orizzonte, 1, 4, 8 e 13 settimane, con netto al 10° percentile decennale e al 13% del range dell'ultimo anno. Se un contesto fondamentale esiste in questo report, e' li': disimpegno persistente dalle small cap.
+2. **L'S&P 500 ha invertito, non accumulato.** Il -61.364 delle ultime quattro settimane erode un +124.938 costruito nelle tredici. E' una riduzione di esposizione recente dentro un accumulo piu' vecchio, non un posizionamento short maturo.
+3. **Sul Nasdaq hanno comprato in discesa.** Il netto sale di 40.529 in quattro settimane mentre il prezzo scende del 2,2%, da 29.733 a 29.077. Comportamento compatibile con accumulo sulla debolezza, non con distribuzione.
+
+## Cosa Questo Report Non Dice
+
+- La metrica cross-index del live **non da' consenso** questa settimana: due indici in flusso long, due in flusso short. Nella sua forma letterale la regola restituisce "nessun contesto direzionale", ed e' corretto che lo faccia.
+- Sul Nasdaq il netto migliora quasi tutto per **chiusura di short** (-15.049) e quasi per nulla per nuovi long (+802). Ricoprire non e' comprare: e' una lettura piu' debole di quanto il solo netto suggerisca.
+- I dati sono di martedi' 2026-09-01 e pubblicati il venerdi' successivo. Alla lettura odierna il posizionamento puo' essere gia' cambiato.
+- Il numero di contratti non e' esposizione economica: i moltiplicatori sono diversi (S&P $50, Nasdaq mini $20, Dow $5). I confronti fra indici valgono sul segno e sulla persistenza, non sulla dimensione.
+- Nessuna di queste righe e' un segnale. Nel modello del corso il COT e' contesto settimanale: la decisione resta al profilo e all'order flow.
+
+## Uso Pratico
+
+```text
+NQ    contesto lievemente favorevole al lato long, ma debole: guidato da ricoperture
+      -> non contraddice un long sul profilo; non giustifica da solo di forzarlo
+RTY   contesto short persistente e coerente
+      -> se si opera il Russell, e' il solo mercato con un fondamentale univoco qui
+ES    contesto ambiguo, in riduzione dopo un accumulo
+      -> trattare come neutro
+```
