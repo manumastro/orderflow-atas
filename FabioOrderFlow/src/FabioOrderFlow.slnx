@@ -1,5 +1,8 @@
 <Solution>
   <Folder Name="/Indicators/" />
+  <Folder Name="/Indicators/DataBridge/">
+    <Project Path="Indicators/DataBridge/FabioDataBridge.csproj" />
+  </Folder>
   <Folder Name="/Indicators/CumulativeTrade/">
     <Project Path="Indicators/CumulativeTrade/FabioCumulativeTradeRecorder.csproj" />
   </Folder>

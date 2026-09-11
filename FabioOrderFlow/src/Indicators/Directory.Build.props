@@ -1,23 +1,33 @@
 <Project>
   <PropertyGroup>
-    <TargetFramework>net10.0-windows</TargetFramework>
-    <UseWPF>true</UseWPF>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <LangVersion>12</LangVersion>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <!-- ATAS X su macOS: gli assembly vivono dentro il bundle dell'applicazione.
+       ATAS classico su Windows: restano in Program Files. Il percorso viene scelto
+       in base al sistema su cui gira la build, cosi' la stessa solution compila su entrambi. -->
+  <PropertyGroup Condition="'$(AtasAssemblyDir)' == '' and $([MSBuild]::IsOSPlatform('OSX'))">
+    <AtasAssemblyDir>/Applications/ATAS X.app/Contents/MonoBundle</AtasAssemblyDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(AtasAssemblyDir)' == ''">
+    <AtasAssemblyDir>C:\Program Files (x86)\ATAS Platform</AtasAssemblyDir>
   </PropertyGroup>
 
   <ItemGroup>
     <Reference Include="ATAS.Indicators">
-      <HintPath>C:\Program Files (x86)\ATAS Platform\ATAS.Indicators.dll</HintPath>
+      <HintPath>$(AtasAssemblyDir)/ATAS.Indicators.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="ATAS.DataFeedsCore">
-      <HintPath>C:\Program Files (x86)\ATAS Platform\ATAS.DataFeedsCore.dll</HintPath>
+      <HintPath>$(AtasAssemblyDir)/ATAS.DataFeedsCore.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="Utils.Common">
-      <HintPath>C:\Program Files (x86)\ATAS Platform\Utils.Common.dll</HintPath>
+      <HintPath>$(AtasAssemblyDir)/Utils.Common.dll</HintPath>
       <Private>false</Private>
     </Reference>
   </ItemGroup>
