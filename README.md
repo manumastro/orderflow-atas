@@ -52,13 +52,22 @@ Rende accessibili cose che esistono solo dentro il processo ATAS: il profilo fis
 ```text
 fabio_course/              trascrizioni delle lezioni e mappa del corso
 docs/research/metodo/      contratti osservativi e storia del progetto
+docs/research/modelli/     modelli candidati e loro verifica su dati reali
 docs/research/cot/         contesto istituzionale: COT e Tradingster
 docs/research/sessioni/    profili di sessione e descrizioni settimanali
 docs/research/archivio-2026-08/  la fase dei recorder, conservata come evidenza
 docs/atas/                 documentazione tecnica dell'API ATAS
 FabioOrderFlow/            le cinque estensioni ATAS e gli strumenti di analisi
-prop/                      materiale di riferimento sul prop trading
+prop/                      esecuzione: mercato guida, sizing, fee, regole delle prop
 ```
+
+### 6. Il primo modello reso misurabile
+
+Il [modello 40R di riferimento](docs/research/modelli/modello-40r-riferimento.md) e' l'unico modello operativo del repository, ed e' esplicitamente **non validato**. E' stato separato dal materiale sulle prop perche' descrive come leggere il flusso, non quale prop usare.
+
+Il lavoro utile e' stato renderlo falsificabile: sei dei suoi dieci punti contenevano una parola che nessun dato definisce, e ognuna e' diventata una convenzione dichiarata. Applicato cosi' alla cash del 2026-09-11 non produce **nessun** ingresso, e il [replay](docs/research/sessioni/replay-modello-2026-09-11.md) mostra dove si ferma e perche'.
+
+Il risultato piu' solido non riguarda i segnali ma la scala: su NQ a 40 Range la value area di barra e' larga cinque punti, quindi un TP 1:1 sullo stop tecnico vale quanto le fee.
 
 ## Come Si Lavora Qui
 

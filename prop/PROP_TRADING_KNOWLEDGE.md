@@ -6,48 +6,19 @@ Snapshot operativo: 2026-09-01.
 
 ## 1. Stile di trading
 
-Descrizione corta:
-
 **Low-timeframe order flow scalping: key levels, delta/VA shifts, tape confirmation, pullback entries.**
 
-Focus:
-- hyperscalping/intraday;
-- barre **40 Range**;
-- Value Area per candela;
-- Delta / auction control;
-- Big Trades;
-- Speed of Tape;
-- entry limit su pullback;
-- SL tecnico;
-- target base **1:1**.
+Focus: hyperscalping/intraday, barre **40 Range**, Value Area per candela, Delta/auction control, Big Trades, Speed of Tape, entry limit su pullback, SL tecnico, target base **1:1**.
 
 ## 2. Modello operativo di riferimento
 
-Sequenza:
+Il modello e' stato **spostato** in [`docs/research/modelli/modello-40r-riferimento.md`](../docs/research/modelli/modello-40r-riferimento.md), dove sta con le convenzioni che lo rendono misurabile e con le applicazioni su dati reali.
 
-**Livello importante -> Delta flip -> VA shift -> Big Trades + tape confermano -> pullback a VAH/VAL -> limit -> SL lato opposto -> TP 1:1.**
+E' una cosa a se' rispetto a questo documento: descrive come leggere il flusso, non quale prop usare. Le regole delle prop cambiano spesso; il modello no, e tenerli insieme faceva sembrare che una revisione dell'una implicasse una revisione dell'altro.
 
-Regole essenziali:
-1. **Livello importante**: VAH, VAL, POC, HVN/LVN, massimo/minimo o area gia' reattiva.
-2. **Delta flip**: il controllo passa sellers->buyers per long o buyers->sellers per short.
-3. **VA shift**: nuova Value Area piu' alta per long, piu' bassa per short.
-4. **Conferma**: Big Trades e Speed of Tape devono sostenere il lato; non sono il trigger primario.
-5. **Pullback**: attendere il ritorno sul bordo VA della 40R appena chiusa; non inseguire.
-6. **Entry**: limit; long tipicamente su VAH, short su VAL.
-7. **Pending**: se il controllo cambia, cancellare l'ordine.
-8. **SL**: lato opposto della VA o estremo tecnico della candela/setup.
-9. **TP**: base 1:1 rispetto al rischio lordo.
-10. **Sessione**: privilegiare finestre liquide; evitare fasi morte/chop se il flow non e' leggibile.
+Quanto resta qui riguarda l'**esecuzione** di quel modello dentro i vincoli di una prop: mercato guida, sizing, fee, drawdown.
 
-Configurazione ATAS di riferimento:
-- 40 Range;
-- Volume POC;
-- Delta POC;
-- Delta candles;
-- Value Area lines/highlight;
-- Big Trades;
-- Speed of Tape;
-- Volume Profile di contesto.
+Il vincolo di scala misurato sul modello pesa direttamente su questa sezione: su NQ a 40R lo stop tecnico vale 4-8 punti, quindi un TP 1:1 puo' essere dello stesso ordine di grandezza delle fee percentuali riportate al punto 6. Va verificato prima di scegliere una prop, non dopo.
 
 ## 3. Principio chiave: mercato guida vs mercato di esecuzione
 
