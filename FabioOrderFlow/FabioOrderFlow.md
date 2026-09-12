@@ -54,7 +54,8 @@ python3 FabioOrderFlow/tools/bridge.py cumulative --from 2026-09-04 --to 2026-09
 |---|---|
 | `tools/bridge.py` | Client del bridge; spezza le finestre oltre il limite di ATAS |
 | `tools/describe_cash_profile.py` | Costruisce POC e area di valore della cash dal footprint scaricato |
-| `tools/replay_model.py` | Riesegue il modello 40R su barre registrate, in modo causale, con le soglie dichiarate |
+| `tools/replay_model.py` | Riesegue The Prop Firm Model su barre registrate, in modo causale; organizzato come il dossier, una sezione per pagina |
+| `tools/replay_sweep.py` | Esegue il replay su piu' sessioni variando un parametro alla volta, per rendere visibile la sensibilita' |
 | `tools/build_cot_cross_index.py` | Unisce le serie COT estratte da Tradingster e calcola la metrica cross-index |
 | `tools/archivio-2026-08/` | Parser dei log prodotti dai recorder nella fase di agosto |
 

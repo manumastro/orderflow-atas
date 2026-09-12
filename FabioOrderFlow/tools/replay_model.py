@@ -1,97 +1,77 @@
 #!/usr/bin/env python3
-"""Riesegue il modello operativo di riferimento su barre gia' registrate.
+"""Riesegue The Prop Firm Model su barre gia' registrate, nell'ordine del dossier.
 
-Il modello e' descritto in `docs/research/modelli/modello-40r-riferimento.md`. Questo script
-non lo valida e non lo migliora: lo applica alla lettera a dati storici, in modo **causale**,
-cioe' decidendo su ogni barra solo con cio' che era noto alla sua chiusura. Serve a rispondere
-alla domanda "dove sarebbe entrato il modello" senza che la risposta sia influenzata dal sapere
-come e' finita la giornata.
+Il dossier e' in `prop/prop_firm_model/`, trascritto in
+`docs/research/modelli/dossier-prop-firm-model.md`. Questo script lo applica in modo **causale**:
+ogni decisione usa solo cio' che era noto in quel momento. Serve a misurare, non a validare.
 
-Ogni soglia che il modello lascia qualitativa e' qui una costante dichiarata in testa al file.
-Cambiarla cambia i risultati: e' una scelta, non un fatto.
+Il file e' organizzato come il dossier, una sezione per pagina, e ogni punto che il dossier lascia
+aperto e' una costante dichiarata oppure un'opzione di riga di comando. Le scelte sono di chi
+scrive lo script, non del dossier: cambiarle cambia i risultati.
 
-    ./replay_model.py candles.json --big big.json \
-        --level 29500:massimo-notturno --level 29355:VAH-notte --level 29222:VAH-giovedi
+    ./replay_model.py candles.json --tape tape.json --window 13:30-15:30 --manage 30
 """
 
 from __future__ import annotations
 
 import argparse
+import bisect
 import json
-from datetime import datetime, timezone
+from datetime import datetime
 
-# --- convenzioni dichiarate --------------------------------------------------
+# ============================================================ pagina 02: chart setup
+# Il dossier prescrive il template OrderTrack con le linee di value area attive. La percentuale
+# di value area non e' leggibile nello screenshot del pannello, ed e' il parametro che determina
+# la distanza di ogni stop e di ogni target. Si ricalcola quindi dal footprint di barra.
+VALUE_AREA_PERCENT = 70.0
 
-# Distanza entro cui una barra e' considerata "a un livello importante".
-LEVEL_TOLERANCE = 10.0
+# ============================================================ pagina 03: OCO
+# Il rischio si fissa in valuta e la quantita' segue dallo stop. Il cap giornaliero di 6R e'
+# l'unico limite di frequenza dichiarato in tutto il dossier.
+RISK_DOLLARS = 250.0
+POINT_VALUE = 20.0          # NQ full: gli importi degli esempi live sono coerenti con questo
+DAILY_CAP_R = 6.0
 
-# Un delta flip conta solo se il nuovo controllo e' misurabile: sotto questa soglia
-# l'inversione di segno e' rumore di barra.
-MIN_FLIP_DELTA = 150
+# ============================================================ pagina 04: le tre condizioni
+# 01 - auction flip. Il dossier non dice quanto grande debba essere il flip.
+MIN_FLIP_DELTA = 40
 
-# Accelerazione del tape: volume di barra rispetto alla mediana delle barre recenti.
-TAPE_WINDOW = 20
-TAPE_FACTOR = 1.3
+# 02 - value area shift. "Positioned higher" ammette piu' letture.
+VA_SHIFT_RULE = "both"      # both | val | mid
 
-# Big Trades che devono sostenere il lato, dentro la barra di segnale.
-MIN_BIG_TRADES = 1
+# 03 - side control mentre l'ordine e' pendente. "Who is in control" non e' definito.
+PENDING_CONTROL_DELTA = 30
 
-# Quante barre resta valido il limit sul bordo della value area prima di essere cancellato.
+# "All aligned": monitor side control on the active position. Uscita prima di stop o target.
+# Zero disattiva: il dossier prescrive di monitorare, non dice con quale soglia agire.
+ACTIVE_CONTROL_DELTA = 0
+
+# Quanto resta valido un ordine pendente. Il dossier non lo dice.
 PULLBACK_BARS = 3
 
-# Dove mettere lo stop: il modello ammette il bordo opposto della value area oppure l'estremo
-# tecnico della barra. Su 40R le due scelte differiscono di circa il doppio.
-STOP_MODE = "va"
-
-# Quanto oltre il livello mettere lo stop, quando il rischio si misura dal livello.
-LEVEL_BUFFER = 3.0
-
-# Finestra oraria UTC in cui il modello e' dichiarato attivo: pre-market e prime due ore di RTH.
-# Fuori da qui il dossier dice esplicitamente di non operare.
+# ============================================================ pagina 07: session timing
+# ON: pre-market e prime due ore della RTH di New York. OFF: pranzo e sera.
 SESSION_WINDOW: tuple[str, str] | None = None
 
-# Condizione 3: quanto delta contrario, dentro la candela che si forma, conta come perdita del
-# controllo. A zero qualunque oscillazione iniziale cancellerebbe l'ordine, quindi serve una soglia.
-CONTROL_FLIP_DELTA = 30
+STOP_MODE = "va"            # va = VAL della candela, bar = minimo della candela
 
 
 def parse(raw: str) -> datetime:
     return datetime.fromisoformat(raw.replace("Z", "+00:00"))
 
 
-def load_big(path: str | None) -> list[dict]:
-    if not path:
-        return []
-    trades = json.load(open(path)).get("trades", [])
-    for trade in trades:
-        trade["_t"] = parse(trade["time"])
-    return trades
+# ------------------------------------------------------------ pagina 02: value area
 
-
-def big_in_bar(trades: list[dict], bar: dict, side: str) -> list[dict]:
-    """Big Trades eseguiti dentro la finestra temporale della barra, sul lato indicato."""
-    begin, end = parse(bar["time"]), parse(bar["lastTime"])
-    wanted = "Buy" if side == "long" else "Sell"
-    return [t for t in trades if begin <= t["_t"] <= end and t["direction"] == wanted]
-
-
-def developing_levels(volume_by_price: dict[float, int], fraction: float = 0.70):
-    """POC e bordi della value area della sessione **fino alla barra precedente**.
-
-    Il modello parla di livelli importanti includendo il POC e i bordi della value area: su un
-    chart intraday quelli che il trader guarda sono anche quelli in sviluppo, non solo quelli
-    ereditati dalle sessioni passate. Il calcolo usa solo barre gia' chiuse, quindi resta causale.
-    """
+def value_area(volume_by_price: dict[float, int], percent: float):
+    """POC e bordi della value area, espandendo dal POC verso il lato a volume maggiore."""
     if not volume_by_price:
-        return []
-
+        return None
     total = sum(volume_by_price.values())
     prices = sorted(volume_by_price)
     poc = max(prices, key=lambda price: volume_by_price[price])
-
     low = high = prices.index(poc)
     inside = volume_by_price[poc]
-    while inside < fraction * total and (low > 0 or high < len(prices) - 1):
+    while inside < percent / 100 * total and (low > 0 or high < len(prices) - 1):
         below = volume_by_price[prices[low - 1]] if low > 0 else -1
         above = volume_by_price[prices[high + 1]] if high < len(prices) - 1 else -1
         if above >= below:
@@ -100,98 +80,92 @@ def developing_levels(volume_by_price: dict[float, int], fraction: float = 0.70)
         else:
             low -= 1
             inside += volume_by_price[prices[low]]
+    return poc, prices[low], prices[high]
 
-    return [(poc, "POC-sviluppo"), (prices[high], "VAH-sviluppo"), (prices[low], "VAL-sviluppo")]
+
+def bar_value_area(bar: dict, percent: float):
+    """Value area della singola barra. Con la percentuale di ATAS si usano i campi nativi."""
+    if percent is None:
+        return bar["valueAreaLow"], bar["valueAreaHigh"]
+    levels = {level["price"]: level["volume"] for level in bar.get("levels", [])}
+    computed = value_area(levels, percent)
+    if computed is None:
+        return bar["valueAreaLow"], bar["valueAreaHigh"]
+    _, val, vah = computed
+    return val, vah
 
 
-def near_level(bar: dict, levels: list[tuple[float, str]]):
-    """Restituisce (etichetta, prezzo) del primo livello toccato, oppure None."""
-    for price, name in levels:
-        if bar["low"] - LEVEL_TOLERANCE <= price <= bar["high"] + LEVEL_TOLERANCE:
-            return f"{name} {price:,.0f}", price
+# ------------------------------------------------------------ pagina 04: le tre condizioni
+
+def condition_01_auction_flip(previous: dict, bar: dict) -> str | None:
+    """Il delta gira: i compratori prendono il controllo dai venditori, o viceversa."""
+    if previous["delta"] < 0 and bar["delta"] >= MIN_FLIP_DELTA:
+        return "long"
+    if previous["delta"] > 0 and bar["delta"] <= -MIN_FLIP_DELTA:
+        return "short"
     return None
 
 
-def signal(bars: list[dict], i: int, trades: list[dict], levels: list[tuple[float, str]]):
-    """Valuta le condizioni 1-4 del modello alla chiusura della barra i. Nessun dato futuro."""
-    if i < TAPE_WINDOW:
-        return None
+def condition_02_value_area_shift(side: str, previous_va, current_va) -> bool:
+    """La value area della nuova candela e' posizionata piu' in alto, o piu' in basso."""
+    (prev_val, prev_vah), (val, vah) = previous_va, current_va
+    if VA_SHIFT_RULE == "val":
+        return val > prev_val if side == "long" else vah < prev_vah
+    if VA_SHIFT_RULE == "mid":
+        return ((val + vah) / 2 > (prev_val + prev_vah) / 2) if side == "long" \
+            else ((val + vah) / 2 < (prev_val + prev_vah) / 2)
+    return (vah > prev_vah and val > prev_val) if side == "long" \
+        else (vah < prev_vah and val < prev_val)
 
+
+def control_lost(side: str, cumulative_delta: int, threshold: int) -> bool:
+    """Condizione 03 e gestione della posizione: il lato ha perso il controllo."""
+    if threshold <= 0:
+        return False
+    return cumulative_delta <= -threshold if side == "long" else cumulative_delta >= threshold
+
+
+# ------------------------------------------------------------ segnale
+
+def signal(bars, i, vas, levels):
+    if i < 1:
+        return None
     if SESSION_WINDOW and not (SESSION_WINDOW[0] <= bars[i]["lastTime"][11:16] <= SESSION_WINDOW[1]):
         return None
 
-    bar, previous = bars[i], bars[i - 1]
+    previous, bar = bars[i - 1], bars[i]
 
-    # Il dossier non richiede un livello: i livelli sono contesto di mercato, non condizione.
-    # Restano un filtro attivabile, ma senza livelli dichiarati la condizione non si applica.
+    side = condition_01_auction_flip(previous, bar)
+    if side is None:
+        return None
+    if not condition_02_value_area_shift(side, vas[i - 1], vas[i]):
+        return None
+
+    # Il livello non e' una condizione del dossier: e' contesto. Resta un filtro attivabile.
     if levels:
-        found = near_level(bar, levels)
-        if found is None:
+        near = next((f"{name} {price:,.0f}" for price, name in levels
+                     if bar["low"] - 10 <= price <= bar["high"] + 10), None)
+        if near is None:
             return None
-        level, level_price = found
     else:
-        level, level_price = "nessun livello richiesto", bar["close"]
+        near = "nessun filtro di livello"
 
-    # 2. delta flip: il controllo passa da un lato all'altro
-    if previous["delta"] >= 0 or bar["delta"] < MIN_FLIP_DELTA:
-        long_flip = False
-    else:
-        long_flip = True
-    if previous["delta"] <= 0 or bar["delta"] > -MIN_FLIP_DELTA:
-        short_flip = False
-    else:
-        short_flip = True
-    if not (long_flip or short_flip):
-        return None
-
-    side = "long" if long_flip else "short"
-
-    # 3. VA shift: la nuova value area si sposta nella direzione del lato
-    if side == "long":
-        shifted = bar["valueAreaHigh"] > previous["valueAreaHigh"] and bar["valueAreaLow"] > previous["valueAreaLow"]
-    else:
-        shifted = bar["valueAreaHigh"] < previous["valueAreaHigh"] and bar["valueAreaLow"] < previous["valueAreaLow"]
-    if not shifted:
-        return None
-
-    # Conferma opzionale. Il dossier elenca tre condizioni, e Big Trades e Speed of Tape non
-    # sono fra queste: restano strumenti di lettura. Si applicano solo se richiesti.
-    recent = sorted(b["volume"] for b in bars[i - TAPE_WINDOW:i])
-    median = recent[len(recent) // 2]
-    if TAPE_FACTOR > 0 and bar["volume"] < TAPE_FACTOR * median:
-        return None
-    big = big_in_bar(trades, bar, side) if trades else []
-    if trades and len(big) < MIN_BIG_TRADES:
-        return None
-
+    val, vah = vas[i]
     return {
-        "side": side,
-        "level": level,
-        "levelPrice": level_price,
-        "bar": i,
-        "time": bar["lastTime"],
-        "delta": bar["delta"],
-        "previousDelta": previous["delta"],
-        "vah": bar["valueAreaHigh"],
-        "val": bar["valueAreaLow"],
-        "big": len(big),
-        "bigVolume": sum(t["volume"] for t in big),
-        "tapeRatio": bar["volume"] / median if median else 0,
-        "high": bar["high"],
-        "low": bar["low"],
+        "bar": i, "side": side, "level": near, "time": bar["lastTime"],
+        "delta": bar["delta"], "previousDelta": previous["delta"],
+        "vah": vah, "val": val, "high": bar["high"], "low": bar["low"],
     }
 
 
-def resolve_with_tape(bars: list[dict], sig: dict, tape, times):
-    """Esegue il setup sul tape, trade per trade, applicando anche la condizione 3.
+# ------------------------------------------------------------ pagine 01 e 03: esecuzione
 
-    Il tape porta il tempo al millisecondo e la direzione gia' classificata, quindi dentro la
-    candela in formazione si sa **l'ordine** degli eventi: se il controllo gira prima che il
-    limit venga toccato, l'ordine si cancella come prescrive il dossier. La stessa informazione
-    elimina l'ambiguita' fra stop e target colpiti nella stessa barra.
+def execute(bars, sig, tape, times):
+    """Piazza il limit, applica la condizione 03, poi gestisce la posizione aperta sul tape.
+
+    Tutto si legge sul tape, che porta l'ordine temporale degli eventi: senza di esso un target
+    verrebbe contato come raggiunto anche quando il suo prezzo e' stato stampato prima del fill.
     """
-    import bisect
-
     long = sig["side"] == "long"
     entry = sig["vah"] if long else sig["val"]
     stop = (sig["low"] if long else sig["high"]) if STOP_MODE == "bar" else (sig["val"] if long else sig["vah"])
@@ -200,129 +174,110 @@ def resolve_with_tape(bars: list[dict], sig: dict, tape, times):
         return {"outcome": "va-degenere"}
     target = entry + risk if long else entry - risk
 
-    filled = False
+    quantity = max(1, round(RISK_DOLLARS / (risk * POINT_VALUE)))
+
+    # --- ordine pendente: condizione 03, il controllo va monitorato mentre la candela si forma
+    fill_time = None
     for j in range(sig["bar"] + 1, min(sig["bar"] + 1 + PULLBACK_BARS, len(bars))):
         begin, end = parse(bars[j]["time"]), parse(bars[j]["lastTime"])
         lo, hi = bisect.bisect_left(times, begin), bisect.bisect_right(times, end)
-        forming = 0  # delta cumulato della candela in formazione, azzerato a ogni barra
+        forming = 0
         for trade in tape[lo:hi]:
             price = trade[4]
             if (long and price <= entry) or (not long and price >= entry):
-                filled = True
-                fill_bar, fill_time = j, trade[0]
+                fill_time = trade[0]
                 break
             forming += trade[1] * trade[2]
-            if (long and forming <= -CONTROL_FLIP_DELTA) or (not long and forming >= CONTROL_FLIP_DELTA):
-                return {"outcome": "annullato-condizione-3", "entry": entry, "stop": stop,
-                        "target": target, "risk": risk, "exitBar": j}
-        if filled:
+            if control_lost(sig["side"], forming, PENDING_CONTROL_DELTA):
+                return {"outcome": "cancellato-cond3", "entry": entry, "stop": stop,
+                        "target": target, "risk": risk, "quantity": quantity}
+        if fill_time is not None:
             break
 
-    if not filled:
-        return {"outcome": "non-eseguito", "entry": entry, "stop": stop, "target": target, "risk": risk}
+    if fill_time is None:
+        return {"outcome": "non-eseguito", "entry": entry, "stop": stop,
+                "target": target, "risk": risk, "quantity": quantity}
 
-    # Dal fill in poi l'esito si legge sul tape: il primo dei due prezzi toccato vince, senza ambiguita'.
+    # --- posizione aperta: "monitor side control on the active position"
     start = bisect.bisect_left(times, fill_time)
+    since_fill = 0
     for trade in tape[start:]:
         price = trade[4]
         if (long and price <= stop) or (not long and price >= stop):
-            return {"outcome": "stop", "entry": entry, "stop": stop, "target": target, "risk": risk,
-                    "filledBar": fill_bar, "exitBar": fill_bar, "exitTime": trade[0].isoformat(),
-                    "result": -risk}
+            return done("stop", -risk, entry, stop, target, risk, quantity, trade[0])
         if (long and price >= target) or (not long and price <= target):
-            return {"outcome": "target", "entry": entry, "stop": stop, "target": target, "risk": risk,
-                    "filledBar": fill_bar, "exitBar": fill_bar, "exitTime": trade[0].isoformat(),
-                    "result": risk}
+            return done("target", risk, entry, stop, target, risk, quantity, trade[0])
+        since_fill += trade[1] * trade[2]
+        if control_lost(sig["side"], since_fill, ACTIVE_CONTROL_DELTA):
+            result = (price - entry) if long else (entry - price)
+            return done("uscita-controllo", result, entry, stop, target, risk, quantity, trade[0])
 
     last = tape[-1][4]
-    return {"outcome": "aperto-a-fine-tape", "entry": entry, "stop": stop, "target": target,
-            "risk": risk, "filledBar": fill_bar, "exitBar": fill_bar,
-            "result": (last - entry) if long else (entry - last)}
+    return done("fine-tape", (last - entry) if long else (entry - last),
+                entry, stop, target, risk, quantity, tape[-1][0])
 
 
-def resolve(bars: list[dict], sig: dict):
-    """Esegue l'ordine limit sul bordo della value area e ne segue l'esito, barra per barra."""
-    long = sig["side"] == "long"
-    entry = sig["vah"] if long else sig["val"]
-    if STOP_MODE == "bar":
-        stop = sig["low"] if long else sig["high"]
-    elif STOP_MODE == "level":
-        # Il rischio viene dal livello che il setup difende, non dall'ampiezza della barra:
-        # uno stop dentro il range della barra stessa viene tolto dal rumore intrabarra.
-        edge = min(sig["levelPrice"], sig["low"]) if long else max(sig["levelPrice"], sig["high"])
-        stop = edge - LEVEL_BUFFER if long else edge + LEVEL_BUFFER
-    else:
-        stop = sig["val"] if long else sig["vah"]
-    risk = abs(entry - stop)
-    if risk == 0:
-        return {"outcome": "va-degenere"}
-    target = entry + risk if long else entry - risk
-
-    filled_at = None
-    for j in range(sig["bar"] + 1, min(sig["bar"] + 1 + PULLBACK_BARS, len(bars))):
-        bar = bars[j]
-        if (long and bar["low"] <= entry) or (not long and bar["high"] >= entry):
-            filled_at = j
-            break
-
-    if filled_at is None:
-        return {"outcome": "non-eseguito", "entry": entry, "stop": stop, "target": target, "risk": risk}
-
-    for j in range(filled_at, len(bars)):
-        bar = bars[j]
-        hit_stop = bar["low"] <= stop if long else bar["high"] >= stop
-        hit_target = bar["high"] >= target if long else bar["low"] <= target
-        if hit_stop and hit_target:
-            # Dentro una singola barra l'ordine dei due tocchi non e' ricostruibile dal footprint.
-            return {"outcome": "ambiguo", "entry": entry, "stop": stop, "target": target,
-                    "risk": risk, "filledBar": filled_at, "exitBar": j, "exitTime": bar["lastTime"]}
-        if hit_stop:
-            return {"outcome": "stop", "entry": entry, "stop": stop, "target": target, "risk": risk,
-                    "filledBar": filled_at, "exitBar": j, "exitTime": bar["lastTime"], "result": -risk}
-        if hit_target:
-            return {"outcome": "target", "entry": entry, "stop": stop, "target": target, "risk": risk,
-                    "filledBar": filled_at, "exitBar": j, "exitTime": bar["lastTime"], "result": risk}
-
-    last = bars[-1]["close"]
-    return {"outcome": "aperto-a-fine-sessione", "entry": entry, "stop": stop, "target": target,
-            "risk": risk, "filledBar": filled_at, "result": (last - entry) if long else (entry - last)}
+def done(outcome, result, entry, stop, target, risk, quantity, when):
+    return {"outcome": outcome, "entry": entry, "stop": stop, "target": target, "risk": risk,
+            "quantity": quantity, "result": result, "dollars": result * POINT_VALUE * quantity,
+            "exitTime": when.isoformat(), "r": result / risk}
 
 
 def main() -> None:
-    global MIN_FLIP_DELTA, LEVEL_TOLERANCE, TAPE_FACTOR, PULLBACK_BARS, STOP_MODE, LEVEL_BUFFER
-    global SESSION_WINDOW, CONTROL_FLIP_DELTA
+    global VALUE_AREA_PERCENT, RISK_DOLLARS, POINT_VALUE, DAILY_CAP_R
+    global MIN_FLIP_DELTA, VA_SHIFT_RULE, PENDING_CONTROL_DELTA, ACTIVE_CONTROL_DELTA
+    global PULLBACK_BARS, SESSION_WINDOW, STOP_MODE
 
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("candles", help="JSON di /candles con --levels")
-    parser.add_argument("--big", help="JSON di /cumulative con il filtro di volume")
+    parser.add_argument("--tape", required=True, help="JSON di /cumulative --min-volume 0 --compact")
     parser.add_argument("--level", action="append", default=[], metavar="PREZZO:NOME")
-    parser.add_argument("--levels-from", action="append", default=[], metavar="CANDELE.JSON",
-                        help="ricava POC, VAH, VAL, massimo e minimo da una sessione precedente")
-    parser.add_argument("--flip", type=int, default=MIN_FLIP_DELTA, help="delta minimo del flip")
-    parser.add_argument("--tolerance", type=float, default=LEVEL_TOLERANCE, help="distanza da un livello")
-    parser.add_argument("--tape-factor", type=float, default=TAPE_FACTOR,
-                        help="accelerazione del volume di barra richiesta; 0 disattiva il filtro")
-    parser.add_argument("--pullback", type=int, default=PULLBACK_BARS, help="barre di validita' del limit")
-    parser.add_argument("--stop", choices=["va", "bar", "level"], default="va",
-                        help="'va' bordo opposto della value area, 'bar' estremo della barra, "
-                             "'level' oltre il livello difeso")
-    parser.add_argument("--buffer", type=float, default=LEVEL_BUFFER, help="punti oltre il livello")
-    parser.add_argument("--window", metavar="HH:MM-HH:MM", help="finestra oraria UTC in cui operare")
-    parser.add_argument("--tape", metavar="TAPE.JSON",
-                        help="tape completo da /cumulative --min-volume 0 --compact: abilita la "
-                             "condizione 3 e l'esito senza ambiguita'")
-    parser.add_argument("--control", type=int, default=CONTROL_FLIP_DELTA,
-                        help="delta contrario che conta come perdita del controllo")
-    parser.add_argument("--developing", action="store_true",
-                        help="aggiunge POC e bordi della value area in sviluppo della sessione")
-    parser.add_argument("--funnel", action="store_true", help="mostra quante barre superano ogni condizione")
-    args = parser.parse_args()
+    parser.add_argument("--levels-from", action="append", default=[], metavar="CANDELE.JSON")
 
-    MIN_FLIP_DELTA, LEVEL_TOLERANCE = args.flip, args.tolerance
-    TAPE_FACTOR, PULLBACK_BARS, STOP_MODE = args.tape_factor, args.pullback, args.stop
-    LEVEL_BUFFER = args.buffer
+    page02 = parser.add_argument_group("pagina 02 - chart setup")
+    page02.add_argument("--va-percent", type=float, default=None,
+                        help=f"percentuale di value area di barra; omessa usa quella di ATAS")
+
+    page03 = parser.add_argument_group("pagina 03 - OCO")
+    page03.add_argument("--risk", type=float, default=RISK_DOLLARS, help="rischio per operazione in dollari")
+    page03.add_argument("--point-value", type=float, default=POINT_VALUE, help="valore del punto")
+    page03.add_argument("--daily-cap", type=float, default=DAILY_CAP_R, help="cap giornaliero in R; 0 disattiva")
+
+    page04 = parser.add_argument_group("pagina 04 - le tre condizioni")
+    page04.add_argument("--flip", type=int, default=MIN_FLIP_DELTA, help="condizione 01: delta minimo del flip")
+    page04.add_argument("--va-shift", choices=["both", "val", "mid"], default=VA_SHIFT_RULE,
+                        help="condizione 02: come si legge 'positioned higher'")
+    page04.add_argument("--pending-control", type=int, default=PENDING_CONTROL_DELTA,
+                        help="condizione 03: delta contrario che cancella l'ordine pendente")
+    page04.add_argument("--manage", type=int, default=ACTIVE_CONTROL_DELTA,
+                        help="delta contrario che chiude la posizione aperta; 0 disattiva")
+    page04.add_argument("--pullback", type=int, default=PULLBACK_BARS, help="barre di validita' del limit")
+    page04.add_argument("--stop", choices=["va", "bar"], default=STOP_MODE)
+
+    page07 = parser.add_argument_group("pagina 07 - session timing")
+    page07.add_argument("--window", metavar="HH:MM-HH:MM", help="finestra oraria UTC")
+
+    parser.add_argument("--quiet", action="store_true", help="solo la riga di riepilogo")
+    parser.add_argument("--json", action="store_true", help="riepilogo in JSON, per aggregare piu' sessioni")
+    args = parser.parse_args()
+    if args.json:
+        args.quiet = True
+
+    VALUE_AREA_PERCENT = args.va_percent
+    RISK_DOLLARS, POINT_VALUE, DAILY_CAP_R = args.risk, args.point_value, args.daily_cap
+    MIN_FLIP_DELTA, VA_SHIFT_RULE = args.flip, args.va_shift
+    PENDING_CONTROL_DELTA, ACTIVE_CONTROL_DELTA = args.pending_control, args.manage
+    PULLBACK_BARS, STOP_MODE = args.pullback, args.stop
     SESSION_WINDOW = tuple(args.window.split("-")) if args.window else None
-    CONTROL_FLIP_DELTA = args.control
+
+    bars = json.load(open(args.candles))["candles"]
+    raw = json.load(open(args.tape))
+    if not raw.get("compact"):
+        raise SystemExit("il tape va scaricato con --compact")
+    tape = [(parse(t[0]), t[1], t[2], t[3], t[4]) for t in raw["trades"]]
+    times = [t[0] for t in tape]
+
+    vas = [bar_value_area(bar, VALUE_AREA_PERCENT) for bar in bars]
 
     levels = []
     for path in args.levels_from:
@@ -332,107 +287,65 @@ def main() -> None:
             for level in bar.get("levels", []):
                 volume[level["price"]] = volume.get(level["price"], 0) + level["volume"]
         tag = path.split("/")[-1].replace(".json", "")
-        levels += [(price, f"{name}-{tag}") for price, name in developing_levels(volume)]
-        levels += [(max(b["high"] for b in previous), f"max-{tag}"),
-                   (min(b["low"] for b in previous), f"min-{tag}")]
-
-    for raw in args.level:
-        price, _, name = raw.partition(":")
+        computed = value_area(volume, VALUE_AREA_PERCENT or 70.0)
+        if computed:
+            poc, val, vah = computed
+            levels += [(poc, f"POC-{tag}"), (vah, f"VAH-{tag}"), (val, f"VAL-{tag}")]
+    for entry in args.level:
+        price, _, name = entry.partition(":")
         levels.append((float(price), name or "livello"))
 
-    bars = json.load(open(args.candles))["candles"]
-    trades = load_big(args.big)
-
-    tape = times = None
-    if args.tape:
-        raw = json.load(open(args.tape))
-        if not raw.get("compact"):
-            raise SystemExit("il tape va scaricato con --compact")
-        tape = [(parse(t[0]), t[1], t[2], t[3], t[4]) for t in raw["trades"]]
-        times = [t[0] for t in tape]
-
-    # Livelli in sviluppo precalcolati barra per barra, ciascuno con le sole barre precedenti.
-    developing: list[list[tuple[float, str]]] = []
-    if args.developing:
-        running: dict[float, int] = {}
-        for bar in bars:
-            developing.append(developing_levels(running))
-            for level in bar.get("levels", []):
-                running[level["price"]] = running.get(level["price"], 0) + level["volume"]
-    else:
-        developing = [[] for _ in bars]
-
-    print(f"barre {len(bars)}  big trades {len(trades)}  livelli {len(levels)}")
-    print(f"soglie: tolleranza {LEVEL_TOLERANCE:g}, flip {MIN_FLIP_DELTA}, "
-          f"tape {TAPE_FACTOR:g}x mediana({TAPE_WINDOW}), big >= {MIN_BIG_TRADES}, pullback {PULLBACK_BARS} barre\n")
-
-    if args.funnel:
-        counts = dict(livello=0, flip=0, shift=0, conferma=0)
-        for i in range(TAPE_WINDOW, len(bars)):
-            bar, previous = bars[i], bars[i - 1]
-            if near_level(bar, levels + developing[i]) is None:
-                continue
-            counts["livello"] += 1
-            long_flip = previous["delta"] < 0 <= bar["delta"] and bar["delta"] >= MIN_FLIP_DELTA
-            short_flip = previous["delta"] > 0 >= bar["delta"] and bar["delta"] <= -MIN_FLIP_DELTA
-            if not (long_flip or short_flip):
-                continue
-            counts["flip"] += 1
-            side = "long" if long_flip else "short"
-            shifted = (bar["valueAreaHigh"] > previous["valueAreaHigh"] and bar["valueAreaLow"] > previous["valueAreaLow"]) if side == "long" \
-                else (bar["valueAreaHigh"] < previous["valueAreaHigh"] and bar["valueAreaLow"] < previous["valueAreaLow"])
-            if not shifted:
-                continue
-            counts["shift"] += 1
-            recent = sorted(b["volume"] for b in bars[i - TAPE_WINDOW:i])
-            median = recent[len(recent) // 2]
-            if len(big_in_bar(trades, bar, side)) >= MIN_BIG_TRADES and bar["volume"] >= TAPE_FACTOR * median:
-                counts["conferma"] += 1
-        print("imbuto: " + "  ".join(f"{k} {v}" for k, v in counts.items()) + "\n")
-
-    total = 0.0
-    taken = 0
-    r_total = 0.0
-    wins = 0
+    taken = wins = 0
+    r_total = dollars = 0.0
+    cancelled = unfilled = managed = 0
     risks: list[float] = []
-    i = 0
+
+    i = 1
     while i < len(bars):
-        sig = signal(bars, i, trades, levels + developing[i])
+        sig = signal(bars, i, vas, levels)
         if sig is None:
             i += 1
             continue
 
-        out = resolve_with_tape(bars, sig, tape, times) if tape else resolve(bars, sig)
-        rome = parse(sig["time"]).astimezone(timezone.utc)
-        print(f"barra {sig['bar']}  {sig['time'][11:19]} UTC ({rome.hour + 2:02d}:{rome.minute:02d} Roma)  "
-              f"{sig['side'].upper()}  a {sig['level']}")
-        print(f"   delta {sig['previousDelta']:+,} -> {sig['delta']:+,}   VA {sig['val']:,.0f}-{sig['vah']:,.0f}   "
-              f"big {sig['big']} ({sig['bigVolume']:,} lotti)   tape {sig['tapeRatio']:.1f}x")
-        if out["outcome"] == "annullato-condizione-3":
-            print(f"   controllo girato prima del fill -> ordine cancellato\n")
+        out = execute(bars, sig, tape, times)
+
+        if out["outcome"] == "cancellato-cond3":
+            cancelled += 1
         elif out["outcome"] == "non-eseguito":
-            print(f"   limit {out['entry']:,.2f} non toccato in {PULLBACK_BARS} barre -> cancellato\n")
-        elif out["outcome"] in ("ambiguo", "va-degenere"):
-            print(f"   esito {out['outcome']}\n")
-        else:
-            print(f"   entry {out['entry']:,.2f}  SL {out['stop']:,.2f}  TP {out['target']:,.2f}  "
-                  f"rischio {out['risk']:,.2f} punti")
-            print(f"   esito {out['outcome']} alla barra {out.get('exitBar', '-')} "
-                  f"{out.get('exitTime', '')[11:19]}  risultato {out.get('result', 0):+,.2f} punti\n")
-            total += out.get("result", 0.0)
+            unfilled += 1
+        elif out["outcome"] != "va-degenere":
             taken += 1
-            # In R il confronto fra varianti di stop e' leale: i punti premiano solo il rischio piu' largo.
-            r_total += out.get("result", 0.0) / out["risk"]
-            wins += 1 if out.get("result", 0.0) > 0 else 0
+            wins += 1 if out["result"] > 0 else 0
+            managed += 1 if out["outcome"] == "uscita-controllo" else 0
+            r_total += out["r"]
+            dollars += out["dollars"]
             risks.append(out["risk"])
+            if not args.quiet:
+                rome = parse(sig["time"]).hour + 2
+                print(f"barra {sig['bar']}  {sig['time'][11:19]} UTC ({rome:02d}:{sig['time'][14:16]} Roma)  "
+                      f"{sig['side'].upper()}  {sig['level']}")
+                print(f"   delta {sig['previousDelta']:+,} -> {sig['delta']:+,}   "
+                      f"VA {sig['val']:,.2f}-{sig['vah']:,.2f}   qty {out['quantity']}")
+                print(f"   entry {out['entry']:,.2f}  SL {out['stop']:,.2f}  TP {out['target']:,.2f}  "
+                      f"rischio {out['risk']:,.2f} pt")
+                print(f"   {out['outcome']} {out['exitTime'][11:19]}  "
+                      f"{out['r']:+.2f} R  {out['dollars']:+,.0f} $\n")
 
-        # Il modello non tiene due posizioni: si riprende dopo l'uscita.
-        i = max(out.get("exitBar", sig["bar"]), sig["bar"]) + 1
+        if DAILY_CAP_R and r_total >= DAILY_CAP_R:
+            break
 
+        i = sig["bar"] + 1
+
+    median = sorted(risks)[len(risks) // 2] if risks else 0
+    summary = {"trades": taken, "wins": wins, "r": round(r_total, 2), "dollars": round(dollars),
+               "medianRisk": median, "cancelled": cancelled, "unfilled": unfilled, "managed": managed}
+    if args.json:
+        print(json.dumps(summary))
+        return
     rate = f"{100 * wins / taken:.0f}%" if taken else "-"
-    median_risk = sorted(risks)[len(risks) // 2] if risks else 0
-    print(f"operazioni {taken}   vinte {wins} ({rate})   somma {total:+,.2f} punti   "
-          f"{r_total:+.2f} R   rischio mediano {median_risk:,.2f} punti")
+    print(f"operazioni {taken}   vinte {wins} ({rate})   {r_total:+.2f} R   {dollars:+,.0f} $   "
+          f"rischio mediano {median:,.2f} pt   cancellati {cancelled}   non eseguiti {unfilled}   "
+          f"uscite per controllo {managed}")
 
 
 if __name__ == "__main__":
