@@ -353,3 +353,51 @@ sessione, ed e' li' che il campione smette di poter dire qualcosa.
 
 Le barre M1 vere caricate da ATAS danno lo stesso risultato delle M1 ricostruite: 76 operazioni,
 49%, contro 85 e 51% — la differenza sta nei confini di barra, non nel comportamento.
+
+## Misurare La Predittivita' Separatamente Dall'Esecuzione
+
+Tutto cio' che precede passa attraverso tre scelte d'esecuzione — ingresso al bordo della value
+area, stop largo una value area, obiettivo 1:1 — che hanno un costo proprio e che possono
+seppellire un segnale che c'e' o fabbricarne uno che non c'e'. `probe_predictability.py` le toglie
+di mezzo: dalla chiusura di ogni barra si cammina sul tape e si guarda quale barriera simmetrica
+viene toccata prima, +X punti o -X punti. Nessun limite, nessuno spread, nessuna asimmetria.
+
+Sulle barre M1 caricate in ATAS, mese, finestra 13:30-15:30, barriera +/-20 punti: 2.358
+osservazioni, 2.270 risolte, 50,5% sale per prima.
+
+### Il Correttivo Che Cambia Tutto
+
+Le osservazioni **non sono indipendenti**: 114 barre per sessione, e con barriere a 20 punti le
+finestre in avanti di barre consecutive coprono quasi lo stesso movimento. Contarle come 2.270
+prove separate gonfia ogni z. La misura onesta calcola la statistica **per sessione** e poi
+testa sulle 20 sessioni, cosi' che ogni giornata pesi una volta sola.
+
+| misura | z ingenuo | t per sessione |
+|---|---|---|
+| volume 0,6-1,4x la mediana | +4,13 | +1,43 |
+| minuti 15-45 dall'apertura | -3,60 | **-3,00** |
+| minuti > 90 | +2,89 | +1,33 |
+| POC del giorno prima, +10..+50 punti | +2,76 | +1,16 |
+| flip di delta verso il basso | +2,36 | +1,63 |
+| flip di delta verso l'alto | +0,22 | +0,16 |
+| tutte le osservazioni | +0,46 | +0,24 |
+
+Il volume passa da 4,1 sigma a 1,4: era il conteggio, non il mercato. Lo stesso vale per tutto il
+resto.
+
+Da notare che il flip di delta **verso il basso** e' la cella piu' alta fra quelle del modello, e
+va nella direzione opposta alla condizione 01: quando il delta gira in giu', il prezzo tende a
+salire. E' la lettura per assorbimento, non per continuazione. A t=+1,63 non e' un risultato, ma
+e' l'unico segno che la condizione 01 possa avere il verso sbagliato.
+
+### Cosa Resta In Piedi
+
+Una sola cella sopravvive al correttivo: fra i 15 e i 45 minuti dall'apertura il prezzo scende per
+primo nel 57,4% dei casi, t=-3,00 su 20 sessioni. Due ragioni per non costruirci sopra:
+
+1. e' una fra circa trenta celle testate; con la correzione per confronti multipli non passa;
+2. e' una deriva oraria misurata su **un solo mese**, cioe' esattamente il tipo di regolarita' che
+   appartiene al periodo e non al mercato.
+
+Serve un secondo mese, fuori campione. Il chart M1 in ATAS ne tiene 28.738 barre, che partono dal
+13 agosto: per andare piu' indietro va alzato il numero di barre caricate nel chart.
