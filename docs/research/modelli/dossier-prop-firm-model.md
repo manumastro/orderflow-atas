@@ -401,3 +401,62 @@ primo nel 57,4% dei casi, t=-3,00 su 20 sessioni. Due ragioni per non costruirci
 
 Serve un secondo mese, fuori campione. Il chart M1 in ATAS ne tiene 28.738 barre, che partono dal
 13 agosto: per andare piu' indietro va alzato il numero di barre caricate nel chart.
+
+## Il Verso Della Condizione 01
+
+L'indizio era che il flip di delta **verso il basso** fosse la cella piu' alta del modello: quando
+il delta gira in giu', il prezzo tende a salire. Sarebbe la lettura per assorbimento, opposta alla
+continuazione che il dossier prescrive. `--reverse-flip` e `--reverse-shift` la implementano, e
+l'inversione avviene dentro la condizione 01, non a valle, cosi' che condizione 02, lato del
+limit, controllo del pendente e geometria di stop e target seguano tutti il lato definitivo. La
+vecchia `--invert` girava il lato dopo: misurava un ordine che si eseguiva al primo trade.
+
+### Nel Replay
+
+| | M1 | 40R | 80R |
+|---|---|---|---|
+| dossier, 01 e 02 come scritte | 49% (76) | 49% (436) | 54% (127) |
+| solo 01 invertita | 50% (6) | 47% (45) | 52% (21) |
+| solo 02 invertita | 43% (60) | 51% (229) | 49% (139) |
+| entrambe, assorbimento coerente | 39% (33) | 47% (89) | 42% (48) |
+
+### Sulle Barriere Simmetriche
+
+Il replay pero' fa passare tutto dall'esecuzione, che e' cio' che volevamo evitare. La misura
+diretta, per sessione, su due scale e tre ampiezze di barriera:
+
+| scala | barriera | dopo flip in giu', sale | dopo flip in su', sale |
+|---|---|---|---|
+| M1 | 10 | 48,6% | 48,9% |
+| M1 | 20 | 54,6% | 50,4% |
+| M1 | 40 | 53,2% | 52,0% |
+| 40R | 10 | 49,0% | 51,3% |
+| 40R | 20 | 50,2% | 50,9% |
+| 40R | 40 | 53,8% | 52,7% |
+
+Le due colonne sono **la stessa colonna**. Qualunque sia il verso in cui il delta gira, il prezzo
+fa la stessa cosa dopo.
+
+Il test decisivo e' appaiato dentro la sessione — la differenza fra le due colonne, giorno per
+giorno, cosi' che la deriva della giornata si cancelli:
+
+| scala | barriera | differenza media | t |
+|---|---|---|---|
+| M1 | 10 | -0,3% | -0,14 |
+| M1 | 20 | +4,2% | +2,03 |
+| M1 | 40 | +1,2% | +0,70 |
+| 40R | 10 | -2,3% | -1,94 |
+| 40R | 20 | -0,7% | -0,97 |
+| 40R | 40 | +1,0% | +1,17 |
+
+Sei test, i segni si alternano, e i due valori vicini a 2 sigma hanno **segno opposto**. Se il flip
+portasse direzione in un verso qualsiasi, i sei condividerebbero il segno.
+
+### Conclusione, Piu' Netta Dell'Ipotesi
+
+La condizione 01 non ha il verso sbagliato: **non ha verso**. Il flip di delta non condiziona la
+direzione successiva a nessuna delle due scale e a nessuna delle tre ampiezze. Il t=+1,63 che
+aveva fatto nascere l'ipotesi era una cella su dodici e non si riproduce da nessun'altra parte.
+
+Questo chiude la strada dei parametri. Il segnale non e' tarato male e non e' girato al contrario:
+la grandezza su cui e' costruito non porta informazione direzionale misurabile su questo mese.

@@ -73,6 +73,11 @@ STOP_MODE = "va"            # va = VAL della candela, bar = minimo della candela
 # significa che dal prezzo di ingresso il mercato raggiunge lo stop prima del target nel 61% dei casi.
 INVERT = False
 
+# Lettura per assorbimento delle due condizioni: si testano separatamente perche' potrebbero
+# avere il verso sbagliato una senza l'altra.
+REVERSE_FLIP = False
+REVERSE_SHIFT = False
+
 # Controllo valido: stessa costruzione di entry, stop e target, ma **senza le tre condizioni**.
 # Il lato viene dal corpo della barra. Se il modello con le condizioni non batte questo, le
 # condizioni non aggiungono informazione.
@@ -242,16 +247,32 @@ def bar_value_area(bar: dict, percent: float):
 # ------------------------------------------------------------ pagina 04: le tre condizioni
 
 def condition_01_auction_flip(previous: dict, bar: dict) -> str | None:
-    """Il delta gira: i compratori prendono il controllo dai venditori, o viceversa."""
+    """Il delta gira: i compratori prendono il controllo dai venditori, o viceversa.
+
+    REVERSE_FLIP legge lo stesso evento come assorbimento invece che come continuazione. Il
+    dossier dice continuazione; la misura diretta sulle barriere simmetriche dice che il segno
+    potrebbe essere l'altro, ed e' una cosa che si testa invece di discuterla.
+
+    L'inversione avviene **qui**, non a valle: cosi' condizione 02, il lato del limit, il
+    controllo dell'ordine pendente e la geometria di stop e target seguono tutti il lato
+    definitivo. La vecchia opzione --invert girava il lato dopo, e produceva un ordine che si
+    eseguiva al primo trade: misurava quell'artefatto, non l'ipotesi.
+    """
     if previous["delta"] < 0 and bar["delta"] >= MIN_FLIP_DELTA:
-        return "long"
+        return "short" if REVERSE_FLIP else "long"
     if previous["delta"] > 0 and bar["delta"] <= -MIN_FLIP_DELTA:
-        return "short"
+        return "long" if REVERSE_FLIP else "short"
     return None
 
 
 def condition_02_value_area_shift(side: str, previous_va, current_va) -> bool:
-    """La value area della nuova candela e' posizionata piu' in alto, o piu' in basso."""
+    """La value area della nuova candela e' posizionata piu' in alto, o piu' in basso.
+
+    Con REVERSE_SHIFT il valore deve essersi spostato **contro** il lato: e' la lettura coerente
+    con l'assorbimento, dove si compra dopo che il valore e' sceso invece che dopo che e' salito.
+    """
+    if REVERSE_SHIFT:
+        side = "short" if side == "long" else "long"
     (prev_val, prev_vah), (val, vah) = previous_va, current_va
     if VA_SHIFT_RULE == "val":
         return val > prev_val if side == "long" else vah < prev_vah
@@ -448,6 +469,7 @@ def main() -> None:
     global MIN_FLIP_DELTA, VA_SHIFT_RULE, PENDING_CONTROL_DELTA, ACTIVE_CONTROL_DELTA
     global PULLBACK_BARS, SESSION_WINDOW, STOP_MODE
     global INVERT, TREND_BARS, MEAN_REVERSION, PACE_RANGE, ABSORPTION, NULL_MODEL
+    global REVERSE_FLIP, REVERSE_SHIFT
     global REQUIRE_PULLBACK, LEVEL_TOLERANCE, BREAKEVEN_R, TARGET_R
     global BIG_TRADE_SIZE, BIG_TRADE_COUNT, BIG_TRADE_DOMINANCE
     global SPEED_MULTIPLE, SPEED_DOMINANCE, FLOW_WINDOW, BIG_LEVELS, BIG_LEVEL_AGE
@@ -487,6 +509,10 @@ def main() -> None:
     tests.add_argument("--invert", action="store_true", help="controllo non valido, vedi il commento nel file")
     parser.add_argument("--no-pullback-check", action="store_true",
                         help="accetta anche i setup in cui il limit si eseguirebbe subito")
+    tests.add_argument("--reverse-flip", action="store_true",
+                       help="condizione 01 letta come assorbimento: delta che gira in giu' -> long")
+    tests.add_argument("--reverse-shift", action="store_true",
+                       help="condizione 02 letta come assorbimento: il valore si sposta contro il lato")
     tests.add_argument("--null", action="store_true", help="stessa esecuzione senza le tre condizioni")
     tests.add_argument("--trend", type=int, default=0, metavar="N", help="richiede N VA shift consecutivi nello stesso verso")
     tests.add_argument("--mean-reversion", action="store_true", help="richiede che il valore stesse andando dall'altra parte")
@@ -531,6 +557,7 @@ def main() -> None:
     SESSION_WINDOW = tuple(args.window.split("-")) if args.window else None
     INVERT, TREND_BARS, MEAN_REVERSION = args.invert, args.trend, args.mean_reversion
     NULL_MODEL = args.null
+    REVERSE_FLIP, REVERSE_SHIFT = args.reverse_flip, args.reverse_shift
     REQUIRE_PULLBACK = not args.no_pullback_check
     LEVEL_TOLERANCE = args.level_tolerance
     BREAKEVEN_R, TARGET_R = args.breakeven, args.target
