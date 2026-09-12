@@ -63,7 +63,7 @@ prop/                      esecuzione: mercato guida, sizing, fee, regole delle 
 
 ### 6. Il primo modello reso misurabile
 
-[The Prop Firm Model](docs/research/modelli/modello-40r-riferimento.md) e' l'unico modello operativo del repository, ed e' esplicitamente **non validato**. La fonte di verita' e' il dossier in [`prop/prop_firm_model/`](prop/prop_firm_model/); il documento nel repository lo riporta e ne esplicita le convenzioni.
+[The Prop Firm Model](docs/research/modelli/modello-40r-riferimento.md) e' l'unico modello operativo del repository, ed e' esplicitamente **non validato**. La fonte di verita' e' il dossier in [`prop/prop_firm_model/`](prop/prop_firm_model/), [trascritto pagina per pagina](docs/research/modelli/dossier-prop-firm-model.md) insieme all'elenco di cio' che lascia alla discrezione.
 
 Il lavoro utile e' stato renderlo falsificabile. La prima esecuzione del [replay](docs/research/sessioni/replay-modello-settimana-2026-09-11.md) implementava non il dossier ma la sua sintesi, e aggiungeva due condizioni inesistenti: un filtro sui livelli e uno sui Big Trades. Il secondo azzerava gli ingressi, facendo sembrare che il modello non operasse mai. Era un artefatto dell'implementazione, ed e' registrato accanto al risultato corretto.
 

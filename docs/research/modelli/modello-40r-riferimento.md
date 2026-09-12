@@ -1,6 +1,6 @@
 # The Prop Firm Model: Modello 40R Di Riferimento
 
-**Fonte di verita': il dossier in [`prop/prop_firm_model/`](../../../prop/prop_firm_model/)**, *The Prop Firm Model — a method by Fabio 'Fabervaale' Valentini*, nove pagine. Dove questo documento e il dossier divergono, vale il dossier.
+**Fonte di verita': il dossier in [`prop/prop_firm_model/`](../../../prop/prop_firm_model/)**, *The Prop Firm Model — a method by Fabio 'Fabervaale' Valentini*. La trascrizione pagina per pagina e' in [`dossier-prop-firm-model.md`](dossier-prop-firm-model.md), che riporta anche l'elenco di cio' che il dossier lascia aperto. Dove questo documento e il dossier divergono, vale il dossier.
 
 Stato: **modello candidato, non validato in questo repository**. Le misure qui sotto sono descrizioni di una settimana, non una verifica.
 
