@@ -58,6 +58,8 @@ def main() -> None:
 
     extra = [a for a in passthrough if a != "--"]
     days = sessions(args.directory)
+    if not days:
+        raise SystemExit(f"nessuna coppia cAA-GG.json / tAA-GG.json in {args.directory}")
     print(f"{len(days)} sessioni, da {days[0][0]} a {days[-1][0]}\n")
 
     if args.sweep:

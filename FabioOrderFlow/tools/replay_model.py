@@ -49,11 +49,61 @@ ACTIVE_CONTROL_DELTA = 0
 # Quanto resta valido un ordine pendente. Il dossier non lo dice.
 PULLBACK_BARS = 3
 
+# Un limit order si piazza **lontano** dal prezzo: per un long al VAH, il VAH dev'essere sotto la
+# chiusura della barra di segnale. Se sta sopra, l'ordine si esegue al primo trade e non e' piu'
+# un ingresso su pullback ma un ingresso a mercato, con lo stop gia' vicinissimo. Il dossier lo
+# implica due volte: "wait for the pullback" e "if you do not get filled, do not chase".
+REQUIRE_PULLBACK = True
+
 # ============================================================ pagina 07: session timing
 # ON: pre-market e prime due ore della RTH di New York. OFF: pranzo e sera.
 SESSION_WINDOW: tuple[str, str] | None = None
 
 STOP_MODE = "va"            # va = VAL della candela, bar = minimo della candela
+
+# ============================================================ ipotesi sotto test
+# Nessuna di queste viene dal dossier in forma operativa: sono tentativi di rendere misurabili
+# le parti che il dossier lascia alla discrezione, piu' un controllo sul modello stesso.
+
+# Controllo non valido, tenuto per non ripeterlo. Invertire il lato cambia anche la geometria:
+# uno short al VAL si riempie al primo trade, perche' il prezzo a fine barra sta gia' sopra, e
+# lo stop al VAH e' subito sopra il fill. Il 5% che ne esce misura quell'artefatto, non il segnale.
+# L'informazione che questo test avrebbe dato e' comunque gia' nel win rate di base: un 39%
+# significa che dal prezzo di ingresso il mercato raggiunge lo stop prima del target nel 61% dei casi.
+INVERT = False
+
+# Controllo valido: stessa costruzione di entry, stop e target, ma **senza le tre condizioni**.
+# Il lato viene dal corpo della barra. Se il modello con le condizioni non batte questo, le
+# condizioni non aggiungono informazione.
+NULL_MODEL = False
+
+# Contesto "trending markets": stacked VA shifts in one direction (pagina 04).
+TREND_BARS = 0
+
+# Contesto "key level mean reversion": il segnale sta a un livello ereditato e va contro la
+# direzione delle barre precedenti.
+MEAN_REVERSION = False
+
+# Pagina 07: "not too fast, not too slow". Durata della barra 40R in secondi.
+PACE_RANGE: tuple[float, float] | None = None
+
+# Pattern 04 della library: assorbimento. Delta di barra opposto al corpo della barra.
+ABSORPTION = False
+
+# Tolleranza in punti con cui una barra 40R si considera "sul livello" del profile framing
+# del giorno prima. Non viene dal dossier: viene dal primo transcript del corso, dove ogni
+# esecuzione parte da un livello marcato prima dell'apertura.
+LEVEL_TOLERANCE = 10.0
+
+# --- dal primo transcript del corso, non dal dossier ---------------------------------------
+# Il dossier chiude sempre a 1:1 con un OCO. Nella live Fabio non lo fa mai: porta lo stop a
+# pareggio appena la posizione respira ("why leaving floating profit on the market?") e tiene
+# aperto molto oltre 1:1. A fine sessione dichiara "we didn't take a single stop loss for the
+# day, only breakeven and take profit". Queste due variabili servono a misurare quella
+# differenza, che cambia il gioco: a 1:1 un 48% di vittorie non puo' guadagnare, con lo stop a
+# pareggio le perdite diventano zeri e bastano pochi target per stare sopra.
+BREAKEVEN_R = 0.0           # frazione di R favorevole dopo cui lo stop va all'ingresso
+TARGET_R = 1.0              # obiettivo in multipli di R
 
 
 def parse(raw: str) -> datetime:
@@ -135,22 +185,60 @@ def signal(bars, i, vas, levels):
 
     previous, bar = bars[i - 1], bars[i]
 
-    side = condition_01_auction_flip(previous, bar)
-    if side is None:
-        return None
-    if not condition_02_value_area_shift(side, vas[i - 1], vas[i]):
-        return None
+    if PACE_RANGE is not None:
+        seconds = (parse(bar["lastTime"]) - parse(bar["time"])).total_seconds()
+        if not (PACE_RANGE[0] <= seconds <= PACE_RANGE[1]):
+            return None
+
+    if NULL_MODEL:
+        side = "long" if bar["close"] > bar["open"] else "short"
+    else:
+        side = condition_01_auction_flip(previous, bar)
+        if side is None:
+            return None
+        if not condition_02_value_area_shift(side, vas[i - 1], vas[i]):
+            return None
+
+    if ABSORPTION:
+        # Il corpo della barra va in una direzione e il delta nell'altra: chi e' aggressivo
+        # non ottiene il prezzo. E' la lettura dei pattern 03 e 04 della library.
+        body = bar["close"] - bar["open"]
+        if not ((body > 0 and bar["delta"] < 0) or (body < 0 and bar["delta"] > 0)):
+            return None
+
+    if TREND_BARS:
+        # Stacked VA shifts: le barre precedenti devono aver spostato il valore nello stesso verso.
+        if i < TREND_BARS + 1:
+            return None
+        for k in range(i - TREND_BARS, i):
+            if not condition_02_value_area_shift(side, vas[k - 1], vas[k]):
+                return None
+
+    if MEAN_REVERSION:
+        # Il contrario: il valore stava andando dall'altra parte e il segnale lo inverte.
+        if i < 3:
+            return None
+        opposite = "short" if side == "long" else "long"
+        if not all(condition_02_value_area_shift(opposite, vas[k - 1], vas[k]) for k in range(i - 2, i)):
+            return None
 
     # Il livello non e' una condizione del dossier: e' contesto. Resta un filtro attivabile.
     if levels:
         near = next((f"{name} {price:,.0f}" for price, name in levels
-                     if bar["low"] - 10 <= price <= bar["high"] + 10), None)
+                     if bar["low"] - LEVEL_TOLERANCE <= price <= bar["high"] + LEVEL_TOLERANCE), None)
         if near is None:
             return None
     else:
         near = "nessun filtro di livello"
 
     val, vah = vas[i]
+    if REQUIRE_PULLBACK:
+        entry = vah if side == "long" else val
+        if (side == "long" and entry >= bar["close"]) or (side == "short" and entry <= bar["close"]):
+            return None
+
+    if INVERT:
+        side = "short" if side == "long" else "long"
     return {
         "bar": i, "side": side, "level": near, "time": bar["lastTime"],
         "delta": bar["delta"], "previousDelta": previous["delta"],
@@ -172,7 +260,7 @@ def execute(bars, sig, tape, times):
     risk = abs(entry - stop)
     if risk == 0:
         return {"outcome": "va-degenere"}
-    target = entry + risk if long else entry - risk
+    target = entry + risk * TARGET_R if long else entry - risk * TARGET_R
 
     quantity = max(1, round(RISK_DOLLARS / (risk * POINT_VALUE)))
 
@@ -201,10 +289,16 @@ def execute(bars, sig, tape, times):
     # --- posizione aperta: "monitor side control on the active position"
     start = bisect.bisect_left(times, fill_time)
     since_fill = 0
+    moved = False
+    trigger = entry + risk * BREAKEVEN_R if long else entry - risk * BREAKEVEN_R
     for trade in tape[start:]:
         price = trade[4]
+        if BREAKEVEN_R and not moved and ((long and price >= trigger) or (not long and price <= trigger)):
+            # Lo stop va all'ingresso: da qui in poi la peggiore uscita possibile e' zero.
+            stop, moved = entry, True
         if (long and price <= stop) or (not long and price >= stop):
-            return done("stop", -risk, entry, stop, target, risk, quantity, trade[0])
+            outcome = "pareggio" if moved else "stop"
+            return done(outcome, 0.0 if moved else -risk, entry, stop, target, risk, quantity, trade[0])
         if (long and price >= target) or (not long and price <= target):
             return done("target", risk, entry, stop, target, risk, quantity, trade[0])
         since_fill += trade[1] * trade[2]
@@ -227,12 +321,16 @@ def main() -> None:
     global VALUE_AREA_PERCENT, RISK_DOLLARS, POINT_VALUE, DAILY_CAP_R
     global MIN_FLIP_DELTA, VA_SHIFT_RULE, PENDING_CONTROL_DELTA, ACTIVE_CONTROL_DELTA
     global PULLBACK_BARS, SESSION_WINDOW, STOP_MODE
+    global INVERT, TREND_BARS, MEAN_REVERSION, PACE_RANGE, ABSORPTION, NULL_MODEL
+    global REQUIRE_PULLBACK, LEVEL_TOLERANCE, BREAKEVEN_R, TARGET_R
 
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("candles", help="JSON di /candles con --levels")
     parser.add_argument("--tape", required=True, help="JSON di /cumulative --min-volume 0 --compact")
     parser.add_argument("--level", action="append", default=[], metavar="PREZZO:NOME")
     parser.add_argument("--levels-from", action="append", default=[], metavar="CANDELE.JSON")
+    parser.add_argument("--level-tolerance", type=float, default=LEVEL_TOLERANCE,
+                        help="punti entro cui la barra si considera sul livello")
 
     page02 = parser.add_argument_group("pagina 02 - chart setup")
     page02.add_argument("--va-percent", type=float, default=None,
@@ -257,6 +355,20 @@ def main() -> None:
     page07 = parser.add_argument_group("pagina 07 - session timing")
     page07.add_argument("--window", metavar="HH:MM-HH:MM", help="finestra oraria UTC")
 
+    tests = parser.add_argument_group("ipotesi sotto test - non vengono dal dossier")
+    tests.add_argument("--invert", action="store_true", help="controllo non valido, vedi il commento nel file")
+    parser.add_argument("--no-pullback-check", action="store_true",
+                        help="accetta anche i setup in cui il limit si eseguirebbe subito")
+    tests.add_argument("--null", action="store_true", help="stessa esecuzione senza le tre condizioni")
+    tests.add_argument("--trend", type=int, default=0, metavar="N", help="richiede N VA shift consecutivi nello stesso verso")
+    tests.add_argument("--mean-reversion", action="store_true", help="richiede che il valore stesse andando dall'altra parte")
+    tests.add_argument("--pace", metavar="MIN,MAX", help="durata della barra 40R in secondi")
+    tests.add_argument("--absorption", action="store_true", help="richiede delta opposto al corpo della barra")
+    tests.add_argument("--breakeven", type=float, default=0.0, metavar="R",
+                       help="porta lo stop all'ingresso dopo N R favorevoli; 0 disattiva")
+    tests.add_argument("--target", type=float, default=1.0, metavar="R",
+                       help="obiettivo in multipli di R; il dossier dice 1")
+
     parser.add_argument("--quiet", action="store_true", help="solo la riga di riepilogo")
     parser.add_argument("--json", action="store_true", help="riepilogo in JSON, per aggregare piu' sessioni")
     args = parser.parse_args()
@@ -269,6 +381,13 @@ def main() -> None:
     PENDING_CONTROL_DELTA, ACTIVE_CONTROL_DELTA = args.pending_control, args.manage
     PULLBACK_BARS, STOP_MODE = args.pullback, args.stop
     SESSION_WINDOW = tuple(args.window.split("-")) if args.window else None
+    INVERT, TREND_BARS, MEAN_REVERSION = args.invert, args.trend, args.mean_reversion
+    NULL_MODEL = args.null
+    REQUIRE_PULLBACK = not args.no_pullback_check
+    LEVEL_TOLERANCE = args.level_tolerance
+    BREAKEVEN_R, TARGET_R = args.breakeven, args.target
+    ABSORPTION = args.absorption
+    PACE_RANGE = tuple(float(x) for x in args.pace.split(",")) if args.pace else None
 
     bars = json.load(open(args.candles))["candles"]
     raw = json.load(open(args.tape))

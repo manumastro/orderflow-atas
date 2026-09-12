@@ -204,3 +204,42 @@ Le prime quattro sono parametri: si dichiarano e si misura la sensibilita'. Le v
 
 - [Modello 40R di riferimento](modello-40r-riferimento.md): le convenzioni scelte per rendere eseguibile il modello.
 - [Replay sulla settimana 2026-09-04 / 09-11](../sessioni/replay-modello-settimana-2026-09-11.md): cosa misura il sottoinsieme meccanico.
+
+## Confronto Con Il Primo Transcript Del Corso
+
+Il dossier e la prima live del corso (`fabio_course/fabio_q1/`) descrivono due cose diverse, e la
+differenza spiega perche' il replay produce molte piu' operazioni di quante Fabio ne prenda.
+
+| | dossier | primo transcript |
+|---|---|---|
+| innesco | ogni candela 40R che soddisfa le tre condizioni | un livello marcato **prima** della sessione, poi order flow come conferma |
+| frequenza | non dichiarata | "one or two opportunities per day" con il session profile, "5, 10" con i fixed profile sugli swing point |
+| obiettivo | 1:1 con OCO | 1:2, 1:2.5, fino a 1:12 e 1:20; "take out one, two, three, it's enough, and reload the risk" |
+| gestione | non descritta | stop a pareggio appena possibile: "why leaving floating profit on the market?" |
+| chiusura giornata | cap in R | "if we lose this trade, we stop for the day"; la live chiude a 4,5R con zero stop loss, solo pareggi e target |
+| filtro di rumore | assente | big trades e speed of tape: "it's keeping you out of useless moment in the market" |
+
+La sequenza del transcript e' esplicita: **"the first step is profile framing"**. La location viene
+prima del segnale, non dopo. Il dossier la da' per scontata perche' descrive solo il momento
+dell'esecuzione.
+
+### Cosa Ha Prodotto La Misura
+
+Mese di 19 sessioni, finestra 13:30-15:30 UTC, entrata limite vera:
+
+| | op/sessione | WR | R |
+|---|---|---|---|
+| modello senza gate di location | 21,8 | 49% | -6,61 |
+| modello nullo (nessuna condizione) | 221 | 47% | -273 |
+| gate sul profile framing del giorno prima, ±10 punti | 4,6 | 48% | -4,00 |
+| stesso gate, ±0 punti | 1,4 | 42% | -4,00 |
+| stesso gate, ±25 punti | 8,1 | 46% | -13,00 |
+
+Il gate di location porta la frequenza esattamente nell'intervallo che Fabio dichiara, ma **non
+sposta la percentuale di vittorie**. Il disallineamento di frequenza era reale; l'edge non sta li'.
+
+Allargare l'obiettivo peggiora in modo monotono (1:2 -> 32%, 1:3 -> 24%, sotto il breakeven di
+entrambi), e lo stop a pareggio a 0,5R peggiora il totale invece di migliorarlo: troppe posizioni
+che avrebbero raggiunto il target vengono azzerate prima. Sono i numeri di una serie senza
+direzione. Cio' che il transcript aggiunge e che il replay non misura e' il filtro big trades piu'
+speed of tape, cioe' esattamente la parte che Fabio descrive come "informational edge".
