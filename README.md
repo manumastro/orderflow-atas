@@ -63,11 +63,11 @@ prop/                      esecuzione: mercato guida, sizing, fee, regole delle 
 
 ### 6. Il primo modello reso misurabile
 
-Il [modello 40R di riferimento](docs/research/modelli/modello-40r-riferimento.md) e' l'unico modello operativo del repository, ed e' esplicitamente **non validato**. E' stato separato dal materiale sulle prop perche' descrive come leggere il flusso, non quale prop usare.
+[The Prop Firm Model](docs/research/modelli/modello-40r-riferimento.md) e' l'unico modello operativo del repository, ed e' esplicitamente **non validato**. La fonte di verita' e' il dossier in [`prop/prop_firm_model/`](prop/prop_firm_model/); il documento nel repository lo riporta e ne esplicita le convenzioni.
 
-Il lavoro utile e' stato renderlo falsificabile: sei dei suoi dieci punti contenevano una parola che nessun dato definisce, e ognuna e' diventata una convenzione dichiarata. Applicato cosi' alla cash del 2026-09-11 non produce **nessun** ingresso, e il [replay](docs/research/sessioni/replay-modello-2026-09-11.md) mostra dove si ferma e perche'.
+Il lavoro utile e' stato renderlo falsificabile. La prima esecuzione del [replay](docs/research/sessioni/replay-modello-settimana-2026-09-11.md) implementava non il dossier ma la sua sintesi, e aggiungeva due condizioni inesistenti: un filtro sui livelli e uno sui Big Trades. Il secondo azzerava gli ingressi, facendo sembrare che il modello non operasse mai. Era un artefatto dell'implementazione, ed e' registrato accanto al risultato corretto.
 
-Il risultato piu' solido non riguarda i segnali ma la scala: su NQ a 40 Range la value area di barra e' larga cinque punti, quindi un TP 1:1 sullo stop tecnico vale quanto le fee.
+Sulla settimana, applicato come il dossier lo descrive, il modello fa 125 operazioni al 55% con obiettivo 1:1, cioe' **+0,10 R per operazione**. La finestra oraria che il dossier dichiara in anticipo regge in sei confronti su sei; la soglia sul delta flip, scelta guardando i dati, no. E il lordo atteso per operazione e' dello stesso ordine di grandezza delle commissioni.
 
 ## Come Si Lavora Qui
 

@@ -1,71 +1,83 @@
-# Modello 40R Di Riferimento
+# The Prop Firm Model: Modello 40R Di Riferimento
 
-Stato: **modello candidato, non validato**. Nessuna regola qui dentro e' stata verificata su un campione. Il repository resta osservativo: questo documento serve a rendere il modello abbastanza preciso da poter essere sbagliato.
+**Fonte di verita': il dossier in [`prop/prop_firm_model/`](../../../prop/prop_firm_model/)**, *The Prop Firm Model — a method by Fabio 'Fabervaale' Valentini*, nove pagine. Dove questo documento e il dossier divergono, vale il dossier.
 
-Il modello nasce dalla pratica operativa discussa attorno al 2026-09-01 ed era finora incorporato in [`prop/PROP_TRADING_KNOWLEDGE.md`](../../../prop/PROP_TRADING_KNOWLEDGE.md). E' stato separato perche' e' una cosa a se': descrive come leggere il flusso, non quale prop usare. Le regole delle prop cambiano; il modello no.
+Stato: **modello candidato, non validato in questo repository**. Le misure qui sotto sono descrizioni di una settimana, non una verifica.
 
-## La Sequenza
+## Le Tre Condizioni
 
-```text
-livello importante
-  -> delta flip
-  -> VA shift
-  -> Big Trades + tape confermano
-  -> pullback al bordo della value area
-  -> entry limit
-  -> SL lato opposto
-  -> TP 1:1
-```
+Il dossier e' esplicito: *"Do not place the limit order unless all three conditions are confirmed on the closing 40R candle."*
 
-1. **Livello importante**: VAH, VAL, POC, HVN/LVN, massimo o minimo, oppure un'area gia' reattiva.
-2. **Delta flip**: il controllo passa da venditori a compratori per un long, l'inverso per uno short.
-3. **VA shift**: la nuova value area si sposta piu' in alto per un long, piu' in basso per uno short.
-4. **Conferma**: Big Trades e Speed of Tape devono sostenere il lato. Non sono il trigger primario.
-5. **Pullback**: si attende il ritorno sul bordo della value area della 40R appena chiusa. Non si insegue.
-6. **Entry**: limit. Long tipicamente su VAH, short su VAL.
-7. **Pending**: se il controllo cambia, l'ordine si cancella.
-8. **SL**: bordo opposto della value area, oppure estremo tecnico della barra.
-9. **TP**: 1:1 sul rischio lordo.
-10. **Sessione**: finestre liquide. Si evitano le fasi morte se il flusso non e' leggibile.
+1. **Auction flip.** Il delta gira: i compratori prendono il controllo dai venditori per un long, l'inverso per uno short.
+2. **Value area shift.** La value area della nuova candela e' piu' alta della precedente per un long, piu' bassa per uno short.
+3. **Side control, in tempo reale.** Mentre la candela successiva si forma, il lato deve restare in controllo. Se il controllo gira a meta' candela, **l'ordine pendente si cancella**.
 
-Configurazione ATAS: 40 Range, Volume POC, Delta POC, Delta candles, Value Area lines, Big Trades, Speed of Tape, Volume Profile di contesto.
+## Esecuzione
+
+| | |
+|---|---|
+| Entry | limit al **VAH** della 40R chiusa per i long, al **VAL** per gli short |
+| Stop | **VAL** della stessa candela, oppure il suo minimo |
+| Take profit | **1:1**, piazzato automaticamente via OCO |
+| Quantita' | calcolata dal software dal rischio in valuta |
+| Non eseguito | non si insegue. *"It is part of the game."* |
+
+## Contesto E Finestra
+
+Il livello **non e' una condizione**. Il dossier lo colloca fra i due contesti in cui il modello lavora meglio:
+
+- **mercati in tendenza**: VA impilate nella stessa direzione, asta saldamente controllata;
+- **mean reversion su key level**: il delta gira l'asta e la VA si sposta contro la tendenza precedente.
+
+La finestra invece e' una regola:
+
+- **ON**: pre-market e **prime due ore della RTH di New York**.
+- **OFF**: ore del pranzo e sessione serale. Liquidita' sottile, prezzo disordinato.
+
+Configurazione chart: template OrderTrack in DeepCharts, 40 Range, Volume POC, Delta POC, Delta candles, Value Area con Show Line e Highlight attivi.
 
 ## Cosa Il Modello Lascia Indeterminato
 
-Nella forma sopra il modello non e' eseguibile da un programma: sei punti su dieci contengono una parola che nessun dato definisce. Renderli espliciti e' la condizione per poterlo misurare, e ogni scelta e' una convenzione, non un fatto.
+Tre condizioni su tre contengono una parola che nessun dato definisce. Renderle esplicite e' la condizione per misurarle, e ogni scelta e' una convenzione.
 
-| Punto | Indeterminato | Convenzione adottata nel replay |
+| Condizione | Indeterminato | Convenzione nel replay |
 |---|---|---|
-| 1 | quanto vicino e' "a un livello" | il livello cade dentro il range della barra piu' 10 punti |
-| 1 | quali livelli, oltre a quelli ereditati | POC, VAH e VAL **in sviluppo** della sessione, calcolati sulle sole barre chiuse |
-| 2 | quanto grande dev'essere il flip | segno del delta invertito e nuovo delta di almeno 80 in valore assoluto |
-| 3 | cosa significa "VA piu' alta" | **entrambi** i bordi della value area si spostano nella direzione del lato |
-| 4 | cosa conta come Big Trade | almeno un trade aggregato da 50 lotti sul lato, dentro la finestra della barra |
-| 4 | cosa conta come tape veloce | volume di barra almeno 1,3 volte la mediana delle 20 barre precedenti |
-| 5 | quanto resta valido il limit | tre barre, poi si cancella |
-| 8 | quale dei due stop | bordo opposto della value area; l'estremo di barra e' selezionabile |
+| 1 | quanto grande dev'essere il flip | segno del delta invertito e nuovo delta di almeno 40 in valore assoluto |
+| 2 | cosa significa "VA piu' alta" | **entrambi** i bordi si spostano nella direzione del lato |
+| 3 | come si misura il controllo intrabarra | **non replicabile in storico**, vedi sotto |
+| entry | quanto resta valido il limit | tre barre, poi si cancella |
+| finestra | quali sono le "prime due ore" | 13:30-15:30 UTC, cioe' 09:30-11:30 New York |
 
-Sono le costanti in testa a [`FabioOrderFlow/tools/replay_model.py`](../../../FabioOrderFlow/tools/replay_model.py), tutte sovrascrivibili da riga di comando perche' la sensibilita' alla soglia faccia parte del risultato.
+Sono le costanti in testa a [`replay_model.py`](../../../FabioOrderFlow/tools/replay_model.py), tutte sovrascrivibili da riga di comando perche' la sensibilita' alla soglia faccia parte del risultato.
 
-## Il Problema Di Scala, Misurato
+### La condizione 3 non e' replicabile in storico
 
-Su NQ a 40 Range, con i dati della cash del 2026-09-11:
+Il footprint di una barra chiusa dice quanto delta ha accumulato e quali estremi ha toccato, ma non l'ordine temporale degli eventi al suo interno. Sapere se il controllo e' girato **prima** che il limit venisse eseguito richiede il flusso in formazione, non la barra finita.
 
-- una barra e' larga **10 punti** (40 tick);
-- la value area di barra e' larga **5 punti** in mediana;
-- quindi uno stop al bordo opposto della value area vale **4-8 punti**, e un TP 1:1 altrettanto.
+Questo non e' un dettaglio: la condizione 3 cancella gli ordini pendenti proprio nelle candele che stanno girando, cioe' quelle che nel replay diventano stop immediati. Una parte dei perdenti misurati non sarebbe mai entrata.
 
-Questo e' il vincolo dominante del modello, e non dipende da quanto bene si legga il flusso. Con 1 MNQ (2 dollari a punto) un target da 4,5 punti vale **9 dollari lordi**. Sulle fee percentuali registrate per NDX-USD in [`prop/PROP_TRADING_KNOWLEDGE.md`](../../../prop/PROP_TRADING_KNOWLEDGE.md), circa 0,014% round-trip su un notional equivalente di circa 58.800 dollari, il costo e' di circa **8 dollari**.
+Misurarla richiede una registrazione live del delta cumulato dentro la candela in formazione. Il bridge puo' farlo; lo storico no.
 
-Il netto e' quindi prossimo a zero. Su una prop futures-native con commissione fissa per contratto il conto cambia, ma resta stretto. La conclusione e' che a 40R il collo di bottiglia non e' la qualita' del segnale: e' il rapporto fra ampiezza della value area di barra e costo di transazione.
+## Il Problema Di Scala
+
+Su NQ a 40 Range, misurato sulla settimana 2026-09-04 / 09-11:
+
+```text
+barra                10,00 punti di ampiezza
+value area di barra   5,00 punti in mediana
+stop risultante       4,50-6,00 punti
+```
+
+Con 1 MNQ, cinque punti valgono dieci dollari. E' il vincolo dominante e non dipende da quanto bene si legga il flusso: vedi il conto in [Replay sulla settimana](../sessioni/replay-modello-settimana-2026-09-11.md).
 
 ## Applicazioni
 
-- [Replay sulla cash del 2026-09-11](../sessioni/replay-modello-2026-09-11.md): zero ingressi con le convenzioni dichiarate.
+- [Replay sulla settimana 2026-09-04 / 09-11](../sessioni/replay-modello-settimana-2026-09-11.md).
 
 ## Limiti
 
-- Una sola sessione applicata finora. Nessuna statistica.
-- Speed of Tape e' approssimato dal volume di barra: ATAS non lo espone a un indicatore in forma interrogabile.
+- Una settimana. Nessuna delle percentuali misurate e' una statistica.
+- La condizione 3 non e' applicata: i risultati sono quindi un **limite inferiore** del modello.
 - Il delta di barra dipende dalla classificazione bid/ask di ATAS, non ispezionabile.
-- Il replay non modella slippage sul limit, ne' il rifiuto parziale di un ordine.
+- Il replay non modella slippage, riempimenti parziali o code sul limit.
+- Il dossier prescrive DeepCharts; qui si misura su dati ATAS. Le due piattaforme possono differire nella costruzione della value area di barra.

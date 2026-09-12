@@ -43,6 +43,13 @@ PULLBACK_BARS = 3
 # tecnico della barra. Su 40R le due scelte differiscono di circa il doppio.
 STOP_MODE = "va"
 
+# Quanto oltre il livello mettere lo stop, quando il rischio si misura dal livello.
+LEVEL_BUFFER = 3.0
+
+# Finestra oraria UTC in cui il modello e' dichiarato attivo: pre-market e prime due ore di RTH.
+# Fuori da qui il dossier dice esplicitamente di non operare.
+SESSION_WINDOW: tuple[str, str] | None = None
+
 
 def parse(raw: str) -> datetime:
     return datetime.fromisoformat(raw.replace("Z", "+00:00"))
@@ -93,10 +100,11 @@ def developing_levels(volume_by_price: dict[float, int], fraction: float = 0.70)
     return [(poc, "POC-sviluppo"), (prices[high], "VAH-sviluppo"), (prices[low], "VAL-sviluppo")]
 
 
-def near_level(bar: dict, levels: list[tuple[float, str]]) -> str | None:
+def near_level(bar: dict, levels: list[tuple[float, str]]):
+    """Restituisce (etichetta, prezzo) del primo livello toccato, oppure None."""
     for price, name in levels:
         if bar["low"] - LEVEL_TOLERANCE <= price <= bar["high"] + LEVEL_TOLERANCE:
-            return f"{name} {price:,.0f}"
+            return f"{name} {price:,.0f}", price
     return None
 
 
@@ -105,11 +113,20 @@ def signal(bars: list[dict], i: int, trades: list[dict], levels: list[tuple[floa
     if i < TAPE_WINDOW:
         return None
 
+    if SESSION_WINDOW and not (SESSION_WINDOW[0] <= bars[i]["lastTime"][11:16] <= SESSION_WINDOW[1]):
+        return None
+
     bar, previous = bars[i], bars[i - 1]
 
-    level = near_level(bar, levels)
-    if level is None:
-        return None
+    # Il dossier non richiede un livello: i livelli sono contesto di mercato, non condizione.
+    # Restano un filtro attivabile, ma senza livelli dichiarati la condizione non si applica.
+    if levels:
+        found = near_level(bar, levels)
+        if found is None:
+            return None
+        level, level_price = found
+    else:
+        level, level_price = "nessun livello richiesto", bar["close"]
 
     # 2. delta flip: il controllo passa da un lato all'altro
     if previous["delta"] >= 0 or bar["delta"] < MIN_FLIP_DELTA:
@@ -133,17 +150,20 @@ def signal(bars: list[dict], i: int, trades: list[dict], levels: list[tuple[floa
     if not shifted:
         return None
 
-    # 4. conferma: Big Trades sul lato e tape in accelerazione
+    # Conferma opzionale. Il dossier elenca tre condizioni, e Big Trades e Speed of Tape non
+    # sono fra queste: restano strumenti di lettura. Si applicano solo se richiesti.
     recent = sorted(b["volume"] for b in bars[i - TAPE_WINDOW:i])
     median = recent[len(recent) // 2]
-    tape = bar["volume"] >= TAPE_FACTOR * median
-    big = big_in_bar(trades, bar, side)
-    if len(big) < MIN_BIG_TRADES or not tape:
+    if TAPE_FACTOR > 0 and bar["volume"] < TAPE_FACTOR * median:
+        return None
+    big = big_in_bar(trades, bar, side) if trades else []
+    if trades and len(big) < MIN_BIG_TRADES:
         return None
 
     return {
         "side": side,
         "level": level,
+        "levelPrice": level_price,
         "bar": i,
         "time": bar["lastTime"],
         "delta": bar["delta"],
@@ -164,6 +184,11 @@ def resolve(bars: list[dict], sig: dict):
     entry = sig["vah"] if long else sig["val"]
     if STOP_MODE == "bar":
         stop = sig["low"] if long else sig["high"]
+    elif STOP_MODE == "level":
+        # Il rischio viene dal livello che il setup difende, non dall'ampiezza della barra:
+        # uno stop dentro il range della barra stessa viene tolto dal rumore intrabarra.
+        edge = min(sig["levelPrice"], sig["low"]) if long else max(sig["levelPrice"], sig["high"])
+        stop = edge - LEVEL_BUFFER if long else edge + LEVEL_BUFFER
     else:
         stop = sig["val"] if long else sig["vah"]
     risk = abs(entry - stop)
@@ -202,18 +227,24 @@ def resolve(bars: list[dict], sig: dict):
 
 
 def main() -> None:
-    global MIN_FLIP_DELTA, LEVEL_TOLERANCE, TAPE_FACTOR, PULLBACK_BARS, STOP_MODE
+    global MIN_FLIP_DELTA, LEVEL_TOLERANCE, TAPE_FACTOR, PULLBACK_BARS, STOP_MODE, LEVEL_BUFFER
+    global SESSION_WINDOW
 
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("candles", help="JSON di /candles con --levels")
     parser.add_argument("--big", help="JSON di /cumulative con il filtro di volume")
     parser.add_argument("--level", action="append", default=[], metavar="PREZZO:NOME")
+    parser.add_argument("--levels-from", action="append", default=[], metavar="CANDELE.JSON",
+                        help="ricava POC, VAH, VAL, massimo e minimo da una sessione precedente")
     parser.add_argument("--flip", type=int, default=MIN_FLIP_DELTA, help="delta minimo del flip")
     parser.add_argument("--tolerance", type=float, default=LEVEL_TOLERANCE, help="distanza da un livello")
     parser.add_argument("--tape", type=float, default=TAPE_FACTOR, help="fattore di accelerazione del tape")
     parser.add_argument("--pullback", type=int, default=PULLBACK_BARS, help="barre di validita' del limit")
-    parser.add_argument("--stop", choices=["va", "bar"], default="va",
-                        help="'va' usa il bordo opposto della value area, 'bar' l'estremo della barra")
+    parser.add_argument("--stop", choices=["va", "bar", "level"], default="va",
+                        help="'va' bordo opposto della value area, 'bar' estremo della barra, "
+                             "'level' oltre il livello difeso")
+    parser.add_argument("--buffer", type=float, default=LEVEL_BUFFER, help="punti oltre il livello")
+    parser.add_argument("--window", metavar="HH:MM-HH:MM", help="finestra oraria UTC in cui operare")
     parser.add_argument("--developing", action="store_true",
                         help="aggiunge POC e bordi della value area in sviluppo della sessione")
     parser.add_argument("--funnel", action="store_true", help="mostra quante barre superano ogni condizione")
@@ -221,8 +252,21 @@ def main() -> None:
 
     MIN_FLIP_DELTA, LEVEL_TOLERANCE = args.flip, args.tolerance
     TAPE_FACTOR, PULLBACK_BARS, STOP_MODE = args.tape, args.pullback, args.stop
+    LEVEL_BUFFER = args.buffer
+    SESSION_WINDOW = tuple(args.window.split("-")) if args.window else None
 
     levels = []
+    for path in args.levels_from:
+        previous = json.load(open(path))["candles"]
+        volume: dict[float, int] = {}
+        for bar in previous:
+            for level in bar.get("levels", []):
+                volume[level["price"]] = volume.get(level["price"], 0) + level["volume"]
+        tag = path.split("/")[-1].replace(".json", "")
+        levels += [(price, f"{name}-{tag}") for price, name in developing_levels(volume)]
+        levels += [(max(b["high"] for b in previous), f"max-{tag}"),
+                   (min(b["low"] for b in previous), f"min-{tag}")]
+
     for raw in args.level:
         price, _, name = raw.partition(":")
         levels.append((float(price), name or "livello"))
@@ -271,6 +315,9 @@ def main() -> None:
 
     total = 0.0
     taken = 0
+    r_total = 0.0
+    wins = 0
+    risks: list[float] = []
     i = 0
     while i < len(bars):
         sig = signal(bars, i, trades, levels + developing[i])
@@ -295,11 +342,18 @@ def main() -> None:
                   f"{out.get('exitTime', '')[11:19]}  risultato {out.get('result', 0):+,.2f} punti\n")
             total += out.get("result", 0.0)
             taken += 1
+            # In R il confronto fra varianti di stop e' leale: i punti premiano solo il rischio piu' largo.
+            r_total += out.get("result", 0.0) / out["risk"]
+            wins += 1 if out.get("result", 0.0) > 0 else 0
+            risks.append(out["risk"])
 
         # Il modello non tiene due posizioni: si riprende dopo l'uscita.
         i = max(out.get("exitBar", sig["bar"]), sig["bar"]) + 1
 
-    print(f"operazioni eseguite {taken}   somma {total:+,.2f} punti")
+    rate = f"{100 * wins / taken:.0f}%" if taken else "-"
+    median_risk = sorted(risks)[len(risks) // 2] if risks else 0
+    print(f"operazioni {taken}   vinte {wins} ({rate})   somma {total:+,.2f} punti   "
+          f"{r_total:+.2f} R   rischio mediano {median_risk:,.2f} punti")
 
 
 if __name__ == "__main__":

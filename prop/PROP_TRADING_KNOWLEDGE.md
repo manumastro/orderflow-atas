@@ -12,13 +12,17 @@ Focus: hyperscalping/intraday, barre **40 Range**, Value Area per candela, Delta
 
 ## 2. Modello operativo di riferimento
 
-Il modello e' stato **spostato** in [`docs/research/modelli/modello-40r-riferimento.md`](../docs/research/modelli/modello-40r-riferimento.md), dove sta con le convenzioni che lo rendono misurabile e con le applicazioni su dati reali.
+La fonte di verita' del modello e' il dossier in [`prop_firm_model/`](prop_firm_model/), *The Prop Firm Model* di Fabio 'Fabervaale' Valentini. La sua trascrizione, con le convenzioni che lo rendono misurabile e le applicazioni su dati reali, e' in [`docs/research/modelli/modello-40r-riferimento.md`](../docs/research/modelli/modello-40r-riferimento.md).
+
+La sintesi che stava qui divergeva dal dossier su tre punti e ha prodotto un replay sbagliato: aveva promosso i livelli e i Big Trades a condizioni obbligatorie, e ignorava la finestra oraria. Le tre condizioni reali sono **auction flip, value area shift e side control in tempo reale**.
 
 E' una cosa a se' rispetto a questo documento: descrive come leggere il flusso, non quale prop usare. Le regole delle prop cambiano spesso; il modello no, e tenerli insieme faceva sembrare che una revisione dell'una implicasse una revisione dell'altro.
 
 Quanto resta qui riguarda l'**esecuzione** di quel modello dentro i vincoli di una prop: mercato guida, sizing, fee, drawdown.
 
-Il vincolo di scala misurato sul modello pesa direttamente su questa sezione: su NQ a 40R lo stop tecnico vale 4-8 punti, quindi un TP 1:1 puo' essere dello stesso ordine di grandezza delle fee percentuali riportate al punto 6. Va verificato prima di scegliere una prop, non dopo.
+Il vincolo di scala misurato sul modello pesa direttamente su questa sezione. Su 125 operazioni della settimana 2026-09-04 / 09-11 il modello rende **+0,10 R per operazione** con rischio mediano di cinque punti, cioe' circa un dollaro lordo per operazione su 1 MNQ. Le commissioni round-trip su futures reali stanno fra 1,00 e 1,50 dollari; le fee percentuali del punto 6 valgono circa otto dollari.
+
+La scelta della prop non e' quindi secondaria al modello: a questa scala il costo di transazione decide il segno. Va verificato prima di acquistare, non dopo.
 
 ## 3. Principio chiave: mercato guida vs mercato di esecuzione
 
