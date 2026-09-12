@@ -319,8 +319,9 @@ public sealed class DataBridge : Indicator
     }
 
     /// <summary>
-    /// Un selettore vuoto vale per tutti; altrimenti si accetta l'id esatto oppure un prefisso
-    /// dello strumento, che e' il modo in cui un umano identifica il chart.
+    /// Un selettore vuoto vale per tutti; altrimenti si prova l'id esatto, poi lo strumento
+    /// esatto, poi il prefisso dello strumento. L'ordine conta: il contratto continuo 'NQ' e'
+    /// prefisso di 'NQU6', quindi senza la corrispondenza esatta prima sarebbe irraggiungibile.
     /// </summary>
     private static DataBridge[] Select(DataBridge[] registered, string? selector)
     {
@@ -331,10 +332,20 @@ public sealed class DataBridge : Indicator
 
         var wanted = selector.Trim();
 
-        var byId = registered.Where(instance => string.Equals(instance._id, wanted, StringComparison.OrdinalIgnoreCase)).ToArray();
+        var byId = registered
+            .Where(instance => string.Equals(instance._id, wanted, StringComparison.OrdinalIgnoreCase))
+            .ToArray();
         if (byId.Length > 0)
         {
             return byId;
+        }
+
+        var exact = registered
+            .Where(instance => string.Equals(instance.InstrumentInfo?.Instrument, wanted, StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+        if (exact.Length > 0)
+        {
+            return exact;
         }
 
         return registered

@@ -52,9 +52,14 @@ def iso(value: datetime) -> str:
 
 
 def probe(port: int, timeout: float = 1.5) -> bool:
-    """Verifica che sulla porta risponda davvero un bridge, non un programma qualsiasi."""
+    """Verifica che sulla porta risponda davvero un bridge, non un programma qualsiasi.
+
+    Interroga `/charts` e non `/health`: `/charts` e' servito dall'hub e resta valido comunque,
+    mentre `/health` appartiene a un chart e con piu' chart registrati risponde 400 chiedendo un
+    selettore, che in fase di scoperta della porta farebbe scartare un bridge funzionante.
+    """
     try:
-        with urllib.request.urlopen(f"http://127.0.0.1:{port}/health", timeout=timeout) as response:
+        with urllib.request.urlopen(f"http://127.0.0.1:{port}/charts", timeout=timeout) as response:
             return json.loads(response.read()).get("schema", "").startswith("fof-data-bridge")
     except Exception:
         return False

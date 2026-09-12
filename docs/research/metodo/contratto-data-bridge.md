@@ -40,16 +40,18 @@ L'indicatore puo' essere caricato su un numero qualsiasi di chart. Le istanze **
 - La prima istanza avvia il listener sulla **prima porta libera** fra 8787 e 8796 e scrive l'indirizzo in `~/.fabio-data-bridge.json`.
 - Ogni istanza riceve un `id` breve, visibile su `/charts`.
 - Ogni richiesta accetta `chart=<id|strumento>`. Con un solo chart registrato il parametro e' superfluo.
+- La risoluzione del selettore prova **id esatto, poi strumento esatto, poi prefisso dello strumento**. L'ordine e' necessario: il contratto continuo `NQ` e' prefisso di `NQU6` e senza la corrispondenza esatta sarebbe irraggiungibile.
 - Con piu' chart registrati, una richiesta **senza** `chart` viene rifiutata con `400` e l'elenco dei candidati, invece di essere servita da un chart arbitrario: lo strumento fa parte del dato e sceglierlo per conto del chiamante produrrebbe risposte silenziosamente sbagliate.
 - L'ultima istanza rimossa ferma il listener e cancella il file di discovery.
 
-Il client risolve l'indirizzo da solo: legge il file di discovery, verifica che risponda davvero un bridge, e in mancanza sonda l'intervallo di porte. `--base` resta disponibile per forzarlo.
+Il client risolve l'indirizzo da solo: legge il file di discovery, verifica che risponda davvero un bridge, e in mancanza sonda l'intervallo di porte. La verifica interroga `/charts` e non `/health`, perche' `/health` appartiene a un chart e con piu' chart registrati risponde `400`: usarlo in fase di scoperta farebbe scartare un bridge funzionante. `--base` resta disponibile per forzare l'indirizzo.
 
 ## Vincoli Noti, Rispettati Dal Bridge
 
 - **Una sola richiesta `CumulativeTrades` pendente alla volta.** Vincolo scoperto con la versione v3 del recorder storico. Il bridge serializza le richieste HTTP concorrenti con un semaforo invece di lasciarle fallire.
 - **Record fuori finestra.** ATAS puo' restituire trade fuori dall'intervallo richiesto, come documentato dalla v4/v5 del recorder storico. Il bridge li conta in `outsideWindow` e li esclude da `trades`.
 - **Profondita' massima per richiesta.** Interrogabile su `/limits`; il client `bridge.py` spezza le finestre piu' ampie in blocchi consecutivi.
+- **`/rollovers` richiede un chart a contratto continuo.** Su un contratto singolo ATAS risponde `Only continuous contracts are supported`. Con un chart `NQ` caricato l'endpoint funziona, e `VolumeBasedCurrentEnd` che coincide con la data di scadenza significa che il roll basato sul volume **non e' ancora stato rilevato**, non che avvenga alla scadenza.
 - **Nessun `baseTime` sul profilo fisso.** La build ATAS X espone solo `FixedProfileRequest(period)` e `(period, tradingSession)`: il profilo e' sempre relativo al market time corrente. L'overload con `baseTime` documentato per ATAS classico non esiste qui.
 - **Timeout.** Una richiesta di trade aggregati che non riceve risposta entro cinque minuti restituisce `504` invece di restare appesa.
 - **`MaxItems`.** Ogni risposta e' limitata; il campo `truncated` dice se il taglio e' avvenuto.
