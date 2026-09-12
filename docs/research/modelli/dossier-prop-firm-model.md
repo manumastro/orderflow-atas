@@ -313,3 +313,43 @@ posizionamento nel profilo e alla narrativa del COT.
 Resta che, dopo aver implementato tutto cio' che il dossier e il primo transcript dichiarano in
 forma verificabile, il modello misurato sta al 49-51% con obiettivo 1:1, cioe' sulla moneta. Le
 parti che mancano non sono dettagli di parametro: sono la parte discrezionale.
+
+## La Scala Della Barra
+
+Domanda: e se 40R fosse troppo rumore? Per rispondere senza dipendere da quale chart e' caricato
+in ATAS, `FabioOrderFlow/tools/build_bars.py` ricostruisce le barre dal tape a qualunque scala.
+Il tape e' completo, quindi footprint, delta e value area si ricompongono per intero; l'unica
+approssimazione dichiarata e' che il volume di un cumulative trade viene assegnato tutto a
+`lastPrice`. Verifica sulla sessione del 9 settembre, barra M1 delle 13:30: volume ricostruito
+6.333 contro 6.334 di ATAS, delta -81 contro -80, value area 29.443,75-29.466,75 contro
+29.444,50-29.467,50.
+
+Stesso mese, stessa finestra, stessa esecuzione, solo la scala cambia.
+
+| scala | barre/sess. | durata mediana | R mediano | modello | nullo | differenza |
+|---|---|---|---|---|---|---|
+| 20R | 1.897 | 2 s | 2,50 pt | 50% | 47% | +3 |
+| 40R | 523 | 7 s | 5,00 pt | 47% | 47% | 0 |
+| 80R | 130 | 28 s | 10,00 pt | 54% | 49% | +5 |
+| 160R | 34 | 116 s | 19,75 pt | 62% | 53% | +9 |
+| 320R | 12 | - | - | 75% (4 op) | - | - |
+| M1 | 120 | 60 s | 11,00 pt | 51% | 51% | 0 |
+| M5 | 24 | 300 s | 24,62 pt | 44% | 50% | -6 |
+
+La colonna del modello sale davvero da 47% a 62% allargando la barra. Ma **sale anche quella del
+modello nullo**, da 47% a 53%, e la differenza fra le due resta tra -6 e +9 senza una direzione.
+
+Non e' il modello che migliora: e' il costo fisso della geometria d'ingresso che pesa meno. Lo
+stop sta a una value area di distanza, e l'handicap di esecuzione — spread, il tick fra il prezzo
+limite e il prezzo che lo attraversa, la posizione in coda — e' un numero di tick pressoche'
+costante. Quando R vale 2,50 punti quell'handicap e' una frazione grande del rischio; quando R
+vale 19,75 punti e' trascurabile. La percentuale di vittorie a 1:1 sale di conseguenza, che ci sia
+un modello sopra oppure no.
+
+**Quindi 40R non e' "troppo rumore" in senso stretto.** E' la scala in cui l'attrito e' piu'
+caro, e quindi quella che punisce di piu' un modello che non ha edge. Allargare la barra non
+aggiunge informazione: toglie costo. A 160R restano 26 operazioni sul mese, cioe' 1,3 per
+sessione, ed e' li' che il campione smette di poter dire qualcosa.
+
+Le barre M1 vere caricate da ATAS danno lo stesso risultato delle M1 ricostruite: 76 operazioni,
+49%, contro 85 e 51% — la differenza sta nei confini di barra, non nel comportamento.
