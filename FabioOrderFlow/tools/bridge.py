@@ -8,7 +8,8 @@ spezzando automaticamente le finestre troppo ampie per una singola richiesta.
 Esempi:
 
     ./bridge.py health
-    ./bridge.py instrument
+    ./bridge.py charts
+    ./bridge.py instrument --chart NQZ6
     ./bridge.py limits
     ./bridge.py rollovers --from 2026-06-01 --to 2026-12-31
     ./bridge.py profile --period LastDay
@@ -20,13 +21,17 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import urllib.error
 import urllib.parse
 import urllib.request
 from datetime import datetime, timedelta, timezone
 
-DEFAULT_BASE = "http://127.0.0.1:8787"
+# Il bridge sceglie da solo la prima porta libera dell'intervallo e la annuncia nel file di
+# discovery. Il client legge quel file e, se manca, sonda l'intervallo: nessuna porta da passare.
+DISCOVERY = os.path.expanduser("~/.fabio-data-bridge.json")
+PORT_RANGE = range(8787, 8797)
 
 # ATAS accetta una sola richiesta CumulativeTrades alla volta e limita la profondita'
 # di ciascuna; il bridge rispetta il primo vincolo, questo client spezza il secondo.
@@ -46,6 +51,38 @@ def iso(value: datetime) -> str:
     return value.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+def probe(port: int, timeout: float = 1.5) -> bool:
+    """Verifica che sulla porta risponda davvero un bridge, non un programma qualsiasi."""
+    try:
+        with urllib.request.urlopen(f"http://127.0.0.1:{port}/health", timeout=timeout) as response:
+            return json.loads(response.read()).get("schema", "").startswith("fof-data-bridge")
+    except Exception:
+        return False
+
+
+def discover(explicit: str | None) -> str:
+    """Risolve l'indirizzo del bridge: opzione esplicita, file di discovery, poi scansione."""
+    if explicit:
+        return explicit.rstrip("/")
+
+    try:
+        with open(DISCOVERY) as handle:
+            port = json.load(handle)["port"]
+        if probe(port):
+            return f"http://127.0.0.1:{port}"
+    except Exception:
+        pass
+
+    for port in PORT_RANGE:
+        if probe(port):
+            return f"http://127.0.0.1:{port}"
+
+    raise SystemExit(
+        f"nessun bridge trovato sulle porte {PORT_RANGE.start}-{PORT_RANGE.stop - 1}.\n"
+        "Verifica che ATAS sia aperto e che l'indicatore Fabio Data Bridge sia su almeno un chart."
+    )
+
+
 def get(base: str, path: str, params: dict | None = None, timeout: float = 300.0):
     url = f"{base}{path}"
     if params:
@@ -57,7 +94,12 @@ def get(base: str, path: str, params: dict | None = None, timeout: float = 300.0
     except urllib.error.HTTPError as error:
         body = error.read().decode("utf-8", "replace")
         try:
-            detail = json.loads(body).get("error", body)
+            parsed = json.loads(body)
+            detail = parsed.get("error", body)
+            # Quando piu' chart sono registrati il bridge rifiuta e li elenca: mostrarli evita
+            # all'utente un secondo giro su /charts solo per scoprire i nomi.
+            for chart in parsed.get("charts", []):
+                detail += f"\n  {chart.get('id')}  {chart.get('instrument')}  {chart.get('timeFrame')} {chart.get('chartType')}"
         except json.JSONDecodeError:
             detail = body
         raise SystemExit(f"{path} -> HTTP {error.code}: {detail}") from None
@@ -68,7 +110,7 @@ def get(base: str, path: str, params: dict | None = None, timeout: float = 300.0
         ) from None
 
 
-def fetch_cumulative(base: str, args) -> dict:
+def fetch_cumulative(base: str, args) -> dict:  # noqa: D401
     """Richiede i trade aggregati spezzando la finestra in blocchi ammessi da ATAS."""
     begin, end = parse_time(args.begin), parse_time(args.end)
     window = timedelta(days=args.window_days)
@@ -87,6 +129,7 @@ def fetch_cumulative(base: str, args) -> dict:
             base,
             "/cumulative",
             {
+                "chart": args.chart,
                 "from": iso(cursor),
                 "to": iso(stop),
                 "minVolume": args.min_volume,
@@ -116,18 +159,20 @@ def fetch_cumulative(base: str, args) -> dict:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--base", default=DEFAULT_BASE, help=f"URL del bridge (default {DEFAULT_BASE})")
+    parser.add_argument("--base", help="URL del bridge; se omesso viene individuato da solo")
     # `--out` e' accettato sia prima sia dopo il sottocomando: argparse lo consente
     # solo dichiarandolo anche su ogni sottoparser, tramite un parent comune.
     common = argparse.ArgumentParser(add_help=False)
     common.add_argument("--out", help="scrive la risposta su file invece che a video")
+    common.add_argument("--chart", help="id o strumento del chart da interrogare; vedi 'charts'")
     parser.add_argument("--out", help=argparse.SUPPRESS)
+    parser.add_argument("--chart", help=argparse.SUPPRESS)
     sub = parser.add_subparsers(dest="command", required=True, parser_class=lambda **kw: argparse.ArgumentParser(**kw))
 
     def add(name):
         return sub.add_parser(name, parents=[common])
 
-    for name in ("health", "instrument", "limits"):
+    for name in ("health", "charts", "instrument", "limits"):
         add(name)
 
     session = add("session")
@@ -173,22 +218,24 @@ def main() -> None:
     depth.add_argument("--period-seconds", type=int, default=60)
 
     args = parser.parse_args()
+    args.base = discover(args.base)
 
-    if args.command in ("health", "instrument", "limits"):
-        payload = get(args.base, f"/{args.command}")
+    if args.command in ("health", "charts", "instrument", "limits"):
+        payload = get(args.base, f"/{args.command}", {"chart": args.chart})
     elif args.command == "session":
-        payload = get(args.base, "/session", {"at": iso(parse_time(args.at)) if args.at else None})
+        payload = get(args.base, "/session", {"chart": args.chart, "at": iso(parse_time(args.at)) if args.at else None})
     elif args.command == "rollovers":
         payload = get(
             args.base,
             "/rollovers",
-            {"from": iso(parse_time(args.begin)), "to": iso(parse_time(args.end)), "type": args.type},
+            {"chart": args.chart, "from": iso(parse_time(args.begin)), "to": iso(parse_time(args.end)), "type": args.type},
         )
     elif args.command == "profile":
         payload = get(
             args.base,
             "/profile",
             {
+                "chart": args.chart,
                 "period": args.period,
                 "session": args.session,
                 "levels": "false" if args.no_levels else "true",
@@ -199,6 +246,7 @@ def main() -> None:
             args.base,
             "/candles",
             {
+                "chart": args.chart,
                 "from": iso(parse_time(args.begin)) if args.begin else None,
                 "to": iso(parse_time(args.end)) if args.end else None,
                 "fromBar": args.from_bar,
@@ -213,6 +261,7 @@ def main() -> None:
             args.base,
             "/depth",
             {
+                "chart": args.chart,
                 "from": iso(parse_time(args.begin)),
                 "to": iso(parse_time(args.end)),
                 "periodSeconds": args.period_seconds,

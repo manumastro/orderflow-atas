@@ -37,11 +37,12 @@ Il deploy copia le cinque DLL in `~/Library/Application Support/ATAS/Indicators`
 
 ## Usare Il Bridge
 
-Caricare **Fabio Data Bridge** su un chart dello strumento da interrogare. Porta, abilitazione e limite di elementi per risposta sono proprieta' dell'indicatore. Il chart determina strumento, timeframe e candele disponibili: due strumenti richiedono due istanze su porte diverse.
+Caricare **Fabio Data Bridge** su ogni chart da interrogare: quanti si vuole, senza configurare porte. Le istanze condividono un solo listener, che sceglie la prima porta libera fra 8787 e 8796 e la annuncia in `~/.fabio-data-bridge.json`; il client la trova da solo. Con piu' chart registrati ogni richiesta vuole `--chart`, altrimenti viene rifiutata con l'elenco dei candidati.
 
 ```bash
+python3 FabioOrderFlow/tools/bridge.py charts
 python3 FabioOrderFlow/tools/bridge.py health
-python3 FabioOrderFlow/tools/bridge.py instrument
+python3 FabioOrderFlow/tools/bridge.py instrument --chart NQZ6
 python3 FabioOrderFlow/tools/bridge.py limits
 python3 FabioOrderFlow/tools/bridge.py candles --from 2026-09-08T13:30:00Z --to 2026-09-08T20:00:00Z --levels --out cash.json
 python3 FabioOrderFlow/tools/bridge.py cumulative --from 2026-09-04 --to 2026-09-11 --min-volume 100 --out big.json
@@ -61,6 +62,7 @@ python3 FabioOrderFlow/tools/bridge.py cumulative --from 2026-09-04 --to 2026-09
 Scoperti sul campo e rispettati dal codice:
 
 - Una sola richiesta `CumulativeTrades` pendente alla volta.
+- Un solo `HttpListener` per porta: piu' istanze dell'indicatore devono condividerne uno.
 - Profondita' massima **sette giorni** per richiesta, per ogni `CumulativeTradesMode`; interrogabile su `/limits`.
 - ATAS puo' restituire record fuori dalla finestra richiesta: vanno contati e scartati.
 - `FixedProfileRequest` su ATAS X espone solo `(period)` e `(period, tradingSession)`: nessun `baseTime`.

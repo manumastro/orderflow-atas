@@ -20,7 +20,8 @@ Il listener e' legato a `127.0.0.1` e non e' raggiungibile dalla rete. Espone da
 
 | Endpoint | Parametri | Cosa restituisce |
 |---|---|---|
-| `/health` | | schema, strumento, timeframe, barre caricate, elenco endpoint |
+| `/health` | `chart` | schema, strumento, timeframe, barre caricate, id del chart, porta, elenco endpoint |
+| `/charts` | | elenco dei chart registrati: id, strumento, exchange, timeframe, tipo, barre |
 | `/instrument` | | strumento, exchange, tick size, fuso; del contratto: scadenza, lot size, tick cost, moltiplicatori, open interest |
 | `/limits` | | limiti ATAS per `CumulativeTradesMode` (profondita' massima, limite di sessione) ed enum disponibili |
 | `/session` | `at` | finestra di sessione della piattaforma per un istante |
@@ -31,6 +32,18 @@ Il listener e' legato a `127.0.0.1` e non e' raggiungibile dalla rete. Espone da
 | `/depth` | `from`, `to`, `periodSeconds` | snapshot storici del book |
 
 `maxDelta` e `minDelta` sono il delta massimo e minimo raggiunti **durante** la barra: sono la misura diretta dello sforzo che non ottiene risultato, non ricavabile dal solo delta di chiusura.
+
+## Piu' Chart, Un Solo Listener
+
+L'indicatore puo' essere caricato su un numero qualsiasi di chart. Le istanze **condividono un unico listener di processo**: un `HttpListener` per istanza fallirebbe alla seconda con `AddressAlreadyInUse`, e costringerebbe ad assegnare porte a mano.
+
+- La prima istanza avvia il listener sulla **prima porta libera** fra 8787 e 8796 e scrive l'indirizzo in `~/.fabio-data-bridge.json`.
+- Ogni istanza riceve un `id` breve, visibile su `/charts`.
+- Ogni richiesta accetta `chart=<id|strumento>`. Con un solo chart registrato il parametro e' superfluo.
+- Con piu' chart registrati, una richiesta **senza** `chart` viene rifiutata con `400` e l'elenco dei candidati, invece di essere servita da un chart arbitrario: lo strumento fa parte del dato e sceglierlo per conto del chiamante produrrebbe risposte silenziosamente sbagliate.
+- L'ultima istanza rimossa ferma il listener e cancella il file di discovery.
+
+Il client risolve l'indirizzo da solo: legge il file di discovery, verifica che risponda davvero un bridge, e in mancanza sonda l'intervallo di porte. `--base` resta disponibile per forzarlo.
 
 ## Vincoli Noti, Rispettati Dal Bridge
 
@@ -43,10 +56,12 @@ Il listener e' legato a `127.0.0.1` e non e' raggiungibile dalla rete. Espone da
 
 ## Uso
 
-Caricare **Fabio Data Bridge** su un chart dello strumento da interrogare. Porta, abilitazione e limite di elementi sono proprieta' dell'indicatore. Il chart determina strumento, timeframe e candele disponibili: due chart diversi richiedono due istanze su porte diverse.
+Caricare **Fabio Data Bridge** su ogni chart da interrogare. Non c'e' nessuna porta da configurare. Abilitazione e limite di elementi restano proprieta' dell'istanza. Il chart determina strumento, timeframe e candele disponibili.
 
 ```bash
+python3 FabioOrderFlow/tools/bridge.py charts
 python3 FabioOrderFlow/tools/bridge.py health
+python3 FabioOrderFlow/tools/bridge.py candles --chart NQZ6 --from 2026-09-11 --to 2026-09-12 --levels
 python3 FabioOrderFlow/tools/bridge.py rollovers --from 2026-06-01 --to 2026-12-31
 python3 FabioOrderFlow/tools/bridge.py profile --period LastDay --out profile.json
 python3 FabioOrderFlow/tools/bridge.py cumulative --from 2026-09-04 --to 2026-09-11 --min-volume 50 --out big.json

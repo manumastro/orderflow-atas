@@ -18,12 +18,25 @@ namespace FabioOrderFlow.Observation;
 /// contiene lo strumento e il timeframe del chart su cui il bridge e' caricato, perche' quel
 /// contesto e' parte del dato e non va ricostruito a posteriori.
 ///
+/// L'indicatore puo' essere caricato su un numero qualsiasi di chart: le istanze condividono
+/// un solo listener di processo, che si registra sulla prima porta libera dell'intervallo
+/// dichiarato, e ciascuna richiesta sceglie il chart con il parametro 'chart'. Non c'e' quindi
+/// nessuna porta da configurare a mano, e nessun conflitto fra istanze.
+///
 /// Il listener e' legato a 127.0.0.1: non e' raggiungibile dalla rete.
 /// </summary>
 [DisplayName("Fabio Data Bridge")]
 public sealed class DataBridge : Indicator
 {
     private const string Schema = "fof-data-bridge-v1";
+
+    /// <summary>
+    /// Intervallo di porte sondate dal listener condiviso. La prima libera vince, cosi' che
+    /// un ATAS gia' avviato o un altro programma sulla 8787 non impediscano l'avvio.
+    /// </summary>
+    private const int PortRangeStart = 8787;
+
+    private const int PortRangeEnd = 8796;
 
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
     {
@@ -36,11 +49,25 @@ public sealed class DataBridge : Indicator
     /// </summary>
     private readonly SemaphoreSlim _cumulativeGate = new(1, 1);
 
-    private readonly object _sync = new();
-    private readonly CancellationTokenSource _shutdown = new();
+    /// <summary>
+    /// Il listener e' uno solo per processo ATAS e serve tutte le istanze dell'indicatore.
+    /// Cosi' l'utente puo' caricare il bridge su quanti chart vuole senza assegnare porte:
+    /// un HttpListener per istanza fallirebbe alla seconda con AddressAlreadyInUse.
+    /// </summary>
+    private static readonly object HubSync = new();
 
-    private HttpListener? _listener;
-    private Task? _loop;
+    private static readonly Dictionary<string, DataBridge> Instances = new(StringComparer.Ordinal);
+
+    private static HttpListener? _hubListener;
+    private static CancellationTokenSource? _hubShutdown;
+    private static int _hubPort;
+
+    /// <summary>Protegge lo stato della richiesta CumulativeTrades pendente di questa istanza.</summary>
+    private readonly object _sync = new();
+
+    private readonly CancellationTokenSource _shutdown = new();
+    private readonly string _id = Guid.NewGuid().ToString("N")[..8];
+
     private TaskCompletionSource<List<CumulativeTrade>>? _pendingCumulative;
     private int _pendingCumulativeRequestId;
 
@@ -49,10 +76,6 @@ public sealed class DataBridge : Indicator
         Name = "Fabio Data Bridge";
         DenyToChangePanel = true;
     }
-
-    [Display(Name = "Port", GroupName = "Bridge", Description = "Porta locale del bridge.")]
-    [Range(1024, 65535)]
-    public int Port { get; set; } = 8787;
 
     [Display(Name = "Enabled", GroupName = "Bridge", Description = "Avvia o ferma il listener locale.")]
     public bool BridgeEnabled { get; set; } = true;
@@ -72,50 +95,34 @@ public sealed class DataBridge : Indicator
     protected override void OnInitialize()
     {
         base.OnInitialize();
-        Start();
+        Register();
     }
 
     protected override void OnDispose()
     {
-        Stop();
+        Unregister();
         base.OnDispose();
     }
 
-    private void Start()
+    private void Register()
     {
         if (!BridgeEnabled)
         {
             return;
         }
 
-        lock (_sync)
+        lock (HubSync)
         {
-            if (_listener is not null)
-            {
-                return;
-            }
-
-            try
-            {
-                var listener = new HttpListener();
-                listener.Prefixes.Add($"http://127.0.0.1:{Port}/");
-                listener.Start();
-                _listener = listener;
-                _loop = Task.Run(() => AcceptLoopAsync(listener, _shutdown.Token));
-                this.LogInfo("FofDataBridge listening on http://127.0.0.1:{0}/ schema {1}", Port, Schema);
-            }
-            catch (Exception exception)
-            {
-                this.LogError($"FofDataBridge could not listen on port {Port}.", exception);
-            }
+            Instances[_id] = this;
+            EnsureHub(this);
         }
     }
 
-    private void Stop()
+    private void Unregister()
     {
-        lock (_sync)
+        lock (HubSync)
         {
-            if (_listener is null)
+            if (!Instances.Remove(_id))
             {
                 return;
             }
@@ -123,22 +130,121 @@ public sealed class DataBridge : Indicator
             try
             {
                 _shutdown.Cancel();
-                _listener.Stop();
-                _listener.Close();
             }
-            catch (Exception exception)
+            catch (ObjectDisposedException)
             {
-                this.LogError("FofDataBridge failed to stop cleanly.", exception);
             }
-            finally
+
+            if (Instances.Count == 0)
             {
-                _listener = null;
-                _loop = null;
+                StopHub(this);
             }
         }
     }
 
-    private async Task AcceptLoopAsync(HttpListener listener, CancellationToken cancellation)
+    /// <summary>
+    /// Avvia il listener condiviso se non e' gia' attivo, provando le porte dell'intervallo
+    /// finche' una accetta. La porta scelta viene scritta nel file di discovery cosi' che il
+    /// client non debba conoscerla ne' tentarla.
+    /// </summary>
+    private static void EnsureHub(DataBridge origin)
+    {
+        if (_hubListener is not null)
+        {
+            return;
+        }
+
+        for (var port = PortRangeStart; port <= PortRangeEnd; port++)
+        {
+            try
+            {
+                var listener = new HttpListener();
+                listener.Prefixes.Add($"http://127.0.0.1:{port}/");
+                listener.Start();
+
+                var shutdown = new CancellationTokenSource();
+                _hubListener = listener;
+                _hubShutdown = shutdown;
+                _hubPort = port;
+                _ = Task.Run(() => AcceptLoopAsync(listener, shutdown.Token));
+                WriteDiscovery(port);
+                origin.LogInfo("FofDataBridge hub listening on http://127.0.0.1:{0}/ schema {1}", port, Schema);
+                return;
+            }
+            catch (HttpListenerException)
+            {
+                // Porta occupata, anche da un processo estraneo: si prova la successiva.
+            }
+            catch (Exception exception)
+            {
+                origin.LogError($"FofDataBridge could not listen on port {port}.", exception);
+                return;
+            }
+        }
+
+        origin.LogError(
+            $"FofDataBridge found no free port in {PortRangeStart}-{PortRangeEnd}.",
+            new InvalidOperationException("no free port"));
+    }
+
+    private static void StopHub(DataBridge origin)
+    {
+        var listener = _hubListener;
+        if (listener is null)
+        {
+            return;
+        }
+
+        try
+        {
+            _hubShutdown?.Cancel();
+            listener.Stop();
+            listener.Close();
+            DeleteDiscovery();
+        }
+        catch (Exception exception)
+        {
+            origin.LogError("FofDataBridge hub failed to stop cleanly.", exception);
+        }
+        finally
+        {
+            _hubListener = null;
+            _hubShutdown = null;
+            _hubPort = 0;
+        }
+    }
+
+    private static string DiscoveryPath() => Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+        ".fabio-data-bridge.json");
+
+    private static void WriteDiscovery(int port)
+    {
+        try
+        {
+            var payload = JsonSerializer.Serialize(
+                new { schema = Schema, port, baseUrl = $"http://127.0.0.1:{port}", writtenUtc = Iso(DateTime.UtcNow) },
+                JsonOptions);
+            File.WriteAllText(DiscoveryPath(), payload);
+        }
+        catch (Exception)
+        {
+            // Il file e' una comodita': se il filesystem lo rifiuta, il client sonda le porte.
+        }
+    }
+
+    private static void DeleteDiscovery()
+    {
+        try
+        {
+            File.Delete(DiscoveryPath());
+        }
+        catch (Exception)
+        {
+        }
+    }
+
+    private static async Task AcceptLoopAsync(HttpListener listener, CancellationToken cancellation)
     {
         while (!cancellation.IsCancellationRequested && listener.IsListening)
         {
@@ -151,19 +257,104 @@ public sealed class DataBridge : Indicator
             {
                 return;
             }
-            catch (Exception exception)
+            catch (Exception)
             {
-                this.LogError("FofDataBridge accept failed.", exception);
                 return;
             }
 
-            _ = Task.Run(() => HandleAsync(context, cancellation), CancellationToken.None);
+            _ = Task.Run(() => DispatchAsync(context, cancellation), CancellationToken.None);
         }
     }
 
-    private async Task HandleAsync(HttpListenerContext context, CancellationToken cancellation)
+    /// <summary>
+    /// Sceglie l'istanza che deve rispondere. Con un solo chart registrato il parametro
+    /// 'chart' e' superfluo; con piu' chart una richiesta ambigua viene rifiutata invece di
+    /// essere servita da un chart arbitrario, perche' lo strumento fa parte del dato.
+    /// </summary>
+    private static async Task DispatchAsync(HttpListenerContext context, CancellationToken cancellation)
     {
         var path = context.Request.Url?.AbsolutePath.TrimEnd('/') ?? string.Empty;
+
+        DataBridge[] registered;
+        lock (HubSync)
+        {
+            registered = Instances.Values.ToArray();
+        }
+
+        if (path is "/charts")
+        {
+            await WriteAsync(context, 200, new
+            {
+                schema = Schema,
+                port = _hubPort,
+                count = registered.Length,
+                charts = registered.Select(instance => instance.ChartDescriptor()),
+            }).ConfigureAwait(false);
+            return;
+        }
+
+        var selector = context.Request.QueryString["chart"];
+        var matches = Select(registered, selector);
+
+        if (matches.Length == 1)
+        {
+            await matches[0].HandleAsync(context, path, cancellation).ConfigureAwait(false);
+            return;
+        }
+
+        var reason = matches.Length == 0
+            ? registered.Length == 0
+                ? "no chart has the Fabio Data Bridge indicator loaded"
+                : $"no chart matches '{selector}'"
+            : selector is null
+                ? $"{matches.Length} charts are registered: repeat the request with ?chart=<id|instrument>"
+                : $"'{selector}' matches {matches.Length} charts: use a full id from /charts";
+
+        await WriteAsync(context, matches.Length == 0 && registered.Length == 0 ? 503 : 400, new
+        {
+            schema = Schema,
+            error = reason,
+            charts = registered.Select(instance => instance.ChartDescriptor()),
+        }).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Un selettore vuoto vale per tutti; altrimenti si accetta l'id esatto oppure un prefisso
+    /// dello strumento, che e' il modo in cui un umano identifica il chart.
+    /// </summary>
+    private static DataBridge[] Select(DataBridge[] registered, string? selector)
+    {
+        if (string.IsNullOrWhiteSpace(selector))
+        {
+            return registered;
+        }
+
+        var wanted = selector.Trim();
+
+        var byId = registered.Where(instance => string.Equals(instance._id, wanted, StringComparison.OrdinalIgnoreCase)).ToArray();
+        if (byId.Length > 0)
+        {
+            return byId;
+        }
+
+        return registered
+            .Where(instance => (instance.InstrumentInfo?.Instrument ?? string.Empty)
+                .StartsWith(wanted, StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+    }
+
+    private object ChartDescriptor() => new
+    {
+        id = _id,
+        instrument = InstrumentInfo?.Instrument,
+        exchange = InstrumentInfo?.Exchange,
+        timeFrame = ChartInfo?.TimeFrame,
+        chartType = ChartInfo?.ChartType,
+        bars = CurrentBar,
+    };
+
+    private async Task HandleAsync(HttpListenerContext context, string path, CancellationToken cancellation)
+    {
         var query = context.Request.QueryString;
 
         try
@@ -179,6 +370,7 @@ public sealed class DataBridge : Indicator
                 "/candles" => Candles(query),
                 "/cumulative" => await CumulativeAsync(query, cancellation).ConfigureAwait(false),
                 "/depth" => await DepthAsync(query, cancellation).ConfigureAwait(false),
+            "/charts" => throw new BridgeException(500, "handled by the hub"),
                 _ => throw new BridgeException(404, $"unknown endpoint '{path}'"),
             };
 
@@ -216,9 +408,12 @@ public sealed class DataBridge : Indicator
         chartType = ChartInfo?.ChartType,
         bars = CurrentBar,
         marketTimeUtc = Iso(UtcTime),
+        chart = _id,
+        port = _hubPort,
+        charts = Instances.Count,
         endpoints = new[]
         {
-            "/health", "/instrument", "/limits", "/session", "/rollovers",
+            "/health", "/charts", "/instrument", "/limits", "/session", "/rollovers",
             "/profile", "/candles", "/cumulative", "/depth",
         },
     };
