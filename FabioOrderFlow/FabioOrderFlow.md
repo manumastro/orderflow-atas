@@ -65,6 +65,7 @@ Scoperti sul campo e rispettati dal codice:
 - Una sola richiesta `CumulativeTrades` pendente alla volta.
 - Un solo `HttpListener` per porta: piu' istanze dell'indicatore devono condividerne uno.
 - Profondita' massima **sette giorni** per richiesta, per ogni `CumulativeTradesMode`; interrogabile su `/limits`.
+- `CumulativeTradesMode.Filter` non ha limite di sessione: con `minVolume 0` si ottiene il tape completo, che va pero' spezzato per minuti perche' una sola ora supera `MaxItems`.
 - ATAS puo' restituire record fuori dalla finestra richiesta: vanno contati e scartati.
 - `FixedProfileRequest` su ATAS X espone solo `(period)` e `(period, tradingSession)`: nessun `baseTime`.
 - `CumulativeTradesRequest.Mode` e' di sola lettura, va passato al costruttore.

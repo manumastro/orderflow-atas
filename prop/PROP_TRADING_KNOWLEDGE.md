@@ -20,9 +20,9 @@ E' una cosa a se' rispetto a questo documento: descrive come leggere il flusso, 
 
 Quanto resta qui riguarda l'**esecuzione** di quel modello dentro i vincoli di una prop: mercato guida, sizing, fee, drawdown.
 
-Il vincolo di scala misurato sul modello pesa direttamente su questa sezione. Su 125 operazioni della settimana 2026-09-04 / 09-11 il modello rende **+0,10 R per operazione** con rischio mediano di cinque punti, cioe' circa un dollaro lordo per operazione su 1 MNQ. Le commissioni round-trip su futures reali stanno fra 1,00 e 1,50 dollari; le fee percentuali del punto 6 valgono circa otto dollari.
+Sulla settimana 2026-09-04 / 09-11, con tutte e tre le condizioni applicate e l'esito risolto sul tape, il modello ha fatto 133 operazioni al **40%** con obiettivo 1:1, cioe' **-27 R lordi**. Il pareggio lordo richiede piu' del 50%.
 
-La scelta della prop non e' quindi secondaria al modello: a questa scala il costo di transazione decide il segno. Va verificato prima di acquistare, non dopo.
+A questa scala anche il costo di transazione conta, perche' il rischio mediano e' cinque punti, ma su questa settimana la perdita e' precedente alle fee. Cinque sessioni non sono un campione: la conclusione utile e' che non c'e' traccia di margine da cui partire per scegliere una prop.
 
 ## 3. Principio chiave: mercato guida vs mercato di esecuzione
 

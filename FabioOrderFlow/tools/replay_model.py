@@ -50,6 +50,10 @@ LEVEL_BUFFER = 3.0
 # Fuori da qui il dossier dice esplicitamente di non operare.
 SESSION_WINDOW: tuple[str, str] | None = None
 
+# Condizione 3: quanto delta contrario, dentro la candela che si forma, conta come perdita del
+# controllo. A zero qualunque oscillazione iniziale cancellerebbe l'ordine, quindi serve una soglia.
+CONTROL_FLIP_DELTA = 30
+
 
 def parse(raw: str) -> datetime:
     return datetime.fromisoformat(raw.replace("Z", "+00:00"))
@@ -178,6 +182,64 @@ def signal(bars: list[dict], i: int, trades: list[dict], levels: list[tuple[floa
     }
 
 
+def resolve_with_tape(bars: list[dict], sig: dict, tape, times):
+    """Esegue il setup sul tape, trade per trade, applicando anche la condizione 3.
+
+    Il tape porta il tempo al millisecondo e la direzione gia' classificata, quindi dentro la
+    candela in formazione si sa **l'ordine** degli eventi: se il controllo gira prima che il
+    limit venga toccato, l'ordine si cancella come prescrive il dossier. La stessa informazione
+    elimina l'ambiguita' fra stop e target colpiti nella stessa barra.
+    """
+    import bisect
+
+    long = sig["side"] == "long"
+    entry = sig["vah"] if long else sig["val"]
+    stop = (sig["low"] if long else sig["high"]) if STOP_MODE == "bar" else (sig["val"] if long else sig["vah"])
+    risk = abs(entry - stop)
+    if risk == 0:
+        return {"outcome": "va-degenere"}
+    target = entry + risk if long else entry - risk
+
+    filled = False
+    for j in range(sig["bar"] + 1, min(sig["bar"] + 1 + PULLBACK_BARS, len(bars))):
+        begin, end = parse(bars[j]["time"]), parse(bars[j]["lastTime"])
+        lo, hi = bisect.bisect_left(times, begin), bisect.bisect_right(times, end)
+        forming = 0  # delta cumulato della candela in formazione, azzerato a ogni barra
+        for trade in tape[lo:hi]:
+            price = trade[4]
+            if (long and price <= entry) or (not long and price >= entry):
+                filled = True
+                fill_bar, fill_time = j, trade[0]
+                break
+            forming += trade[1] * trade[2]
+            if (long and forming <= -CONTROL_FLIP_DELTA) or (not long and forming >= CONTROL_FLIP_DELTA):
+                return {"outcome": "annullato-condizione-3", "entry": entry, "stop": stop,
+                        "target": target, "risk": risk, "exitBar": j}
+        if filled:
+            break
+
+    if not filled:
+        return {"outcome": "non-eseguito", "entry": entry, "stop": stop, "target": target, "risk": risk}
+
+    # Dal fill in poi l'esito si legge sul tape: il primo dei due prezzi toccato vince, senza ambiguita'.
+    start = bisect.bisect_left(times, fill_time)
+    for trade in tape[start:]:
+        price = trade[4]
+        if (long and price <= stop) or (not long and price >= stop):
+            return {"outcome": "stop", "entry": entry, "stop": stop, "target": target, "risk": risk,
+                    "filledBar": fill_bar, "exitBar": fill_bar, "exitTime": trade[0].isoformat(),
+                    "result": -risk}
+        if (long and price >= target) or (not long and price <= target):
+            return {"outcome": "target", "entry": entry, "stop": stop, "target": target, "risk": risk,
+                    "filledBar": fill_bar, "exitBar": fill_bar, "exitTime": trade[0].isoformat(),
+                    "result": risk}
+
+    last = tape[-1][4]
+    return {"outcome": "aperto-a-fine-tape", "entry": entry, "stop": stop, "target": target,
+            "risk": risk, "filledBar": fill_bar, "exitBar": fill_bar,
+            "result": (last - entry) if long else (entry - last)}
+
+
 def resolve(bars: list[dict], sig: dict):
     """Esegue l'ordine limit sul bordo della value area e ne segue l'esito, barra per barra."""
     long = sig["side"] == "long"
@@ -228,7 +290,7 @@ def resolve(bars: list[dict], sig: dict):
 
 def main() -> None:
     global MIN_FLIP_DELTA, LEVEL_TOLERANCE, TAPE_FACTOR, PULLBACK_BARS, STOP_MODE, LEVEL_BUFFER
-    global SESSION_WINDOW
+    global SESSION_WINDOW, CONTROL_FLIP_DELTA
 
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("candles", help="JSON di /candles con --levels")
@@ -238,22 +300,29 @@ def main() -> None:
                         help="ricava POC, VAH, VAL, massimo e minimo da una sessione precedente")
     parser.add_argument("--flip", type=int, default=MIN_FLIP_DELTA, help="delta minimo del flip")
     parser.add_argument("--tolerance", type=float, default=LEVEL_TOLERANCE, help="distanza da un livello")
-    parser.add_argument("--tape", type=float, default=TAPE_FACTOR, help="fattore di accelerazione del tape")
+    parser.add_argument("--tape-factor", type=float, default=TAPE_FACTOR,
+                        help="accelerazione del volume di barra richiesta; 0 disattiva il filtro")
     parser.add_argument("--pullback", type=int, default=PULLBACK_BARS, help="barre di validita' del limit")
     parser.add_argument("--stop", choices=["va", "bar", "level"], default="va",
                         help="'va' bordo opposto della value area, 'bar' estremo della barra, "
                              "'level' oltre il livello difeso")
     parser.add_argument("--buffer", type=float, default=LEVEL_BUFFER, help="punti oltre il livello")
     parser.add_argument("--window", metavar="HH:MM-HH:MM", help="finestra oraria UTC in cui operare")
+    parser.add_argument("--tape", metavar="TAPE.JSON",
+                        help="tape completo da /cumulative --min-volume 0 --compact: abilita la "
+                             "condizione 3 e l'esito senza ambiguita'")
+    parser.add_argument("--control", type=int, default=CONTROL_FLIP_DELTA,
+                        help="delta contrario che conta come perdita del controllo")
     parser.add_argument("--developing", action="store_true",
                         help="aggiunge POC e bordi della value area in sviluppo della sessione")
     parser.add_argument("--funnel", action="store_true", help="mostra quante barre superano ogni condizione")
     args = parser.parse_args()
 
     MIN_FLIP_DELTA, LEVEL_TOLERANCE = args.flip, args.tolerance
-    TAPE_FACTOR, PULLBACK_BARS, STOP_MODE = args.tape, args.pullback, args.stop
+    TAPE_FACTOR, PULLBACK_BARS, STOP_MODE = args.tape_factor, args.pullback, args.stop
     LEVEL_BUFFER = args.buffer
     SESSION_WINDOW = tuple(args.window.split("-")) if args.window else None
+    CONTROL_FLIP_DELTA = args.control
 
     levels = []
     for path in args.levels_from:
@@ -273,6 +342,14 @@ def main() -> None:
 
     bars = json.load(open(args.candles))["candles"]
     trades = load_big(args.big)
+
+    tape = times = None
+    if args.tape:
+        raw = json.load(open(args.tape))
+        if not raw.get("compact"):
+            raise SystemExit("il tape va scaricato con --compact")
+        tape = [(parse(t[0]), t[1], t[2], t[3], t[4]) for t in raw["trades"]]
+        times = [t[0] for t in tape]
 
     # Livelli in sviluppo precalcolati barra per barra, ciascuno con le sole barre precedenti.
     developing: list[list[tuple[float, str]]] = []
@@ -325,13 +402,15 @@ def main() -> None:
             i += 1
             continue
 
-        out = resolve(bars, sig)
+        out = resolve_with_tape(bars, sig, tape, times) if tape else resolve(bars, sig)
         rome = parse(sig["time"]).astimezone(timezone.utc)
         print(f"barra {sig['bar']}  {sig['time'][11:19]} UTC ({rome.hour + 2:02d}:{rome.minute:02d} Roma)  "
               f"{sig['side'].upper()}  a {sig['level']}")
         print(f"   delta {sig['previousDelta']:+,} -> {sig['delta']:+,}   VA {sig['val']:,.0f}-{sig['vah']:,.0f}   "
               f"big {sig['big']} ({sig['bigVolume']:,} lotti)   tape {sig['tapeRatio']:.1f}x")
-        if out["outcome"] == "non-eseguito":
+        if out["outcome"] == "annullato-condizione-3":
+            print(f"   controllo girato prima del fill -> ordine cancellato\n")
+        elif out["outcome"] == "non-eseguito":
             print(f"   limit {out['entry']:,.2f} non toccato in {PULLBACK_BARS} barre -> cancellato\n")
         elif out["outcome"] in ("ambiguo", "va-degenere"):
             print(f"   esito {out['outcome']}\n")

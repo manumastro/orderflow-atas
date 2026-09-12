@@ -67,7 +67,9 @@ prop/                      esecuzione: mercato guida, sizing, fee, regole delle 
 
 Il lavoro utile e' stato renderlo falsificabile. La prima esecuzione del [replay](docs/research/sessioni/replay-modello-settimana-2026-09-11.md) implementava non il dossier ma la sua sintesi, e aggiungeva due condizioni inesistenti: un filtro sui livelli e uno sui Big Trades. Il secondo azzerava gli ingressi, facendo sembrare che il modello non operasse mai. Era un artefatto dell'implementazione, ed e' registrato accanto al risultato corretto.
 
-Sulla settimana, applicato come il dossier lo descrive, il modello fa 125 operazioni al 55% con obiettivo 1:1, cioe' **+0,10 R per operazione**. La finestra oraria che il dossier dichiara in anticipo regge in sei confronti su sei; la soglia sul delta flip, scelta guardando i dati, no. E il lordo atteso per operazione e' dello stesso ordine di grandezza delle commissioni.
+Il replay ha avuto tre versioni, e la sequenza degli errori e' registrata perche' vale piu' del risultato. La prima implementava la sintesi invece del dossier e aggiungeva due condizioni inesistenti, una delle quali azzerava gli ingressi. La seconda decideva l'esito confrontando stop e target con gli estremi della barra di esecuzione, contando come raggiunti target stampati **prima** dell'ingresso: look-ahead, che mostrava un margine apparente del 55%.
+
+La terza risolve l'esito sul tape completo, trade per trade. Il modello fa 133 operazioni al **40%** con obiettivo 1:1, dove il pareggio lordo ne richiede piu' del 50%. La terza condizione del dossier, che si e' rivelata misurabile in storico dopo essere stata dichiarata non misurabile, non sposta il risultato.
 
 ## Come Si Lavora Qui
 

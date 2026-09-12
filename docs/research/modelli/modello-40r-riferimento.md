@@ -44,19 +44,19 @@ Tre condizioni su tre contengono una parola che nessun dato definisce. Renderle 
 |---|---|---|
 | 1 | quanto grande dev'essere il flip | segno del delta invertito e nuovo delta di almeno 40 in valore assoluto |
 | 2 | cosa significa "VA piu' alta" | **entrambi** i bordi si spostano nella direzione del lato |
-| 3 | come si misura il controllo intrabarra | **non replicabile in storico**, vedi sotto |
+| 3 | quanto delta contrario conta come perdita del controllo | delta cumulato della candela in formazione oltre 30 contro il lato |
 | entry | quanto resta valido il limit | tre barre, poi si cancella |
 | finestra | quali sono le "prime due ore" | 13:30-15:30 UTC, cioe' 09:30-11:30 New York |
 
 Sono le costanti in testa a [`replay_model.py`](../../../FabioOrderFlow/tools/replay_model.py), tutte sovrascrivibili da riga di comando perche' la sensibilita' alla soglia faccia parte del risultato.
 
-### La condizione 3 non e' replicabile in storico
+### La condizione 3 si misura in storico, dal tape
 
-Il footprint di una barra chiusa dice quanto delta ha accumulato e quali estremi ha toccato, ma non l'ordine temporale degli eventi al suo interno. Sapere se il controllo e' girato **prima** che il limit venisse eseguito richiede il flusso in formazione, non la barra finita.
+Il footprint di una barra chiusa non dice l'ordine temporale degli eventi al suo interno, e per un periodo si e' concluso che la condizione 3 fosse quindi non replicabile. Era sbagliato: `GetCumulativeTradesSessionLimit(Filter)` vale 0, cioe' nessun limite, e con `minVolume 0` il bridge restituisce **ogni trade aggregato** con timestamp al millisecondo e direzione gia' classificata.
 
-Questo non e' un dettaglio: la condizione 3 cancella gli ordini pendenti proprio nelle candele che stanno girando, cioe' quelle che nel replay diventano stop immediati. Una parte dei perdenti misurati non sarebbe mai entrata.
+Camminando quel tape dentro la candela in formazione si sa se il controllo e' girato **prima** che il limit venisse toccato, e l'ordine si cancella come prescrive il dossier. Lo stesso tape elimina l'ambiguita' sull'esito quando stop e target cadono nella stessa barra.
 
-Misurarla richiede una registrazione live del delta cumulato dentro la candela in formazione. Il bridge puo' farlo; lo storico no.
+Misurata cosi', la condizione 3 cancella dal 2% al 16% degli ordini e **non sposta il win rate**: vedi il [replay](../sessioni/replay-modello-settimana-2026-09-11.md).
 
 ## Il Problema Di Scala
 
@@ -68,7 +68,7 @@ value area di barra   5,00 punti in mediana
 stop risultante       4,50-6,00 punti
 ```
 
-Con 1 MNQ, cinque punti valgono dieci dollari. E' il vincolo dominante e non dipende da quanto bene si legga il flusso: vedi il conto in [Replay sulla settimana](../sessioni/replay-modello-settimana-2026-09-11.md).
+Con 1 MNQ, cinque punti valgono dieci dollari. Sulla settimana misurata il problema si e' pero' rivelato piu' a monte del costo di transazione: il win rate sul 1:1 e' 40% su 133 operazioni, quindi la perdita e' lorda. Vedi il [replay](../sessioni/replay-modello-settimana-2026-09-11.md).
 
 ## Applicazioni
 
@@ -77,7 +77,7 @@ Con 1 MNQ, cinque punti valgono dieci dollari. E' il vincolo dominante e non dip
 ## Limiti
 
 - Una settimana. Nessuna delle percentuali misurate e' una statistica.
-- La condizione 3 non e' applicata: i risultati sono quindi un **limite inferiore** del modello.
+- Il modello di esecuzione del replay e' ottimista: riempimento al primo prezzo stampato al livello del limit, senza coda ne' riempimenti parziali.
 - Il delta di barra dipende dalla classificazione bid/ask di ATAS, non ispezionabile.
 - Il replay non modella slippage, riempimenti parziali o code sul limit.
 - Il dossier prescrive DeepCharts; qui si misura su dati ATAS. Le due piattaforme possono differire nella costruzione della value area di barra.

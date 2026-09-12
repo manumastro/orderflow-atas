@@ -118,7 +118,8 @@ def get(base: str, path: str, params: dict | None = None, timeout: float = 300.0
 def fetch_cumulative(base: str, args) -> dict:  # noqa: D401
     """Richiede i trade aggregati spezzando la finestra in blocchi ammessi da ATAS."""
     begin, end = parse_time(args.begin), parse_time(args.end)
-    window = timedelta(days=args.window_days)
+    window = (timedelta(minutes=args.window_minutes) if getattr(args, "window_minutes", None)
+              else timedelta(days=args.window_days))
 
     merged: list[dict] = []
     returned = outside = 0
@@ -143,7 +144,11 @@ def fetch_cumulative(base: str, args) -> dict:  # noqa: D401
                 "ticks": "true" if args.ticks else None,
             },
         )
-        merged.extend(payload.get("trades", []))
+        chunk = payload.get("trades", [])
+        if getattr(args, "compact", False):
+            chunk = [[t["time"], 1 if t["direction"] == "Buy" else -1, t["volume"],
+                      t["firstPrice"], t["lastPrice"]] for t in chunk]
+        merged.extend(chunk)
         returned += payload.get("returned", 0)
         outside += payload.get("outsideWindow", 0)
         truncated = truncated or payload.get("truncated", False)
@@ -158,6 +163,8 @@ def fetch_cumulative(base: str, args) -> dict:  # noqa: D401
         "outsideWindow": outside,
         "truncated": truncated,
         "count": len(merged),
+        "compact": getattr(args, "compact", False),
+        "fields": ["time", "side", "volume", "firstPrice", "lastPrice"] if getattr(args, "compact", False) else None,
         "trades": merged,
     }
 
@@ -215,7 +222,13 @@ def main() -> None:
     cumulative.add_argument("--max-volume", type=int, default=0)
     cumulative.add_argument("--mode", default="Filter", choices=["Strong", "Medium", "Weak", "Filter", "FilterLimited"])
     cumulative.add_argument("--ticks", action="store_true", help="include i tick di ogni trade aggregato")
-    cumulative.add_argument("--window-days", type=int, default=DEFAULT_WINDOW_DAYS)
+    cumulative.add_argument("--window-days", type=float, default=DEFAULT_WINDOW_DAYS)
+    cumulative.add_argument("--window-minutes", type=float,
+                            help="spezza in blocchi di minuti invece che di giorni; serve per il "
+                                 "tape completo, dove una sola ora supera il limite di elementi")
+    cumulative.add_argument("--compact", action="store_true",
+                            help="tiene solo tempo, direzione, volume e prezzi: il tape completo "
+                                 "e' altrimenti ingestibile su finestre lunghe")
 
     depth = add("depth")
     depth.add_argument("--from", dest="begin", required=True)
