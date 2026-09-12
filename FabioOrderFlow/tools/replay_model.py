@@ -17,7 +17,8 @@ from __future__ import annotations
 import argparse
 import bisect
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
+from statistics import median
 
 # ============================================================ pagina 02: chart setup
 # Il dossier prescrive il template OrderTrack con le linee di value area attive. La percentuale
@@ -105,6 +106,99 @@ LEVEL_TOLERANCE = 10.0
 BREAKEVEN_R = 0.0           # frazione di R favorevole dopo cui lo stop va all'ingresso
 TARGET_R = 1.0              # obiettivo in multipli di R
 
+# ============================================================ big trades e speed of tape
+# Nemmeno questi vengono dal dossier. Vengono dalla prima live del corso, dove sono il filtro
+# che decide se un livello merita un'esecuzione:
+#
+#   "you not only have an amazing cluster of aggressive holder on this horizontal level,
+#    but you are also supported by speed"
+#   "look how much is low the activity. If you try to take this breakout, you will incur a lot
+#    of losses. [...] It's keeping you out of useless moment in the market."
+#
+# I big trades sono i singoli cumulative trade sopra una certa size: Fabio cita 60, 84, 124
+# contratti su NASDAQ. Sul tape di una sessione il 99esimo percentile sta intorno a 10 e il
+# 99,9esimo intorno a 34, quindi una soglia di 20 seleziona lo 0,3% superiore delle stampe.
+BIG_TRADE_SIZE = 20         # volume minimo perche' una stampa sia un big trade
+BIG_TRADE_COUNT = 0         # quanti ne servono dal lato del segnale; 0 disattiva il filtro
+BIG_TRADE_DOMINANCE = False # ne servono piu' dal lato del segnale che dal lato opposto
+
+# La speed of tape e' volume aggressivo per secondo, separato per lato. La soglia assoluta non
+# e' trasferibile fra sessioni diverse, quindi si misura in multipli della mediana della sessione
+# stessa: "1,5" vuol dire che in quella finestra il lato del segnale sta andando una volta e
+# mezza piu' veloce di quanto vada di solito quel giorno.
+SPEED_MULTIPLE = 0.0        # 0 disattiva il filtro
+SPEED_DOMINANCE = False     # il lato del segnale deve anche essere piu' veloce di quello opposto
+
+# Finestra su cui si leggono entrambi. None = la barra 40R stessa, che e' cio' che si vede
+# quando la candela chiude.
+FLOW_WINDOW: float | None = None
+
+# Nella live i big trades non sono un filtro sulla candela: sono cio' che **costruisce il
+# livello**. Fabio marca il prezzo dove si sono accumulati e poi lo tratta per il resto della
+# sessione ("this is the level that created the most important breakout, so I mark this";
+# "if you want to see a reload really fast [...] we can mark this last movement with profile
+# and see what's the most important price level"). Questi due parametri implementano quella
+# lettura: si tengono i prezzi con piu' volume di big trades accumulato **prima** della barra
+# di segnale, e la barra deve arrivarci sopra.
+BIG_LEVELS = 0              # quanti prezzi tenere; 0 disattiva
+BIG_LEVEL_AGE = 60.0        # secondi minimi perche' un livello sia gia' formato
+
+
+class Flow:
+    """Letture di tape per una sessione, con la linea di base della sessione stessa."""
+
+    def __init__(self, tape, times, bars):
+        self.tape, self.times = tape, times
+        rates: dict[int, list[float]] = {1: [], -1: []}
+        for bar in bars:
+            begin, end = parse(bar["time"]), parse(bar["lastTime"])
+            seconds = max((end - begin).total_seconds(), 0.001)
+            buy, sell = self.volume(begin, end)
+            rates[1].append(buy / seconds)
+            rates[-1].append(sell / seconds)
+        # Una mediana nulla renderebbe il filtro sempre vero: in quel caso non c'e' linea di base.
+        self.baseline = {k: (median(v) if v and median(v) > 0 else None) for k, v in rates.items()}
+
+    def window(self, begin, end):
+        lo = bisect.bisect_left(self.times, begin)
+        hi = bisect.bisect_right(self.times, end)
+        return self.tape[lo:hi]
+
+    def volume(self, begin, end) -> tuple[int, int]:
+        buy = sell = 0
+        for trade in self.window(begin, end):
+            if trade[1] > 0:
+                buy += trade[2]
+            else:
+                sell += trade[2]
+        return buy, sell
+
+    def rate(self, begin, end) -> dict[int, float]:
+        seconds = max((end - begin).total_seconds(), 0.001)
+        buy, sell = self.volume(begin, end)
+        return {1: buy / seconds, -1: sell / seconds}
+
+    def big_levels(self, before, size, keep, tick=0.25) -> list[float]:
+        """I prezzi su cui si e' accumulato piu' volume di big trades prima di `before`.
+
+        Causale per costruzione: la ricerca binaria taglia il tape all'istante richiesto, quindi
+        un livello puo' essere usato solo dopo essersi formato.
+        """
+        hi = bisect.bisect_left(self.times, before)
+        volume: dict[float, int] = {}
+        for trade in self.tape[:hi]:
+            if trade[2] >= size:
+                price = round(trade[4] / tick) * tick
+                volume[price] = volume.get(price, 0) + trade[2]
+        return [price for price, _ in sorted(volume.items(), key=lambda kv: -kv[1])[:keep]]
+
+    def big(self, begin, end, size) -> dict[int, int]:
+        counted = {1: 0, -1: 0}
+        for trade in self.window(begin, end):
+            if trade[2] >= size:
+                counted[1 if trade[1] > 0 else -1] += 1
+        return counted
+
 
 def parse(raw: str) -> datetime:
     return datetime.fromisoformat(raw.replace("Z", "+00:00"))
@@ -177,7 +271,7 @@ def control_lost(side: str, cumulative_delta: int, threshold: int) -> bool:
 
 # ------------------------------------------------------------ segnale
 
-def signal(bars, i, vas, levels):
+def signal(bars, i, vas, levels, flow):
     if i < 1:
         return None
     if SESSION_WINDOW and not (SESSION_WINDOW[0] <= bars[i]["lastTime"][11:16] <= SESSION_WINDOW[1]):
@@ -231,6 +325,38 @@ def signal(bars, i, vas, levels):
     else:
         near = "nessun filtro di livello"
 
+    # Big trades e speed of tape: la conferma che al livello c'e' davvero qualcuno.
+    measured = {}
+    if flow is not None:
+        end = parse(bar["lastTime"])
+        begin = parse(bar["time"]) if FLOW_WINDOW is None else end - timedelta(seconds=FLOW_WINDOW)
+        want = 1 if side == "long" else -1
+        counted = flow.big(begin, end, BIG_TRADE_SIZE)
+        rate = flow.rate(begin, end)
+        base = flow.baseline[want]
+        measured = {
+            "bigPro": counted[want], "bigContro": counted[-want],
+            "speedPro": round(rate[want] / base, 2) if base else None,
+            "speedContro": round(rate[-want] / flow.baseline[-want], 2) if flow.baseline[-want] else None,
+        }
+        if BIG_TRADE_COUNT and counted[want] < BIG_TRADE_COUNT:
+            return None
+        if BIG_TRADE_DOMINANCE and counted[want] <= counted[-want]:
+            return None
+        if SPEED_MULTIPLE and (base is None or rate[want] < SPEED_MULTIPLE * base):
+            return None
+        if SPEED_DOMINANCE and rate[want] <= rate[-want]:
+            return None
+
+        if BIG_LEVELS:
+            formed = begin - timedelta(seconds=BIG_LEVEL_AGE)
+            cluster = flow.big_levels(formed, BIG_TRADE_SIZE, BIG_LEVELS)
+            touched = next((price for price in cluster
+                            if bar["low"] - LEVEL_TOLERANCE <= price <= bar["high"] + LEVEL_TOLERANCE), None)
+            if touched is None:
+                return None
+            measured["bigLevel"] = touched
+
     val, vah = vas[i]
     if REQUIRE_PULLBACK:
         entry = vah if side == "long" else val
@@ -242,7 +368,7 @@ def signal(bars, i, vas, levels):
     return {
         "bar": i, "side": side, "level": near, "time": bar["lastTime"],
         "delta": bar["delta"], "previousDelta": previous["delta"],
-        "vah": vah, "val": val, "high": bar["high"], "low": bar["low"],
+        "vah": vah, "val": val, "high": bar["high"], "low": bar["low"], **measured,
     }
 
 
@@ -323,6 +449,8 @@ def main() -> None:
     global PULLBACK_BARS, SESSION_WINDOW, STOP_MODE
     global INVERT, TREND_BARS, MEAN_REVERSION, PACE_RANGE, ABSORPTION, NULL_MODEL
     global REQUIRE_PULLBACK, LEVEL_TOLERANCE, BREAKEVEN_R, TARGET_R
+    global BIG_TRADE_SIZE, BIG_TRADE_COUNT, BIG_TRADE_DOMINANCE
+    global SPEED_MULTIPLE, SPEED_DOMINANCE, FLOW_WINDOW, BIG_LEVELS, BIG_LEVEL_AGE
 
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("candles", help="JSON di /candles con --levels")
@@ -369,10 +497,30 @@ def main() -> None:
     tests.add_argument("--target", type=float, default=1.0, metavar="R",
                        help="obiettivo in multipli di R; il dossier dice 1")
 
+    flow_args = parser.add_argument_group("big trades e speed of tape - dal transcript, non dal dossier")
+    flow_args.add_argument("--big-trade", type=int, default=BIG_TRADE_SIZE, metavar="SIZE",
+                           help="volume minimo di una stampa perche' sia un big trade")
+    flow_args.add_argument("--big-trades", type=int, default=0, metavar="N",
+                           help="big trades richiesti dal lato del segnale; 0 disattiva")
+    flow_args.add_argument("--big-dominance", action="store_true",
+                           help="ne servono piu' dal lato del segnale che dal lato opposto")
+    flow_args.add_argument("--speed", type=float, default=0.0, metavar="MULT",
+                           help="velocita' minima del lato del segnale, in multipli della mediana della sessione")
+    flow_args.add_argument("--speed-dominance", action="store_true",
+                           help="il lato del segnale deve essere piu' veloce di quello opposto")
+    flow_args.add_argument("--flow-window", type=float, default=None, metavar="SEC",
+                           help="finestra di lettura; omessa usa la barra 40R stessa")
+    flow_args.add_argument("--big-levels", type=int, default=0, metavar="N",
+                           help="la barra deve toccare uno degli N prezzi con piu' big trades accumulati")
+    flow_args.add_argument("--big-level-age", type=float, default=BIG_LEVEL_AGE, metavar="SEC",
+                           help="eta' minima di un livello da big trades")
+
     parser.add_argument("--quiet", action="store_true", help="solo la riga di riepilogo")
     parser.add_argument("--json", action="store_true", help="riepilogo in JSON, per aggregare piu' sessioni")
+    parser.add_argument("--trades-json", action="store_true",
+                        help="una riga JSON per operazione con le misure di flusso e l'esito")
     args = parser.parse_args()
-    if args.json:
+    if args.json or args.trades_json:
         args.quiet = True
 
     VALUE_AREA_PERCENT = args.va_percent
@@ -386,6 +534,11 @@ def main() -> None:
     REQUIRE_PULLBACK = not args.no_pullback_check
     LEVEL_TOLERANCE = args.level_tolerance
     BREAKEVEN_R, TARGET_R = args.breakeven, args.target
+    BIG_TRADE_SIZE, BIG_TRADE_COUNT = args.big_trade, args.big_trades
+    BIG_TRADE_DOMINANCE = args.big_dominance
+    SPEED_MULTIPLE, SPEED_DOMINANCE = args.speed, args.speed_dominance
+    FLOW_WINDOW = args.flow_window
+    BIG_LEVELS, BIG_LEVEL_AGE = args.big_levels, args.big_level_age
     ABSORPTION = args.absorption
     PACE_RANGE = tuple(float(x) for x in args.pace.split(",")) if args.pace else None
 
@@ -397,6 +550,7 @@ def main() -> None:
     times = [t[0] for t in tape]
 
     vas = [bar_value_area(bar, VALUE_AREA_PERCENT) for bar in bars]
+    flow = Flow(tape, times, bars)
 
     levels = []
     for path in args.levels_from:
@@ -421,7 +575,7 @@ def main() -> None:
 
     i = 1
     while i < len(bars):
-        sig = signal(bars, i, vas, levels)
+        sig = signal(bars, i, vas, levels, flow)
         if sig is None:
             i += 1
             continue
@@ -439,6 +593,11 @@ def main() -> None:
             r_total += out["r"]
             dollars += out["dollars"]
             risks.append(out["risk"])
+            if args.trades_json:
+                print(json.dumps({"time": sig["time"], "side": sig["side"],
+                                  "bigPro": sig.get("bigPro"), "bigContro": sig.get("bigContro"),
+                                  "speedPro": sig.get("speedPro"), "speedContro": sig.get("speedContro"),
+                                  "outcome": out["outcome"], "r": round(out["r"], 2)}))
             if not args.quiet:
                 rome = parse(sig["time"]).hour + 2
                 print(f"barra {sig['bar']}  {sig['time'][11:19]} UTC ({rome:02d}:{sig['time'][14:16]} Roma)  "
@@ -455,15 +614,17 @@ def main() -> None:
 
         i = sig["bar"] + 1
 
-    median = sorted(risks)[len(risks) // 2] if risks else 0
+    median_risk = sorted(risks)[len(risks) // 2] if risks else 0
     summary = {"trades": taken, "wins": wins, "r": round(r_total, 2), "dollars": round(dollars),
-               "medianRisk": median, "cancelled": cancelled, "unfilled": unfilled, "managed": managed}
+               "medianRisk": median_risk, "cancelled": cancelled, "unfilled": unfilled, "managed": managed}
+    if args.trades_json:
+        return
     if args.json:
         print(json.dumps(summary))
         return
     rate = f"{100 * wins / taken:.0f}%" if taken else "-"
     print(f"operazioni {taken}   vinte {wins} ({rate})   {r_total:+.2f} R   {dollars:+,.0f} $   "
-          f"rischio mediano {median:,.2f} pt   cancellati {cancelled}   non eseguiti {unfilled}   "
+          f"rischio mediano {median_risk:,.2f} pt   cancellati {cancelled}   non eseguiti {unfilled}   "
           f"uscite per controllo {managed}")
 
 

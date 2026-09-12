@@ -243,3 +243,73 @@ entrambi), e lo stop a pareggio a 0,5R peggiora il totale invece di migliorarlo:
 che avrebbero raggiunto il target vengono azzerate prima. Sono i numeri di una serie senza
 direzione. Cio' che il transcript aggiunge e che il replay non misura e' il filtro big trades piu'
 speed of tape, cioe' esattamente la parte che Fabio descrive come "informational edge".
+
+## Big Trades E Speed Of Tape
+
+Implementati come descritti nel primo transcript, in tre letture diverse, e misurati sullo stesso
+mese di 19 sessioni. Le opzioni sono `--big-trade`, `--big-trades`, `--big-dominance`, `--speed`,
+`--speed-dominance`, `--flow-window`, `--big-levels`, `--big-level-age`.
+
+**Definizioni.** Un big trade e' un singolo cumulative trade sopra una soglia di volume: sul tape
+di una sessione il 99esimo percentile e' 10 contratti e il 99,9esimo e' 34, quindi 20 seleziona lo
+0,3% superiore delle stampe. La speed of tape e' volume aggressivo al secondo, separata per lato e
+normalizzata sulla mediana della sessione stessa, perche' una soglia assoluta non e' trasferibile
+fra una giornata di CPI e una di agosto.
+
+### Letture Come Filtro Di Barra
+
+477 operazioni, cap giornaliero disattivato perche' non tagli il campione, base 49,7%.
+
+| big trades a favore | op | WR | z |
+|---|---|---|---|
+| 0 | 215 | 45,6% | -1,20 |
+| 1 | 171 | 50,9% | +0,31 |
+| 2 | 62 | 64,5% | **+2,34** |
+| >= 3 | 29 | 41,4% | -0,89 |
+
+| speed a favore | op | WR | z |
+|---|---|---|---|
+| < 1x mediana | 96 | 54,2% | +0,88 |
+| 1-2x | 174 | 45,4% | -1,13 |
+| 2-4x | 124 | 52,4% | +0,61 |
+| >= 4x | 83 | 49,4% | -0,05 |
+
+Il rapporto fra velocita' a favore e velocita' contro e' piatto o leggermente negativo a ogni
+soglia. Ripetendo tutto su finestre di 30, 60 e 120 secondi invece della barra, il massimo |z| su
+circa trenta celle e' 1,9 e i segni cambiano da una finestra all'altra.
+
+Il 64,5% a due big trades e' l'unica cella significativa, sta fra due celle che non lo sono e la
+cella successiva inverte. Con trenta confronti, un |z| massimo intorno a 2,2 e' quello che produce
+il caso: non e' un risultato.
+
+### Lettura Come Costruzione Del Livello
+
+E' quella che Fabio usa davvero: i big trades non filtrano la candela, marcano il prezzo, e il
+prezzo resta un livello per il resto della sessione. `--big-levels N` tiene gli N prezzi con piu'
+volume di big trades accumulato **prima** della barra di segnale e richiede che la barra li tocchi.
+
+| | op | op/sessione | WR | R |
+|---|---|---|---|---|
+| top 3 | 207 | 10,9 | 49% | -5,00 |
+| top 5 | 270 | 14,2 | 50% | -0,61 |
+| top 10 | 339 | 17,8 | 51% | +4,39 |
+| top 20 | 387 | 20,4 | 50% | +2,39 |
+
+Combinandola con il gate sul profile framing del giorno prima la frequenza scende a 1,6-3,1
+operazioni per sessione, dentro l'intervallo dichiarato, e la percentuale di vittorie scende a
+35-46%.
+
+### Cosa Se Ne Ricava
+
+Nessuna delle tre letture produce un edge misurabile su questo modello. Vale la pena essere
+precisi su cosa significa e cosa non significa.
+
+Non significa che big trades e speed of tape non contengano informazione. Significa che
+**l'informazione non e' nella forma in cui l'abbiamo codificata**: un conteggio sulla barra di
+segnale e una velocita' normalizzata sono proxy grossolane di cio' che Fabio legge, che e' una
+sequenza — chi carica per primo, chi risponde, chi cede il livello — e che legge insieme al
+posizionamento nel profilo e alla narrativa del COT.
+
+Resta che, dopo aver implementato tutto cio' che il dossier e il primo transcript dichiarano in
+forma verificabile, il modello misurato sta al 49-51% con obiettivo 1:1, cioe' sulla moneta. Le
+parti che mancano non sono dettagli di parametro: sono la parte discrezionale.
