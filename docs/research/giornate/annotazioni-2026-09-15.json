@@ -150,6 +150,15 @@
     "tipo": "rottura",
     "testo": "i compratori del minimo non hanno tenuto",
     "misura": "29273,25 attraversato alle 16:49, nuovo minimo 29255,50 alle 16:50. I +374 di delta che alle 16:43 leggevo come compratori sul minimo erano reali ma insufficienti. Tre barre consecutive chiuse sui minimi (pos 0,05 / 0,04 / 0,29) con delta -143, -93, -125, ma su volumi da 611-1.045 contro un p75 di 1.462: non e' vendita aggressiva, sono i compratori che si ritirano. Lo scenario 'cede il minimo' non e' scattato perche' chiede vol e delta oltre il p95, ed e' corretto. Prossimo riferimento 29236, bordo basso della sega di stamattina. Il movimento e' nel verso del gate.",
+    "tema": "minimo 29273",
+    "superata_da": "16:52"
+  },
+  {
+    "ora": "16:52",
+    "prezzo": 29227.0,
+    "tipo": "rottura",
+    "testo": "rottura vera: 3.599 lotti, delta -321",
+    "misura": "16:51 O 29258,25 H 29271,25 L 29227,00 C 29229,25, barra da 44 punti: 3.599 lotti contro un p95 di 2.117, delta -321 contro un p95 di 215. Passati sia il minimo di giornata sia il bordo basso della sega a 29236. Lo scenario 'cede il minimo' NON e' scattato: la condizione era un attraversamento e il livello era gia' stato consumato alle 16:49 da una barra da 1.045 lotti. Riscritto su finestra. Alle 16:52 prima risposta: 757 lotti delta +147 pos 0,39 sullo stesso prezzo di chiusura. Sotto, il blocco 29175-29224 dove lunedi sono passati 18.540 lotti con delta +628.",
     "tema": "minimo 29273"
   }
 ]

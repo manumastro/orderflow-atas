@@ -1,25 +1,5 @@
 [
   {
-    "nome": "cede il minimo di giornata",
-    "sigla": "cede il minimo",
-    "prezzo": 29273,
-    "tipo": "rottura",
-    "tema": "minimo 29273",
-    "quando": "chiude_sotto(29273) and vol >= p95vol and delta <= -p95delta",
-    "testo": "perso il minimo di giornata nel verso del gate",
-    "attesa": "il gate IVB e' short-only e questa e' la continuazione. Sotto, la fascia 29275-29299 e' la piu' sottile della cash (6,1%): si scende in fretta. Primo appoggio il bordo basso della sega di stamattina a 29236, poi il blocco di lunedi a 29199."
-  },
-  {
-    "nome": "assorbimento sul minimo di giornata",
-    "sigla": "assorbe il minimo",
-    "prezzo": 29280,
-    "tipo": "assorbimento",
-    "tema": "minimo 29273",
-    "quando": "tocca(29280, 10) and vol >= p95vol and delta >= 0 and pos >= 0.6",
-    "testo": "assorbimento sul minimo di giornata",
-    "attesa": "negli ultimi 15 minuti il delta e' +374 su 16.356 lotti proprio sui minimi: qualcuno compra qui. Contro il gate, quindi vale come mean reverting con rischio stretto, non come permesso long. Primo bersaglio il ritorno su 29326, la chiusura M30."
-  },
-  {
     "nome": "il VAL respinge da sotto",
     "sigla": "il VAL respinge",
     "prezzo": 29306,
@@ -50,13 +30,43 @@
     "attesa": "rientro in accettazione dentro 29372,50-29453,50 significa che la chiusura M30 sotto il range era un falso segnale. Da li' si torna mean reverting dentro l'IVB, non long: il permesso long lo darebbe solo una chiusura sopra 29453,50."
   },
   {
+    "nome": "accettazione sotto il minimo di 16:40",
+    "sigla": "accetta sotto",
+    "prezzo": 29273,
+    "tipo": "rottura",
+    "tema": "minimo 29273",
+    "quando": "c < 29273 and minuti_sotto(29273, 15) >= 11 and vol_sopra_pct(29273, 15) <= 30",
+    "testo": "accettato sotto il minimo: la discesa e' strutturale",
+    "attesa": "scritto su finestra e non come attraversamento: il 15 settembre 'cede il minimo' non e' scattato perche' il livello era stato consumato alle 16:49 da una barra debole, e la rottura vera delle 16:51 (3.599 lotti, delta -321) e' arrivata quando il prezzo era gia' sotto. Un test su barra singola e' fragile, uno su finestra misura uno stato."
+  },
+  {
+    "nome": "assorbimento sul blocco di lunedi",
+    "sigla": "assorbe il blocco",
+    "prezzo": 29210,
+    "tipo": "assorbimento",
+    "tema": "blocco 29199",
+    "quando": "tocca(29210, 14) and vol >= p95vol and delta >= 0 and pos >= 0.6",
+    "testo": "assorbimento sul blocco comprato lunedi",
+    "attesa": "29175-29224 e' dove lunedi sono passati 18.540 lotti con delta +628. Se quei compratori difendono, e' qui. Contro il gate short, quindi mean reverting a rischio stretto. Primo bersaglio il ritorno a 29273."
+  },
+  {
+    "nome": "cede il blocco di lunedi",
+    "sigla": "cede il blocco",
+    "prezzo": 29199,
+    "tipo": "rottura",
+    "tema": "blocco 29199",
+    "quando": "c < 29199 and minuti_sotto(29199, 15) >= 11 and vol_sopra_pct(29199, 15) <= 30",
+    "testo": "perso il blocco comprato lunedi",
+    "attesa": "i 18.540 lotti comprati lunedi a 29175-29224 sono in perdita. Resta solo il minimo cash di lunedi a 29168, poi il globex a 29107: sotto 29168 oggi diventa la continuazione della discesa di lunedi, non una giornata a se'."
+  },
+  {
     "nome": "sforzo senza risultato sui minimi",
     "sigla": "sforzo senza risultato",
-    "prezzo": 29285,
+    "prezzo": 29230,
     "tipo": "nota",
     "tema": "minimo 29273",
-    "quando": "tocca(29285, 12) and v30 >= 20000 and dpct30 <= -1 and min3 > min10 + 3",
+    "quando": "tocca(29230, 15) and v30 >= 25000 and dpct30 <= -1 and min3 > min10 + 4",
     "testo": "i venditori spingono e i minimi non si estendono",
-    "attesa": "trenta minuti a delta negativo su volume da cash, ma i minimi non si allungano. E' l'effort without result del corso, e qui sarebbe contro il gate: segnale di esaurimento della gamba, non permesso di comprare."
+    "attesa": "trenta minuti a delta negativo su volume da cash ma i minimi non si allungano: l'effort without result del corso. Segnale di esaurimento della gamba, non permesso di comprare: il gate resta short."
   }
 ]
