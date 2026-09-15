@@ -170,7 +170,8 @@
     "misura": "16:59 a 29239.75: vol 687, delta -43, 30m +2.2%. scritto su finestra e non come attraversamento: il 15 settembre 'cede il minimo' non e' scattato perche' il livello era stato consumato alle 16:49 da una barra debole, e la rottura vera delle 16:51 (3.599 lotti, delta -321) e' arrivata quando il prezzo era gia' sotto. Un test su barra singola e' fragile, uno su finestra misura uno stato.",
     "scenario": "accettazione sotto il minimo di 16:40",
     "condizione": "c < 29273 and minuti_sotto(29273, 15) >= 11 and vol_sopra_pct(29273, 15) <= 30",
-    "tema": "minimo 29273"
+    "tema": "minimo 29273",
+    "superata_da": "17:05"
   },
   {
     "ora": "17:04",
@@ -179,5 +180,13 @@
     "testo": "il blocco comprato lunedi ha tenuto",
     "misura": "Minimo 29215,75 alle 16:53, dentro 29175-29224 dove lunedi sono passati 18.540 lotti con delta +628. Dalla barra di rottura delle 16:51: 19.880 lotti con delta cumulato +1.412 (+7,1%), undici barre di cui sette a delta positivo e quattro con pos oltre 0,95. La barra da -321 e' stata riassorbita per intero. Lo scenario non e' scattato perche' chiedeva 2.117 lotti su barra singola e il massimo e' stato 1.804: terza volta oggi che una soglia p95 su barra singola manca un evento vero. Riscritto su delta cumulato. Il gate resta short: questo e' mean reverting, non permesso long.",
     "tema": "blocco 29199"
+  },
+  {
+    "ora": "17:05",
+    "prezzo": 29273.0,
+    "tipo": "reclaim",
+    "testo": "29273 ripreso: l'accettazione sotto e' durata sei minuti",
+    "misura": "Lo scenario 'accetta sotto' e' scattato sulla barra delle 16:59 con la condizione corretta (11 minuti su 15 sotto 29273), ma il motore l'ha valutata in ritardo e alle 17:05 il prezzo e' a 29283,50, sopra il livello. Ora: 8 minuti su 15 sotto, delta +1.259 su 12.755 lotti. Quattro barre consecutive con pos oltre 0,95 dalle 17:01. Lezione nuova: una condizione su finestra e' robusta ma puo' arrivare gia' scaduta se il motore accumula ritardo - il valore di verita' e' riferito alla barra, non all'istante in cui lo leggi. Il gate resta short: 29306, 29326 e 29372,50 sono i livelli sopra.",
+    "tema": "minimo 29273"
   }
 ]
