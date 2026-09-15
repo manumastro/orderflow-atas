@@ -71,10 +71,14 @@ Due vincoli tecnici che hanno gia' prodotto errori, e che i documenti linkati sp
 - **Il contratto continuo di ATAS non e' back-adjusted**: usa i contratti singoli o
   `FabioOrderFlow/tools/build_continuous.py`. Il controllo del rollover precede ogni altra misura.
 
-Durante una seduta: `FabioOrderFlow/tools/sveglia_tape.py` avvisa che e' il momento di guardare e
-mostra i numeri grezzi, **senza concludere niente**; la lettura la fa l'analisi, e
-`FabioOrderFlow/tools/annota.py` la riporta sul chart e nel diario della giornata. Non spostare il
-giudizio dentro la sveglia: una lettura ha bisogno di contesto che una barra singola non contiene.
+Durante una seduta gli scenari attesi si scrivono **prima**, in
+`docs/research/giornate/scenari-AAAA-MM-GG.json`, guardando il contesto di quel giorno:
+`FabioOrderFlow/tools/scenari.py` e' solo il motore che li valuta, e quando uno scatta annota da
+solo sul chart. **Le condizioni non vanno messe nel programma**: sono un file che si riscrive ogni
+volta, perche' dipendono dai livelli e dalla struttura di quella giornata.
+`FabioOrderFlow/tools/sveglia_tape.py` copre in parallelo cio' che non era previsto, senza
+concludere niente, e `FabioOrderFlow/tools/annota.py` porta sul chart e nel diario la lettura
+ragionata.
 Procedura in
 [`docs/research/metodo/sorveglianza-del-tape.md`](docs/research/metodo/sorveglianza-del-tape.md).
 

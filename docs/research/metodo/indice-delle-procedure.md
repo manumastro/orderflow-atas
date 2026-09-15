@@ -68,9 +68,12 @@ stato — e quella che non ci va mai: la previsione.
 seduta. I livelli stanno in un file per giornata, che e' **l'unica fonte**: lo legge sia chi li
 spinge sul chart sia `sveglia_tape.py`, che sorveglia il tape.
 
-La divisione e' netta e vale la pena capirla: **la sveglia non giudica**, dice solo che e' il
-momento di guardare e mostra i numeri grezzi. La lettura la fa l'analisi, con il contesto che una
-barra singola non contiene, e `annota.py` la riporta sul chart e nel diario della giornata.
+La divisione e' netta e vale la pena capirla. **Gli scenari li scrive l'analisi prima della
+seduta**, in `scenari-AAAA-MM-GG.json`, guardando il contesto di quel giorno: non sono codice fisso,
+sono un file che si riscrive ogni volta. `scenari.py` e' solo il motore che li valuta, e quando uno
+scatta annota da solo — cosi' a schermo compare gia' lo scenario previsto, col nome che gli avevamo
+dato. `sveglia_tape.py` gira in parallelo per cio' che non avevamo previsto, e `annota.py` serve
+alla lettura ragionata che arriva dopo.
 
 ### 6. La giornata, mentre succede
 

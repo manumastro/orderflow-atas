@@ -45,7 +45,26 @@ Le soglie usate in giornata (volume, delta, ampiezza) vanno **scritte accanto al
 producono**, mai lasciate implicite. Se una soglia viene dal p95 della distribuzione del giorno, si
 dice che e' il p95 e di quante barre.
 
-## Il File Dei Livelli
+## I File Di Una Giornata
+
+```text
+AAAA-MM-GG.md              la cronaca, scritta durante la seduta
+livelli-AAAA-MM-GG.json    i livelli attivi, derivati dall'analisi
+scenari-AAAA-MM-GG.json    cosa ci aspettiamo, come condizioni valutabili
+annotazioni-AAAA-MM-GG.json  il diario delle letture, con ora e misura
+```
+
+Gli **scenari** si scrivono prima della seduta e dicono cosa ci aspettiamo: il motore li valuta e
+quando uno scatta lo mette sul chart da solo, col nome che gli avevamo dato. A fine giornata si
+guarda quali sono scattati e quali no — **uno scenario previsto e mai scattato dice qualcosa quanto
+uno scattato**, e va scritto nella cronaca.
+
+Le **annotazioni** sono il diario delle letture: e' da li' che si scrive la cronaca, invece di
+ricostruirla a memoria.
+
+Come si usano: [`../metodo/sorveglianza-del-tape.md`](../metodo/sorveglianza-del-tape.md).
+
+### Il file dei livelli
 
 Accanto a `AAAA-MM-GG.md` sta `livelli-AAAA-MM-GG.json`: i livelli attivi quel giorno, nel formato
 che il chart e la sorveglianza leggono entrambi. Resta nel repository perche' rileggere una giornata

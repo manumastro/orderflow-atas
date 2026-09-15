@@ -1,0 +1,74 @@
+[
+  {
+    "nome": "A1 - riprende 29275",
+    "quando": "chiude_sopra(29275) and vol >= p95vol and delta >= p95delta and dpct30 >= 2",
+    "prezzo": 29275,
+    "tipo": "reclaim",
+    "testo": "A1: 29275 ripreso con aggressione",
+    "attesa": "torna in gioco 29306, il VAL di lunedi da sotto. Sopra quello, il vuoto 29375-29424 porta veloce a 29400."
+  },
+  {
+    "nome": "A2 - rientro nel valore di lunedi",
+    "quando": "chiude_sopra(29306) and vol >= p95vol and dpct30 >= 2",
+    "prezzo": 29306,
+    "tipo": "reclaim",
+    "testo": "A2: rientrato sopra il VAL di lunedi",
+    "attesa": "dentro il valore. Sopra c'e' la fascia magra 29375-29424, l'1,2% del volume di lunedi: si sale in fretta fino a 29400, che ha gia' respinto due volte oggi."
+  },
+  {
+    "nome": "B1 - cede il bordo basso del range",
+    "quando": "chiude_sotto(29236) and vol >= p95vol and delta <= -p95delta",
+    "prezzo": 29236,
+    "tipo": "rottura",
+    "testo": "B1: perso il bordo basso della sega 29236-29285",
+    "attesa": "prossimo appoggio 29224, poi il blocco 29175-29224 dove lunedi c'erano 18.540 lotti con delta +628."
+  },
+  {
+    "nome": "B2 - cede il blocco di lunedi",
+    "quando": "chiude_sotto(29199) and vol >= p95vol and delta <= -p95delta and dpct30 <= -3",
+    "prezzo": 29199,
+    "tipo": "rottura",
+    "testo": "B2: perso il blocco 29175-29224 con aggressione",
+    "attesa": "resta solo il minimo cash di lunedi a 29168, poi il globex a 29107. Sotto 29168 la giornata e' una continuazione della discesa di lunedi."
+  },
+  {
+    "nome": "C - assorbimento sul blocco di lunedi",
+    "quando": "tocca(29210, 12) and vol >= p95vol and delta >= 0 and pos >= 0.6 and test_vol(29210) > test_prec_vol(29210)",
+    "prezzo": 29210,
+    "tipo": "assorbimento",
+    "testo": "C: assorbimento sul blocco 29175-29224",
+    "attesa": "e' dove lunedi i compratori hanno assorbito con delta +628. Piu' volume del passaggio precedente: la gente c'e'. Primo bersaglio il ritorno a 29275."
+  },
+  {
+    "nome": "D - sforzo senza risultato al bordo basso",
+    "quando": "tocca(29240, 10) and v30 >= 2500 and dpct30 <= -3 and min3 > min10 + 2",
+    "prezzo": 29240,
+    "tipo": "nota",
+    "testo": "D: i venditori spingono e il prezzo non scende",
+    "attesa": "sforzo senza risultato: 30 minuti a delta negativo ma i minimi non si estendono. E' la configurazione che il corso chiama effort without result."
+  },
+  {
+    "nome": "IVB - range dei primi 30 minuti di New York",
+    "quando": "ivb_alto is not None and dopo('16:00')",
+    "tipo": "nota",
+    "prezzo": 0,
+    "testo": "IVB stampato: il gate della giornata e' aperto",
+    "attesa": "da qui il dossier concede setup direzionali solo nel verso della rottura. Chiusura M30 sopra il range = solo long, sotto = solo short, dentro = solo mean reverting."
+  },
+  {
+    "nome": "IVB rotto al rialzo",
+    "quando": "ivb_alto is not None and chiude_sopra(ivb_alto) and vol >= p95vol and delta >= p95delta",
+    "tipo": "reclaim",
+    "prezzo": 0,
+    "testo": "IVB rotto al rialzo: permesso long",
+    "attesa": "Tier 01 aperto verso l'alto. I trigger del Tier 02 sono break and retest dell'IVB, oppure il ritracciamento profondo fino al VAL."
+  },
+  {
+    "nome": "IVB rotto al ribasso",
+    "quando": "ivb_basso is not None and chiude_sotto(ivb_basso) and vol >= p95vol and delta <= -p95delta",
+    "tipo": "rottura",
+    "prezzo": 0,
+    "testo": "IVB rotto al ribasso: permesso short",
+    "attesa": "Tier 01 aperto verso il basso, nel verso in cui gia' punta il contesto: valore in migrazione giu' e short dei Leveraged Funds a 29800-29900."
+  }
+]
