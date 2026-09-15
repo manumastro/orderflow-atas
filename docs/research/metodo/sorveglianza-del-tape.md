@@ -81,6 +81,11 @@ lo scenario che avevamo previsto, col nome che gli avevamo dato e con l'attesa s
 }
 ```
 
+- **`nome`** identifica lo scenario nei log e nel diario.
+- **`sigla`** e' cio' che compare sul chart, e **deve dirsi da sola**: `accetta`, `cede il bordo
+  basso`, `entra nel vuoto`. Non lettere o codici — `? A2` su una riga non significa niente per chi
+  guarda il grafico mentre opera. Quando la sigla finisce appesa al livello di quel prezzo, il
+  prezzo dentro la sigla e' ridondante: su 29400 basta `? riprende`.
 - **`quando`** e' una espressione valutata su un contesto ricco. Nessun accesso a moduli o
   builtin: solo le variabili documentate.
 - **`testo`** compare sul chart appena la condizione scatta.

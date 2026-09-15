@@ -92,15 +92,17 @@ def voci_attese(giorno: str, annotazioni: list, strutturali: list, tol: float = 
         prezzo = s.get("prezzo") or 0
         if not prezzo or s["nome"] in fatti:
             continue                      # senza prezzo non si disegna; gia' scattato nemmeno
+        # La sigla e' cio' che si legge sul chart: deve dire cosa aspetta, non essere una
+        # lettera da decifrare. Se manca, si ripiega sul nome.
+        sigla = s.get("sigla") or s["nome"]
         sovrapposto = next((l for l in strutturali if abs(l["price"] - prezzo) <= tol), None)
         if sovrapposto is not None:
-            sigla = s["nome"].split(" - ")[0].split(" -")[0]
             if f"? {sigla}" not in (sovrapposto.get("label") or ""):
-                sovrapposto["label"] = f"{sovrapposto.get('label', '')} ? {sigla}"
+                sovrapposto["label"] = f"{sovrapposto.get('label', '')}  ? {sigla}"
             continue
         voci.append({
             "price": prezzo,
-            "label": f"{ATTESO}{s['nome']}",
+            "label": f"{ATTESO}{sigla}",
             "color": COLORE_ATTESO,
             "style": "dot",
             "width": 1,
