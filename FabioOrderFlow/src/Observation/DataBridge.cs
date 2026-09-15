@@ -92,6 +92,18 @@ public sealed class DataBridge : Indicator
 
     private DateTime _levelsUpdatedUtc = DateTime.MinValue;
 
+    /// <summary>
+    /// I livelli sopravvivono a un riavvio di ATAS e a un redeploy della DLL. Senza questo
+    /// vanno persi a ogni ricarica dell'indicatore, che durante lo sviluppo succede spesso e
+    /// che per chi guarda il chart e' semplicemente il lavoro che sparisce. Il file e' uno
+    /// solo, con una voce per strumento: e' lo strumento a identificare i livelli, non l'id
+    /// dell'istanza, che e' casuale e cambia a ogni caricamento.
+    /// </summary>
+    private static readonly string LevelsStorePath = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".fabio-data-bridge-levels.json");
+
+    private static readonly object LevelsStoreSync = new();
+
     public DataBridge()
     {
         Name = "Fabio Data Bridge";
@@ -137,6 +149,7 @@ public sealed class DataBridge : Indicator
     {
         base.OnInitialize();
         Register();
+        RestoreLevels();
     }
 
     protected override void OnDispose()
@@ -475,6 +488,79 @@ public sealed class DataBridge : Indicator
         public string? Note { get; init; }
     }
 
+    /// <summary>Rilegge dal file i livelli di questo strumento, se ce ne sono.</summary>
+    private void RestoreLevels()
+    {
+        var instrument = InstrumentInfo?.Instrument;
+        if (string.IsNullOrWhiteSpace(instrument))
+        {
+            return;
+        }
+
+        try
+        {
+            var store = ReadLevelsStore();
+            if (store.TryGetValue(instrument, out var saved) && saved.Length > 0)
+            {
+                _levels = saved;
+                _levelsUpdatedUtc = DateTime.UtcNow;
+            }
+        }
+        catch (Exception exception)
+        {
+            // Un file corrotto non deve impedire il caricamento dell'indicatore.
+            this.LogError("FofDataBridge could not restore the saved levels.", exception);
+        }
+    }
+
+    private static Dictionary<string, BridgeLevel[]> ReadLevelsStore()
+    {
+        if (!File.Exists(LevelsStorePath))
+        {
+            return new Dictionary<string, BridgeLevel[]>(StringComparer.OrdinalIgnoreCase);
+        }
+
+        var json = File.ReadAllText(LevelsStorePath);
+        return JsonSerializer.Deserialize<Dictionary<string, BridgeLevel[]>>(json, JsonOptions)
+               ?? new Dictionary<string, BridgeLevel[]>(StringComparer.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// Scrive i livelli di questo strumento nel file condiviso, lasciando intatti quelli degli
+    /// altri strumenti. Un errore qui non deve far fallire la richiesta: i livelli sono gia'
+    /// applicati in memoria e disegnati.
+    /// </summary>
+    private void PersistLevels()
+    {
+        var instrument = InstrumentInfo?.Instrument;
+        if (string.IsNullOrWhiteSpace(instrument))
+        {
+            return;
+        }
+
+        try
+        {
+            lock (LevelsStoreSync)
+            {
+                var store = ReadLevelsStore();
+                if (_levels.Length == 0)
+                {
+                    store.Remove(instrument);
+                }
+                else
+                {
+                    store[instrument] = _levels;
+                }
+
+                File.WriteAllText(LevelsStorePath, JsonSerializer.Serialize(store, JsonOptions));
+            }
+        }
+        catch (Exception exception)
+        {
+            this.LogError("FofDataBridge could not save the levels.", exception);
+        }
+    }
+
     private async Task<object> LevelsAsync(HttpListenerContext context)
     {
         var method = context.Request.HttpMethod.ToUpperInvariant();
@@ -483,6 +569,7 @@ public sealed class DataBridge : Indicator
         {
             _levels = Array.Empty<BridgeLevel>();
             _levelsUpdatedUtc = DateTime.UtcNow;
+            PersistLevels();
             Repaint();
             return LevelsPayload();
         }
@@ -524,6 +611,7 @@ public sealed class DataBridge : Indicator
 
             _levels = parsed.OrderByDescending(level => level.Price).ToArray();
             _levelsUpdatedUtc = DateTime.UtcNow;
+            PersistLevels();
             Repaint();
             return LevelsPayload();
         }

@@ -32,6 +32,26 @@ ATAS  ◀──POST /levels──  bridge.py levels --file  ──────�
 Conseguenza da tenere presente: **i livelli sono una fotografia, non sono vivi.** Restano quelli
 finche' qualcuno non rifa' il POST. Vanno rifatti quando la seduta ne costruisce di nuovi.
 
+## Dove Vivono
+
+In memoria nell'istanza dell'indicatore, e in copia su `~/.fabio-data-bridge-levels.json`.
+
+Il file esiste per una ragione pratica: un riavvio di ATAS o un redeploy della DLL ricarica
+l'indicatore, e senza copia su disco i livelli sparirebbero dal chart ogni volta. Chi guarda il
+grafico vedrebbe semplicemente il lavoro svanire.
+
+La chiave del file e' lo **strumento**, non l'id dell'istanza: l'id e' casuale e cambia a ogni
+caricamento, lo strumento no. Un solo file tiene gli strumenti di tutti i chart, e una scrittura
+tocca solo la propria voce.
+
+```json
+{"NQZ6": [{"price": 29454, "label": "MENSOLA POC 02/10/14", ...}], "NQU6": [...]}
+```
+
+Un file corrotto non impedisce il caricamento dell'indicatore, e un errore di scrittura non fa
+fallire la richiesta: i livelli sono gia' applicati in memoria e disegnati. Si puo' anche
+scriverlo a mano, e i livelli compaiono al caricamento successivo.
+
 ## Il Formato
 
 ```json
