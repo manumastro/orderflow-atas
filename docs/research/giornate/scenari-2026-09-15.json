@@ -166,5 +166,25 @@
     "testo": "rientro fallito: ributtato sotto il VAL",
     "attesa": "era appena rientrato e non ha tenuto. Torna la sega 29236-29306, e il rimbalzo di mezzogiorno si rivela fatto senza partecipazione.",
     "tema": "VAL 29306"
+  },
+  {
+    "nome": "accettazione sopra il bordo dell'attrito",
+    "sigla": "accetta il bordo",
+    "quando": "c > 29375 and minuti_sotto(29375, 15) <= 3 and vol_sopra_pct(29375, 15) >= 70",
+    "prezzo": 29375,
+    "tipo": "reclaim",
+    "tema": "bordo attrito 29375",
+    "testo": "accettato sopra 29375: dentro la fascia di attrito",
+    "attesa": "misurato su finestra, non su barra singola: e' la lezione di 29366, logorato da undici barre piccole (1.032 lotti cumulati) e non da una grossa. Dentro 29375-29399, 9,2% del volume di oggi: si sale lento. Il bersaglio e' 29400, gia' respinto due volte stamattina."
+  },
+  {
+    "nome": "29375 respinge ancora",
+    "sigla": "respinge il bordo",
+    "quando": "tocca(29375, 4) and vol >= p75vol and delta <= 0 and pos <= 0.35",
+    "prezzo": 29375,
+    "tipo": "rifiuto",
+    "tema": "bordo attrito 29375",
+    "testo": "29375 respinge ancora",
+    "attesa": "terzo rifiuto dopo 12:36 (pos 0,11) e 12:42 (pos 0,28). Il bordo dell'attrito tiene: torna la rotazione verso 29334, e sotto il VAL a 29306 dove e' armato rientro fallito."
   }
 ]
