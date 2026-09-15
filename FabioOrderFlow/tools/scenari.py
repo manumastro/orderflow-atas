@@ -341,6 +341,10 @@ def main() -> None:
         try:
             c = candele(args)
         except Exception as e:
+            # In sorveglianza si riprova: il bridge torna quando ATAS ricarica l'indicatore.
+            # In `--prova` no: e' un giro solo, e ritentare all'infinito sembra un blocco.
+            if args.prova:
+                sys.exit(f"bridge non raggiungibile: {type(e).__name__}. ATAS e' aperto?")
             print(f"[bridge non raggiungibile: {type(e).__name__}]", flush=True)
             time.sleep(30)
             continue
