@@ -4,7 +4,8 @@
     "prezzo": 29236.5,
     "tipo": "attesa",
     "testo": "minimo del range di attesa",
-    "misura": "bordo basso della sega 29236-29285 in corso dalle 11:00; sotto, il blocco 29200-29224 di lunedi con 18.540 lotti."
+    "misura": "bordo basso della sega 29236-29285 in corso dalle 11:00; sotto, il blocco 29200-29224 di lunedi con 18.540 lotti.",
+    "superata_da": "15:30"
   },
   {
     "ora": "11:51",
@@ -23,7 +24,8 @@
     "misura": "12:09 a 29343.00: vol 41, delta -3, 30m +6.8%. 30 minuti quasi tutti sopra e oltre il 75% del volume sopra. Non e' piu' uno sconfinamento: il prezzo e' dentro il valore di lunedi. Sopra, sul profilo di OGGI: 29375-29399 e' attrito normale (9,2%), il tratto sottile e' 29400-29424 (3,5%, delta -312), e sopra ancora 29425-29449 ha delta -398, il venduto da cui e' caduto alle 06:21.",
     "scenario": "accettazione sopra il VAL di lunedi",
     "tema": "VAL 29306",
-    "condizione": "c > 29306 and minuti_sotto(29306, 30) <= 6 and vol_sopra_pct(29306, 30) >= 75"
+    "condizione": "c > 29306 and minuti_sotto(29306, 30) <= 6 and vol_sopra_pct(29306, 30) >= 75",
+    "superata_da": "15:30"
   },
   {
     "ora": "12:11",
@@ -49,7 +51,8 @@
     "tipo": "rifiuto",
     "testo": "29375 respinge due volte: il bordo dell'attrito",
     "misura": "29366 superato dalle 12:32 non con una barra grossa ma con undici piccole: 1.032 lotti cumulati, la maggiore 208 (= p95). Il test che avevo scritto (una barra sopra 416) era mal posto: conta il volume cumulato attraverso il livello, non la taglia della singola barra. Massimo 29375,75 alle 12:42, il piu' alto da stamattina, respinto due volte: 12:36 pos 0,11 e 12:42 pos 0,28, entrambe massimo stampato e chiusura in basso. E' il bordo di 29375-29399, 9,2% del volume di oggi: l'attrito e' comparso dove il profilo diceva.",
-    "tema": "tetto della salita"
+    "tema": "tetto della salita",
+    "superata_da": "15:30"
   },
   {
     "ora": "12:56",
@@ -90,7 +93,8 @@
     "misura": "13:00 a 29407.25: vol 350, delta +84, 30m +8.4%. misurato su finestra, non su barra singola: e' la lezione di 29366, logorato da undici barre piccole (1.032 lotti cumulati) e non da una grossa. Dentro 29375-29399, 9,2% del volume di oggi: si sale lento. Il bersaglio e' 29400, gia' respinto due volte stamattina.",
     "scenario": "accettazione sopra il bordo dell'attrito",
     "condizione": "c > 29375 and minuti_sotto(29375, 15) <= 3 and vol_sopra_pct(29375, 15) >= 70",
-    "tema": "bordo attrito 29375"
+    "tema": "bordo attrito 29375",
+    "superata_da": "15:30"
   },
   {
     "ora": "13:19",
@@ -109,7 +113,8 @@
     "tipo": "rifiuto",
     "testo": "il venduto tiene senza combattere",
     "misura": "Tre tentativi su 29425-29427 (13:10, 13:18-19, 13:22), nessuna chiusura sopra 29424,50. I rifiuti su barre da 50-150 lotti, non su aggressione: non e' stato venduto con forza, sono finiti i compratori. Lo scenario 'il venduto respinge' e' scattato sulla barra delle 13:19 (150 lotti, delta -4, pos 0,18), riportato dal motore con qualche minuto di ritardo perche' era stato appena ricaricato: avevo scritto che il filtro sul volume lo avesse tenuto fermo, ed era falso. Dalle 13:23 cinque barre consecutive a delta negativo, chiusure sui minimi (pos 0,05 / 0,04 / 0,23), 15m a -65 su 905 lotti. 29400 e' il livello che deve tenere: sotto, la fascia sottile 29400-29424 si riattraversa in fretta anche scendendo.",
-    "tema": "venduto 29425-29449"
+    "tema": "venduto 29425-29449",
+    "superata_da": "15:30"
   },
   {
     "ora": "13:26",
@@ -119,6 +124,23 @@
     "misura": "13:26 a 29403.75: vol 89, delta -19, 30m +2.9%. 30 minuti quasi tutti sopra e oltre l'80% del volume sopra: e' il contrario della rottura delle 06:21. La mensola 29454 diventa il bersaglio.",
     "scenario": "accettazione sopra 29400",
     "condizione": "c > 29400 and minuti_sotto(29400, 30) <= 6 and vol_sopra_pct(29400, 30) >= 80",
-    "tema": "muro 29400"
+    "tema": "muro 29400",
+    "superata_da": "15:30"
+  },
+  {
+    "ora": "16:30",
+    "prezzo": 29372.5,
+    "tipo": "rottura",
+    "testo": "gate IVB short-only: M30 chiusa sotto il range",
+    "misura": "IVB 15:30-16:00: alto 29453,50 basso 29372,50, 81 punti, 44.020 lotti, delta +92. La M30 16:00-16:30 ha chiuso a 29326,25 con delta -500, sotto il range: Tier 01 aperto solo al ribasso. L'IVB alto coincide con la mensola/POC 29454. Massimo di giornata 29484,50 alle 14:55, sopra la mensola, poi rientrato. Da qui il dossier concede setup solo nel verso short; long solo se rientra in accettazione sopra 29372,50 (annulla il gate) e permesso long solo sopra 29453,50.",
+    "tema": "gate IVB"
+  },
+  {
+    "ora": "16:43",
+    "prezzo": 29273.0,
+    "tipo": "assorbimento",
+    "testo": "compratori sul minimo, ma contro il gate",
+    "misura": "Minimo 29273,25 alle 16:40. Negli ultimi 15 minuti delta +374 su 16.356 lotti con il prezzo sui minimi: qualcuno compra qui. La fascia 29275-29299 e' la piu' sottile della cash (6,1% di 92.534 lotti) e ha delta +211. Ma e' contro il gate short: vale come mean reverting a rischio stretto, non come permesso long. Il peggior delta della cash e' 29375-29399 con -418, appena sotto l'IVB basso: e' li che si e' rotto.",
+    "tema": "minimo 29273"
   }
 ]

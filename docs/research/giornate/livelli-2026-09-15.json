@@ -1,122 +1,79 @@
 [
   {
-    "price": 29924,
-    "label": "Top nodo · short LF 2-8 set",
-    "color": "#B08080",
-    "style": "solid",
-    "width": 2,
-    "note": "Bordo alto del nodo del composito a delta negativo. E' qui che i Leveraged Funds hanno costruito gli short nella settimana chiusa l'8 settembre (COT del 12). Prezzo lasciato, non piu' difeso."
-  },
-  {
-    "price": 29804,
-    "label": "Base zona short LF · VAL 8 set",
-    "color": "#A08585",
+    "price": 29484.5,
+    "label": "Max giornata 14:55",
+    "color": "#6B7A99",
     "style": "dash",
-    "width": 1,
-    "note": "Bordo basso della zona di costruzione degli short istituzionali."
+    "width": 1
   },
   {
-    "price": 29749,
-    "label": "VAH 11 set",
-    "color": "#A08585",
+    "price": 29453.5,
+    "label": "IVB ALTO = mensola/POC 29454",
+    "color": "#8E7CC3",
+    "style": "solid",
+    "width": 2
+  },
+  {
+    "price": 29412.0,
+    "label": "POC cash NY 22,9% · delta -377",
+    "color": "#7A8FA6",
+    "style": "solid",
+    "width": 2
+  },
+  {
+    "price": 29372.5,
+    "label": "IVB BASSO · sotto = gate short",
+    "color": "#8E7CC3",
+    "style": "solid",
+    "width": 2
+  },
+  {
+    "price": 29326.25,
+    "label": "Chiusura M30 16:30 · delta -500",
+    "color": "#6B7A99",
+    "style": "dash",
+    "width": 1
+  },
+  {
+    "price": 29306.0,
+    "label": "VAL lun",
+    "color": "#7A8FA6",
     "style": "dot",
-    "width": 1,
-    "note": "Ultimo VAH prima del roll. Contesto, non livello operativo."
+    "width": 1
   },
   {
-    "price": 29677,
-    "label": "Collo · VAL 11 set",
-    "color": "#A89878",
-    "style": "dash",
-    "width": 1,
-    "note": "Poco volume: il prezzo qui non si ferma, o passa o viene respinto."
-  },
-  {
-    "price": 29604,
-    "label": "Max lun · bordo vuoto gap",
-    "color": "#B0A070",
+    "price": 29273.25,
+    "label": "Min giornata 16:40",
+    "color": "#6B7A99",
     "style": "solid",
-    "width": 2,
-    "note": "Massimo di lunedi 14 e bordo del vuoto lasciato dal gap del weekend. Rotto questo, sopra non c'e' attrito fino al collo."
+    "width": 2
   },
   {
-    "price": 29516,
-    "label": "Top nodo compratori · VAH 10 set",
-    "color": "#7E9A8C",
+    "price": 29236.0,
+    "label": "Bordo basso sega mattina",
+    "color": "#7A8FA6",
     "style": "dot",
-    "width": 1,
-    "note": "Bordo alto del nodo a delta positivo del composito."
+    "width": 1
   },
   {
-    "price": 29474,
-    "label": "Top nodo notte · 31% vol oggi",
-    "color": "#6E8FA6",
-    "style": "dash",
-    "width": 1,
-    "note": "29450-29474 e' il bucket piu' pesante di oggi: 14.816 lotti, 31,4% del volume della seduta, delta +356. E' il valore che il prezzo ha costruito stanotte e poi abbandonato alle 06:21."
-  },
-  {
-    "price": 29454,
-    "label": "MENSOLA · POC oggi 22,4% · POC 2-10-14 set",
-    "color": "#7FA8C4",
-    "style": "solid",
-    "width": 3,
-    "note": "Tre sedute distinte hanno messo qui il POC: 2, 10 e 14 settembre. Non e' il livello di un giorno, e' dove il mercato continua a tornare."
-  },
-  {
-    "price": 29400,
-    "label": "Rotta 06:21 · sopra il vuoto 3,5% delta -312",
-    "color": "#6E8FA6",
-    "style": "dash",
-    "width": 2,
-    "note": "Rotta al ribasso alle 06:21 con delta -165 su 323 lotti, la barra M1 piu' pesante della nottata. Dopo: 174 minuti su 198 sotto, e solo 1.979 lotti su 19.954 (10%) scambiati sopra. Accettazione sotto. Ritestata da sotto alle 07:52-07:55 (max 29404,50) e respinta. Torna a essere supporto solo con chiusure e volume sopra, non con uno stoppino."
-  },
-  {
-    "price": 29375,
-    "label": "Attrito 29375-29399 (9,2% oggi)",
-    "color": "#8E88A8",
+    "price": 29199.0,
+    "label": "Blocco 29175-29224 lun 14,1%",
+    "color": "#7A8FA6",
     "style": "dot",
-    "width": 1,
-    "note": "29375-29424 e' la fascia sottile di lunedi: 1,1-1,2% del volume per bucket da 25 punti. E' il vuoto vero della struttura, ed e' SOPRA, non sotto. Un rientro da qui verso la mensola e' veloce; una discesa sotto il VAL non lo e'."
+    "width": 1
   },
   {
-    "price": 29306,
-    "label": "VAL lun · test 07:19 senza compratori",
-    "color": "#7E9A8C",
-    "style": "solid",
-    "width": 2,
-    "note": "VAL di lunedi. Testato oggi 07:12-07:26, minimo 29308,50: 1.561 lotti con delta -31 (-2%). Nessuno ha comprato. Il prezzo e' risalito perche' i venditori hanno smesso, non perche' i compratori sono arrivati. Un secondo test con volume inferiore ai 1.561 lotti dice che non c'e' nessuno."
-  },
-  {
-    "price": 29275,
-    "label": "Scaffale 29275-29324 · 18,7% lun",
-    "color": "#6E8878",
-    "style": "dash",
-    "width": 1,
-    "note": "Lunedi ha scambiato qui 62.179 lotti, 18,7% della seduta, delta +1.073. NON e' un vuoto: e' dove i compratori hanno assorbito lunedi e poi hanno riportato il prezzo a chiudere 29449,50. Una discesa qui e' una macinata, non una caduta."
-  },
-  {
-    "price": 29199,
-    "label": "Blocco 29175-29224 · 14,1% lun",
-    "color": "#6E8878",
-    "style": "dash",
-    "width": 1,
-    "note": "Secondo blocco di volume di lunedi: 46.989 lotti, 14,1% della seduta, delta +1.325."
-  },
-  {
-    "price": 29168,
+    "price": 29168.0,
     "label": "Min cash lun 15:37",
-    "color": "#7E9A8C",
-    "style": "solid",
-    "width": 2,
-    "note": "Minimo della sola sessione cash di lunedi 14, fatto alle 15:37 ora italiana. E' il minimo che conta per il profile framing, che usa solo la cash."
+    "color": "#6B7A99",
+    "style": "dash",
+    "width": 1
   },
   {
-    "price": 29107,
+    "price": 29107.0,
     "label": "Min globex lun 11:25",
-    "color": "#8A8A8A",
-    "style": "dot",
-    "width": 1,
-    "note": "Minimo della seduta globex intera di lunedi, fatto alle 11:25 ora italiana, fuori dalla cash. Contesto."
+    "color": "#6B7A99",
+    "style": "dash",
+    "width": 1
   }
 ]

@@ -1,220 +1,62 @@
 [
   {
-    "nome": "riprende 29275",
-    "sigla": "riprende",
-    "quando": "chiude_sopra(29275) and vol >= p95vol and delta >= p95delta and dpct30 >= 2",
-    "prezzo": 29275,
-    "tipo": "reclaim",
-    "testo": "29275 ripreso con aggressione",
-    "attesa": "torna in gioco 29306, il VAL di lunedi da sotto. Sopra quello, il vuoto 29375-29424 porta veloce a 29400."
+    "nome": "cede il minimo di giornata",
+    "sigla": "cede il minimo",
+    "prezzo": 29273,
+    "tipo": "rottura",
+    "tema": "minimo 29273",
+    "quando": "chiude_sotto(29273) and vol >= p95vol and delta <= -p95delta",
+    "testo": "perso il minimo di giornata nel verso del gate",
+    "attesa": "il gate IVB e' short-only e questa e' la continuazione. Sotto, la fascia 29275-29299 e' la piu' sottile della cash (6,1%): si scende in fretta. Primo appoggio il bordo basso della sega di stamattina a 29236, poi il blocco di lunedi a 29199."
   },
   {
-    "nome": "rientra nel valore di lunedi",
-    "sigla": "rientra nel valore",
-    "quando": "chiude_sopra(29306) and vol >= p95vol and dpct30 >= 2",
-    "prezzo": 29306,
-    "tipo": "reclaim",
-    "testo": "rientrato sopra il VAL di lunedi",
-    "attesa": "dentro il valore. Sopra c'e' la fascia magra 29375-29424, l'1,2% del volume di lunedi: si sale in fretta fino a 29400, che ha gia' respinto due volte oggi.",
-    "tema": "VAL 29306"
+    "nome": "assorbimento sul minimo di giornata",
+    "sigla": "assorbe il minimo",
+    "prezzo": 29280,
+    "tipo": "assorbimento",
+    "tema": "minimo 29273",
+    "quando": "tocca(29280, 10) and vol >= p95vol and delta >= 0 and pos >= 0.6",
+    "testo": "assorbimento sul minimo di giornata",
+    "attesa": "negli ultimi 15 minuti il delta e' +374 su 16.356 lotti proprio sui minimi: qualcuno compra qui. Contro il gate, quindi vale come mean reverting con rischio stretto, non come permesso long. Primo bersaglio il ritorno su 29326, la chiusura M30."
   },
   {
     "nome": "il VAL respinge da sotto",
-    "sigla": "respinge",
-    "quando": "tocca(29306, 6) and h >= 29300 and vol >= p95vol and delta <= 0 and pos <= 0.35",
+    "sigla": "il VAL respinge",
     "prezzo": 29306,
     "tipo": "rifiuto",
-    "testo": "il VAL respinge ancora da sotto",
-    "attesa": "quarto rifiuto della giornata su 29306. Resta la sega, bordo basso 29236.",
-    "tema": "VAL 29306"
+    "tema": "VAL 29306",
+    "quando": "tocca(29306, 8) and vol >= p75vol and delta <= 0 and pos <= 0.35",
+    "testo": "il VAL di lunedi respinge da sotto",
+    "attesa": "retest dal basso del livello perso. E' la configurazione che il gate short-only autorizza: break and retest nel verso della rottura. Sotto torna in gioco 29273."
   },
   {
-    "nome": "cede il bordo basso del range",
-    "sigla": "cede il bordo basso",
-    "quando": "chiude_sotto(29236) and vol >= p95vol and delta <= -p95delta",
-    "prezzo": 29236,
-    "tipo": "rottura",
-    "testo": "perso il bordo basso della sega 29236-29285",
-    "attesa": "prossimo appoggio 29224, poi il blocco 29175-29224 dove lunedi c'erano 18.540 lotti con delta +628.",
-    "tema": "bordo basso"
+    "nome": "ritorno sulla chiusura M30",
+    "sigla": "torna sulla M30",
+    "prezzo": 29326,
+    "tipo": "nota",
+    "tema": "M30 29326",
+    "quando": "tocca(29326, 6) and vol >= p75vol",
+    "testo": "tornato sulla chiusura M30 che ha aperto il gate",
+    "attesa": "29326,25 e' la chiusura che ha messo il prezzo sotto l'IVB. Riprenderla non annulla il gate — solo 29372,50 lo farebbe — ma toglie forza alla discesa."
   },
   {
-    "nome": "cede il blocco 29175-29224",
-    "sigla": "cede",
-    "quando": "chiude_sotto(29199) and vol >= p95vol and delta <= -p95delta and dpct30 <= -3",
-    "prezzo": 29199,
-    "tipo": "rottura",
-    "testo": "perso il blocco 29175-29224 con aggressione",
-    "attesa": "resta solo il minimo cash di lunedi a 29168, poi il globex a 29107. Sotto 29168 la giornata e' una continuazione della discesa di lunedi.",
-    "tema": "blocco 29175-29224"
+    "nome": "recuperato l'IVB basso",
+    "sigla": "annulla il gate",
+    "prezzo": 29372.5,
+    "tipo": "reclaim",
+    "tema": "gate IVB",
+    "quando": "c > 29372.5 and minuti_sotto(29372.5, 20) <= 5 and vol_sopra_pct(29372.5, 20) >= 65",
+    "testo": "rientrato nell'IVB: il gate short si annulla",
+    "attesa": "rientro in accettazione dentro 29372,50-29453,50 significa che la chiusura M30 sotto il range era un falso segnale. Da li' si torna mean reverting dentro l'IVB, non long: il permesso long lo darebbe solo una chiusura sopra 29453,50."
   },
   {
-    "nome": "assorbimento sul blocco di lunedi",
-    "sigla": "assorbe il blocco di lunedi",
-    "quando": "tocca(29210, 12) and vol >= p95vol and delta >= 0 and pos >= 0.6 and test_vol(29210) > test_prec_vol(29210)",
-    "prezzo": 29210,
-    "tipo": "assorbimento",
-    "testo": "assorbimento sul blocco 29175-29224",
-    "attesa": "e' dove lunedi i compratori hanno assorbito con delta +628. Piu' volume del passaggio precedente: la gente c'e'. Primo bersaglio il ritorno a 29275.",
-    "tema": "blocco 29175-29224"
-  },
-  {
-    "nome": "sforzo senza risultato al bordo basso",
+    "nome": "sforzo senza risultato sui minimi",
     "sigla": "sforzo senza risultato",
-    "quando": "tocca(29240, 10) and v30 >= 2500 and dpct30 <= -3 and min3 > min10 + 2",
-    "prezzo": 29240,
+    "prezzo": 29285,
     "tipo": "nota",
-    "testo": "i venditori spingono e il prezzo non scende",
-    "attesa": "sforzo senza risultato: 30 minuti a delta negativo ma i minimi non si estendono. E' la configurazione che il corso chiama effort without result.",
-    "tema": "bordo basso"
-  },
-  {
-    "nome": "entra nel vuoto 29400-29424",
-    "sigla": "entra nel vuoto",
-    "quando": "chiude_sopra(29400) and vol >= p75vol",
-    "prezzo": 29400,
-    "tipo": "reclaim",
-    "testo": "entrato nel vuoto 29400-29424",
-    "attesa": "3,5% del volume di oggi con delta -312: il tratto piu' sottile della giornata, si attraversa in fretta. Sopra pero' c'e' 29425-29449, 9% del volume con delta -398, il venduto da cui e' caduto alle 06:21. Il bersaglio e' il POC di oggi a 29455.",
-    "tema": "muro 29400"
-  },
-  {
-    "nome": "riprende 29400",
-    "sigla": "riprende",
-    "quando": "chiude_sopra(29400) and vol >= p95vol and delta >= p95delta",
-    "prezzo": 29400,
-    "tipo": "reclaim",
-    "testo": "29400 ripreso con aggressione",
-    "attesa": "il livello che ha rotto la giornata alle 06:21 torna supporto. Sopra, la mensola 29454, POC di tre sedute.",
-    "tema": "muro 29400"
-  },
-  {
-    "nome": "accettazione sopra 29400",
-    "sigla": "accetta",
-    "quando": "c > 29400 and minuti_sotto(29400, 30) <= 6 and vol_sopra_pct(29400, 30) >= 80",
-    "prezzo": 29400,
-    "tipo": "reclaim",
-    "testo": "accettazione sopra 29400, non solo uno stoppino",
-    "attesa": "30 minuti quasi tutti sopra e oltre l'80% del volume sopra: e' il contrario della rottura delle 06:21. La mensola 29454 diventa il bersaglio.",
-    "tema": "muro 29400"
-  },
-  {
-    "nome": "29400 respinge di nuovo",
-    "sigla": "respinge",
-    "quando": "tocca(29400, 6) and vol >= p95vol and delta <= -p95delta and pos <= 0.3",
-    "prezzo": 29400,
-    "tipo": "rifiuto",
-    "testo": "29400 respinge di nuovo",
-    "attesa": "terza volta oggi dopo 07:52-07:55. La resistenza tiene: torna in gioco il ritorno verso 29306 e la sega.",
-    "tema": "muro 29400"
-  },
-  {
-    "nome": "ritorno sulla mensola",
-    "sigla": "torna qui",
-    "quando": "tocca(29454, 6) and vol >= p95vol",
-    "prezzo": 29454,
-    "tipo": "nota",
-    "testo": "il prezzo e' tornato sulla mensola",
-    "attesa": "POC di 2, 10 e 14 settembre, e POC della notte con il 31% del volume di oggi. Qui la giornata cambia natura: il valore perso alle 06:21 e' recuperato."
-  },
-  {
-    "nome": "IVB stampato",
-    "sigla": "IVB stampato",
-    "quando": "ivb_alto is not None and dopo('16:00')",
-    "prezzo": 0,
-    "tipo": "nota",
-    "testo": "IVB stampato: il gate della giornata e' aperto",
-    "attesa": "da qui il dossier concede setup direzionali solo nel verso della rottura. Chiusura M30 sopra il range = solo long, sotto = solo short, dentro = solo mean reverting.",
-    "tema": "IVB"
-  },
-  {
-    "nome": "IVB rotto al rialzo",
-    "sigla": "IVB rotto su",
-    "quando": "ivb_alto is not None and chiude_sopra(ivb_alto) and vol >= p95vol and delta >= p95delta",
-    "prezzo": 0,
-    "tipo": "reclaim",
-    "testo": "IVB rotto al rialzo: permesso long",
-    "attesa": "Tier 01 aperto verso l'alto. I trigger del Tier 02 sono break and retest dell'IVB, oppure il ritracciamento profondo fino al VAL.",
-    "tema": "IVB"
-  },
-  {
-    "nome": "IVB rotto al ribasso",
-    "sigla": "IVB rotto giu",
-    "quando": "ivb_basso is not None and chiude_sotto(ivb_basso) and vol >= p95vol and delta <= -p95delta",
-    "prezzo": 0,
-    "tipo": "rottura",
-    "testo": "IVB rotto al ribasso: permesso short",
-    "attesa": "Tier 01 aperto verso il basso, nel verso in cui gia' punta il contesto: valore in migrazione giu' e short dei Leveraged Funds a 29800-29900.",
-    "tema": "IVB"
-  },
-  {
-    "nome": "accettazione sopra il VAL di lunedi",
-    "sigla": "accetta",
-    "quando": "c > 29306 and minuti_sotto(29306, 30) <= 6 and vol_sopra_pct(29306, 30) >= 75",
-    "prezzo": 29306,
-    "tipo": "reclaim",
-    "testo": "accettazione sopra il VAL: rientrato nel valore di lunedi",
-    "attesa": "30 minuti quasi tutti sopra e oltre il 75% del volume sopra. Non e' piu' uno sconfinamento: il prezzo e' dentro il valore di lunedi. Sopra, sul profilo di OGGI: 29375-29399 e' attrito normale (9,2%), il tratto sottile e' 29400-29424 (3,5%, delta -312), e sopra ancora 29425-29449 ha delta -398, il venduto da cui e' caduto alle 06:21.",
-    "tema": "VAL 29306"
-  },
-  {
-    "nome": "rifiutato il rientro nel valore",
-    "sigla": "rientro fallito",
-    "quando": "chiude_sotto(29306) and minuti_sotto(29306, 20) <= 4 and vol >= p75vol",
-    "prezzo": 29306,
-    "tipo": "rifiuto",
-    "testo": "rientro fallito: ributtato sotto il VAL",
-    "attesa": "era appena rientrato e non ha tenuto. Torna la sega 29236-29306, e il rimbalzo di mezzogiorno si rivela fatto senza partecipazione.",
-    "tema": "VAL 29306"
-  },
-  {
-    "nome": "accettazione sopra il bordo dell'attrito",
-    "sigla": "accetta il bordo",
-    "quando": "c > 29375 and minuti_sotto(29375, 15) <= 3 and vol_sopra_pct(29375, 15) >= 70",
-    "prezzo": 29375,
-    "tipo": "reclaim",
-    "tema": "bordo attrito 29375",
-    "testo": "accettato sopra 29375: dentro la fascia di attrito",
-    "attesa": "misurato su finestra, non su barra singola: e' la lezione di 29366, logorato da undici barre piccole (1.032 lotti cumulati) e non da una grossa. Dentro 29375-29399, 9,2% del volume di oggi: si sale lento. Il bersaglio e' 29400, gia' respinto due volte stamattina."
-  },
-  {
-    "nome": "29375 respinge ancora",
-    "sigla": "respinge il bordo",
-    "quando": "tocca(29375, 4) and vol >= p75vol and delta <= 0 and pos <= 0.35",
-    "prezzo": 29375,
-    "tipo": "rifiuto",
-    "tema": "bordo attrito 29375",
-    "testo": "29375 respinge ancora",
-    "attesa": "terzo rifiuto dopo 12:36 (pos 0,11) e 12:42 (pos 0,28). Il bordo dell'attrito tiene: torna la rotazione verso 29334, e sotto il VAL a 29306 dove e' armato rientro fallito."
-  },
-  {
-    "nome": "attraversa il venduto 29425-29449",
-    "sigla": "attraversa il venduto",
-    "quando": "c > 29449 and minuti_sotto(29449, 15) <= 4 and vol_sopra_pct(29449, 15) >= 65",
-    "prezzo": 29449,
-    "tipo": "reclaim",
-    "tema": "venduto 29425-29449",
-    "testo": "attraversato il venduto: la mensola e' a tiro",
-    "attesa": "29425-29449 e' il delta peggiore della giornata (-398), la fascia da cui il prezzo e' caduto alle 06:21. Attraversarla in accettazione significa che quel venduto e' stato riassorbito. Subito sopra il POC di oggi a 29455, dove la giornata cambia natura."
-  },
-  {
-    "nome": "il venduto respinge",
-    "sigla": "il venduto respinge",
-    "quando": "tocca(29430, 8) and vol >= p75vol and delta <= 0 and pos <= 0.3",
-    "prezzo": 29430,
-    "tipo": "rifiuto",
-    "tema": "venduto 29425-29449",
-    "testo": "il venduto di stamattina respinge",
-    "attesa": "chi ha venduto a 29425-29449 stamattina e' ancora li'. Primo tentativo 13:10 (282 lotti delta +92) gia' respinto alle 13:11 con -46 e pos 0,12. Sotto, 29400 e' il livello che deve tenere per non annullare la ripresa."
-  },
-  {
-    "nome": "perso 29400 da sopra",
-    "sigla": "perde 29400",
-    "quando": "c < 29400 and minuti_sotto(29400, 20) >= 12 and vol_sopra_pct(29400, 20) <= 45",
-    "prezzo": 29400,
-    "tipo": "rottura",
-    "tema": "muro 29400",
-    "testo": "29400 perso: l'accettazione delle 13:26 si annulla",
-    "attesa": "misurato su finestra come l'accettazione che annulla, per simmetria: le sonde sotto il livello a 28-107 lotti non bastano. Sotto, la fascia 29400-29424 si riattraversa in fretta anche scendendo, e il primo appoggio vero e' 29375, ripreso alle 12:49."
+    "tema": "minimo 29273",
+    "quando": "tocca(29285, 12) and v30 >= 20000 and dpct30 <= -1 and min3 > min10 + 3",
+    "testo": "i venditori spingono e i minimi non si estendono",
+    "attesa": "trenta minuti a delta negativo su volume da cash, ma i minimi non si allungano. E' l'effort without result del corso, e qui sarebbe contro il gate: segnale di esaurimento della gamba, non permesso di comprare."
   }
 ]
