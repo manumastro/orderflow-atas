@@ -57,6 +57,38 @@
     "tipo": "rifiuto",
     "testo": "29396: venditori quattro tick prima del muro",
     "misura": "12:55 321 lotti delta +151 (47% del volume, il rapporto piu' alto della giornata) porta a 29396. 12:56 321 lotti delta -127, chiusura 29387,75 pos 0,32. Stesso volume esatto, segno opposto: scontro alla pari, non esaurimento. 29400 non e' mai stato toccato - i venditori si sono presentati prima del livello. La fascia 29375-29399 (9,2% del volume) NON ha fatto attrito: 21 punti in sei minuti dalle 12:49. Il volume storico dice quanto si e' scambiato prima, non quanta offerta c'e' adesso. Struttura ancora intatta sopra 29375.",
+    "tema": "muro 29400",
+    "superata_da": "13:00"
+  },
+  {
+    "ora": "13:00",
+    "prezzo": 29400.0,
+    "tipo": "reclaim",
+    "testo": "entrato nel vuoto 29400-29424",
+    "misura": "13:00 a 29407.25: vol 350, delta +84, 30m +8.4%. 3,5% del volume di oggi con delta -312: il tratto piu' sottile della giornata, si attraversa in fretta. Sopra pero' c'e' 29425-29449, 9% del volume con delta -398, il venduto da cui e' caduto alle 06:21. Il bersaglio e' il POC di oggi a 29455.",
+    "scenario": "entra nel vuoto 29400-29424",
+    "condizione": "chiude_sopra(29400) and vol >= p75vol",
+    "tema": "muro 29400",
+    "superata_da": "13:00"
+  },
+  {
+    "ora": "13:00",
+    "prezzo": 29400.0,
+    "tipo": "reclaim",
+    "testo": "29400 ripreso con aggressione",
+    "misura": "13:00 a 29407.25: vol 350, delta +84, 30m +8.4%. il livello che ha rotto la giornata alle 06:21 torna supporto. Sopra, la mensola 29454, POC di tre sedute.",
+    "scenario": "riprende 29400",
+    "condizione": "chiude_sopra(29400) and vol >= p95vol and delta >= p95delta",
     "tema": "muro 29400"
+  },
+  {
+    "ora": "13:00",
+    "prezzo": 29375.0,
+    "tipo": "reclaim",
+    "testo": "accettato sopra 29375: dentro la fascia di attrito",
+    "misura": "13:00 a 29407.25: vol 350, delta +84, 30m +8.4%. misurato su finestra, non su barra singola: e' la lezione di 29366, logorato da undici barre piccole (1.032 lotti cumulati) e non da una grossa. Dentro 29375-29399, 9,2% del volume di oggi: si sale lento. Il bersaglio e' 29400, gia' respinto due volte stamattina.",
+    "scenario": "accettazione sopra il bordo dell'attrito",
+    "condizione": "c > 29375 and minuti_sotto(29375, 15) <= 3 and vol_sopra_pct(29375, 15) >= 70",
+    "tema": "bordo attrito 29375"
   }
 ]
