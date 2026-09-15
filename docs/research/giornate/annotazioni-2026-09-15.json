@@ -187,6 +187,15 @@
     "tipo": "reclaim",
     "testo": "29273 ripreso: l'accettazione sotto e' durata sei minuti",
     "misura": "Lo scenario 'accetta sotto' e' scattato sulla barra delle 16:59 con la condizione corretta (11 minuti su 15 sotto 29273), ma il motore l'ha valutata in ritardo e alle 17:05 il prezzo e' a 29283,50, sopra il livello. Ora: 8 minuti su 15 sotto, delta +1.259 su 12.755 lotti. Quattro barre consecutive con pos oltre 0,95 dalle 17:01. Lezione nuova: una condizione su finestra e' robusta ma puo' arrivare gia' scaduta se il motore accumula ritardo - il valore di verita' e' riferito alla barra, non all'istante in cui lo leggi. Il gate resta short: 29306, 29326 e 29372,50 sono i livelli sopra.",
+    "tema": "minimo 29273",
+    "superata_da": "17:13"
+  },
+  {
+    "ora": "17:13",
+    "prezzo": 29275.0,
+    "tipo": "nota",
+    "testo": "566 comprati, 13 punti di risultato: assorbimento",
+    "misura": "17:12: 1.578 lotti delta +566, il 36% del volume e il rapporto piu' alto della cash. Ma ampiezza 13,25 punti e chiusura pos 0,62 a 29270. Confronto con la barra equivalente delle 16:54 (+413 su 1.471, ampiezza 17 punti, pos 0,79): piu' acquisto, meno movimento, chiusura piu' debole. Il massimo del rimbalzo resta 29290,25 delle 17:05, venti punti sopra. Acquisto aggressivo che non produce prezzo significa vendita passiva che lo assorbe: sforzo senza risultato dal lato dei compratori, nella stessa direzione del gate short. Avevo scritto un minuto prima che il rimbalzo perdeva spinta e questa barra sembrava smentirlo: letta nei numeri lo conferma.",
     "tema": "minimo 29273"
   }
 ]
