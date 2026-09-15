@@ -56,6 +56,7 @@ fabio_course/              trascrizioni delle lezioni e mappa del corso
 docs/research/metodo/      metodo attivo: profile framing, analisi istituzionale, contratti
 docs/research/cot/         contesto istituzionale: COT e Tradingster
 docs/research/sessioni/    profili di sessione e descrizioni settimanali
+docs/research/giornate/    una analisi per giornata di mercato, AAAA-MM-GG.md
 docs/research/archivio-2026-08/     la fase dei recorder, conservata come evidenza
 docs/research/archivio-modello-40r/ la fase sistematica, misurata e chiusa
 docs/atas/                 documentazione tecnica dell'API ATAS
@@ -76,6 +77,7 @@ Dal 15 settembre 2026 il lavoro e' sulla lettura discrezionale descritta nel pri
 - [`docs/research/metodo/profile-framing.md`](docs/research/metodo/profile-framing.md) — le sei cose da guardare, nell'ordine in cui il live le mette, piu' il quadro corrente e l'avvertenza sul chart continuous che non e' back-adjusted.
 - [`docs/research/metodo/analisi-istituzionale.md`](docs/research/metodo/analisi-istituzionale.md) — COT e Data Bridge letti insieme, incluso il modo in cui il COT resta valido fra un report e l'altro: la data di un cambio di posizionamento diventa un livello di prezzo, e il livello sopravvive alla settimana.
 - [`docs/research/metodo/livelli-sul-chart.md`](docs/research/metodo/livelli-sul-chart.md) — il giro completo dai dati grezzi alla linea disegnata: l'indicatore non calcola, il client trasporta, la derivazione resta nell'analisi.
+- [`docs/research/giornate/`](docs/research/giornate/) — una analisi per giornata di mercato: i livelli di apertura e da dove vengono, la cronaca con volume e delta accanto a ogni momento, e le letture sbagliate con cio' che le ha smentite.
 - [`docs/research/metodo/triple-aaa-dossier.md`](docs/research/metodo/triple-aaa-dossier.md) — la trascrizione integrale del dossier che accompagna il live: il gate dell'IVB a 30 minuti, i tre modelli del Tier 02, le tre tecniche di esecuzione, la checklist. E' la fonte del modello, non la sua validazione: cosa e' stato misurato, e cosa no, sta dichiarato in fondo al documento.
 
 ## Come Si Lavora Qui

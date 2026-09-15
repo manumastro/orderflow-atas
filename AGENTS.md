@@ -17,6 +17,7 @@ Sezioni del [README](README.md), per sapere subito dove guardare:
 | 5. La prima analisi servita dal bridge | la settimana 04-11 settembre, con il primo caso misurato di sforzo senza risultato |
 | 6. Il modello sistematico | misurato su un mese e **chiuso**: 49-51% a 1:1, come il modello nullo; archiviato in `docs/research/archivio-modello-40r/` |
 | 7. Lo scope attuale | la lettura discrezionale del live Q1: `metodo/profile-framing.md`, `metodo/analisi-istituzionale.md`, `metodo/livelli-sul-chart.md`, `metodo/triple-aaa-dossier.md` |
+| 7bis. Le giornate | `docs/research/giornate/`: una analisi per giornata di mercato, un file `AAAA-MM-GG.md`, con i livelli, la cronaca misurata e le correzioni |
 | Struttura | la mappa delle cartelle di `docs/research/` |
 | Come si lavora qui | le cinque regole: dichiarare prima, distinguere livello e flusso, registrare i negativi, dichiarare le convenzioni, una fonte canonica per decisione |
 | Avvio rapido | `./deploy.sh` e `bridge.py health` |
@@ -27,6 +28,12 @@ La lettura **discrezionale** del primo live del corso (`fabio_course/fabio_q1/`)
 contesto istituzionale. La fase sistematica sul modello 40R e' chiusa: non riaprirla senza una
 richiesta esplicita. Le fonti canoniche sono `docs/research/metodo/profile-framing.md`,
 `docs/research/metodo/analisi-istituzionale.md` e `docs/research/metodo/triple-aaa-dossier.md`.
+
+L'analisi di ogni giornata di mercato va in `docs/research/giornate/AAAA-MM-GG.md`, **un file per
+giorno**, non sparsa fra la conversazione e i documenti di metodo. I documenti di `metodo/` dicono
+come si legge, la giornata dice cosa si e' letto e cosa e' successo dopo. Le letture sbagliate
+restano scritte insieme a cio' che le ha smentite: e' la parte verificabile del documento. Formato
+e regole in `docs/research/giornate/README.md`.
 
 Le immagini in `fabio_course/ivbaaa/` sono **fonte primaria**: il dossier del modello. Il testo e'
 trascritto alla lettera in `metodo/triple-aaa-dossier.md`, che e' il documento da citare; le
