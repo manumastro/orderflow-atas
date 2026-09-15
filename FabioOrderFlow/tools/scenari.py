@@ -234,11 +234,23 @@ def ricomponi(giorno, chart):
         print(f"[attese non spinte sul chart: {type(e).__name__}]", flush=True)
 
 
+def gia_scattati(giorno: str) -> set[tuple[str, str]]:
+    """Le chiavi degli scenari che hanno gia' annotato oggi, lette dal diario."""
+    f = GIORNATE / f"annotazioni-{giorno}.json"
+    if not f.exists():
+        return set()
+    try:
+        return {(a["scenario"], a.get("condizione", ""))
+                for a in json.loads(f.read_text()) if a.get("scenario")}
+    except Exception:
+        return set()
+
+
 def annota(s, ctx, giorno, chart):
     cmd = [sys.executable, str(ANNOTA), "--giorno", giorno,
            "--ora", ctx["ora"], "--prezzo", str(s.get("prezzo", ctx["c"])),
            "--tipo", s.get("tipo", "nota"), "--testo", s.get("testo", s["nome"]),
-           "--scenario", s["nome"]]
+           "--scenario", s["nome"], "--condizione", s["quando"]]
     if s.get("tema"):
         cmd += ["--tema", s["tema"]]
     misura = s.get("attesa", "")
@@ -304,7 +316,13 @@ def main() -> None:
 
     scenari = ricarica(None)
     visto_mtime = f.stat().st_mtime
-    scattati: set[tuple[str, str]] = set()
+    # Gli scenari gia' scattati si rileggono dal diario, non dalla memoria: il motore viene
+    # riavviato spesso — cambiare il codice o gli scenari durante una seduta e' la norma — e una
+    # condizione ancora vera al riavvio riscriverebbe un doppione sul chart. La chiave e' nome
+    # piu' condizione, cosi' correggere un `quando` continua a riarmare lo scenario apposta.
+    scattati: set[tuple[str, str]] = gia_scattati(args.giorno)
+    if scattati:
+        print(f"[dal diario] {len(scattati)} scenari gia' scattati oggi, non si ripetono", flush=True)
     frontiera = None
 
     while True:

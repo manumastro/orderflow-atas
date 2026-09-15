@@ -251,6 +251,25 @@ sul chart: il secondo che scatta spegne il primo. Raggruppa per **argomento**, n
 `VAL 29306`, `muro 29400`, `bordo basso`, `IVB` — perche' e' l'argomento a essere unico, mentre le
 letture che ne danno sono molte e successive.
 
+### Il riavvio non deve riscrivere quello che c'e' gia'
+
+Il motore si riavvia spesso: cambiare gli scenari durante una seduta e' la norma, e cambiare il
+codice capita. L'elenco di cio' che e' gia' scattato **non puo' vivere solo in memoria**: una
+condizione ancora vera al riavvio scatterebbe di nuovo sulla prima barra utile, e il chart
+prenderebbe un doppione.
+
+Il diario e' gia' il posto dove sta scritto cosa e' scattato, quindi e' da li' che si rilegge.
+L'annotazione porta `scenario` e `condizione`, e la chiave e' la coppia: cosi' **correggere un
+`quando` continua a riarmare lo scenario apposta**, che e' il comportamento voluto, mentre un
+riavvio a scenari invariati non ripete niente.
+
+    [dal diario] 1 scenari gia' scattati oggi, non si ripetono
+
+Il 15 settembre il doppione si e' visto davvero: l'accettazione sopra il VAL, scattata alle 12:09,
+e' stata riscritta alle 12:17 dal motore riavviato. Rimossa con `--togli`, e l'originale rimesso
+sul chart con `--rianima` — il meccanismo del tema l'aveva spenta trattando la copia come una
+lettura successiva.
+
 ### Il diario non e' un sottoprodotto
 
 Ogni annotazione finisce in `docs/research/giornate/annotazioni-AAAA-MM-GG.json` con l'ora, il

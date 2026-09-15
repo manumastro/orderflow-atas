@@ -162,6 +162,8 @@ def main() -> None:
     ap.add_argument("--misura", help="i numeri che la sostengono; non disegnati, tornano sul GET")
     ap.add_argument("--tipo", default="nota", choices=sorted(TIPI), help="solo il colore")
     ap.add_argument("--scenario", help="nome dello scenario che l'ha prodotta, se viene da scenari.py")
+    ap.add_argument("--condizione",
+                    help="il `quando` dello scenario: serve a scenari.py per non riscattare dopo un riavvio")
     ap.add_argument("--tema", help="lettura sullo stesso argomento: supera le precedenti dello stesso tema")
     ap.add_argument("--rianima", type=int, metavar="N",
                     help="rimette sul chart una lettura superata (vedi --elenco)")
@@ -219,6 +221,7 @@ def main() -> None:
             "testo": args.testo,
             "misura": args.misura or "",
             **({"scenario": args.scenario} if args.scenario else {}),
+            **({"condizione": args.condizione} if args.condizione else {}),
             **({"tema": args.tema} if args.tema else {}),
         })
         for vecchia in supera(annotazioni, annotazioni[-1]):
