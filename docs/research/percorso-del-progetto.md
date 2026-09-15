@@ -96,7 +96,7 @@ Due avvertenze che valgono sempre, e che sono costate errori reali:
 
 | Serve | File |
 |---|---|
-| **Come si fa** una analisi | [`metodo/README.md`](metodo/README.md) — l'indice delle procedure, in ordine |
+| **Come si fa** una analisi | [`metodo/indice-delle-procedure.md`](metodo/indice-delle-procedure.md) — l'indice delle procedure, in ordine |
 | **Cosa e' gia' stato analizzato** oggi o ieri | [`giornate/`](giornate/) — un file per giornata di mercato |
 | Le settimane e le sedute descritte | [`sessioni/`](sessioni/) |
 | I dati COT grezzi | [`cot/`](cot/) |

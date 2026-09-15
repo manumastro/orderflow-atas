@@ -1,7 +1,7 @@
-# Metodo: Come Si Fa Una Analisi
+# Indice Delle Procedure: Come Si Fa Una Analisi
 
 Le procedure attive, **nell'ordine in cui si usano**. Il contesto che le ha prodotte sta in
-[`../README.md`](../README.md): leggilo prima, se non l'hai gia' fatto.
+[`../percorso-del-progetto.md`](../percorso-del-progetto.md): leggilo prima, se non l'hai gia' fatto.
 
 Qui non ci sono conclusioni di mercato. Le analisi vere stanno in [`../giornate/`](../giornate/) e
 [`../sessioni/`](../sessioni/), e ogni procedura rimanda a quelle come esempio applicato.
@@ -64,7 +64,7 @@ stato — e quella che non ci va mai: la previsione.
 
 ### 5. La giornata, mentre succede
 
-[**`../giornate/README.md`**](../giornate/README.md) — un file per giornata di mercato, scritto
+[**`../giornate/come-si-scrive-una-giornata.md`**](../giornate/come-si-scrive-una-giornata.md) — un file per giornata di mercato, scritto
 **durante** la seduta. Contiene la procedura per **riprendere a meta' sessione**: intestazione,
 "Dove eravamo", correzioni, e solo dopo i dati nuovi.
 

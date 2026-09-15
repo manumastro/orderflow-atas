@@ -8,10 +8,10 @@ contesto sta nei documenti linkati, ed e' li' che va cercato: duplicarlo qui lo 
 Prima di lavorare su questo repository, **leggi nell'ordine**:
 
 1. [`README.md`](README.md) — cos'e' il progetto.
-2. [`docs/research/README.md`](docs/research/README.md) — **il percorso completo, dall'inizio**: il
+2. [`docs/research/percorso-del-progetto.md`](docs/research/percorso-del-progetto.md) — **il percorso completo, dall'inizio**: il
    corso, le due strade chiuse e perche', il contesto istituzionale COT, il Data Bridge, e cosa si
    fa oggi. E' il documento che ricostruisce come si e' arrivati all'analisi attuale.
-3. [`docs/research/metodo/README.md`](docs/research/metodo/README.md) — **come si fa** una analisi,
+3. [`docs/research/metodo/indice-delle-procedure.md`](docs/research/metodo/indice-delle-procedure.md) — **come si fa** una analisi,
    procedura per procedura, nell'ordine in cui si usano. Ogni voce rimanda alle analisi passate che
    la applicano.
 
@@ -32,11 +32,11 @@ Poi si chiedono al bridge solo i dati **successivi all'ultimo aggiornamento**, n
 
 Il file del giorno si aggiorna **durante** la seduta, non a posteriori: una giornata scritta alla
 fine perde proprio le letture sbagliate, che sono la parte verificabile. Formato e regole in
-[`docs/research/giornate/README.md`](docs/research/giornate/README.md).
+[`docs/research/giornate/come-si-scrive-una-giornata.md`](docs/research/giornate/come-si-scrive-una-giornata.md).
 
 ## Regole Di Lavoro
 
-Le cinque regole di metodo stanno in [`docs/research/README.md`](docs/research/README.md) e valgono
+Le cinque regole di metodo stanno in [`docs/research/percorso-del-progetto.md`](docs/research/percorso-del-progetto.md) e valgono
 sempre. Qui solo quelle che riguardano il modo di lavorare:
 
 - **Non esiste un modello attivo** e nessuna regola operativa e' approvata. Descrivere non e'
@@ -49,6 +49,12 @@ sempre. Qui solo quelle che riguardano il modo di lavorare:
   datata** a [`FabioOrderFlow/progress.txt`](FabioOrderFlow/progress.txt).
 - **Non accumulare output intermedi**: i file grezzi vanno nella scratchpad di sessione, nel
   repository entra il risultato.
+- **Ogni file di documentazione ha un nome descrittivo.** Niente `README.md`: il nome deve dire
+  cosa c'e' dentro, cosi' che si riconosca dal percorso e nei risultati di ricerca senza aprirlo.
+  `percorso-del-progetto.md`, non `README.md`; `come-si-scrive-una-giornata.md`, non `README.md`.
+  Il titolo H1 dentro il file deve corrispondere al nome. Due sole eccezioni: il `README.md` alla
+  radice, che GitHub usa come pagina del repository, e `docs/atas/`, che e' documentazione ATAS
+  generata e va lasciata com'e'.
 - **Registra i risultati negativi** con la stessa cura di quelli positivi, e dichiara sempre
   soglie, convenzioni e orizzonti accanto al numero che producono.
 

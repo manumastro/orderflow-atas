@@ -1,4 +1,4 @@
-# Ledger Snapshots
+# Cosa Contiene Questa Cartella: Ledger Snapshots
 
 This directory holds local, reproducible artifacts generated from ATAS logs:
 

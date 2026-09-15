@@ -1,4 +1,4 @@
-# Giornate
+# Come Si Scrive Una Giornata
 
 Una analisi per giornata di mercato, un file per giorno, `AAAA-MM-GG.md`.
 

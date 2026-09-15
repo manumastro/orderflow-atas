@@ -89,7 +89,7 @@ il percentile sulle variazioni confronta |delta net| con le 521 variazioni dispo
 
 ## Livello Contro Flusso: La Distinzione Che Fa Il Lavoro
 
-E' la regola 2 del [README](../../../README.md) e la sola lettura COT che questo repository
+E' la regola 2 del [percorso del progetto](../percorso-del-progetto.md) e la sola lettura COT che questo repository
 considera affidabile.
 
 **Il flusso** e' quanto si e' mosso nell'ultima pubblicazione. **Il livello** e' dove si trova il

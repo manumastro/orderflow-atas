@@ -1,6 +1,6 @@
 # FabioOrderFlow: Estensioni ATAS
 
-Questa cartella contiene il codice che mette a disposizione i dati di ATAS per lo studio. Non contiene modelli, soglie o segnali. Il metodo che questo codice serve e' descritto nel [README del repository](../README.md).
+Questa cartella contiene il codice che mette a disposizione i dati di ATAS per lo studio. Non contiene modelli, soglie o segnali. Il metodo che questo codice serve e' descritto nel [percorso del progetto](../docs/research/percorso-del-progetto.md).
 
 ## Due Modi Di Ottenere I Dati
 

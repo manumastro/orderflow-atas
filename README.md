@@ -8,7 +8,7 @@ regge quanto cio' che non regge. Nessuna regola operativa e' stata approvata.
 
 ## Da Dove Si Comincia
 
-**[`docs/research/README.md`](docs/research/README.md)** — il percorso completo, dall'inizio a
+**[`docs/research/percorso-del-progetto.md`](docs/research/percorso-del-progetto.md)** — il percorso completo, dall'inizio a
 oggi: il corso, le due strade chiuse e perche', il contesto istituzionale COT, il Data Bridge, e
 cosa si fa adesso. E' il documento che ricostruisce come si e' arrivati all'analisi attuale, ed e'
 la prima lettura per chiunque, persona o agente.
@@ -17,7 +17,7 @@ Da li' si arriva a tutto il resto:
 
 | Serve | File |
 |---|---|
-| **Come si fa** una analisi, procedura per procedura | [`docs/research/metodo/README.md`](docs/research/metodo/README.md) |
+| **Come si fa** una analisi, procedura per procedura | [`docs/research/metodo/indice-delle-procedure.md`](docs/research/metodo/indice-delle-procedure.md) |
 | **Cosa e' gia' stato analizzato**, giorno per giorno | [`docs/research/giornate/`](docs/research/giornate/) |
 | Le regole operative per lavorare nel repository | [`CLAUDE.md`](CLAUDE.md) |
 
@@ -37,7 +37,7 @@ va riaperta senza una richiesta esplicita.
 
 ```text
 fabio_course/              trascrizioni delle lezioni, mappa del corso, dossier del modello
-docs/research/             il percorso, il metodo e tutte le analisi  <- si comincia dal suo README
+docs/research/             il percorso, il metodo e tutte le analisi  <- percorso-del-progetto.md
 docs/research/metodo/      le procedure attive
 docs/research/giornate/    una analisi per giornata di mercato, AAAA-MM-GG.md
 docs/research/sessioni/    profili di sessione e descrizioni settimanali
