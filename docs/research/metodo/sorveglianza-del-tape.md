@@ -126,6 +126,26 @@ Quando una condizione scatta, il motore **annota da solo**: il testo va sul char
 insieme ai numeri della barra e all'attesa. Non aspetta la lettura ragionata — quella arriva dopo,
 ma intanto sullo schermo c'e' scritto cosa e' successo.
 
+### Cambiarli Mentre Girano
+
+Durante una seduta gli scenari si riscrivono spesso: il prezzo si sposta, un livello cambia ruolo,
+uno scenario si rivela scritto male. **Il file viene riletto appena cambia**, senza riavviare
+niente, e il motore dice cosa e' cambiato:
+
+```text
+[scenari ricaricati] 10 attivi: +E - ritorno sulla mensola, -D, ~B1
+```
+
+`+` aggiunto, `-` tolto, `~` condizione modificata. Due dettagli che rendono la cosa usabile:
+
+- **Correggere un `quando` riarma lo scenario.** Uno scenario gia' scattato e' identificato da nome
+  *piu'* condizione, quindi se aggiusti la soglia torna in gioco. Se invece vuoi solo cambiare il
+  testo, lo scenario resta scattato.
+- **Un JSON rotto a meta' salvataggio non ferma la sorveglianza**: il motore avvisa e tiene la
+  versione precedente.
+
+Aspettarsi un riavvio a ogni correzione e' il modo migliore per non correggerli.
+
 ## 4bis. La Sveglia, Per Cio' Che Non Avevamo Previsto
 
 ```bash

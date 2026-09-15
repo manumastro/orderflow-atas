@@ -205,16 +205,22 @@ def calcola_ivb(storia, fuso, inizio="15:30", fine="16:00"):
 
 # ------------------------------------------------------------------ motore
 
+def chiave(s) -> tuple[str, str]:
+    """Nome piu' condizione. Cosi' correggere un `quando` riarma lo scenario, che e' quello che
+    serve mentre si aggiusta un file durante la seduta; rinominarlo pure."""
+    return (s["nome"], s["quando"])
+
+
 def valuta(scenari, ctx, scattati):
     for s in scenari:
         nome = s["nome"]
-        if nome in scattati and s.get("una_volta", True):
+        if chiave(s) in scattati and s.get("una_volta", True):
             continue
         try:
             if eval(s["quando"], {"__builtins__": {}}, ctx):   # noqa: S307 - espressione dell'analisi
                 yield s
         except Exception as e:
-            yield {"nome": nome, "errore": f"{type(e).__name__}: {e}"}
+            yield {"nome": nome, "quando": s["quando"], "errore": f"{type(e).__name__}: {e}"}
 
 
 def annota(s, ctx, giorno, chart):
@@ -258,12 +264,40 @@ def main() -> None:
     f = GIORNATE / f"scenari-{args.giorno}.json"
     if not f.exists():
         sys.exit(f"manca {f}: gli scenari li scrive l'analisi, non il programma")
-    scenari = json.loads(f.read_text())
 
-    scattati: set[str] = set()
+    def ricarica(vecchi):
+        """Rilegge il file se e' cambiato e racconta cosa e' cambiato.
+
+        Durante una seduta gli scenari si riscrivono spesso: aspettarsi un riavvio del monitor
+        a ogni correzione e' il modo migliore per non correggerli. Un file JSON rotto a meta'
+        salvataggio non deve fermare la sorveglianza: si tiene la versione precedente.
+        """
+        try:
+            nuovi = json.loads(f.read_text())
+        except Exception as e:
+            print(f"[scenari illeggibili, tengo i precedenti: {type(e).__name__}]", flush=True)
+            return vecchi
+        if vecchi is None:
+            return nuovi
+        pv, pn = {s["nome"] for s in vecchi}, {s["nome"] for s in nuovi}
+        vv = {s["nome"]: s["quando"] for s in vecchi}
+        cambi = ([f"+{n}" for n in pn - pv] + [f"-{n}" for n in pv - pn]
+                 + [f"~{s['nome']}" for s in nuovi if s["nome"] in pv and s["quando"] != vv[s["nome"]]])
+        if cambi:
+            print(f"[scenari ricaricati] {len(nuovi)} attivi: " + ", ".join(cambi), flush=True)
+        return nuovi
+
+    scenari = ricarica(None)
+    visto_mtime = f.stat().st_mtime
+    scattati: set[tuple[str, str]] = set()
     frontiera = None
 
     while True:
+        if not args.prova:
+            m = f.stat().st_mtime if f.exists() else visto_mtime
+            if m != visto_mtime:
+                visto_mtime = m
+                scenari = ricarica(scenari)
         try:
             c = candele(args)
         except Exception as e:
@@ -282,8 +316,8 @@ def main() -> None:
                 ctx = costruisci_contesto(chiuse, i, args.fuso, ivb)
                 for s in valuta(scenari, ctx, scattati):
                     if "errore" in s:
-                        print(f"  ERRORE  {s['nome']}: {s['errore']}"); scattati.add(s["nome"]); continue
-                    scattati.add(s["nome"])
+                        print(f"  ERRORE  {s['nome']}: {s['errore']}"); scattati.add(chiave(s)); continue
+                    scattati.add(chiave(s))
                     print(f"SCATTA  {s['nome']}  |  {ctx['ora']} {ctx['c']:.2f} "
                           f"vol {ctx['vol']} delta {ctx['delta']:+} 30m {ctx['dpct30']:+.1f}%")
             print(f"-- {len(scattati)} scenari su {len(scenari)}, {len(chiuse)} barre")
@@ -303,9 +337,9 @@ def main() -> None:
                 for s in valuta(scenari, ctx, scattati):
                     if "errore" in s:
                         print(f"ERRORE nello scenario {s['nome']}: {s['errore']}", flush=True)
-                        scattati.add(s["nome"])
+                        scattati.add(chiave(s))
                         continue
-                    scattati.add(s["nome"])
+                    scattati.add(chiave(s))
                     print(f"SCATTA {s['nome']} | {ctx['ora']} {ctx['c']:.2f} "
                           f"vol {ctx['vol']} delta {ctx['delta']:+} 30m {ctx['dpct30']:+.1f}% "
                           f"| atteso: {s.get('attesa', '-')}", flush=True)
