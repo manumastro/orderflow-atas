@@ -141,6 +141,15 @@
     "tipo": "assorbimento",
     "testo": "compratori sul minimo, ma contro il gate",
     "misura": "Minimo 29273,25 alle 16:40. Negli ultimi 15 minuti delta +374 su 16.356 lotti con il prezzo sui minimi: qualcuno compra qui. La fascia 29275-29299 e' la piu' sottile della cash (6,1% di 92.534 lotti) e ha delta +211. Ma e' contro il gate short: vale come mean reverting a rischio stretto, non come permesso long. Il peggior delta della cash e' 29375-29399 con -418, appena sotto l'IVB basso: e' li che si e' rotto.",
+    "tema": "minimo 29273",
+    "superata_da": "16:50"
+  },
+  {
+    "ora": "16:50",
+    "prezzo": 29255.0,
+    "tipo": "rottura",
+    "testo": "i compratori del minimo non hanno tenuto",
+    "misura": "29273,25 attraversato alle 16:49, nuovo minimo 29255,50 alle 16:50. I +374 di delta che alle 16:43 leggevo come compratori sul minimo erano reali ma insufficienti. Tre barre consecutive chiuse sui minimi (pos 0,05 / 0,04 / 0,29) con delta -143, -93, -125, ma su volumi da 611-1.045 contro un p75 di 1.462: non e' vendita aggressiva, sono i compratori che si ritirano. Lo scenario 'cede il minimo' non e' scattato perche' chiede vol e delta oltre il p95, ed e' corretto. Prossimo riferimento 29236, bordo basso della sega di stamattina. Il movimento e' nel verso del gate.",
     "tema": "minimo 29273"
   }
 ]
