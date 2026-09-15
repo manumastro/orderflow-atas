@@ -186,5 +186,25 @@
     "tema": "bordo attrito 29375",
     "testo": "29375 respinge ancora",
     "attesa": "terzo rifiuto dopo 12:36 (pos 0,11) e 12:42 (pos 0,28). Il bordo dell'attrito tiene: torna la rotazione verso 29334, e sotto il VAL a 29306 dove e' armato rientro fallito."
+  },
+  {
+    "nome": "attraversa il venduto 29425-29449",
+    "sigla": "attraversa il venduto",
+    "quando": "c > 29449 and minuti_sotto(29449, 15) <= 4 and vol_sopra_pct(29449, 15) >= 65",
+    "prezzo": 29449,
+    "tipo": "reclaim",
+    "tema": "venduto 29425-29449",
+    "testo": "attraversato il venduto: la mensola e' a tiro",
+    "attesa": "29425-29449 e' il delta peggiore della giornata (-398), la fascia da cui il prezzo e' caduto alle 06:21. Attraversarla in accettazione significa che quel venduto e' stato riassorbito. Subito sopra il POC di oggi a 29455, dove la giornata cambia natura."
+  },
+  {
+    "nome": "il venduto respinge",
+    "sigla": "il venduto respinge",
+    "quando": "tocca(29430, 8) and vol >= p75vol and delta <= 0 and pos <= 0.3",
+    "prezzo": 29430,
+    "tipo": "rifiuto",
+    "tema": "venduto 29425-29449",
+    "testo": "il venduto di stamattina respinge",
+    "attesa": "chi ha venduto a 29425-29449 stamattina e' ancora li'. Primo tentativo 13:10 (282 lotti delta +92) gia' respinto alle 13:11 con -46 e pos 0,12. Sotto, 29400 e' il livello che deve tenere per non annullare la ripresa."
   }
 ]
