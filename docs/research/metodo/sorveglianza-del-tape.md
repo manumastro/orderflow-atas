@@ -153,23 +153,15 @@ Aspettarsi un riavvio a ogni correzione e' il modo migliore per non correggerli.
 
 ### Cosa Si Vede Sul Chart
 
-Il chart mostra **tre cose diverse, distinguibili a colpo d'occhio**:
+Due cose, e basta:
 
-| Che cos'e' | Come appare |
-|---|---|
-| **Livelli strutturali** | `solid` o `dash`, in **tinte smorzate** per zona: la struttura del mercato |
-| **Scenari in attesa** | `? nome`, punteggiati e grigi: cosa stiamo aspettando, prima che succeda |
-| **Letture fatte** | `! ora testo`, punteggiati e colorati per tipo: cosa e' successo |
+1. **I livelli**, che sono l'informazione permanente della giornata.
+2. **Le annotazioni**, cioe' le letture gia' fatte e gli scenari **che sono scattati**.
 
-Uno scenario in attesa **sparisce quando scatta**, sostituito dalla propria annotazione: la riga
-grigia diventa colorata e porta l'ora.
-
-Uno scenario che cade su un livello gia' disegnato non aggiunge una riga — due etichette alla
-stessa altezza si sovrappongono e diventano illeggibili. Il suo nome viene **appeso all'etichetta
-del livello**: `VAL lun · test 07:19 senza compratori ? A2`.
-
-Sul chart resta cosi' visibile, in ogni momento, **cosa stiamo aspettando e dove**, non solo cosa e'
-gia' successo.
+Gli scenari *in attesa* — quelli scritti e non ancora avvenuti — sono **spenti per default**. Si
+accendono con `--con-attesi` quando servono, ma non e' lo stato normale: una riga per ogni scenario
+previsto riempie il chart di cose che non stanno succedendo, e i livelli si perdono in mezzo. A
+schermo serve sapere dove sono i livelli, e vedere comparire qualcosa **quando qualcosa accade**.
 
 ### Due tavolozze che non devono competere
 

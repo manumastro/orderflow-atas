@@ -81,8 +81,10 @@ def spingi(livelli: list, chart: str | None) -> None:
 def voci_attese(giorno: str, annotazioni: list, strutturali: list, tol: float = 3.0):
     """Gli scenari scritti per oggi e non ancora scattati, come linee smorzate.
 
-    Servono a vedere *cosa si sta aspettando* prima che succeda. Appena uno scatta, l'annotazione
-    prende il suo posto e la riga d'attesa sparisce.
+    **Spente per default**, si accendono con `--con-attesi`. Una riga per ogni scenario in attesa
+    riempie il chart di cose che non stanno succedendo, e i livelli — che sono l'informazione
+    permanente — si perdono in mezzo. Quello che serve a schermo e' dove sono i livelli, e una
+    annotazione quando qualcosa scatta davvero.
 
     Uno scenario che cade **su un livello gia' disegnato** non aggiunge una riga: due etichette
     alla stessa altezza si sovrappongono e diventano illeggibili. Il nome dello scenario viene
@@ -169,7 +171,8 @@ def main() -> None:
                     help="rimette sul chart una lettura superata (vedi --elenco)")
     ap.add_argument("--ricomponi", action="store_true",
                     help="rimanda sul chart la composizione corrente senza aggiungere niente")
-    ap.add_argument("--senza-attesi", action="store_true", help="non disegnare gli scenari in attesa")
+    ap.add_argument("--con-attesi", action="store_true",
+                    help="disegna anche gli scenari scritti e non ancora scattati (default: no)")
     ap.add_argument("--ora", help="HH:MM; default l'ora attuale")
     ap.add_argument("--elenco", action="store_true", help="mostra le annotazioni di oggi")
     ap.add_argument("--togli", type=int, metavar="N", help="rimuove l'annotazione N (vedi --elenco)")
@@ -230,7 +233,7 @@ def main() -> None:
     if not args.ricomponi:
         p_ann.write_text(json.dumps(annotazioni, ensure_ascii=False, indent=2) + "\n")
     vive = attive(annotazioni)
-    attesi = [] if args.senza_attesi else voci_attese(args.giorno, annotazioni, strutturali)
+    attesi = voci_attese(args.giorno, annotazioni, strutturali) if args.con_attesi else []
     spingi(strutturali + attesi + [voce_chart(a) for a in vive[-args.max:]], args.chart)
     superate = len(annotazioni) - len(vive)
     print(f"chart: {len(strutturali)} livelli + {len(attesi)} attesi + "
