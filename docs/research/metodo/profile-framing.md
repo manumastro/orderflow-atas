@@ -147,6 +147,54 @@ Quattro sedute diverse hanno messo il POC fra 29.416 e 29.451 in termini Z6: 09-
 Il minimo della notte cade **due punti** sopra il VAL. Non e' una coincidenza da interpretare, e'
 un bordo che ha funzionato una volta.
 
+### Sotto Il VAL C'e' Uno Scaffale, Non Un Vuoto
+
+Questa e' una **correzione** a una lettura sbagliata fatta in giornata, e vale come esempio del
+modo in cui un composito puo' ingannare.
+
+Nel composito qui sopra il blocco 29.300-29.324 ha 34.663 contratti su 3.456.825: sembra sottile,
+e da li' e' facile concludere che sotto il VAL non ci sia attrito. E' un errore di lettura. Quel
+blocco e' sottile **perche' una sola delle undici sedute c'e' andata** — e quella seduta e'
+lunedi', cioe' ieri. Il composito misura quante sedute hanno visitato un prezzo, non quanto quel
+prezzo pesa nella struttura recente.
+
+Il profilo della sola seduta di lunedi' (globex intera, 333.382 contratti, blocchi da 25 punti):
+
+```text
+ 29.450-29.474    27.942   +440   ####################################   <- POC, la mensola
+ 29.425-29.449     9.121   +141   ############
+ 29.400-29.424     3.671    +33   #####
+ 29.375-29.399     3.871   +327   #####                                  <- la fascia sottile
+ 29.350-29.374    19.097   +693   #########################
+ 29.325-29.349    20.574   +804   ###########################
+ 29.300-29.324    33.628   +830   ############################################
+ 29.275-29.299    28.551   +243   #####################################
+ 29.250-29.274    13.970   +670   ##################
+ 29.225-29.249    10.179   +563   #############
+ 29.200-29.224    18.540   +628   ########################
+ 29.175-29.199    28.449   +697   #####################################
+ 29.150-29.174    13.332   +578   #################
+ 29.125-29.149     7.182   +252   #########
+ 29.100-29.124     1.213    -83   #
+```
+
+Due fatti che ribaltano la lettura:
+
+1. **La fascia sottile e' sopra, non sotto.** 29.375-29.424 vale l'1,1-1,2% per blocco: e' li' che
+   il prezzo non trova attrito. Fra 29.175 e 29.324, invece, lunedi' ha scambiato **il 27% della
+   seduta**. Un rientro verso la mensola e' veloce; una discesa sotto il VAL non lo e'.
+2. **Il delta e' positivo in ogni blocco della discesa**, fino a +830 sul blocco piu' pesante. I
+   compratori hanno assorbito mentre il prezzo scendeva, e poi lunedi' ha chiuso a 29.449,50. Non
+   e' una zona attraversata, e' una zona difesa.
+
+I due minimi di lunedi' non coincidono e vanno tenuti distinti: **29.167,75 in cash** (15:37) e
+**29.107,25 in globex** (11:25). Per il framing, che usa solo la cash, il minimo e' 29.167,75.
+
+**La regola che ne esce.** Un blocco sottile nel composito significa una sola cosa: poche sedute
+ci sono passate. Prima di chiamarlo vuoto va guardato il profilo della seduta piu' recente che
+quel prezzo l'ha visitato. Se quella seduta e' ieri, non e' un vuoto: e' l'ultima cosa che il
+mercato ha costruito.
+
 ---
 
 ## Cosa Non Fare, Sul Tuo Chart

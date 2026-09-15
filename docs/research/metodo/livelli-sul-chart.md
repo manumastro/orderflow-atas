@@ -128,18 +128,40 @@ piattaforma, gli ordini o le posizioni. Il listener resta legato a `127.0.0.1`.
 
 ## Esempio: I Livelli Del 15 Settembre 2026
 
-Derivati dal composito cash di undici sedute, in termini NQZ6 (vedi
-[`profile-framing.md`](profile-framing.md)):
+Derivati dal composito cash di undici sedute e dal profilo della singola seduta di lunedi', in
+termini NQZ6 (vedi [`profile-framing.md`](profile-framing.md)).
 
-| Prezzo | Etichetta | Perche' |
+Le etichette portano **la misura, non solo il nome**: un livello che dice *"rotta 06:21 (-165d)"*
+si legge sul chart senza tornare al documento, e soprattutto dice quanto vale la lettura. Il campo
+`note`, che non viene disegnato e torna solo sul `GET`, tiene il ragionamento per esteso.
+
+| Prezzo | Etichetta | Cosa porta |
 |---|---|---|
-| 29.924 | nodo alto / short LF | bordo alto del nodo a delta negativo, dove i Leveraged Funds hanno costruito short nella settimana al 8 settembre |
-| 29.804 | VAL 08 set | bordo basso della zona di costruzione |
-| 29.749 | VAH 11 set | |
-| 29.677 | VAL 11 set / collo | bordo alto del collo fra i due nodi |
-| 29.604 | max lun / vuoto gap | massimo di lunedi', bordo del vuoto lasciato dal gap del weekend |
-| 29.516 | VAH 10 set | |
-| **29.454** | **MENSOLA POC 02/10/14** | tre sedute diverse hanno messo qui il POC |
-| 29.400 | VAL 10 / bordo nodo | bordo basso del nodo inferiore a delta positivo |
-| 29.306 | VAL lun (retest ok) | testato nella notte a 29.308 e tenuto |
-| 29.168 | min lunedi' | |
+| 29.924 | Top nodo · short LF 2-8 set | bordo alto del nodo a delta negativo; li' i Leveraged Funds hanno costruito gli short |
+| 29.804 | Base zona short LF · VAL 8 set | bordo basso della zona di costruzione |
+| 29.749 | VAH 11 set | contesto pre-roll |
+| 29.677 | Collo · VAL 11 set | bordo alto del collo fra i due nodi |
+| 29.604 | Max lun · bordo vuoto gap | massimo di lunedi', bordo del vuoto del gap di weekend |
+| 29.516 | Top nodo compratori · VAH 10 set | bordo alto del nodo a delta positivo |
+| 29.474 | Top nodo notte · 31% vol oggi | 14.816 lotti, il blocco piu' pesante della seduta, poi abbandonato |
+| **29.454** | **MENSOLA · POC 2-10-14 set** | tre sedute distinte hanno messo qui il POC |
+| 29.400 | Rotta 06:21 (-165d) · resistenza | 174 minuti su 198 sotto, 10% del volume sopra: accettazione |
+| 29.375 | Base vuoto 29375-29424 (1,2% lun) | la fascia sottile e' **sopra**, non sotto |
+| 29.306 | VAL lun · test 07:19 senza compratori | 1.561 lotti, delta -31: nessuno ha comprato |
+| 29.275 | Scaffale 29275-29324 · 18,7% lun | 62.179 lotti, delta +1.073: zona difesa, non vuota |
+| 29.199 | Blocco 29175-29224 · 14,1% lun | 46.989 lotti, delta +1.325 |
+| 29.168 | Min cash lun 15:37 | il minimo che conta per il framing, che usa solo la cash |
+| 29.107 | Min globex lun 11:25 | fuori dalla cash: contesto |
+
+Quindici livelli sono vicini al massimo leggibile su un chart NQ. Oltre, le etichette si
+sovrappongono e il valore informativo scende: meglio togliere il contesto lontano che stringere il
+carattere.
+
+### Cosa Rende Un'Etichetta Utile
+
+1. **Il nome del livello**, per riconoscerlo.
+2. **La misura che lo sostiene**, per sapere quanto pesa: `31% vol oggi`, `-165d`, `18,7% lun`.
+3. **Lo stato**, quando e' cambiato: `rotta 06:21`, `test senza compratori`.
+
+Quello che non ci va e' la previsione. Un'etichetta dice cosa e' successo li', non cosa succedera'.
+
