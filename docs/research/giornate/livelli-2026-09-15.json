@@ -1,77 +1,77 @@
 [
   {
     "price": 29484.5,
-    "label": "Max giornata 14:55",
+    "label": "Max oggi 14:55 · sopra non ha comprato nessuno",
     "color": "#6B7A99",
     "style": "dash",
     "width": 1
   },
   {
     "price": 29453.5,
-    "label": "IVB ALTO = mensola/POC 29454",
+    "label": "TETTO IVB · sopra qui torna il permesso long (= mensola 3 sedute)",
     "color": "#8E7CC3",
     "style": "solid",
     "width": 2
   },
   {
     "price": 29412.0,
-    "label": "POC cash NY 22,9% · delta -377",
+    "label": "Prezzo piu' scambiato della cash 22,9% · chi ha comprato qui e' sotto (-377)",
     "color": "#7A8FA6",
     "style": "solid",
     "width": 2
   },
   {
     "price": 29372.5,
-    "label": "IVB BASSO · sotto = gate short",
+    "label": "PAVIMENTO IVB · siamo sotto: per questo oggi si cerca solo short",
     "color": "#8E7CC3",
     "style": "solid",
     "width": 2
   },
   {
     "price": 29326.25,
-    "label": "Chiusura M30 16:30 · delta -500",
+    "label": "Chiusura 16:30 che ha aperto lo short (delta -500)",
     "color": "#6B7A99",
     "style": "dash",
     "width": 1
   },
   {
     "price": 29306.0,
-    "label": "VAL lun",
+    "label": "Bordo basso del valore di lunedi",
     "color": "#7A8FA6",
     "style": "dot",
     "width": 1
   },
   {
     "price": 29273.25,
-    "label": "Min giornata 16:40",
+    "label": "Min oggi 16:40 · qui stanno comprando (+374 in 15 min)",
     "color": "#6B7A99",
     "style": "solid",
     "width": 2
   },
   {
     "price": 29236.0,
-    "label": "Bordo basso sega mattina",
+    "label": "Bordo basso della sega di stamattina",
     "color": "#7A8FA6",
     "style": "dot",
     "width": 1
   },
   {
     "price": 29199.0,
-    "label": "Blocco 29175-29224 lun 14,1%",
+    "label": "Lunedi qui sono stati comprati 18.540 lotti (delta +628)",
     "color": "#7A8FA6",
     "style": "dot",
     "width": 1
   },
   {
     "price": 29168.0,
-    "label": "Min cash lun 15:37",
+    "label": "Min cash lunedi · sotto, oggi continua lunedi",
     "color": "#6B7A99",
     "style": "dash",
     "width": 1
   },
   {
     "price": 29107.0,
-    "label": "Min globex lun 11:25",
+    "label": "Min globex lunedi · il minimo vero della settimana",
     "color": "#6B7A99",
     "style": "dash",
     "width": 1
