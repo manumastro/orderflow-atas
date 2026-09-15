@@ -12,5 +12,20 @@
     "tipo": "nota",
     "testo": "sale sopra il VAL, accettazione non ancora matura",
     "misura": "5 barre consecutive a delta positivo dalle 11:46, 30m a +6,7%. Ma 16 minuti su 30 sono ancora chiusi sotto 29306 e solo il 35% del volume e' sopra: la finestra ricorda il tempo passato sotto. Serve tempo, non prezzo."
+  },
+  {
+    "ora": "12:09",
+    "prezzo": 29306.0,
+    "tipo": "reclaim",
+    "testo": "accettazione sopra il VAL: rientrato nel valore di lunedi",
+    "misura": "12:09 a 29343.00: vol 41, delta -3, 30m +6.8%. 30 minuti quasi tutti sopra e oltre il 75% del volume sopra. Non e' piu' uno sconfinamento: il prezzo e' dentro il valore di lunedi. Sopra, sul profilo di OGGI: 29375-29399 e' attrito normale (9,2%), il tratto sottile e' 29400-29424 (3,5%, delta -312), e sopra ancora 29425-29449 ha delta -398, il venduto da cui e' caduto alle 06:21.",
+    "scenario": "accettazione sopra il VAL di lunedi"
+  },
+  {
+    "ora": "12:11",
+    "prezzo": 29366.0,
+    "tipo": "nota",
+    "testo": "416 lotti sul massimo, chiude nel quinto basso",
+    "misura": "H 29366,75 nuovo massimo del recupero, C 29351,75 pos 0,20. 416 lotti, la barra piu' pesante della finestra (prec. 260), delta solo +46. Siamo dentro 29350-29374, seconda fascia per volume di oggi (12,2%): volume alto in un nodo e' atteso. Discriminante: minimi sopra 29341 e prossimo passaggio a 29366 con piu' di 416 lotti = nodo attraversato; con meno = offerta vera."
   }
 ]
