@@ -206,5 +206,15 @@
     "tema": "venduto 29425-29449",
     "testo": "il venduto di stamattina respinge",
     "attesa": "chi ha venduto a 29425-29449 stamattina e' ancora li'. Primo tentativo 13:10 (282 lotti delta +92) gia' respinto alle 13:11 con -46 e pos 0,12. Sotto, 29400 e' il livello che deve tenere per non annullare la ripresa."
+  },
+  {
+    "nome": "perso 29400 da sopra",
+    "sigla": "perde 29400",
+    "quando": "c < 29400 and minuti_sotto(29400, 20) >= 12 and vol_sopra_pct(29400, 20) <= 45",
+    "prezzo": 29400,
+    "tipo": "rottura",
+    "tema": "muro 29400",
+    "testo": "29400 perso: l'accettazione delle 13:26 si annulla",
+    "attesa": "misurato su finestra come l'accettazione che annulla, per simmetria: le sonde sotto il livello a 28-107 lotti non bastano. Sotto, la fascia 29400-29424 si riattraversa in fretta anche scendendo, e il primo appoggio vero e' 29375, ripreso alle 12:49."
   }
 ]
