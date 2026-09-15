@@ -12,7 +12,7 @@ Focus: hyperscalping/intraday, barre **40 Range**, Value Area per candela, Delta
 
 ## 2. Modello operativo di riferimento
 
-La fonte di verita' del modello e' il dossier in [`prop_firm_model/`](prop_firm_model/), *The Prop Firm Model* di Fabio 'Fabervaale' Valentini. La sua trascrizione, con le convenzioni che lo rendono misurabile e le applicazioni su dati reali, e' in [`docs/research/modelli/modello-40r-riferimento.md`](../docs/research/modelli/modello-40r-riferimento.md).
+La fonte di verita' del modello e' il dossier in [`prop_firm_model/`](prop_firm_model/), *The Prop Firm Model* di Fabio 'Fabervaale' Valentini. La sua trascrizione, con le convenzioni che lo rendono misurabile e le applicazioni su dati reali, e' in [`docs/research/modelli/modello-40r-riferimento.md`](../docs/research/archivio-modello-40r/modello-40r-riferimento.md).
 
 La sintesi che stava qui divergeva dal dossier su tre punti e ha prodotto un replay sbagliato: aveva promosso i livelli e i Big Trades a condizioni obbligatorie, e ignorava la finestra oraria. Le tre condizioni reali sono **auction flip, value area shift e side control in tempo reale**.
 

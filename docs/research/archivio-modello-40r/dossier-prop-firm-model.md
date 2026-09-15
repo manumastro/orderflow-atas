@@ -203,7 +203,7 @@ Le prime quattro sono parametri: si dichiarano e si misura la sensibilita'. Le v
 ## Rapporto Con Le Altre Pagine
 
 - [Modello 40R di riferimento](modello-40r-riferimento.md): le convenzioni scelte per rendere eseguibile il modello.
-- [Replay sulla settimana 2026-09-04 / 09-11](../sessioni/replay-modello-settimana-2026-09-11.md): cosa misura il sottoinsieme meccanico.
+- [Replay sulla settimana 2026-09-04 / 09-11](replay-modello-settimana-2026-09-11.md): cosa misura il sottoinsieme meccanico.
 
 ## Confronto Con Il Primo Transcript Del Corso
 

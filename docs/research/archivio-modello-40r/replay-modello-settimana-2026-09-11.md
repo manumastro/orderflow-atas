@@ -1,6 +1,6 @@
 # Replay Del Modello 40R Sulla Settimana 2026-09-04 / 09-11
 
-Domanda: applicando [The Prop Firm Model](../modelli/modello-40r-riferimento.md) alla lettera su barre 40 Range, cosa sarebbe successo?
+Domanda: applicando [The Prop Firm Model](modello-40r-riferimento.md) alla lettera su barre 40 Range, cosa sarebbe successo?
 
 Metodo: [`replay_model.py`](../../../FabioOrderFlow/tools/replay_model.py) decide su ogni barra **solo con cio' che era noto alla sua chiusura**. Dati dal Fabio Data Bridge, NQU6@CME, cinque sessioni cash, finestra 13:30-15:30 UTC.
 

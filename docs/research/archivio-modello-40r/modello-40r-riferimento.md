@@ -56,7 +56,7 @@ Il footprint di una barra chiusa non dice l'ordine temporale degli eventi al suo
 
 Camminando quel tape dentro la candela in formazione si sa se il controllo e' girato **prima** che il limit venisse toccato, e l'ordine si cancella come prescrive il dossier. Lo stesso tape elimina l'ambiguita' sull'esito quando stop e target cadono nella stessa barra.
 
-Misurata cosi', la condizione 3 cancella dal 2% al 16% degli ordini e **non sposta il win rate**: vedi il [replay](../sessioni/replay-modello-settimana-2026-09-11.md).
+Misurata cosi', la condizione 3 cancella dal 2% al 16% degli ordini e **non sposta il win rate**: vedi il [replay](replay-modello-settimana-2026-09-11.md).
 
 ## Il Problema Di Scala
 
@@ -68,11 +68,11 @@ value area di barra   5,00 punti in mediana
 stop risultante       4,50-6,00 punti
 ```
 
-Con 1 MNQ, cinque punti valgono dieci dollari. Sulla settimana misurata il problema si e' pero' rivelato piu' a monte del costo di transazione: il win rate sul 1:1 e' 40% su 133 operazioni, quindi la perdita e' lorda. Vedi il [replay](../sessioni/replay-modello-settimana-2026-09-11.md).
+Con 1 MNQ, cinque punti valgono dieci dollari. Sulla settimana misurata il problema si e' pero' rivelato piu' a monte del costo di transazione: il win rate sul 1:1 e' 40% su 133 operazioni, quindi la perdita e' lorda. Vedi il [replay](replay-modello-settimana-2026-09-11.md).
 
 ## Applicazioni
 
-- [Replay sulla settimana 2026-09-04 / 09-11](../sessioni/replay-modello-settimana-2026-09-11.md).
+- [Replay sulla settimana 2026-09-04 / 09-11](replay-modello-settimana-2026-09-11.md).
 
 ## Limiti
 
