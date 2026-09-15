@@ -53,25 +53,28 @@ Rende accessibili cose che esistono solo dentro il processo ATAS: il profilo fis
 
 ```text
 fabio_course/              trascrizioni delle lezioni e mappa del corso
-docs/research/metodo/      contratti osservativi e storia del progetto
-docs/research/modelli/     modelli candidati e loro verifica su dati reali
+docs/research/metodo/      metodo attivo: profile framing, analisi istituzionale, contratti
 docs/research/cot/         contesto istituzionale: COT e Tradingster
 docs/research/sessioni/    profili di sessione e descrizioni settimanali
-docs/research/archivio-2026-08/  la fase dei recorder, conservata come evidenza
+docs/research/archivio-2026-08/     la fase dei recorder, conservata come evidenza
+docs/research/archivio-modello-40r/ la fase sistematica, misurata e chiusa
 docs/atas/                 documentazione tecnica dell'API ATAS
 FabioOrderFlow/            le cinque estensioni ATAS e gli strumenti di analisi
 prop/                      esecuzione: mercato guida, sizing, fee, regole delle prop
 ```
 
-### 6. Il primo modello reso misurabile
+### 6. Il modello sistematico, misurato e chiuso
 
-[The Prop Firm Model](docs/research/modelli/modello-40r-riferimento.md) e' l'unico modello operativo del repository, ed e' esplicitamente **non validato**. La fonte di verita' e' il dossier in [`prop/prop_firm_model/`](prop/prop_firm_model/), [trascritto pagina per pagina](docs/research/modelli/dossier-prop-firm-model.md) insieme all'elenco di cio' che lascia alla discrezione.
+The Prop Firm Model e' stato implementato dal dossier, misurato su un mese di NQ e **chiuso il 15 settembre 2026**. Con obiettivo 1:1 sta al **49-51%**, indistinguibile dal modello nullo che entra senza nessuna condizione. Big trades, speed of tape, scala della barra, filtro sul ritmo, gate di location e inversione del verso: nessuno sposta il risultato.
 
-Il lavoro utile e' stato renderlo falsificabile. La prima esecuzione del [replay](docs/research/sessioni/replay-modello-settimana-2026-09-11.md) implementava non il dossier ma la sua sintesi, e aggiungeva due condizioni inesistenti: un filtro sui livelli e uno sui Big Trades. Il secondo azzerava gli ingressi, facendo sembrare che il modello non operasse mai. Era un artefatto dell'implementazione, ed e' registrato accanto al risultato corretto.
+Il materiale e' conservato in [`docs/research/archivio-modello-40r/`](docs/research/archivio-modello-40r/) come evidenza. Vale la pena leggerlo per la sequenza degli errori — sintesi al posto della fonte, look-ahead nella risoluzione degli esiti, un limit order che si eseguiva a mercato — e per la correzione che ha smontato ogni risultato apparente: **le osservazioni dentro una sessione non sono indipendenti**, e un z ingenuo di +4,1 diventa t=+1,4 quando la statistica si calcola per sessione.
 
-Il replay ha avuto tre versioni, e la sequenza degli errori e' registrata perche' vale piu' del risultato. La prima implementava la sintesi invece del dossier e aggiungeva due condizioni inesistenti, una delle quali azzerava gli ingressi. La seconda decideva l'esito confrontando stop e target con gli estremi della barra di esecuzione, contando come raggiunti target stampati **prima** dell'ingresso: look-ahead, che mostrava un margine apparente del 55%.
+### 7. Lo scope attuale: la lettura discrezionale
 
-La terza risolve l'esito sul tape completo, trade per trade. Il modello fa 133 operazioni al **40%** con obiettivo 1:1, dove il pareggio lordo ne richiede piu' del 50%. La terza condizione del dossier, che si e' rivelata misurabile in storico dopo essere stata dichiarata non misurabile, non sposta il risultato.
+Dal 15 settembre 2026 il lavoro e' sulla lettura discrezionale descritta nel primo live del corso, letta insieme al contesto istituzionale.
+
+- [`docs/research/metodo/profile-framing.md`](docs/research/metodo/profile-framing.md) — le sei cose da guardare, nell'ordine in cui il live le mette, piu' il quadro corrente e l'avvertenza sul chart continuous che non e' back-adjusted.
+- [`docs/research/metodo/analisi-istituzionale.md`](docs/research/metodo/analisi-istituzionale.md) — COT e Data Bridge letti insieme, incluso il modo in cui il COT resta valido fra un report e l'altro: la data di un cambio di posizionamento diventa un livello di prezzo, e il livello sopravvive alla settimana.
 
 ## Come Si Lavora Qui
 

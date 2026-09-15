@@ -139,6 +139,67 @@ Conseguenza registrata: **il COT resta contesto, non trigger**, e non c'e' motiv
 indicatore ATAS. Dettaglio in
 [`tradingster-cross-index-2026-09-11.md`](../cot/tradingster-cross-index-2026-09-11.md).
 
+## Il COT Fra Un Report E L'Altro: La Data Diventa Un Livello
+
+Il limite del ritardo di tre giorni vale se si usa il COT come **segnale temporale**. Nel live
+Fabio non lo usa cosi', e la differenza e' sostanziale. Lui conferma di leggerlo solo alla
+pubblicazione:
+
+> *"No, no, no. I don't check this every day. I only check this when a new release comes out."*
+
+Ma poi fa un'altra cosa, ed e' quella che gli da' valore anche nei giorni successivi:
+
+> *"When we see that they are distributing order from the 13th of January, and we go back to
+> price, and we see that the 13th of January was exactly on the value area, now this rejection at
+> the top of the value area [...] they start to make sense, yes or no? These three days of
+> distribution start to make a lot of sense."*
+
+E lo ripete su tre casi storici, sempre con lo stesso movimento: individua **quando** il
+posizionamento e' cambiato, torna sul grafico a **quella data**, e legge **a che prezzo** e'
+avvenuto.
+
+> *"They start the sell exposure really strong from the level 12 of November. From that moment
+> they never recovered."*
+
+La conseguenza e' che il COT non scade con la settimana. **La rilevazione data un evento; il
+prezzo di quella data diventa un livello**, e il livello resta finche' il posizionamento non
+cambia di nuovo. Un dato di martedi' pubblicato venerdi' e' inutile per decidere cosa fare
+lunedi' mattina, ma dice a che prezzo qualcuno si e' caricato — e quello serve per settimane.
+
+E' una lettura diversa dalla metrica cross-index, ed e' la ragione per cui il risultato negativo
+di quella non chiude il discorso sul COT: la cross-index testava il COT come predittore
+direzionale a quattro settimane, non come marcatore di livelli.
+
+### Applicato Al Presente
+
+La rilevazione TFF dell'8 settembre 2026 dice che i Leveraged Funds hanno chiuso 7.687 long e
+aperto 10.093 short, per un netto di -17.780 — variazione piu' grande dell'89% delle 521 settimane
+del decennio. La settimana coperta va da mercoledi' 2 a martedi' 8 settembre.
+
+A che prezzo. Dai profili cash di quelle sedute, riportati in termini NQZ6:
+
+| Data | POC | VAL | VAH | Delta cash |
+|---|---|---|---|---|
+| 09-02 | 29.451 | 29.418 | 29.496 | +2.759 |
+| 09-03 | 29.819 | 29.618 | 29.875 | +2.851 |
+| 09-04 | 29.811 | 29.772 | 29.881 | **-15.967** |
+| 09-08 | 29.901 | 29.804 | 29.922 | -8.477 |
+
+Il posizionamento short e' stato costruito mentre il prezzo saliva verso **29.800-29.900**. E
+quella e' esattamente la fascia del **nodo superiore del composito, 29.675-29.924, con delta
+negativo in tutto il cuore** (vedi [`profile-framing.md`](profile-framing.md)).
+
+Due misure indipendenti — il posizionamento dichiarato alla CFTC e il delta aggressivo sul tape —
+indicano la stessa fascia di prezzo come il posto dove i venditori si sono caricati. Il prezzo l'ha
+poi lasciata e non e' tornato.
+
+Questo e' il modo corretto di usare il COT fra un report e l'altro: **non "c'e' bias short quindi
+vendo", ma "29.675-29.924 e' una zona dove qualcuno ha costruito, e un ritorno li' e' un ritorno
+sul loro prezzo"**. Il livello sopravvive alla settimana; il bias no.
+
+Una sola occorrenza. Va registrata come coerenza fra due fonti, non come conferma: nessuna delle
+due dimostra l'altra, e nessun dato disponibile lega un contratto del tape a una categoria CFTC.
+
 ## Limiti Della Fonte
 
 - Rilevazione di martedi', pubblicazione il venerdi' successivo: **tre giorni di ritardo
