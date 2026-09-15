@@ -79,7 +79,8 @@
     "misura": "13:00 a 29407.25: vol 350, delta +84, 30m +8.4%. il livello che ha rotto la giornata alle 06:21 torna supporto. Sopra, la mensola 29454, POC di tre sedute.",
     "scenario": "riprende 29400",
     "condizione": "chiude_sopra(29400) and vol >= p95vol and delta >= p95delta",
-    "tema": "muro 29400"
+    "tema": "muro 29400",
+    "superata_da": "13:26"
   },
   {
     "ora": "13:00",
@@ -107,7 +108,17 @@
     "prezzo": 29425.0,
     "tipo": "rifiuto",
     "testo": "il venduto tiene senza combattere",
-    "misura": "Tre tentativi su 29425-29427 (13:10, 13:18-19, 13:22), nessuna chiusura sopra 29424,50. I rifiuti su barre da 50-150 lotti, non su aggressione: non e' stato venduto con forza, sono finiti i compratori. Lo scenario 'il venduto respinge' non e' scattato proprio per questo, il filtro vol>=p75vol ha funzionato. Dalle 13:23 cinque barre consecutive a delta negativo, chiusure sui minimi (pos 0,05 / 0,04 / 0,23), 15m a -65 su 905 lotti. 29400 e' il livello che deve tenere: sotto, la fascia sottile 29400-29424 si riattraversa in fretta anche scendendo.",
+    "misura": "Tre tentativi su 29425-29427 (13:10, 13:18-19, 13:22), nessuna chiusura sopra 29424,50. I rifiuti su barre da 50-150 lotti, non su aggressione: non e' stato venduto con forza, sono finiti i compratori. Lo scenario 'il venduto respinge' e' scattato sulla barra delle 13:19 (150 lotti, delta -4, pos 0,18), riportato dal motore con qualche minuto di ritardo perche' era stato appena ricaricato: avevo scritto che il filtro sul volume lo avesse tenuto fermo, ed era falso. Dalle 13:23 cinque barre consecutive a delta negativo, chiusure sui minimi (pos 0,05 / 0,04 / 0,23), 15m a -65 su 905 lotti. 29400 e' il livello che deve tenere: sotto, la fascia sottile 29400-29424 si riattraversa in fretta anche scendendo.",
     "tema": "venduto 29425-29449"
+  },
+  {
+    "ora": "13:26",
+    "prezzo": 29400.0,
+    "tipo": "reclaim",
+    "testo": "accettazione sopra 29400, non solo uno stoppino",
+    "misura": "13:26 a 29403.75: vol 89, delta -19, 30m +2.9%. 30 minuti quasi tutti sopra e oltre l'80% del volume sopra: e' il contrario della rottura delle 06:21. La mensola 29454 diventa il bersaglio.",
+    "scenario": "accettazione sopra 29400",
+    "condizione": "c > 29400 and minuti_sotto(29400, 30) <= 6 and vol_sopra_pct(29400, 30) >= 80",
+    "tema": "muro 29400"
   }
 ]
