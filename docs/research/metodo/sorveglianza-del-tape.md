@@ -146,6 +146,26 @@ niente, e il motore dice cosa e' cambiato:
 
 Aspettarsi un riavvio a ogni correzione e' il modo migliore per non correggerli.
 
+### Cosa Si Vede Sul Chart
+
+Il chart mostra **tre cose diverse, distinguibili a colpo d'occhio**:
+
+| Che cos'e' | Come appare |
+|---|---|
+| **Livelli strutturali** | `solid` o `dash`, colorati per zona: la struttura del mercato |
+| **Scenari in attesa** | `? nome`, punteggiati e grigi: cosa stiamo aspettando, prima che succeda |
+| **Letture fatte** | `! ora testo`, punteggiati e colorati per tipo: cosa e' successo |
+
+Uno scenario in attesa **sparisce quando scatta**, sostituito dalla propria annotazione: la riga
+grigia diventa colorata e porta l'ora.
+
+Uno scenario che cade su un livello gia' disegnato non aggiunge una riga — due etichette alla
+stessa altezza si sovrappongono e diventano illeggibili. Il suo nome viene **appeso all'etichetta
+del livello**: `VAL lun · test 07:19 senza compratori ? A2`.
+
+Sul chart resta cosi' visibile, in ogni momento, **cosa stiamo aspettando e dove**, non solo cosa e'
+gia' successo.
+
 ## 4bis. La Sveglia, Per Cio' Che Non Avevamo Previsto
 
 ```bash

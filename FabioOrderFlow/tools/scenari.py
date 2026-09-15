@@ -223,10 +223,22 @@ def valuta(scenari, ctx, scattati):
             yield {"nome": nome, "quando": s["quando"], "errore": f"{type(e).__name__}: {e}"}
 
 
+def ricomponi(giorno, chart):
+    """Rimanda sul chart livelli + scenari in attesa + annotazioni, senza aggiungere niente."""
+    cmd = [sys.executable, str(ANNOTA), "--giorno", giorno, "--ricomponi"]
+    if chart:
+        cmd += ["--chart", chart]
+    try:
+        subprocess.run(cmd, check=True, timeout=30, stdout=subprocess.DEVNULL)
+    except Exception as e:
+        print(f"[attese non spinte sul chart: {type(e).__name__}]", flush=True)
+
+
 def annota(s, ctx, giorno, chart):
     cmd = [sys.executable, str(ANNOTA), "--giorno", giorno,
            "--ora", ctx["ora"], "--prezzo", str(s.get("prezzo", ctx["c"])),
-           "--tipo", s.get("tipo", "nota"), "--testo", s.get("testo", s["nome"])]
+           "--tipo", s.get("tipo", "nota"), "--testo", s.get("testo", s["nome"]),
+           "--scenario", s["nome"]]
     misura = s.get("attesa", "")
     fatto = (f"{ctx['ora']} a {ctx['c']:.2f}: vol {ctx['vol']}, delta {ctx['delta']:+}, "
              f"30m {ctx['dpct30']:+.1f}%")
@@ -285,6 +297,7 @@ def main() -> None:
                  + [f"~{s['nome']}" for s in nuovi if s["nome"] in pv and s["quando"] != vv[s["nome"]]])
         if cambi:
             print(f"[scenari ricaricati] {len(nuovi)} attivi: " + ", ".join(cambi), flush=True)
+            ricomponi(args.giorno, args.chart)
         return nuovi
 
     scenari = ricarica(None)
@@ -325,6 +338,7 @@ def main() -> None:
 
         if frontiera is None:
             frontiera = minuti(chiuse[-1])
+            ricomponi(args.giorno, args.chart)
             print(f"[scenari attivi] {len(scenari)}: " + " | ".join(s["nome"] for s in scenari)
                   + f" -- ultima barra {hhmm(chiuse[-1], args.fuso)} a {chiuse[-1]['close']:.2f}",
                   flush=True)
