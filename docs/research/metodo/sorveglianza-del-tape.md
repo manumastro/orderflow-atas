@@ -157,7 +157,7 @@ Il chart mostra **tre cose diverse, distinguibili a colpo d'occhio**:
 
 | Che cos'e' | Come appare |
 |---|---|
-| **Livelli strutturali** | `solid` o `dash`, colorati per zona: la struttura del mercato |
+| **Livelli strutturali** | `solid` o `dash`, in **tinte smorzate** per zona: la struttura del mercato |
 | **Scenari in attesa** | `? nome`, punteggiati e grigi: cosa stiamo aspettando, prima che succeda |
 | **Letture fatte** | `! ora testo`, punteggiati e colorati per tipo: cosa e' successo |
 
@@ -170,6 +170,20 @@ del livello**: `VAL lun · test 07:19 senza compratori ? A2`.
 
 Sul chart resta cosi' visibile, in ogni momento, **cosa stiamo aspettando e dove**, non solo cosa e'
 gia' successo.
+
+### Due tavolozze che non devono competere
+
+I colori vivi — verde, rosso, azzurro, arancio — sono **riservati alle annotazioni**, dove
+significano un segnale: reclaim, rottura, assorbimento, rifiuto.
+
+I livelli strutturali usano **tinte smorzate e fredde**: dicono di che zona del profilo fanno
+parte, non cosa sta succedendo adesso. Il nodo dei venditori in bruno, quello dei compratori in
+verde grigio, il collo e i vuoti in tinte neutre.
+
+La distinzione non e' estetica. Con la stessa tavolozza per entrambi, un livello verde perche'
+lunedi' i compratori ci avevano assorbito si legge come un segnale rialzista di adesso — e il 15
+settembre 29.275 era verde mentre faceva da **resistenza**. Il colore di una zona descrive il
+passato; il colore di un'annotazione descrive il presente.
 
 ## 4bis. La Sveglia, Per Cio' Che Non Avevamo Previsto
 

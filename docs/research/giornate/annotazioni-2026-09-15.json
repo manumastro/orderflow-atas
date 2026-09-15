@@ -1,16 +1,16 @@
 [
   {
-    "ora": "11:23",
-    "prezzo": 29275.0,
-    "tipo": "rifiuto",
-    "testo": "29275 ora resistenza: spinta piu' pesante dell'ora, respinta",
-    "misura": "384 lotti e delta +78, il massimo dell'ora, max 29274,75 e chiude 29255,50. Dalle 11:00 3.060 lotti con delta +3,2% dentro 29236-29285: i compratori spingono e non passano."
-  },
-  {
     "ora": "11:20",
     "prezzo": 29236.5,
     "tipo": "attesa",
     "testo": "minimo del range di attesa",
     "misura": "bordo basso della sega 29236-29285 in corso dalle 11:00; sotto, il blocco 29200-29224 di lunedi con 18.540 lotti."
+  },
+  {
+    "ora": "11:51",
+    "prezzo": 29336.0,
+    "tipo": "nota",
+    "testo": "sale sopra il VAL, accettazione non ancora matura",
+    "misura": "5 barre consecutive a delta positivo dalle 11:46, 30m a +6,7%. Ma 16 minuti su 30 sono ancora chiusi sotto 29306 e solo il 35% del volume e' sopra: la finestra ricorda il tempo passato sotto. Serve tempo, non prezzo."
   }
 ]

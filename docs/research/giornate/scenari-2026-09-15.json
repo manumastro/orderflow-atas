@@ -133,5 +133,23 @@
     "tipo": "rottura",
     "testo": "IVB rotto al ribasso: permesso short",
     "attesa": "Tier 01 aperto verso il basso, nel verso in cui gia' punta il contesto: valore in migrazione giu' e short dei Leveraged Funds a 29800-29900."
+  },
+  {
+    "nome": "accettazione sopra il VAL di lunedi",
+    "sigla": "accetta",
+    "quando": "c > 29306 and minuti_sotto(29306, 30) <= 6 and vol_sopra_pct(29306, 30) >= 75",
+    "prezzo": 29306,
+    "tipo": "reclaim",
+    "testo": "accettazione sopra il VAL: rientrato nel valore di lunedi",
+    "attesa": "30 minuti quasi tutti sopra e oltre il 75% del volume sopra. Non e' piu' uno sconfinamento: il prezzo e' dentro il valore di lunedi. Sopra c'e' 29375, dove inizia la fascia magra, e poi 29400."
+  },
+  {
+    "nome": "rifiutato il rientro nel valore",
+    "sigla": "rientro fallito",
+    "quando": "chiude_sotto(29306) and minuti_sotto(29306, 20) <= 4 and vol >= p75vol",
+    "prezzo": 29306,
+    "tipo": "rifiuto",
+    "testo": "rientro fallito: ributtato sotto il VAL",
+    "attesa": "era appena rientrato e non ha tenuto. Torna la sega 29236-29306, e il rimbalzo di mezzogiorno si rivela fatto senza partecipazione."
   }
 ]
