@@ -65,14 +65,12 @@ stato — e quella che non ci va mai: la previsione.
 ### 5. La sorveglianza del tape, durante la seduta
 
 [**`sorveglianza-del-tape.md`**](sorveglianza-del-tape.md) — la procedura standard di studio di una
-seduta: i livelli in un file per giornata, spinti sul chart e letti dallo stesso file da
-`watch_signals.py`, che valuta il tape sui livelli e riporta i segnali forti sul chart come linee
-effimere.
+seduta. I livelli stanno in un file per giornata, che e' **l'unica fonte**: lo legge sia chi li
+spinge sul chart sia `sveglia_tape.py`, che sorveglia il tape.
 
-Il file dei livelli e' **l'unica fonte**, letta sia da chi disegna sia da chi sorveglia. E ci sta
-la regola che vale per qualunque filtro: **un filtro non provato non e' un filtro** — va fatto
-passare sulle barre gia' note prima di armarlo, per vedere se ritrova cio' che avevi individuato a
-mano e quanti segnali produce.
+La divisione e' netta e vale la pena capirla: **la sveglia non giudica**, dice solo che e' il
+momento di guardare e mostra i numeri grezzi. La lettura la fa l'analisi, con il contesto che una
+barra singola non contiene, e `annota.py` la riporta sul chart e nel diario della giornata.
 
 ### 6. La giornata, mentre succede
 
