@@ -90,5 +90,24 @@
     "scenario": "accettazione sopra il bordo dell'attrito",
     "condizione": "c > 29375 and minuti_sotto(29375, 15) <= 3 and vol_sopra_pct(29375, 15) >= 70",
     "tema": "bordo attrito 29375"
+  },
+  {
+    "ora": "13:19",
+    "prezzo": 29430.0,
+    "tipo": "rifiuto",
+    "testo": "il venduto di stamattina respinge",
+    "misura": "13:19 a 29419.50: vol 150, delta -4, 30m +5.9%. chi ha venduto a 29425-29449 stamattina e' ancora li'. Primo tentativo 13:10 (282 lotti delta +92) gia' respinto alle 13:11 con -46 e pos 0,12. Sotto, 29400 e' il livello che deve tenere per non annullare la ripresa.",
+    "scenario": "il venduto respinge",
+    "condizione": "tocca(29430, 8) and vol >= p75vol and delta <= 0 and pos <= 0.3",
+    "tema": "venduto 29425-29449",
+    "superata_da": "13:26"
+  },
+  {
+    "ora": "13:26",
+    "prezzo": 29425.0,
+    "tipo": "rifiuto",
+    "testo": "il venduto tiene senza combattere",
+    "misura": "Tre tentativi su 29425-29427 (13:10, 13:18-19, 13:22), nessuna chiusura sopra 29424,50. I rifiuti su barre da 50-150 lotti, non su aggressione: non e' stato venduto con forza, sono finiti i compratori. Lo scenario 'il venduto respinge' non e' scattato proprio per questo, il filtro vol>=p75vol ha funzionato. Dalle 13:23 cinque barre consecutive a delta negativo, chiusure sui minimi (pos 0,05 / 0,04 / 0,23), 15m a -65 su 905 lotti. 29400 e' il livello che deve tenere: sotto, la fascia sottile 29400-29424 si riattraversa in fretta anche scendendo.",
+    "tema": "venduto 29425-29449"
   }
 ]
