@@ -45,6 +45,35 @@ Le soglie usate in giornata (volume, delta, ampiezza) vanno **scritte accanto al
 producono**, mai lasciate implicite. Se una soglia viene dal p95 della distribuzione del giorno, si
 dice che e' il p95 e di quante barre.
 
+## Come Si Riprende Una Giornata Gia' Iniziata
+
+Il caso normale non e' aprire un documento nuovo: e' **rientrare a meta' sessione**, o il giorno
+dopo, e dover sapere cosa e' gia' stato guardato senza rileggere la conversazione. Per questo il
+file del giorno va aggiornato **durante** la seduta, non scritto alla fine.
+
+Nell'ordine:
+
+1. **Leggi il file di oggi**, se esiste. L'intestazione dice se e' `APERTO` o chiuso, e a che ora
+   e' stato aggiornato l'ultima volta.
+2. **Vai in fondo, a "Dove eravamo".** E' lo stato compatto dell'ultimo aggiornamento: prezzo,
+   range in corso, cosa regge da che lato, cosa sta girando. Serve a non ripartire da zero.
+3. **Leggi la sezione delle correzioni.** E' li' che stanno le letture gia' smentite: ripeterle e'
+   il modo piu' facile di sprecare la giornata.
+4. **Solo dopo, chiedi i dati nuovi al bridge**, dall'ora dell'ultimo aggiornamento in poi.
+5. **Scrivi prima di concludere.** Ogni volta che la seduta produce un fatto — un livello rotto,
+   un assorbimento, una lettura smentita — va nella cronaca, e "Dove eravamo" si riscrive.
+
+Il file del giorno prima si legge per la stessa ragione: il framing di oggi nasce dalla value area
+e dai minimi di ieri, e quelli sono nella sua sezione 1.
+
+### Le tre parti che esistono per essere rilette
+
+| Sezione | A cosa serve quando rientri |
+|---|---|
+| **1. Il contesto** | i numeri di ieri e del COT, che non cambiano in giornata |
+| **4. Le correzioni** | cosa e' gia' stato provato e si e' rivelato falso |
+| **Dove eravamo** | lo stato al minuto dell'ultimo aggiornamento |
+
 ## Rapporto Con Gli Altri Documenti
 
 - [`../metodo/profile-framing.md`](../metodo/profile-framing.md) — come si costruisce il framing.

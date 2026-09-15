@@ -29,6 +29,23 @@ contesto istituzionale. La fase sistematica sul modello 40R e' chiusa: non riapr
 richiesta esplicita. Le fonti canoniche sono `docs/research/metodo/profile-framing.md`,
 `docs/research/metodo/analisi-istituzionale.md` e `docs/research/metodo/triple-aaa-dossier.md`.
 
+### Prima Di Analizzare Il Mercato, Leggi La Giornata
+
+All'inizio di ogni sessione di lavoro sul mercato, **prima di chiedere dati al bridge**:
+
+1. `docs/research/giornate/AAAA-MM-GG.md` di oggi, se esiste. L'intestazione dice se e' `APERTO`;
+   la sezione finale **"Dove eravamo"** da' lo stato all'ultimo aggiornamento.
+2. La sezione **"Le correzioni"** di quel file: sono le letture gia' smentite in giornata, e
+   ripeterle e' l'errore piu' costoso possibile.
+3. Il file del **giorno precedente**, per il framing: value area, POC e minimi di ieri stanno nella
+   sua sezione 1.
+
+Poi si chiedono al bridge solo i dati **successivi all'ultimo aggiornamento**, non tutta la seduta.
+
+Durante la sessione il file si aggiorna man mano: ogni livello rotto, ogni assorbimento, ogni
+lettura smentita entra nella cronaca, e "Dove eravamo" si riscrive. Non si rimanda alla fine: una
+giornata scritta a posteriori perde proprio le letture sbagliate, che sono la parte verificabile.
+
 L'analisi di ogni giornata di mercato va in `docs/research/giornate/AAAA-MM-GG.md`, **un file per
 giorno**, non sparsa fra la conversazione e i documenti di metodo. I documenti di `metodo/` dicono
 come si legge, la giornata dice cosa si e' letto e cosa e' successo dopo. Le letture sbagliate
