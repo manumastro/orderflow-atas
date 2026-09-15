@@ -31,7 +31,7 @@
     "tipo": "nota",
     "testo": "416 lotti sul massimo, chiude nel quinto basso",
     "misura": "H 29366,75 nuovo massimo del recupero, C 29351,75 pos 0,20. 416 lotti, la barra piu' pesante della finestra (prec. 260), delta solo +46. Siamo dentro 29350-29374, seconda fascia per volume di oggi (12,2%): volume alto in un nodo e' atteso. Discriminante: minimi sopra 29341 e prossimo passaggio a 29366 con piu' di 416 lotti = nodo attraversato; con meno = offerta vera.",
-    "tema": "tetto 29366",
+    "tema": "tetto della salita",
     "superata_da": "12:24"
   },
   {
@@ -40,6 +40,15 @@
     "tipo": "rifiuto",
     "testo": "29366 e' il tetto: l'offerta era vera",
     "misura": "12 barre dalle 12:11, 956 lotti in totale - meno dei 416 di quella sola barra. Massimo rivisto 29355,50, undici punti sotto: 29366 non e' stato riavvicinato. Delta netto +16, nessun seguito nemmeno al ribasso: stallo, non distribuzione. La soglia 29341 che avevo scritto e' saltata alle 12:16 (minimo 29334,50) senza conseguenze: era troppo fine per barre da 40-120 lotti. Il riferimento buono e' 29334, tenuto due volte.",
-    "tema": "tetto 29366"
+    "tema": "tetto della salita",
+    "superata_da": "12:43"
+  },
+  {
+    "ora": "12:43",
+    "prezzo": 29375.0,
+    "tipo": "rifiuto",
+    "testo": "29375 respinge due volte: il bordo dell'attrito",
+    "misura": "29366 superato dalle 12:32 non con una barra grossa ma con undici piccole: 1.032 lotti cumulati, la maggiore 208 (= p95). Il test che avevo scritto (una barra sopra 416) era mal posto: conta il volume cumulato attraverso il livello, non la taglia della singola barra. Massimo 29375,75 alle 12:42, il piu' alto da stamattina, respinto due volte: 12:36 pos 0,11 e 12:42 pos 0,28, entrambe massimo stampato e chiusura in basso. E' il bordo di 29375-29399, 9,2% del volume di oggi: l'attrito e' comparso dove il profilo diceva.",
+    "tema": "tetto della salita"
   }
 ]
