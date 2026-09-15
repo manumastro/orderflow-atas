@@ -88,6 +88,40 @@ def discover(explicit: str | None) -> str:
     )
 
 
+def send(base: str, path: str, method: str, params: dict | None = None, body=None, timeout: float = 60.0):
+    """Richiesta con metodo esplicito, per gli endpoint che scrivono (i livelli)."""
+    url = f"{base}{path}"
+    if params:
+        clean = {k: v for k, v in params.items() if v is not None}
+        url = f"{url}?{urllib.parse.urlencode(clean)}"
+    data = json.dumps(body).encode() if body is not None else None
+    request = urllib.request.Request(url, data=data, method=method,
+                                     headers={"Content-Type": "application/json"} if data else {})
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            return json.loads(response.read())
+    except urllib.error.HTTPError as error:
+        raise SystemExit(f"{path} -> HTTP {error.code}: {error.read().decode('utf-8', 'replace')}") from None
+    except urllib.error.URLError as error:
+        raise SystemExit(f"{path} -> il bridge non risponde su {base} ({error.reason}).") from None
+
+
+def parse_level(raw: str) -> dict:
+    """`prezzo[:etichetta[:colore[:stile]]]`, cosi' che un livello si scriva senza JSON.
+
+    L'etichetta puo' contenere spazi ma non due punti; per casi piu' complessi c'e' --file.
+    """
+    parts = raw.split(":")
+    level = {"price": float(parts[0].replace(",", ""))}
+    if len(parts) > 1 and parts[1]:
+        level["label"] = parts[1]
+    if len(parts) > 2 and parts[2]:
+        level["color"] = parts[2]
+    if len(parts) > 3 and parts[3]:
+        level["style"] = parts[3]
+    return level
+
+
 def get(base: str, path: str, params: dict | None = None, timeout: float = 300.0):
     url = f"{base}{path}"
     if params:
@@ -230,6 +264,13 @@ def main() -> None:
                             help="tiene solo tempo, direzione, volume e prezzi: il tape completo "
                                  "e' altrimenti ingestibile su finestre lunghe")
 
+    levels = add("levels")
+    levels.add_argument("--set", action="append", default=[], metavar="PREZZO[:ETICHETTA[:COLORE[:STILE]]]",
+                        help="livello da depositare; ripetibile. Colore esadecimale o nome, "
+                             "stile fra solid, dash, dot, dashdot")
+    levels.add_argument("--file", help="JSON con l'elenco dei livelli, in alternativa a --set")
+    levels.add_argument("--clear", action="store_true", help="cancella i livelli del chart")
+
     depth = add("depth")
     depth.add_argument("--from", dest="begin", required=True)
     depth.add_argument("--to", dest="end", required=True)
@@ -238,7 +279,15 @@ def main() -> None:
     args = parser.parse_args()
     args.base = discover(args.base)
 
-    if args.command in ("health", "charts", "instrument", "limits"):
+    if args.command == "levels":
+        if args.clear:
+            payload = send(args.base, "/levels", "DELETE", {"chart": args.chart})
+        elif args.set or args.file:
+            body = json.load(open(args.file)) if args.file else [parse_level(x) for x in args.set]
+            payload = send(args.base, "/levels", "POST", {"chart": args.chart}, body)
+        else:
+            payload = get(args.base, "/levels", {"chart": args.chart})
+    elif args.command in ("health", "charts", "instrument", "limits"):
         payload = get(args.base, f"/{args.command}", {"chart": args.chart})
     elif args.command == "session":
         payload = get(args.base, "/session", {"chart": args.chart, "at": iso(parse_time(args.at)) if args.at else None})

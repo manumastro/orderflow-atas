@@ -10,11 +10,13 @@ Serve perche' diverse informazioni utili esistono solo dentro il processo ATAS: 
 
 ## Cosa Non Fa
 
-Non calcola indicatori, non classifica partecipanti, non applica soglie, non disegna sul chart e non invia ordini. Legge, converte in JSON, restituisce. Ogni risposta riporta lo strumento e il timeframe del chart su cui il bridge e' caricato, perche' quel contesto fa parte del dato.
+Non calcola indicatori, non classifica partecipanti, non applica soglie e non invia ordini. Legge, converte in JSON, restituisce. Ogni risposta riporta lo strumento e il timeframe del chart su cui il bridge e' caricato, perche' quel contesto fa parte del dato.
+
+L'unica eccezione e' `/levels`: un elenco di prezzi con etichetta che l'analisi deposita e che l'indicatore disegna. Sono dati dell'indicatore, non entrano in nessun calcolo e non producono segnali; servono a non dover ridisegnare a mano su ATAS i livelli che l'analisi ha gia' individuato.
 
 ## Sicurezza
 
-Il listener e' legato a `127.0.0.1` e non e' raggiungibile dalla rete. Espone dati di mercato in sola lettura: non c'e' nessun endpoint che modifichi lo stato della piattaforma o che tocchi ordini e posizioni.
+Il listener e' legato a `127.0.0.1` e non e' raggiungibile dalla rete. Espone dati di mercato in sola lettura, con una sola superficie di scrittura: la lista dei livelli dell'istanza, che vive in memoria nell'indicatore. Nessun endpoint modifica lo stato della piattaforma, e nessuno tocca ordini o posizioni.
 
 ## Endpoint
 
@@ -30,6 +32,22 @@ Il listener e' legato a `127.0.0.1` e non e' raggiungibile dalla rete. Espone da
 | `/candles` | `from`, `to`, `fromBar`, `toBar`, `levels` | candele del chart con volume, tick, bid/ask, delta, `maxDelta`/`minDelta`, VWAP, POC, value area, open interest e footprint opzionale |
 | `/cumulative` | `from`, `to`, `minVolume`, `maxVolume`, `mode`, `ticks` | trade aggregati storici con il filtro di volume nativo di ATAS |
 | `/depth` | `from`, `to`, `periodSeconds` | snapshot storici del book |
+| `/levels` | `chart` | `GET` restituisce i livelli del chart, `POST`/`PUT` li sostituisce, `DELETE` li cancella |
+
+### Livelli
+
+Un livello e' `{"price": 29454, "label": "mensola", "color": "#4FC3F7", "style": "solid", "width": 3, "note": "..."}`. Solo `price` e' obbligatorio. `style` vale `solid`, `dash`, `dot` o `dashdot`; `color` accetta `#RRGGBB`, `#AARRGGBB` o un nome noto, e un valore illeggibile ricade sul colore di default invece di far fallire la richiesta — perdere un livello per un colore sbagliato sarebbe peggio. `note` non viene disegnato e torna su `GET`: serve a ricordare perche' il livello c'e'.
+
+Il `POST` **sostituisce** l'intera lista, non aggiunge: cosi' lo stato del chart e' sempre quello dell'ultima analisi e non si accumulano livelli dimenticati. Ogni chart ha la sua lista.
+
+Il disegno si controlla dalle proprieta' dell'istanza: `Show levels`, `Label on the right`, `Font size`. La linea attraversa l'area del chart e l'etichetta ha un fondo pieno, perche' sopra un footprint denso il testo nudo e' illeggibile.
+
+```bash
+python3 FabioOrderFlow/tools/bridge.py levels --chart NQZ6 --set 29454:mensola:#4FC3F7:solid --set 29306:VAL-lunedi
+python3 FabioOrderFlow/tools/bridge.py levels --chart NQZ6 --file livelli.json
+python3 FabioOrderFlow/tools/bridge.py levels --chart NQZ6
+python3 FabioOrderFlow/tools/bridge.py levels --chart NQZ6 --clear
+```
 
 `maxDelta` e `minDelta` sono il delta massimo e minimo raggiunti **durante** la barra: sono la misura diretta dello sforzo che non ottiene risultato, non ricavabile dal solo delta di chiusura.
 

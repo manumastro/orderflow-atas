@@ -26,6 +26,17 @@
       <HintPath>$(AtasAssemblyDir)/ATAS.DataFeedsCore.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <!-- System.Drawing.Common porta Color, Rectangle e DashStyle, usati dal disegno dei livelli.
+         ATAS li espone nella sua API, quindi il riferimento serve anche solo per compilare. -->
+    <Reference Include="System.Drawing.Common">
+      <HintPath>$(AtasAssemblyDir)/System.Drawing.Common.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <!-- Serve solo al disegno dei livelli sul chart: RenderContext, RenderPen, RenderFont. -->
+    <Reference Include="OFT.Rendering">
+      <HintPath>$(AtasAssemblyDir)/OFT.Rendering.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
     <Reference Include="Utils.Common">
       <HintPath>$(AtasAssemblyDir)/Utils.Common.dll</HintPath>
       <Private>false</Private>

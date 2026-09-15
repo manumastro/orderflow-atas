@@ -1,9 +1,15 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Globalization;
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using ATAS.Indicators;
+using OFT.Rendering.Context;
+using OFT.Rendering.Tools;
 using Utils.Common.Logging;
 
 namespace FabioOrderFlow.Observation;
@@ -13,10 +19,16 @@ namespace FabioOrderFlow.Observation;
 /// in modo che un'analisi esterna possa richiederli quando servono invece di dipendere da una
 /// cattura decisa in anticipo.
 ///
-/// Il bridge e' puramente osservativo: legge, converte in JSON e restituisce. Non calcola
-/// soglie, non classifica, non emette segnali e non disegna nulla sul chart. Ogni risposta
-/// contiene lo strumento e il timeframe del chart su cui il bridge e' caricato, perche' quel
-/// contesto e' parte del dato e non va ricostruito a posteriori.
+/// Il bridge e' osservativo: legge, converte in JSON e restituisce. Non calcola soglie, non
+/// classifica e non emette segnali. Ogni risposta contiene lo strumento e il timeframe del chart
+/// su cui il bridge e' caricato, perche' quel contesto e' parte del dato e non va ricostruito a
+/// posteriori.
+///
+/// L'unica cosa che il bridge scrive sono i **livelli**: un elenco di prezzi con etichetta che
+/// l'analisi esterna deposita su /levels e che l'indicatore disegna sul chart. Restano dati
+/// dell'indicatore, non toccano lo stato della piattaforma, non generano ordini e non
+/// influenzano nessun calcolo: servono a non dover ridisegnare a mano su ATAS quello che
+/// l'analisi ha gia' individuato.
 ///
 /// L'indicatore puo' essere caricato su un numero qualsiasi di chart: le istanze condividono
 /// un solo listener di processo, che si registra sulla prima porta libera dell'intervallo
@@ -71,10 +83,21 @@ public sealed class DataBridge : Indicator
     private TaskCompletionSource<List<CumulativeTrade>>? _pendingCumulative;
     private int _pendingCumulativeRequestId;
 
+    /// <summary>
+    /// I livelli depositati dall'analisi esterna. La lista viene sostituita per intero a ogni
+    /// scrittura invece di essere modificata sul posto: il rendering la legge da un altro thread
+    /// e una sostituzione atomica evita di doverlo sincronizzare.
+    /// </summary>
+    private volatile BridgeLevel[] _levels = Array.Empty<BridgeLevel>();
+
+    private DateTime _levelsUpdatedUtc = DateTime.MinValue;
+
     public DataBridge()
     {
         Name = "Fabio Data Bridge";
         DenyToChangePanel = true;
+        EnableCustomDrawing = true;
+        SubscribeToDrawingEvents(DrawingLayouts.Final);
     }
 
     [Display(Name = "Enabled", GroupName = "Bridge", Description = "Avvia o ferma il listener locale.")]
@@ -87,6 +110,16 @@ public sealed class DataBridge : Indicator
     [Display(Name = "Max items", GroupName = "Bridge", Description = "Limite di elementi per risposta.")]
     [Range(100, 2_000_000)]
     public int MaxItems { get; set; } = 200_000;
+
+    [Display(Name = "Show levels", GroupName = "Levels", Description = "Disegna i livelli depositati su /levels.")]
+    public bool ShowLevels { get; set; } = true;
+
+    [Display(Name = "Label on the right", GroupName = "Levels", Description = "Etichetta a destra invece che a sinistra.")]
+    public bool LabelOnRight { get; set; } = true;
+
+    [Display(Name = "Font size", GroupName = "Levels")]
+    [Range(6, 24)]
+    public int LevelFontSize { get; set; } = 11;
 
     protected override void OnCalculate(int bar, decimal value)
     {
@@ -381,6 +414,7 @@ public sealed class DataBridge : Indicator
                 "/candles" => Candles(query),
                 "/cumulative" => await CumulativeAsync(query, cancellation).ConfigureAwait(false),
                 "/depth" => await DepthAsync(query, cancellation).ConfigureAwait(false),
+                "/levels" => await LevelsAsync(context).ConfigureAwait(false),
             "/charts" => throw new BridgeException(500, "handled by the hub"),
                 _ => throw new BridgeException(404, $"unknown endpoint '{path}'"),
             };
@@ -407,6 +441,207 @@ public sealed class DataBridge : Indicator
         context.Response.ContentLength64 = body.Length;
         await context.Response.OutputStream.WriteAsync(body).ConfigureAwait(false);
         context.Response.Close();
+    }
+
+    // ---------------------------------------------------------------- livelli
+
+    /// <summary>
+    /// Un livello depositato dall'analisi. Solo <c>price</c> e' obbligatorio: il resto ha
+    /// valori di default sensati, cosi' che depositare una lista di prezzi funzioni subito.
+    /// </summary>
+    private sealed record BridgeLevel
+    {
+        public decimal Price { get; init; }
+
+        public string? Label { get; init; }
+
+        /// <summary>Esadecimale <c>#RRGGBB</c> o <c>#AARRGGBB</c>; omesso usa il colore di default.</summary>
+        public string? Color { get; init; }
+
+        /// <summary>solid | dash | dot</summary>
+        public string? Style { get; init; }
+
+        public int Width { get; init; } = 1;
+
+        /// <summary>Testo libero: non viene disegnato, torna su GET. Serve a ricordare perche' il livello c'e'.</summary>
+        public string? Note { get; init; }
+    }
+
+    private async Task<object> LevelsAsync(HttpListenerContext context)
+    {
+        var method = context.Request.HttpMethod.ToUpperInvariant();
+
+        if (method is "DELETE")
+        {
+            _levels = Array.Empty<BridgeLevel>();
+            _levelsUpdatedUtc = DateTime.UtcNow;
+            Repaint();
+            return LevelsPayload();
+        }
+
+        if (method is "POST" or "PUT")
+        {
+            using var reader = new StreamReader(context.Request.InputStream, Encoding.UTF8);
+            var body = await reader.ReadToEndAsync().ConfigureAwait(false);
+            if (string.IsNullOrWhiteSpace(body))
+            {
+                throw new BridgeException(400, "empty body: send a JSON array of levels, or {\"levels\": [...]}");
+            }
+
+            BridgeLevel[]? parsed;
+            try
+            {
+                var trimmed = body.TrimStart();
+                parsed = trimmed.StartsWith('[')
+                    ? JsonSerializer.Deserialize<BridgeLevel[]>(body, JsonOptions)
+                    : JsonSerializer.Deserialize<LevelsRequest>(body, JsonOptions)?.Levels;
+            }
+            catch (JsonException exception)
+            {
+                throw new BridgeException(400, $"malformed JSON: {exception.Message}");
+            }
+
+            if (parsed is null)
+            {
+                throw new BridgeException(400, "no levels in the request");
+            }
+
+            // Un prezzo a zero e' quasi sempre un campo mancante, non un livello: meglio dirlo
+            // subito che disegnare una riga sul fondo del chart.
+            var bad = parsed.FirstOrDefault(level => level.Price <= 0);
+            if (bad is not null)
+            {
+                throw new BridgeException(400, "every level needs a positive 'price'");
+            }
+
+            _levels = parsed.OrderByDescending(level => level.Price).ToArray();
+            _levelsUpdatedUtc = DateTime.UtcNow;
+            Repaint();
+            return LevelsPayload();
+        }
+
+        return LevelsPayload();
+    }
+
+    private sealed record LevelsRequest
+    {
+        public BridgeLevel[]? Levels { get; init; }
+    }
+
+    /// <summary>
+    /// Ridisegna subito invece di aspettare il prossimo evento del chart: chi deposita i livelli
+    /// da riga di comando si aspetta di vederli comparire, non al primo movimento del mouse.
+    /// Un fallimento qui non deve far fallire la richiesta HTTP.
+    /// </summary>
+    private void Repaint()
+    {
+        try
+        {
+            RedrawChart(new RedrawArg(ChartArea));
+        }
+        catch (Exception exception)
+        {
+            this.LogError("FofDataBridge could not request a redraw.", exception);
+        }
+    }
+
+    private object LevelsPayload() => new
+    {
+        schema = Schema,
+        chart = _id,
+        instrument = InstrumentInfo?.Instrument,
+        updatedUtc = _levelsUpdatedUtc == DateTime.MinValue
+            ? null
+            : _levelsUpdatedUtc.ToString("yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture),
+        count = _levels.Length,
+        levels = _levels,
+    };
+
+    /// <summary>
+    /// Colore di default e parsing di quello richiesto. Un valore illeggibile non fa fallire la
+    /// richiesta: il livello viene disegnato con il colore di default, perche' perdere un livello
+    /// per un colore sbagliato sarebbe peggio.
+    /// </summary>
+    private static Color ParseColor(string? raw)
+    {
+        var fallback = Color.FromArgb(220, 255, 196, 0);
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            return fallback;
+        }
+
+        var text = raw.Trim().TrimStart('#');
+        if (uint.TryParse(text, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var value))
+        {
+            return text.Length switch
+            {
+                6 => Color.FromArgb(255, (byte)(value >> 16), (byte)(value >> 8), (byte)value),
+                8 => Color.FromArgb((byte)(value >> 24), (byte)(value >> 16), (byte)(value >> 8), (byte)value),
+                _ => fallback,
+            };
+        }
+
+        try
+        {
+            var named = Color.FromName(raw.Trim());
+            return named.IsKnownColor ? named : fallback;
+        }
+        catch
+        {
+            return fallback;
+        }
+    }
+
+    // CA1416 segnala DashStyle come solo-Windows perche' vive in System.Drawing.Common. Qui e'
+    // usato come semplice enum passato a RenderPen di ATAS, che su ATAS X lo risolve con il
+    // proprio renderer: non si tocca GDI+ e non c'e' dipendenza dalla piattaforma.
+#pragma warning disable CA1416
+    private static DashStyle DashOf(string? style) => style?.Trim().ToLowerInvariant() switch
+    {
+        "dash" => DashStyle.Dash,
+        "dot" => DashStyle.Dot,
+        "dashdot" => DashStyle.DashDot,
+        _ => DashStyle.Solid,
+    };
+#pragma warning restore CA1416
+
+    protected override void OnRender(RenderContext context, DrawingLayouts layout)
+    {
+        var levels = _levels;
+        if (!ShowLevels || levels.Length == 0 || ChartInfo is null)
+        {
+            return;
+        }
+
+        var area = ChartArea;
+        var font = new RenderFont("Arial", LevelFontSize);
+
+        foreach (var level in levels)
+        {
+            var y = ChartInfo.GetYByPrice(level.Price, false);
+            if (y < area.Top || y > area.Bottom)
+            {
+                continue;
+            }
+
+            var color = ParseColor(level.Color);
+            var pen = new RenderPen(color, Math.Clamp(level.Width, 1, 5), DashOf(level.Style));
+            context.DrawLine(pen, area.Left, y, area.Right, y);
+
+            var text = string.IsNullOrWhiteSpace(level.Label)
+                ? level.Price.ToString("0.##", CultureInfo.InvariantCulture)
+                : $"{level.Label}  {level.Price.ToString("0.##", CultureInfo.InvariantCulture)}";
+
+            var size = context.MeasureString(text, font);
+            var x = LabelOnRight
+                ? area.Right - size.Width - 6
+                : area.Left + 6;
+
+            // Fondo pieno dietro l'etichetta: sopra un footprint denso il testo nudo e' illeggibile.
+            context.FillRectangle(Color.FromArgb(190, 0, 0, 0),
+                new Rectangle(x - 3, y - size.Height - 2, size.Width + 6, size.Height + 2));
+            context.DrawString(text, font, color, x, y - size.Height - 1);
+        }
     }
 
     // ---------------------------------------------------------------- endpoints
