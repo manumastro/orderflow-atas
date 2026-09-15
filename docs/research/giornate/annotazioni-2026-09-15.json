@@ -50,5 +50,13 @@
     "testo": "29375 respinge due volte: il bordo dell'attrito",
     "misura": "29366 superato dalle 12:32 non con una barra grossa ma con undici piccole: 1.032 lotti cumulati, la maggiore 208 (= p95). Il test che avevo scritto (una barra sopra 416) era mal posto: conta il volume cumulato attraverso il livello, non la taglia della singola barra. Massimo 29375,75 alle 12:42, il piu' alto da stamattina, respinto due volte: 12:36 pos 0,11 e 12:42 pos 0,28, entrambe massimo stampato e chiusura in basso. E' il bordo di 29375-29399, 9,2% del volume di oggi: l'attrito e' comparso dove il profilo diceva.",
     "tema": "tetto della salita"
+  },
+  {
+    "ora": "12:56",
+    "prezzo": 29396.0,
+    "tipo": "rifiuto",
+    "testo": "29396: venditori quattro tick prima del muro",
+    "misura": "12:55 321 lotti delta +151 (47% del volume, il rapporto piu' alto della giornata) porta a 29396. 12:56 321 lotti delta -127, chiusura 29387,75 pos 0,32. Stesso volume esatto, segno opposto: scontro alla pari, non esaurimento. 29400 non e' mai stato toccato - i venditori si sono presentati prima del livello. La fascia 29375-29399 (9,2% del volume) NON ha fatto attrito: 21 punti in sei minuti dalle 12:49. Il volume storico dice quanto si e' scambiato prima, non quanta offerta c'e' adesso. Struttura ancora intatta sopra 29375.",
+    "tema": "muro 29400"
   }
 ]
