@@ -7,7 +7,7 @@ contesto sta nei documenti linkati, ed e' li' che va cercato: duplicarlo qui lo 
 
 Prima di lavorare su questo repository, **leggi nell'ordine**:
 
-1. [`README.md`](README.md) — cos'e' il progetto.
+1. [`da-dove-si-comincia.md`](da-dove-si-comincia.md) — cos'e' il progetto e la mappa del repository.
 2. [`docs/research/percorso-del-progetto.md`](docs/research/percorso-del-progetto.md) — **il percorso completo, dall'inizio**: il
    corso, le due strade chiuse e perche', il contesto istituzionale COT, il Data Bridge, e cosa si
    fa oggi. E' il documento che ricostruisce come si e' arrivati all'analisi attuale.
@@ -52,9 +52,9 @@ sempre. Qui solo quelle che riguardano il modo di lavorare:
 - **Ogni file di documentazione ha un nome descrittivo.** Niente `README.md`: il nome deve dire
   cosa c'e' dentro, cosi' che si riconosca dal percorso e nei risultati di ricerca senza aprirlo.
   `percorso-del-progetto.md`, non `README.md`; `come-si-scrive-una-giornata.md`, non `README.md`.
-  Il titolo H1 dentro il file deve corrispondere al nome. Due sole eccezioni: il `README.md` alla
-  radice, che GitHub usa come pagina del repository, e `docs/atas/`, che e' documentazione ATAS
-  generata e va lasciata com'e'.
+  Il titolo H1 dentro il file deve corrispondere al nome. La regola non fa eccezione per la radice:
+  il repository non ha un `README.md`, l'ingresso e' `da-dove-si-comincia.md`. L'unica cartella
+  esclusa e' `docs/atas/`, documentazione ATAS generata che va lasciata com'e'.
 - **Registra i risultati negativi** con la stessa cura di quelli positivi, e dichiara sempre
   soglie, convenzioni e orizzonti accanto al numero che producono.
 

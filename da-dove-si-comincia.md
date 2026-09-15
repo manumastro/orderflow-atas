@@ -1,4 +1,4 @@
-# orderflow-atas
+# Da Dove Si Comincia: orderflow-atas
 
 Studio del corso di order flow di Fabio, con verifica sui dati reali di ATAS.
 
