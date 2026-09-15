@@ -268,7 +268,7 @@ def main() -> None:
     levels.add_argument("--set", action="append", default=[], metavar="PREZZO[:ETICHETTA[:COLORE[:STILE]]]",
                         help="livello da depositare; ripetibile. Colore esadecimale o nome, "
                              "stile fra solid, dash, dot, dashdot")
-    levels.add_argument("--file", help="JSON con l'elenco dei livelli, in alternativa a --set")
+    levels.add_argument("--file", help="JSON con l'elenco dei livelli, in alternativa a --set; `-` legge da stdin")
     levels.add_argument("--clear", action="store_true", help="cancella i livelli del chart")
 
     depth = add("depth")
@@ -283,7 +283,12 @@ def main() -> None:
         if args.clear:
             payload = send(args.base, "/levels", "DELETE", {"chart": args.chart})
         elif args.set or args.file:
-            body = json.load(open(args.file)) if args.file else [parse_level(x) for x in args.set]
+            if args.file:
+                # `-` legge da stdin, cosi' un altro processo puo' spingere una lista
+                # costruita al volo senza passare da un file temporaneo.
+                body = json.load(sys.stdin) if args.file == "-" else json.load(open(args.file))
+            else:
+                body = [parse_level(x) for x in args.set]
             payload = send(args.base, "/levels", "POST", {"chart": args.chart}, body)
         else:
             payload = get(args.base, "/levels", {"chart": args.chart})

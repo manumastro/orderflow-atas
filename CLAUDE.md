@@ -71,6 +71,12 @@ Due vincoli tecnici che hanno gia' prodotto errori, e che i documenti linkati sp
 - **Il contratto continuo di ATAS non e' back-adjusted**: usa i contratti singoli o
   `FabioOrderFlow/tools/build_continuous.py`. Il controllo del rollover precede ogni altra misura.
 
+La sorveglianza del tape durante una seduta e' `FabioOrderFlow/tools/watch_signals.py`: legge i
+livelli dal file della giornata, valuta le barre chiuse e con `--push-alerts` riporta i segnali sul
+chart. Procedura in
+[`docs/research/metodo/sorveglianza-del-tape.md`](docs/research/metodo/sorveglianza-del-tape.md).
+Le soglie hanno un default dichiarato e **vanno scritte accanto al risultato che producono**.
+
 I livelli disegnati sul chart arrivano da `POST /levels`: l'indicatore disegna e basta, `bridge.py`
 trasporta e basta, la derivazione resta nell'analisi. Procedura in
 [`docs/research/metodo/livelli-sul-chart.md`](docs/research/metodo/livelli-sul-chart.md). Non

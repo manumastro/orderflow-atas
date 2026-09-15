@@ -62,7 +62,19 @@ resta nell'analisi.** Non spostare quel calcolo dentro l'indicatore.
 Ci sono anche le tre cose che rendono utile un'etichetta — il nome, la misura che la sostiene, lo
 stato — e quella che non ci va mai: la previsione.
 
-### 5. La giornata, mentre succede
+### 5. La sorveglianza del tape, durante la seduta
+
+[**`sorveglianza-del-tape.md`**](sorveglianza-del-tape.md) — la procedura standard di studio di una
+seduta: i livelli in un file per giornata, spinti sul chart e letti dallo stesso file da
+`watch_signals.py`, che valuta il tape sui livelli e riporta i segnali forti sul chart come linee
+effimere.
+
+Il file dei livelli e' **l'unica fonte**, letta sia da chi disegna sia da chi sorveglia. E ci sta
+la regola che vale per qualunque filtro: **un filtro non provato non e' un filtro** — va fatto
+passare sulle barre gia' note prima di armarlo, per vedere se ritrova cio' che avevi individuato a
+mano e quanti segnali produce.
+
+### 6. La giornata, mentre succede
 
 [**`../giornate/come-si-scrive-una-giornata.md`**](../giornate/come-si-scrive-una-giornata.md) — un file per giornata di mercato, scritto
 **durante** la seduta. Contiene la procedura per **riprendere a meta' sessione**: intestazione,

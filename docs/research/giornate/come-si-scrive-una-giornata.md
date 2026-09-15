@@ -45,6 +45,14 @@ Le soglie usate in giornata (volume, delta, ampiezza) vanno **scritte accanto al
 producono**, mai lasciate implicite. Se una soglia viene dal p95 della distribuzione del giorno, si
 dice che e' il p95 e di quante barre.
 
+## Il File Dei Livelli
+
+Accanto a `AAAA-MM-GG.md` sta `livelli-AAAA-MM-GG.json`: i livelli attivi quel giorno, nel formato
+che il chart e la sorveglianza leggono entrambi. Resta nel repository perche' rileggere una giornata
+senza sapere quali livelli erano attivi non serve a niente.
+
+Come si usa: [`../metodo/sorveglianza-del-tape.md`](../metodo/sorveglianza-del-tape.md).
+
 ## Come Si Riprende Una Giornata Gia' Iniziata
 
 Il caso normale non e' aprire un documento nuovo: e' **rientrare a meta' sessione**, o il giorno
