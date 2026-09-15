@@ -10,13 +10,13 @@ Sezioni del [README](README.md), per sapere subito dove guardare:
 
 | Sezione | In una riga |
 |---|---|
-| 1. Le trascrizioni | `fabio_course/` e la mappa del corso; **il corso principale e' il live Q1** in `fabio_course/fabio_q1/`, gli altri live si aggiungeranno |
+| 1. Le trascrizioni | `fabio_course/` e la mappa del corso; **il corso principale e' il live Q1** in `fabio_course/fabio_q1/`, gli altri live si aggiungeranno; il dossier del modello e' in `fabio_course/ivbaaa/`, trascritto in `metodo/triple-aaa-dossier.md` |
 | 2. Dal concetto al dato osservabile | i concetti del corso tradotti in quantita' che ATAS espone davvero; fase dei recorder, archiviata |
 | 3. Il contesto istituzionale | COT e Tradingster: due viste diverse, raccolta riproducibile, metrica cross-index verificata e negativa |
 | 4. Il bridge | `Fabio Data Bridge` espone i dati ATAS su HTTP locale: si chiedono le finestre che servono invece di deciderle prima |
 | 5. La prima analisi servita dal bridge | la settimana 04-11 settembre, con il primo caso misurato di sforzo senza risultato |
 | 6. Il modello sistematico | misurato su un mese e **chiuso**: 49-51% a 1:1, come il modello nullo; archiviato in `docs/research/archivio-modello-40r/` |
-| 7. Lo scope attuale | la lettura discrezionale del live Q1: `metodo/profile-framing.md`, `metodo/analisi-istituzionale.md`, `metodo/livelli-sul-chart.md` |
+| 7. Lo scope attuale | la lettura discrezionale del live Q1: `metodo/profile-framing.md`, `metodo/analisi-istituzionale.md`, `metodo/livelli-sul-chart.md`, `metodo/triple-aaa-dossier.md` |
 | Struttura | la mappa delle cartelle di `docs/research/` |
 | Come si lavora qui | le cinque regole: dichiarare prima, distinguere livello e flusso, registrare i negativi, dichiarare le convenzioni, una fonte canonica per decisione |
 | Avvio rapido | `./deploy.sh` e `bridge.py health` |
@@ -25,8 +25,14 @@ Sezioni del [README](README.md), per sapere subito dove guardare:
 
 La lettura **discrezionale** del primo live del corso (`fabio_course/fabio_q1/`), insieme al
 contesto istituzionale. La fase sistematica sul modello 40R e' chiusa: non riaprirla senza una
-richiesta esplicita. Le due fonti canoniche sono
-`docs/research/metodo/profile-framing.md` e `docs/research/metodo/analisi-istituzionale.md`.
+richiesta esplicita. Le fonti canoniche sono `docs/research/metodo/profile-framing.md`,
+`docs/research/metodo/analisi-istituzionale.md` e `docs/research/metodo/triple-aaa-dossier.md`.
+
+Le immagini in `fabio_course/ivbaaa/` sono **fonte primaria**: il dossier del modello. Il testo e'
+trascritto alla lettera in `metodo/triple-aaa-dossier.md`, che e' il documento da citare; le
+immagini restano il riferimento per le figure. Trascrivere non e' validare: cosa e' stato
+effettivamente misurato, e cosa no, e' dichiarato in fondo a quel documento e non va confuso con
+l'archivio del modello 40R, che ha testato una meccanizzazione parziale di tre soli trigger.
 
 ## Documentare E Comunicare
 

@@ -8,7 +8,7 @@ Il repository non contiene un sistema di trading. Contiene un **metodo**: partir
 
 ### 1. Le trascrizioni
 
-Il punto di partenza sono le lezioni in [`fabio_course/`](fabio_course/): tre lezioni piu' un live di charting. Da queste nasce [`fabio-course-model-map.md`](fabio_course/fabio-course-model-map.md), che collega i concetti in ordine didattico e, per ciascuno, distingue quattro cose diverse:
+Il punto di partenza sono le lezioni in [`fabio_course/`](fabio_course/): tre lezioni piu' un live di charting, accompagnato dal dossier del modello in [`fabio_course/ivbaaa/`](fabio_course/ivbaaa/) — sette pagine trascritte per intero in [`triple-aaa-dossier.md`](docs/research/metodo/triple-aaa-dossier.md). Da queste nasce [`fabio-course-model-map.md`](fabio_course/fabio-course-model-map.md), che collega i concetti in ordine didattico e, per ciascuno, distingue quattro cose diverse:
 
 ```text
 concetti insegnati
@@ -76,6 +76,7 @@ Dal 15 settembre 2026 il lavoro e' sulla lettura discrezionale descritta nel pri
 - [`docs/research/metodo/profile-framing.md`](docs/research/metodo/profile-framing.md) — le sei cose da guardare, nell'ordine in cui il live le mette, piu' il quadro corrente e l'avvertenza sul chart continuous che non e' back-adjusted.
 - [`docs/research/metodo/analisi-istituzionale.md`](docs/research/metodo/analisi-istituzionale.md) — COT e Data Bridge letti insieme, incluso il modo in cui il COT resta valido fra un report e l'altro: la data di un cambio di posizionamento diventa un livello di prezzo, e il livello sopravvive alla settimana.
 - [`docs/research/metodo/livelli-sul-chart.md`](docs/research/metodo/livelli-sul-chart.md) — il giro completo dai dati grezzi alla linea disegnata: l'indicatore non calcola, il client trasporta, la derivazione resta nell'analisi.
+- [`docs/research/metodo/triple-aaa-dossier.md`](docs/research/metodo/triple-aaa-dossier.md) — la trascrizione integrale del dossier che accompagna il live: il gate dell'IVB a 30 minuti, i tre modelli del Tier 02, le tre tecniche di esecuzione, la checklist. E' la fonte del modello, non la sua validazione: cosa e' stato misurato, e cosa no, sta dichiarato in fondo al documento.
 
 ## Come Si Lavora Qui
 
