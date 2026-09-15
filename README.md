@@ -37,6 +37,8 @@ Il live introduce il Commitment of Traders come contesto settimanale, letto a ma
 
 Il COT resta quindi contesto, non trigger, e non c'e' motivo di costruirci un indicatore.
 
+Il metodo completo, che tiene insieme il posizionamento settimanale del COT e la partecipazione osservata sul tape, e' in [`docs/research/metodo/analisi-istituzionale.md`](docs/research/metodo/analisi-istituzionale.md): cosa chiede ciascuna delle due fonti, perche' non vanno fuse in un punteggio unico, la procedura settimanale e il controllo del rollover che precede ogni altra misura.
+
 ### 4. Il bridge: chiedere i dati invece di catturarli
 
 La svolta metodologica di settembre 2026. `Fabio Data Bridge` e' un indicatore che espone i dati della piattaforma su un endpoint HTTP locale, cosi' che l'analisi possa chiedere le finestre e i filtri che le servono mentre ATAS resta aperto.
