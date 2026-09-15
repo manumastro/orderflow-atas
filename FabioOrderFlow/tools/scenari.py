@@ -239,6 +239,8 @@ def annota(s, ctx, giorno, chart):
            "--ora", ctx["ora"], "--prezzo", str(s.get("prezzo", ctx["c"])),
            "--tipo", s.get("tipo", "nota"), "--testo", s.get("testo", s["nome"]),
            "--scenario", s["nome"]]
+    if s.get("tema"):
+        cmd += ["--tema", s["tema"]]
     misura = s.get("attesa", "")
     fatto = (f"{ctx['ora']} a {ctx['c']:.2f}: vol {ctx['vol']}, delta {ctx['delta']:+}, "
              f"30m {ctx['dpct30']:+.1f}%")

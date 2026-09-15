@@ -16,7 +16,16 @@ e l'unico modo per rileggere una lettura sapendo *quando* e' stata fatta e su qu
         --testo "rottura vera, 30m a -6,2%" \
         --misura "2.335 lotti, delta -127, minimi che si estendono"
 
-    ./annota.py --elenco          # cosa c'e' sul chart adesso
+Una lettura puo' **superarne** un'altra. Succede di continuo: alle 11:51 "accettazione non ancora
+matura", alle 12:09 "accettazione". La prima, restata sul chart, direbbe il falso. Si legano con
+`--tema`: una nuova annotazione manda in soffitta tutte le precedenti dello stesso tema, che
+**restano nel diario** — sono la lettura che il tempo ha smentito, cioe' la parte verificabile
+della giornata — ma spariscono dal chart.
+
+    ./annota.py --tema "accettazione VAL" --prezzo 29306 --tipo reclaim \
+        --testo "accettazione sopra il VAL"
+
+    ./annota.py --elenco          # cosa c'e' sul chart adesso, e cosa e' stato superato
     ./annota.py --togli 2         # rimuove la terza annotazione
     ./annota.py --pulisci         # torna ai soli livelli strutturali
 """
@@ -111,6 +120,28 @@ def voci_attese(giorno: str, annotazioni: list, strutturali: list, tol: float = 
     return voci
 
 
+def supera(annotazioni: list, nuova: dict) -> list:
+    """Marca come superate le letture precedenti sullo stesso tema.
+
+    Non le cancella: una lettura smentita e' il materiale piu' utile che la giornata produce, e
+    buttarla via lascerebbe solo le letture giuste, che a fine seduta non dimostrano niente.
+    Sparisce dal chart, resta nel diario con l'ora di chi l'ha superata.
+    """
+    tema = nuova.get("tema")
+    if not tema:
+        return []
+    superate = []
+    for a in annotazioni:
+        if a is not nuova and a.get("tema") == tema and not a.get("superata_da"):
+            a["superata_da"] = nuova["ora"]
+            superate.append(a)
+    return superate
+
+
+def attive(annotazioni: list) -> list:
+    return [a for a in annotazioni if not a.get("superata_da")]
+
+
 def voce_chart(a: dict) -> dict:
     return {
         "price": a["prezzo"],
@@ -131,6 +162,9 @@ def main() -> None:
     ap.add_argument("--misura", help="i numeri che la sostengono; non disegnati, tornano sul GET")
     ap.add_argument("--tipo", default="nota", choices=sorted(TIPI), help="solo il colore")
     ap.add_argument("--scenario", help="nome dello scenario che l'ha prodotta, se viene da scenari.py")
+    ap.add_argument("--tema", help="lettura sullo stesso argomento: supera le precedenti dello stesso tema")
+    ap.add_argument("--rianima", type=int, metavar="N",
+                    help="rimette sul chart una lettura superata (vedi --elenco)")
     ap.add_argument("--ricomponi", action="store_true",
                     help="rimanda sul chart la composizione corrente senza aggiungere niente")
     ap.add_argument("--senza-attesi", action="store_true", help="non disegnare gli scenari in attesa")
@@ -150,16 +184,26 @@ def main() -> None:
 
     if args.elenco:
         for i, a in enumerate(annotazioni):
-            print(f"{i:>2}  {a['ora']}  {a['prezzo']:>9.2f}  [{a.get('tipo','nota')}]  {a['testo']}")
+            sup = a.get("superata_da")
+            segno = f"  (superata alle {sup})" if sup else ""
+            tema = f"  <{a['tema']}>" if a.get("tema") else ""
+            print(f"{i:>2}  {'·' if sup else ' '} {a['ora']}  {a['prezzo']:>9.2f}  "
+                  f"[{a.get('tipo','nota')}]{tema}  {a['testo']}{segno}")
             if a.get("misura"):
-                print(f"      {a['misura']}")
-        print(f"-- {len(annotazioni)} annotazioni, le ultime {args.max} sul chart")
+                print(f"        {a['misura']}")
+        viva = len(attive(annotazioni))
+        print(f"-- {len(annotazioni)} nel diario, {viva} attive, le ultime {args.max} sul chart")
         return
 
     if args.ricomponi:
         pass
     elif args.pulisci:
         annotazioni = []
+    elif args.rianima is not None:
+        if not 0 <= args.rianima < len(annotazioni):
+            sys.exit(f"indice fuori intervallo: ce ne sono {len(annotazioni)}")
+        annotazioni[args.rianima].pop("superata_da", None)
+        print(f"rianimata: {annotazioni[args.rianima]['ora']} {annotazioni[args.rianima]['testo']}")
     elif args.togli is not None:
         if not 0 <= args.togli < len(annotazioni):
             sys.exit(f"indice fuori intervallo: ce ne sono {len(annotazioni)}")
@@ -175,15 +219,21 @@ def main() -> None:
             "testo": args.testo,
             "misura": args.misura or "",
             **({"scenario": args.scenario} if args.scenario else {}),
+            **({"tema": args.tema} if args.tema else {}),
         })
+        for vecchia in supera(annotazioni, annotazioni[-1]):
+            print(f"superata: {vecchia['ora']} {vecchia['testo']}")
 
     if not args.ricomponi:
         p_ann.write_text(json.dumps(annotazioni, ensure_ascii=False, indent=2) + "\n")
+    vive = attive(annotazioni)
     attesi = [] if args.senza_attesi else voci_attese(args.giorno, annotazioni, strutturali)
-    spingi(strutturali + attesi + [voce_chart(a) for a in annotazioni[-args.max:]], args.chart)
+    spingi(strutturali + attesi + [voce_chart(a) for a in vive[-args.max:]], args.chart)
+    superate = len(annotazioni) - len(vive)
     print(f"chart: {len(strutturali)} livelli + {len(attesi)} attesi + "
-          f"{min(len(annotazioni), args.max)} annotazioni "
-          f"({len(annotazioni)} nel diario di {args.giorno})")
+          f"{min(len(vive), args.max)} annotazioni "
+          f"({len(annotazioni)} nel diario di {args.giorno}"
+          f"{f', {superate} superate' if superate else ''})")
 
 
 if __name__ == "__main__":

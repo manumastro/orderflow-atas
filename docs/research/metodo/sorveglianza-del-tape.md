@@ -221,6 +221,36 @@ Sul chart l'annotazione e' una linea **punteggiata con `!` davanti**, distinguib
 dai livelli strutturali che sono `solid` o `dash`. Ne restano le ultime sei; `--elenco`, `--togli N`
 e `--pulisci` gestiscono il resto.
 
+### Una lettura che ne supera un'altra
+
+Durante una seduta la stessa domanda viene letta piu' volte, e le letture si contraddicono per
+costruzione. Alle 11:51 del 15 settembre: *"sale sopra il VAL, accettazione non ancora matura"*.
+Alle 12:09: *"accettazione sopra il VAL"*. Se la prima resta disegnata, il chart dice due cose
+opposte alla stessa altezza, e quella vecchia e' semplicemente falsa.
+
+Le letture sullo stesso argomento si legano con `--tema`, una stringa qualunque purche' uguale:
+
+    ./annota.py --tema "VAL 29306" --prezzo 29336 --testo "accettazione non ancora matura"
+    ./annota.py --tema "VAL 29306" --prezzo 29306 --testo "accettazione sopra il VAL"
+
+La seconda marca la prima con `superata_da`. Effetto: **sparisce dal chart, resta nel diario.**
+
+La distinzione e' il punto. Cancellarla sarebbe comodo e sbagliato: a fine giornata resterebbero
+solo le letture giuste, che non dimostrano niente perche' sono state selezionate dopo. La lettura
+delle 11:51 era corretta nel merito — mancavano i minuti, non il prezzo — e sapere *quando* si e'
+capito cosa e' l'unica misura di metodo che la giornata produce. `--elenco` le mostra con un punto
+a margine e l'ora di chi le ha superate; `--rianima N` ne rimette una sul chart se serve.
+
+Gli scenari portano il tema nel loro file, e quando scattano lo passano all'annotazione:
+
+    {"nome": "accettazione sopra il VAL di lunedi", "tema": "VAL 29306", ...}
+    {"nome": "rifiutato il rientro nel valore",     "tema": "VAL 29306", ...}
+
+Cosi' due scenari che descrivono esiti opposti dello stesso livello non possono restare entrambi
+sul chart: il secondo che scatta spegne il primo. Raggruppa per **argomento**, non per direzione —
+`VAL 29306`, `muro 29400`, `bordo basso`, `IVB` — perche' e' l'argomento a essere unico, mentre le
+letture che ne danno sono molte e successive.
+
 ### Il diario non e' un sottoprodotto
 
 Ogni annotazione finisce in `docs/research/giornate/annotazioni-AAAA-MM-GG.json` con l'ora, il

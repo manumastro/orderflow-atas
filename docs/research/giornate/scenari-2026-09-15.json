@@ -15,7 +15,8 @@
     "prezzo": 29306,
     "tipo": "reclaim",
     "testo": "A2: rientrato sopra il VAL di lunedi",
-    "attesa": "dentro il valore. Sopra c'e' la fascia magra 29375-29424, l'1,2% del volume di lunedi: si sale in fretta fino a 29400, che ha gia' respinto due volte oggi."
+    "attesa": "dentro il valore. Sopra c'e' la fascia magra 29375-29424, l'1,2% del volume di lunedi: si sale in fretta fino a 29400, che ha gia' respinto due volte oggi.",
+    "tema": "VAL 29306"
   },
   {
     "nome": "il VAL respinge da sotto",
@@ -24,7 +25,8 @@
     "prezzo": 29306,
     "tipo": "rifiuto",
     "testo": "A3: il VAL respinge ancora da sotto",
-    "attesa": "quarto rifiuto della giornata su 29306. Resta la sega, bordo basso 29236."
+    "attesa": "quarto rifiuto della giornata su 29306. Resta la sega, bordo basso 29236.",
+    "tema": "VAL 29306"
   },
   {
     "nome": "cede il bordo basso del range",
@@ -33,7 +35,8 @@
     "prezzo": 29236,
     "tipo": "rottura",
     "testo": "B1: perso il bordo basso della sega 29236-29285",
-    "attesa": "prossimo appoggio 29224, poi il blocco 29175-29224 dove lunedi c'erano 18.540 lotti con delta +628."
+    "attesa": "prossimo appoggio 29224, poi il blocco 29175-29224 dove lunedi c'erano 18.540 lotti con delta +628.",
+    "tema": "bordo basso"
   },
   {
     "nome": "cede il blocco 29175-29224",
@@ -42,7 +45,8 @@
     "prezzo": 29199,
     "tipo": "rottura",
     "testo": "B2: perso il blocco 29175-29224 con aggressione",
-    "attesa": "resta solo il minimo cash di lunedi a 29168, poi il globex a 29107. Sotto 29168 la giornata e' una continuazione della discesa di lunedi."
+    "attesa": "resta solo il minimo cash di lunedi a 29168, poi il globex a 29107. Sotto 29168 la giornata e' una continuazione della discesa di lunedi.",
+    "tema": "blocco 29175-29224"
   },
   {
     "nome": "assorbimento sul blocco di lunedi",
@@ -51,7 +55,8 @@
     "prezzo": 29210,
     "tipo": "assorbimento",
     "testo": "C: assorbimento sul blocco 29175-29224",
-    "attesa": "e' dove lunedi i compratori hanno assorbito con delta +628. Piu' volume del passaggio precedente: la gente c'e'. Primo bersaglio il ritorno a 29275."
+    "attesa": "e' dove lunedi i compratori hanno assorbito con delta +628. Piu' volume del passaggio precedente: la gente c'e'. Primo bersaglio il ritorno a 29275.",
+    "tema": "blocco 29175-29224"
   },
   {
     "nome": "sforzo senza risultato al bordo basso",
@@ -60,7 +65,8 @@
     "prezzo": 29240,
     "tipo": "nota",
     "testo": "D: i venditori spingono e il prezzo non scende",
-    "attesa": "sforzo senza risultato: 30 minuti a delta negativo ma i minimi non si estendono. E' la configurazione che il corso chiama effort without result."
+    "attesa": "sforzo senza risultato: 30 minuti a delta negativo ma i minimi non si estendono. E' la configurazione che il corso chiama effort without result.",
+    "tema": "bordo basso"
   },
   {
     "nome": "entra nel vuoto 29400-29424",
@@ -69,7 +75,8 @@
     "prezzo": 29400,
     "tipo": "reclaim",
     "testo": "entrato nel vuoto 29400-29424",
-    "attesa": "3,5% del volume di oggi con delta -312: il tratto piu' sottile della giornata, si attraversa in fretta. Sopra pero' c'e' 29425-29449, 9% del volume con delta -398, il venduto da cui e' caduto alle 06:21. Il bersaglio e' il POC di oggi a 29455."
+    "attesa": "3,5% del volume di oggi con delta -312: il tratto piu' sottile della giornata, si attraversa in fretta. Sopra pero' c'e' 29425-29449, 9% del volume con delta -398, il venduto da cui e' caduto alle 06:21. Il bersaglio e' il POC di oggi a 29455.",
+    "tema": "muro 29400"
   },
   {
     "nome": "riprende 29400",
@@ -78,7 +85,8 @@
     "prezzo": 29400,
     "tipo": "reclaim",
     "testo": "F: 29400 ripreso con aggressione",
-    "attesa": "il livello che ha rotto la giornata alle 06:21 torna supporto. Sopra, la mensola 29454, POC di tre sedute."
+    "attesa": "il livello che ha rotto la giornata alle 06:21 torna supporto. Sopra, la mensola 29454, POC di tre sedute.",
+    "tema": "muro 29400"
   },
   {
     "nome": "accettazione sopra 29400",
@@ -87,7 +95,8 @@
     "prezzo": 29400,
     "tipo": "reclaim",
     "testo": "F2: accettazione sopra 29400, non solo uno stoppino",
-    "attesa": "30 minuti quasi tutti sopra e oltre l'80% del volume sopra: e' il contrario della rottura delle 06:21. La mensola 29454 diventa il bersaglio."
+    "attesa": "30 minuti quasi tutti sopra e oltre l'80% del volume sopra: e' il contrario della rottura delle 06:21. La mensola 29454 diventa il bersaglio.",
+    "tema": "muro 29400"
   },
   {
     "nome": "29400 respinge di nuovo",
@@ -96,7 +105,8 @@
     "prezzo": 29400,
     "tipo": "rifiuto",
     "testo": "G: 29400 respinge di nuovo",
-    "attesa": "terza volta oggi dopo 07:52-07:55. La resistenza tiene: torna in gioco il ritorno verso 29306 e la sega."
+    "attesa": "terza volta oggi dopo 07:52-07:55. La resistenza tiene: torna in gioco il ritorno verso 29306 e la sega.",
+    "tema": "muro 29400"
   },
   {
     "nome": "ritorno sulla mensola",
@@ -114,7 +124,8 @@
     "prezzo": 0,
     "tipo": "nota",
     "testo": "IVB stampato: il gate della giornata e' aperto",
-    "attesa": "da qui il dossier concede setup direzionali solo nel verso della rottura. Chiusura M30 sopra il range = solo long, sotto = solo short, dentro = solo mean reverting."
+    "attesa": "da qui il dossier concede setup direzionali solo nel verso della rottura. Chiusura M30 sopra il range = solo long, sotto = solo short, dentro = solo mean reverting.",
+    "tema": "IVB"
   },
   {
     "nome": "IVB rotto al rialzo",
@@ -123,7 +134,8 @@
     "prezzo": 0,
     "tipo": "reclaim",
     "testo": "IVB rotto al rialzo: permesso long",
-    "attesa": "Tier 01 aperto verso l'alto. I trigger del Tier 02 sono break and retest dell'IVB, oppure il ritracciamento profondo fino al VAL."
+    "attesa": "Tier 01 aperto verso l'alto. I trigger del Tier 02 sono break and retest dell'IVB, oppure il ritracciamento profondo fino al VAL.",
+    "tema": "IVB"
   },
   {
     "nome": "IVB rotto al ribasso",
@@ -132,7 +144,8 @@
     "prezzo": 0,
     "tipo": "rottura",
     "testo": "IVB rotto al ribasso: permesso short",
-    "attesa": "Tier 01 aperto verso il basso, nel verso in cui gia' punta il contesto: valore in migrazione giu' e short dei Leveraged Funds a 29800-29900."
+    "attesa": "Tier 01 aperto verso il basso, nel verso in cui gia' punta il contesto: valore in migrazione giu' e short dei Leveraged Funds a 29800-29900.",
+    "tema": "IVB"
   },
   {
     "nome": "accettazione sopra il VAL di lunedi",
@@ -141,7 +154,8 @@
     "prezzo": 29306,
     "tipo": "reclaim",
     "testo": "accettazione sopra il VAL: rientrato nel valore di lunedi",
-    "attesa": "30 minuti quasi tutti sopra e oltre il 75% del volume sopra. Non e' piu' uno sconfinamento: il prezzo e' dentro il valore di lunedi. Sopra, sul profilo di OGGI: 29375-29399 e' attrito normale (9,2%), il tratto sottile e' 29400-29424 (3,5%, delta -312), e sopra ancora 29425-29449 ha delta -398, il venduto da cui e' caduto alle 06:21."
+    "attesa": "30 minuti quasi tutti sopra e oltre il 75% del volume sopra. Non e' piu' uno sconfinamento: il prezzo e' dentro il valore di lunedi. Sopra, sul profilo di OGGI: 29375-29399 e' attrito normale (9,2%), il tratto sottile e' 29400-29424 (3,5%, delta -312), e sopra ancora 29425-29449 ha delta -398, il venduto da cui e' caduto alle 06:21.",
+    "tema": "VAL 29306"
   },
   {
     "nome": "rifiutato il rientro nel valore",
@@ -150,6 +164,7 @@
     "prezzo": 29306,
     "tipo": "rifiuto",
     "testo": "rientro fallito: ributtato sotto il VAL",
-    "attesa": "era appena rientrato e non ha tenuto. Torna la sega 29236-29306, e il rimbalzo di mezzogiorno si rivela fatto senza partecipazione."
+    "attesa": "era appena rientrato e non ha tenuto. Torna la sega 29236-29306, e il rimbalzo di mezzogiorno si rivela fatto senza partecipazione.",
+    "tema": "VAL 29306"
   }
 ]
