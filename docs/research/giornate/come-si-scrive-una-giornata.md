@@ -117,3 +117,23 @@ e dai minimi di ieri, e quelli sono nella sua sezione 1.
 | Giorno | Cosa e' successo |
 |---|---|
 | [2026-09-15](2026-09-15.md) | Lunedi' e' il primo giorno pieno su NQZ6. Il valore lascia il nodo dei compratori alle 06:21, il VAL di lunedi' cede alle 09:55, e la lettura del "vuoto" sotto il VAL si rivela sbagliata. |
+
+## Ogni Scenario Dice Anche Il Verso
+
+Uno scenario che descrive e non conclude lascia senza risposta la domanda per cui era stato
+scritto. Oltre a `quando`, `testo` e `attesa`, ogni scenario porta tre campi:
+
+| campo | cosa contiene |
+|---|---|
+| `verso` | la conseguenza: `SHORT`, `LONG CONTRO GATE`, `NESSUN PERMESSO`, `FINE DELLO SHORT` |
+| `implica` | cosa si cerca se scatta, e con quale vincolo |
+| `altrimenti` | cosa significa il caso opposto, cioe' il ramo che non e' scattato |
+
+Il `verso` compare sul chart fra parentesi quadre davanti al testo, cosi' si legge senza aprire
+niente: `[SHORT] il VAL di lunedi respinge da sotto`.
+
+**Il verso non e' un segnale approvato.** Nel progetto non esiste un modello attivo. E' la
+conseguenza del **gate Tier 01 del dossier** — che e' una regola del corso — applicata alla
+situazione della giornata, piu' il vincolo che ne deriva. Per questo esistono i due valori
+scomodi: `LONG CONTRO GATE` dice che l'operazione e' possibile ma controcorrente e a rischio
+stretto, e `NESSUN PERMESSO` dice che lo scenario e' un avviso e non un ingresso.

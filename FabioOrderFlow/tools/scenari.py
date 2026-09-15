@@ -253,7 +253,14 @@ def annota(s, ctx, giorno, chart):
            "--scenario", s["nome"], "--condizione", s["quando"]]
     if s.get("tema"):
         cmd += ["--tema", s["tema"]]
+    # Il verso e' la conseguenza operativa, e va letta sul chart senza aprire il file: uno
+    # scenario che dice solo cosa succede lascia la domanda a cui serviva rispondere.
+    verso = s.get("verso")
+    testo = f"[{verso}] {s.get('testo', s['nome'])}" if verso else s.get("testo", s["nome"])
+    cmd[cmd.index("--testo") + 1] = testo
     misura = s.get("attesa", "")
+    if s.get("implica"):
+        misura = f"IMPLICA: {s['implica']} ALTRIMENTI: {s.get('altrimenti','-')} || {misura}"
     fatto = (f"{ctx['ora']} a {ctx['c']:.2f}: vol {ctx['vol']}, delta {ctx['delta']:+}, "
              f"30m {ctx['dpct30']:+.1f}%")
     cmd += ["--misura", f"{fatto}. {misura}".strip()]

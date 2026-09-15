@@ -7,7 +7,10 @@
     "tema": "VAL 29306",
     "quando": "tocca(29306, 8) and vol >= p75vol and delta <= 0 and pos <= 0.35",
     "testo": "il VAL di lunedi respinge da sotto",
-    "attesa": "retest dal basso del livello perso. E' la configurazione che il gate short-only autorizza: break and retest nel verso della rottura. Sotto torna in gioco 29273."
+    "attesa": "retest dal basso del livello perso. E' la configurazione che il gate short-only autorizza: break and retest nel verso della rottura. Sotto torna in gioco 29273.",
+    "verso": "SHORT",
+    "implica": "nel verso del gate. E' il break and retest che il Tier 01 autorizza: ingresso sul rifiuto, stop sopra il livello.",
+    "altrimenti": "se invece lo riprende con volume, il prossimo ostacolo e' 29326 e la discesa perde forza."
   },
   {
     "nome": "ritorno sulla chiusura M30",
@@ -17,7 +20,10 @@
     "tema": "M30 29326",
     "quando": "tocca(29326, 6) and vol >= p75vol",
     "testo": "tornato sulla chiusura M30 che ha aperto il gate",
-    "attesa": "29326,25 e' la chiusura che ha messo il prezzo sotto l'IVB. Riprenderla non annulla il gate — solo 29372,50 lo farebbe — ma toglie forza alla discesa."
+    "attesa": "29326,25 e' la chiusura che ha messo il prezzo sotto l'IVB. Riprenderla non annulla il gate — solo 29372,50 lo farebbe — ma toglie forza alla discesa.",
+    "verso": "NESSUN PERMESSO",
+    "implica": "29326 e' dove si e' deciso lo short. Riprenderlo toglie forza alla discesa ma non cambia il permesso.",
+    "altrimenti": "sopra 29326 il prossimo livello e' 29372,50, che e' quello che cambia le regole."
   },
   {
     "nome": "recuperato l'IVB basso",
@@ -27,7 +33,10 @@
     "tema": "gate IVB",
     "quando": "c > 29372.5 and minuti_sotto(29372.5, 20) <= 5 and vol_sopra_pct(29372.5, 20) >= 65",
     "testo": "rientrato nell'IVB: il gate short si annulla",
-    "attesa": "rientro in accettazione dentro 29372,50-29453,50 significa che la chiusura M30 sotto il range era un falso segnale. Da li' si torna mean reverting dentro l'IVB, non long: il permesso long lo darebbe solo una chiusura sopra 29453,50."
+    "attesa": "rientro in accettazione dentro 29372,50-29453,50 significa che la chiusura M30 sotto il range era un falso segnale. Da li' si torna mean reverting dentro l'IVB, non long: il permesso long lo darebbe solo una chiusura sopra 29453,50.",
+    "verso": "FINE DELLO SHORT",
+    "implica": "il gate short si annulla e si torna mean reverting dentro l'IVB. NON e' un permesso long: quello arriva solo sopra 29453,50.",
+    "altrimenti": "se il rientro fallisce e chiude di nuovo sotto 29372,50, il gate short e' confermato due volte."
   },
   {
     "nome": "accettazione sotto il minimo di 16:40",
@@ -37,7 +46,10 @@
     "tema": "minimo 29273",
     "quando": "c < 29273 and minuti_sotto(29273, 15) >= 11 and vol_sopra_pct(29273, 15) <= 30",
     "testo": "accettato sotto il minimo: la discesa e' strutturale",
-    "attesa": "scritto su finestra e non come attraversamento: il 15 settembre 'cede il minimo' non e' scattato perche' il livello era stato consumato alle 16:49 da una barra debole, e la rottura vera delle 16:51 (3.599 lotti, delta -321) e' arrivata quando il prezzo era gia' sotto. Un test su barra singola e' fragile, uno su finestra misura uno stato."
+    "attesa": "scritto su finestra e non come attraversamento: il 15 settembre 'cede il minimo' non e' scattato perche' il livello era stato consumato alle 16:49 da una barra debole, e la rottura vera delle 16:51 (3.599 lotti, delta -321) e' arrivata quando il prezzo era gia' sotto. Un test su barra singola e' fragile, uno su finestra misura uno stato.",
+    "verso": "SHORT",
+    "implica": "nel verso del gate. Continuazione: bersaglio 29224 e poi il blocco di lunedi.",
+    "altrimenti": "se invece risale sopra 29273 e ci resta, la discesa era uno scarico e torna in gioco 29306."
   },
   {
     "nome": "assorbimento sul blocco di lunedi",
@@ -47,7 +59,10 @@
     "tema": "blocco 29199",
     "quando": "c > 29224 and min10 <= 29224 and dpct15 >= 3",
     "testo": "assorbimento sul blocco comprato lunedi",
-    "attesa": "misurato su finestra e non su barra singola: e' la terza volta oggi che un evento vero sfugge a una soglia p95 su barra singola (29366 alle 12:32, la rottura delle 16:51, questo). Cio' che conta e' il delta cumulato di chi compra mentre il prezzo torna sopra 29224, non la taglia del singolo scambio. Contro il gate short: mean reverting a rischio stretto, non permesso long."
+    "attesa": "misurato su finestra e non su barra singola: e' la terza volta oggi che un evento vero sfugge a una soglia p95 su barra singola (29366 alle 12:32, la rottura delle 16:51, questo). Cio' che conta e' il delta cumulato di chi compra mentre il prezzo torna sopra 29224, non la taglia del singolo scambio. Contro il gate short: mean reverting a rischio stretto, non permesso long.",
+    "verso": "LONG CONTRO GATE",
+    "implica": "i compratori di lunedi difendono. Ma il Tier 01 e' short-only: vale come mean reverting a rischio stretto, NON come permesso long.",
+    "altrimenti": "se l'assorbimento fallisce e il prezzo accetta sotto 29199, diventa lo scenario short piu' forte della giornata."
   },
   {
     "nome": "cede il blocco di lunedi",
@@ -57,7 +72,10 @@
     "tema": "blocco 29199",
     "quando": "c < 29199 and minuti_sotto(29199, 15) >= 11 and vol_sopra_pct(29199, 15) <= 30",
     "testo": "perso il blocco comprato lunedi",
-    "attesa": "i 18.540 lotti comprati lunedi a 29175-29224 sono in perdita. Resta solo il minimo cash di lunedi a 29168, poi il globex a 29107: sotto 29168 oggi diventa la continuazione della discesa di lunedi, non una giornata a se'."
+    "attesa": "i 18.540 lotti comprati lunedi a 29175-29224 sono in perdita. Resta solo il minimo cash di lunedi a 29168, poi il globex a 29107: sotto 29168 oggi diventa la continuazione della discesa di lunedi, non una giornata a se'.",
+    "verso": "SHORT",
+    "implica": "nel verso del gate, e il piu' forte: i 18.540 lotti comprati lunedi sono in perdita. Bersagli 29168 e 29107.",
+    "altrimenti": "se il blocco regge con delta cumulato positivo, e' assorbimento: si veda lo scenario opposto."
   },
   {
     "nome": "sforzo senza risultato sui minimi",
@@ -67,6 +85,9 @@
     "tema": "minimo 29273",
     "quando": "tocca(29230, 15) and v30 >= 25000 and dpct30 <= -1 and min3 > min10 + 4",
     "testo": "i venditori spingono e i minimi non si estendono",
-    "attesa": "trenta minuti a delta negativo su volume da cash ma i minimi non si allungano: l'effort without result del corso. Segnale di esaurimento della gamba, non permesso di comprare: il gate resta short."
+    "attesa": "trenta minuti a delta negativo su volume da cash ma i minimi non si allungano: l'effort without result del corso. Segnale di esaurimento della gamba, non permesso di comprare: il gate resta short.",
+    "verso": "NESSUN PERMESSO",
+    "implica": "avviso, non ingresso: i venditori spingono e i minimi non si allungano. Dice di non inseguire lo short, non di comprare.",
+    "altrimenti": "se i minimi riprendono a estendersi, lo sforzo aveva risultato e lo short resta valido."
   }
 ]
