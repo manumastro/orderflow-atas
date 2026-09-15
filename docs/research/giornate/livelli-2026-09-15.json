@@ -57,7 +57,7 @@
   },
   {
     "price": 29454,
-    "label": "MENSOLA · POC 2-10-14 set",
+    "label": "MENSOLA · POC oggi 22,4% · POC 2-10-14 set",
     "color": "#7FA8C4",
     "style": "solid",
     "width": 3,
@@ -65,7 +65,7 @@
   },
   {
     "price": 29400,
-    "label": "Rotta 06:21 (-165d) · resistenza",
+    "label": "Rotta 06:21 · sopra il vuoto 3,5% delta -312",
     "color": "#6E8FA6",
     "style": "dash",
     "width": 2,
@@ -73,7 +73,7 @@
   },
   {
     "price": 29375,
-    "label": "Base vuoto 29375-29424 (1,2% lun)",
+    "label": "Attrito 29375-29399 (9,2% oggi)",
     "color": "#8E88A8",
     "style": "dot",
     "width": 1,

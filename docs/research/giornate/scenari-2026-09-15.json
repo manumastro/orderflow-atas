@@ -63,13 +63,13 @@
     "attesa": "sforzo senza risultato: 30 minuti a delta negativo ma i minimi non si estendono. E' la configurazione che il corso chiama effort without result."
   },
   {
-    "nome": "entra nella fascia magra 29375-29424",
+    "nome": "entra nel vuoto 29400-29424",
     "sigla": "entra nel vuoto",
-    "quando": "chiude_sopra(29375) and vol >= p75vol",
-    "prezzo": 29375,
+    "quando": "chiude_sopra(29400) and vol >= p75vol",
+    "prezzo": 29400,
     "tipo": "reclaim",
-    "testo": "E: entrato nella fascia magra 29375-29424",
-    "attesa": "l'1,2% del volume di lunedi per blocco: poco attrito, si arriva in fretta a 29400. Vale in entrambi i versi, anche tornando giu'."
+    "testo": "entrato nel vuoto 29400-29424",
+    "attesa": "3,5% del volume di oggi con delta -312: il tratto piu' sottile della giornata, si attraversa in fretta. Sopra pero' c'e' 29425-29449, 9% del volume con delta -398, il venduto da cui e' caduto alle 06:21. Il bersaglio e' il POC di oggi a 29455."
   },
   {
     "nome": "riprende 29400",
