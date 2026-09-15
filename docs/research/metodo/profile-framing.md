@@ -160,6 +160,41 @@ Corretto per lo spread, l'area di venerdi' in termini Z6 era **29.674-29.746** e
 **29.306-29.604**: il VAL scende di 368 punti e il VAH di 142. Il valore e' sceso e non e'
 risalito. **Lo shift vero e' giu', il grafico ne mostra un altro.**
 
-Finche' il continuous non e' back-adjusted, il framing va fatto sui contratti singoli con lo spread
-dichiarato, come nella tabella sopra. Il continuous resta buono per la forma di lungo periodo, non
-per i bordi.
+### Come Si Back-Adjusta
+
+L'API ATAS espone soltanto le **date** di rollover (`ContractRolloverType`: `ExpirationDate`,
+`VolumeBasedCurrentEnd`, `VolumeBasedNextStart`), non una correzione di prezzo: il continuo di
+ATAS incolla e basta. Se la piattaforma offrisse un'opzione di back-adjust nelle impostazioni
+dello strumento andrebbe attivata li'; sui dati serviti dal bridge non risulta attiva, perche' la
+barra del 09-10 corrisponde a NQU6 al tick.
+
+`FabioOrderFlow/tools/build_continuous.py` lo fa fuori dalla piattaforma, e per il profile framing
+e' meglio, perche' sposta **anche il footprint**: POC e value area storici diventano confrontabili
+invece che solo le OHLC.
+
+```bash
+python3 FabioOrderFlow/tools/bridge.py candles --chart NQU6 --from 2026-08-31 --to 2026-09-15 --levels --out u6.json
+python3 FabioOrderFlow/tools/bridge.py candles --chart NQZ6 --from 2026-08-31 --to 2026-09-15 --levels --out z6.json
+python3 FabioOrderFlow/tools/build_continuous.py u6.json z6.json --cash 13:30-20:00 --out continuo.json
+```
+
+Come misura lo spread, e perche' cosi':
+
+- la data del roll e' la **prima giornata in cui il contratto nuovo supera il vecchio per volume**,
+  non la scadenza;
+- lo spread e' la **mediana della differenza fra le chiusure al minuto**, presa solo sui minuti in
+  cui **entrambi** i contratti hanno scambiato almeno cinque lotti. Il filtro serve a scartare i
+  minuti in cui il contratto lontano ha una sola stampa ferma, che userebbe un prezzo vecchio;
+- misurato cosi' sul roll di settembre 2026: **+293,75 punti, mediana su 3.505 minuti appaiati,
+  deviazione standard 4,15**. Non e' una stima su due chiusure, e' una mediana su migliaia di
+  osservazioni;
+- l'aggiustamento e' **per differenza** e si applica ai contratti **piu' vecchi**, cosi' la serie
+  finisce nei prezzi del contratto corrente: i livelli che leggi sul grafico sono prezzi operabili
+  oggi, non prezzi storici da riconvertire.
+
+Nota su cosa l'aggiustamento **non** conserva: dopo il back-adjust i prezzi storici non sono piu'
+quelli a cui si e' scambiato in quei giorni. Va bene per i livelli e per la forma del profilo, che
+e' l'uso qui; non va bene per citare un prezzo storico.
+
+Con il continuous grezzo il framing va comunque fatto sui contratti singoli con lo spread
+dichiarato. Il continuous di ATAS resta buono per la forma di lungo periodo, non per i bordi.
