@@ -45,9 +45,9 @@
     "prezzo": 29210,
     "tipo": "assorbimento",
     "tema": "blocco 29199",
-    "quando": "tocca(29210, 14) and vol >= p95vol and delta >= 0 and pos >= 0.6",
+    "quando": "c > 29224 and min10 <= 29224 and dpct15 >= 3",
     "testo": "assorbimento sul blocco comprato lunedi",
-    "attesa": "29175-29224 e' dove lunedi sono passati 18.540 lotti con delta +628. Se quei compratori difendono, e' qui. Contro il gate short, quindi mean reverting a rischio stretto. Primo bersaglio il ritorno a 29273."
+    "attesa": "misurato su finestra e non su barra singola: e' la terza volta oggi che un evento vero sfugge a una soglia p95 su barra singola (29366 alle 12:32, la rottura delle 16:51, questo). Cio' che conta e' il delta cumulato di chi compra mentre il prezzo torna sopra 29224, non la taglia del singolo scambio. Contro il gate short: mean reverting a rischio stretto, non permesso long."
   },
   {
     "nome": "cede il blocco di lunedi",

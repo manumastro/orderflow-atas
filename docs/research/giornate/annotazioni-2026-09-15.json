@@ -159,6 +159,25 @@
     "tipo": "rottura",
     "testo": "rottura vera: 3.599 lotti, delta -321",
     "misura": "16:51 O 29258,25 H 29271,25 L 29227,00 C 29229,25, barra da 44 punti: 3.599 lotti contro un p95 di 2.117, delta -321 contro un p95 di 215. Passati sia il minimo di giornata sia il bordo basso della sega a 29236. Lo scenario 'cede il minimo' NON e' scattato: la condizione era un attraversamento e il livello era gia' stato consumato alle 16:49 da una barra da 1.045 lotti. Riscritto su finestra. Alle 16:52 prima risposta: 757 lotti delta +147 pos 0,39 sullo stesso prezzo di chiusura. Sotto, il blocco 29175-29224 dove lunedi sono passati 18.540 lotti con delta +628.",
+    "tema": "minimo 29273",
+    "superata_da": "16:59"
+  },
+  {
+    "ora": "16:59",
+    "prezzo": 29273.0,
+    "tipo": "rottura",
+    "testo": "accettato sotto il minimo: la discesa e' strutturale",
+    "misura": "16:59 a 29239.75: vol 687, delta -43, 30m +2.2%. scritto su finestra e non come attraversamento: il 15 settembre 'cede il minimo' non e' scattato perche' il livello era stato consumato alle 16:49 da una barra debole, e la rottura vera delle 16:51 (3.599 lotti, delta -321) e' arrivata quando il prezzo era gia' sotto. Un test su barra singola e' fragile, uno su finestra misura uno stato.",
+    "scenario": "accettazione sotto il minimo di 16:40",
+    "condizione": "c < 29273 and minuti_sotto(29273, 15) >= 11 and vol_sopra_pct(29273, 15) <= 30",
     "tema": "minimo 29273"
+  },
+  {
+    "ora": "17:04",
+    "prezzo": 29216.0,
+    "tipo": "assorbimento",
+    "testo": "il blocco comprato lunedi ha tenuto",
+    "misura": "Minimo 29215,75 alle 16:53, dentro 29175-29224 dove lunedi sono passati 18.540 lotti con delta +628. Dalla barra di rottura delle 16:51: 19.880 lotti con delta cumulato +1.412 (+7,1%), undici barre di cui sette a delta positivo e quattro con pos oltre 0,95. La barra da -321 e' stata riassorbita per intero. Lo scenario non e' scattato perche' chiedeva 2.117 lotti su barra singola e il massimo e' stato 1.804: terza volta oggi che una soglia p95 su barra singola manca un evento vero. Riscritto su delta cumulato. Il gate resta short: questo e' mean reverting, non permesso long.",
+    "tema": "blocco 29199"
   }
 ]
