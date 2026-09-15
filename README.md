@@ -75,6 +75,7 @@ Dal 15 settembre 2026 il lavoro e' sulla lettura discrezionale descritta nel pri
 
 - [`docs/research/metodo/profile-framing.md`](docs/research/metodo/profile-framing.md) — le sei cose da guardare, nell'ordine in cui il live le mette, piu' il quadro corrente e l'avvertenza sul chart continuous che non e' back-adjusted.
 - [`docs/research/metodo/analisi-istituzionale.md`](docs/research/metodo/analisi-istituzionale.md) — COT e Data Bridge letti insieme, incluso il modo in cui il COT resta valido fra un report e l'altro: la data di un cambio di posizionamento diventa un livello di prezzo, e il livello sopravvive alla settimana.
+- [`docs/research/metodo/livelli-sul-chart.md`](docs/research/metodo/livelli-sul-chart.md) — il giro completo dai dati grezzi alla linea disegnata: l'indicatore non calcola, il client trasporta, la derivazione resta nell'analisi.
 
 ## Come Si Lavora Qui
 

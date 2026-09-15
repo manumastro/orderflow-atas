@@ -16,7 +16,7 @@ Sezioni del [README](README.md), per sapere subito dove guardare:
 | 4. Il bridge | `Fabio Data Bridge` espone i dati ATAS su HTTP locale: si chiedono le finestre che servono invece di deciderle prima |
 | 5. La prima analisi servita dal bridge | la settimana 04-11 settembre, con il primo caso misurato di sforzo senza risultato |
 | 6. Il modello sistematico | misurato su un mese e **chiuso**: 49-51% a 1:1, come il modello nullo; archiviato in `docs/research/archivio-modello-40r/` |
-| 7. Lo scope attuale | la lettura discrezionale del live Q1: `metodo/profile-framing.md` e `metodo/analisi-istituzionale.md` |
+| 7. Lo scope attuale | la lettura discrezionale del live Q1: `metodo/profile-framing.md`, `metodo/analisi-istituzionale.md`, `metodo/livelli-sul-chart.md` |
 | Struttura | la mappa delle cartelle di `docs/research/` |
 | Come si lavora qui | le cinque regole: dichiarare prima, distinguere livello e flusso, registrare i negativi, dichiarare le convenzioni, una fonte canonica per decisione |
 | Avvio rapido | `./deploy.sh` e `bridge.py health` |
@@ -41,6 +41,8 @@ Registra anche i risultati negativi, con la stessa cura di quelli positivi. Dich
 Il percorso attuale e' il **Data Bridge**: un indicatore caricato su un chart ATAS che espone i dati su `http://127.0.0.1:8787`. Client: `FabioOrderFlow/tools/bridge.py`. Contratto: `docs/research/metodo/contratto-data-bridge.md`.
 
 I recorder di agosto 2026 restano per il flusso live e per l'overlay sul chart; il loro materiale e' in `docs/research/archivio-2026-08/` e non va esteso senza motivo.
+
+I livelli disegnati sul chart arrivano da `POST /levels`: l'indicatore li disegna e basta, `bridge.py` li trasporta e basta, la derivazione resta nell'analisi. Procedura in `docs/research/metodo/livelli-sul-chart.md`. Non spostare quel calcolo dentro l'indicatore: le soglie devono restare convenzioni dichiarate in un documento.
 
 **Il contratto continuo di ATAS non e' back-adjusted**: incolla i contratti lasciando il salto di prezzo del roll. Per il profile framing usa `FabioOrderFlow/tools/build_continuous.py`, che misura lo spread sui minuti in cui entrambi i contratti stampano e sposta anche il footprint. Il controllo del rollover, confrontando il volume dei due contratti, precede ogni altra misura.
 

@@ -121,6 +121,14 @@ public sealed class DataBridge : Indicator
     [Range(6, 24)]
     public int LevelFontSize { get; set; } = 11;
 
+    /// <summary>
+    /// Distanza dell'etichetta dal bordo dell'area dati. Serve anche come regolazione fine: la
+    /// larghezza della scala dei prezzi cambia con il numero di cifre e con il DPI.
+    /// </summary>
+    [Display(Name = "Label margin", GroupName = "Levels", Description = "Distanza dal bordo, in pixel.")]
+    [Range(0, 400)]
+    public int LabelMargin { get; set; } = 8;
+
     protected override void OnCalculate(int bar, decimal value)
     {
     }
@@ -616,6 +624,29 @@ public sealed class DataBridge : Indicator
         var area = ChartArea;
         var font = new RenderFont("Arial", LevelFontSize);
 
+        // ChartArea arriva fino al bordo del pannello, scala dei prezzi compresa: ancorare
+        // l'etichetta a area.Right la fa finire sotto i numeri dell'asse. L'ultima barra
+        // visibile e' dentro l'area dei dati per costruzione, quindi la sua X e' un bordo
+        // destro sicuro qualunque sia la larghezza dell'asse.
+        var dataRight = area.Right;
+        try
+        {
+            var container = ChartInfo.PriceChartContainer;
+            if (container is not null)
+            {
+                var lastBarX = ChartInfo.GetXByBar(container.LastVisibleBarNumber, false);
+                if (lastBarX > area.Left)
+                {
+                    dataRight = Math.Min(dataRight, lastBarX);
+                }
+            }
+        }
+        catch
+        {
+            // Se il container non e' pronto si resta sul bordo dell'area: peggio l'etichetta
+            // spostata che nessun livello disegnato.
+        }
+
         foreach (var level in levels)
         {
             var y = ChartInfo.GetYByPrice(level.Price, false);
@@ -626,7 +657,7 @@ public sealed class DataBridge : Indicator
 
             var color = ParseColor(level.Color);
             var pen = new RenderPen(color, Math.Clamp(level.Width, 1, 5), DashOf(level.Style));
-            context.DrawLine(pen, area.Left, y, area.Right, y);
+            context.DrawLine(pen, area.Left, y, dataRight, y);
 
             var text = string.IsNullOrWhiteSpace(level.Label)
                 ? level.Price.ToString("0.##", CultureInfo.InvariantCulture)
@@ -634,8 +665,8 @@ public sealed class DataBridge : Indicator
 
             var size = context.MeasureString(text, font);
             var x = LabelOnRight
-                ? area.Right - size.Width - 6
-                : area.Left + 6;
+                ? Math.Max(area.Left + LabelMargin, dataRight - size.Width - LabelMargin)
+                : area.Left + LabelMargin;
 
             // Fondo pieno dietro l'etichetta: sopra un footprint denso il testo nudo e' illeggibile.
             context.FillRectangle(Color.FromArgb(190, 0, 0, 0),
