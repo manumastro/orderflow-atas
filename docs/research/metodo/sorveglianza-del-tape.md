@@ -251,6 +251,22 @@ sul chart: il secondo che scatta spegne il primo. Raggruppa per **argomento**, n
 `VAL 29306`, `muro 29400`, `bordo basso`, `IVB` — perche' e' l'argomento a essere unico, mentre le
 letture che ne danno sono molte e successive.
 
+### Se uno scenario e' scattato si legge, non si deduce
+
+Le righe `SCATTA` del motore arrivano raggruppate e con ritardo: il 15 settembre uno scatto sulla
+barra delle 13:19 e' comparso alle 13:27, e uno delle 13:26 alle 13:33. Il ritardo non e' negli
+strumenti — il bridge risponde in 0,18 secondi e il motore gira ogni 20 — ma nella consegna.
+
+L'errore che ne e' seguito: ho **dedotto** dai dati che uno scenario non fosse scattato, e ho
+scritto sul diario che il filtro sul volume lo aveva tenuto fermo. Era scattato da otto minuti e
+l'annotazione era gia' nel file.
+
+    ./annota.py --elenco          # l'unica fonte sincrona
+
+Il diario e' scritto dal motore nel momento in cui scatta. Le notifiche dicono **cosa** e'
+successo, non **quando** lo si viene a sapere. Prima di affermare che qualcosa non e' scattato, si
+guarda l'elenco.
+
 ### Il riavvio non deve riscrivere quello che c'e' gia'
 
 Il motore si riavvia spesso: cambiare gli scenari durante una seduta e' la norma, e cambiare il
