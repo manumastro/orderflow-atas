@@ -1,0 +1,72 @@
+[
+  {
+    "price": 29495.25,
+    "label": "Max ieri 03:16 · il punto da cui e' partita la caduta",
+    "color": "#6B7A99",
+    "style": "dash",
+    "width": 1
+  },
+  {
+    "price": 29453.5,
+    "label": "Mensola · IVB alto di ieri, POC 2-10-14 set",
+    "color": "#8E7CC3",
+    "style": "solid",
+    "width": 2
+  },
+  {
+    "price": 29400.0,
+    "label": "Il muro · rotto 06:21, ripreso 13:00, riperso in serata",
+    "color": "#7A8FA6",
+    "style": "solid",
+    "width": 2
+  },
+  {
+    "price": 29372.5,
+    "label": "IVB basso di ieri · il livello che apri' lo short",
+    "color": "#8E7CC3",
+    "style": "dot",
+    "width": 1
+  },
+  {
+    "price": 29358.5,
+    "label": "Max stanotte 05:21 · primo ostacolo sopra",
+    "color": "#6B7A99",
+    "style": "dash",
+    "width": 1
+  },
+  {
+    "price": 29262.0,
+    "label": "DOPPIO POC · 21% ieri + 30% stanotte: il valore vero",
+    "color": "#7A8FA6",
+    "style": "solid",
+    "width": 2
+  },
+  {
+    "price": 29226.0,
+    "label": "Min stanotte 03:59",
+    "color": "#6B7A99",
+    "style": "dash",
+    "width": 1
+  },
+  {
+    "price": 29207.5,
+    "label": "Min ieri 21:52 · il minimo delle ultime 24 ore",
+    "color": "#6B7A99",
+    "style": "solid",
+    "width": 2
+  },
+  {
+    "price": 29168.0,
+    "label": "Min cash lunedi · sotto, continua la discesa di lunedi",
+    "color": "#7A8FA6",
+    "style": "dot",
+    "width": 1
+  },
+  {
+    "price": 29107.25,
+    "label": "Min globex lunedi · il minimo della settimana",
+    "color": "#7A8FA6",
+    "style": "dot",
+    "width": 1
+  }
+]

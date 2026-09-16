@@ -69,3 +69,4 @@
 2026-09-15 12:04 profilo di giornata: POC corretto a 29.450-29.459 (finestra dalla globex, non dalle 06:00); vuoto spostato da 29.375 a 29.400-29.424
 2026-09-15 13:50 giornata 15 set: cronaca 10:32-13:45 scritta durante la seduta; correzione 4.6 sul valore predittivo del volume alto
 2026-09-15 16:45 giornata 15 set: sessione cash NY, IVB 29372,50-29453,50, gate short-only; correzione 4.7 sui monitor scaduti; livelli e scenari riscritti per il regime cash
+2026-09-16 07:40 giornata 16 set aperta: doppio POC 29250-29274 su due sedute, delta positivo su due giornate in calo

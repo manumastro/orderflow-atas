@@ -1,0 +1,65 @@
+[
+  {
+    "price": 29691.0,
+    "label": "Chiusura venerdi · 476 punti sopra: quanto e' caduto",
+    "color": "#6B7A99",
+    "style": "dash",
+    "width": 1
+  },
+  {
+    "price": 29675.0,
+    "label": "Bordo basso del valore di venerdi",
+    "color": "#7A8FA6",
+    "style": "dot",
+    "width": 1
+  },
+  {
+    "price": 29405.0,
+    "label": "Max lunedi (00:00) · da qui e' partita la caduta",
+    "color": "#6B7A99",
+    "style": "dash",
+    "width": 1
+  },
+  {
+    "price": 29312.0,
+    "label": "POC lunedi finora 25,8% · il prezzo piu' scambiato",
+    "color": "#7A8FA6",
+    "style": "solid",
+    "width": 2
+  },
+  {
+    "price": 29237.0,
+    "label": "Nodo 5,9% delta +260 · primo ostacolo sopra",
+    "color": "#7A8FA6",
+    "style": "dot",
+    "width": 1
+  },
+  {
+    "price": 29212.0,
+    "label": "Nodo 11,0% · il prezzo e' qui dentro",
+    "color": "#7A8FA6",
+    "style": "solid",
+    "width": 2
+  },
+  {
+    "price": 29162.0,
+    "label": "Nodo 7,5% · primo appoggio sotto",
+    "color": "#7A8FA6",
+    "style": "dot",
+    "width": 1
+  },
+  {
+    "price": 29137.0,
+    "label": "Nodo 8,8% · ultimo appoggio prima del minimo",
+    "color": "#7A8FA6",
+    "style": "dot",
+    "width": 1
+  },
+  {
+    "price": 29107.25,
+    "label": "MIN LUNEDI 11:25 · sotto non c'e' riferimento",
+    "color": "#6B7A99",
+    "style": "solid",
+    "width": 2
+  }
+]
