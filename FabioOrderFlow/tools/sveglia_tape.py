@@ -334,7 +334,7 @@ def main() -> None:
                               f"Le soglie sono troppo alte e la sveglia puo' restare muta. "
                               f"Alza --storia.")
             print(f"[sveglia attiva] {len(livelli)} livelli, di cui {len(chiavi)} chiave "
-                  f"(presidio {args.presidio:.0f} pt, avviso {args.avviso:.0f} pt) - "
+                  f"(presidio {args.presidio:g} pt, avviso {args.avviso:g} pt) - "
                   f"ultima barra {ora(u, args.fuso)} a {u['close']:.2f}, "
                   f"p95 volume {vol95}, p95 delta {delta95} "
                   f"su {len(chiuse)} barre da {inizio_base(args)[11:]}"
