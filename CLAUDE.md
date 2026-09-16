@@ -230,6 +230,10 @@ background scrive su un file e non sveglia l'agente. Procedura completa — filt
 scadenza, come si sospende e si riprende una pausa, e perche' il log entra nel giro d'orizzonte —
 in [`sorveglianza-del-tape.md`](docs/research/metodo/sorveglianza-del-tape.md), sezioni *"Come Si
 Tengono Accesi"*, *"Sospendere E Riprendere La Sorveglianza"* e *"La Notifica Non E' L'Unica Rete"*.
+
+**Riavviando la sveglia a seduta in corso, `--from` non basta**: dice da quando sorvegliare, non su
+quante barre calcolare le soglie di "fuori scala". Serve `--storia` (default 480 minuti), o lo
+strumento riparte cieco. Sezione *"`--from` Dice Da Quando, `--storia` Dice Su Cosa Si Misura"*.
 Procedura in
 [`docs/research/metodo/sorveglianza-del-tape.md`](docs/research/metodo/sorveglianza-del-tape.md).
 

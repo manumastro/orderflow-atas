@@ -36,6 +36,7 @@ from __future__ import annotations
 
 import argparse
 import json
+from datetime import datetime, timedelta
 import subprocess
 import sys
 import time
@@ -60,6 +61,7 @@ def mostra(riga: str, muto: bool = False) -> None:
 
 VICINO = 3.0        # quanto vicino al livello per considerarlo toccato
 ISTERESI = 1.5      # punti oltre il livello per dichiarare un cambio di lato a barra viva
+MIN_BASE = 120      # barre minime perche' i percentili significhino qualcosa; sotto, si grida
 
 
 def minuti(b: dict) -> int:
@@ -76,9 +78,22 @@ def ora(b: dict, fuso: int) -> str:
     return f"{(int(b['time'][11:13]) + fuso) % 24:02d}:{b['time'][14:16]}"
 
 
+def inizio_base(args) -> str:
+    """Da dove chiedere le barre: `--storia` minuti PRIMA dell'inizio della sorveglianza.
+
+    `--from` dice da quando si sorveglia, non su quali barre si misura. Tenerli uguali significa
+    che un riavvio a meta' seduta riparte con una manciata di barre, e i percentili calcolati su
+    quelle sono troppo alti: il 16 settembre la sveglia e' rimasta muta per 36 minuti durante il
+    nuovo massimo e la vendita piu' grossa del giorno, perche' era ripartita alle 11:30 e la sua
+    soglia "fuori scala" veniva da 35 barre. La base statistica va indietro comunque.
+    """
+    t = datetime.strptime(args.begin[:16], "%Y-%m-%dT%H:%M") - timedelta(minutes=args.storia)
+    return t.strftime("%Y-%m-%dT%H:%M")
+
+
 def candele(args) -> list[dict]:
     cmd = [sys.executable, str(BRIDGE), "candles",
-           "--from", args.begin, "--to", args.end, "--out", args.cache]
+           "--from", inizio_base(args), "--to", args.end, "--out", args.cache]
     if args.chart:
         cmd += ["--chart", args.chart]
     subprocess.run(cmd, check=True, timeout=90,
@@ -258,6 +273,10 @@ def main() -> None:
                     help="niente notifiche di sistema, solo stdout")
     ap.add_argument("--avviso", type=float, default=15.0,
                     help="punti di distanza a cui annunciare l'avvicinamento a un livello chiave")
+    ap.add_argument("--storia", type=int, default=480,
+                    help="minuti di barre PRIMA di --from usati solo per i percentili "
+                         "(default 480). --from dice da quando si sorveglia, --storia su cosa "
+                         "si misura: tenerli uguali rende muta una sveglia riavviata a meta' seduta")
     ap.add_argument("--presidio", type=float, default=8.0,
                     help="punti entro cui restare in ascolto barra per barra")
     ap.add_argument("--fuso", type=int, default=2, help="ore da aggiungere all'UTC (default 2)")
@@ -301,10 +320,17 @@ def main() -> None:
             visti = {b["time"] for b in chiuse}
             frontiera = minuti(chiuse[-1])
             u = chiuse[-1]
+            avvertenza = ""
+            if len(chiuse) < MIN_BASE:
+                avvertenza = (f"  ### BASE CORTA: solo {len(chiuse)} barre, ne servono {MIN_BASE}. "
+                              f"Le soglie sono troppo alte e la sveglia puo' restare muta. "
+                              f"Alza --storia.")
             print(f"[sveglia attiva] {len(livelli)} livelli, di cui {len(chiavi)} chiave "
                   f"(presidio {args.presidio:.0f} pt, avviso {args.avviso:.0f} pt) - "
                   f"ultima barra {ora(u, args.fuso)} a {u['close']:.2f}, "
-                  f"p95 volume {vol95}, p95 delta {delta95}", flush=True)
+                  f"p95 volume {vol95}, p95 delta {delta95} "
+                  f"su {len(chiuse)} barre da {inizio_base(args)[11:]}"
+                  f"{avvertenza}", flush=True)
             prima = False
         else:
             for i, b in enumerate(chiuse):

@@ -271,8 +271,9 @@ suoi messaggi per accorgersene.
 ```text
 Monitor(
   command:     cd <repo> && python3 -u FabioOrderFlow/tools/sveglia_tape.py \
-               --livelli docs/research/giornate/livelli-AAAA-MM-GG.json --from AAAA-MM-GGTHH:MM 2>&1 \
-               | grep -E --line-buffered 'ATTRAVERSAT|PRESIDIO|VOLUME|DELTA|ANOMAL|Error|Traceback'
+               --livelli docs/research/giornate/livelli-AAAA-MM-GG.json --from AAAA-MM-GGTHH:MM \
+               --storia 600 2>&1 \
+               | grep -E --line-buffered 'sveglia attiva|BASE CORTA|ATTRAVERSAT|PRESIDIO FINE|VOLUME|DELTA|GUARDA|ANOMAL|Error|Traceback'
   description: sveglia tape NQZ6: attraversamenti e presidi sui livelli chiave
   timeout_ms:  1800000
 )
@@ -297,6 +298,40 @@ Quattro vincoli che il filtro deve rispettare:
   scadenza: quello e' il promemoria, non un evento di mercato.
 - **`[attesa]` si toglie prima**, altrimenti ogni barra diventa una notifica e il monitor viene
   spento d'ufficio per troppi eventi.
+
+### `--from` Dice Da Quando, `--storia` Dice Su Cosa Si Misura
+
+La sveglia grida quando una barra e' **fuori scala**, e "fuori scala" e' un percentile: p95 del
+volume e p95 del delta, ricalcolati a ogni giro sulle barre che ha in mano. Finche' `--from`
+serviva solo a dire da quando sorvegliare, andava bene. Ma la stessa opzione decideva anche da
+dove scaricare le barre, e quindi **su quante barre si calcolavano le soglie**.
+
+Il 16 settembre ho riavviato la sveglia alle 11:30 a seduta in corso. Da quel momento la sua base
+statistica erano 35 barre, il suo p95 di delta era molto piu' alto del vero, ed e' rimasta **muta
+per 36 minuti** — durante il nuovo massimo di seduta a 29.392 e la vendita piu' grossa della
+giornata, due barre a delta −53 e −57 che con la base piena sarebbero state entrambe fuori scala.
+Nessun errore, nessun processo morto: la soglia era semplicemente irraggiungibile. **Un monitor
+tarato male non si distingue da un mercato tranquillo.**
+
+Le due cose ora sono separate:
+
+| | cosa decide |
+|---|---|
+| `--from` | da quale barra comincia la **sorveglianza**: gli eventi prima non si annunciano |
+| `--storia` | quanti minuti di barre **prima** di `--from` entrano nel calcolo dei percentili, e in nient'altro (default 480) |
+
+Due difese, perche' un default giusto non basta:
+
+- **La riga di avvio dichiara la base**: `p95 volume 224, p95 delta 48 su 357 barre da 04:10`. Si
+  legge, e se il numero e' piccolo si vede subito.
+- **Sotto `MIN_BASE` = 120 barre la sveglia grida `### BASE CORTA`** invece di partire in
+  silenzio. Il filtro dei `Monitor` deve comprendere `sveglia attiva|BASE CORTA`, altrimenti
+  l'avvertimento resta a video e non arriva a chi deve agire.
+
+**La regola generale, che vale oltre questo strumento:** quando una soglia e' relativa alla
+finestra osservata, la finestra della **misura** non puo' coincidere con la finestra
+dell'**attenzione**. Se coincidono, riavviare lo strumento lo rende cieco proprio nel momento in
+cui lo si e' riavviato perche' serviva.
 
 ### Sospendere E Riprendere La Sorveglianza
 
