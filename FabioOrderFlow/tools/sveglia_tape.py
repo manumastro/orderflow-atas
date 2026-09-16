@@ -64,7 +64,10 @@ VICINO = 3.0        # default NQ: quanto vicino al livello per considerarlo tocc
                     # 0,01%, 3 dollari su 103 del crude sono il 3%, e il 16 settembre 2026 la
                     # sveglia ha annunciato "Max stanotte 105.67 toccato con volume" mentre il
                     # prezzo stava a 103,03. Si passa con --vicino.
-ISTERESI = 1.5      # punti oltre il livello per dichiarare un cambio di lato a barra viva
+ISTERESI = 1.5      # default NQ: punti oltre il livello per dichiarare un cambio di lato a barra
+                    # viva. E' un PARAMETRO DELLO STRUMENTO, non una costante: 1,5 punti su NQ sono
+                    # un terzo di barra M1, su ESZ6 (barra ~1,25) sarebbero piu' di una barra
+                    # intera e l'avviso non scatterebbe mai. Si regola con --isteresi.
 MIN_BASE = 120      # barre minime perche' i percentili significhino qualcosa; sotto, si grida
 
 
@@ -245,21 +248,25 @@ def barra_viva(b, stato, args) -> list[str]:
     # Isteresi. Senza, un prezzo che oscilla sul livello suona a ogni giro: il 16 settembre ha
     # gridato due volte in un minuto per due punti di escursione. Per cambiare lato servono
     # ISTERESI punti oltre il livello; dentro la fascia non succede niente.
-    if b["close"] > p_ + ISTERESI:
+    ist = getattr(args, "isteresi", None) or ISTERESI
+    if b["close"] > p_ + ist:
         lato = "sopra"
-    elif b["close"] < p_ - ISTERESI:
+    elif b["close"] < p_ - ist:
         lato = "sotto"
     else:
         return []
     if lato == vecchio_lato:
         return []
 
-    # E comunque non piu' di due grida per barra: se il prezzo balla sul livello, la notizia e'
-    # che ci balla, e quella si vede alla chiusura.
+    # UNA gridata per barra viva, non due. La prima traversata di una barra non chiusa e' una
+    # notizia; la seconda ANNULLA la prima e non aggiunge niente — dice solo che la barra balla
+    # sul livello, e quello si legge alla chiusura. Il 16 settembre alle 20:11 il tetto IVB ha
+    # gridato "-> SOTTO" e dieci secondi dopo "-> SOPRA" sulla stessa barra: due notifiche che
+    # insieme valgono zero. Il tetto era gia' a due, ed era ancora una di troppo.
     if b["time"] != aperto.get("barra_viva"):
         aperto["barra_viva"] = b["time"]
         aperto["grida_viva"] = 0
-    if aperto.get("grida_viva", 0) >= 2:
+    if aperto.get("grida_viva", 0) >= 1:
         return []
     aperto["grida_viva"] = aperto.get("grida_viva", 0) + 1
     aperto["lato_vivo"] = lato
@@ -292,6 +299,9 @@ def main() -> None:
                     help="entro quanti punti dal livello una barra si dice che l'ha toccato "
                          "(default 3, tarato su NQ). E' una soglia assoluta: su uno strumento "
                          "con un prezzo o un tick diversi va riscalata o annuncia tocchi falsi")
+    ap.add_argument("--isteresi", type=float, default=ISTERESI,
+                    help="punti oltre il livello per dichiarare un cambio di lato a barra "
+                         "viva; parametro dello strumento, non costante (NQ 1.5, ES ~0.5)")
     ap.add_argument("--presidio", type=float, default=8.0,
                     help="punti entro cui restare in ascolto barra per barra")
     ap.add_argument("--fuso", type=int, default=2, help="ore da aggiungere all'UTC (default 2)")
