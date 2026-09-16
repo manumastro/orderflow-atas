@@ -97,3 +97,7 @@
             nuova regola: il ridisegno non si chiede, si fa - e dopo l'apertura cash il valore si
             misura sulla cash, non sulla finestra con la globex. CLAUDE.md, livelli-sul-chart.md,
             indice-delle-procedure.md. Nuovo scenario "assorbimento sul ritest del tetto IVB".
+2026-09-16  gate IVB aperto al rialzo (M30 17:00 a 29.499,50 sopra 29.481,50, delta +395). I tre
+            scenari del gate si sono rotti nel minuto dell'apertura: --from 14:55 non conteneva
+            l'IVB, quindi ivb_alto era None. Documentato. annota.py: le annotazioni senza prezzo
+            non cancellano piu' l'intero chart. Livelli e scenari rifatti sopra il gate.

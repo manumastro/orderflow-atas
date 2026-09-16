@@ -398,7 +398,37 @@ Due difese:
 tace perche' non gli e' arrivato niente e uno che tace perche' non sta guardando **devono suonare
 diversi**, altrimenti la seconda condizione non si scopre mai.
 
-### La Notifica Si Perde, Il Log No
+### `--from` Di `scenari.py` Decide Anche Dov'E' L'IVB
+
+**`scenari.py` non ha un `--storia`: la finestra chiesta al bridge con `--from` e' anche l'unica
+storia su cui calcola l'IVB.** Se `--from` cade dopo le 16:00, le barre 15:30-16:00 non arrivano,
+`ivb_alto` e `ivb_basso` restano `None`, e **ogni scenario che li nomina si rompe** con un
+`TypeError` — proprio quelli del gate, che sono i piu' importanti della giornata.
+
+Il 16 settembre e' successo alle 17:00, nel minuto esatto in cui il gate si apriva: avevo riavviato
+il motore con `--from 14:55` per non rivalutare la storia, e i tre scenari del gate hanno stampato
+`SCENARIO ROTTO` invece di `GATE AL RIALZO`. Il permesso long l'ho verificato a mano sui dati.
+
+**Regola: riavviando `scenari.py` a seduta in corso, `--from` deve cadere prima dell'inizio
+dell'IVB** — le 15:30 per gli indici, le 15:00 per il crude — ogni volta che il file degli scenari
+nomina `ivb_alto` o `ivb_basso`. Rivalutare la storia costa qualche secondo; perdere il gate costa
+la giornata.
+
+E' la stessa forma dell'errore di `--from`/`--storia` sulla sveglia: **un parametro che sembra dire
+"da quando guardare" e invece decide anche "su cosa si misura"**. Quando un parametro ha due
+significati, il secondo si scopre quando ha gia' fatto danno.
+
+## Una Annotazione Senza Prezzo Non Deve Cancellare Il Chart
+
+`POST /levels` **sostituisce l'intera lista** e rifiuta il batch se un solo livello ha `price <= 0`.
+`scenari.py` annota gli scenari rotti con `--prezzo 0`, perche' quell'avviso non sta a un prezzo:
+il risultato era HTTP 400 e **il chart restava senza nessun livello**, strutturali compresi.
+
+`annota.py` ora scarta i livelli senza prezzo prima di spingere, li elenca a video e manda il
+resto. L'annotazione resta nel diario, semplicemente non si disegna. La regola generale: **una
+annotazione non puo' far sparire un livello** — se non e' disegnabile, si dice e si va avanti.
+
+## La Notifica Si Perde, Il Log No
 
 **Non tutte le notifiche dei Monitor svegliano l'agente.** Il 16 settembre l'utente lo ha fatto
 notare, ed e' verificabile nella trascrizione: alcuni eventi sono arrivati troncati a meta' riga

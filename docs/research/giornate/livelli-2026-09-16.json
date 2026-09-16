@@ -1,44 +1,44 @@
 [
   {
+    "price": 29604.0,
+    "label": "VAH di lunedi' · primo bersaglio con storia vera sopra",
+    "color": "#E69138",
+    "style": "solid",
+    "width": 3
+  },
+  {
+    "price": 29500.0,
+    "label": "Base compratori del gate (71 lotti, delta +71) · max ieri 29.495,25",
+    "color": "#6AA84F",
+    "style": "solid",
+    "width": 3
+  },
+  {
     "price": 29481.5,
-    "label": "TETTO IVB · VAH cash 29.480,75 · M30 sopra = LONG; da dentro = fade SHORT",
+    "label": "TETTO IVB · chiusura M30 sotto = permesso LONG revocato",
     "color": "#3D85C6",
     "style": "solid",
     "width": 3
   },
   {
     "price": 29475.75,
-    "label": "Sforzo venditore 17:00 (95 lotti, 64 in bid) · stop del long di rottura",
+    "label": "Sforzo venditore 17:00 · stop del long di rottura (dossier)",
     "color": "#CC0000",
     "style": "dash",
     "width": 2
   },
   {
-    "price": 29460.0,
-    "label": "POC cash · target 1 di entrambi i fade",
+    "price": 29467.0,
+    "label": "POC cash · dove torna il prezzo se la rottura fallisce",
     "color": "#C27BA0",
     "style": "solid",
-    "width": 3
-  },
-  {
-    "price": 29450.0,
-    "label": "POC e chiusura di ieri · minimo tenuto 29.450,25",
-    "color": "#6AA84F",
-    "style": "dash",
     "width": 2
   },
   {
-    "price": 29416.75,
-    "label": "VAL cash · qui il fade e' LONG, target 29.460",
+    "price": 29417.0,
+    "label": "VAL cash · sotto qui la giornata rialzista e' finita",
     "color": "#E69138",
-    "style": "solid",
-    "width": 3
-  },
-  {
-    "price": 29373.25,
-    "label": "PAVIMENTO IVB · chiusura M30 sotto = permesso SHORT",
-    "color": "#3D85C6",
-    "style": "solid",
-    "width": 3
+    "style": "dash",
+    "width": 2
   }
 ]

@@ -18,5 +18,31 @@
     "scenario": "riprende l'IVB basso di ieri",
     "condizione": "c > 29372.5 and minuti_sotto(29372.5, 20) <= 5 and vol_sopra_pct(29372.5, 20) >= 65",
     "tema": "il soffitto di ieri"
+  },
+  {
+    "ora": "17:00",
+    "prezzo": 0.0,
+    "tipo": "rottura",
+    "testo": "SCENARIO ROTTO: il gate apre al rialzo - non scattera'",
+    "misura": "il gate apre al rialzo: TypeError: '>' not supported between instances of 'float' and 'NoneType'",
+    "tema": "scenari rotti",
+    "superata_da": "17:00"
+  },
+  {
+    "ora": "17:00",
+    "prezzo": 0.0,
+    "tipo": "rottura",
+    "testo": "SCENARIO ROTTO: il gate apre al rialzo, il gate apre al ribasso - non scattera'",
+    "misura": "il gate apre al rialzo: TypeError: '>' not supported between instances of 'float' and 'NoneType'; il gate apre al ribasso: TypeError: '<' not supported between instances of 'float' and 'NoneType'",
+    "tema": "scenari rotti",
+    "superata_da": "17:00"
+  },
+  {
+    "ora": "17:00",
+    "prezzo": 0.0,
+    "tipo": "rottura",
+    "testo": "SCENARIO ROTTO: il gate apre al rialzo, il gate apre al ribasso, il gate resta dentro l'IVB - non scattera'",
+    "misura": "il gate apre al rialzo: TypeError: '>' not supported between instances of 'float' and 'NoneType'; il gate apre al ribasso: TypeError: '<' not supported between instances of 'float' and 'NoneType'; il gate resta dentro l'IVB: TypeError: '<=' not supported between instances of 'NoneType' and 'float'",
+    "tema": "scenari rotti"
   }
 ]

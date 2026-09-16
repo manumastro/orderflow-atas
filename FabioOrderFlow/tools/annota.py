@@ -71,10 +71,25 @@ def spingi(livelli: list, chart: str | None) -> None:
     `POST /levels` sostituisce l'intera lista, quindi non si aggiunge una riga sola. Ripartire
     ogni volta dai file garantisce che un'annotazione non possa cancellare un livello.
     """
+    buoni, scartati = [], []
+    for l in livelli:
+        try:
+            ok = float(l.get("price") or 0) > 0
+        except (TypeError, ValueError):
+            ok = False
+        (buoni if ok else scartati).append(l)
+    if scartati:
+        # Il bridge rifiuta l'INTERA lista se un solo livello ha price <= 0, e allora anche i
+        # livelli strutturali spariscono dal chart. Un'annotazione senza prezzo - `scenari.py`
+        # ne scrive una con --prezzo 0 quando uno scenario si rompe - non deve poter cancellare
+        # il resto: resta nel diario, non va a schermo, e lo si dice.
+        print(f"[{len(scartati)} annotazioni senza prezzo, non disegnabili: "
+              + "; ".join(str(l.get("label") or l.get("testo") or "?") for l in scartati) + "]",
+              flush=True)
     cmd = [sys.executable, str(BRIDGE), "levels", "--file", "-"]
     if chart:
         cmd += ["--chart", chart]
-    subprocess.run(cmd, input=json.dumps(livelli), text=True, check=True,
+    subprocess.run(cmd, input=json.dumps(buoni), text=True, check=True,
                    stdout=subprocess.DEVNULL)
 
 
