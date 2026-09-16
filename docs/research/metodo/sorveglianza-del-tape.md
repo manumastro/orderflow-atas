@@ -350,6 +350,24 @@ Le tre condizioni sono in **and**, ed e' voluto: un presidio corto ma con un att
 caso piu' interessante che ci sia, e uno corto su volume grosso e' un rifiuto violento. Si tace
 solo quando mancano tutte e tre le ragioni per parlare.
 
+### Se ATAS Ha Piu' Di Un Chart, Va Detto Quale
+
+Il bridge parla con il chart registrato. Se ATAS ne ha registrati **due** — basta aprirne uno
+nuovo, il 16 settembre alle 12:27 si e' aggiunto MCLV6 — ogni richiesta che non dica quale viene
+rifiutata con `2 charts are registered: repeat the request with ?chart=<id|instrument>`.
+
+Il sintomo inganna: i sorveglianti stampano `[bridge non raggiungibile]` e il giro d'orizzonte
+scrive che il bridge e' spento. **Non lo e': e' ambiguo.** La verifica che distingue i due casi
+costa un comando, e la risposta contiene gia' la lista dei chart:
+
+```bash
+curl -s http://127.0.0.1:8787/health
+```
+
+Tutti gli strumenti accettano `--chart NQZ6`, e l'hook
+[`giro-orizzonte.sh`](../../../.claude/hooks/giro-orizzonte.sh) lo passa da una variabile `CHART`
+in cima al file. **Al rollover del contratto si cambia li'**, in un posto solo.
+
 ### Sospendere E Riprendere La Sorveglianza
 
 Quando si fa una pausa **non si spengono i sorveglianti: si staccano**. La seduta continua, e

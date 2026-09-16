@@ -35,9 +35,15 @@ GIORNATE = HERE.parent.parent / "docs" / "research" / "giornate"
 COT = HERE.parent.parent / "docs" / "research" / "cot"
 
 
+# Il chart da interrogare, quando ATAS ne ha registrato piu' di uno. Lo riempie main() da
+# --chart: senza, il bridge rifiuta ogni richiesta con "2 charts are registered" e il giro
+# d'orizzonte dichiara il bridge irraggiungibile pur essendo acceso (16 settembre, 12:27).
+CHART: list[str] = []
+
+
 def bridge(*args) -> dict | None:
     try:
-        out = subprocess.run([sys.executable, str(BRIDGE), *args],
+        out = subprocess.run([sys.executable, str(BRIDGE), *args, *CHART],
                              capture_output=True, text=True, timeout=30)
         return json.loads(out.stdout) if out.returncode == 0 else None
     except Exception:
@@ -70,7 +76,10 @@ def main() -> int:
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--giorno", default=dt.date.today().isoformat())
     p.add_argument("--barre", type=int, default=15, help="quante barre di tape mostrare")
+    p.add_argument("--chart", help="id o strumento, se ATAS ha piu' di un chart registrato")
     a = p.parse_args()
+    if a.chart:
+        CHART[:] = ["--chart", a.chart]
     g = a.giorno
 
     # 1 --------------------------------------------------------------- il bridge
