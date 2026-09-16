@@ -115,6 +115,18 @@ default la sveglia ha annunciato *«Max stanotte 105.67 toccato con volume»* me
 a 103,03. **Ogni costante scritta nel codice di uno strumento e' un parametro di un altro**: prima
 di armare, si cercano tutte e si riscalano.
 
+**La terza costante nascosta, trovata aprendo ES: l'ampiezza delle fasce del profilo.** Era fissa
+a 25 punti dentro `giro_orizzonte.py`. Su NQ, con un range di seduta da ~300 punti, produce una
+dozzina di fasce leggibili; su ESZ6, con un range da ~50, ne produceva **due** — e il profilo, che
+serve a dire *dove* sta il volume, diceva solo che il volume c'era. Ora si ricava dal range della
+finestra puntando a ~15 fasce, con arrotondamento a un taglio leggibile (0,05 / 0,1 / 0,25 / 0,5 /
+1 / 2 / 5 / 10 / 25…), e l'ampiezza scelta si stampa accanto al POC.
+
+Il conto delle costanti trovate finora aprendo un secondo e un terzo strumento: `--vicino` (crude),
+le soglie di presidio e avviso (crude ed ES), l'ampiezza delle fasce (ES), e `--giorno` trattato
+come data invece che come chiave (ES). **Nessuna era dichiarata come parametro prima che uno
+strumento nuovo la rompesse.**
+
 I percentili (p95 volume, p95 delta) li calcola la sveglia sulla propria base: si **legge la riga
 di avvio** e si controlla che siano plausibili. Se dice `BASE CORTA`, si alza `--storia`.
 

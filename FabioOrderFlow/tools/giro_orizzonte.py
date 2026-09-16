@@ -200,10 +200,19 @@ def main() -> int:
     # 8 ------------------------------------------------------------------ il profilo
     titolo(8, "IL PROFILO DELLA FINESTRA DISPONIBILE")
     if cs:
+        # L'AMPIEZZA DELLA FASCIA E' UN PARAMETRO, NON UNA COSTANTE. Era fissa a 25 punti, che
+        # su NQ (range di seduta ~300 punti) da' una dozzina di fasce leggibili e su ESZ6 (range
+        # ~50) ne da' DUE: il profilo smette di dire dove sta il volume. Si ricava dal range della
+        # finestra puntando a ~15 fasce, e si arrotonda a un taglio "umano" (1, 2, 5, 10, 25...).
+        estensione = max(c["high"] for c in cs) - min(c["low"] for c in cs)
+        grezza = max(estensione / 15.0, 1e-9)
+        tagli = [0.05, 0.1, 0.25, 0.5, 1, 2, 5, 10, 25, 50, 100, 250]
+        passo = min((t for t in tagli if t >= grezza), default=tagli[-1])
         b = collections.Counter()
         dl = collections.Counter()
         for c in cs:
-            k = int(((c["high"] + c["low"]) / 2) // 25 * 25)
+            k = ((c["high"] + c["low"]) / 2) // passo * passo
+            k = round(k, 4)
             b[k] += c["volume"]
             dl[k] += c.get("delta", 0)
         tot = sum(b.values())
@@ -215,9 +224,10 @@ def main() -> int:
             if q < 1.0:
                 continue
             m = " POC" if k == poc else ""
-            print(f"  {k}-{k+25}  {b[k]:8,} {q:5.1f}%  delta {dl[k]:+7,}  "
+            et = f"{k:g}-{k+passo:g}"
+            print(f"  {et:<15} {b[k]:8,} {q:5.1f}%  delta {dl[k]:+7,}  "
                   f"{'#' * int(q / 1.5)}{m}")
-        print(f"  (fasce sotto l'1% omesse; POC {poc}-{poc+25} con "
+        print(f"  (fascia {passo:g}, fasce sotto l'1% omesse; POC {poc:g}-{poc+passo:g} con "
               f"{b[poc]/tot*100:.1f}% e delta {dl[poc]:+,})")
 
     print("\n" + "─" * 78)
