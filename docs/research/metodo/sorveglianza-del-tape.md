@@ -184,6 +184,13 @@ Le prove sono sei, e **nessuna e' facoltativa**.
 | 5 | **La storia non la smentisce** | `--prova` sulla seduta e su quelle precedenti: si guarda **dove avrebbe scattato**. Se scatta dove non e' successo niente, separa male |
 | 6 | **I tempi del setup sono dichiarati** | se la fonte descrive una sequenza — stoppino, assorbimento, flip — e la condizione la comprime in una barra, lo si scrive in `attesa`. Una approssimazione dichiarata si corregge; una taciuta diventa un segnale falso |
 
+**`NESSUN PERMESSO` non si scrive sul chart.** Il campo resta obbligatorio nel file — la prova 3
+non cambia — ma e' di gran lunga il valore piu' frequente, e stamparlo in testa a ogni etichetta
+riempie il grafico di scritte che dicono tutte la stessa cosa e nessuna aiuta a decidere. Il verso
+compare sul chart **solo quando concede qualcosa**: `LONG`, `SHORT`. Vale anche per l'avviso
+sonoro. Richiesta dell'utente, 16 settembre 2026, ed e' la stessa regola del *"un livello non e'
+mai il fine"* di `CLAUDE.md`: cio' che sta sul chart deve cambiare una decisione.
+
 **Un setup a piu' tempi non e' una barra.** Il mean reverting del dossier ha tre passi ordinati e
 due su tre non bastano. Una condizione su singola barra ne e' una approssimazione utile perche'
 arriva subito, non perche' sia equivalente: il suo compito e' **far guardare**, e per questo il

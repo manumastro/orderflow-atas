@@ -298,10 +298,14 @@ def annota(s, ctx, giorno, chart):
            "--scenario", s["nome"], "--condizione", s["quando"]]
     if s.get("tema"):
         cmd += ["--tema", s["tema"]]
-    # Il verso e' la conseguenza operativa, e va letta sul chart senza aprire il file: uno
-    # scenario che dice solo cosa succede lascia la domanda a cui serviva rispondere.
+    # Il verso si scrive sul chart SOLO quando concede qualcosa. `NESSUN PERMESSO` e' il
+    # valore di gran lunga piu' frequente — lo impone il metodo per ogni scenario che non
+    # discende da una riga del dossier — e stamparlo riempie il grafico di etichette che
+    # dicono tutte la stessa cosa. Il campo resta obbligatorio nel file: non e' l'obbligo
+    # che cade, e' la sua ripetizione sul chart. Richiesta dell'utente, 16 settembre 2026.
     verso = s.get("verso")
-    testo = f"[{verso}] {s.get('testo', s['nome'])}" if verso else s.get("testo", s["nome"])
+    concede = verso and verso.upper() not in ("NESSUN PERMESSO", "-", "NESSUNO")
+    testo = f"[{verso}] {s.get('testo', s['nome'])}" if concede else s.get("testo", s["nome"])
     cmd[cmd.index("--testo") + 1] = testo
     misura = s.get("attesa", "")
     if s.get("implica"):
@@ -518,7 +522,9 @@ def main() -> None:
                     print(f"{riga} | atteso: {s.get('attesa', '-')}", flush=True)
                     # Uno scenario che scatta va davanti agli occhi di chi opera subito, non
                     # quando l'analisi ha finito di scrivere.
-                    avvisa(f"[{s.get('verso', '-')}] {riga}", titolo="NQ scenario")
+                    v = s.get("verso") or ""
+                    pre = f"[{v}] " if v.upper() not in ("NESSUN PERMESSO", "-", "NESSUNO", "") else ""
+                    avvisa(f"{pre}{riga}", titolo="NQ scenario")
                     annota(s, ctx, args.giorno, args.chart)
         time.sleep(args.intervallo)
 

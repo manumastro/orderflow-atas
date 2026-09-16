@@ -112,3 +112,4 @@
 2026-09-16  NQZ6 riaperto per l'evento Fed: valore cash rimisurato, 9 livelli col vuoto 29604-29675, 6 scenari coi due gate, sorveglianti riaccesi
 2026-09-16  permesso_di_fatto.py: l'accettazione su barre M1 accanto al gate M30 (oggi -84 min in revoca, +1 min in concessione), isteresi obbligatoria, doc e puntatori
 2026-09-16  conferenza Warsh: -238 punti in 28 minuti, pavimento IVB rotto, primo permesso di fatto SHORT 23 minuti prima del gate M30; buco di sorveglianza 20:13-20:35 dichiarato
+2026-09-16  il verso NESSUN PERMESSO non si stampa piu' sul chart ne' nell'avviso: resta obbligatorio nel file degli scenari, ma sul grafico compare solo un verso che concede qualcosa
