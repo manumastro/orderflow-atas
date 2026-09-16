@@ -59,6 +59,7 @@ def mostra(riga: str, muto: bool = False) -> None:
         avvisa(riga, titolo="NQ tape")
 
 VICINO = 3.0        # quanto vicino al livello per considerarlo toccato
+ISTERESI = 1.5      # punti oltre il livello per dichiarare un cambio di lato a barra viva
 
 
 def minuti(b: dict) -> int:
@@ -213,9 +214,28 @@ def barra_viva(b, stato, args) -> list[str]:
     if not aperto:
         return []
     p_ = aperto["p"]
-    lato = "sopra" if b["close"] > p_ else "sotto"
-    if lato == aperto.get("lato_vivo", aperto["lato_corrente"]):
+    vecchio_lato = aperto.get("lato_vivo", aperto["lato_corrente"])
+
+    # Isteresi. Senza, un prezzo che oscilla sul livello suona a ogni giro: il 16 settembre ha
+    # gridato due volte in un minuto per due punti di escursione. Per cambiare lato servono
+    # ISTERESI punti oltre il livello; dentro la fascia non succede niente.
+    if b["close"] > p_ + ISTERESI:
+        lato = "sopra"
+    elif b["close"] < p_ - ISTERESI:
+        lato = "sotto"
+    else:
         return []
+    if lato == vecchio_lato:
+        return []
+
+    # E comunque non piu' di due grida per barra: se il prezzo balla sul livello, la notizia e'
+    # che ci balla, e quella si vede alla chiusura.
+    if b["time"] != aperto.get("barra_viva"):
+        aperto["barra_viva"] = b["time"]
+        aperto["grida_viva"] = 0
+    if aperto.get("grida_viva", 0) >= 2:
+        return []
+    aperto["grida_viva"] = aperto.get("grida_viva", 0) + 1
     aperto["lato_vivo"] = lato
     rng = b["high"] - b["low"]
     pos = (b["close"] - b["low"]) / rng if rng else 0.0

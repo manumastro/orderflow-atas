@@ -327,6 +327,13 @@ barra **in formazione** e grida appena attraversa, una volta per cambio di lato:
 
     !!! ORA ATTRAVERSA VAH notte 29335 -> SOTTO [BARRA NON CHIUSA, puo' rientrare] ...
 
+**Due freni, perche' un avviso che suona sempre non e' un avviso.** Per dichiarare un cambio di
+lato a barra viva servono **1,5 punti oltre il livello** (isteresi): dentro quella fascia il prezzo
+puo' ballare quanto vuole e non succede niente. E comunque **al massimo due grida per barra**: se
+il prezzo balla sul livello, la notizia e' che ci balla, e quella si legge alla chiusura. Senza
+questi due freni, alle 10:16 del 16 settembre la sveglia ha suonato due volte in un minuto per due
+punti di escursione.
+
 La marcatura `BARRA NON CHIUSA` non e' decoro. Il 16 settembre alle 10:11 il prezzo e' sceso a
 29.327,50, sotto il VAH, e io l'ho letta come rottura: la barra ha chiuso a **29.336,50, sopra il
 bordo, con delta +14**. Una barra viva puo' tornare indietro, e **un conteggio di accettazione si

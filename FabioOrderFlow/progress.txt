@@ -77,3 +77,4 @@
 2026-09-16  sveglia_tape.py: presidio sui livelli chiave. AVVICINAMENTO a 15 punti, poi ogni barra finche' il prezzo resta entro 8 punti, poi un riassunto di chiusura con durata, volume, delta% ed escursione. Intervallo di polling da 20s a 10s.
 2026-09-16  sveglia: dentro il presidio il cambio di lato grida, e si guarda anche la barra in formazione (marcata NON CHIUSA). giro_orizzonte marca l'ultima barra ed esclude la barra viva dalle finestre mobili: due letture sbagliate oggi nascevano da li'.
 2026-09-16  avviso.py: ogni evento del tape arriva in notifica di sistema macOS con suono e in ~/.fabio-avvisi.log, prima della lettura dell'agente. Filtro: presidio ordinario muto, attraversamenti e scenari notificati.
+2026-09-16  sveglia: isteresi di 1,5 punti e massimo due avvisi per barra sull'attraversamento a barra viva. Senza, un prezzo che oscilla sul livello suonava a ogni giro.
