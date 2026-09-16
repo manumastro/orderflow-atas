@@ -302,6 +302,31 @@ e' stata riscritta alle 12:17 dal motore riavviato. Rimossa con `--togli`, e l'o
 sul chart con `--rianima` — il meccanismo del tema l'aveva spenta trattando la copia come una
 lettura successiva.
 
+### La Lettura Dal Vivo E Il Diario Sono Due Cose Diverse
+
+Si scrivono nello stesso momento e hanno due destinatari opposti.
+
+**La lettura dal vivo** va a chi ha il grafico davanti a mercato aperto. Tre parti — stato,
+misura, discriminante — e nient'altro. Forma e regole in `CLAUDE.md`, sezione *Come Si Scrive Una
+Lettura Dal Vivo*.
+
+**Il diario** (`--misura` di `annota.py`, e il file della giornata) va a chi rilegge a mercato
+chiuso, settimane dopo, per capire **se il metodo funzionava**. Li' dentro va tutto: le soglie, i
+confronti, i numeri che allora sembravano irrilevanti, e soprattutto le letture che si sono
+rivelate sbagliate.
+
+Un esempio dal 16 settembre. La lettura dal vivo:
+
+> Ha bucato ma non ha accettato: una sola barra chiusa sopra 29.358,50. Venti minuti a +9,7% di
+> delta, ma gli ultimi dieci a +3,0%: ogni spinta rende la meta' della precedente. Sopra 29.372,50
+> il bersaglio cambia; un'altra chiusura sul minimo come alle 08:08 e sono tre rifiuti.
+
+Il diario, per la stessa barra, tiene anche: i nove passaggi storici sul livello, i tre falliti
+oltre i 45 minuti, il precedente delle 05:21 con +27% di delta e -17 di risultato, il p95 del
+momento, e il fatto che mancavano 49 minuti a Londra.
+
+**Accorciare il primo e' un miglioramento. Accorciare il secondo e' perdere il lavoro.**
+
 ### Il diario non e' un sottoprodotto
 
 Ogni annotazione finisce in `docs/research/giornate/annotazioni-AAAA-MM-GG.json` con l'ora, il

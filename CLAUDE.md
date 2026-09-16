@@ -61,6 +61,37 @@ riscritta come osservazione.
 [`fabio_course/ivbaaa/`](fabio_course/ivbaaa/) battono il dossier, il dossier batte i documenti di
 metodo, i documenti di metodo battono la conversazione. La memoria non e' una fonte.
 
+## Come Si Scrive Una Lettura Dal Vivo
+
+Chi legge **ha gli occhi sul grafico**, a mercato aperto, e deve capire in dieci secondi. La
+lettura serve a dire quello che **non si vede guardando** — non a descrivere quello che si vede.
+
+**Tre parti, in quest'ordine, e nient'altro:**
+
+1. **Lo stato**, una frase. Cosa sta facendo il prezzo, e se e' deciso o no.
+2. **La misura**, due o tre numeri. Solo quelli che sostengono la frase sopra.
+3. **Il discriminante**, una riga per ramo. Quale livello risolve, e cosa significa ciascun esito.
+
+**Regole:**
+
+- **Un numero entra solo se cambia la conclusione.** Se togliendolo la frase resta vera, era
+  decoro.
+- **Niente tabella sotto le quattro righe.** Due confronti sono due righe di prosa.
+- **Non si rielenca cio' che e' gia' sul chart.** I livelli sono disegnati: si nominano, non si
+  ridescrivono.
+- **Un termine tecnico si spiega alla prima occorrenza della seduta**, non tutte le volte.
+- **Se non e' cambiato niente, si scrive quella riga sola.** Una lettura che ripete la precedente
+  con parole diverse fa perdere il segnale nelle prossime.
+- **Prima la conclusione, poi il perche'.** Mai il contrario: chi guarda il grafico si ferma dopo
+  la prima riga se quella riga gli basta.
+
+**L'eccezione, e non e' negoziabile:** il file della giornata in
+[`docs/research/giornate/`](docs/research/giornate/) e i documenti di metodo **restano completi**.
+La brevita' vale per la lettura dal vivo, che si legge con un occhio solo; il diario si legge a
+mercato chiuso e deve contenere tutto, comprese le misure che si riveleranno sbagliate — sono la
+parte verificabile. Accorciare il diario per lo stesso motivo per cui si accorcia una lettura
+significa perdere l'unica cosa che il progetto produce.
+
 ## Regole Di Lavoro
 
 Le cinque regole di metodo stanno in [`docs/research/percorso-del-progetto.md`](docs/research/percorso-del-progetto.md) e valgono
