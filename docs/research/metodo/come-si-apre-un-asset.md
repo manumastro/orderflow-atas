@@ -60,9 +60,15 @@ L'IVB e' i primi 30 minuti della **regolamentata**. Sbagliarla significa misurar
 e chiamarla gate.
 
 ```text
-indici (NQ, ES)      cash NY 15:30 CEST   ->  IVB 15:30-16:00, gate 16:30
-crude (CL, MCL)      pit NYMEX 15:00 CEST ->  IVB 15:00-15:30, gate 15:30
+indici (NQ, ES)      cash NY 15:30 CEST   ->  IVB 15:30-16:00, gate 16:30 (barra 16:29)
+crude (CL, MCL)      pit NYMEX 15:00 CEST ->  IVB 15:00-15:30, gate 16:00 (barra 15:59)
 ```
+
+**Stampa dell'IVB e gate sono due momenti diversi, e confonderli costa mezz'ora.** L'IVB finisce
+di stamparsi alla fine dei primi 30 minuti; il **permesso** arriva alla prima **chiusura a 30
+minuti** successiva, fuori dal range. Sul crude l'IVB e' chiuso alle 15:30 ma il gate cade alle
+**16:00**. Il 16 settembre l'ho detto «gate 15:30» tre volte di seguito prima di accorgermene —
+gli scenari erano scritti giusti, la lettura no.
 
 ### 3. Il contesto istituzionale
 
