@@ -87,3 +87,4 @@
 2026-09-16  scenari: --from e in UTC e un orario futuro dava zero barre e silenzio; ora grida NESSUNA BARRA. Il monitor crude e rimasto muto mezz'ora e ha perso lo scatto di cede-103.58
 2026-09-16  sveglia: --vicino parametrizza il raggio di tocco (era 3.0 fisso, tarato su NQ: sul crude annunciava tocchi a 2,5 dollari di distanza)
 2026-09-16  NQ: diario aggiornato dalle 11:30 alle 13:52; scenario 'il muro respinge' a 29.400 dichiarato smentito (4.2). Crude MCLV6 chiuso, sorveglianti fermati.
+2026-09-16  NQ: sessione sospesa alle 14:10, monitor spenti. 29.400 ritestato da sopra e tenuto; massimo 29.439; mensola 29.453,50 non raggiunta.
