@@ -255,6 +255,21 @@ strumento riparte cieco. Sezione *"`--from` Dice Da Quando, `--storia` Dice Su C
 Procedura in
 [`docs/research/metodo/sorveglianza-del-tape.md`](docs/research/metodo/sorveglianza-del-tape.md).
 
+**Il delta esiste anche prezzo per prezzo.** `bridge.py candles --levels` restituisce la footprint
+di ogni barra — `ask` meno `bid` a ogni prezzo scambiato, piu' `maxPositiveDelta` e il POC di
+quella barra. Prima di dichiarare che un dato non c'e', si apre l'elenco degli endpoint in
+[`contratto-data-bridge.md`](docs/research/metodo/contratto-data-bridge.md): il 16 settembre ho
+detto che la footprint non era disponibile mentre era documentata. Procedura in
+[`la-footprint-e-il-delta-per-prezzo.md`](docs/research/metodo/la-footprint-e-il-delta-per-prezzo.md).
+
+**I livelli e i bordi del valore si rifanno durante la seduta, non solo all'apertura.** VAH, VAL e
+POC si ricalcolano **a ogni lettura che li usa**; l'insieme dei livelli quando il prezzo esce dalla
+fascia per cui era stato derivato, e sempre dopo la stampa dell'IVB; le etichette quando il livello
+cambia funzione. Un bordo calcolato alle 07:45 e citato alle 15:00 non e' una misura, e' una
+memoria — e il 16 settembre ha prodotto una lettura sbagliata che ha trovato l'utente, non io.
+Sezione *"I Livelli Si Rifanno Durante La Seduta"* in
+[`livelli-sul-chart.md`](docs/research/metodo/livelli-sul-chart.md).
+
 I livelli disegnati sul chart arrivano da `POST /levels`: l'indicatore disegna e basta, `bridge.py`
 trasporta e basta, la derivazione resta nell'analisi. Procedura in
 [`docs/research/metodo/livelli-sul-chart.md`](docs/research/metodo/livelli-sul-chart.md). Non

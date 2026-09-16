@@ -79,6 +79,23 @@ resta nell'analisi.** Non spostare quel calcolo dentro l'indicatore.
 Ci sono anche le tre cose che rendono utile un'etichetta — il nome, la misura che la sostiene, lo
 stato — e quella che non ci va mai: la previsione.
 
+E l'obbligo che il 16 settembre e' costato una lettura sbagliata: **i livelli si rifanno durante la
+seduta.** Il valore (VAH, VAL, POC) si ricalcola a ogni lettura che lo usa, l'insieme dei livelli
+quando il prezzo esce dalla fascia per cui era stato derivato e sempre dopo la stampa dell'IVB, le
+etichette quando il livello cambia funzione. Sezione *"I Livelli Si Rifanno Durante La Seduta"*.
+
+### 4bis. Il delta prezzo per prezzo
+
+[**`la-footprint-e-il-delta-per-prezzo.md`**](la-footprint-e-il-delta-per-prezzo.md) — `candles
+--levels` restituisce la footprint di ogni barra: `ask` meno `bid` a **ogni prezzo scambiato**,
+piu' `maxPositiveDelta`, `maxNegativeDelta` e il POC di quella barra.
+
+Serve a separare tre cose che il delta di barra confonde: una **base** (picco di delta e POC della
+barra allo stesso prezzo), un **passaggio** (delta sparso) e un **assorbimento** (volume alto,
+delta vicino a zero). Il 16 settembre ho dichiarato che questo dato non esisteva mentre era
+documentato nel contratto del bridge: prima di dire *"non ce l'ho"* si apre l'elenco degli
+endpoint.
+
 ### 5. La sorveglianza del tape, durante la seduta
 
 [**`sorveglianza-del-tape.md`**](sorveglianza-del-tape.md) — la procedura standard di studio di una

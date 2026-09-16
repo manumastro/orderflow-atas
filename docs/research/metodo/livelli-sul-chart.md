@@ -165,6 +165,43 @@ carattere.
 
 Quello che non ci va e' la previsione. Un'etichetta dice cosa e' successo li', non cosa succedera'.
 
+## I Livelli Si Rifanno Durante La Seduta, Non Solo All'Apertura
+
+**Un livello derivato alle 07:45 descrive il mercato delle 07:45.** Se alle 15:00 sta ancora sul
+chart senza essere stato rifatto, non e' un riferimento: e' un residuo, e chi lo guarda crede di
+vedere una misura mentre vede una memoria.
+
+Il 16 settembre e' successo in due modi diversi nella stessa giornata.
+
+**Il primo, trovato dall'utente.** VAH 29.335 e VAL 29.250 erano i bordi del valore **notturno**,
+calcolati alle 07:45. Li ho citati come "i bordi del valore" per nove ore e centomila lotti. Il
+valore in sviluppo, ricalcolato alle 15:00, era VAL 29.235 / POC 29.275 / **VAH 29.372,50** — e
+quel VAH coincideva con il livello su cui il prezzo stava combattendo da un'ora. Non era "sessanta
+punti sopra un bordo vecchio": **era sul bordo**, e la lettura che ne discendeva era sbagliata.
+
+**Il secondo, strutturale.** Alle 11:30 nove livelli su tredici stavano sotto 29.335, mentre tutto
+il pomeriggio si e' svolto fra 29.364 e 29.439, dove ce n'erano due. E due etichette dicevano il
+falso: `29.358,50 primo ostacolo sopra` era sotto il prezzo da quattro ore.
+
+### Quando si rifanno
+
+| | |
+|---|---|
+| **il valore** (VAH, VAL, POC) | **a ogni lettura che lo usa.** E' un calcolo di due secondi sul profilo in sviluppo, e il mean reverting ci si appoggia sopra: un bordo vecchio arma un fade su un prezzo che non e' piu' un bordo |
+| **l'insieme dei livelli** | quando il prezzo esce dalla fascia per cui erano stati derivati, e **sempre** dopo la stampa dell'IVB, che ridefinisce la giornata |
+| **le etichette** | quando cambia la **funzione** del livello: un tetto che diventa pavimento, un ostacolo che diventa supporto. Il prezzo resta, la frase no |
+
+### Due cose che non si fanno
+
+- **Non si ereditano i bordi da una sessione all'altra senza dirlo.** Il valore della notte e
+  quello in sviluppo sono due misure diverse: se si usa uno al posto dell'altro va dichiarato
+  quale, perche' il dossier (righe 139-196) dice *"fade the edges of the value area"* e **non
+  specifica quale sessione** — la scelta e' del metodo, non della fonte.
+- **Non si aggiorna il chart senza aggiornare gli scenari.** Il 16 settembre i livelli sono stati
+  rifatti sui bordi nuovi mentre i due `fade` restavano armati su 29.335 e 29.250: il grafico
+  diceva una cosa e il motore ne sorvegliava un'altra. Riscrivere uno scenario costa le sei prove,
+  e finche' non sono fatte **il fade non e' armato** — e va detto, non lasciato intendere.
+
 ## L'Etichetta Dice A Cosa Serve Arrivarci
 
 Un livello non e' il fine, e' una porta: l'etichetta deve dire **cosa cambia** quando il prezzo ci
