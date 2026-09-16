@@ -7,8 +7,22 @@
     "width": 3
   },
   {
+    "price": 29549.75,
+    "label": "Massimo di oggi 17:47 · bordo dell'esplorato",
+    "color": "#674EA7",
+    "style": "dash",
+    "width": 2
+  },
+  {
+    "price": 29518.0,
+    "label": "VAH cash · bordo alto del valore in sviluppo",
+    "color": "#E69138",
+    "style": "dash",
+    "width": 2
+  },
+  {
     "price": 29500.0,
-    "label": "Base compratori del gate (71 lotti, delta +71) · max ieri 29.495,25",
+    "label": "Base compratori del gate · ha retto tre ritest",
     "color": "#6AA84F",
     "style": "solid",
     "width": 3
@@ -21,13 +35,6 @@
     "width": 3
   },
   {
-    "price": 29475.75,
-    "label": "Sforzo venditore 17:00 · stop del long di rottura (dossier)",
-    "color": "#CC0000",
-    "style": "dash",
-    "width": 2
-  },
-  {
     "price": 29467.0,
     "label": "POC cash · dove torna il prezzo se la rottura fallisce",
     "color": "#C27BA0",
@@ -35,7 +42,7 @@
     "width": 2
   },
   {
-    "price": 29417.0,
+    "price": 29425.0,
     "label": "VAL cash · sotto qui la giornata rialzista e' finita",
     "color": "#E69138",
     "style": "dash",

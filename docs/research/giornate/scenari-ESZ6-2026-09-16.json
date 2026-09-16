@@ -39,19 +39,6 @@
     "attesa": "E' gia' successo due volte oggi (14:00Z chiusa a 7.671,75 e 14:30Z a 7.684,25). Serve a dire a voce alta che il permesso NON e' arrivato, invece di lasciarlo dedurre dal silenzio."
   },
   {
-    "nome": "fade del bordo alto del valore cash",
-    "sigla": "fade VAH 7684",
-    "prezzo": 7684.0,
-    "tipo": "fade",
-    "tema": "bordo alto",
-    "quando": "o <= 7684 and minuti_sotto(7684, 10) >= 6 and h > 7684 and c < 7684 and pos <= 0.3 and vol >= p95vol and delta <= -p75delta",
-    "verso": "SHORT · MEAN REVERTING",
-    "implica": "Tier 02-A (dossier 139-196): il prezzo arriva da DENTRO il valore, buca il bordo alto con uno stoppino, viene assorbito e ributtato dentro. TARGET 1 il POC 7.678,50 (riga 174), TARGET 2 il bordo opposto 7.669,50 (riga 175). Stop appena oltre lo stoppino assorbito. Rischio stretto = size ridotta e massimo 2 stop al giorno, non stop vicino.",
-    "altrimenti": "se accetta sopra 7.684 il valore si sta spostando in alto e il bordo va ricalcolato.",
-    "testo": "fade del bordo alto del valore",
-    "attesa": "TRASFERIMENTO NON VERIFICATO: il mean reverting non porta marcatori di strumento, ma su ES non e' mai stato misurato qui. VAH della cash di oggi, 260.559 lotti dalle 15:30. SOSIA, ed e' l'errore che su NQ ha prodotto la correzione 4.1 del 16 settembre: una ROTTURA del bordo dall'alto verso il basso produce massimo sopra, chiusura sotto, corpo in basso, volume e delta negativo - identici. Li separa solo il lato di arrivo, che chiedono le due guardie o <= 7684 e minuti_sotto >= 6."
-  },
-  {
     "nome": "fade del bordo basso del valore cash",
     "sigla": "fade VAL 7669.5",
     "prezzo": 7669.5,
@@ -63,5 +50,31 @@
     "altrimenti": "se accetta sotto 7.669,50 il valore si sta spostando in basso, e mezzo punto piu' giu' c'e' il pavimento dell'IVB: da li' in poi non e' piu' un fade, e' la rottura del gate.",
     "testo": "fade del bordo basso del valore",
     "attesa": "TRASFERIMENTO NON VERIFICATO. Specchio esatto del fade al VAH, stesse guardie sul lato di arrivo. ATTENZIONE: questo livello sta mezzo punto sopra il pavimento IVB 7.669,00, quindi lo stesso movimento puo' far scattare prima questo e poi il gate al ribasso - e sono due cose opposte. Se il gate si apre, questo scenario decade."
+  },
+  {
+    "nome": "la base 7684 cede",
+    "sigla": "cede base 7684",
+    "prezzo": 7684.0,
+    "tipo": "invalidazione",
+    "tema": "base compratori",
+    "quando": "c < 7684 and vol >= p75vol and delta <= -p75delta and pos <= 0.35",
+    "verso": "NESSUN PERMESSO",
+    "implica": "osservazione: 7.684 e' l'unico livello di ES con una misura sotto - barra 17:35, 991 lotti a quel prezzo, POC della barra e picco di delta positivo sullo stesso punto, cioe' una BASE COMPRATORI per la regola del delta prezzo per prezzo. Se cede con volume e vendita aggressiva, l'unico riferimento solido della seduta e' saltato e sotto non c'e' niente di misurato fino al nodo 7.678,50.",
+    "altrimenti": "finche' 7.684 regge, e' il livello a cui appoggiare qualunque long, e lo stop ci sta appena sotto.",
+    "testo": "BASE 7684 CEDUTA - unico riferimento misurato saltato",
+    "attesa": "SOSIA: una discesa sottile che passa di li' senza partecipazione - la separano vol >= p75vol e delta <= -p75delta. NOTA: sostituisce il fade del VAH, tolto perche' il profilo cash e' bimodale (7.687,00 con 5.265 lotti contro 7.678,50 con 5.223) e il POC e' deciso da 42 lotti su 275.510: la value area cambia di sette punti a seconda dell'ancora, quindi NESSUN bordo del valore e' armabile oggi su ES."
+  },
+  {
+    "nome": "accettazione sopra il tetto IVB",
+    "sigla": "accetta sopra 7686.5",
+    "prezzo": 7686.5,
+    "tipo": "osservazione",
+    "tema": "gate IVB",
+    "quando": "c > 7686.5 and minuti_sotto(7686.5, 20) <= 6 and vol_sopra_pct(7686.5, 20) >= 70",
+    "verso": "NESSUN PERMESSO",
+    "implica": "osservazione, non ingresso: il prezzo sta ACCETTANDO sopra il tetto dell'IVB, cioe' ci scambia invece di limitarsi a toccarlo. La cash ha gia' costruito 55.374 lotti sopra 7.686,50, il 20% della seduta: non e' un vuoto come su NQ, e' una mensola. Il permesso pero' arriva solo con la chiusura M30, non con l'accettazione.",
+    "altrimenti": "se rientra sotto e ci resta, l'accettazione non c'e' stata e il tetto ha respinto.",
+    "testo": "accettazione sopra il tetto IVB - il gate puo' aprire",
+    "attesa": "Serve a distinguere il tocco dall'accettazione PRIMA della chiusura M30, cosi' il gate non arriva come una sorpresa. SOSIA: uno sfondamento veloce che rientra - lo separa vol_sopra_pct >= 70, cioe' che il volume si sia davvero spostato sopra."
   }
 ]

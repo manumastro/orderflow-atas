@@ -12,12 +12,12 @@ cd /Users/sabrinastizzi/orderflow-atas || exit 0
 # Il chart da interrogare. ATAS puo' averne registrati piu' di uno (il 16 settembre si e'
 # aggiunto MCLV6) e in quel caso il bridge rifiuta ogni richiesta che non dica quale.
 # Al rollover del contratto si cambia qui.
-CHART="ESZ6"
+CHART="NQZ6"
 
 # La chiave dei file della giornata. Non e' una data: e' il prefisso dello strumento piu' la
 # data, come vuole il passo 8 di come-si-apre-un-asset.md. Su NQZ6 e' senza prefisso, per ragioni
 # storiche - debito aperto. Cambiando strumento si cambiano ENTRAMBE le righe.
-GIORNO="ESZ6-$(date +%Y-%m-%d)"
+GIORNO="$(date +%Y-%m-%d)"
 
 # Se il bridge non risponde subito, non ha senso aspettare: si dice e si passa oltre.
 if ! curl -s -m 2 "http://127.0.0.1:8787/health?chart=$CHART" >/dev/null 2>&1; then

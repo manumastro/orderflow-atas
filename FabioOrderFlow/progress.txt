@@ -106,3 +106,5 @@
             sei livelli, soglie riscalate (presidio 1 / avviso 4 / vicino 0,75), cinque scenari
             marcati TRASFERIMENTO NON VERIFICATO. Hook e giro_orizzonte.py resi compatibili col
             prefisso dello strumento in --giorno.
+2026-09-16  diario NQZ6: sezione 17:57 (IVB cash, gate, gamba 17:47, valore cash) + contesto macro FOMC dichiarato con fonte; corretto il conteggio della barra 17:47 misurata in formazione
+2026-09-16  seduta NQZ6 chiusa alle 18:13: diario completato fino alla chiusura, sorveglianti spenti, tre cose aperte alla ripresa

@@ -1,9 +1,16 @@
 [
   {
-    "price": 7692.75,
-    "label": "Massimo di oggi · sopra c'e' solo vuoto, e' il bordo dell'esplorato",
+    "price": 7692.0,
+    "label": "Bordo alto del valore (ancora 7.687) e massimo 7.692,75",
     "color": "#674EA7",
     "style": "dash",
+    "width": 2
+  },
+  {
+    "price": 7687.0,
+    "label": "Nodo alto 5.265 lotti · il POC e' conteso con 7.678,50 per 42 lotti",
+    "color": "#C27BA0",
+    "style": "solid",
     "width": 2
   },
   {
@@ -15,14 +22,14 @@
   },
   {
     "price": 7684.0,
-    "label": "VAH cash · da dentro il fade e' SHORT, target 7.678,50",
-    "color": "#E69138",
+    "label": "BASE COMPRATORI 17:35 (991 lotti, POC=picco delta) · stop dei long",
+    "color": "#6AA84F",
     "style": "solid",
     "width": 3
   },
   {
     "price": 7678.5,
-    "label": "POC cash · target di entrambi i fade",
+    "label": "Nodo basso 5.223 lotti · primo riferimento sotto la base",
     "color": "#C27BA0",
     "style": "solid",
     "width": 2

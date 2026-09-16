@@ -13,58 +13,6 @@
     "attesa": "E' l'invalidazione della giornata rialzista, non un ingresso short: sotto il tetto non si apre nessun permesso al ribasso, si torna a non averne."
   },
   {
-    "nome": "cede la base del gate",
-    "sigla": "cede 29500",
-    "prezzo": 29500.0,
-    "tipo": "invalidazione",
-    "tema": "ritest",
-    "quando": "c < 29500 and vol >= p75vol and delta <= -p75delta and pos <= 0.35",
-    "verso": "NESSUN PERMESSO",
-    "implica": "avviso per chi e' long dalla rottura: la base compratori del gate (29.500, 71 lotti con delta +71) viene persa con volume e vendita aggressiva. Non e' ancora l'invalidazione della tesi - quella e' 29.475,75, lo sforzo profondo delle 17:00 - ma e' il primo gradino che salta.",
-    "altrimenti": "finche' 29.500 regge, il ritracciamento e' respiro.",
-    "testo": "BASE DEL GATE PERSA - primo gradino sotto il long",
-    "attesa": "SOSIA: una discesa sottile senza partecipazione, che non dice niente - la separano vol >= p75vol e delta <= -p75delta, cioe' che la perdita sia venduta davvero."
-  },
-  {
-    "nome": "salta lo stop del long",
-    "sigla": "stop 29475.75",
-    "prezzo": 29475.75,
-    "tipo": "invalidazione",
-    "tema": "ritest",
-    "quando": "c < 29475.75",
-    "verso": "NESSUN PERMESSO",
-    "implica": "dossier, STOP LOGIC della sequenza IVB Break: se il livello che ha tenuto l'assorbimento viene ri-rotto, la tesi e' invalidata - si esce. E' l'unico numero tracciabile a una riga della fonte in tutta questa operazione.",
-    "altrimenti": "sopra 29.475,75 la rottura resta valida anche durante un ritracciamento profondo.",
-    "testo": "STOP: 29.475,75 ri-rotto, tesi della rottura invalidata",
-    "attesa": "Nessuna guardia sul volume: uno stop non si discute, e una condizione che aspetta conferme lo trasforma in una speranza."
-  },
-  {
-    "nome": "ritest del tetto con assorbimento",
-    "sigla": "ritest assorbito",
-    "prezzo": 29490.0,
-    "tipo": "osservazione",
-    "tema": "ritest",
-    "quando": "l <= 29500 and l >= 29476 and c > 29495 and pos >= 0.7 and vol >= p95vol and delta <= -p75delta",
-    "verso": "NESSUN PERMESSO",
-    "implica": "passo 02 della sequenza IVB Break (dossier 229-255): sul ritest il lato opposto colpisce e fallisce, una stampa di delta profondo dal lato sbagliato viene assorbita senza rompere la struttura. Da solo non e' un ingresso: serve il passo 03, l'aggressione compratrice, che e' lo scenario seguente. STOP, tracciabile: appena sotto 29.475,75.",
-    "altrimenti": "se il prezzo scende sotto 29.475,75 e ci resta, il livello che teneva l'assorbimento e' ri-rotto: tesi invalidata.",
-    "testo": "ritest del tetto assorbito - passo 02 di 3",
-    "attesa": "La base del gate e' 29.500 (71 lotti, delta +71, POC e maxPositiveDelta sullo stesso prezzo). SOSIA: una discesa ordinaria che passa di li' - la separa pos >= 0.7 con delta <= -p75delta, cioe' vendita aggressiva che NON muove il prezzo."
-  },
-  {
-    "nome": "ripartenza aggressiva dopo il ritest",
-    "sigla": "aggressione ripartenza",
-    "prezzo": 29500.0,
-    "tipo": "ingresso",
-    "tema": "ritest",
-    "quando": "c > 29500 and minuti_sotto(29500, 10) >= 3 and pos >= 0.8 and vol >= p95vol and delta >= p95delta",
-    "verso": "LONG",
-    "implica": "passo 03 della sequenza IVB Break: il lato in direzione riprende con una stampa di delta visibilmente maggiore. Con il gate Tier 01 gia' aperto al rialzo (chiusura M30 17:00 a 29.499,50) le tre A sono impilate nello stesso trade. STOP appena sotto 29.475,75, lo sforzo profondo delle 17:00.",
-    "altrimenti": "senza questa stampa il ritest assorbito resta una osservazione e il trade non esiste - due A su tre non bastano.",
-    "testo": "AGGRESSIONE: le tre A sono impilate - LONG",
-    "attesa": "Sopra 29.500 il profilo e' quasi vuoto fino al VAH di lunedi' 29.604: centoquattro punti con 29.495,25 (massimo di ieri) come unico riferimento, gia' superato. SOSIA: uno spike di notizia che sale su delta alto e rientra subito - la separa minuti_sotto(29500,10) >= 3, cioe' che il prezzo fosse davvero rientrato prima di ripartire."
-  },
-  {
     "nome": "arriva al VAH di lunedi'",
     "sigla": "VAH lunedi 29604",
     "prezzo": 29604.0,
@@ -76,5 +24,44 @@
     "altrimenti": "resta armato per tutta la seduta.",
     "testo": "arrivato al VAH di lunedi' 29.604",
     "attesa": "Centoquattro punti sopra la base del gate, con quasi niente in mezzo."
+  },
+  {
+    "nome": "cede la base del gate",
+    "sigla": "cede 29500",
+    "prezzo": 29500.0,
+    "tipo": "invalidazione",
+    "tema": "struttura",
+    "quando": "c < 29500 and vol >= p75vol and delta <= -p75delta and pos <= 0.35",
+    "verso": "NESSUN PERMESSO",
+    "implica": "la base compratori del gate (29.500, 71 lotti con delta +71 alle 17:00) ha retto tre ritest fra le 17:02 e le 17:19. Se cede con volume e vendita aggressiva il primo gradino sotto il permesso e' saltato; il livello che revoca il permesso resta pero' 29.481,50 alla chiusura M30.",
+    "altrimenti": "finche' 29.500 regge, i ritracciamenti sono respiro.",
+    "testo": "BASE DEL GATE PERSA - primo gradino sotto",
+    "attesa": "SOSIA: una discesa sottile senza partecipazione - la separano vol >= p75vol e delta <= -p75delta."
+  },
+  {
+    "nome": "ritest della rottura delle 17:47",
+    "sigla": "ritest 29518",
+    "prezzo": 29518.0,
+    "tipo": "osservazione",
+    "tema": "ritest",
+    "quando": "l <= 29522 and l >= 29505 and c > 29518 and pos >= 0.7 and vol >= p95vol and delta <= -p75delta",
+    "verso": "NESSUN PERMESSO",
+    "implica": "passo 02 della sequenza IVB Break (dossier 229-255) applicato alla gamba nuova: sul ritorno verso il bordo alto del valore il lato opposto colpisce e fallisce. Da solo non e' un ingresso, serve il passo 03 - l'aggressione compratrice con delta oltre il p95.",
+    "altrimenti": "se il prezzo scende sotto 29.500 e ci resta, il ritest e' fallito e la gamba delle 17:47 e' stata solo uno spike.",
+    "testo": "ritest della rottura assorbito - passo 02 di 3",
+    "attesa": "La barra delle 17:47 ha fatto 5.144 lotti con delta +442 e 59,5 punti di escursione: e' la gamba piu' violenta della giornata. Il bordo alto del valore cash e' salito a 29.518. SOSIA: una discesa ordinaria che passa di li' - la separa pos >= 0.7 con delta <= -p75delta, cioe' vendita che NON muove il prezzo."
+  },
+  {
+    "nome": "nuovo massimo con aggressione",
+    "sigla": "estende 29549.75",
+    "prezzo": 29549.75,
+    "tipo": "osservazione",
+    "tema": "estensione",
+    "quando": "c > 29549.75 and vol >= p95vol and delta >= p95delta and pos >= 0.7",
+    "verso": "NESSUN PERMESSO",
+    "implica": "osservazione: il prezzo estende oltre il massimo delle 17:47 con aggressione vera. Il permesso LONG c'e' gia' dal gate delle 17:00; questo dice che la gamba continua invece di esaurirsi. Sopra, il primo prezzo con storia di volume e' il VAH di lunedi' 29.604.",
+    "altrimenti": "se il massimo regge, 29.549,75 diventa il bordo da cui misurare il prossimo ritracciamento.",
+    "testo": "nuovo massimo con aggressione - la gamba continua",
+    "attesa": "SOSIA: uno sfondamento sottile del massimo che rientra subito - lo separano vol >= p95vol e delta >= p95delta insieme, cioe' partecipazione E aggressione."
   }
 ]
