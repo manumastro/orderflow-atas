@@ -1,0 +1,78 @@
+[
+  {
+    "price": 105.67,
+    "label": "Max stanotte 00:01 · il tetto da cui e' partita la discesa",
+    "color": "#6B7A99",
+    "style": "dash",
+    "width": 1
+  },
+  {
+    "price": 105.52,
+    "label": "Chiusura di ieri · sopra qui chi ha comprato ieri torna in pari",
+    "color": "#8E7CC3",
+    "style": "dash",
+    "width": 1
+  },
+  {
+    "price": 105.0,
+    "label": "VAH notte · bordo alto del valore notturno",
+    "color": "#8E7CC3",
+    "style": "solid",
+    "width": 2,
+    "chiave": true
+  },
+  {
+    "price": 104.75,
+    "label": "POC oggi e notte · 23,5% del volume, delta +816",
+    "color": "#C27BA0",
+    "style": "solid",
+    "width": 2,
+    "chiave": true
+  },
+  {
+    "price": 104.5,
+    "label": "VAL notte · bordo basso del valore notturno, perso stamattina",
+    "color": "#8E7CC3",
+    "style": "solid",
+    "width": 2,
+    "chiave": true
+  },
+  {
+    "price": 104.0,
+    "label": "Bordo basso del valore di oggi · sotto comincia il vuoto",
+    "color": "#7A8FA6",
+    "style": "solid",
+    "width": 2,
+    "chiave": true
+  },
+  {
+    "price": 103.58,
+    "label": "Minimo di oggi 12:21 · fatto con 184 lotti e delta -80",
+    "color": "#6B7A99",
+    "style": "dot",
+    "width": 1,
+    "chiave": true
+  },
+  {
+    "price": 103.25,
+    "label": "POC di ieri · il primo posto denso sotto, bersaglio della discesa",
+    "color": "#C27BA0",
+    "style": "solid",
+    "width": 2,
+    "chiave": true
+  },
+  {
+    "price": 102.25,
+    "label": "VAL di ieri · bordo basso del valore di ieri",
+    "color": "#8E7CC3",
+    "style": "dash",
+    "width": 1
+  },
+  {
+    "price": 101.2,
+    "label": "Minimo di ieri · il fondo della seduta precedente",
+    "color": "#6B7A99",
+    "style": "dash",
+    "width": 1
+  }
+]

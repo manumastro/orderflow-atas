@@ -207,6 +207,13 @@ def costruisci_contesto(storia, i, fuso, ivb):
 
 
 def calcola_ivb(storia, fuso, inizio="15:30", fine="16:00"):
+    """I primi 30 minuti della sessione regolamentata, che NON sono gli stessi per ogni mercato.
+
+    Il default e' la cash NY degli indici (15:30-16:00 CEST). Il crude NYMEX apre il pit alle
+    15:00 CEST, quindi il suo IVB e' 15:00-15:30 e il gate cade alle 15:30, non alle 16:30.
+    Chi arma scenari IVB su un altro strumento deve passare --ivb-da e --ivb-a: lasciare il
+    default significa misurare la finestra sbagliata e chiamarla gate.
+    """
     w = [x for x in storia if inizio <= hhmm(x, fuso) < fine]
     if not w or hhmm(storia[-1], fuso) < fine:
         return {}
@@ -339,6 +346,11 @@ def main() -> None:
     ap.add_argument("--from", dest="begin", help="inizio della finestra chiesta al bridge")
     ap.add_argument("--to", dest="end", default="2100-01-01T00:00")
     ap.add_argument("--chart")
+    ap.add_argument("--ivb-da", default="15:30",
+                    help="inizio della finestra IVB in ora locale (default 15:30, cash NY degli "
+                         "indici). Il crude NYMEX vuole 15:00")
+    ap.add_argument("--ivb-a", default="16:00",
+                    help="fine della finestra IVB (default 16:00). Col crude 15:30")
     ap.add_argument("--controlla", action="store_true",
                     help="verifica nomi e sintassi di ogni `quando` senza toccare il bridge")
     ap.add_argument("--prova", action="store_true", help="valuta su tutta la storia senza scrivere niente")
@@ -439,7 +451,7 @@ def main() -> None:
         if not chiuse:
             time.sleep(args.intervallo)
             continue
-        ivb = calcola_ivb(chiuse, args.fuso)
+        ivb = calcola_ivb(chiuse, args.fuso, args.ivb_da, args.ivb_a)
 
         if args.prova:
             for i in range(len(chiuse)):

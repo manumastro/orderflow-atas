@@ -1,0 +1,80 @@
+[
+  {
+    "nome": "IVB stampato",
+    "sigla": "IVB stampato",
+    "prezzo": 0,
+    "tipo": "nota",
+    "tema": "IVB",
+    "quando": "ivb_alto is not None and dopo('15:30')",
+    "verso": "NESSUN PERMESSO",
+    "implica": "il gate e' aperto: la chiusura M30 dice da che parte si puo' operare.",
+    "altrimenti": "prima delle 15:30 nessun setup direzionale.",
+    "testo": "IVB stampato: il gate della giornata e' aperto",
+    "attesa": "ATTENZIONE, ORARIO DIVERSO DA NQ: il pit NYMEX del crude apre alle 15:00 CEST, quindi l'IVB e' 15:00-15:30 e il gate cade alle 15:30, non alle 16:30. Si arma con --ivb-da 15:00 --ivb-a 15:30: col default degli indici si misurerebbe la finestra sbagliata chiamandola gate."
+  },
+  {
+    "nome": "IVB rotto al ribasso",
+    "sigla": "IVB rotto giu",
+    "prezzo": 0,
+    "tipo": "rottura",
+    "tema": "IVB",
+    "quando": "ivb_basso is not None and minuto % 30 == 29 and dopo('15:59') and c < ivb_basso",
+    "verso": "SHORT",
+    "implica": "Tier 01 al ribasso, nel verso del contesto: il prezzo e' gia' sotto tutto il valore della notte.",
+    "altrimenti": "se rimbalza dentro il range resta mean reverting.",
+    "testo": "IVB rotto al ribasso: permesso short",
+    "attesa": "Dossier righe 101-113: il gate e' la CHIUSURA a 30 minuti fuori dal range, non un attraversamento intrabarra. Si valuta solo sulla barra che chiude un M30 (15:59, 16:29, ...). SOSIA: il tocco sotto il bordo che rientra prima della chiusura, che non e' un voto. TRASFERIMENTO NON VERIFICATO: il dossier non qualifica l'IVB per strumento, ma in questo repository non e' mai stato misurato sul crude. Primo giorno: si osserva, non si conclude."
+  },
+  {
+    "nome": "IVB rotto al rialzo",
+    "sigla": "IVB rotto su",
+    "prezzo": 0,
+    "tipo": "reclaim",
+    "tema": "IVB",
+    "quando": "ivb_alto is not None and minuto % 30 == 29 and dopo('15:59') and c > ivb_alto",
+    "verso": "LONG",
+    "implica": "Tier 01 al rialzo, contro la discesa della mattina: sarebbe un recupero dentro il valore perso.",
+    "altrimenti": "se rientra nel range era uno stoppino.",
+    "testo": "IVB rotto al rialzo: permesso long",
+    "attesa": "Specularmente: chiusura M30 sopra il bordo alto dell'IVB. SOSIA: l'escursione sopra che rientra prima della chiusura. Stesso TRASFERIMENTO NON VERIFICATO dello scenario opposto."
+  },
+  {
+    "nome": "fade del POC di ieri",
+    "sigla": "fade POC ieri",
+    "prezzo": 103.25,
+    "tipo": "rifiuto",
+    "tema": "il fondo",
+    "quando": "o >= 103.25 and minuti_sotto(103.25, 10) <= 2 and l < 103.25 and c > 103.25 and pos >= 0.7 and vol >= p75vol and delta >= p75delta",
+    "verso": "LONG · MEAN REVERTING",
+    "implica": "il primo posto denso sotto il prezzo respinge: 103,25 e' il POC di ieri, il punto dove si e' scambiato di piu' nella seduta precedente. BERSAGLIO 1 il bordo basso del valore odierno 104,00 (+0,75), BERSAGLIO 2 il POC 104,75 (+1,50). STOP appena sotto lo stoppino assorbito. RISK ENVELOPE del dossier: size ridotta e massimo 2 stop-loss al giorno.",
+    "altrimenti": "se il prezzo accetta sotto 103,25 il valore di ieri non regge e il bersaglio diventa il VAL di ieri 102,25.",
+    "testo": "rifiuto del POC di ieri",
+    "attesa": "Il fade vale solo se il prezzo arriva DALL'ALTO: la barra deve aprire sopra 103,25 e non piu' di 2 degli ultimi 10 minuti devono aver chiuso sotto. SOSIA: una barra che risale dentro 103,25 dal basso dopo averci gia' accettato sotto non e' un rifiuto, e' un rimbalzo dentro una rottura. TEMPI: il dossier (righe 143-180) descrive tre passi — stoppino sotto il bordo, assorbimento, corpo riempito dall'aggressione opposta. Questa condizione li comprime in una barra: serve a FAR GUARDARE, non dice che la sequenza c'e'."
+  },
+  {
+    "nome": "fade del bordo basso del valore odierno",
+    "sigla": "fade 104.00",
+    "prezzo": 104.0,
+    "tipo": "reclaim",
+    "tema": "bordi del valore",
+    "quando": "c > 104.0 and minuti_sotto(104.0, 20) <= 5 and vol_sopra_pct(104.0, 20) >= 65",
+    "verso": "NESSUN PERMESSO",
+    "implica": "il prezzo rientra nel valore che ha perso stamattina. Bersaglio successivo il POC 104,75 (+0,75), dove sta il 23,5% del volume. NON e' un permesso: il gate direzionale resta la chiusura M30 delle 15:30.",
+    "altrimenti": "se ricade sotto 104,00 il rientro e' fallito e il minimo 103,58 torna a essere il riferimento.",
+    "testo": "rientro sopra il bordo basso del valore",
+    "attesa": "Misura su finestra, non su barra: 20 minuti con non piu' di 5 chiusure sotto e almeno il 65% del volume sopra. SOSIA: il picco che buca 104,00 e rientra subito sotto."
+  },
+  {
+    "nome": "cede il minimo di oggi",
+    "sigla": "cede 103.58",
+    "prezzo": 103.58,
+    "tipo": "rottura",
+    "tema": "il fondo",
+    "quando": "o >= 103.58 and c < 103.58 and vol >= p75vol and delta <= -p75delta",
+    "verso": "NESSUN PERMESSO",
+    "implica": "il minimo della seduta cede con aggressione: sotto restano 33 centesimi di vuoto fino al POC di ieri 103,25, dove il fade e' armato. Chi ha comprato nella fascia 103,75-104,00 (delta -521) resta intrappolato.",
+    "altrimenti": "se il minimo regge, 103,58 diventa il bordo basso di un range e il riferimento sopra torna 104,00.",
+    "testo": "il minimo di oggi ha ceduto",
+    "attesa": "SOSIA: lo stoppino sotto il minimo che rientra nella stessa barra. La condizione chiede apertura sopra e chiusura sotto, non solo il minimo bucato. Nessun permesso: e' una osservazione di struttura, il gate resta la M30."
+  }
+]
