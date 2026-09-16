@@ -80,3 +80,4 @@
 2026-09-16  sveglia: isteresi di 1,5 punti e massimo due avvisi per barra sull'attraversamento a barra viva. Senza, un prezzo che oscilla sul livello suonava a ogni giro.
 2026-09-16  sorveglianza: procedura dei Monitor (accensione, filtri, riarmo), sospensione e ripresa di una pausa, e il log degli avvisi dentro il giro d orizzonte come seconda rete
 2026-09-16  sveglia: --storia separa la finestra dei percentili da --from, con avviso BASE CORTA sotto 120 barre; un riavvio a meta seduta la rendeva muta
+2026-09-16  sveglia: il presidio sotto 3 barre, zero attraversamenti e volume medio sotto il p25 non suona piu, resta a video

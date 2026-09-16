@@ -333,6 +333,23 @@ finestra osservata, la finestra della **misura** non puo' coincidere con la fine
 dell'**attenzione**. Se coincidono, riavviare lo strumento lo rende cieco proprio nel momento in
 cui lo si e' riavviato perche' serviva.
 
+### Un Presidio Che Non Dice Niente Non Deve Suonare
+
+Il presidio riassume cosa e' successo mentre il prezzo stava sul livello. Se ci e' stato una
+barra sola su 24 lotti, il riassunto non descrive un fatto: descrive il prezzo che sfiora il
+livello mentre il libro e' vuoto. Il 16 settembre, nella pausa pranzo, con due livelli chiave a
+14 punti di distanza ne sono usciti tre di fila — 2 barre, 1 barra, 2 barre — e ognuno era una
+notifica a chi opera.
+
+**Regola:** un `PRESIDIO FINE` con **meno di 3 barre**, **zero attraversamenti** e **volume medio
+sotto il p25** della seduta si declassa a `  presidio breve (non significativo)`. I due spazi
+iniziali sono la convenzione che `mostra()` usa per tenere una riga a video senza mandarla in
+notifica: l'evento resta nel log e verificabile, ma non interrompe nessuno.
+
+Le tre condizioni sono in **and**, ed e' voluto: un presidio corto ma con un attraversamento e' il
+caso piu' interessante che ci sia, e uno corto su volume grosso e' un rifiuto violento. Si tace
+solo quando mancano tutte e tre le ragioni per parlare.
+
 ### Sospendere E Riprendere La Sorveglianza
 
 Quando si fa una pausa **non si spengono i sorveglianti: si staccano**. La seduta continua, e

@@ -105,7 +105,7 @@ def percentili(barre):
     v = sorted(b["volume"] for b in barre)
     d = sorted(abs(b["delta"]) for b in barre)
     q = lambda a, p: a[min(int(len(a) * p), len(a) - 1)]
-    return q(v, 0.95), q(d, 0.95)
+    return q(v, 0.95), q(d, 0.95), q(v, 0.25)
 
 
 def motivo(b, prev, livelli, vol95, delta95, muto, fuso):
@@ -181,7 +181,14 @@ def presidia(b, prev, chiavi, stato, args) -> list[str]:
         attr = ("ATTRAVERSATO" if aperto["lato_iniziale"] != verso
                 else f"uscito dal lato di arrivo ({verso})")
         pct = aperto["delta"] / aperto["vol"] * 100 if aperto["vol"] else 0.0
-        fuori.append(f"PRESIDIO FINE {aperto['nome']} {aperto['p']:.0f} | {attr} | "
+        # Un presidio di una o due barre su volume sotto il p25 non e' un fatto: e' il prezzo
+        # che sfiora il livello mentre il libro e' vuoto. Il 16 settembre, nella pausa pranzo,
+        # ne sono usciti tre di fila (uno da 1 barra e 24 lotti) e ognuno era una notifica.
+        # Non si nasconde: si declassa a riga da schermo, che `mostra` non manda in notifica.
+        vol25 = stato.get("vol25", 0)
+        magro = (n < 3 and aperto["passaggi"] == 0 and vol25 and aperto["vol"] < vol25 * n)
+        testa = "  presidio breve (non significativo)" if magro else "PRESIDIO FINE"
+        fuori.append(f"{testa} {aperto['nome']} {aperto['p']:.0f} | {attr} | "
                      f"{n} barre, vol {aperto['vol']:,}, delta {aperto['delta']:+} ({pct:+.1f}%), "
                      f"escursione {aperto['min']:.2f}-{aperto['max']:.2f}, "
                      f"{aperto['passaggi']} attraversamenti, esce a {b['close']:.2f} {verso}")
@@ -314,7 +321,8 @@ def main() -> None:
 
         # Le soglie si ricalcolano a ogni giro sulla seduta in corso: non sono una costante
         # di mercato, e una seduta sottile e una densa non hanno le stesse barre grosse.
-        vol95, delta95 = percentili(chiuse)
+        vol95, delta95, vol25 = percentili(chiuse)
+        stato["vol25"] = vol25
 
         if prima:
             visti = {b["time"] for b in chiuse}
