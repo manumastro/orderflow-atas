@@ -105,9 +105,15 @@ arrivarci** — permesso, bersaglio, invalidazione o posizionamento — come vuo
 strumento: la **distanza tipica fra livelli chiave** e l'**escursione tipica di una barra M1**.
 
 ```text
-NQZ6    livelli a 15-25 punti, barra ~5 punti    ->  --presidio 4     --avviso 15
-MCLV6   livelli a 0,25-0,75 $, barra ~0,10 $     ->  --presidio 0.06  --avviso 0.25
+NQZ6    livelli a 15-25 punti, barra ~5 punti    ->  --presidio 4     --avviso 15    --vicino 3
+MCLV6   livelli a 0,25-0,75 $, barra ~0,10 $     ->  --presidio 0.06  --avviso 0.25  --vicino 0.05
 ```
+
+**Sono tre soglie assolute, non due.** `--vicino` dice entro quanti punti una barra «tocca» il
+livello: 3 punti su 29.000 di NQ sono lo 0,01%, 3 dollari su 103 del crude sono il **3%**, e col
+default la sveglia ha annunciato *«Max stanotte 105.67 toccato con volume»* mentre il prezzo stava
+a 103,03. **Ogni costante scritta nel codice di uno strumento e' un parametro di un altro**: prima
+di armare, si cercano tutte e si riscalano.
 
 I percentili (p95 volume, p95 delta) li calcola la sveglia sulla propria base: si **legge la riga
 di avvio** e si controlla che siano plausibili. Se dice `BASE CORTA`, si alza `--storia`.

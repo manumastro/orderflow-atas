@@ -59,7 +59,11 @@ def mostra(riga: str, muto: bool = False) -> None:
     if not muto and not riga.startswith("  "):
         avvisa(riga, titolo="NQ tape")
 
-VICINO = 3.0        # quanto vicino al livello per considerarlo toccato
+VICINO = 3.0        # default NQ: quanto vicino al livello per considerarlo toccato. E' una
+                    # soglia ASSOLUTA e non si trasferisce: 3 punti su 29.000 di NQ sono lo
+                    # 0,01%, 3 dollari su 103 del crude sono il 3%, e il 16 settembre 2026 la
+                    # sveglia ha annunciato "Max stanotte 105.67 toccato con volume" mentre il
+                    # prezzo stava a 103,03. Si passa con --vicino.
 ISTERESI = 1.5      # punti oltre il livello per dichiarare un cambio di lato a barra viva
 MIN_BASE = 120      # barre minime perche' i percentili significhino qualcosa; sotto, si grida
 
@@ -108,7 +112,7 @@ def percentili(barre):
     return q(v, 0.95), q(d, 0.95), q(v, 0.25)
 
 
-def motivo(b, prev, livelli, vol95, delta95, muto, fuso):
+def motivo(b, prev, livelli, vol95, delta95, muto, fuso, vicino=VICINO):
     """Perche' guardare. Nessun verdetto: solo il fatto e i numeri."""
     cl, vol, d = b["close"], b["volume"], b["delta"]
     pc = prev["close"] if prev else cl
@@ -119,7 +123,7 @@ def motivo(b, prev, livelli, vol95, delta95, muto, fuso):
             if m - muto.get(p, -10 ** 9) >= 10:
                 muto[p] = m
                 return f"{nome} {p:g} attraversato"
-        elif abs(b["low"] - p) <= VICINO or abs(b["high"] - p) <= VICINO:
+        elif abs(b["low"] - p) <= vicino or abs(b["high"] - p) <= vicino:
             if vol >= vol95 and m - muto.get(p, -10 ** 9) >= 10:
                 muto[p] = m
                 return f"{nome} {p:g} toccato con volume"
@@ -284,6 +288,10 @@ def main() -> None:
                     help="minuti di barre PRIMA di --from usati solo per i percentili "
                          "(default 480). --from dice da quando si sorveglia, --storia su cosa "
                          "si misura: tenerli uguali rende muta una sveglia riavviata a meta' seduta")
+    ap.add_argument("--vicino", type=float, default=VICINO,
+                    help="entro quanti punti dal livello una barra si dice che l'ha toccato "
+                         "(default 3, tarato su NQ). E' una soglia assoluta: su uno strumento "
+                         "con un prezzo o un tick diversi va riscalata o annuncia tocchi falsi")
     ap.add_argument("--presidio", type=float, default=8.0,
                     help="punti entro cui restare in ascolto barra per barra")
     ap.add_argument("--fuso", type=int, default=2, help="ore da aggiungere all'UTC (default 2)")
@@ -349,7 +357,7 @@ def main() -> None:
                 for r in presidia(b, chiuse[i - 1] if i else None, chiavi, stato, args):
                     mostra(r, muto=args.silenzioso)
                 perche = motivo(b, chiuse[i - 1] if i else None,
-                                livelli, vol95, delta95, muto, args.fuso)
+                                livelli, vol95, delta95, muto, args.fuso, args.vicino)
                 # dentro un presidio la barra e' gia' stampata per intero: non si ripete
                 if perche and not stato["presidio"]:
                     mostra(f"GUARDA {ora(b, args.fuso)} {b['close']:.2f} | {perche} | "
