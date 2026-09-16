@@ -1,1 +1,10 @@
-[]
+[
+  {
+    "ora": "08:01",
+    "prezzo": 29358.5,
+    "tipo": "nota",
+    "testo": "arrivato al tetto notturno con volume",
+    "misura": "08:00: 390 lotti delta +114 (+29% del volume, p95 = 206), chiusa sul proprio massimo a 29356. Ha superato 29348,25 con volume, quindi l'aggressione ha prodotto prezzo e il fade del VAH 29335 decade. 15m a +191 su 1.207 lotti. Prima barra al livello gia' debole: 08:01 +8 su 108 lotti (+7%), pos 0,14. Storia del livello: 9 passaggi in tre sedute, i 3 con permanenza oltre 45 minuti finiti tutti male (-30, -40, -68); il piu' recente, stanotte 05:21, aveva +27% di delta su 992 lotti e ha prodotto -17. Il discriminante e' la durata, non il delta.",
+    "tema": "tetto notturno"
+  }
+]
