@@ -118,11 +118,11 @@ def motivo(b, prev, livelli, vol95, delta95, muto, fuso):
         if (cl < p <= pc) or (cl > p >= pc):
             if m - muto.get(p, -10 ** 9) >= 10:
                 muto[p] = m
-                return f"{nome} {p:.0f} attraversato"
+                return f"{nome} {p:g} attraversato"
         elif abs(b["low"] - p) <= VICINO or abs(b["high"] - p) <= VICINO:
             if vol >= vol95 and m - muto.get(p, -10 ** 9) >= 10:
                 muto[p] = m
-                return f"{nome} {p:.0f} toccato con volume"
+                return f"{nome} {p:g} toccato con volume"
 
     if vol >= vol95 * 1.5:
         return f"barra pesante ({vol} lotti)"
@@ -166,11 +166,11 @@ def presidia(b, prev, chiavi, stato, args) -> list[str]:
                 aperto["lato_corrente"] = lato
                 aperto["lato_vivo"] = lato
                 aperto["passaggi"] += 1
-                fuori.append(f">>> ATTRAVERSATO {aperto['nome']} {aperto['p']:.0f} "
+                fuori.append(f">>> ATTRAVERSATO {aperto['nome']} {aperto['p']:g} "
                              f"ora {lato.upper()} (passaggio n.{aperto['passaggi']}) | "
                              f"{riga_barra(b, args.fuso)}")
             else:
-                fuori.append(f"  PRESIDIO {aperto['nome']} {aperto['p']:.0f} [{lato}] "
+                fuori.append(f"  PRESIDIO {aperto['nome']} {aperto['p']:g} [{lato}] "
                              f"{riga_barra(b, args.fuso)}")
             return fuori
         # uscito dalla fascia
@@ -188,7 +188,7 @@ def presidia(b, prev, chiavi, stato, args) -> list[str]:
         vol25 = stato.get("vol25", 0)
         magro = (n < 3 and aperto["passaggi"] == 0 and vol25 and aperto["vol"] < vol25 * n)
         testa = "  presidio breve (non significativo)" if magro else "PRESIDIO FINE"
-        fuori.append(f"{testa} {aperto['nome']} {aperto['p']:.0f} | {attr} | "
+        fuori.append(f"{testa} {aperto['nome']} {aperto['p']:g} | {attr} | "
                      f"{n} barre, vol {aperto['vol']:,}, delta {aperto['delta']:+} ({pct:+.1f}%), "
                      f"escursione {aperto['min']:.2f}-{aperto['max']:.2f}, "
                      f"{aperto['passaggi']} attraversamenti, esce a {b['close']:.2f} {verso}")
@@ -205,7 +205,7 @@ def presidia(b, prev, chiavi, stato, args) -> list[str]:
                                  "max": b["high"], "min": b["low"],
                                  "lato_iniziale": lato, "lato_corrente": lato,
                                  "lato_vivo": lato, "passaggi": 0}
-            fuori.append(f"PRESIDIO APERTO {nome} {p_:.0f} — arrivato da {lato}, "
+            fuori.append(f"PRESIDIO APERTO {nome} {p_:g} — arrivato da {lato}, "
                          f"ascolto barra per barra | {riga_barra(b, args.fuso)}")
             return fuori
 
@@ -217,7 +217,7 @@ def presidia(b, prev, chiavi, stato, args) -> list[str]:
             if m - stato["avvisati"].get(p_, -10 ** 9) >= 15:
                 stato["avvisati"][p_] = m
                 da = "sotto" if b["close"] < p_ else "sopra";
-                fuori.append(f"AVVICINAMENTO {nome} {p_:.0f} — {d:.1f} punti da {da} | "
+                fuori.append(f"AVVICINAMENTO {nome} {p_:g} — {d:.1f} punti da {da} | "
                              f"{riga_barra(b, args.fuso)}")
             break
     return fuori
@@ -261,7 +261,7 @@ def barra_viva(b, stato, args) -> list[str]:
     aperto["lato_vivo"] = lato
     rng = b["high"] - b["low"]
     pos = (b["close"] - b["low"]) / rng if rng else 0.0
-    return [f"!!! ORA ATTRAVERSA {aperto['nome']} {p_:.0f} -> {lato.upper()} "
+    return [f"!!! ORA ATTRAVERSA {aperto['nome']} {p_:g} -> {lato.upper()} "
             f"[BARRA NON CHIUSA, puo' rientrare] {ora(b, args.fuso)} "
             f"C {b['close']:.2f} H {b['high']:.2f} L {b['low']:.2f} "
             f"vol {b['volume']} delta {b['delta']:+} pos {pos:.2f}"]
