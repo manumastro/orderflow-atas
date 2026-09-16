@@ -368,6 +368,36 @@ Tutti gli strumenti accettano `--chart NQZ6`, e l'hook
 [`giro-orizzonte.sh`](../../../.claude/hooks/giro-orizzonte.sh) lo passa da una variabile `CHART`
 in cima al file. **Al rollover del contratto si cambia li'**, in un posto solo.
 
+### `--from` E' In UTC, E Un Orario Nel Futuro Rende Muto Il Motore
+
+Il bridge parla UTC. `--from 2026-09-16T12:35` non sono le 12:35 di chi guarda il chart: sono le
+**14:35 CEST**, e se sono le 13:00 quell'orario e' **nel futuro**. Il bridge risponde con zero
+barre, il motore degli scenari non ha niente da valutare e **tace** — e il silenzio e'
+indistinguibile da «nessuno scenario e' scattato».
+
+E' successo il 16 settembre 2026 sul crude: il monitor degli scenari e' rimasto fermo mezz'ora, e
+in quella mezz'ora `cede il minimo di oggi` sarebbe scattato sulla barra piu' violenta della
+seduta — 532 lotti, delta −422, il −79% del volume. La verifica a posteriori:
+
+```
+SCATTA  cede il minimo di oggi  |  12:59 103.26 vol 532 delta -422 30m -17.6%
+```
+
+**La sveglia non se n'e' accorta perche' `--storia` l'ha salvata per caso**: allargando la
+finestra indietro di 600 minuti aveva barre comunque. Gli scenari, che non hanno `--storia`, no.
+
+Due difese:
+
+- **`scenari.py` grida `### NESSUNA BARRA`** quando la finestra e' vuota, dicendo l'ora UTC
+  corrente, una volta sola per non allagare il monitor. Il filtro dei `Monitor` deve comprendere
+  `NESSUNA BARRA`.
+- **Si scrive l'ora in UTC e la si controlla**, non si converte a mente. `date -u +%H:%M` costa
+  meno di mezz'ora di cecita'.
+
+**La regola generale**: uno strumento di sorveglianza che non ha dati deve dirlo. Un monitor che
+tace perche' non gli e' arrivato niente e uno che tace perche' non sta guardando **devono suonare
+diversi**, altrimenti la seconda condizione non si scopre mai.
+
 ### Sospendere E Riprendere La Sorveglianza
 
 Quando si fa una pausa **non si spengono i sorveglianti: si staccano**. La seduta continua, e

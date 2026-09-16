@@ -429,6 +429,8 @@ def main() -> None:
     if scattati:
         print(f"[dal diario] {len(scattati)} scenari gia' scattati oggi, non si ripetono", flush=True)
     frontiera = None
+    vuoto_annunciato = False
+
 
     while True:
         if not args.prova:
@@ -449,8 +451,20 @@ def main() -> None:
 
         chiuse = c[:-1]                      # l'ultima barra e' ancora in formazione
         if not chiuse:
+            # Zero barre non e' un caso banale: quasi sempre significa che --from e' NEL FUTURO,
+            # perche' e' in UTC e chi lo scrive pensa all'ora locale. Il 16 settembre 2026
+            # `--from 12:35` erano le 14:35 CEST: il motore ha girato mezz'ora senza valutare
+            # niente, e il silenzio era indistinguibile da "nessuno scenario e' scattato".
+            # Si grida, e si grida una volta sola per non allagare il monitor.
+            if not vuoto_annunciato:
+                vuoto_annunciato = True
+                print(f"### NESSUNA BARRA da --from {args.begin}. L'ora e' UTC, non locale: "
+                      f"adesso sono le {dt.datetime.utcnow().strftime('%H:%M')}Z. "
+                      f"Se --from e' nel futuro il motore non valuta niente e tace.",
+                      flush=True)
             time.sleep(args.intervallo)
             continue
+        vuoto_annunciato = False
         ivb = calcola_ivb(chiuse, args.fuso, args.ivb_da, args.ivb_a)
 
         if args.prova:

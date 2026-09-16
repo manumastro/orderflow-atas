@@ -84,3 +84,4 @@
 2026-09-16  bridge: con due chart registrati in ATAS ogni richiesta senza --chart viene rifiutata e sembra un bridge spento; hook e sorveglianti ora passano --chart NQZ6
 2026-09-16  crude: prima giornata su MCLV6 con la procedura di NQ — livelli, sei scenari, IVB 15:00-15:30 (finestra ora configurabile), soglie riscalate sul tick; Trigger 03 escluso perche' marcato (NQ)
 2026-09-16  metodo: come-si-apre-un-asset.md, nove passi obbligatori per ogni strumento nuovo e a ogni rollover; COT WTI 067651 rilevato e analisi-istituzionale estesa oltre il Nasdaq
+2026-09-16  scenari: --from e in UTC e un orario futuro dava zero barre e silenzio; ora grida NESSUNA BARRA. Il monitor crude e rimasto muto mezz'ora e ha perso lo scatto di cede-103.58
