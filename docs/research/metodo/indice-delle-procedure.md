@@ -123,6 +123,24 @@ alla lettura ragionata che arriva dopo.
 Le letture sbagliate restano scritte con cio' che le ha smentite: e' la parte verificabile del
 documento.
 
+### 6bis. Le gambe, a seduta chiusa
+
+[**`le-gambe-di-una-seduta.md`**](le-gambe-di-una-seduta.md) — quanto una giornata ha **davvero**
+offerto. Una gamba dura finche' il prezzo non ritraccia piu' di **R** punti dal proprio estremo, e
+R e' un parametro dello strumento (12 su NQ, 3 su ES, 0,25 $ sul crude), non una costante.
+
+Esiste perche' il 16 settembre avevo misurato *"il massimo dei 30 minuti successivi"* e chiamato
+quel numero un movimento: era l'**inviluppo dell'opportunita'**, cioe' il risultato di chi indovina
+ogni giro. L'utente l'ha visto dal grafico. Ci avevo gia' costruito sopra una lettura del Triple
+AAA che non stava in piedi.
+
+Ci sta anche la lezione che vale oltre il caso: **un pattern trovato leggendo all'indietro dai
+movimenti buoni ha per costruzione il 100% di successo.** Il numero che conta e' quante volte la
+stessa firma compare *senza* il movimento — quel giorno, 19 occorrenze e 42%.
+
+E la **deroga dichiarata** dell'utente: si opera anche **prima del gate** Tier 01, con i tre
+obblighi che la deroga non sospende.
+
 ---
 
 ## Contratti Osservativi

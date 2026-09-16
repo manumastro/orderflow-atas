@@ -274,6 +274,18 @@ Ogni Lettura"*. Tre obblighi che quelle sezioni impongono e che non vanno dedott
 **esegue** invece di chiederlo, la finestra di misura si **dichiara** accanto al numero, e nessuno
 dei due dipende dalla fase di sessione.
 
+**Si opera anche prima che il gate Tier 01 si sia aperto.** E' una **deroga dichiarata**
+dell'utente al dossier, che prima della chiusura M30 concede solo mean reverting: sta sotto al
+dossier nella gerarchia delle fonti, e i tre obblighi che **non** sospende — `verso` degli scenari
+comunque `NESSUN PERMESSO`, sei prove immutate, dicitura *pre-gate* accanto a ogni lettura — sono
+in [`le-gambe-di-una-seduta.md`](docs/research/metodo/le-gambe-di-una-seduta.md), sezione *"La
+Deroga: Operare Prima Del Gate"*.
+
+**Un movimento si misura col vincolo di ritracciamento, non come massimo di una finestra.** La
+seconda misura e' l'inviluppo dell'opportunita' e non descrive niente di tenibile; il 16 settembre
+ci avevo costruito sopra una lettura del Triple AAA falsa. Procedura, parametro R per strumento e
+la regola sui pattern letti all'indietro nello stesso documento.
+
 I livelli disegnati sul chart arrivano da `POST /levels`: l'indicatore disegna e basta, `bridge.py`
 trasporta e basta, la derivazione resta nell'analisi. Procedura in
 [`docs/research/metodo/livelli-sul-chart.md`](docs/research/metodo/livelli-sul-chart.md). Non

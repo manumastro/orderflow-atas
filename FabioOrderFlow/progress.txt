@@ -108,3 +108,4 @@
             prefisso dello strumento in --giorno.
 2026-09-16  diario NQZ6: sezione 17:57 (IVB cash, gate, gamba 17:47, valore cash) + contesto macro FOMC dichiarato con fonte; corretto il conteggio della barra 17:47 misurata in formazione
 2026-09-16  seduta NQZ6 chiusa alle 18:13: diario completato fino alla chiusura, sorveglianti spenti, tre cose aperte alla ripresa
+2026-09-16  bilancio gambe NQZ6: corretta la metrica (inviluppo != gamba), 5 gambe misurate, pattern al 42% archiviato negativo, deroga pre-gate dichiarata
