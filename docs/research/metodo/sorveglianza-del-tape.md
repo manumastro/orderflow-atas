@@ -734,3 +734,53 @@ barre gia' valutate, e il 15 settembre alle 10:29, quando il chart e' passato da
 
 Per riconoscere una barra si usa `time`, e non si valuta mai una barra piu' vecchia dell'ultima
 gia' vista.
+
+## Il `tipo` Di Uno Scenario Deve Esistere In `annota.py`
+
+**Difetto trovato il 16 settembre 2026, quindici minuti prima del comunicato della Fed, con sei
+scenari su sei muti.**
+
+`scenari.py` passa il campo `tipo` dello scenario ad `annota.py` come `--tipo`, e quel parametro ha
+un vocabolario **chiuso**:
+
+```text
+assorbimento   attesa   nota   reclaim   rifiuto   rottura
+```
+
+Qualunque altro valore fa uscire `annota.py` con exit 2. Lo scenario **scatta lo stesso** — la
+notifica arriva, il log la registra — ma **sul chart non compare niente**. Avevo scritto `gate`,
+`osservazione` e `invalidazione`, che descrivono bene la funzione dello scenario e non esistono
+come `--tipo`: tutti e sei gli scenari della serata erano incapaci di annotare, e il primo a
+scattare (`permesso revocato`, chiusura M30 delle 19:29) ha fallito in silenzio.
+
+**Perche' non l'hanno visto le difese.** `--controlla` verifica che la **condizione** sia
+eseguibile, non che i metadati siano spendibili a valle. E' la stessa distinzione della sezione
+*"Le Prove Che Una Condizione Deve Passare"*: le difese automatiche vedono l'eseguibilita', non la
+correttezza — e qui non vedevano nemmeno un pezzo dell'eseguibilita', perche' stava in un altro
+programma.
+
+**La regola:** il `tipo` di uno scenario si sceglie **dal vocabolario di `annota.py`**, non dalla
+funzione che il livello ha nell'analisi. Quella funzione — permesso, bersaglio, invalidazione,
+posizionamento — vive nei campi `implica`, `attesa` e nell'etichetta del livello, dove non ha
+vincoli.
+
+```text
+gate IVB, rottura di un bordo, perdita del valore   ->  rottura
+un livello che respinge                             ->  rifiuto
+volume alto e delta piatto                          ->  assorbimento
+ripresa di un livello perso                         ->  reclaim
+osservazione, bersaglio, tutto il resto             ->  nota
+```
+
+**La correzione strutturale.** `scenari.py` stampava solo il nome dell'eccezione
+(`[annotazione non spinta: CalledProcessError]`) perche' scartava lo `stderr` del sottoprocesso: il
+messaggio non diceva **cosa** fosse andato storto, e l'ho scoperto solo riproducendo il comando a
+mano. Ora lo cattura e stampa l'ultima riga dell'errore vero. **Un fallimento silenzioso in un
+sorvegliante e' peggio del fallimento**, perche' somiglia al funzionamento.
+
+Il filtro del monitor deve quindi includere `non spinta` fra i pattern, o l'avviso non arriva
+comunque:
+
+```bash
+grep -E --line-buffered 'SCATTA|ROTTO|DECAD|non spinta|NESSUNA BARRA|scenari attivi|IVB|...'
+```

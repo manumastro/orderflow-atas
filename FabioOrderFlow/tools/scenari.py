@@ -312,9 +312,17 @@ def annota(s, ctx, giorno, chart):
     if chart:
         cmd += ["--chart", chart]
     try:
-        subprocess.run(cmd, check=True, timeout=30, stdout=subprocess.DEVNULL)
+        subprocess.run(cmd, check=True, timeout=30, stdout=subprocess.DEVNULL,
+                       stderr=subprocess.PIPE, text=True)
+    except subprocess.CalledProcessError as e:
+        # Senza lo stderr il messaggio dice solo "CalledProcessError" e non e' azionabile: il
+        # 16 settembre sei scenari su sei hanno fallito in silenzio per un --tipo non ammesso,
+        # e l'ho scoperto solo riproducendo il comando a mano.
+        det = (e.stderr or "").strip().splitlines()
+        print(f"[annotazione non spinta: {det[-1] if det else 'exit ' + str(e.returncode)}]",
+              flush=True)
     except Exception as e:
-        print(f"[annotazione non spinta: {type(e).__name__}]", flush=True)
+        print(f"[annotazione non spinta: {type(e).__name__}: {e}]", flush=True)
 
 
 NOMI_CONTESTO = _nomi_contesto()
