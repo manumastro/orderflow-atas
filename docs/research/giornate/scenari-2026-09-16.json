@@ -13,6 +13,32 @@
     "attesa": "E' l'invalidazione della giornata rialzista, non un ingresso short: sotto il tetto non si apre nessun permesso al ribasso, si torna a non averne."
   },
   {
+    "nome": "cede la base del gate",
+    "sigla": "cede 29500",
+    "prezzo": 29500.0,
+    "tipo": "invalidazione",
+    "tema": "ritest",
+    "quando": "c < 29500 and vol >= p75vol and delta <= -p75delta and pos <= 0.35",
+    "verso": "NESSUN PERMESSO",
+    "implica": "avviso per chi e' long dalla rottura: la base compratori del gate (29.500, 71 lotti con delta +71) viene persa con volume e vendita aggressiva. Non e' ancora l'invalidazione della tesi - quella e' 29.475,75, lo sforzo profondo delle 17:00 - ma e' il primo gradino che salta.",
+    "altrimenti": "finche' 29.500 regge, il ritracciamento e' respiro.",
+    "testo": "BASE DEL GATE PERSA - primo gradino sotto il long",
+    "attesa": "SOSIA: una discesa sottile senza partecipazione, che non dice niente - la separano vol >= p75vol e delta <= -p75delta, cioe' che la perdita sia venduta davvero."
+  },
+  {
+    "nome": "salta lo stop del long",
+    "sigla": "stop 29475.75",
+    "prezzo": 29475.75,
+    "tipo": "invalidazione",
+    "tema": "ritest",
+    "quando": "c < 29475.75",
+    "verso": "NESSUN PERMESSO",
+    "implica": "dossier, STOP LOGIC della sequenza IVB Break: se il livello che ha tenuto l'assorbimento viene ri-rotto, la tesi e' invalidata - si esce. E' l'unico numero tracciabile a una riga della fonte in tutta questa operazione.",
+    "altrimenti": "sopra 29.475,75 la rottura resta valida anche durante un ritracciamento profondo.",
+    "testo": "STOP: 29.475,75 ri-rotto, tesi della rottura invalidata",
+    "attesa": "Nessuna guardia sul volume: uno stop non si discute, e una condizione che aspetta conferme lo trasforma in una speranza."
+  },
+  {
     "nome": "ritest del tetto con assorbimento",
     "sigla": "ritest assorbito",
     "prezzo": 29490.0,
