@@ -1,96 +1,93 @@
 [
   {
-    "price": 29495.25,
-    "label": "Max ieri 03:16 · il punto da cui e' partita la caduta",
-    "color": "#6B7A99",
-    "style": "dash",
-    "width": 1
-  },
-  {
     "price": 29453.5,
-    "label": "Mensola · IVB alto di ieri, POC 2-10-14 set",
+    "label": "Mensola · IVB alto ieri · bersaglio sopra 29.439, +14 pt",
     "color": "#8E7CC3",
     "style": "solid",
     "width": 2
   },
   {
+    "price": 29439.0,
+    "label": "Max oggi 14:08 · qui la spinta si e' fermata, 14 pt sotto la mensola",
+    "color": "#8E7CC3",
+    "style": "dash",
+    "width": 1
+  },
+  {
     "price": 29400.0,
-    "label": "Il muro · rotto 06:21, ripreso 13:00, riperso in serata",
+    "label": "Il muro · respinto 7h, accettato 13:43, perso 14:36, ripreso 14:50",
     "color": "#7A8FA6",
     "style": "solid",
     "width": 2
   },
   {
+    "price": 29390.0,
+    "label": "Nodo comprato · 4.030 lotti delta +506, primo supporto sotto il muro",
+    "color": "#6AA84F",
+    "style": "dash",
+    "width": 1
+  },
+  {
     "price": 29372.5,
-    "label": "IVB basso di ieri · il livello che apri' lo short",
-    "color": "#8E7CC3",
-    "style": "dot",
-    "width": 1,
-    "chiave": true
+    "label": "IVB basso ieri · nodo piu' grosso della zona alta (4.874 lotti, +200) · il perno",
+    "color": "#C27BA0",
+    "style": "solid",
+    "width": 2
+  },
+  {
+    "price": 29363.5,
+    "label": "Min pomeriggio 13:15 · sotto, si perde il POC odierno",
+    "color": "#CC4125",
+    "style": "dash",
+    "width": 1
   },
   {
     "price": 29358.5,
-    "label": "Max stanotte 05:21 · primo ostacolo sopra",
-    "color": "#6B7A99",
-    "style": "dash",
-    "width": 1,
-    "chiave": true
+    "label": "Max stanotte · non piu' ostacolo: ora e' supporto, sotto dal 13:15",
+    "color": "#7A8FA6",
+    "style": "dot",
+    "width": 1
   },
   {
     "price": 29335.0,
-    "label": "VAH notte · bordo alto del valore: qui il fade e' SHORT",
-    "color": "#A98BC9",
+    "label": "VAH notte · 8 rifiuti stamattina: qui il fade e' SHORT",
+    "color": "#E69138",
     "style": "solid",
     "width": 2
   },
   {
     "price": 29277.0,
     "label": "POC notte · bersaglio 1 di entrambi i fade",
-    "color": "#8FA6B5",
-    "style": "dot",
-    "width": 1,
-    "chiave": true
-  },
-  {
-    "price": 29262.0,
-    "label": "DOPPIO POC · 21% ieri + 30% stanotte: il valore vero",
-    "color": "#7A8FA6",
+    "color": "#3D85C6",
     "style": "solid",
     "width": 2
   },
   {
+    "price": 29262.0,
+    "label": "DOPPIO POC · 21% ieri + 30% stanotte: il valore vero",
+    "color": "#3D85C6",
+    "style": "dash",
+    "width": 1
+  },
+  {
     "price": 29250.0,
     "label": "VAL notte · bordo basso: qui il fade e' LONG",
-    "color": "#A98BC9",
+    "color": "#E69138",
     "style": "solid",
     "width": 2
   },
   {
     "price": 29226.0,
-    "label": "Min stanotte 03:59",
+    "label": "Min oggi 03:59",
     "color": "#6B7A99",
-    "style": "dash",
+    "style": "dot",
     "width": 1
   },
   {
     "price": 29207.5,
-    "label": "Min ieri 21:52 · il minimo delle ultime 24 ore",
-    "color": "#6B7A99",
+    "label": "Min ultime 24 ore · sotto, continua la discesa di lunedi",
+    "color": "#CC4125",
     "style": "solid",
     "width": 2
-  },
-  {
-    "price": 29168.0,
-    "label": "Min cash lunedi · sotto, continua la discesa di lunedi",
-    "color": "#7A8FA6",
-    "style": "dot",
-    "width": 1
-  },
-  {
-    "price": 29107.25,
-    "label": "Min globex lunedi · il minimo della settimana",
-    "color": "#7A8FA6",
-    "style": "dot",
-    "width": 1
   }
 ]
