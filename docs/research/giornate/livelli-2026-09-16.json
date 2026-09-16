@@ -8,73 +8,66 @@
   },
   {
     "price": 29439.0,
-    "label": "Max oggi 14:08 · qui la spinta si e' fermata, 14 pt sotto la mensola",
+    "label": "Max oggi 14:08 · invalidazione: sopra, la mensola diventa raggiungibile",
     "color": "#8E7CC3",
     "style": "dash",
     "width": 1
   },
   {
     "price": 29400.0,
-    "label": "Il muro · respinto 7h, accettato 13:43, perso 14:36, ripreso 14:50",
+    "label": "Il muro · 3 passaggi oggi · VAH del profilo della sola giornata",
     "color": "#7A8FA6",
     "style": "solid",
     "width": 2
   },
   {
     "price": 29390.0,
-    "label": "Nodo comprato · 4.030 lotti delta +506, primo supporto sotto il muro",
+    "label": "Nodo comprato · 4.030 lotti delta +506 · VAL del profilo pomeridiano",
     "color": "#6AA84F",
     "style": "dash",
     "width": 1
   },
   {
     "price": 29372.5,
-    "label": "IVB basso ieri · nodo piu' grosso della zona alta (4.874 lotti, +200) · il perno",
-    "color": "#C27BA0",
+    "label": "VAH IN SVILUPPO · qui il fade e' SHORT verso il POC · perno: IVB basso ieri + nodo 4.874 lotti",
+    "color": "#E69138",
     "style": "solid",
-    "width": 2
+    "width": 3
   },
   {
     "price": 29363.5,
-    "label": "Min pomeriggio 13:15 · sotto, si perde il POC odierno",
+    "label": "Min pomeriggio 13:15 · sotto, rientro pieno nel valore",
     "color": "#CC4125",
     "style": "dash",
     "width": 1
   },
   {
-    "price": 29358.5,
-    "label": "Max stanotte · non piu' ostacolo: ora e' supporto, sotto dal 13:15",
-    "color": "#7A8FA6",
+    "price": 29335.0,
+    "label": "Vecchio VAH notte (07:45) · 8 rifiuti stamattina, ora dentro il valore: supporto, non bordo",
+    "color": "#6B7A99",
     "style": "dot",
     "width": 1
   },
   {
-    "price": 29335.0,
-    "label": "VAH notte · 8 rifiuti stamattina: qui il fade e' SHORT",
-    "color": "#E69138",
-    "style": "solid",
-    "width": 2
-  },
-  {
-    "price": 29277.0,
-    "label": "POC notte · bersaglio 1 di entrambi i fade",
+    "price": 29275.0,
+    "label": "POC IN SVILUPPO · bersaglio 1 di entrambi i fade",
     "color": "#3D85C6",
     "style": "solid",
     "width": 2
   },
   {
     "price": 29262.0,
-    "label": "DOPPIO POC · 21% ieri + 30% stanotte: il valore vero",
+    "label": "DOPPIO POC · 21% ieri + 30% stanotte",
     "color": "#3D85C6",
     "style": "dash",
     "width": 1
   },
   {
-    "price": 29250.0,
-    "label": "VAL notte · bordo basso: qui il fade e' LONG",
+    "price": 29235.0,
+    "label": "VAL IN SVILUPPO · qui il fade e' LONG verso il POC · bersaglio 2 del fade al VAH",
     "color": "#E69138",
     "style": "solid",
-    "width": 2
+    "width": 3
   },
   {
     "price": 29226.0,
