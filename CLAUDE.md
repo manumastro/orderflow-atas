@@ -37,6 +37,41 @@ Il file del giorno si aggiorna **durante** la seduta, non a posteriori: una gior
 fine perde proprio le letture sbagliate, che sono la parte verificabile. Formato e regole in
 [`docs/research/giornate/come-si-scrive-una-giornata.md`](docs/research/giornate/come-si-scrive-una-giornata.md).
 
+## Il Giro D'Orizzonte, Prima Di Ogni Risposta
+
+**Prima di qualunque analisi, anche la piu' piccola, si guarda tutto il contesto disponibile.**
+Non le ultime dieci barre, non solo il livello di cui si sta parlando: **tutto** — lo stato del
+bridge, dove eravamo, le correzioni gia' fatte oggi, il framing di ieri, cosa e' gia' scattato, gli
+scenari armati, il tape con le finestre mobili, il profilo della seduta.
+
+L'obbligo vale **per ogni risposta**, non a inizio sessione. Una domanda breve non autorizza un
+contesto breve: le domande piu' corte — *"ha senso che scenda?"*, *"cosa ne pensi?"* — sono quelle
+a cui si risponde piu' facilmente guardando lo schermo invece dei dati, ed e' li' che si sbaglia.
+
+Costa un comando:
+
+```bash
+python3 FabioOrderFlow/tools/giro_orizzonte.py
+```
+
+Otto sezioni in un colpo solo. Se il comando fallisce o il bridge non risponde, **lo si dice**:
+una risposta data senza contesto va dichiarata tale, non presentata come una lettura.
+
+**Tre cose che il giro d'orizzonte impedisce**, tutte gia' successe:
+
+- **dedurre invece di leggere.** Il 16 settembre ho detto che uno scenario non era scattato: era
+  scattato otto minuti prima, e stava scritto nel diario. La sezione 5 lo mette davanti agli occhi.
+- **rispondere sulle ultime barre.** Una lettura costruita su dieci minuti ignora che il POC della
+  seduta sta 100 punti sotto e che il delta a 60 minuti dice il contrario di quello a 15.
+- **ripetere un errore gia' corretto oggi.** La sezione 3 elenca le correzioni della giornata: se
+  una risposta sta per ricadere in una di quelle, si vede prima di scriverla.
+
+**Questo non contraddice la brevita' della lettura dal vivo.** Il giro d'orizzonte riguarda
+l'**input**: si guarda tutto. La lettura riguarda l'**output**: si scrive poco, e si sceglie quel
+poco proprio perche' si e' visto tutto. Una risposta corta costruita su un contesto corto e'
+un'altra cosa, ed e' il modo in cui si sbaglia in fretta.
+
+
 ## Prima Di Usare Un Termine Del Metodo
 
 **Un termine del metodo non si parafrasa a memoria. Si apre la fonte e si legge il passo.**

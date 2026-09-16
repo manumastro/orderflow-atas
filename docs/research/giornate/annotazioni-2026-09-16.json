@@ -1,1 +1,22 @@
-[]
+[
+  {
+    "ora": "09:13",
+    "prezzo": 29358.5,
+    "tipo": "reclaim",
+    "testo": "[NESSUN PERMESSO] accettato sopra il massimo di stanotte",
+    "misura": "09:13 a 29391.50: vol 87, delta +33, 30m +5.6%. IMPLICA: osservazione, non ingresso. Un long sull'accettazione sopra il massimo notturno e' una ROTTURA fuori dal valore, quindi Tier 02B trend following, che richiede il permesso dell'IVB: prima delle 16:00 non esiste. Non e' mean reverting, che nel dossier e' solo il fade dei bordi del valore verso l'interno. ALTRIMENTI: se respinto, il tetto notturno e' resistenza e si torna verso il VAH 29335 e il POC 29277. || 29358,50 delle 05:21 e' il primo vero ostacolo sopra il prezzo.",
+    "scenario": "accettazione sopra il massimo notturno",
+    "condizione": "c > 29358.5 and minuti_sotto(29358.5, 20) <= 5 and vol_sopra_pct(29358.5, 20) >= 65",
+    "tema": "tetto notturno"
+  },
+  {
+    "ora": "09:14",
+    "prezzo": 29372.5,
+    "tipo": "reclaim",
+    "testo": "[NESSUN PERMESSO] accettazione sopra l'IVB basso di ieri",
+    "misura": "09:14 a 29384.75: vol 85, delta -11, 30m +4.6%. IMPLICA: il livello che ieri apri' lo short torna sotto il prezzo: la discesa di ieri smette di essere il riferimento che governa. Bersaglio successivo il muro 29400 (+28), poi la mensola 29453.5 (+81). NON e' un permesso: il gate direzionale resta la chiusura M30 delle 16:30. ALTRIMENTI: se rientra sotto 29358.5 il quarto test e' fallito come i primi tre, e chi ha comprato sopra 29370 e' la benzina della discesa verso il valore 29277. || Misura su finestra, non su barra: 20 minuti con non piu' di 5 chiusure sotto e almeno il 65% del volume sopra. SOSIA: il picco che buca e rientra, che alle 08:07 e 08:13 era gia' successo due volte.",
+    "scenario": "riprende l'IVB basso di ieri",
+    "condizione": "c > 29372.5 and minuti_sotto(29372.5, 20) <= 5 and vol_sopra_pct(29372.5, 20) >= 65",
+    "tema": "il soffitto di ieri"
+  }
+]

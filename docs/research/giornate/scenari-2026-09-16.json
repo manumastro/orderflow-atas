@@ -31,12 +31,12 @@
     "prezzo": 29400,
     "tipo": "rifiuto",
     "tema": "muro 29400",
-    "quando": "o <= 29400 and minuti_sotto(29400, 10) >= 6 and tocca(29400, 8) and vol >= p75vol and delta <= 0 and pos <= 0.35",
+    "quando": "o <= 29400 and minuti_sotto(29400, 10) >= 6 and tocca(29400, 3) and vol >= p95vol and delta <= -p75delta and pos <= 0.35",
     "verso": "SHORT",
     "implica": "29400 ha respinto due volte ieri mattina, ceduto alle 13:00 ed e' stato riperso in serata. Un altro rifiuto lo conferma come tetto.",
     "altrimenti": "se lo riprende in accettazione, torna in gioco la mensola a 29453,50.",
     "testo": "il muro di 29400 respinge ancora",
-    "attesa": "il livello piu' conteso delle ultime due sedute. SOSIA: la stessa barra la produce il prezzo che cade attraverso 29400 dall'alto, che e' il contrario. Per questo serve l'arrivo da sotto: apertura sotto il muro e 6 degli ultimi 10 minuti sotto."
+    "attesa": "Il livello piu' conteso delle ultime due sedute. SOSIA 1: il prezzo che cade attraverso 29400 dall'alto - da qui le guardie sul lato di arrivo. SOSIA 2, trovato alle 09:10: l'AVVICINAMENTO senza test. Con tolleranza 8 punti e soglia p75 lo scenario e' scattato su una barra da 113 lotti con il massimo a 29395,25, cioe' senza che 29400 fosse mai stato toccato. Tolleranza stretta a 3 punti e volume alzato a p95: un muro che respinge lo fa con size, non con 113 lotti."
   },
   {
     "nome": "secondo test del minimo delle 24 ore",
@@ -128,5 +128,31 @@
     "altrimenti": "se accetta sotto 29250 il valore migra in basso e si torna allo scenario 'perde il valore'.",
     "testo": "fade del bordo basso del valore",
     "attesa": "VAL della notte a 29250, appena sopra il doppio POC 29250-29274. Come per il VAH, serve l'arrivo DA DENTRO: apertura sopra 29250 e non piu' di 4 degli ultimi 10 minuti chiusi sotto. ATTENZIONE: due sedute mostrano compratori aggressivi che restano intrappolati."
+  },
+  {
+    "nome": "riprende l'IVB basso di ieri",
+    "sigla": "riprende 29372",
+    "prezzo": 29372.5,
+    "tipo": "reclaim",
+    "tema": "il soffitto di ieri",
+    "quando": "c > 29372.5 and minuti_sotto(29372.5, 20) <= 5 and vol_sopra_pct(29372.5, 20) >= 65",
+    "verso": "NESSUN PERMESSO",
+    "implica": "il livello che ieri apri' lo short torna sotto il prezzo: la discesa di ieri smette di essere il riferimento che governa. Bersaglio successivo il muro 29400 (+28), poi la mensola 29453.5 (+81). NON e' un permesso: il gate direzionale resta la chiusura M30 delle 16:30.",
+    "altrimenti": "se rientra sotto 29358.5 il quarto test e' fallito come i primi tre, e chi ha comprato sopra 29370 e' la benzina della discesa verso il valore 29277.",
+    "testo": "accettazione sopra l'IVB basso di ieri",
+    "attesa": "Misura su finestra, non su barra: 20 minuti con non piu' di 5 chiusure sotto e almeno il 65% del volume sopra. SOSIA: il picco che buca e rientra, che alle 08:07 e 08:13 era gia' successo due volte."
+  },
+  {
+    "nome": "arriva alla mensola",
+    "sigla": "tocca la mensola",
+    "prezzo": 29453.5,
+    "tipo": "rifiuto",
+    "tema": "la mensola",
+    "quando": "o <= 29453.5 and minuti_sotto(29453.5, 10) >= 6 and tocca(29453.5, 6) and vol >= p75vol and delta <= 0 and pos <= 0.35",
+    "verso": "NESSUN PERMESSO",
+    "implica": "IVB alto di ieri e POC del 2, 10 e 14 settembre: il primo posto sopra dove ci si aspetta una difesa. Un rifiuto qui riporta il prezzo verso 29400. NON e' un permesso short: prima delle 16:30 il solo setup lecito e' il mean reverting ai bordi del valore, e 29453.5 non e' un bordo del valore di oggi.",
+    "altrimenti": "se la supera in accettazione il range di ieri e' finito e si guarda 29495.25, il massimo di ieri.",
+    "testo": "la mensola respinge",
+    "attesa": "SOSIA: la stessa barra la produce il prezzo che cade attraverso la mensola dall'alto. Da qui le due guardie sul lato di arrivo: apertura sotto e 6 degli ultimi 10 minuti sotto."
   }
 ]

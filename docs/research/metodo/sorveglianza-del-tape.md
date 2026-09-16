@@ -29,6 +29,25 @@ finisce il risultato.
 Il punto 2 e' la chiave: **il file dei livelli e' l'unica fonte**, letta sia da chi disegna sia da
 chi sorveglia. Senza, le due cose divergono e il monitor guarda livelli diversi da quelli che vedi.
 
+## 0. Il Giro D'Orizzonte
+
+Prima di tutto il resto, e prima di **ogni** risposta durante la seduta:
+
+```bash
+python3 FabioOrderFlow/tools/giro_orizzonte.py
+```
+
+Stampa in un colpo solo le otto cose che vanno guardate: bridge e contratto, "dove eravamo" dal
+file della giornata, le correzioni gia' fatte oggi, il framing di ieri, **cosa e' gia' scattato
+letto dal diario**, gli scenari armati col loro verso, il tape con le finestre a 15-30-60 minuti,
+e il profilo della seduta globex in corso.
+
+Esiste per una ragione sola: la regola *"guarda sempre il contesto completo"* non sopravvive se
+costa sei comandi. Ne costa uno. L'obbligo e' in
+[`CLAUDE.md`](../../../CLAUDE.md), sezione *"Il Giro D'Orizzonte, Prima Di Ogni Risposta"*.
+
+---
+
 ## 1-2. I Livelli, In Un File Per Giornata
 
 Un array JSON in `docs/research/giornate/livelli-AAAA-MM-GG.json`, un oggetto per livello:
