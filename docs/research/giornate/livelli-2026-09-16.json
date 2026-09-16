@@ -1,86 +1,86 @@
 [
   {
-    "price": 29453.5,
-    "label": "Mensola · IVB alto ieri · bersaglio sopra 29.439, +14 pt",
-    "color": "#8E7CC3",
-    "style": "solid",
-    "width": 2
-  },
-  {
-    "price": 29439.0,
-    "label": "Max oggi 14:08 · invalidazione: sopra, la mensola diventa raggiungibile",
-    "color": "#8E7CC3",
-    "style": "dash",
-    "width": 1
-  },
-  {
-    "price": 29400.0,
-    "label": "Il muro · 3 passaggi oggi · VAH del profilo della sola giornata",
-    "color": "#7A8FA6",
-    "style": "solid",
-    "width": 2
-  },
-  {
-    "price": 29390.0,
-    "label": "Nodo comprato · 4.030 lotti delta +506 · VAL del profilo pomeridiano",
+    "price": 29604.0,
+    "label": "VAH lunedi · bersaglio lontano del GATE AL RIALZO (+123 dal tetto IVB)",
     "color": "#6AA84F",
     "style": "dash",
     "width": 1
   },
   {
-    "price": 29372.5,
-    "label": "VAH IN SVILUPPO · qui il fade e' SHORT verso il POC · perno: IVB basso ieri + nodo 4.874 lotti",
-    "color": "#E69138",
-    "style": "solid",
-    "width": 3
-  },
-  {
-    "price": 29363.5,
-    "label": "Min pomeriggio 13:15 · sotto, rientro pieno nel valore",
-    "color": "#CC4125",
-    "style": "dash",
-    "width": 1
-  },
-  {
-    "price": 29335.0,
-    "label": "Vecchio VAH notte (07:45) · 8 rifiuti stamattina, ora dentro il valore: supporto, non bordo",
-    "color": "#6B7A99",
-    "style": "dot",
-    "width": 1
-  },
-  {
-    "price": 29275.0,
-    "label": "POC IN SVILUPPO · bersaglio 1 di entrambi i fade",
-    "color": "#3D85C6",
+    "price": 29495.25,
+    "label": "Max di ieri 03:16 · primo ostacolo sopra il massimo di oggi, bersaglio 1 del gate su",
+    "color": "#6AA84F",
     "style": "solid",
     "width": 2
   },
   {
-    "price": 29262.0,
-    "label": "DOPPIO POC · 21% ieri + 30% stanotte",
-    "color": "#3D85C6",
-    "style": "dash",
+    "price": 29484.25,
+    "label": "Max di oggi 16:00 · sopra qui la seduta e' in territorio nuovo",
+    "color": "#8E7CC3",
+    "style": "dot",
     "width": 1
   },
   {
-    "price": 29235.0,
-    "label": "VAL IN SVILUPPO · qui il fade e' LONG verso il POC · bersaglio 2 del fade al VAH",
+    "price": 29481.5,
+    "label": "TETTO IVB · chiusura M30 sopra = GATE AL RIALZO, permesso LONG",
+    "color": "#3D85C6",
+    "style": "solid",
+    "width": 3
+  },
+  {
+    "price": 29455.0,
+    "label": "VAH in sviluppo · qui il fade e' SHORT verso il POC 29.400",
     "color": "#E69138",
     "style": "solid",
     "width": 3
   },
   {
-    "price": 29226.0,
-    "label": "Min oggi 03:59",
+    "price": 29427.5,
+    "label": "Centro IVB · chiusura M30 qui intorno = nessun permesso, solo mean reverting",
     "color": "#6B7A99",
     "style": "dot",
+    "width": 1
+  },
+  {
+    "price": 29400.0,
+    "label": "POC in sviluppo · bersaglio 1 di ENTRAMBI i fade · 4 rifiuti stamattina",
+    "color": "#C27BA0",
+    "style": "solid",
+    "width": 2
+  },
+  {
+    "price": 29373.25,
+    "label": "PAVIMENTO IVB · chiusura M30 sotto = GATE AL RIBASSO, permesso SHORT",
+    "color": "#3D85C6",
+    "style": "solid",
+    "width": 3
+  },
+  {
+    "price": 29300.0,
+    "label": "VAL in sviluppo · qui il fade e' LONG verso il POC · bersaglio 2 del fade al VAH",
+    "color": "#E69138",
+    "style": "solid",
+    "width": 3
+  },
+  {
+    "price": 29275.0,
+    "label": "POC notturno · bersaglio 1 del gate al ribasso sotto il valore",
+    "color": "#CC4125",
+    "style": "dash",
     "width": 1
   },
   {
     "price": 29207.5,
-    "label": "Min ultime 24 ore · sotto, continua la discesa di lunedi",
+    "label": "Min ultime 24 ore · bersaglio 2 del gate al ribasso",
     "color": "#CC4125",
     "style": "solid",
     "width": 2
+  },
+  {
+    "price": 29167.75,
+    "label": "Min cash lunedi · bersaglio lontano del gate giu, riprende la discesa di lunedi",
+    "color": "#CC4125",
+    "style": "dash",
+    "width": 1
   }
 ]
