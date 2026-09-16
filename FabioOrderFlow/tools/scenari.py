@@ -220,6 +220,14 @@ def chiave(s) -> tuple[str, str]:
 
 
 def valuta(scenari, ctx, scattati):
+    """Valuta gli scenari ancora armati sulla barra corrente.
+
+    **Un errore non consuma lo scenario.** La versione precedente lo aggiungeva a `scattati`, cioe'
+    lo trattava come gia' avvenuto: il 16 settembre `fade del VAH` conteneva un nome inesistente,
+    e' andato in errore alla prima barra utile e si e' spento da solo, in silenzio, nel minuto in
+    cui il fade si stava innescando davvero. Un errore deve restare rumoroso finche' non e'
+    corretto, non zittirsi al primo tentativo.
+    """
     for s in scenari:
         nome = s["nome"]
         if chiave(s) in scattati and s.get("una_volta", True):
@@ -229,6 +237,26 @@ def valuta(scenari, ctx, scattati):
                 yield s
         except Exception as e:
             yield {"nome": nome, "quando": s["quando"], "errore": f"{type(e).__name__}: {e}"}
+
+
+def allarme_chart(giorno, chart, rotti):
+    """Scrive sul chart che uno scenario e' rotto.
+
+    Una riga di log si perde; una riga sul grafico no. Finche' c'e' uno scenario in errore deve
+    essere visibile dove si guarda, non dove si dovrebbe guardare.
+    """
+    if not rotti:
+        return
+    testo = f"SCENARIO ROTTO: {', '.join(sorted(rotti))} - non scattera'"
+    cmd = [sys.executable, str(ANNOTA), "--giorno", giorno, "--tema", "scenari rotti",
+           "--tipo", "rottura", "--prezzo", "0", "--testo", testo,
+           "--misura", "; ".join(f"{k}: {v}" for k, v in sorted(rotti.items()))]
+    if chart:
+        cmd += ["--chart", chart]
+    try:
+        subprocess.run(cmd, check=True, timeout=30, stdout=subprocess.DEVNULL)
+    except Exception:
+        pass
 
 
 def ricomponi(giorno, chart):
@@ -283,6 +311,22 @@ def annota(s, ctx, giorno, chart):
 NOMI_CONTESTO = _nomi_contesto()
 
 
+def nomi_ignoti(espressione: str) -> set[str]:
+    """I nomi usati da `quando` che il contesto non fornisce, piu' l'errore di sintassi.
+
+    Statico apposta: valutare non basta, perche' `and` corto-circuita e un nome inesistente nel
+    ramo destro non viene mai raggiunto finche' il ramo sinistro e' falso.
+    """
+    import ast
+    try:
+        albero = ast.parse(espressione, mode="eval")
+    except SyntaxError as e:
+        return {f"sintassi non valida ({e.msg})"}
+    usati = {n.id for n in ast.walk(albero) if isinstance(n, ast.Name)}
+    ignoti = usati - NOMI_CONTESTO - {"None", "True", "False"}
+    return {f"nome inesistente: {n}" for n in ignoti}
+
+
 # ------------------------------------------------------------------ main
 
 def main() -> None:
@@ -311,6 +355,8 @@ def main() -> None:
     if not f.exists():
         sys.exit(f"manca {f}: gli scenari li scrive l'analisi, non il programma")
 
+    rotti: dict[str, str] = {}   # scenari in errore: dichiarato prima di ricarica(), che lo scrive
+
     def ricarica(vecchi):
         """Rilegge il file se e' cambiato e racconta cosa e' cambiato.
 
@@ -323,6 +369,18 @@ def main() -> None:
         except Exception as e:
             print(f"[scenari illeggibili, tengo i precedenti: {type(e).__name__}]", flush=True)
             return vecchi
+        # Controllo statico a OGNI caricamento, non solo su richiesta: uno scenario con un nome
+        # inesistente non deve poter essere armato. Prima si armava e moriva alla prima barra
+        # in cui la condizione diventava valutabile, cioe' proprio quando serviva.
+        malati = {}
+        for s in nuovi:
+            malati.update(dict.fromkeys([s["nome"]], nomi_ignoti(s["quando"])) if nomi_ignoti(s["quando"]) else {})
+        if malati:
+            for n, ign in malati.items():
+                print(f"!! SCENARIO NON ARMATO  {n}: {', '.join(sorted(ign))}", flush=True)
+            rotti.update({n: ", ".join(sorted(i)) for n, i in malati.items()})
+            allarme_chart(args.giorno, args.chart, rotti)
+            nuovi = [s for s in nuovi if s["nome"] not in malati]
         if vecchi is None:
             return nuovi
         pv, pn = {s["nome"] for s in vecchi}, {s["nome"] for s in nuovi}
@@ -335,25 +393,17 @@ def main() -> None:
         return nuovi
 
     if args.controlla:
-        # Il controllo e' STATICO sui nomi: valutare l'espressione su una barra non basta,
-        # perche' `and` corto-circuita e un nome inesistente nel ramo destro non si vede mai.
-        # E' cosi' che `p75delta` e' passato inosservato il 16 settembre, disarmando uno
-        # scenario alla sua prima valutazione.
-        import ast
-        finta = {k: 0 for k in NOMI_CONTESTO}
+        # Statico apposta: valutare non basta, perche' `and` corto-circuita e un nome inesistente
+        # nel ramo destro non viene mai raggiunto finche' il sinistro e' falso. E' cosi' che
+        # `p75delta` e' passato inosservato il 16 settembre.
         brutti = 0
-        for s in ricarica(None):
-            try:
-                albero = ast.parse(s["quando"], mode="eval")
-            except SyntaxError as e:
-                print(f"SINTASSI  {s['nome']}: {e}"); brutti += 1; continue
-            usati = {n.id for n in ast.walk(albero) if isinstance(n, ast.Name)}
-            ignoti = usati - set(finta) - {"None", "True", "False"}
-            if ignoti:
-                print(f"NOMI IGNOTI  {s['nome']}: {', '.join(sorted(ignoti))}"); brutti += 1
+        for s in json.loads((GIORNATE / f"scenari-{args.giorno}.json").read_text()):
+            ign = nomi_ignoti(s["quando"])
+            if ign:
+                print(f"ROTTO  {s['nome']}: {', '.join(sorted(ign))}"); brutti += 1
             else:
-                print(f"ok  {s['nome']}")
-        sys.exit(brutti and f"\n{brutti} scenari da correggere" or None)
+                print(f"ok     {s['nome']}")
+        sys.exit(f"\n{brutti} scenari da correggere" if brutti else None)
 
     scenari = ricarica(None)
     visto_mtime = f.stat().st_mtime
@@ -415,8 +465,13 @@ def main() -> None:
                 ctx = costruisci_contesto(chiuse, i, args.fuso, ivb)
                 for s in valuta(scenari, ctx, scattati):
                     if "errore" in s:
-                        print(f"ERRORE nello scenario {s['nome']}: {s['errore']}", flush=True)
-                        scattati.add(chiave(s))
+                        # NON si aggiunge a `scattati`: uno scenario rotto deve continuare a
+                        # gridare a ogni barra finche' non lo si corregge. Vederlo una volta
+                        # sola significa non vederlo.
+                        rotti[s["nome"]] = s["errore"]
+                        print(f"!! SCENARIO ROTTO  {s['nome']}: {s['errore']}"
+                              f"  -- non scattera' finche' non lo correggi", flush=True)
+                        allarme_chart(args.giorno, args.chart, rotti)
                         continue
                     scattati.add(chiave(s))
                     print(f"SCATTA {s['nome']} | {ctx['ora']} {ctx['c']:.2f} "

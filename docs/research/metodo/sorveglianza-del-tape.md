@@ -111,26 +111,38 @@ singola non sa:
 precedente sullo stesso livello. E' la lettura piu' utile che si possa fare — *"2.289 lotti contro i
 1.561 di prima"* — e finora si poteva fare solo a mano.
 
-### Provarli prima di armarli
+### Uno Scenario Rotto Deve Gridare, Non Spegnersi
 
-Due controlli, e servono **entrambi** perche' trovano cose diverse.
+Il 16 settembre `fade del VAH` conteneva `p75delta`, un nome che il contesto non forniva. Finche'
+il prezzo e' rimasto sotto il bordo, `h > 29335 and delta <= -p75delta` era falso **al primo pezzo**
+e Python non ha mai valutato il secondo. Alla prima barra sopra il bordo l'espressione ha sollevato
+`NameError`, e il motore — che allora trattava un errore come uno scatto — l'ha marcato consumato.
 
-    ./scenari.py --giorno AAAA-MM-GG --controlla     # nomi e sintassi, senza bridge
-    ./scenari.py --giorno AAAA-MM-GG --from ... --prova   # cosa sarebbe scattato sullo storico
+Si e' spento da solo, in silenzio, **nel minuto esatto in cui il fade si stava innescando**:
+stoppino a 29.357,75, 628 lotti assorbiti, flip a -56. La sequenza c'era tutta e non l'ha vista
+nessuno.
 
-`--controlla` e' **statico**: legge l'albero sintattico di ogni `quando` e verifica che ogni nome
-esista nel contesto. Non valuta niente, e per questo trova quello che la valutazione non trova.
+Da qui quattro difese, tutte necessarie perche' coprono momenti diversi:
 
-Il motivo e' `and`. Python **corto-circuita**: in `h > 29335 and delta <= -p75delta`, se il primo
-pezzo e' falso il secondo non viene mai eseguito, e un nome inesistente resta invisibile. Il 16
-settembre ho validato uno scenario valutandolo su una barra, ho letto `False` e mi sono
-tranquillizzato: conteneva `p75delta`, che non esisteva. Alla prima barra in cui la parte sinistra
-e' diventata vera, l'espressione ha sollevato `NameError`, e il motore **marca come consumato uno
-scenario che va in errore** — quindi si e' disarmato da solo, in silenzio, proprio nel momento in
-cui stava per servire.
+| difesa | quando agisce | cosa impedisce |
+|---|---|---|
+| `--controlla` | prima di armare, a mano | di armare uno scenario gia' rotto |
+| controllo a ogni caricamento | all'avvio e a ogni modifica del file | che una correzione fatta di corsa ne rompa uno |
+| lo scenario rotto **non viene armato** | al caricamento | che muoia piu' tardi, quando serve |
+| l'errore **non consuma** lo scenario | a ogni barra | che si veda una volta sola e poi mai piu' |
 
-L'elenco dei nomi validi non e' scritto a mano: `--controlla` lo ricava costruendo un contesto
-finto, quindi non puo' divergere da quello vero. `--variabili` lo stampa.
+E quando qualcosa e' rotto lo si scrive **sul chart**, non solo nel log:
+
+    !! SCENARIO NON ARMATO  fade del VAH: nome inesistente: p75delta
+
+piu' una riga rossa `SCENARIO ROTTO: ...` fra le annotazioni. Una riga di log si perde fra le
+altre; una riga sul grafico sta dove si guarda davvero.
+
+**Perche' il controllo e' statico.** Valutare l'espressione su una barra non basta: `and`
+corto-circuita, e un nome inesistente nel ramo destro resta invisibile finche' il sinistro e'
+falso. Cioe' resta invisibile **esattamente fino al momento in cui lo scenario conta**. Il
+controllo legge l'albero sintattico e confronta i nomi con quelli del contesto, che ricava
+costruendo un contesto finto: cosi' l'elenco non puo' divergere da quello vero.
 
 
 ### Armarli
