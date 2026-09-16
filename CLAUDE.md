@@ -48,14 +48,19 @@ L'obbligo vale **per ogni risposta**, non a inizio sessione. Una domanda breve n
 contesto breve: le domande piu' corte — *"ha senso che scenda?"*, *"cosa ne pensi?"* — sono quelle
 a cui si risponde piu' facilmente guardando lo schermo invece dei dati, ed e' li' che si sbaglia.
 
-Costa un comando:
+**Non costa niente: arriva da solo.** Un hook `UserPromptSubmit` in
+[`.claude/settings.json`](.claude/settings.json) esegue
+[`.claude/hooks/giro-orizzonte.sh`](.claude/hooks/giro-orizzonte.sh) a ogni messaggio e ne mette lo
+stdout nel contesto del prompt. Mezzo secondo, otto sezioni, prima che la risposta cominci.
 
 ```bash
-python3 FabioOrderFlow/tools/giro_orizzonte.py
+python3 FabioOrderFlow/tools/giro_orizzonte.py     # a mano, se serve altro o l'hook e' spento
 ```
 
-Otto sezioni in un colpo solo. Se il comando fallisce o il bridge non risponde, **lo si dice**:
-una risposta data senza contesto va dichiarata tale, non presentata come una lettura.
+**Il giro d'orizzonte automatico si legge, non si ignora.** E' in cima al prompt proprio perche' la
+risposta si costruisca su quello. Se il blocco manca — hook disattivato, sessione diversa — si
+lancia il comando a mano. Se dice che il bridge non risponde, **lo si dichiara nella risposta**:
+una lettura senza dati va detta tale, non presentata come una lettura.
 
 **Tre cose che il giro d'orizzonte impedisce**, tutte gia' successe:
 

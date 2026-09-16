@@ -73,3 +73,4 @@
 2026-09-16 07:53 istruzioni: obbligo di tornare alla fonte prima di usare un termine del metodo, piu' glossario-del-metodo.md
 2026-09-16  scenari: le sei prove obbligatorie per una condizione. 'fade del VAH' scattava sulla rottura del bordo perche' non vincolava il lato di arrivo: rifiuto e rottura producono gli stessi numeri. Condizione corretta (apertura sotto il bordo + minuti_sotto), sezione nuova in sorveglianza-del-tape.md e obbligo in CLAUDE.md.
 2026-09-16  giro_orizzonte.py: un comando che stampa tutto il contesto (bridge, dove eravamo, correzioni, framing di ieri, diario degli scatti, scenari armati, tape, profilo). Obbligo in CLAUDE.md di consultarlo prima di ogni risposta: una domanda breve non autorizza un contesto breve.
+2026-09-16  hook UserPromptSubmit: il giro d'orizzonte viene eseguito a ogni messaggio e il suo stdout entra nel contesto. L'obbligo non dipende piu' dal fatto che l'agente si ricordi di lanciare il comando.

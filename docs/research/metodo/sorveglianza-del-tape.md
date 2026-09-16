@@ -31,7 +31,10 @@ chi sorveglia. Senza, le due cose divergono e il monitor guarda livelli diversi 
 
 ## 0. Il Giro D'Orizzonte
 
-Prima di tutto il resto, e prima di **ogni** risposta durante la seduta:
+Prima di tutto il resto, e prima di **ogni** risposta durante la seduta. In questo
+repository arriva da solo: un hook `UserPromptSubmit` lo esegue a ogni messaggio e ne infila lo
+stdout nel contesto (`.claude/settings.json`, `.claude/hooks/giro-orizzonte.sh`, mezzo secondo).
+A mano:
 
 ```bash
 python3 FabioOrderFlow/tools/giro_orizzonte.py
