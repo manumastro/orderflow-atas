@@ -90,3 +90,4 @@
 2026-09-16  NQ: sessione sospesa alle 14:10, monitor spenti. 29.400 ritestato da sopra e tenuto; massimo 29.439; mensola 29.453,50 non raggiunta.
 2026-09-16  NQ: livelli ridisegnati alle 14:52 sulla narrativa del pomeriggio (tolti 4 sotto 29.262 e il max di ieri, aggiunti 29.439, 29.390, 29.363,50; etichette di 29.358,50 e 29.400 corrette).
 2026-09-16  NQ: livelli ricalcolati alle 15:00 sul valore IN SVILUPPO (VAL 29.235 / POC 29.275 / VAH 29.372,50) invece che sul valore notturno delle 07:45. Il VAH nuovo coincide col perno su cui il prezzo combatte dalle 14:36.
+2026-09-16  Sezione 9 del giro d'orizzonte: mostra tutti gli avvisi non letti (segnalibro in ~/.fabio-avvisi.letto) invece di tail -12, perche' non tutte le notifiche dei Monitor svegliano l'agente. Sessione NQ sospesa alle 15:02.

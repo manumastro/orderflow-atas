@@ -398,7 +398,41 @@ Due difese:
 tace perche' non gli e' arrivato niente e uno che tace perche' non sta guardando **devono suonare
 diversi**, altrimenti la seconda condizione non si scopre mai.
 
-### Sospendere E Riprendere La Sorveglianza
+### La Notifica Si Perde, Il Log No
+
+**Non tutte le notifiche dei Monitor svegliano l'agente.** Il 16 settembre l'utente lo ha fatto
+notare, ed e' verificabile nella trascrizione: alcuni eventi sono arrivati troncati a meta' riga
+(`>>> ATTRAVERSATO` senza niente dopo, `[bridge non raggiungibile` senza la chiusura), altri non
+sono arrivati affatto mentre comparivano regolarmente in `~/.fabio-avvisi.log`.
+
+**Non e' una cosa che si aggiusta nello strumento**: la consegna delle notifiche la decide
+l'harness. Quello che si puo' fare e' non dipenderne.
+
+Ogni evento passa da `avviso.py`, che lo scrive in `~/.fabio-avvisi.log` **prima** che la notifica
+parta. Il log e' quindi la fonte di verita', la notifica e' solo la strada piu' veloce. L'hook
+`giro-orizzonte.sh` legge il log e ne mette il contenuto nella sezione 9 del giro d'orizzonte, che
+arriva a ogni messaggio.
+
+**La sezione 9 mostra tutto il non letto, non una coda fissa.** Il primo tentativo usava
+`tail -12`: durante una fase concitata dodici righe sono otto minuti, e tutto quello che era
+successo prima spariva. Ora un segnalibro in `~/.fabio-avvisi.letto` tiene il numero di righe gia'
+mostrate, e a ogni messaggio si stampa **esattamente cio' che e' arrivato da allora** — con il
+conteggio nell'intestazione, cosi' si vede se sono tre righe o trenta.
+
+Tre casi che il segnalibro gestisce, e che vanno lasciati com'e':
+
+- **log ruotato o svuotato**: il segnalibro sarebbe oltre la fine del file, quindi riparte da zero;
+- **prima esecuzione della sessione**: non si riversano ore di log, ci si ferma a 15 righe;
+- **nessun avviso nuovo**: la sezione lo **dice**, invece di sparire. Una sezione assente e una
+  sezione vuota si assomigliano troppo, e "non e' successo niente" deve suonare diverso da "non
+  sto guardando" — la stessa regola che vale per la sveglia muta.
+
+**Resta un buco, e va conosciuto:** l'hook gira quando l'utente scrive. Se nessuno scrive per
+venti minuti, per venti minuti nessuno legge il log. La notifica dei Monitor copre quel caso
+quando arriva, ma non si puo' contarci. **Durante una fase decisiva la sorveglianza non sostituisce
+la presenza.**
+
+## Sospendere E Riprendere La Sorveglianza
 
 Quando si fa una pausa **non si spengono i sorveglianti: si staccano**. La seduta continua, e
 quello che succede nella pausa e' esattamente cio' che serve al rientro.

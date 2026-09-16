@@ -37,16 +37,42 @@ echo "$OUT"
 # scrive in ~/.fabio-avvisi.log. La notifica all'agente pero' arriva quando l'harness
 # decide, e il 16 settembre non e' arrivata affatto mentre l'utente le vedeva a schermo.
 # Leggendo il log qui, gli eventi entrano comunque nel contesto a ogni messaggio.
+# Un `tail -12` fisso non basta: durante una fase concitata dodici righe sono otto minuti, e
+# tutto quello che e' successo prima dell'ultimo messaggio sparisce senza che nessuno se ne
+# accorga. Il 16 settembre l'utente ha fatto notare che non tutte le notifiche svegliano
+# l'agente — e' vero, l'harness le consegna quando decide e alcune arrivano troncate — quindi
+# questa sezione deve coprire il buco per intero, non fare un campione.
+#
+# Si tiene un segnalibro con il numero di righe gia' mostrate: a ogni messaggio si stampa
+# TUTTO quello che e' arrivato da allora. Cosi' il log, non la notifica, e' la fonte di verita'.
 AVVISI="$HOME/.fabio-avvisi.log"
+SEGNALIBRO="$HOME/.fabio-avvisi.letto"
 if [ -f "$AVVISI" ]; then
-  RECENTI=$(tail -12 "$AVVISI")
-  if [ -n "$RECENTI" ]; then
+  TOTALE=$(wc -l < "$AVVISI" | tr -d ' ')
+  LETTE=0
+  [ -f "$SEGNALIBRO" ] && LETTE=$(cat "$SEGNALIBRO" 2>/dev/null | tr -d ' ')
+  case "$LETTE" in (''|*[!0-9]*) LETTE=0 ;; esac
+  # Se il log e' stato ruotato o svuotato il segnalibro e' piu' avanti della fine: si riparte.
+  [ "$LETTE" -gt "$TOTALE" ] && LETTE=0
+
+  NUOVE=$((TOTALE - LETTE))
+  if [ "$NUOVE" -gt 0 ]; then
+    # Alla prima esecuzione della sessione non si riversano ore di log: si mostra la coda.
+    [ "$LETTE" -eq 0 ] && [ "$NUOVE" -gt 15 ] && NUOVE=15
     echo
     echo "──────────────────────────────────────────────────────────────────────────────"
-    echo "9. GLI AVVISI DEI MONITOR (ultimi 12, da ~/.fabio-avvisi.log)"
+    echo "9. GLI AVVISI DEI MONITOR — $NUOVE nuovi dall'ultimo messaggio (~/.fabio-avvisi.log)"
     echo "──────────────────────────────────────────────────────────────────────────────"
-    echo "$RECENTI" | sed 's/^/  /'
+    tail -n "$NUOVE" "$AVVISI" | sed 's/^/  /'
+  else
+    echo
+    echo "──────────────────────────────────────────────────────────────────────────────"
+    echo "9. GLI AVVISI DEI MONITOR — nessun avviso nuovo dall'ultimo messaggio"
+    echo "──────────────────────────────────────────────────────────────────────────────"
+    echo "  (silenzio vero: i sorveglianti hanno scritto zero righe. Se invece sono spenti,"
+    echo "   lo dice la sezione 1 insieme allo stato del bridge.)"
   fi
+  echo "$TOTALE" > "$SEGNALIBRO"
 fi
 
 echo "=== fine giro d'orizzonte ==============================================="
