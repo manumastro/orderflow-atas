@@ -35,9 +35,30 @@
     "width": 1
   },
   {
+    "price": 29335.0,
+    "label": "VAH notte · bordo alto del valore: qui il fade e' SHORT",
+    "color": "#A98BC9",
+    "style": "solid",
+    "width": 2
+  },
+  {
+    "price": 29277.0,
+    "label": "POC notte · bersaglio 1 di entrambi i fade",
+    "color": "#8FA6B5",
+    "style": "dot",
+    "width": 1
+  },
+  {
     "price": 29262.0,
     "label": "DOPPIO POC · 21% ieri + 30% stanotte: il valore vero",
     "color": "#7A8FA6",
+    "style": "solid",
+    "width": 2
+  },
+  {
+    "price": 29250.0,
+    "label": "VAL notte · bordo basso: qui il fade e' LONG",
+    "color": "#A98BC9",
     "style": "solid",
     "width": 2
   },

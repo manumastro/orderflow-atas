@@ -19,9 +19,9 @@
     "tipo": "reclaim",
     "tema": "tetto notturno",
     "quando": "c > 29358.5 and minuti_sotto(29358.5, 20) <= 5 and vol_sopra_pct(29358.5, 20) >= 65",
-    "verso": "LONG CONTRO CONTESTO",
-    "implica": "sopra il tetto della notte. Il contesto resta ribassista (due sedute in calo): mean reverting, non inversione. Bersaglio 29372,50 e poi il muro 29400.",
-    "altrimenti": "se respinto, il tetto notturno e' resistenza e si torna al doppio POC.",
+    "verso": "NESSUN PERMESSO",
+    "implica": "osservazione, non ingresso. Un long sull'accettazione sopra il massimo notturno e' una ROTTURA fuori dal valore, quindi Tier 02B trend following, che richiede il permesso dell'IVB: prima delle 16:00 non esiste. Non e' mean reverting, che nel dossier e' solo il fade dei bordi del valore verso l'interno.",
+    "altrimenti": "se respinto, il tetto notturno e' resistenza e si torna verso il VAH 29335 e il POC 29277.",
     "testo": "accettato sopra il massimo di stanotte",
     "attesa": "29358,50 delle 05:21 e' il primo vero ostacolo sopra il prezzo."
   },
@@ -102,5 +102,31 @@
     "altrimenti": "se rientra nel range era uno stoppino.",
     "testo": "IVB rotto al rialzo: permesso long",
     "attesa": "il primo permesso long da lunedi."
+  },
+  {
+    "nome": "fade del VAH notturno",
+    "sigla": "fade VAH",
+    "prezzo": 29335,
+    "tipo": "rifiuto",
+    "tema": "bordi del valore",
+    "quando": "h > 29335 and c < 29335 and pos <= 0.3 and vol >= p75vol and delta <= -p75delta",
+    "verso": "SHORT · MEAN REVERTING",
+    "implica": "il solo setup che il dossier concede prima delle 16:00. Tre tempi in una candela: stoppino sopra il bordo, assorbimento, corpo riempito dall'aggressione opposta. STOP appena oltre lo stoppino assorbito. BERSAGLIO 1 il POC 29277, BERSAGLIO 2 il VAL 29250. RISK ENVELOPE del dossier: size ridotta e massimo 2 stop-loss al giorno, al secondo la sessione e' finita.",
+    "altrimenti": "se il prezzo accetta sopra 29335 il valore si sta spostando in alto e il fade non vale piu'.",
+    "testo": "fade del bordo alto del valore",
+    "attesa": "VAH della notte a 29335 su 36.031 lotti. Due su tre non bastano: serve la candela che ribalta l'aggressione."
+  },
+  {
+    "nome": "fade del VAL notturno",
+    "sigla": "fade VAL",
+    "prezzo": 29250,
+    "tipo": "assorbimento",
+    "tema": "bordi del valore",
+    "quando": "l < 29250 and c > 29250 and pos >= 0.7 and vol >= p75vol and delta >= p75delta",
+    "verso": "LONG · MEAN REVERTING",
+    "implica": "specularmente: stoppino sotto il bordo, venditori assorbiti, corpo riempito dai compratori. STOP appena sotto lo stoppino. BERSAGLIO 1 il POC 29277, BERSAGLIO 2 il VAH 29335. Stessa risk envelope: size ridotta, massimo 2 stop-loss.",
+    "altrimenti": "se accetta sotto 29250 il valore migra in basso e si torna allo scenario 'perde il valore'.",
+    "testo": "fade del bordo basso del valore",
+    "attesa": "VAL della notte a 29250, appena sopra il doppio POC 29250-29274. ATTENZIONE: due sedute mostrano compratori aggressivi che restano intrappolati."
   }
 ]
