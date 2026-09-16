@@ -111,3 +111,4 @@
 2026-09-16  bilancio gambe NQZ6: corretta la metrica (inviluppo != gamba), 5 gambe misurate, pattern al 42% archiviato negativo, deroga pre-gate dichiarata
 2026-09-16  NQZ6 riaperto per l'evento Fed: valore cash rimisurato, 9 livelli col vuoto 29604-29675, 6 scenari coi due gate, sorveglianti riaccesi
 2026-09-16  permesso_di_fatto.py: l'accettazione su barre M1 accanto al gate M30 (oggi -84 min in revoca, +1 min in concessione), isteresi obbligatoria, doc e puntatori
+2026-09-16  conferenza Warsh: -238 punti in 28 minuti, pavimento IVB rotto, primo permesso di fatto SHORT 23 minuti prima del gate M30; buco di sorveglianza 20:13-20:35 dichiarato
