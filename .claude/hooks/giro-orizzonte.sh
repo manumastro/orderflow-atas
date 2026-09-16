@@ -25,5 +25,24 @@ fi
 
 echo "=== GIRO D'ORIZZONTE (automatico, CLAUDE.md) ============================="
 echo "$OUT"
+
+# Gli avvisi dei monitor, letti dal log invece che dalla notifica.
+#
+# La sveglia e gli scenari girano in background e ogni evento passa da avviso.py, che lo
+# scrive in ~/.fabio-avvisi.log. La notifica all'agente pero' arriva quando l'harness
+# decide, e il 16 settembre non e' arrivata affatto mentre l'utente le vedeva a schermo.
+# Leggendo il log qui, gli eventi entrano comunque nel contesto a ogni messaggio.
+AVVISI="$HOME/.fabio-avvisi.log"
+if [ -f "$AVVISI" ]; then
+  RECENTI=$(tail -12 "$AVVISI")
+  if [ -n "$RECENTI" ]; then
+    echo
+    echo "──────────────────────────────────────────────────────────────────────────────"
+    echo "9. GLI AVVISI DEI MONITOR (ultimi 12, da ~/.fabio-avvisi.log)"
+    echo "──────────────────────────────────────────────────────────────────────────────"
+    echo "$RECENTI" | sed 's/^/  /'
+  fi
+fi
+
 echo "=== fine giro d'orizzonte ==============================================="
 exit 0

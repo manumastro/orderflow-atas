@@ -259,6 +259,88 @@ niente, e il motore dice cosa e' cambiato:
 
 Aspettarsi un riavvio a ogni correzione e' il modo migliore per non correggerli.
 
+### Come Si Tengono Accesi: Monitor, Non Processi In Background
+
+**I due sorveglianti si lanciano come `Monitor`, non come comando in background.** Sono due cose
+diverse e la differenza e' l'unica che conta: un comando in background scrive su un file e
+**nessuno sveglia l'agente**; un `Monitor` trasforma ogni riga di stdout in una notifica che lo
+riporta in vita. Il 16 settembre ho riavviato i monitor come comandi in background: l'utente
+continuava a vedere le notifiche di sistema a schermo, io non partivo piu', e ci sono voluti due
+suoi messaggi per accorgersene.
+
+```text
+Monitor(
+  command:     cd <repo> && python3 -u FabioOrderFlow/tools/sveglia_tape.py \
+               --livelli docs/research/giornate/livelli-AAAA-MM-GG.json --from AAAA-MM-GGTHH:MM 2>&1 \
+               | grep -E --line-buffered 'ATTRAVERSAT|PRESIDIO|VOLUME|DELTA|ANOMAL|Error|Traceback'
+  description: sveglia tape NQZ6: attraversamenti e presidi sui livelli chiave
+  timeout_ms:  1800000
+)
+
+Monitor(
+  command:     cd <repo> && python3 -u FabioOrderFlow/tools/scenari.py \
+               --giorno AAAA-MM-GG --from AAAA-MM-GGTHH:MM 2>&1 \
+               | grep -vE --line-buffered '^\[attesa\]' \
+               | grep -E --line-buffered 'SCATTA|ROTTO|scenari attivi|Error|Traceback'
+  description: scenari AAAA-MM-GG NQZ6: scatti e scenari rotti
+  timeout_ms:  1800000
+)
+```
+
+Quattro vincoli che il filtro deve rispettare:
+
+- **`-u` su python e `--line-buffered` su ogni `grep`.** Senza, le righe restano nel buffer e la
+  notifica arriva minuti dopo il fatto, o non arriva.
+- **Il filtro comprende sempre `Error|Traceback`.** Un monitor che cerca solo gli eventi buoni
+  resta zitto se il processo muore, e il silenzio e' identico a "non e' successo niente".
+- **`timeout_ms` al massimo (30 minuti), e si riarma alla scadenza.** Arriva un avviso di
+  scadenza: quello e' il promemoria, non un evento di mercato.
+- **`[attesa]` si toglie prima**, altrimenti ogni barra diventa una notifica e il monitor viene
+  spento d'ufficio per troppi eventi.
+
+### Sospendere E Riprendere La Sorveglianza
+
+Quando si fa una pausa **non si spengono i sorveglianti: si staccano**. La seduta continua, e
+quello che succede nella pausa e' esattamente cio' che serve al rientro.
+
+```bash
+# sospendere: TaskStop sui due monitor, poi rilanciarli staccati e silenziosi
+nohup python3 -u FabioOrderFlow/tools/sveglia_tape.py --livelli <livelli> --from <ora> \
+      --silenzioso > ~/.fabio-sveglia-AAAA-MM-GG.log 2>&1 &
+nohup python3 -u FabioOrderFlow/tools/scenari.py --giorno AAAA-MM-GG --from <ora> \
+      > ~/.fabio-scenari-AAAA-MM-GG.log 2>&1 &
+```
+
+`--silenzioso` toglie le notifiche di sistema della sveglia, che in pausa sono rumore; **agli
+scenari non si toglie**, perche' uno scenario che scatta va visto subito anche a sessione ferma, e
+annota comunque da solo sul chart.
+
+**Al rientro si leggono i log prima di dire qualunque cosa**, si fermano gli staccati con `pkill`,
+e si riarmano i `Monitor`. Il 16 settembre la pausa di venti minuti conteneva la prima aggressione
+in vendita della giornata — 214 lotti, delta -130 — e senza rileggere il log sarebbe stata persa.
+
+**Prima di scrivere una riga di lettura si aggiorna "Dove eravamo" nel file della giornata.** Una
+pausa e' il momento in cui il contesto si perde piu' facilmente.
+
+### La Notifica Non E' L'Unica Rete: Il Log Entra Nel Giro D'Orizzonte
+
+Il risveglio dell'agente dipende da quando l'harness consegna la notifica, e **quella consegna non
+e' garantita**. Per questo `avviso.py` scrive ogni evento in `~/.fabio-avvisi.log` e
+[`.claude/hooks/giro-orizzonte.sh`](../../../.claude/hooks/giro-orizzonte.sh) ne mette gli **ultimi
+12 con l'orario** nella sezione 9 del giro d'orizzonte.
+
+Cosi' gli eventi entrano nel contesto **a ogni messaggio dell'utente**, che la notifica sia
+arrivata o no. Sono due reti indipendenti e servono entrambe:
+
+| | sveglia l'agente | sopravvive a una notifica persa |
+|---|---|---|
+| `Monitor` | si', all'istante | no |
+| sezione 9 del giro d'orizzonte | no, serve un messaggio | si' |
+
+**Quello che nessuna delle due fa: far partire l'agente da solo mentre l'utente tace.** Se non
+arriva un messaggio e la notifica non viene consegnata, l'analisi non parte — e questo va detto
+all'utente invece di lasciarglielo scoprire.
+
 ### Cosa Si Vede Sul Chart
 
 Due cose, e basta:

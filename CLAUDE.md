@@ -224,6 +224,12 @@ volta, perche' dipendono dai livelli e dalla struttura di quella giornata.
 `FabioOrderFlow/tools/sveglia_tape.py` copre in parallelo cio' che non era previsto, senza
 concludere niente, e `FabioOrderFlow/tools/annota.py` porta sul chart e nel diario la lettura
 ragionata.
+
+**I due sorveglianti si accendono come `Monitor`, non come comando in background**: un comando in
+background scrive su un file e non sveglia l'agente. Procedura completa — filtri, riarmo alla
+scadenza, come si sospende e si riprende una pausa, e perche' il log entra nel giro d'orizzonte —
+in [`sorveglianza-del-tape.md`](docs/research/metodo/sorveglianza-del-tape.md), sezioni *"Come Si
+Tengono Accesi"*, *"Sospendere E Riprendere La Sorveglianza"* e *"La Notifica Non E' L'Unica Rete"*.
 Procedura in
 [`docs/research/metodo/sorveglianza-del-tape.md`](docs/research/metodo/sorveglianza-del-tape.md).
 
