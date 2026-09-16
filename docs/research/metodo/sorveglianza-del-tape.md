@@ -276,6 +276,34 @@ scala. Non conclude niente, e non scrive sul chart.
 I due si completano: se una giornata scatta solo sulla sveglia e mai sugli scenari, vuol dire che
 gli scenari erano scritti male, ed e' un'informazione che vale la pena registrare nella giornata.
 
+### Il Presidio: Restare In Ascolto Su Un Livello Chiave
+
+Una sveglia che suona all'attraversamento arriva sempre tardi: quando suona, la cosa e' successa.
+Per i livelli **chiave** `sveglia_tape.py` fa tre cose in piu':
+
+| | quando | cosa stampa |
+|---|---|---|
+| `AVVICINAMENTO` | il prezzo entra nel raggio di `--avviso` (default 15 punti) | che sta arrivando, e da quale lato |
+| `PRESIDIO` | entrato nel raggio di `--presidio` (default 8 punti) | **ogni barra**, finche' resta li' |
+| `PRESIDIO FINE` | uscito dalla fascia | durata, volume, delta in percentuale, escursione, e se ha attraversato o e' uscito dal lato d'arrivo |
+
+Un livello e' chiave se ha `"chiave": true` nel file dei livelli, o in mancanza se il suo `width`
+e' 2 o piu': lo spessore sul chart e' gia' il modo in cui l'analisi dichiara cosa conta.
+
+**Fuori dal presidio la sveglia resta rada** — attraversamenti, tocchi con volume, barre pesanti,
+col silenziatore di dieci minuti per livello. Dentro, si vede tutto: e' li' che si decide.
+
+Il riassunto di chiusura e' la parte che serve davvero, perche' e' l'unica misura di un test che
+una barra singola non puo' dare. Il 16 settembre, sul muro 29.400: *7 barre, vol 1.171, delta
+-6,2%, escursione 29.378-29.395,50, esce a 29.382 sotto* — e il massimo, 29.395,50, dice che il
+livello non era mai stato toccato.
+
+**Il presidio non conclude niente**, come il resto dello strumento: dice da che parte il prezzo e'
+entrato e da che parte e' uscito, non se il livello "ha tenuto". Quello dipende da cosa succede
+dopo, e lo scrive l'analisi.
+
+---
+
 ## 5. Annotare La Lettura
 
 Quando l'analisi ha concluso qualcosa, `annota.py` la mette **sul chart e nel diario**:

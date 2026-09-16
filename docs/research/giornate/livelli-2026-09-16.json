@@ -25,14 +25,16 @@
     "label": "IVB basso di ieri · il livello che apri' lo short",
     "color": "#8E7CC3",
     "style": "dot",
-    "width": 1
+    "width": 1,
+    "chiave": true
   },
   {
     "price": 29358.5,
     "label": "Max stanotte 05:21 · primo ostacolo sopra",
     "color": "#6B7A99",
     "style": "dash",
-    "width": 1
+    "width": 1,
+    "chiave": true
   },
   {
     "price": 29335.0,
@@ -46,7 +48,8 @@
     "label": "POC notte · bersaglio 1 di entrambi i fade",
     "color": "#8FA6B5",
     "style": "dot",
-    "width": 1
+    "width": 1,
+    "chiave": true
   },
   {
     "price": 29262.0,
