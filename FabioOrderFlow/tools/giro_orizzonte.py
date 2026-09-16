@@ -82,6 +82,15 @@ def main() -> int:
         CHART[:] = ["--chart", a.chart]
     g = a.giorno
 
+    # `--giorno` e' una CHIAVE, non una data: puo' portare il prefisso dello strumento
+    # (`ESZ6-2026-09-16`), come vuole il passo 8 di come-si-apre-un-asset.md. Qui serve anche la
+    # data nuda, per calcolare "ieri" e per il file del giorno precedente: si separano le due cose
+    # invece di assumere che coincidano. Il 16 settembre l'assunzione ha fatto fallire l'hook al
+    # primo strumento col prefisso.
+    prefisso, _, data_nuda = g.rpartition("-20")
+    data_nuda = ("20" + data_nuda) if prefisso else g
+    prefisso = (prefisso + "-") if prefisso else ""
+
     # 1 --------------------------------------------------------------- il bridge
     titolo(1, "IL BRIDGE E IL CONTRATTO")
     h = bridge("health")
@@ -117,7 +126,9 @@ def main() -> int:
                     print(f"  {r[4:]}")
 
     # 4 ----------------------------------------------------------- il giorno prima
-    prec = sorted(x for x in GIORNATE.glob("2*.md") if x.stem < g)
+    # Solo le giornate DELLO STESSO strumento: senza prefisso il glob "2*.md" prendeva anche i
+    # file di un altro asset, e il framing di ieri sarebbe stato quello del mercato sbagliato.
+    prec = sorted(x for x in GIORNATE.glob(f"{prefisso or '2'}*.md") if x.stem < g)
     titolo(4, f"IL FRAMING DI IERI — {prec[-1].name if prec else 'assente'}")
     if prec:
         t = prec[-1].read_text()
@@ -161,7 +172,7 @@ def main() -> int:
     # 7 ------------------------------------------------------------------- il tape
     titolo(7, "IL TAPE RECENTE")
     # la finestra e' la seduta globex in corso: dalle 22:00 CEST di ieri, cioe' 20:00Z
-    ieri = (dt.date.fromisoformat(g) - dt.timedelta(days=1)).isoformat()
+    ieri = (dt.date.fromisoformat(data_nuda) - dt.timedelta(days=1)).isoformat()
     d = bridge("candles", "--from", f"{ieri}T20:00")
     cs = (d or {}).get("candles") or []
     if not cs:

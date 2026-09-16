@@ -12,7 +12,12 @@ cd /Users/sabrinastizzi/orderflow-atas || exit 0
 # Il chart da interrogare. ATAS puo' averne registrati piu' di uno (il 16 settembre si e'
 # aggiunto MCLV6) e in quel caso il bridge rifiuta ogni richiesta che non dica quale.
 # Al rollover del contratto si cambia qui.
-CHART="NQZ6"
+CHART="ESZ6"
+
+# La chiave dei file della giornata. Non e' una data: e' il prefisso dello strumento piu' la
+# data, come vuole il passo 8 di come-si-apre-un-asset.md. Su NQZ6 e' senza prefisso, per ragioni
+# storiche - debito aperto. Cambiando strumento si cambiano ENTRAMBE le righe.
+GIORNO="ESZ6-$(date +%Y-%m-%d)"
 
 # Se il bridge non risponde subito, non ha senso aspettare: si dice e si passa oltre.
 if ! curl -s -m 2 "http://127.0.0.1:8787/health?chart=$CHART" >/dev/null 2>&1; then
@@ -21,7 +26,7 @@ if ! curl -s -m 2 "http://127.0.0.1:8787/health?chart=$CHART" >/dev/null 2>&1; t
   exit 0
 fi
 
-OUT=$(python3 FabioOrderFlow/tools/giro_orizzonte.py --barre 8 --chart "$CHART" 2>&1)
+OUT=$(python3 FabioOrderFlow/tools/giro_orizzonte.py --barre 8 --chart "$CHART" --giorno "$GIORNO" 2>&1)
 if [ $? -ne 0 ]; then
   echo "[giro d'orizzonte] fallito:"
   echo "$OUT" | tail -5

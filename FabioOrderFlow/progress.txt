@@ -101,3 +101,8 @@
             scenari del gate si sono rotti nel minuto dell'apertura: --from 14:55 non conteneva
             l'IVB, quindi ivb_alto era None. Documentato. annota.py: le annotazioni senza prezzo
             non cancellano piu' l'intero chart. Livelli e scenari rifatti sopra il gate.
+2026-09-16  NQ fermato, ESZ6 aperto coi nove passi di come-si-apre-un-asset.md: anagrafica (tick
+            0,25 = 12,50 $, punto 50 $), orologi identici a NQ, COT 13874A, framing ricostruito,
+            sei livelli, soglie riscalate (presidio 1 / avviso 4 / vicino 0,75), cinque scenari
+            marcati TRASFERIMENTO NON VERIFICATO. Hook e giro_orizzonte.py resi compatibili col
+            prefisso dello strumento in --giorno.

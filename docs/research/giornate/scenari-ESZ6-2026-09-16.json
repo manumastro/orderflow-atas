@@ -1,0 +1,67 @@
+[
+  {
+    "nome": "il gate apre al rialzo",
+    "sigla": "gate su",
+    "prezzo": 7686.5,
+    "tipo": "gate",
+    "tema": "gate IVB",
+    "quando": "minuto % 30 == 29 and dopo('16:29') and c > ivb_alto",
+    "verso": "LONG",
+    "implica": "Tier 01 (dossier 90-138): la prima chiusura a 30 minuti SOPRA il tetto dell'IVB apre il permesso long per il resto della seduta. Il permesso dice cosa e' lecito, NON quando entrare: l'ingresso e' Tier 02.",
+    "altrimenti": "se la chiusura M30 resta dentro l'IVB il permesso non arriva e vale solo il mean reverting.",
+    "testo": "GATE AL RIALZO - permesso LONG",
+    "attesa": "TRASFERIMENTO NON VERIFICATO: il Tier 01 non porta marcatori di strumento nel dossier, quindi il verso e' tracciabile, ma su ES non e' mai stato misurato in questo repository - il primo giorno si osserva. Tetto IVB 7.686,50 (massimo 15:30-16:00). SOSIA: il prezzo che buca 7.686,50 in mezzo a una barra M30 e rientra prima della chiusura - per questo la condizione guarda SOLO la barra che chiude la mezz'ora."
+  },
+  {
+    "nome": "il gate apre al ribasso",
+    "sigla": "gate giu",
+    "prezzo": 7669.0,
+    "tipo": "gate",
+    "tema": "gate IVB",
+    "quando": "minuto % 30 == 29 and dopo('16:29') and c < ivb_basso",
+    "verso": "SHORT",
+    "implica": "Tier 01: la prima chiusura a 30 minuti SOTTO il pavimento dell'IVB apre il permesso short per il resto della seduta.",
+    "altrimenti": "se la chiusura M30 resta dentro l'IVB il permesso non arriva e vale solo il mean reverting.",
+    "testo": "GATE AL RIBASSO - permesso SHORT",
+    "attesa": "TRASFERIMENTO NON VERIFICATO. Pavimento IVB 7.669,00, che coincide a mezzo punto col VAL cash 7.669,50: lo stesso prezzo porta due significati - gate Tier 01 e bordo del fade - e non vanno confusi. SOSIA: identico al gate su, allo specchio."
+  },
+  {
+    "nome": "il gate resta dentro l'IVB",
+    "sigla": "gate dentro",
+    "prezzo": 7677.75,
+    "tipo": "stato",
+    "tema": "gate IVB",
+    "quando": "minuto % 30 == 29 and dopo('16:29') and ivb_basso <= c <= ivb_alto",
+    "verso": "NESSUN PERMESSO",
+    "implica": "dossier Tier 01, righe 90-138: chiusura M30 DENTRO l'IVB = solo mean reverting, nessuna direzione. Non e' un ingresso, e' la dichiarazione che per ora si puo' fare una cosa sola.",
+    "altrimenti": "resta valido finche' una chiusura M30 non esce dall'IVB da un lato o dall'altro.",
+    "testo": "chiusura M30 DENTRO l'IVB - solo mean reverting",
+    "attesa": "E' gia' successo due volte oggi (14:00Z chiusa a 7.671,75 e 14:30Z a 7.684,25). Serve a dire a voce alta che il permesso NON e' arrivato, invece di lasciarlo dedurre dal silenzio."
+  },
+  {
+    "nome": "fade del bordo alto del valore cash",
+    "sigla": "fade VAH 7684",
+    "prezzo": 7684.0,
+    "tipo": "fade",
+    "tema": "bordo alto",
+    "quando": "o <= 7684 and minuti_sotto(7684, 10) >= 6 and h > 7684 and c < 7684 and pos <= 0.3 and vol >= p95vol and delta <= -p75delta",
+    "verso": "SHORT · MEAN REVERTING",
+    "implica": "Tier 02-A (dossier 139-196): il prezzo arriva da DENTRO il valore, buca il bordo alto con uno stoppino, viene assorbito e ributtato dentro. TARGET 1 il POC 7.678,50 (riga 174), TARGET 2 il bordo opposto 7.669,50 (riga 175). Stop appena oltre lo stoppino assorbito. Rischio stretto = size ridotta e massimo 2 stop al giorno, non stop vicino.",
+    "altrimenti": "se accetta sopra 7.684 il valore si sta spostando in alto e il bordo va ricalcolato.",
+    "testo": "fade del bordo alto del valore",
+    "attesa": "TRASFERIMENTO NON VERIFICATO: il mean reverting non porta marcatori di strumento, ma su ES non e' mai stato misurato qui. VAH della cash di oggi, 260.559 lotti dalle 15:30. SOSIA, ed e' l'errore che su NQ ha prodotto la correzione 4.1 del 16 settembre: una ROTTURA del bordo dall'alto verso il basso produce massimo sopra, chiusura sotto, corpo in basso, volume e delta negativo - identici. Li separa solo il lato di arrivo, che chiedono le due guardie o <= 7684 e minuti_sotto >= 6."
+  },
+  {
+    "nome": "fade del bordo basso del valore cash",
+    "sigla": "fade VAL 7669.5",
+    "prezzo": 7669.5,
+    "tipo": "fade",
+    "tema": "bordo basso",
+    "quando": "o >= 7669.5 and minuti_sotto(7669.5, 10) <= 2 and l < 7669.5 and c > 7669.5 and pos >= 0.7 and vol >= p95vol and delta >= p75delta",
+    "verso": "LONG · MEAN REVERTING",
+    "implica": "Tier 02-A: il prezzo sonda il bordo basso da dentro, i venditori aggressivi vengono assorbiti, il minimo tiene e la stampa successiva e' un acquisto grosso. TARGET 1 il POC 7.678,50, TARGET 2 il VAH 7.684. Stop appena sotto lo stoppino assorbito.",
+    "altrimenti": "se accetta sotto 7.669,50 il valore si sta spostando in basso, e mezzo punto piu' giu' c'e' il pavimento dell'IVB: da li' in poi non e' piu' un fade, e' la rottura del gate.",
+    "testo": "fade del bordo basso del valore",
+    "attesa": "TRASFERIMENTO NON VERIFICATO. Specchio esatto del fade al VAH, stesse guardie sul lato di arrivo. ATTENZIONE: questo livello sta mezzo punto sopra il pavimento IVB 7.669,00, quindi lo stesso movimento puo' far scattare prima questo e poi il gate al ribasso - e sono due cose opposte. Se il gate si apre, questo scenario decade."
+  }
+]

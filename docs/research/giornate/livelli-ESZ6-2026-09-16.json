@@ -1,0 +1,44 @@
+[
+  {
+    "price": 7692.75,
+    "label": "Massimo di oggi · sopra c'e' solo vuoto, e' il bordo dell'esplorato",
+    "color": "#674EA7",
+    "style": "dash",
+    "width": 2
+  },
+  {
+    "price": 7686.5,
+    "label": "TETTO IVB · chiusura M30 sopra = permesso LONG",
+    "color": "#3D85C6",
+    "style": "solid",
+    "width": 3
+  },
+  {
+    "price": 7684.0,
+    "label": "VAH cash · da dentro il fade e' SHORT, target 7.678,50",
+    "color": "#E69138",
+    "style": "solid",
+    "width": 3
+  },
+  {
+    "price": 7678.5,
+    "label": "POC cash · target di entrambi i fade",
+    "color": "#C27BA0",
+    "style": "solid",
+    "width": 2
+  },
+  {
+    "price": 7669.0,
+    "label": "PAVIMENTO IVB + VAL cash 7.669,50 · M30 sotto = SHORT; da dentro fade LONG",
+    "color": "#3D85C6",
+    "style": "solid",
+    "width": 3
+  },
+  {
+    "price": 7659.75,
+    "label": "Chiusura di ieri (POC ieri 7.657,25) · qui tutto il guadagno di oggi e' reso",
+    "color": "#6AA84F",
+    "style": "dash",
+    "width": 2
+  }
+]
