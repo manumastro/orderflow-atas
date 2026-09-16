@@ -41,6 +41,8 @@ from pathlib import Path
 import time
 
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+from avviso import avvisa                                          # noqa: E402
 BRIDGE = HERE / "bridge.py"
 ANNOTA = HERE / "annota.py"
 GIORNATE = HERE.parent.parent / "docs" / "research" / "giornate"
@@ -471,12 +473,18 @@ def main() -> None:
                         rotti[s["nome"]] = s["errore"]
                         print(f"!! SCENARIO ROTTO  {s['nome']}: {s['errore']}"
                               f"  -- non scattera' finche' non lo correggi", flush=True)
+                        avvisa(f"SCENARIO ROTTO: {s['nome']}", titolo="NQ scenario",
+                               suono="Sosumi")
                         allarme_chart(args.giorno, args.chart, rotti)
                         continue
                     scattati.add(chiave(s))
-                    print(f"SCATTA {s['nome']} | {ctx['ora']} {ctx['c']:.2f} "
-                          f"vol {ctx['vol']} delta {ctx['delta']:+} 30m {ctx['dpct30']:+.1f}% "
-                          f"| atteso: {s.get('attesa', '-')}", flush=True)
+                    riga = (f"SCATTA {s['nome']} | {ctx['ora']} {ctx['c']:.2f} "
+                            f"vol {ctx['vol']} delta {ctx['delta']:+} "
+                            f"30m {ctx['dpct30']:+.1f}%")
+                    print(f"{riga} | atteso: {s.get('attesa', '-')}", flush=True)
+                    # Uno scenario che scatta va davanti agli occhi di chi opera subito, non
+                    # quando l'analisi ha finito di scrivere.
+                    avvisa(f"[{s.get('verso', '-')}] {riga}", titolo="NQ scenario")
                     annota(s, ctx, args.giorno, args.chart)
         time.sleep(args.intervallo)
 

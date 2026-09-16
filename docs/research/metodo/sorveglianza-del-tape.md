@@ -29,6 +29,30 @@ finisce il risultato.
 Il punto 2 e' la chiave: **il file dei livelli e' l'unica fonte**, letta sia da chi disegna sia da
 chi sorveglia. Senza, le due cose divergono e il monitor guarda livelli diversi da quelli che vedi.
 
+## 0bis. L'Avviso Arriva Prima Dell'Analisi
+
+Chi opera non deve aspettare che l'agente scriva. Quando il tape fa qualcosa, `avviso.py` lo porta
+in tre posti, e ognuno serve a un momento diverso:
+
+| dove | a cosa serve |
+|---|---|
+| **notifica di sistema macOS**, con suono | compare sopra ad ATAS: e' l'unica che si vede **senza guardare** |
+| `~/.fabio-avvisi.log` | `tail -f ~/.fabio-avvisi.log` in un terminale a fianco — la cronologia della seduta |
+| stdout | resta come prima, ed e' cio' che legge l'agente |
+
+**Cosa notifica e cosa no.** Le righe di presidio ordinario cominciano con due spazi e restano
+solo a video: una notifica al minuto smette di essere un avviso. Arrivano sullo schermo gli
+attraversamenti (`>>>` e `!!!`), gli avvicinamenti, l'apertura e la chiusura di un presidio, i
+`GUARDA` della sveglia, gli **scenari che scattano** — col loro `verso` in testa — e gli
+**scenari rotti**, con un suono diverso.
+
+`--silenzioso` spegne le notifiche e lascia solo stdout.
+
+L'avviso **non conclude**: e' la stessa riga grezza che vede l'agente, che arriva prima. La lettura
+ragionata viene dopo e non toglie niente all'avviso.
+
+---
+
 ## 0. Il Giro D'Orizzonte
 
 Prima di tutto il resto, e prima di **ogni** risposta durante la seduta. In questo

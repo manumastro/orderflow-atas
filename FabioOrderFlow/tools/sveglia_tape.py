@@ -43,6 +43,20 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 BRIDGE = HERE / "bridge.py"
+sys.path.insert(0, str(HERE))
+from avviso import avvisa                                          # noqa: E402
+
+
+def mostra(riga: str, muto: bool = False) -> None:
+    """Stampa, e se la riga conta la manda anche in notifica di sistema.
+
+    Le righe di presidio ordinario cominciano con due spazi e restano solo a video: una notifica
+    al minuto smetterebbe di essere un avviso. Tutto il resto — attraversamenti, avvicinamenti,
+    apertura e chiusura del presidio — arriva sullo schermo di chi opera.
+    """
+    print(riga, flush=True)
+    if not muto and not riga.startswith("  "):
+        avvisa(riga, titolo="NQ tape")
 
 VICINO = 3.0        # quanto vicino al livello per considerarlo toccato
 
@@ -220,6 +234,8 @@ def main() -> None:
     ap.add_argument("--chart")
     ap.add_argument("--intervallo", type=int, default=10,
                     help="secondi fra un giro e l'altro (default 10)")
+    ap.add_argument("--silenzioso", action="store_true",
+                    help="niente notifiche di sistema, solo stdout")
     ap.add_argument("--avviso", type=float, default=15.0,
                     help="punti di distanza a cui annunciare l'avvicinamento a un livello chiave")
     ap.add_argument("--presidio", type=float, default=8.0,
@@ -277,18 +293,18 @@ def main() -> None:
                 visti.add(b["time"])
                 frontiera = minuti(b)
                 for r in presidia(b, chiuse[i - 1] if i else None, chiavi, stato, args):
-                    print(r, flush=True)
+                    mostra(r, muto=args.silenzioso)
                 perche = motivo(b, chiuse[i - 1] if i else None,
                                 livelli, vol95, delta95, muto, args.fuso)
                 # dentro un presidio la barra e' gia' stampata per intero: non si ripete
                 if perche and not stato["presidio"]:
-                    print(f"GUARDA {ora(b, args.fuso)} {b['close']:.2f} | {perche} | "
-                          f"O {b['open']:.2f} H {b['high']:.2f} L {b['low']:.2f} "
-                          f"vol {b['volume']} delta {b['delta']:+}", flush=True)
+                    mostra(f"GUARDA {ora(b, args.fuso)} {b['close']:.2f} | {perche} | "
+                           f"O {b['open']:.2f} H {b['high']:.2f} L {b['low']:.2f} "
+                           f"vol {b['volume']} delta {b['delta']:+}", muto=args.silenzioso)
         # La barra in formazione: si guarda solo dentro un presidio, e solo per l'attraversamento.
         if stato["presidio"] and len(c) > len(chiuse):
             for r in barra_viva(c[-1], stato, args):
-                print(r, flush=True)
+                mostra(r, muto=args.silenzioso)
 
         time.sleep(args.intervallo)
 
