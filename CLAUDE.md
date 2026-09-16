@@ -14,13 +14,16 @@ Prima di lavorare su questo repository, **leggi nell'ordine**:
 3. [`docs/research/metodo/indice-delle-procedure.md`](docs/research/metodo/indice-delle-procedure.md) — **come si fa** una analisi,
    procedura per procedura, nell'ordine in cui si usano. Ogni voce rimanda alle analisi passate che
    la applicano.
+4. [`docs/research/metodo/glossario-del-metodo.md`](docs/research/metodo/glossario-del-metodo.md) — **dove sta scritta** ogni
+   definizione del metodo. Non definisce niente: dice a quali righe della fonte tornare, ed e' lo
+   strumento con cui si rispetta l'obbligo della sezione seguente.
 
-Nessuna di queste tre letture e' facoltativa. Se una risposta richiede contesto che non hai, il
+Nessuna di queste quattro letture e' facoltativa. Se una risposta richiede contesto che non hai, il
 posto dove trovarlo e' li', non nella conversazione.
 
 ## Prima Di Analizzare Il Mercato
 
-Oltre alle tre letture sopra, **prima di chiedere dati al bridge**:
+Oltre alle quattro letture sopra, **prima di chiedere dati al bridge**:
 
 1. [`docs/research/giornate/`](docs/research/giornate/) — il file di **oggi**, se esiste.
    L'intestazione dice se e' `APERTO`; la sezione finale **"Dove eravamo"** da' lo stato
@@ -33,6 +36,30 @@ Poi si chiedono al bridge solo i dati **successivi all'ultimo aggiornamento**, n
 Il file del giorno si aggiorna **durante** la seduta, non a posteriori: una giornata scritta alla
 fine perde proprio le letture sbagliate, che sono la parte verificabile. Formato e regole in
 [`docs/research/giornate/come-si-scrive-una-giornata.md`](docs/research/giornate/come-si-scrive-una-giornata.md).
+
+## Prima Di Usare Un Termine Del Metodo
+
+**Un termine del metodo non si parafrasa a memoria. Si apre la fonte e si legge il passo.**
+
+Vale per: IVB, Tier 01/02/03, mean reverting, Triple AAA, Triple A+, deep effort, 40 range,
+candle framing, block-and-reload, risk envelope, e ogni altra parola che viene dal corso.
+[`docs/research/metodo/glossario-del-metodo.md`](docs/research/metodo/glossario-del-metodo.md) dice
+in quali righe di [`triple-aaa-dossier.md`](docs/research/metodo/triple-aaa-dossier.md) sta ciascuna
+definizione, cosi' la verifica costa un `sed -n`.
+
+L'obbligo scatta **ogni volta**, non solo a inizio sessione, e in particolare quando la risposta
+sembra ovvia: e' li' che si salta il controllo. Il 16 settembre ho definito "mean reverting a
+rischio stretto" un setup che non era mean reverting, con un vincolo di rischio che non era quello
+scritto. Entrambi gli errori stavano in un passo di sessanta righe che non avevo aperto.
+
+**Una affermazione con conseguenza operativa deve essere tracciabile a una riga della fonte.**
+Il `verso` di uno scenario, un permesso, una regola di rischio, un bersaglio: se non si riesce a
+dire da quale riga del dossier discende, il verso corretto e' `NESSUN PERMESSO` e la frase va
+riscritta come osservazione.
+
+**Gerarchia delle fonti**, quando divergono: le immagini in
+[`fabio_course/ivbaaa/`](fabio_course/ivbaaa/) battono il dossier, il dossier batte i documenti di
+metodo, i documenti di metodo battono la conversazione. La memoria non e' una fonte.
 
 ## Regole Di Lavoro
 

@@ -8,6 +8,13 @@ Qui non ci sono conclusioni di mercato. Le analisi vere stanno in [`../giornate/
 
 ---
 
+## 0bis. Verificare Un Termine Prima Di Usarlo
+
+[`glossario-del-metodo.md`](glossario-del-metodo.md) — per ogni parola del metodo, **a quali righe
+della fonte tornare**. Non definisce niente: serve a rendere economico l'obbligo di `CLAUDE.md` di
+non parafrasare a memoria. Si usa prima di scrivere un `verso`, una etichetta operativa, o una
+frase che contiene un termine del corso.
+
 ## L'Ordine
 
 ### 0. Il modello, per sapere cosa si sta cercando
