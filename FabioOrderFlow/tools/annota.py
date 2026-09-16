@@ -7,7 +7,13 @@ quello che si e' concluso guardando il tape, con la misura che lo sostiene.
 Ogni annotazione finisce in due posti:
 
     docs/research/giornate/annotazioni-AAAA-MM-GG.json   il diario, con l'ora e la misura
-    il chart, come linea punteggiata prefissata da `!`   quello che vedi mentre operi
+    il chart, come linea punteggiata prefissata da `!`   SOLO se si passa --max N
+
+**Sul chart non ci vanno, per default.** `--max` vale 0: le righe `!` riempivano il grafico di
+letture vecchie sopra i livelli che servono a decidere, ed e' una richiesta esplicita dell'utente
+(16 settembre 2026, ripetuta). Il diario continua a registrarle tutte: e' li' che servono, a
+mercato chiuso, ed e' la parte verificabile della giornata. Chi le rivuole a schermo passa
+`--max 6`.
 
 Il diario non e' un sottoprodotto: e' il materiale con cui a fine seduta si scrive la giornata,
 e l'unico modo per rileggere una lettura sapendo *quando* e' stata fatta e su quali numeri.
@@ -192,7 +198,10 @@ def main() -> None:
     ap.add_argument("--elenco", action="store_true", help="mostra le annotazioni di oggi")
     ap.add_argument("--togli", type=int, metavar="N", help="rimuove l'annotazione N (vedi --elenco)")
     ap.add_argument("--pulisci", action="store_true", help="rimuove tutte le annotazioni")
-    ap.add_argument("--max", type=int, default=6, help="quante tenerne sul chart (default 6)")
+    ap.add_argument("--max", type=int, default=0,
+                    help="quante annotazioni tenere sul chart. DEFAULT 0: il chart porta i soli "
+                         "livelli strutturali, il diario le registra tutte comunque. Richiesta "
+                         "dell'utente, 16 settembre 2026, ripetuta due volte")
     ap.add_argument("--chart", help="id o strumento, se ne e' registrato piu' di uno")
     args = ap.parse_args()
 
@@ -249,7 +258,10 @@ def main() -> None:
         p_ann.write_text(json.dumps(annotazioni, ensure_ascii=False, indent=2) + "\n")
     vive = attive(annotazioni)
     attesi = voci_attese(args.giorno, annotazioni, strutturali) if args.con_attesi else []
-    spingi(strutturali + attesi + [voce_chart(a) for a in vive[-args.max:]], args.chart)
+    # `vive[-0:]` e' TUTTA la lista, non nessuna: con --max 0 il chart si sarebbe riempito
+    # invece di svuotarsi. La guardia esplicita e' l'unica lettura corretta di "zero".
+    sul_chart = [voce_chart(a) for a in vive[-args.max:]] if args.max else []
+    spingi(strutturali + attesi + sul_chart, args.chart)
     superate = len(annotazioni) - len(vive)
     print(f"chart: {len(strutturali)} livelli + {len(attesi)} attesi + "
           f"{min(len(vive), args.max)} annotazioni "

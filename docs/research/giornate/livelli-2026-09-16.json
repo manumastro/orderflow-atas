@@ -15,42 +15,42 @@
   },
   {
     "price": 29549.75,
-    "label": "Massimo di oggi 17:47 · bordo dell'esplorato",
+    "label": "Massimo di mercoledi 17:47 - bordo dell'esplorato",
     "color": "#674EA7",
     "style": "dash",
     "width": 2
   },
   {
     "price": 29517.0,
-    "label": "VAH cash · bordo alto del valore",
+    "label": "VAH cash mercoledi - bordo alto del valore di ieri",
     "color": "#E69138",
     "style": "dash",
     "width": 2
   },
   {
     "price": 29481.5,
-    "label": "TETTO IVB · permesso LONG solo sopra (chiusura M30)",
+    "label": "Tetto IVB di mercoledi - il permesso e' scaduto con la seduta",
     "color": "#3D85C6",
     "style": "solid",
     "width": 3
   },
   {
     "price": 29468.75,
-    "label": "POC cash · il baricentro di oggi",
+    "label": "POC cash mercoledi - 196 punti sopra la chiusura",
     "color": "#C27BA0",
     "style": "solid",
     "width": 2
   },
   {
     "price": 29436.75,
-    "label": "VAL cash · sotto qui la giornata rialzista e' finita",
+    "label": "VAL cash mercoledi",
     "color": "#E69138",
     "style": "dash",
     "width": 2
   },
   {
     "price": 29373.25,
-    "label": "PAVIMENTO IVB · chiusura M30 sotto = permesso SHORT",
+    "label": "Pavimento IVB di mercoledi - qui e' nato il permesso SHORT delle 20:36",
     "color": "#3D85C6",
     "style": "solid",
     "width": 3
@@ -63,11 +63,18 @@
     "width": 2
   },
   {
-    "price": 29221.25,
-    "label": "Minimo pre-rottura 21:00 · sopra qui la rottura decade",
+    "price": 29254.25,
+    "label": "Chiusura cash mercoledi - il muro dell'asta (7.795 lotti, delta +679)",
+    "color": "#674EA7",
+    "style": "dash",
+    "width": 2
+  },
+  {
+    "price": 29217.0,
+    "label": "Pavimento dello stallo notturno - sotto, fascia sottile fino a 29.167,75",
     "color": "#888888",
-    "style": "dot",
-    "width": 1
+    "style": "dash",
+    "width": 2
   },
   {
     "price": 29167.75,
@@ -82,5 +89,12 @@
     "color": "#CC0000",
     "style": "solid",
     "width": 2
+  },
+  {
+    "price": 29053.0,
+    "label": "MINIMO DI MERCOLEDI e del contratto - sotto, 710 lotti di storia in tutto",
+    "color": "#CC0000",
+    "style": "solid",
+    "width": 3
   }
 ]
