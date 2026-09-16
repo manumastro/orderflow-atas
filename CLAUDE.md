@@ -61,6 +61,34 @@ riscritta come osservazione.
 [`fabio_course/ivbaaa/`](fabio_course/ivbaaa/) battono il dossier, il dossier batte i documenti di
 metodo, i documenti di metodo battono la conversazione. La memoria non e' una fonte.
 
+## Un Livello Non E' Mai Il Fine, E' Sempre Una Porta
+
+**Ogni volta che si nomina un prezzo, una zona o un livello, si dice a cosa serve arrivarci.**
+Vale ovunque: letture dal vivo, file della giornata, campi `attesa` e `implica` degli scenari,
+etichette sul chart, risposte a una domanda. Senza il "per cosa", il livello e' un numero e chi
+legge deve indovinare perche' glielo si sta dicendo.
+
+Un livello puo' servire a **quattro cose**, e va detto quale:
+
+| | cosa cambia arrivandoci |
+|---|---|
+| **permesso** | cambia cosa e' lecito fare: il gate Tier 01, i bordi del valore per il mean reverting |
+| **bersaglio** | apre il tratto successivo — e allora si dice **quale** e **quanti punti** |
+| **invalidazione** | smonta una lettura in corso: uno scenario decade, un rimbalzo smette di esserlo |
+| **posizionamento** | dice chi resta intrappolato o liberato, e quindi chi dovra' agire |
+
+**Sbagliato:** *"serve riprendere 29.372,50"* — riprenderlo per cosa?
+
+**Giusto:** *"serve riprendere 29.372,50, dove ieri si e' aperto lo short: sopra, il primo
+bersaglio e' la mensola a 29.453,50, ottanta punti, e chi ha comprato stamattina smette di essere
+sott'acqua."*
+
+La stessa frase dice il livello, la sua storia, **cosa apre**, **quanto dista** e **chi libera**.
+Costa una riga in piu' e toglie una domanda.
+
+**Corollario:** se non si sa dire a cosa serve un livello, quel livello non va nominato — e
+probabilmente non andava nemmeno disegnato sul chart.
+
 ## Come Si Scrive Una Lettura Dal Vivo
 
 Chi legge **ha gli occhi sul grafico**, a mercato aperto, e deve capire in dieci secondi. La

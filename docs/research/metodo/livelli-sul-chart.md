@@ -165,3 +165,14 @@ carattere.
 
 Quello che non ci va e' la previsione. Un'etichetta dice cosa e' successo li', non cosa succedera'.
 
+## L'Etichetta Dice A Cosa Serve Arrivarci
+
+Un livello non e' il fine, e' una porta: l'etichetta deve dire **cosa cambia** quando il prezzo ci
+arriva, non come si chiama il livello.
+
+    "IVB ALTO = mensola/POC 29454"                        il nome
+    "TETTO IVB - sopra qui torna il permesso long"        cosa apre
+
+Le quattro cose che un livello puo' essere — permesso, bersaglio, invalidazione, posizionamento —
+sono elencate in `CLAUDE.md`, sezione *Un Livello Non E' Mai Il Fine*. La regola vale per
+l'etichetta come per la frase parlata: se non si sa dire a cosa serve, il livello non va disegnato.
