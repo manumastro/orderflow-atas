@@ -62,8 +62,11 @@ Non le ultime dieci barre, non solo il livello di cui si sta parlando: **tutto**
 bridge, dove eravamo, le correzioni gia' fatte oggi, il framing di ieri, cosa e' gia' scattato, gli
 scenari armati, il tape con le finestre mobili, il profilo della seduta.
 
-L'obbligo vale **per ogni risposta**, non a inizio sessione. Una domanda breve non autorizza un
-contesto breve: le domande piu' corte — *"ha senso che scenda?"*, *"cosa ne pensi?"* — sono quelle
+L'obbligo vale **per ogni risposta**, non a inizio sessione, e **non dipende dalla fase di
+mercato**: in globex, a mercato quasi fermo, a cash chiusa e nel weekend si riconsidera tutto
+esattamente come durante la cash. Una fase tranquilla non e' un contesto piu' piccolo, e' lo stesso
+contesto con meno barre nuove — ed e' quando si e' piu' tentati di rispondere a memoria. Una
+domanda breve non autorizza un contesto breve: le domande piu' corte — *"ha senso che scenda?"*, *"cosa ne pensi?"* — sono quelle
 a cui si risponde piu' facilmente guardando lo schermo invece dei dati, ed e' li' che si sbaglia.
 
 **Non costa niente: arriva da solo.** Un hook `UserPromptSubmit` in
@@ -262,27 +265,14 @@ quella barra. Prima di dichiarare che un dato non c'e', si apre l'elenco degli e
 detto che la footprint non era disponibile mentre era documentata. Procedura in
 [`la-footprint-e-il-delta-per-prezzo.md`](docs/research/metodo/la-footprint-e-il-delta-per-prezzo.md).
 
-**I livelli e i bordi del valore si rifanno durante la seduta, non solo all'apertura.** VAH, VAL e
-POC si ricalcolano **a ogni lettura che li usa**; l'insieme dei livelli quando il prezzo esce dalla
-fascia per cui era stato derivato, e sempre dopo la stampa dell'IVB; le etichette quando il livello
-cambia funzione. Un bordo calcolato alle 07:45 e citato alle 15:00 non e' una misura, e' una
-memoria — e il 16 settembre ha prodotto una lettura sbagliata che ha trovato l'utente, non io.
-Sezione *"I Livelli Si Rifanno Durante La Seduta"* in
-[`livelli-sul-chart.md`](docs/research/metodo/livelli-sul-chart.md).
-
-**Il ridisegno non si chiede, si fa.** Quando una lettura scopre che i bordi del valore, il POC o
-l'insieme dei livelli non corrispondono piu' ai dati, la risposta corretta non e' *"vuoi che
-ridisegni?"*: si riscrive il file dei livelli, si spinge su `POST /levels`, si riscrivono gli
-scenari che usavano quei prezzi, si riavviano i due sorveglianti e **solo allora** si scrive la
-lettura, dichiarando cosa e' cambiato e perche'. Chiedere il permesso lascia sul chart, per tutto
-il tempo della domanda, dei numeri che l'analisi ha gia' dichiarato sbagliati — ed e' il momento in
-cui l'utente guarda il grafico. La domanda va fatta solo se il ridisegno **cambia una posizione
-aperta**, non se cambia un livello.
-
-**Dopo l'apertura cash il valore si misura sulla cash, non sulla finestra intera.** Il profilo che
-comprende la globex misura una popolazione diversa da quella che sta facendo il prezzo adesso: il
-16 settembre i due davano VAH 29.455 contro 29.480,75, e il fade era armato venticinque punti
-dentro il valore, su un prezzo che non era bordo di niente.
+**I livelli, i bordi del valore e la finestra su cui si misurano si rifanno a ogni lettura che li
+usa** — in qualunque fase della giornata, non solo a sessione cash aperta. La procedura completa e'
+**obbligatoria** e sta in
+[`livelli-sul-chart.md`](docs/research/metodo/livelli-sul-chart.md), sezioni *"I Livelli Si Rifanno
+Durante La Seduta"*, *"Il Ridisegno Non Si Chiede, Si Fa"* e *"La Finestra Di Misura Si Sceglie A
+Ogni Lettura"*. Tre obblighi che quelle sezioni impongono e che non vanno dedotti: il ridisegno si
+**esegue** invece di chiederlo, la finestra di misura si **dichiara** accanto al numero, e nessuno
+dei due dipende dalla fase di sessione.
 
 I livelli disegnati sul chart arrivano da `POST /levels`: l'indicatore disegna e basta, `bridge.py`
 trasporta e basta, la derivazione resta nell'analisi. Procedura in

@@ -222,20 +222,40 @@ venticinque punti **dentro** il valore cash: un fade su un prezzo che non era bo
 **L'unica eccezione:** se il ridisegno cambia una **posizione aperta** — uno stop che si sposta, un
 bersaglio che si accorcia — quello si chiede. Cambiare un livello no.
 
-### Dopo L'Apertura Cash Il Valore Si Misura Sulla Cash
+### La Finestra Di Misura Si Sceglie A Ogni Lettura
 
-Il profilo che comprende la globex e quello della sola cash misurano **due popolazioni diverse**, e
-dopo le 15:30 quella che fa il prezzo e' la seconda. Il 16 settembre alle 16:52 la differenza era
-questa:
+**Prima di calcolare VAH, VAL o POC si decide su quali barre**, e la scelta si dichiara accanto al
+numero. Non e' un dettaglio di forma: finestre diverse misurano **popolazioni diverse**, e danno
+bordi diversi sullo stesso mercato nello stesso istante.
 
-| | VAL | POC | VAH |
+Il 16 settembre alle 16:52 la differenza era questa:
+
+| finestra | VAL | POC | VAH |
 |---|---|---|---|
-| finestra intera (da ieri sera) | 29.300 | 29.400 | **29.455** |
+| da ieri sera (globex + cash) | 29.300 | 29.400 | **29.455** |
 | **solo cash**, 92.081 lotti dalle 15:30 | 29.416,75 | 29.460 | **29.480,75** |
 
-Venticinque punti sul bordo alto, sessanta sul POC. E il VAH cash coincideva col tetto dell'IVB
-(29.481,50): lo stesso prezzo era insieme il gate Tier 01 e il bordo del fade — due significati
-diversi che vanno tenuti distinti nelle etichette e negli scenari, non fusi in una linea sola.
+Venticinque punti sul bordo alto, sessanta sul POC — e il fade era armato su 29.455, cioe'
+venticinque punti **dentro** il valore: un fade su un prezzo che non era bordo di niente.
+
+**Come si sceglie.** La finestra e' quella che contiene i partecipanti che stanno facendo il prezzo
+adesso, e **cambia piu' volte al giorno**:
+
+| quando si legge | finestra |
+|---|---|
+| durante la cash di New York | la **cash** dall'apertura |
+| in globex, prima dell'apertura | la **globex** da quando e' cominciata, piu' il framing della cash precedente come contesto |
+| a cavallo di un evento che ha rotto la struttura (news, gap, spike) | **da li' in poi**, e lo si dichiara: prima e dopo sono due mercati |
+| per il framing di ieri | la **cash di ieri**, che e' una misura chiusa e non si rifa' |
+
+**La regola non e' "dopo l'apertura cash usa la cash".** Quella e' solo il caso piu' frequente. La
+regola e' che la finestra si **riconsidera a ogni passaggio**, in qualunque fase della giornata: la
+sera, in notturna, a mercato quasi fermo. Una finestra scelta una volta e riusata per inerzia
+produce esattamente lo stesso errore di un bordo calcolato alle 07:45 e citato alle 15:00.
+
+**E si scrive.** *"VAH 29.480,75"* non e' una misura finche' non dice **su cosa**: *"VAH 29.480,75,
+cash dalle 15:30, 92.081 lotti"* lo e'. Vale nel diario, nelle etichette, nel campo `attesa` degli
+scenari e nella lettura parlata.
 
 ## L'Etichetta Dice A Cosa Serve Arrivarci
 
