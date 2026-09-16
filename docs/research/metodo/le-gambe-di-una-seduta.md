@@ -152,7 +152,7 @@ pronunciarsi. Va conosciuto in anticipo, non scoperto il giorno che si perde il 
 1. **Il `verso` di uno scenario pre-gate resta `NESSUN PERMESSO`.** Non si puo' scrivere `LONG` su
    una condizione che il dossier non autorizza: il campo `verso` dice cosa la **fonte** concede,
    non cosa si ha intenzione di fare. La deroga vive nella lettura, non nel file degli scenari.
-2. **Le sei prove** di [`sorveglianza-del-tape.md`](sorveglianza-del-tape.md) valgono immutate. Un
+2. **Le sette prove** di [`sorveglianza-del-tape.md`](sorveglianza-del-tape.md) valgono immutate. Un
    ingresso pre-gate ha un sosia esattamente come gli altri, e senza permesso direzionale il sosia
    e' **piu'** pericoloso, non meno: manca la cosa che altrimenti lo escluderebbe.
 3. **Si dichiara che e' pre-gate**, ogni volta, accanto alla lettura. Il giorno che una serie di

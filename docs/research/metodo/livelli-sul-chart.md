@@ -199,7 +199,7 @@ falso: `29.358,50 primo ostacolo sopra` era sotto il prezzo da quattro ore.
   specifica quale sessione** — la scelta e' del metodo, non della fonte.
 - **Non si aggiorna il chart senza aggiornare gli scenari.** Il 16 settembre i livelli sono stati
   rifatti sui bordi nuovi mentre i due `fade` restavano armati su 29.335 e 29.250: il grafico
-  diceva una cosa e il motore ne sorvegliava un'altra. Riscrivere uno scenario costa le sei prove,
+  diceva una cosa e il motore ne sorvegliava un'altra. Riscrivere uno scenario costa le sette prove,
   e finche' non sono fatte **il fade non e' armato** — e va detto, non lasciato intendere.
 
 ### Il Ridisegno Non Si Chiede, Si Fa

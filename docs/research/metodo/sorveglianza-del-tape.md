@@ -183,6 +183,15 @@ Le prove sono sei, e **nessuna e' facoltativa**.
 | 4 | **I nomi esistono** | `--controlla`, sempre, prima di armare |
 | 5 | **La storia non la smentisce** | `--prova` sulla seduta e su quelle precedenti: si guarda **dove avrebbe scattato**. Se scatta dove non e' successo niente, separa male |
 | 6 | **I tempi del setup sono dichiarati** | se la fonte descrive una sequenza — stoppino, assorbimento, flip — e la condizione la comprime in una barra, lo si scrive in `attesa`. Una approssimazione dichiarata si corregge; una taciuta diventa un segnale falso |
+| 7 | **Il livello e' coperto nei due sensi** | la prova 1 vincola il lato di arrivo, e per questo **un livello attraversabile nei due sensi vuole due scenari**. Uno solo lascia scoperta la meta' opposta, e lo scopre il silenzio |
+
+**La prova 7 e' nata da un silenzio.** Il 16 settembre 2026 avevo armato `il muro 29250 cede` con
+`o < 29254 and c > 29254`: corretto per la prova 1, e cieco a meta'. Alle 22:23 il muro e' stato
+rotto **al ribasso** e lo scenario non poteva scattare — non per un difetto della condizione, ma
+perche' il secondo scenario non esisteva. La prova 1 impone di scegliere un lato; la prova 7 impone
+di ricordarsi che ce n'e' un altro. **Se un livello puo' essere rotto dai due lati e ne interessa
+solo uno, va scritto in `attesa` quale lato si sta ignorando e perche'**, o il silenzio verra'
+letto come "non e' successo niente".
 
 **`NESSUN PERMESSO` non si scrive sul chart.** Il campo resta obbligatorio nel file — la prova 3
 non cambia — ma e' di gran lunga il valore piu' frequente, e stamparlo in testa a ogni etichetta

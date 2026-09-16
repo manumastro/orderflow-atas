@@ -114,3 +114,6 @@
 2026-09-16  conferenza Warsh: -238 punti in 28 minuti, pavimento IVB rotto, primo permesso di fatto SHORT 23 minuti prima del gate M30; buco di sorveglianza 20:13-20:35 dichiarato
 2026-09-16  il verso NESSUN PERMESSO non si stampa piu' sul chart ne' nell'avviso: resta obbligatorio nel file degli scenari, ma sul grafico compare solo un verso che concede qualcosa
 2026-09-16  sveglia_tape: --isteresi ora vale anche sul cambio di lato della barra CHIUSA (prima solo sulla viva): quattro ATTRAVERSATO a vuoto sul POC 29.262 con 99-378 lotti, uno su chiusura esatta sul livello
+2026-09-16  diario chiuso: sezioni 10-11. Cash 29.386,75 -> 29.549,75 -> 29.053,00 -> 29.254,25, escursione 497 punti, POC 29.450 (196 sopra la chiusura), delta -2.176. Una operazione, +53 punti sul reclaim di 29.167,75. Lezione: un livello nominato solo a voce non sveglia nessuno (rottura di 29.167,75 alle 21:10 senza avvisi).
+2026-09-16  settima prova per armare una condizione: un livello attraversabile nei due sensi vuole DUE scenari. 'il muro 29250 cede' copriva solo il lato in salita e la rottura al ribasso delle 22:23 non poteva scattare.
+2026-09-16  misurato: NQZ6 sotto 29.053 ha 710 lotti di storia in tutto (2-3 agosto, contratto retrocedente). NQU6 non e' nel bridge, il profilo pre-rollover non e' ricostruibile - dichiarato come limite del dato.

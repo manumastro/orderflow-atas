@@ -132,7 +132,7 @@ di avvio** e si controlla che siano plausibili. Se dice `BASE CORTA`, si alza `-
 
 ### 7. Gli scenari
 
-Le **sei prove** di
+Le **sette prove** di
 [`sorveglianza-del-tape.md`](sorveglianza-del-tape.md) valgono immutate, con due aggiunte che
 esistono solo per un asset nuovo:
 

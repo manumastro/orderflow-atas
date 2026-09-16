@@ -157,15 +157,16 @@ movimento che produce gli stessi numeri e significa il contrario. Un rifiuto del
 valore e una rottura dello stesso bordo dall'alto hanno massimo sopra, chiusura sotto, corpo in
 basso, volume e delta negativo: identici. Li separa **solo** da che parte arriva il prezzo.
 
-Le sei prove obbligatorie — lato di arrivo, sosia dichiarato, verso tracciabile a una riga della
-fonte, `--controlla`, `--prova` sulla storia, tempi del setup dichiarati — stanno in
+Le sette prove obbligatorie — lato di arrivo, sosia dichiarato, verso tracciabile a una riga della
+fonte, `--controlla`, `--prova` sulla storia, tempi del setup dichiarati, livello coperto nei due
+sensi — stanno in
 [`docs/research/metodo/sorveglianza-del-tape.md`](docs/research/metodo/sorveglianza-del-tape.md),
 sezione *"Le Prove Che Una Condizione Deve Passare Prima Di Essere Armata"*, con il caso del
 16 settembre che le ha prodotte. **Nessuna e' facoltativa, e valgono a ogni riscrittura degli
 scenari, non solo alla prima.**
 
 Le difese automatiche (`--controlla`, scenario rotto che grida) verificano che una condizione sia
-**eseguibile**. Non possono accorgersi che sia **sbagliata**: quello lo fanno solo le sei prove,
+**eseguibile**. Non possono accorgersi che sia **sbagliata**: quello lo fanno solo le sette prove,
 e le fa l'analisi, a mano, prima di armare.
 
 
@@ -277,7 +278,7 @@ dei due dipende dalla fase di sessione.
 **Si opera anche prima che il gate Tier 01 si sia aperto.** E' una **deroga dichiarata**
 dell'utente al dossier, che prima della chiusura M30 concede solo mean reverting: sta sotto al
 dossier nella gerarchia delle fonti, e i tre obblighi che **non** sospende — `verso` degli scenari
-comunque `NESSUN PERMESSO`, sei prove immutate, dicitura *pre-gate* accanto a ogni lettura — sono
+comunque `NESSUN PERMESSO`, prove immutate, dicitura *pre-gate* accanto a ogni lettura — sono
 in [`le-gambe-di-una-seduta.md`](docs/research/metodo/le-gambe-di-una-seduta.md), sezione *"La
 Deroga: Operare Prima Del Gate"*.
 
