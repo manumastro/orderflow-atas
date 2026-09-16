@@ -111,6 +111,44 @@ singola non sa:
 precedente sullo stesso livello. E' la lettura piu' utile che si possa fare — *"2.289 lotti contro i
 1.561 di prima"* — e finora si poteva fare solo a mano.
 
+### Le Prove Che Una Condizione Deve Passare Prima Di Essere Armata
+
+**Ogni setup ha un sosia:** un movimento che produce gli stessi numeri e significa il contrario.
+Una condizione non e' la *descrizione* del setup — e' il **test che lo separa dal suo sosia**. Se
+non lo separa, scattera' sul sosia, e scattera' proprio quando il sosia e' piu' frequente del
+setup.
+
+Il 16 settembre `fade del VAH` era scritto
+`h > 29335 and c < 29335 and pos <= 0.3 and vol >= p75vol and delta <= -p75delta`. Descrive
+correttamente un rifiuto del bordo alto del valore. Descrive **altrettanto correttamente** una
+rottura del bordo dall'alto verso il basso, che e' il suo esatto contrario. Alle 08:27 il prezzo,
+che stava fuori dal valore da tutta la notte, e' semplicemente rientrato: la barra ha aperto a
+29.340 sopra il bordo ed e' caduta dentro. Sul chart e' comparso `[SHORT · MEAN REVERTING]` su una
+rottura. Nessuna delle quattro difese della sezione precedente poteva accorgersene: la condizione
+non era **rotta**, era **sbagliata**, e le difese controllano solo che sia eseguibile.
+
+Le prove sono sei, e **nessuna e' facoltativa**.
+
+| | la prova | come si fa |
+|---|---|---|
+| 1 | **Da che parte arriva il prezzo** | ogni condizione su un livello vincola il lato di arrivo: `o` rispetto al livello, piu' `minuti_sotto(L, n)` per il contesto che precede. Senza, rifiuto e rottura sono indistinguibili |
+| 2 | **Il sosia e' dichiarato** | si scrive in `attesa` qual e' il movimento che somiglia al setup e significa il contrario, e si verifica che la condizione sia **falsa** su di lui |
+| 3 | **Il `verso` risale a una riga della fonte** | se non si sa dire da quale riga del dossier discende il permesso, il verso e' `NESSUN PERMESSO` e lo scenario resta una osservazione |
+| 4 | **I nomi esistono** | `--controlla`, sempre, prima di armare |
+| 5 | **La storia non la smentisce** | `--prova` sulla seduta e su quelle precedenti: si guarda **dove avrebbe scattato**. Se scatta dove non e' successo niente, separa male |
+| 6 | **I tempi del setup sono dichiarati** | se la fonte descrive una sequenza — stoppino, assorbimento, flip — e la condizione la comprime in una barra, lo si scrive in `attesa`. Una approssimazione dichiarata si corregge; una taciuta diventa un segnale falso |
+
+**Un setup a piu' tempi non e' una barra.** Il mean reverting del dossier ha tre passi ordinati e
+due su tre non bastano. Una condizione su singola barra ne e' una approssimazione utile perche'
+arriva subito, non perche' sia equivalente: il suo compito e' **far guardare**, e per questo il
+`verso` di uno scenario a barra singola dice cosa sarebbe lecito *se la sequenza c'e'*, non che
+c'e'.
+
+**Quando una condizione si rivela sbagliata**, non basta correggerla: si toglie dal chart e dal
+diario cio' che ha scritto, perche' resta li' a dire il falso — e si scrive nel file della giornata
+**perche'** separava male, che e' l'unica parte riutilizzabile domani.
+
+
 ### Uno Scenario Rotto Deve Gridare, Non Spegnersi
 
 Il 16 settembre `fade del VAH` conteneva `p75delta`, un nome che il contesto non forniva. Finche'

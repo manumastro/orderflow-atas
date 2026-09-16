@@ -89,6 +89,25 @@ Costa una riga in piu' e toglie una domanda.
 **Corollario:** se non si sa dire a cosa serve un livello, quel livello non va nominato — e
 probabilmente non andava nemmeno disegnato sul chart.
 
+## Prima Di Armare Una Condizione
+
+**Una condizione non descrive un setup: lo separa dal suo sosia.** Ogni setup ne ha uno — un
+movimento che produce gli stessi numeri e significa il contrario. Un rifiuto del bordo alto del
+valore e una rottura dello stesso bordo dall'alto hanno massimo sopra, chiusura sotto, corpo in
+basso, volume e delta negativo: identici. Li separa **solo** da che parte arriva il prezzo.
+
+Le sei prove obbligatorie — lato di arrivo, sosia dichiarato, verso tracciabile a una riga della
+fonte, `--controlla`, `--prova` sulla storia, tempi del setup dichiarati — stanno in
+[`docs/research/metodo/sorveglianza-del-tape.md`](docs/research/metodo/sorveglianza-del-tape.md),
+sezione *"Le Prove Che Una Condizione Deve Passare Prima Di Essere Armata"*, con il caso del
+16 settembre che le ha prodotte. **Nessuna e' facoltativa, e valgono a ogni riscrittura degli
+scenari, non solo alla prima.**
+
+Le difese automatiche (`--controlla`, scenario rotto che grida) verificano che una condizione sia
+**eseguibile**. Non possono accorgersi che sia **sbagliata**: quello lo fanno solo le sei prove,
+e le fa l'analisi, a mano, prima di armare.
+
+
 ## Come Si Scrive Una Lettura Dal Vivo
 
 Chi legge **ha gli occhi sul grafico**, a mercato aperto, e deve capire in dieci secondi. La

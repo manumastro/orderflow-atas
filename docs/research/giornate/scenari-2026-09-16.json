@@ -31,12 +31,12 @@
     "prezzo": 29400,
     "tipo": "rifiuto",
     "tema": "muro 29400",
-    "quando": "tocca(29400, 8) and vol >= p75vol and delta <= 0 and pos <= 0.35",
+    "quando": "o <= 29400 and minuti_sotto(29400, 10) >= 6 and tocca(29400, 8) and vol >= p75vol and delta <= 0 and pos <= 0.35",
     "verso": "SHORT",
     "implica": "29400 ha respinto due volte ieri mattina, ceduto alle 13:00 ed e' stato riperso in serata. Un altro rifiuto lo conferma come tetto.",
     "altrimenti": "se lo riprende in accettazione, torna in gioco la mensola a 29453,50.",
     "testo": "il muro di 29400 respinge ancora",
-    "attesa": "il livello piu' conteso delle ultime due sedute."
+    "attesa": "il livello piu' conteso delle ultime due sedute. SOSIA: la stessa barra la produce il prezzo che cade attraverso 29400 dall'alto, che e' il contrario. Per questo serve l'arrivo da sotto: apertura sotto il muro e 6 degli ultimi 10 minuti sotto."
   },
   {
     "nome": "secondo test del minimo delle 24 ore",
@@ -83,12 +83,12 @@
     "prezzo": 0,
     "tipo": "rottura",
     "tema": "IVB",
-    "quando": "ivb_basso is not None and chiude_sotto(ivb_basso) and vol >= p95vol and delta <= -p95delta",
+    "quando": "ivb_basso is not None and minuto % 30 == 29 and dopo('16:29') and c < ivb_basso",
     "verso": "SHORT",
     "implica": "Tier 01 al ribasso, come ieri, nel verso del contesto.",
     "altrimenti": "se rimbalza dentro il range resta mean reverting.",
     "testo": "IVB rotto al ribasso: permesso short",
-    "attesa": "ieri questo scenario avrebbe anticipato 200 punti di discesa."
+    "attesa": "Il dossier ancora il gate alla CHIUSURA a 30 minuti fuori dal range, non a un attraversamento intrabarra: si valuta solo sulla barra che chiude un M30 (16:29, 16:59, ...). SOSIA: il tocco sotto il bordo che rientra prima della chiusura, che non e' un voto. Da qui in poi solo short per il trend following."
   },
   {
     "nome": "IVB rotto al rialzo",
@@ -96,12 +96,12 @@
     "prezzo": 0,
     "tipo": "reclaim",
     "tema": "IVB",
-    "quando": "ivb_alto is not None and chiude_sopra(ivb_alto) and vol >= p95vol and delta >= p95delta",
+    "quando": "ivb_alto is not None and minuto % 30 == 29 and dopo('16:29') and c > ivb_alto",
     "verso": "LONG",
     "implica": "Tier 01 al rialzo, contro tre sedute di calo: trigger break and retest dell'IVB.",
     "altrimenti": "se rientra nel range era uno stoppino.",
     "testo": "IVB rotto al rialzo: permesso long",
-    "attesa": "il primo permesso long da lunedi."
+    "attesa": "Specularmente: chiusura M30 sopra il bordo alto dell'IVB. SOSIA: l'escursione sopra che rientra prima della chiusura. Da qui in poi solo long per il trend following."
   },
   {
     "nome": "fade del VAH notturno",
@@ -109,12 +109,12 @@
     "prezzo": 29335,
     "tipo": "rifiuto",
     "tema": "bordi del valore",
-    "quando": "h > 29335 and c < 29335 and pos <= 0.3 and vol >= p75vol and delta <= -p75delta",
+    "quando": "o <= 29335 and minuti_sotto(29335, 10) >= 6 and h > 29335 and c < 29335 and pos <= 0.3 and vol >= p75vol and delta <= -p75delta",
     "verso": "SHORT · MEAN REVERTING",
     "implica": "il solo setup che il dossier concede prima delle 16:00. Tre tempi in una candela: stoppino sopra il bordo, assorbimento, corpo riempito dall'aggressione opposta. STOP appena oltre lo stoppino assorbito. BERSAGLIO 1 il POC 29277, BERSAGLIO 2 il VAL 29250. RISK ENVELOPE del dossier: size ridotta e massimo 2 stop-loss al giorno, al secondo la sessione e' finita.",
     "altrimenti": "se il prezzo accetta sopra 29335 il valore si sta spostando in alto e il fade non vale piu'.",
     "testo": "fade del bordo alto del valore",
-    "attesa": "VAH della notte a 29335 su 36.031 lotti. Due su tre non bastano: serve la candela che ribalta l'aggressione."
+    "attesa": "VAH della notte a 29335 su 36.031 lotti. Il fade vale solo se il prezzo arriva DA DENTRO il valore: la barra deve aprire sotto 29335 e almeno 6 degli ultimi 10 minuti devono aver chiuso sotto. Una barra che ci cade dentro dall'alto non e' un rifiuto, e' una rottura."
   },
   {
     "nome": "fade del VAL notturno",
@@ -122,11 +122,11 @@
     "prezzo": 29250,
     "tipo": "assorbimento",
     "tema": "bordi del valore",
-    "quando": "l < 29250 and c > 29250 and pos >= 0.7 and vol >= p75vol and delta >= p75delta",
+    "quando": "o >= 29250 and minuti_sotto(29250, 10) <= 4 and l < 29250 and c > 29250 and pos >= 0.7 and vol >= p75vol and delta >= p75delta",
     "verso": "LONG · MEAN REVERTING",
     "implica": "specularmente: stoppino sotto il bordo, venditori assorbiti, corpo riempito dai compratori. STOP appena sotto lo stoppino. BERSAGLIO 1 il POC 29277, BERSAGLIO 2 il VAH 29335. Stessa risk envelope: size ridotta, massimo 2 stop-loss.",
     "altrimenti": "se accetta sotto 29250 il valore migra in basso e si torna allo scenario 'perde il valore'.",
     "testo": "fade del bordo basso del valore",
-    "attesa": "VAL della notte a 29250, appena sopra il doppio POC 29250-29274. ATTENZIONE: due sedute mostrano compratori aggressivi che restano intrappolati."
+    "attesa": "VAL della notte a 29250, appena sopra il doppio POC 29250-29274. Come per il VAH, serve l'arrivo DA DENTRO: apertura sopra 29250 e non piu' di 4 degli ultimi 10 minuti chiusi sotto. ATTENZIONE: due sedute mostrano compratori aggressivi che restano intrappolati."
   }
 ]

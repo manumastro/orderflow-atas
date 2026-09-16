@@ -71,3 +71,4 @@
 2026-09-15 16:45 giornata 15 set: sessione cash NY, IVB 29372,50-29453,50, gate short-only; correzione 4.7 sui monitor scaduti; livelli e scenari riscritti per il regime cash
 2026-09-16 07:40 giornata 16 set aperta: doppio POC 29250-29274 su due sedute, delta positivo su due giornate in calo
 2026-09-16 07:53 istruzioni: obbligo di tornare alla fonte prima di usare un termine del metodo, piu' glossario-del-metodo.md
+2026-09-16  scenari: le sei prove obbligatorie per una condizione. 'fade del VAH' scattava sulla rottura del bordo perche' non vincolava il lato di arrivo: rifiuto e rottura producono gli stessi numeri. Condizione corretta (apertura sotto il bordo + minuti_sotto), sezione nuova in sorveglianza-del-tape.md e obbligo in CLAUDE.md.
