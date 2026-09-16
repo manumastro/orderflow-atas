@@ -113,3 +113,4 @@
 2026-09-16  permesso_di_fatto.py: l'accettazione su barre M1 accanto al gate M30 (oggi -84 min in revoca, +1 min in concessione), isteresi obbligatoria, doc e puntatori
 2026-09-16  conferenza Warsh: -238 punti in 28 minuti, pavimento IVB rotto, primo permesso di fatto SHORT 23 minuti prima del gate M30; buco di sorveglianza 20:13-20:35 dichiarato
 2026-09-16  il verso NESSUN PERMESSO non si stampa piu' sul chart ne' nell'avviso: resta obbligatorio nel file degli scenari, ma sul grafico compare solo un verso che concede qualcosa
+2026-09-16  sveglia_tape: --isteresi ora vale anche sul cambio di lato della barra CHIUSA (prima solo sulla viva): quattro ATTRAVERSATO a vuoto sul POC 29.262 con 99-378 lotti, uno su chiusura esatta sul livello

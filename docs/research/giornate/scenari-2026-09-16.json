@@ -76,5 +76,70 @@
     "altrimenti": "resta armato per tutta la seduta.",
     "testo": "tornato al POC composito 29.262 - dove il mercato viveva",
     "attesa": "Non e' una previsione: e' il primo posto sotto dove il prezzo ha gia' dimostrato di accettare."
+  },
+  {
+    "nome": "il POC composito cede con il venditore dentro",
+    "quando": "o > 29262 and c < 29262 and pos <= 0.35 and delta <= -p75delta and dpct15 <= -1.5",
+    "prezzo": 29262.0,
+    "tipo": "rottura",
+    "tema": "POC composito",
+    "verso": "NESSUN PERMESSO",
+    "testo": "POC composito perso con aggressione - sotto non c'e' piu' struttura di oggi",
+    "implica": "il POC composito 29.262 e' il baricentro di nove giorni: sotto, il prossimo riferimento misurato e' il minimo cash di lunedi' 29.167,75, cioe' 94 punti. E' il livello che dice se la seduta post-Fed rompe la struttura della settimana o la sta solo testando.",
+    "altrimenti": "un minimo che perfora e rientra e' il quarto test respinto della fascia 29.250-29.325, che stasera ha gia' fermato il prezzo due volte",
+    "attesa": "SOSIA: lo stoppino che buca il POC e rientra - li separano la CHIUSURA sotto (non il minimo), pos <= 0.35 e delta <= -p75delta insieme. LATO DI ARRIVO: o > 29262 impone che la barra arrivi da sopra. TEMPI: e' una approssimazione su barra singola di una accettazione, che il permesso di fatto misura su tre chiusure. Il verso resta NESSUN PERMESSO: il gate M30 e' la fonte, e alle 20:59 decide.",
+    "sigla": "POC composito ceduto"
+  },
+  {
+    "nome": "il minimo di lunedi non regge il ritest",
+    "sigla": "ritest 29167 fallito",
+    "quando": "o > 29167.75 and c < 29167.75 and pos <= 0.35 and delta <= -p75delta",
+    "prezzo": 29167.75,
+    "tipo": "rifiuto",
+    "tema": "minimo lunedi",
+    "verso": "NESSUN PERMESSO",
+    "testo": "il minimo di lunedi respinge da sotto - la settimana resta rotta",
+    "implica": "29.167,75 e' stato rotto alle 21:10 e da resistenza ha un solo riferimento sotto: il minimo globex di lunedi 29.107,25, cioe' 60 punti. In mezzo il profilo dei nove giorni vale l'1,2%: non c'e' niente che rallenti.",
+    "altrimenti": "una chiusura sopra 29.167,75 rimette il prezzo dentro il range di lunedi e la rottura delle 21:10 diventa uno sconfinamento",
+    "attesa": "SOSIA: il rimbalzo che riprende il livello - li separano la chiusura sotto, pos <= 0.35 e delta <= -p75delta. LATO DI ARRIVO: o > 29167.75, cioe' il ritest arriva da sopra. TEMPI: barra singola, approssimazione di un rifiuto che il dossier descrive su piu' barre."
+  },
+  {
+    "nome": "cede il minimo globex di lunedi",
+    "sigla": "rotto 29107 globex",
+    "quando": "c < 29107.25 and pos <= 0.35 and delta <= -p75delta",
+    "prezzo": 29107.25,
+    "tipo": "rottura",
+    "tema": "minimo lunedi",
+    "verso": "NESSUN PERMESSO",
+    "testo": "minimo globex di lunedi perso - fuori da tutta la settimana",
+    "implica": "e' l'ultimo prezzo misurato della settimana. Sotto, non c'e' piu' nessun riferimento costruito su dati: si torna al profilo di venerdi, che va ricalcolato per lo spread del rollover.",
+    "altrimenti": "una perforazione che rientra e' il pavimento della settimana che tiene",
+    "attesa": "SOSIA: lo stoppino di panico che rientra. TEMPI: si dichiara che sotto questo livello l'analisi NON ha livelli pronti, e la lettura va rifatta prima di operare."
+  },
+  {
+    "nome": "il muro 29250 cede",
+    "sigla": "rotto muro 29254",
+    "quando": "o < 29254 and c > 29254 and pos >= 0.65 and delta >= p75delta",
+    "prezzo": 29254.0,
+    "tipo": "rottura",
+    "tema": "stallo 29217-29254",
+    "verso": "NESSUN PERMESSO",
+    "testo": "muro 29.250-29.300 ceduto - la gamba riparte",
+    "implica": "sopra 29.254 il prezzo entra nella fascia piu' comprata sotto il POC (54.502 lotti, delta +976) che stasera lo ha respinto due volte. Se la attraversa, il rifiuto delle 21:00 era una trappola e il riferimento successivo e' 29.300, poi il pavimento IVB 29.373,25.",
+    "altrimenti": "un massimo che non supera 29.254,25 conferma che il muro tiene e il massimo del rimbalzo e' quello",
+    "attesa": "SOSIA: lo sfondamento sottile di fine giornata, quando il libro si assottiglia dopo la chiusura cash - lo separano delta >= p75 e pos >= 0,65 insieme. LATO DI ARRIVO: o < 29254. TEMPI: barra singola. ATTENZIONE: dopo le 20:00Z il volume cala e le rotture valgono meno."
+  },
+  {
+    "nome": "lo stallo cede al ribasso",
+    "sigla": "rotto 29217 stallo",
+    "quando": "o > 29217 and c < 29217 and pos <= 0.35 and delta <= -p75delta",
+    "prezzo": 29217.0,
+    "tipo": "rottura",
+    "tema": "stallo 29217-29254",
+    "verso": "NESSUN PERMESSO",
+    "testo": "stallo rotto al ribasso - la gamba delle 21:27 e' finita",
+    "implica": "sotto 29.217 la gamba da 29.053 ha finito la spinta: primo riferimento 29.200, poi il minimo cash di lunedi 29.167,75, che oggi ha cambiato ruolo due volte ed e' il livello su cui si e' costruito l'unico ingresso valido della giornata.",
+    "altrimenti": "una perforazione che rientra e' respiro dentro lo stallo, non un cambio",
+    "attesa": "SOSIA: il ritracciamento normale dentro una gamba viva - li separano la chiusura sotto, pos <= 0,35 e delta <= -p75. LATO DI ARRIVO: o > 29217. TEMPI: barra singola."
   }
 ]

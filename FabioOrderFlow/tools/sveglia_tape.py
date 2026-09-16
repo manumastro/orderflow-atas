@@ -166,7 +166,18 @@ def presidia(b, prev, chiavi, stato, args) -> list[str]:
             aperto["delta"] += b["delta"]
             aperto["max"] = max(aperto["max"], b["high"])
             aperto["min"] = min(aperto["min"], b["low"])
-            lato = "sopra" if b["close"] > aperto["p"] else "sotto"
+            # Stessa isteresi della barra viva: senza, `--isteresi` governava meta' del
+            # problema. Il 16 settembre alle 22:13 una chiusura a 29.262,00 ESATTI sul livello
+            # 29.262 e' stata contata come attraversamento, e le tre precedenti erano tutte
+            # dentro i due punti. Dentro la banda il lato non cambia: la barra resta un
+            # PRESIDIO, che e' cio' che e'.
+            ist = getattr(args, "isteresi", None) or ISTERESI
+            if b["close"] > aperto["p"] + ist:
+                lato = "sopra"
+            elif b["close"] < aperto["p"] - ist:
+                lato = "sotto"
+            else:
+                lato = aperto["lato_corrente"]
             # Dentro il presidio ogni barra si somiglia. Il cambio di lato e' l'unica cosa che
             # conta, e una riga uguale alle altre lo nasconde: va gridato.
             if lato != aperto["lato_corrente"]:

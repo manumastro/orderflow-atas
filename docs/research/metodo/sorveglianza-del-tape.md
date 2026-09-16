@@ -581,11 +581,20 @@ barra **in formazione** e grida appena attraversa, una volta per cambio di lato:
     !!! ORA ATTRAVERSA VAH notte 29335 -> SOTTO [BARRA NON CHIUSA, puo' rientrare] ...
 
 **Due freni, perche' un avviso che suona sempre non e' un avviso.** Per dichiarare un cambio di
-lato a barra viva servono **1,5 punti oltre il livello** (isteresi): dentro quella fascia il prezzo
+lato servono **1,5 punti oltre il livello** (isteresi, `--isteresi`): dentro quella fascia il prezzo
 puo' ballare quanto vuole e non succede niente. E comunque **al massimo due grida per barra**: se
 il prezzo balla sul livello, la notizia e' che ci balla, e quella si legge alla chiusura. Senza
 questi due freni, alle 10:16 del 16 settembre la sveglia ha suonato due volte in un minuto per due
 punti di escursione.
+
+**L'isteresi vale su entrambe le barre, e per una sera non e' stato vero.** Fino al 16 settembre
+`--isteresi` governava solo la barra **viva**: sulla barra **chiusa** il lato era `close > p`
+contro `close < p`, senza banda. Il risultato, quella notte sul POC composito 29.262 col libro
+assottigliato dopo la chiusura cash: quattro `ATTRAVERSATO` in sei minuti su 99-378 lotti e delta
+fra -28 e +7, l'ultimo su una chiusura a **29.262,00 esatti**, cioe' sul livello. Alzare
+`--isteresi` da 1,5 a 4 non aveva cambiato niente, perche' il parametro non arrivava dove serviva.
+Ora dentro la banda la barra chiusa resta un `PRESIDIO`, che e' cio' che e'. **Un parametro che
+governa meta' del problema fa credere di aver regolato lo strumento quando non lo si e' toccato.**
 
 La marcatura `BARRA NON CHIUSA` non e' decoro. Il 16 settembre alle 10:11 il prezzo e' sceso a
 29.327,50, sotto il VAH, e io l'ho letta come rottura: la barra ha chiuso a **29.336,50, sopra il

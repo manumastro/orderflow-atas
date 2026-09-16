@@ -1,11 +1,86 @@
 [
-  {"price": 29675.0,  "label": "Fine del vuoto · primo volume vero sopra (0,8%/fascia)", "color": "#E69138", "style": "solid", "width": 3},
-  {"price": 29604.0,  "label": "VAH lunedi · INGRESSO DEL VUOTO · sopra qui 75 punti quasi vuoti", "color": "#6AA84F", "style": "solid", "width": 3},
-  {"price": 29549.75, "label": "Massimo di oggi 17:47 · bordo dell'esplorato", "color": "#674EA7", "style": "dash", "width": 2},
-  {"price": 29517.0,  "label": "VAH cash · bordo alto del valore", "color": "#E69138", "style": "dash", "width": 2},
-  {"price": 29481.5,  "label": "TETTO IVB · permesso LONG solo sopra (chiusura M30)", "color": "#3D85C6", "style": "solid", "width": 3},
-  {"price": 29468.75, "label": "POC cash · il baricentro di oggi", "color": "#C27BA0", "style": "solid", "width": 2},
-  {"price": 29436.75, "label": "VAL cash · sotto qui la giornata rialzista e' finita", "color": "#E69138", "style": "dash", "width": 2},
-  {"price": 29373.25, "label": "PAVIMENTO IVB · chiusura M30 sotto = permesso SHORT", "color": "#3D85C6", "style": "solid", "width": 3},
-  {"price": 29262.0,  "label": "POC composito 9 giorni · dove il mercato vive davvero", "color": "#CC0000", "style": "dash", "width": 2}
+  {
+    "price": 29675.0,
+    "label": "Fine del vuoto · primo volume vero sopra (0,8%/fascia)",
+    "color": "#E69138",
+    "style": "solid",
+    "width": 3
+  },
+  {
+    "price": 29604.0,
+    "label": "VAH lunedi · INGRESSO DEL VUOTO · sopra qui 75 punti quasi vuoti",
+    "color": "#6AA84F",
+    "style": "solid",
+    "width": 3
+  },
+  {
+    "price": 29549.75,
+    "label": "Massimo di oggi 17:47 · bordo dell'esplorato",
+    "color": "#674EA7",
+    "style": "dash",
+    "width": 2
+  },
+  {
+    "price": 29517.0,
+    "label": "VAH cash · bordo alto del valore",
+    "color": "#E69138",
+    "style": "dash",
+    "width": 2
+  },
+  {
+    "price": 29481.5,
+    "label": "TETTO IVB · permesso LONG solo sopra (chiusura M30)",
+    "color": "#3D85C6",
+    "style": "solid",
+    "width": 3
+  },
+  {
+    "price": 29468.75,
+    "label": "POC cash · il baricentro di oggi",
+    "color": "#C27BA0",
+    "style": "solid",
+    "width": 2
+  },
+  {
+    "price": 29436.75,
+    "label": "VAL cash · sotto qui la giornata rialzista e' finita",
+    "color": "#E69138",
+    "style": "dash",
+    "width": 2
+  },
+  {
+    "price": 29373.25,
+    "label": "PAVIMENTO IVB · chiusura M30 sotto = permesso SHORT",
+    "color": "#3D85C6",
+    "style": "solid",
+    "width": 3
+  },
+  {
+    "price": 29262.0,
+    "label": "POC composito 9 giorni · dove il mercato vive davvero",
+    "color": "#CC0000",
+    "style": "dash",
+    "width": 2
+  },
+  {
+    "price": 29221.25,
+    "label": "Minimo pre-rottura 21:00 · sopra qui la rottura decade",
+    "color": "#888888",
+    "style": "dot",
+    "width": 1
+  },
+  {
+    "price": 29167.75,
+    "label": "Minimo cash lunedi · rotto alle 21:10, ora e' resistenza",
+    "color": "#CC0000",
+    "style": "dash",
+    "width": 2
+  },
+  {
+    "price": 29107.25,
+    "label": "Minimo globex lunedi · ultimo riferimento della settimana",
+    "color": "#CC0000",
+    "style": "solid",
+    "width": 2
+  }
 ]

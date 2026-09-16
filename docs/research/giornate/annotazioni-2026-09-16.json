@@ -7,7 +7,8 @@
     "misura": "19:59 a 29475.00: vol 761, delta -41, 30m -1.1%. IMPLICA: Tier 01 (dossier 119-124): il permesso LONG e' vivo dalla chiusura M30 delle 17:00 e ha retto quella delle 18:29 a 29.485. Una chiusura M30 sotto il tetto riporta il prezzo DENTRO l'IVB, cioe' mean reverting soltanto. Non apre nessuno short. ALTRIMENTI: finche' le chiusure M30 restano sopra 29.481,50 il permesso long resta. || EVENTO FED 20:00. Il permesso di oggi e' nato su un flusso contrario: delta -10 nell'IVB, -1.017 pre-gate, -1.156 post-gate. Vale quanto il primo tick dopo il comunicato.",
     "scenario": "il permesso long viene revocato",
     "condizione": "minuto % 30 == 29 and c < ivb_alto",
-    "tema": "gate IVB"
+    "tema": "gate IVB",
+    "superata_da": "20:49"
   },
   {
     "ora": "20:01",
@@ -17,6 +18,75 @@
     "misura": "20:01 a 29422.50: vol 3055, delta -103, 30m -1.2%. IMPLICA: e' il bordo basso del valore costruito oggi in cash (VAL 29.436,75 / POC 29.468,75 / VAH 29.517, misurati su 13:30-17:21Z, 170.660 lotti). Sotto, la giornata rialzista non ha piu' base e il riferimento successivo diventa il muro compatto 29.300-29.425, che vale fra il 5,7% e il 7,0% per fascia: il prezzo lo mastica, non ci scivola. ALTRIMENTI: dentro il valore i movimenti sono respiro, non struttura. || SOSIA: una discesa sottile senza partecipazione - la separano pos <= 0.35 e delta <= -p75delta insieme.",
     "scenario": "cede il valore della cash",
     "condizione": "c < 29436.75 and pos <= 0.35 and delta <= -p75delta",
-    "tema": "struttura"
+    "tema": "struttura",
+    "superata_da": "20:49"
+  },
+  {
+    "ora": "20:56",
+    "prezzo": 29262.0,
+    "tipo": "nota",
+    "testo": "[NESSUN PERMESSO] tornato al POC composito 29.262 - dove il mercato viveva",
+    "misura": "20:56 a 29259.50: vol 3324, delta -144, 30m -1.1%. IMPLICA: osservazione: la fascia 29.250-29.275 tiene il 10,29% del volume di nove giorni, ed e' il POC del composito. Il prezzo ci ha vissuto due sedute intere. E' duecento punti sotto il prezzo attuale, cioe' il riferimento se la Fed rompe la struttura di questa settimana. ALTRIMENTI: resta armato per tutta la seduta. || Non e' una previsione: e' il primo posto sotto dove il prezzo ha gia' dimostrato di accettare.",
+    "scenario": "torna al POC composito dei nove giorni",
+    "condizione": "l <= 29275",
+    "tema": "bersaglio"
+  },
+  {
+    "ora": "20:56",
+    "prezzo": 29262.0,
+    "tipo": "rottura",
+    "testo": "[NESSUN PERMESSO] POC composito perso con aggressione - sotto non c'e' piu' struttura di oggi",
+    "misura": "20:56 a 29259.50: vol 3324, delta -144, 30m -1.1%. IMPLICA: il POC composito 29.262 e' il baricentro di nove giorni: sotto, il prossimo riferimento misurato e' il minimo cash di lunedi' 29.167,75, cioe' 94 punti. E' il livello che dice se la seduta post-Fed rompe la struttura della settimana o la sta solo testando. ALTRIMENTI: un minimo che perfora e rientra e' il quarto test respinto della fascia 29.250-29.325, che stasera ha gia' fermato il prezzo due volte || SOSIA: lo stoppino che buca il POC e rientra - li separano la CHIUSURA sotto (non il minimo), pos <= 0.35 e delta <= -p75delta insieme. LATO DI ARRIVO: o > 29262 impone che la barra arrivi da sopra. TEMPI: e' una approssimazione su barra singola di una accettazione, che il permesso di fatto misura su tre chiusure. Il verso resta NESSUN PERMESSO: il gate M30 e' la fonte, e alle 20:59 decide.",
+    "scenario": "il POC composito cede con il venditore dentro",
+    "condizione": "o > 29262 and c < 29262 and pos <= 0.35 and delta <= -p75delta and dpct15 <= -1.5",
+    "tema": "POC composito"
+  },
+  {
+    "ora": "20:59",
+    "prezzo": 29373.25,
+    "tipo": "rottura",
+    "testo": "[NESSUN PERMESSO] PAVIMENTO IVB PERSO alla chiusura M30 - permesso SHORT",
+    "misura": "20:59 a 29231.75: vol 2891, delta -247, 30m -1.4%. IMPLICA: Tier 01 (dossier 119-124, riga BELOW LOW): una chiusura M30 sotto il PAVIMENTO dell'IVB e' l'unica cosa che apre il permesso SHORT. Centootto punti sotto il tetto: non e' il ribaltamento del permesso long, e' un evento separato che richiede tutta l'escursione dell'IVB. ALTRIMENTI: sopra 29.373,25 alla chiusura M30 nessuno short e' autorizzato dal dossier. || Il verso resta NESSUN PERMESSO nel file perche' il campo dice cosa concede la fonte a questa condizione, non cosa si intende fare. Se scatta, il permesso e' short e va letto dal dossier.",
+    "scenario": "il permesso diventa short",
+    "condizione": "minuto % 30 == 29 and c < ivb_basso",
+    "tema": "gate IVB"
+  },
+  {
+    "ora": "21:10",
+    "prezzo": 29167.75,
+    "tipo": "rottura",
+    "testo": "minimo cash di lunedi rotto - fuori dal range della settimana",
+    "misura": "21:10 chiusa 29.169,25 su 2.611 lotti pos 0,02, poi 29.130,75 alle 21:12. La fascia 29.200-29.250 ha delta -384, la prima negativa della zona bassa: i compratori che avevano difeso 29.250-29.300 (+976) sono stati saltati. Sotto resta solo 29.107,25, minimo globex di lunedi, 24 punti. ARMATO IN RITARDO: il livello e' stato messo sul chart alle 21:12, due minuti dopo la rottura.",
+    "tema": "minimo lunedi",
+    "superata_da": "21:25"
+  },
+  {
+    "ora": "21:25",
+    "prezzo": 29107.25,
+    "tipo": "rottura",
+    "testo": "minimo globex di lunedi perso - fuori da tutta la settimana",
+    "misura": "21:25 a 29066.00: vol 2491, delta -465, 30m -0.4%. IMPLICA: e' l'ultimo prezzo misurato della settimana. Sotto, non c'e' piu' nessun riferimento costruito su dati: si torna al profilo di venerdi, che va ricalcolato per lo spread del rollover. ALTRIMENTI: una perforazione che rientra e' il pavimento della settimana che tiene || SOSIA: lo stoppino di panico che rientra. TEMPI: si dichiara che sotto questo livello l'analisi NON ha livelli pronti, e la lettura va rifatta prima di operare.",
+    "scenario": "cede il minimo globex di lunedi",
+    "condizione": "c < 29107.25 and pos <= 0.35 and delta <= -p75delta",
+    "tema": "minimo lunedi",
+    "superata_da": "21:36"
+  },
+  {
+    "ora": "21:36",
+    "prezzo": 29167.75,
+    "tipo": "rifiuto",
+    "testo": "il minimo di lunedi respinge da sotto - la settimana resta rotta",
+    "misura": "21:36 a 29149.50: vol 1893, delta -127, 30m +0.2%. IMPLICA: 29.167,75 e' stato rotto alle 21:10 e da resistenza ha un solo riferimento sotto: il minimo globex di lunedi 29.107,25, cioe' 60 punti. In mezzo il profilo dei nove giorni vale l'1,2%: non c'e' niente che rallenti. ALTRIMENTI: una chiusura sopra 29.167,75 rimette il prezzo dentro il range di lunedi e la rottura delle 21:10 diventa uno sconfinamento || SOSIA: il rimbalzo che riprende il livello - li separano la chiusura sotto, pos <= 0.35 e delta <= -p75delta. LATO DI ARRIVO: o > 29167.75, cioe' il ritest arriva da sopra. TEMPI: barra singola, approssimazione di un rifiuto che il dossier descrive su piu' barre.",
+    "scenario": "il minimo di lunedi non regge il ritest",
+    "condizione": "o > 29167.75 and c < 29167.75 and pos <= 0.35 and delta <= -p75delta",
+    "tema": "minimo lunedi"
+  },
+  {
+    "ora": "21:32",
+    "prezzo": 29167.75,
+    "tipo": "reclaim",
+    "testo": "PRESO: long 29.168 -> 29.221, +53 punti",
+    "misura": "Sequenza completa: 21:14 assorbimento 3.292 lotti delta +154 al minimo 29.108 (p95 volume era 2.213); 21:24 minimo crescente 29.088 dopo doppio minimo a 29.083; 21:32 chiusura 29.168,25 sopra il minimo cash di lunedi con 2.057 lotti e delta +149. Stop 29.138,25, mai toccato (minimo 29.142,25 alle 21:37). Uscita 29.221 sul primo bersaglio. QUATTRO VOLTE SEMBRAVA FALLITO: 21:36 chiusura 29.149 sotto il livello con delta -127; 21:41 massimo 29.208 e chiusura sul minimo esatto della barra con delta +101; sei attraversamenti del livello in dieci minuti. Ha pagato la 21:45: 41 punti in una barra, delta +174, pos 0,99.",
+    "tema": "ingresso 29168"
   }
 ]
