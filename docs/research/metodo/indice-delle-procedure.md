@@ -114,6 +114,19 @@ scatta annota da solo — cosi' a schermo compare gia' lo scenario previsto, col
 dato. `sveglia_tape.py` gira in parallelo per cio' che non avevamo previsto, e `annota.py` serve
 alla lettura ragionata che arriva dopo.
 
+### 5bis. Il permesso, misurato invece che atteso
+
+[**`il-permesso-si-misura-non-si-aspetta.md`**](il-permesso-si-misura-non-si-aspetta.md) — il gate
+Tier 01 misura la cosa giusta (l'**accettazione** oltre un bordo) alla risoluzione sbagliata: una
+chiusura a 30 minuti puo' far aspettare ventinove minuti per qualcosa che il tape ha gia' detto.
+La stessa domanda su barre M1 — N chiusure oltre, volume oltre, **isteresi obbligatoria** in revoca
+— la risolve in tre.
+
+Il guadagno misurato e' il contrario di quello che sembra: **in apertura il gate M30 non e'
+battibile** (16 settembre: gate 17:00, accettazione 17:01), **in revoca si guadagnano 84 minuti**
+(gate 19:29, accettazione 18:05). Strumento: `permesso_di_fatto.py`, terzo `Monitor` accanto agli
+altri due.
+
 ### 6. La giornata, mentre succede
 
 [**`../giornate/come-si-scrive-una-giornata.md`**](../giornate/come-si-scrive-una-giornata.md) — un file per giornata di mercato, scritto

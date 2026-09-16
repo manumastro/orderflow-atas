@@ -52,3 +52,14 @@ Il 16 settembre ho scritto che un long sull'accettazione sopra il massimo nottur
 
 Nessuno dei due sarebbe successo aprendo le righe 139-196. Non li avevo aperti perche' credevo di
 sapere, ed e' esattamente la condizione in cui serve il controllo.
+
+## permesso di fatto
+
+**Non e' un termine del corso.** E' una misura di questo repository: l'accettazione oltre un bordo
+dell'IVB calcolata su barre M1 invece che sulla chiusura M30 del gate Tier 01. Definizione, soglie
+e isteresi in
+[`il-permesso-si-misura-non-si-aspetta.md`](il-permesso-si-misura-non-si-aspetta.md).
+
+Sta **sotto** al dossier nella gerarchia delle fonti. Una lettura che lo usa **lo dichiara**, e non
+va mai scritto come se fosse il permesso del corso: *"permesso di fatto LONG dalle 20:06, gate M30
+ancora DENTRO"*, non *"permesso LONG"*.

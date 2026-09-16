@@ -281,6 +281,16 @@ comunque `NESSUN PERMESSO`, sei prove immutate, dicitura *pre-gate* accanto a og
 in [`le-gambe-di-una-seduta.md`](docs/research/metodo/le-gambe-di-una-seduta.md), sezione *"La
 Deroga: Operare Prima Del Gate"*.
 
+**Il permesso direzionale si misura sull'accettazione, non si aspetta dall'orologio.** Il gate
+Tier 01 resta la fonte e resta registrato, ma **non ferma piu' niente**: accanto gira
+`FabioOrderFlow/tools/permesso_di_fatto.py`, che risponde alla stessa domanda su barre M1 e il 16
+settembre ha revocato **84 minuti prima** del gate M30 (sull'apertura invece il gate e' piu' veloce
+di un minuto: non e' battibile li', e aspettarselo porta a leggere male). Regola, isteresi
+obbligatoria, soglie per strumento e cosa si dichiara in una lettura:
+[`il-permesso-si-misura-non-si-aspetta.md`](docs/research/metodo/il-permesso-si-misura-non-si-aspetta.md).
+**Una lettura che usa il permesso di fatto lo dichiara**, e negli scenari il `verso` resta
+`NESSUN PERMESSO`: quel campo dice cosa concede la fonte, non cosa si intende fare.
+
 **Un movimento si misura col vincolo di ritracciamento, non come massimo di una finestra.** La
 seconda misura e' l'inviluppo dell'opportunita' e non descrive niente di tenibile; il 16 settembre
 ci avevo costruito sopra una lettura del Triple AAA falsa. Procedura, parametro R per strumento e
