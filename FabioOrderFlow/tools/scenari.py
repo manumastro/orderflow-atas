@@ -116,6 +116,13 @@ def hhmm(b, fuso) -> str:
 
 # ------------------------------------------------------------------ contesto
 
+# I nomi che `quando` puo' usare. Derivati dal contesto stesso, cosi' non possono divergere.
+def _nomi_contesto():
+    finta = [{"time": "2026-01-01T00:00:00.000Z", "open": 1.0, "high": 1.0, "low": 1.0,
+              "close": 1.0, "volume": 1, "delta": 0}]
+    return set(costruisci_contesto(finta, 0, 0, {}))
+
+
 def costruisci_contesto(storia, i, fuso, ivb):
     """Tutte le variabili disponibili a `quando`, calcolate sulla barra i di `storia`."""
     b = storia[i]
@@ -174,7 +181,8 @@ def costruisci_contesto(storia, i, fuso, ivb):
         "o": b["open"], "h": b["high"], "l": b["low"], "c": b["close"],
         "vol": b["volume"], "delta": b["delta"], "pos": (b["close"] - b["low"]) / rng,
         "ora": adesso, "minuto": minuti(b),
-        "p95vol": q(vv, .95), "p75vol": q(vv, .75), "p95delta": q(dd, .95),
+        "p95vol": q(vv, .95), "p75vol": q(vv, .75),
+        "p95delta": q(dd, .95), "p75delta": q(dd, .75),
         "v15": v15, "v30": v30, "v60": v60,
         "d15": d15, "d30": d30, "d60": d60,
         "dpct15": p15, "dpct30": p30, "dpct60": p60,
@@ -272,6 +280,9 @@ def annota(s, ctx, giorno, chart):
         print(f"[annotazione non spinta: {type(e).__name__}]", flush=True)
 
 
+NOMI_CONTESTO = _nomi_contesto()
+
+
 # ------------------------------------------------------------------ main
 
 def main() -> None:
@@ -282,6 +293,8 @@ def main() -> None:
     ap.add_argument("--from", dest="begin", help="inizio della finestra chiesta al bridge")
     ap.add_argument("--to", dest="end", default="2100-01-01T00:00")
     ap.add_argument("--chart")
+    ap.add_argument("--controlla", action="store_true",
+                    help="verifica nomi e sintassi di ogni `quando` senza toccare il bridge")
     ap.add_argument("--prova", action="store_true", help="valuta su tutta la storia senza scrivere niente")
     ap.add_argument("--intervallo", type=int, default=20)
     ap.add_argument("--fuso", type=int, default=2)
@@ -291,7 +304,7 @@ def main() -> None:
     if args.variabili:
         print(VARIABILI)
         return
-    if not args.begin:
+    if not args.begin and not args.controlla:
         sys.exit("serve --from")
 
     f = GIORNATE / f"scenari-{args.giorno}.json"
@@ -320,6 +333,27 @@ def main() -> None:
             print(f"[scenari ricaricati] {len(nuovi)} attivi: " + ", ".join(cambi), flush=True)
             ricomponi(args.giorno, args.chart)
         return nuovi
+
+    if args.controlla:
+        # Il controllo e' STATICO sui nomi: valutare l'espressione su una barra non basta,
+        # perche' `and` corto-circuita e un nome inesistente nel ramo destro non si vede mai.
+        # E' cosi' che `p75delta` e' passato inosservato il 16 settembre, disarmando uno
+        # scenario alla sua prima valutazione.
+        import ast
+        finta = {k: 0 for k in NOMI_CONTESTO}
+        brutti = 0
+        for s in ricarica(None):
+            try:
+                albero = ast.parse(s["quando"], mode="eval")
+            except SyntaxError as e:
+                print(f"SINTASSI  {s['nome']}: {e}"); brutti += 1; continue
+            usati = {n.id for n in ast.walk(albero) if isinstance(n, ast.Name)}
+            ignoti = usati - set(finta) - {"None", "True", "False"}
+            if ignoti:
+                print(f"NOMI IGNOTI  {s['nome']}: {', '.join(sorted(ignoti))}"); brutti += 1
+            else:
+                print(f"ok  {s['nome']}")
+        sys.exit(brutti and f"\n{brutti} scenari da correggere" or None)
 
     scenari = ricarica(None)
     visto_mtime = f.stat().st_mtime

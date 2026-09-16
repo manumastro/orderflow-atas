@@ -113,13 +113,25 @@ precedente sullo stesso livello. E' la lettura piu' utile che si possa fare — 
 
 ### Provarli prima di armarli
 
-```bash
-python3 FabioOrderFlow/tools/scenari.py --giorno 2026-09-15 --from 2026-09-15T06:00 --prova
-```
+Due controlli, e servono **entrambi** perche' trovano cose diverse.
 
-`--prova` li valuta su tutta la storia senza scrivere niente. Serve a due cose: vedere che le
-espressioni non contengano errori, e capire quanto sono selettive. Uno scenario che scatta dieci
-volte in una mattina non e' uno scenario.
+    ./scenari.py --giorno AAAA-MM-GG --controlla     # nomi e sintassi, senza bridge
+    ./scenari.py --giorno AAAA-MM-GG --from ... --prova   # cosa sarebbe scattato sullo storico
+
+`--controlla` e' **statico**: legge l'albero sintattico di ogni `quando` e verifica che ogni nome
+esista nel contesto. Non valuta niente, e per questo trova quello che la valutazione non trova.
+
+Il motivo e' `and`. Python **corto-circuita**: in `h > 29335 and delta <= -p75delta`, se il primo
+pezzo e' falso il secondo non viene mai eseguito, e un nome inesistente resta invisibile. Il 16
+settembre ho validato uno scenario valutandolo su una barra, ho letto `False` e mi sono
+tranquillizzato: conteneva `p75delta`, che non esisteva. Alla prima barra in cui la parte sinistra
+e' diventata vera, l'espressione ha sollevato `NameError`, e il motore **marca come consumato uno
+scenario che va in errore** — quindi si e' disarmato da solo, in silenzio, proprio nel momento in
+cui stava per servire.
+
+L'elenco dei nomi validi non e' scritto a mano: `--controlla` lo ricava costruendo un contesto
+finto, quindi non puo' divergere da quello vero. `--variabili` lo stampa.
+
 
 ### Armarli
 
