@@ -270,6 +270,20 @@ memoria — e il 16 settembre ha prodotto una lettura sbagliata che ha trovato l
 Sezione *"I Livelli Si Rifanno Durante La Seduta"* in
 [`livelli-sul-chart.md`](docs/research/metodo/livelli-sul-chart.md).
 
+**Il ridisegno non si chiede, si fa.** Quando una lettura scopre che i bordi del valore, il POC o
+l'insieme dei livelli non corrispondono piu' ai dati, la risposta corretta non e' *"vuoi che
+ridisegni?"*: si riscrive il file dei livelli, si spinge su `POST /levels`, si riscrivono gli
+scenari che usavano quei prezzi, si riavviano i due sorveglianti e **solo allora** si scrive la
+lettura, dichiarando cosa e' cambiato e perche'. Chiedere il permesso lascia sul chart, per tutto
+il tempo della domanda, dei numeri che l'analisi ha gia' dichiarato sbagliati — ed e' il momento in
+cui l'utente guarda il grafico. La domanda va fatta solo se il ridisegno **cambia una posizione
+aperta**, non se cambia un livello.
+
+**Dopo l'apertura cash il valore si misura sulla cash, non sulla finestra intera.** Il profilo che
+comprende la globex misura una popolazione diversa da quella che sta facendo il prezzo adesso: il
+16 settembre i due davano VAH 29.455 contro 29.480,75, e il fade era armato venticinque punti
+dentro il valore, su un prezzo che non era bordo di niente.
+
 I livelli disegnati sul chart arrivano da `POST /levels`: l'indicatore disegna e basta, `bridge.py`
 trasporta e basta, la derivazione resta nell'analisi. Procedura in
 [`docs/research/metodo/livelli-sul-chart.md`](docs/research/metodo/livelli-sul-chart.md). Non

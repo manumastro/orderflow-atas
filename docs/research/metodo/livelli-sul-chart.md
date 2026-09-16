@@ -202,6 +202,41 @@ falso: `29.358,50 primo ostacolo sopra` era sotto il prezzo da quattro ore.
   diceva una cosa e il motore ne sorvegliava un'altra. Riscrivere uno scenario costa le sei prove,
   e finche' non sono fatte **il fade non e' armato** — e va detto, non lasciato intendere.
 
+### Il Ridisegno Non Si Chiede, Si Fa
+
+**Fra l'accorgersi e il ridisegnare non ci va una domanda.** Quando una lettura scopre che i bordi,
+il POC o l'insieme dei livelli non corrispondono piu' ai dati, la sequenza e' questa e va eseguita
+**prima** di scrivere la lettura:
+
+1. riscrivere `livelli-AAAA-MM-GG.json`
+2. spingerli con `bridge.py levels --file ... --chart ...`
+3. riscrivere gli scenari che usavano quei prezzi, e passare `--controlla`
+4. fermare e riavviare i due sorveglianti, che leggono i file **all'avvio**
+5. solo ora la lettura, dichiarando cosa e' cambiato e perche'
+
+Il motivo e' che la domanda non e' gratis: per tutto il tempo in cui resta senza risposta, sul
+chart ci sono numeri che l'analisi ha **gia' dichiarato sbagliati**, e sono esattamente i minuti in
+cui l'utente guarda il grafico. Il 16 settembre alle 16:52 il fade era armato su 29.455, che era
+venticinque punti **dentro** il valore cash: un fade su un prezzo che non era bordo di niente.
+
+**L'unica eccezione:** se il ridisegno cambia una **posizione aperta** — uno stop che si sposta, un
+bersaglio che si accorcia — quello si chiede. Cambiare un livello no.
+
+### Dopo L'Apertura Cash Il Valore Si Misura Sulla Cash
+
+Il profilo che comprende la globex e quello della sola cash misurano **due popolazioni diverse**, e
+dopo le 15:30 quella che fa il prezzo e' la seconda. Il 16 settembre alle 16:52 la differenza era
+questa:
+
+| | VAL | POC | VAH |
+|---|---|---|---|
+| finestra intera (da ieri sera) | 29.300 | 29.400 | **29.455** |
+| **solo cash**, 92.081 lotti dalle 15:30 | 29.416,75 | 29.460 | **29.480,75** |
+
+Venticinque punti sul bordo alto, sessanta sul POC. E il VAH cash coincideva col tetto dell'IVB
+(29.481,50): lo stesso prezzo era insieme il gate Tier 01 e il bordo del fade — due significati
+diversi che vanno tenuti distinti nelle etichette e negli scenari, non fusi in una linea sola.
+
 ## L'Etichetta Dice A Cosa Serve Arrivarci
 
 Un livello non e' il fine, e' una porta: l'etichetta deve dire **cosa cambia** quando il prezzo ci

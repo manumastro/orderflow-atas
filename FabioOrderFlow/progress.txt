@@ -93,3 +93,7 @@
 2026-09-16  Sezione 9 del giro d'orizzonte: mostra tutti gli avvisi non letti (segnalibro in ~/.fabio-avvisi.letto) invece di tail -12, perche' non tutte le notifiche dei Monitor svegliano l'agente. Sessione NQ sospesa alle 15:02.
 2026-09-16  NQ: scenari riscritti dopo l'IVB (gate su/giu/dentro + i due fade sui bordi in sviluppo + rientro nel valore), livelli ridisegnati coprendo tutti i rami con i bersagli sopra e sotto. IVB 29.373,25-29.481,50, 108 punti, delta -10 su 47.098 lotti.
 2026-09-16  Documentati: la footprint via 'candles --levels' (nuovo metodo/la-footprint-e-il-delta-per-prezzo.md) e l'obbligo di rifare livelli e bordi del valore durante la seduta (livelli-sul-chart.md). Entrambi nati da errori di oggi trovati dall'utente.
+2026-09-16  livelli e scenari rifatti sul valore CASH (VAL 29.416,75 / POC 29.460 / VAH 29.480,75);
+            nuova regola: il ridisegno non si chiede, si fa - e dopo l'apertura cash il valore si
+            misura sulla cash, non sulla finestra con la globex. CLAUDE.md, livelli-sul-chart.md,
+            indice-delle-procedure.md. Nuovo scenario "assorbimento sul ritest del tetto IVB".

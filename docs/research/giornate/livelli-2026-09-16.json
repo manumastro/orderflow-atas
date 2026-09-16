@@ -1,86 +1,44 @@
 [
   {
-    "price": 29604.0,
-    "label": "VAH lunedi · bersaglio lontano del GATE AL RIALZO (+123 dal tetto IVB)",
-    "color": "#6AA84F",
-    "style": "dash",
-    "width": 1
-  },
-  {
-    "price": 29495.25,
-    "label": "Max di ieri 03:16 · primo ostacolo sopra il massimo di oggi, bersaglio 1 del gate su",
-    "color": "#6AA84F",
-    "style": "solid",
-    "width": 2
-  },
-  {
-    "price": 29484.25,
-    "label": "Max di oggi 16:00 · sopra qui la seduta e' in territorio nuovo",
-    "color": "#8E7CC3",
-    "style": "dot",
-    "width": 1
-  },
-  {
     "price": 29481.5,
-    "label": "TETTO IVB · chiusura M30 sopra = GATE AL RIALZO, permesso LONG",
+    "label": "TETTO IVB · VAH cash 29.480,75 · M30 sopra = LONG; da dentro = fade SHORT",
     "color": "#3D85C6",
     "style": "solid",
     "width": 3
   },
   {
-    "price": 29455.0,
-    "label": "VAH in sviluppo · qui il fade e' SHORT verso il POC 29.400",
-    "color": "#E69138",
+    "price": 29475.75,
+    "label": "Sforzo venditore 17:00 (95 lotti, 64 in bid) · stop del long di rottura",
+    "color": "#CC0000",
+    "style": "dash",
+    "width": 2
+  },
+  {
+    "price": 29460.0,
+    "label": "POC cash · target 1 di entrambi i fade",
+    "color": "#C27BA0",
     "style": "solid",
     "width": 3
   },
   {
-    "price": 29427.5,
-    "label": "Centro IVB · chiusura M30 qui intorno = nessun permesso, solo mean reverting",
-    "color": "#6B7A99",
-    "style": "dot",
-    "width": 1
+    "price": 29450.0,
+    "label": "POC e chiusura di ieri · minimo tenuto 29.450,25",
+    "color": "#6AA84F",
+    "style": "dash",
+    "width": 2
   },
   {
-    "price": 29400.0,
-    "label": "POC in sviluppo · bersaglio 1 di ENTRAMBI i fade · 4 rifiuti stamattina",
-    "color": "#C27BA0",
+    "price": 29416.75,
+    "label": "VAL cash · qui il fade e' LONG, target 29.460",
+    "color": "#E69138",
     "style": "solid",
-    "width": 2
+    "width": 3
   },
   {
     "price": 29373.25,
-    "label": "PAVIMENTO IVB · chiusura M30 sotto = GATE AL RIBASSO, permesso SHORT",
+    "label": "PAVIMENTO IVB · chiusura M30 sotto = permesso SHORT",
     "color": "#3D85C6",
     "style": "solid",
     "width": 3
-  },
-  {
-    "price": 29300.0,
-    "label": "VAL in sviluppo · qui il fade e' LONG verso il POC · bersaglio 2 del fade al VAH",
-    "color": "#E69138",
-    "style": "solid",
-    "width": 3
-  },
-  {
-    "price": 29275.0,
-    "label": "POC notturno · bersaglio 1 del gate al ribasso sotto il valore",
-    "color": "#CC4125",
-    "style": "dash",
-    "width": 1
-  },
-  {
-    "price": 29207.5,
-    "label": "Min ultime 24 ore · bersaglio 2 del gate al ribasso",
-    "color": "#CC4125",
-    "style": "solid",
-    "width": 2
-  },
-  {
-    "price": 29167.75,
-    "label": "Min cash lunedi · bersaglio lontano del gate giu, riprende la discesa di lunedi",
-    "color": "#CC4125",
-    "style": "dash",
-    "width": 1
   }
 ]

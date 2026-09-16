@@ -84,6 +84,11 @@ seduta.** Il valore (VAH, VAL, POC) si ricalcola a ogni lettura che lo usa, l'in
 quando il prezzo esce dalla fascia per cui era stato derivato e sempre dopo la stampa dell'IVB, le
 etichette quando il livello cambia funzione. Sezione *"I Livelli Si Rifanno Durante La Seduta"*.
 
+E il corollario che chiude il giro: **il ridisegno non si chiede, si fa** — file, `POST /levels`,
+scenari riscritti, sorveglianti riavviati, *poi* la lettura. Piu' la regola che dopo l'apertura
+cash il valore si misura **sulla cash**, non sulla finestra che comprende la globex: il 16
+settembre le due misure davano VAH 29.455 contro 29.480,75.
+
 ### 4bis. Il delta prezzo per prezzo
 
 [**`la-footprint-e-il-delta-per-prezzo.md`**](la-footprint-e-il-delta-per-prezzo.md) — `candles

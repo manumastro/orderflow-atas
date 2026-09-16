@@ -39,42 +39,55 @@
     "attesa": "Con un IVB da centootto punti questo e' l'esito piu' probabile: servono 55 punti in una direzione per uscirne. Serve a dire a voce alta che il permesso NON e' arrivato, invece di lasciarlo dedurre dal silenzio."
   },
   {
-    "nome": "fade del bordo alto del valore",
-    "sigla": "fade VAH 29455",
-    "prezzo": 29455,
+    "nome": "fade del bordo alto del valore cash",
+    "sigla": "fade VAH 29480.75",
+    "prezzo": 29480.75,
     "tipo": "fade",
     "tema": "bordo alto",
-    "quando": "o <= 29455 and minuti_sotto(29455, 10) >= 6 and h > 29455 and c < 29455 and pos <= 0.3 and vol >= p95vol and delta <= -p75delta",
+    "quando": "o <= 29480.75 and minuti_sotto(29480.75, 10) >= 6 and h > 29480.75 and c < 29480.75 and pos <= 0.3 and vol >= p95vol and delta <= -p75delta",
     "verso": "SHORT · MEAN REVERTING",
-    "implica": "il prezzo arriva da DENTRO il valore, buca il bordo alto con uno stoppino, viene assorbito e ributtato dentro. Bersaglio 1 il POC 29.400, bersaglio 2 il VAL 29.300. Rischio stretto = size ridotta e massimo 2 stop al giorno, non stop vicino.",
-    "altrimenti": "se invece accetta sopra 29.455 il valore si sta spostando in alto e il fade non esiste.",
+    "implica": "il prezzo arriva da DENTRO il valore, buca il bordo alto con uno stoppino, viene assorbito e ributtato dentro. Bersaglio 1 il POC cash 29.460 (dossier riga 174), bersaglio 2 il VAL cash 29.416,75 (riga 175). Stop appena oltre lo stoppino assorbito. Rischio stretto = size ridotta e massimo 2 stop al giorno, non stop vicino.",
+    "altrimenti": "se accetta sopra 29.480,75 il valore si sta spostando in alto, il fade non esiste e il bordo va ricalcolato.",
     "testo": "fade del bordo alto del valore",
-    "attesa": "VAH del valore in sviluppo, ricalcolato alle 16:15 (VAL 29.300 / POC 29.400 / VAH 29.455). SOSIA, ed e' lo stesso errore della correzione 4.1: una ROTTURA del bordo dall'alto verso il basso produce massimo sopra, chiusura sotto, corpo in basso, volume e delta negativo - identici. Li separa solo il lato di arrivo, ed e' quello che chiedono le due guardie o <= 29455 e minuti_sotto >= 6."
+    "attesa": "VAH del valore CASH in sviluppo, ricalcolato alle 16:52 su 92.081 lotti dalle 15:30: VAL 29.416,75 / POC 29.460 / VAH 29.480,75. Il bordo coincide col tetto IVB 29.481,50 a 0,75 punti: lo stesso prezzo e' insieme il gate Tier 01 e il bordo del fade, e i due significati non vanno confusi. SOSIA, ed e' l'errore della correzione 4.1: una ROTTURA del bordo dall'alto verso il basso produce massimo sopra, chiusura sotto, corpo in basso, volume e delta negativo - identici. Li separa solo il lato di arrivo, che chiedono le guardie o <= 29480.75 e minuti_sotto >= 6."
   },
   {
-    "nome": "fade del bordo basso del valore",
-    "sigla": "fade VAL 29300",
-    "prezzo": 29300,
+    "nome": "fade del bordo basso del valore cash",
+    "sigla": "fade VAL 29416.75",
+    "prezzo": 29416.75,
     "tipo": "fade",
     "tema": "bordo basso",
-    "quando": "o >= 29300 and minuti_sotto(29300, 10) <= 2 and l < 29300 and c > 29300 and pos >= 0.7 and vol >= p95vol and delta >= p75delta",
+    "quando": "o >= 29416.75 and minuti_sotto(29416.75, 10) <= 2 and l < 29416.75 and c > 29416.75 and pos >= 0.7 and vol >= p95vol and delta >= p75delta",
     "verso": "LONG · MEAN REVERTING",
-    "implica": "il prezzo sonda il bordo basso da dentro, i venditori aggressivi vengono assorbiti, il minimo tiene e la stampa successiva e' un acquisto grosso. Bersaglio 1 il POC 29.400, bersaglio 2 il VAH 29.455.",
-    "altrimenti": "se accetta sotto 29.300 il valore si sta spostando in basso e il fade non esiste.",
+    "implica": "il prezzo sonda il bordo basso da dentro, i venditori aggressivi vengono assorbiti, il minimo tiene e la stampa successiva e' un acquisto grosso. Bersaglio 1 il POC cash 29.460, bersaglio 2 il VAH cash 29.480,75. Stop appena sotto lo stoppino assorbito.",
+    "altrimenti": "se accetta sotto 29.416,75 il valore si sta spostando in basso: sotto c'e' 29.400, il campo di battaglia di tutto il pomeriggio.",
     "testo": "fade del bordo basso del valore",
-    "attesa": "Specchio esatto del fade al VAH, con le stesse due guardie sul lato di arrivo. E' 157 punti sotto il prezzo delle 16:17: non e' imminente, e' armato perche' la giornata ha gia' fatto escursioni da 108 punti."
+    "attesa": "Specchio esatto del fade al VAH, stesse guardie sul lato di arrivo. Quaranta punti sotto il prezzo delle 16:54, quindi raggiungibile in una mezz'ora: la giornata ha gia' fatto escursioni da 108 punti."
   },
   {
-    "nome": "rientra nel valore dopo averlo rotto",
+    "nome": "rientra nel valore cash dopo averlo rotto in alto",
     "sigla": "rientra nel valore",
-    "prezzo": 29455,
+    "prezzo": 29480.75,
     "tipo": "rientro",
     "tema": "bordo alto",
-    "quando": "c < 29455 and minuti_sotto(29455, 20) <= 4 and vol_sopra_pct(29455, 20) >= 60 and vol >= p75vol",
+    "quando": "c < 29480.75 and minuti_sotto(29480.75, 20) <= 4 and vol_sopra_pct(29480.75, 20) >= 60 and vol >= p75vol",
     "verso": "NESSUN PERMESSO",
-    "implica": "osservazione, non ingresso: il prezzo aveva accettato sopra il bordo alto e ci ricade dentro. E' la rottura fallita, e storicamente riporta il prezzo verso il POC 29.400 - ma senza il permesso dell'IVB non e' un setup, e non e' nemmeno mean reverting, che parte da dentro il valore.",
-    "altrimenti": "se il prezzo resta sopra 29.455 il valore si sta trasferendo in alto e il bordo va ricalcolato di nuovo.",
+    "implica": "osservazione, non ingresso: il prezzo aveva accettato sopra il bordo alto e ci ricade dentro. E' la rottura fallita, e riporta il prezzo verso il POC cash 29.460 - ma senza il permesso dell'IVB non e' un setup, e non e' mean reverting, che parte da dentro il valore.",
+    "altrimenti": "se resta sopra 29.480,75 il valore si sta trasferendo in alto e il bordo va ricalcolato di nuovo.",
     "testo": "rientrato nel valore dopo la rottura",
-    "attesa": "Alle 16:17 il prezzo sta SOPRA il bordo alto da tre minuti, con la fascia 29.450-29.475 a 20.410 lotti e delta -442: sale dentro a chi ci ha gia' venduto. SOSIA: il fade del VAH, che ha lo stesso esito ma parte da dentro il valore - qui le guardie chiedono l'opposto, cioe' che il prezzo fosse SOPRA (vol_sopra_pct >= 60)."
+    "attesa": "SOSIA: il fade del VAH, stesso esito ma parte da dentro il valore - qui le guardie chiedono l'opposto, che il prezzo fosse SOPRA (vol_sopra_pct >= 60)."
+  },
+  {
+    "nome": "assorbimento sul ritest del tetto IVB",
+    "sigla": "assorbimento tetto",
+    "prezzo": 29475.75,
+    "tipo": "osservazione",
+    "tema": "tetto IVB",
+    "quando": "minuti_sotto(29481.5, 30) <= 20 and l <= 29478 and l >= 29472 and c > 29478 and pos >= 0.7 and vol >= p95vol and delta <= -p75delta",
+    "verso": "NESSUN PERMESSO",
+    "implica": "e' il passo 02 della sequenza IVB Break del dossier (righe 229-255): sul ritest il lato opposto colpisce e fallisce, una stampa di delta profondo dal lato sbagliato viene assorbita senza rompere la struttura. Da solo NON e' un trade: servono anche 01 Alignment (il prezzo gia' in direzione) e 03 Aggression (stampa compratrice visibilmente maggiore). Se il gate Tier 01 e' aperto e le tre si impilano, lo STOP e' tracciabile: appena sotto 29.475,75, lo sforzo profondo misurato sulla barra delle 17:00 (95 lotti, 64 in bid, delta -33, POC e maxNegativeDelta sullo stesso prezzo).",
+    "altrimenti": "se il prezzo scende sotto 29.475,75 e ci resta, il livello che teneva l'assorbimento e' stato ri-rotto: tesi invalidata (dossier, STOP LOGIC).",
+    "testo": "assorbimento sul ritest del tetto IVB - passo 02 di 3",
+    "attesa": "Il tetto 29.481,50 e' stato rotto alle 16:59-17:00 e non ha tenuto. Sopra 29.481,50 il profilo e' vuoto (4-13 lotti per prezzo fino a 29.484,25), quindi il livello di riferimento non e' il massimo ma le due stampe sotto: base compratori 29.480 (66 lotti, delta +30, POC = maxPositiveDelta) e sforzo venditore 29.475,75. SOSIA: una discesa ordinaria che passa di li' senza assorbire - la separa pos >= 0.7 con delta <= -p75delta, cioe' vendita aggressiva che NON muove il prezzo."
   }
 ]
