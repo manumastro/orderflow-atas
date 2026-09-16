@@ -2,7 +2,11 @@
 
 Stato: **metodo descrittivo**. Non produce segnali, non autorizza esecuzioni, non definisce soglie
 operative. Documenta come si costruisce, con le fonti disponibili in questo repository, una lettura
-di chi sta posizionandosi sul Nasdaq e di cosa sta ottenendo.
+di chi sta posizionandosi su uno strumento e di cosa sta ottenendo.
+
+**Il metodo vale per ogni asset; gli esempi sono sul Nasdaq perche' e' da li' che si e' partiti.**
+Quando si apre uno strumento nuovo, questo documento e' il passo 3 dei nove di
+[`come-si-apre-un-asset.md`](come-si-apre-un-asset.md), e cambia solo il codice Tradingster.
 
 Questo documento e' la fonte canonica del metodo. Le singole rilevazioni stanno in
 [`../cot/`](../cot/) e [`../sessioni/`](../sessioni/); il contratto tecnico del bridge sta in
@@ -64,7 +68,17 @@ https://tradingster.com/cot/legacy-futures/209742    Nasdaq-100 Mini
 https://tradingster.com/cot/legacy-futures/124603    DJIA x $5
 https://tradingster.com/cot/legacy-futures/239742    Russell 2000 E-Mini
 https://tradingster.com/cot/futures/fin/209742       Nasdaq-100 Mini, vista TFF
+https://tradingster.com/cot/legacy-futures/067651    WTI-PHYSICAL (crude)
 ```
+
+**Su un derivato micro il COT copre il sottostante, non il contratto che si guarda**: MCLV6 e' il
+micro da 100 barili, il report 067651 e' il WTI NYMEX. La posizione istituzionale e' sul petrolio,
+e la rilevazione deve dirlo.
+
+**Il ritardo si quantifica in prezzo, non solo in giorni.** Un report di otto giorni fa su uno
+strumento fermo e uno su uno strumento che nel frattempo ha fatto l'11% non sono lo stesso
+contesto: l'8 settembre 2026 il WTI chiudeva a 93,03 e il 16 stava a 103,79, quindi tutto il
+movimento recente era successivo all'ultima fotografia disponibile. Va scritto accanto alla data.
 
 ```bash
 python3 FabioOrderFlow/tools/build_cot_cross_index.py <cartella-json> \

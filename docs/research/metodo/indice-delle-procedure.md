@@ -27,6 +27,16 @@ ritracciamento profondo); il **Tier 03** decide quando.
 Contiene anche, dichiarato, **cosa e' stato misurato e cosa no**. Non confondere il dossier con
 l'archivio del modello 40R, che ha testato una meccanizzazione parziale di tre soli trigger.
 
+### 0ter. Aprire uno strumento nuovo, o riaprirlo dopo un rollover
+
+[**`come-si-apre-un-asset.md`**](come-si-apre-un-asset.md) — **obbligatorio, nove passi**, dal
+controllo del rollover al prefisso dei file. Esiste perche' il metodo e' nato sul Nasdaq e quasi
+tutto il resto presuppone NQ senza dirlo: orologi, soglie in tick, finestra IVB, codice COT. Dice
+anche cosa **non** si trasferisce, e come si dichiara un trasferimento non verificato.
+
+Esempio applicato: [`../giornate/MCLV6-2026-09-16.md`](../giornate/MCLV6-2026-09-16.md),
+[`../cot/snapshot-MCLV6-2026-09-16.md`](../cot/snapshot-MCLV6-2026-09-16.md).
+
 ### 1. Il contesto istituzionale, prima di aprire
 
 [**`analisi-istituzionale.md`**](analisi-istituzionale.md) — COT e Data Bridge letti insieme: i due

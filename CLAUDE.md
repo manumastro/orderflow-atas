@@ -21,11 +21,29 @@ Prima di lavorare su questo repository, **leggi nell'ordine**:
 Nessuna di queste quattro letture e' facoltativa. Se una risposta richiede contesto che non hai, il
 posto dove trovarlo e' li', non nella conversazione.
 
+## Prima Di Aprire Un Asset Nuovo
+
+**Nessuna lettura, nessun livello sul chart e nessuno scenario armato su uno strumento che non ha
+completato i nove passi di
+[`docs/research/metodo/come-si-apre-un-asset.md`](docs/research/metodo/come-si-apre-un-asset.md).**
+Rollover, anagrafica del tick, i due orologi, il contesto istituzionale COT, il framing delle
+sedute precedenti, i livelli, le soglie riscalate, gli scenari e i file col prefisso dello
+strumento. L'obbligo vale **per ogni asset** e i primi otto passi si rifanno **a ogni rollover**.
+
+Il metodo di questo repository e' nato sul Nasdaq, e quasi tutto il resto presuppone NQ senza
+dirlo: l'ora della sessione regolamentata, le soglie in punti, la finestra dell'IVB, il codice
+COT. Aprire un secondo strumento significa **scoprire quali costanti erano in realta' parametri**,
+e un asset aperto a meta' produce numeri che sembrano una analisi e non lo sono.
+
+Primo caso applicato, con gli errori che ha prodotto:
+[`docs/research/giornate/MCLV6-2026-09-16.md`](docs/research/giornate/MCLV6-2026-09-16.md).
+
 ## Prima Di Analizzare Il Mercato
 
 Oltre alle quattro letture sopra, **prima di chiedere dati al bridge**:
 
-1. [`docs/research/giornate/`](docs/research/giornate/) — il file di **oggi**, se esiste.
+1. [`docs/research/giornate/`](docs/research/giornate/) — il file di **oggi per quello
+   strumento**, se esiste (con il prefisso, dove c'e': `MCLV6-AAAA-MM-GG.md`).
    L'intestazione dice se e' `APERTO`; la sezione finale **"Dove eravamo"** da' lo stato
    all'ultimo aggiornamento; la sezione **"Le correzioni"** dice cosa e' gia' stato smentito oggi.
 2. Il file del **giorno precedente**, per il framing: value area, POC e minimi di ieri stanno nella
