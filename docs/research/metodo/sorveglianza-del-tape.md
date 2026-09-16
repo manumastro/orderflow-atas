@@ -293,6 +293,22 @@ e' 2 o piu': lo spessore sul chart e' gia' il modo in cui l'analisi dichiara cos
 **Fuori dal presidio la sveglia resta rada** — attraversamenti, tocchi con volume, barre pesanti,
 col silenziatore di dieci minuti per livello. Dentro, si vede tutto: e' li' che si decide.
 
+**Dentro il presidio ogni barra si somiglia, e l'attraversamento si perde fra le altre.** Per
+questo il cambio di lato non e' una riga come le altre:
+
+    >>> ATTRAVERSATO VAH notte 29335 ora SOTTO (passaggio n.2) | ...
+
+**E non si aspetta la chiusura.** Su un livello un minuto e' tutto: la sveglia guarda anche la
+barra **in formazione** e grida appena attraversa, una volta per cambio di lato:
+
+    !!! ORA ATTRAVERSA VAH notte 29335 -> SOTTO [BARRA NON CHIUSA, puo' rientrare] ...
+
+La marcatura `BARRA NON CHIUSA` non e' decoro. Il 16 settembre alle 10:11 il prezzo e' sceso a
+29.327,50, sotto il VAH, e io l'ho letta come rottura: la barra ha chiuso a **29.336,50, sopra il
+bordo, con delta +14**. Una barra viva puo' tornare indietro, e **un conteggio di accettazione si
+fa solo su barre chiuse**. Per la stessa ragione `giro_orizzonte.py` marca l'ultima barra e
+calcola le finestre a 15-30-60 minuti escludendola.
+
 Il riassunto di chiusura e' la parte che serve davvero, perche' e' l'unica misura di un test che
 una barra singola non puo' dare. Il 16 settembre, sul muro 29.400: *7 barre, vol 1.171, delta
 -6,2%, escursione 29.378-29.395,50, esce a 29.382 sotto* — e il massimo, 29.395,50, dice che il

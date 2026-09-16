@@ -158,19 +158,24 @@ def main() -> int:
     if not cs:
         print("  nessuna barra")
     else:
-        for c in cs[-a.barre:]:
+        # L'ULTIMA BARRA NON E' CHIUSA. Leggerla come chiusa ha gia' prodotto due letture
+        # sbagliate il 16 settembre: si marca, e le finestre mobili la escludono.
+        for j, c in enumerate(cs[-a.barre:]):
             rng = c["high"] - c["low"]
             pos = (c["close"] - c["low"]) / rng if rng else 0
+            viva = "  <-- IN FORMAZIONE, non e' una chiusura" if c is cs[-1] else ""
             print(f"  {c['time'][11:16]}Z  H{c['high']:9.2f} L{c['low']:9.2f} C{c['close']:9.2f}"
-                  f"  v{c['volume']:6,.0f} d{c.get('delta',0):+6,.0f} pos{pos:.2f}")
+                  f"  v{c['volume']:6,.0f} d{c.get('delta',0):+6,.0f} pos{pos:.2f}{viva}")
+        cs_chiuse = cs[:-1] or cs
         for n in (15, 30, 60):
-            w = cs[-n:]
+            w = cs_chiuse[-n:]
             if len(w) < n:
                 continue
             tot = sum(x["volume"] for x in w)
             dd = sum(x.get("delta", 0) for x in w)
             print(f"  {n}m: vol {tot:>7,} delta {dd:>+7,} ({dd/max(tot,1)*100:+5.1f}%)  "
-                  f"range {min(x['low'] for x in w):.2f}-{max(x['high'] for x in w):.2f}")
+                  f"range {min(x['low'] for x in w):.2f}-{max(x['high'] for x in w):.2f}"
+                  f"   (solo barre chiuse)")
 
     # 8 ------------------------------------------------------------------ il profilo
     titolo(8, "IL PROFILO DELLA FINESTRA DISPONIBILE")

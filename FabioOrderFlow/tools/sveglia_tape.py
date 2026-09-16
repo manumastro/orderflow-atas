@@ -130,8 +130,18 @@ def presidia(b, prev, chiavi, stato, args) -> list[str]:
             aperto["max"] = max(aperto["max"], b["high"])
             aperto["min"] = min(aperto["min"], b["low"])
             lato = "sopra" if b["close"] > aperto["p"] else "sotto"
-            fuori.append(f"  PRESIDIO {aperto['nome']} {aperto['p']:.0f} [{lato}] "
-                         f"{riga_barra(b, args.fuso)}")
+            # Dentro il presidio ogni barra si somiglia. Il cambio di lato e' l'unica cosa che
+            # conta, e una riga uguale alle altre lo nasconde: va gridato.
+            if lato != aperto["lato_corrente"]:
+                aperto["lato_corrente"] = lato
+                aperto["lato_vivo"] = lato
+                aperto["passaggi"] += 1
+                fuori.append(f">>> ATTRAVERSATO {aperto['nome']} {aperto['p']:.0f} "
+                             f"ora {lato.upper()} (passaggio n.{aperto['passaggi']}) | "
+                             f"{riga_barra(b, args.fuso)}")
+            else:
+                fuori.append(f"  PRESIDIO {aperto['nome']} {aperto['p']:.0f} [{lato}] "
+                             f"{riga_barra(b, args.fuso)}")
             return fuori
         # uscito dalla fascia
         n = len(aperto["barre"])
@@ -144,7 +154,7 @@ def presidia(b, prev, chiavi, stato, args) -> list[str]:
         fuori.append(f"PRESIDIO FINE {aperto['nome']} {aperto['p']:.0f} | {attr} | "
                      f"{n} barre, vol {aperto['vol']:,}, delta {aperto['delta']:+} ({pct:+.1f}%), "
                      f"escursione {aperto['min']:.2f}-{aperto['max']:.2f}, "
-                     f"esce a {b['close']:.2f} {verso}")
+                     f"{aperto['passaggi']} attraversamenti, esce a {b['close']:.2f} {verso}")
         stato["presidio"] = None
         stato["avvisati"].pop(aperto["p"], None)
         aperto = None
@@ -156,7 +166,8 @@ def presidia(b, prev, chiavi, stato, args) -> list[str]:
             stato["presidio"] = {"p": p_, "nome": nome, "barre": [b],
                                  "vol": b["volume"], "delta": b["delta"],
                                  "max": b["high"], "min": b["low"],
-                                 "lato_iniziale": lato}
+                                 "lato_iniziale": lato, "lato_corrente": lato,
+                                 "lato_vivo": lato, "passaggi": 0}
             fuori.append(f"PRESIDIO APERTO {nome} {p_:.0f} — arrivato da {lato}, "
                          f"ascolto barra per barra | {riga_barra(b, args.fuso)}")
             return fuori
@@ -173,6 +184,31 @@ def presidia(b, prev, chiavi, stato, args) -> list[str]:
                              f"{riga_barra(b, args.fuso)}")
             break
     return fuori
+
+
+def barra_viva(b, stato, args) -> list[str]:
+    """La barra in formazione, dentro un presidio.
+
+    Aspettare la chiusura significa saperlo con un minuto di ritardo, e su un livello un minuto
+    e' tutto. Qui si guarda la barra **non chiusa** e si grida solo quando attraversa il livello:
+    non a ogni giro, che sarebbe rumore, e sempre marcata `NON CHIUSA` perche' una barra viva puo'
+    ancora tornare indietro — e' successo alle 10:11 del 16 settembre, letta come rottura e
+    chiusa invece sopra il bordo.
+    """
+    aperto = stato.get("presidio")
+    if not aperto:
+        return []
+    p_ = aperto["p"]
+    lato = "sopra" if b["close"] > p_ else "sotto"
+    if lato == aperto.get("lato_vivo", aperto["lato_corrente"]):
+        return []
+    aperto["lato_vivo"] = lato
+    rng = b["high"] - b["low"]
+    pos = (b["close"] - b["low"]) / rng if rng else 0.0
+    return [f"!!! ORA ATTRAVERSA {aperto['nome']} {p_:.0f} -> {lato.upper()} "
+            f"[BARRA NON CHIUSA, puo' rientrare] {ora(b, args.fuso)} "
+            f"C {b['close']:.2f} H {b['high']:.2f} L {b['low']:.2f} "
+            f"vol {b['volume']} delta {b['delta']:+} pos {pos:.2f}"]
 
 
 def main() -> None:
@@ -249,6 +285,11 @@ def main() -> None:
                     print(f"GUARDA {ora(b, args.fuso)} {b['close']:.2f} | {perche} | "
                           f"O {b['open']:.2f} H {b['high']:.2f} L {b['low']:.2f} "
                           f"vol {b['volume']} delta {b['delta']:+}", flush=True)
+        # La barra in formazione: si guarda solo dentro un presidio, e solo per l'attraversamento.
+        if stato["presidio"] and len(c) > len(chiuse):
+            for r in barra_viva(c[-1], stato, args):
+                print(r, flush=True)
+
         time.sleep(args.intervallo)
 
 
