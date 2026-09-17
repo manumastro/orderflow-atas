@@ -124,3 +124,9 @@
 2026-09-17  si opera anche Londra (richiesta dell'utente). Misurato su 4 sedute complete di NQZ6: Londra fa il 60% dell'escursione di New York con il 15% del volume (102 lotti per barra M1 contro 613, p95vol 298 contro 2.027, p95 delta 54 contro 170). Soglie riscalate ~1:6 e pavimenti assoluti obbligatori accanto ai percentili. Il gate Tier 01 non esiste a Londra: verso NESSUN PERMESSO e letture PRE-GATE. Nuovo documento metodo/la-sessione-di-londra.md, pointer in CLAUDE.md, indice e glossario.
 2026-09-17  risultato negativo registrato: l'IVB di Londra (30' dalle 07:00Z) e' stato rotto 4 volte su 4 e in 3 casi la rottura ha tenuto - ma sono QUATTRO osservazioni e non si arma niente su questa base. Gli altri giorni nel bridge hanno la storia M1 troncata, e la troncatura riguarda anche la finestra NY degli stessi giorni: non e' un buco di Londra.
 2026-09-17  una lettura dal vivo DICE la direzione: LONG / SHORT / NIENTE come prima parola, poi ingresso, stop su struttura, bersaglio in punti, invalidazione. Le cautele di provenienza (verso NESSUN PERMESSO, gate M30, dicitura pre-gate) restano nei FILE, dove sono tracciabilita', e spariscono dalla risposta dal vivo, dove nascondevano la direzione. Richiesta dell'utente dopo che su un assorbimento misurato sulla footprint ho dato l'analisi giusta senza mai scrivere LONG.
+2026-09-17  sveglia_movimento.py: terzo sorvegliante, guarda il MOVIMENTO e non i livelli.
+            Gli altri due hanno un punto cieco strutturale - fra un livello e l'altro non
+            parlano - e oggi e' costato 14 minuti di silenzio con uno short aperto, mentre
+            il prezzo andava a bersaglio e si girava di 20 punti contro. Legge la barra IN
+            FORMAZIONE, grida ogni --strappo punti di escursione dall'estremo (mobile, cosi'
+            l'inversione e' il primo segnale). Primo avviso reale: +8 pt in 14s invece di 46.

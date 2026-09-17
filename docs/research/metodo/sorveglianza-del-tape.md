@@ -622,6 +622,62 @@ dopo, e lo scrive l'analisi.
 
 ---
 
+## 4ter. La Sveglia Del Movimento, Per Cio' Che Succede Lontano Dai Livelli
+
+```bash
+python3 FabioOrderFlow/tools/sveglia_movimento.py --chart NQZ6 --strappo 8 --intervallo 2
+```
+
+`sveglia_tape.py` guarda la **mappa**: attraversamenti, presidi, tocchi con volume. E' il
+sorvegliante giusto quando il prezzo arriva dove ci aspettavamo qualcosa, e per questo resta acceso.
+Ma ha un punto cieco **strutturale, non accidentale**: fra un livello e l'altro non parla, perche'
+non ha niente da dire.
+
+**Il 17 settembre 2026 quel punto cieco e' costato.** Fra 29.485 e 29.517 non c'era nessun livello
+disegnato. Per **quattordici minuti** — durante i quali uno short e' arrivato a bersaglio, si e'
+fermato e si e' girato di venti punti contro — la sorveglianza e' stata muta. Non per un difetto
+del programma: per come era stata pensata la copertura. Se n'e' accorto l'utente prima
+dell'agente, ed e' l'esatto contrario di cio' per cui i sorveglianti esistono.
+
+**Questo programma guarda il movimento, non la mappa.** Non sa dove sono i livelli. Dice che il
+prezzo ha percorso `--strappo` punti da dove stava l'ultima volta che ha parlato. Il segnale e'
+**geometrico**, quindi funziona in mezzo al nulla, su un livello che nessuno aveva previsto, e
+anche quando la mappa della giornata e' sbagliata — che e' proprio il caso in cui gli altri due
+sorveglianti tacciono tutti e due.
+
+| | quando | cosa dice |
+|---|---|---|
+| `STRAPPO SU` / `STRAPPO GIU` | escursione di `--strappo` punti dall'estremo | quanti punti, da che prezzo, **in quanti secondi**, il volume e il delta a 5 minuti |
+| `BARRA VIVA` | la barra **in formazione** supera `--vol-viva` lotti o `--delta-viva` di delta | i numeri della barra prima che chiuda, una volta per barra |
+| `CALMA` | `--calma` minuti senza nessuno strappo (0 = mai) | dentro quanti punti si sta stando fermi |
+
+**L'estremo e' mobile, e non e' un dettaglio.** Con un'ancora fissa una gamba di 30 punti produce
+tre avvisi nella stessa direzione e **nessuno** quando si gira. Tenendo il massimo e il minimo da
+quando si e' parlato l'ultima volta, l'inversione e' il **primo** segnale che arriva — ed e'
+precisamente il momento in cui una posizione aperta va difesa. Il 17 settembre quel momento e'
+passato in silenzio due volte, a 29.517 e a 29.485.
+
+**Legge la barra viva, e lo dichiara.** Aspettare la chiusura M1 significa scoprire con
+cinquantanove secondi di ritardo un movimento che ne dura tre. Ogni riga porta `[BARRA VIVA]` o
+`NON CHIUSA`: il numero puo' ancora cambiare, e chi legge deve saperlo. Vale qui la stessa regola
+del presidio — **un conteggio di accettazione si fa solo su barre chiuse**, un avviso no.
+
+**Le soglie sono parametri della sessione.** Otto punti su NQ a Londra sono un movimento; sulla
+cash di New York sono rumore, perche' il libro e' sei volte piu' spesso
+([`la-sessione-di-londra.md`](la-sessione-di-londra.md)). Come gli altri due sorveglianti, **si
+riarma al cambio di sessione**. E come negli scenari, `--vol-viva` e' un **pavimento assoluto** e
+non un percentile: un percentile si assottiglia insieme al libro e di notte scatta su niente.
+
+**I tre sorveglianti coprono tre domande diverse**, e nessuno sostituisce gli altri:
+
+| | risponde a |
+|---|---|
+| `scenari.py` | e' successo **quello che avevamo previsto**? |
+| `sveglia_tape.py` | e' successo qualcosa **su un livello che conta**? |
+| `sveglia_movimento.py` | **si e' mosso**, dovunque fosse? |
+
+---
+
 ## 5. Annotare La Lettura
 
 Quando l'analisi ha concluso qualcosa, `annota.py` la mette **sul chart e nel diario**:

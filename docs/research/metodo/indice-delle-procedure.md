@@ -125,6 +125,12 @@ scatta annota da solo — cosi' a schermo compare gia' lo scenario previsto, col
 dato. `sveglia_tape.py` gira in parallelo per cio' che non avevamo previsto, e `annota.py` serve
 alla lettura ragionata che arriva dopo.
 
+**Il terzo sorvegliante non guarda i livelli.** `sveglia_movimento.py` dice che il prezzo ha
+percorso N punti dall'estremo, leggendo la barra **in formazione**: copre il punto cieco degli
+altri due, che **fra un livello e l'altro non parlano**. Il 17 settembre 2026 quel silenzio e'
+durato quattordici minuti, con una posizione aperta dentro. Sezione *"4ter. La Sveglia Del
+Movimento"*.
+
 ### 5bis. Il permesso, misurato invece che atteso
 
 [**`il-permesso-si-misura-non-si-aspetta.md`**](il-permesso-si-misura-non-si-aspetta.md) — il gate

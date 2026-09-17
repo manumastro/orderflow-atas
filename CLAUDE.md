@@ -282,7 +282,18 @@ volta, perche' dipendono dai livelli e dalla struttura di quella giornata.
 concludere niente, e `FabioOrderFlow/tools/annota.py` porta sul chart e nel diario la lettura
 ragionata.
 
-**I due sorveglianti si accendono come `Monitor`, non come comando in background**: un comando in
+**I sorveglianti sono tre, e il terzo non guarda i livelli.** `scenari.py` risponde a *e' successo
+quello che avevamo previsto?*, `sveglia_tape.py` a *e' successo qualcosa su un livello che conta?*,
+`FabioOrderFlow/tools/sveglia_movimento.py` a ***si e' mosso, dovunque fosse?*** — legge la barra
+**in formazione** e grida ogni `--strappo` punti di escursione dall'estremo, senza sapere dove sono
+i livelli. Serve perche' i primi due hanno un punto cieco strutturale: **fra un livello e l'altro
+non parlano.** Il 17 settembre 2026 quel silenzio e' durato quattordici minuti, mentre uno short
+andava a bersaglio e si girava di venti punti contro. Sezione *"La Sveglia Del Movimento"* in
+[`sorveglianza-del-tape.md`](docs/research/metodo/sorveglianza-del-tape.md). **Si riarma al cambio
+di sessione** come gli altri due: `--strappo` e' una soglia in punti, e otto punti significano due
+cose diverse a Londra e su New York.
+
+**I tre sorveglianti si accendono come `Monitor`, non come comando in background**: un comando in
 background scrive su un file e non sveglia l'agente. Procedura completa — filtri, riarmo alla
 scadenza, come si sospende e si riprende una pausa, e perche' il log entra nel giro d'orizzonte —
 in [`sorveglianza-del-tape.md`](docs/research/metodo/sorveglianza-del-tape.md), sezioni *"Come Si
