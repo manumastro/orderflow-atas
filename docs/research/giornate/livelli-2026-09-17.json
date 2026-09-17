@@ -1,0 +1,15 @@
+[
+  {"price": 29675.0,  "label": "Unico appoggio dentro il vuoto (0,64%) - sopra qui non c'e' piu' niente fino a 29.775", "color": "#E69138", "style": "solid", "width": 3},
+  {"price": 29600.0,  "label": "INGRESSO DEL VUOTO - sopra, 75 punti allo 0,05-0,13%: bersaglio 29.675", "color": "#6AA84F", "style": "solid", "width": 3},
+  {"price": 29549.75, "label": "Massimo di mercoledi - bordo dell'esplorato della settimana", "color": "#674EA7", "style": "dash", "width": 2},
+  {"price": 29517.0,  "label": "VAH cash mercoledi - sopra qui si va a cercare il vuoto", "color": "#E69138", "style": "dash", "width": 2},
+  {"price": 29481.5,  "label": "Tetto IVB mercoledi - il globex si e' fermato 3,5 punti sotto (29.478)", "color": "#3D85C6", "style": "solid", "width": 3},
+  {"price": 29468.75, "label": "POC cash mercoledi - il baricentro di ieri, riconquistato stanotte", "color": "#C27BA0", "style": "solid", "width": 2},
+  {"price": 29437.5,  "label": "POC GLOBEX - 43,8% del bilanciamento di sei ore: il valore della notte", "color": "#3D85C6", "style": "solid", "width": 3},
+  {"price": 29368.75, "label": "Pavimento del bilanciamento notturno - sotto, la notte e' smentita", "color": "#3D85C6", "style": "dash", "width": 2},
+  {"price": 29262.0,  "label": "POC composito 10 sedute (10%) - dove il mercato vive davvero", "color": "#CC0000", "style": "solid", "width": 3},
+  {"price": 29231.0,  "label": "Minimo globex 22:26 - sotto qui il rialzo notturno e' annullato", "color": "#888888", "style": "dash", "width": 2},
+  {"price": 29167.75, "label": "Minimo cash lunedi - il livello del long di mercoledi", "color": "#CC0000", "style": "dash", "width": 2},
+  {"price": 29107.25, "label": "Minimo globex lunedi - ultimo riferimento della settimana", "color": "#CC0000", "style": "dash", "width": 2},
+  {"price": 29053.0,  "label": "MINIMO DEL CONTRATTO - sotto, 710 lotti di storia in tutto", "color": "#CC0000", "style": "solid", "width": 3}
+]

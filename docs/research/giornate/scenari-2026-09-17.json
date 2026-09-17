@@ -1,0 +1,54 @@
+[
+  {
+    "nome": "il bilanciamento notturno cede",
+    "sigla": "rotto 29368 notte",
+    "quando": "o > 29368.75 and c < 29368.75 and pos <= 0.35 and delta <= -p95delta and dpct30 <= -2",
+    "prezzo": 29368.75,
+    "tipo": "rottura",
+    "tema": "bilanciamento notturno",
+    "verso": "NESSUN PERMESSO",
+    "testo": "pavimento del bilanciamento notturno perso con aggressione",
+    "implica": "il rialzo di stanotte e' un ritracciamento, non una nuova base: primo gradino 29.262 (POC composito, 107 punti)",
+    "altrimenti": "se rientra sopra 29.368,75 entro tre barre era uno sfondamento e il bilanciamento regge",
+    "attesa": "LATO DI ARRIVO: o > 29368.75, si arriva da DENTRO il bilanciamento. SOSIA: il rimbalzo sul pavimento, che ha lo stesso minimo sotto ma chiude sopra - lo separano c < 29368.75 e pos <= 0,35 insieme. TEMPI: barra singola, e' una approssimazione di una accettazione che vuole tre chiusure - il verso resta NESSUN PERMESSO. ATTENZIONE: prima delle 13:30Z il libro europeo e' sottile e una rottura vale meno; il gate Tier 01 non esiste ancora, la lettura e' PRE-GATE."
+  },
+  {
+    "nome": "il tetto della notte cede al rialzo",
+    "sigla": "rotto 29478 notte",
+    "quando": "o < 29478 and c > 29478 and pos >= 0.65 and delta >= p95delta and dpct30 >= 2",
+    "prezzo": 29478.0,
+    "tipo": "rottura",
+    "tema": "tetto notturno",
+    "verso": "NESSUN PERMESSO",
+    "testo": "massimo globex superato con partecipazione",
+    "implica": "sopra c'e' solo il tetto IVB di ieri 29.481,50 e poi il VAH 29.517: bersaglio 29.517, 39 punti, e chi ha shortato il crollo di ieri e' sott'acqua",
+    "altrimenti": "un massimo superato e non tenuto e' il quarto test del tetto: il bilanciamento continua",
+    "attesa": "LATO DI ARRIVO: o < 29478, si arriva da DENTRO il bilanciamento. SOSIA: lo sfondamento sottile della sessione europea, che fa lo stesso massimo e rientra - lo separano delta >= p95 e dpct30 >= 2 insieme. TEMPI: barra singola. ATTENZIONE: 29.478 e 29.481,50 distano 3,5 punti; una rottura del primo che non prende il secondo non ha aperto niente. Lettura PRE-GATE."
+  },
+  {
+    "nome": "il POC cash di ieri respinge da sotto",
+    "sigla": "rifiuto 29468 poc",
+    "quando": "h > 29468.75 and c < 29468.75 and pos <= 0.30 and minuti_sotto(29468.75, 30) >= 20 and vol >= p75vol and vol >= 800",
+    "prezzo": 29468.75,
+    "tipo": "rifiuto",
+    "tema": "poc cash ieri",
+    "verso": "NESSUN PERMESSO",
+    "testo": "il POC di ieri respinge - il valore di mercoledi non si riprende",
+    "implica": "il rialzo notturno si ferma sotto il baricentro di ieri: si torna a cercare il POC globex 29.437,50, 31 punti",
+    "altrimenti": "accettazione sopra 29.468,75 e il valore di ieri e' ripreso: allora il riferimento e' il tetto IVB",
+    "attesa": "LATO DI ARRIVO: minuti_sotto(29468.75, 30) >= 20 impone che il prezzo venga da SOTTO - senza, questo e' indistinguibile da una rottura al ribasso dello stesso livello dall'alto, che e' il sosia. SOSIA DICHIARATO: la rottura dall'alto, identica in massimo, chiusura e corpo. TEMPI: barra singola, il rifiuto vero vuole stoppino piu' conferma. PRE-GATE. PAVIMENTO ASSOLUTO: vol >= 800 oltre al p75, perche' di notte il p75 della seduta scende a poche centinaia di lotti e senza questo lo scenario sarebbe scattato alle 02:44 su 290 lotti (visto con --prova). Di giorno non vincola, di notte si'."
+  },
+  {
+    "nome": "il POC composito torna in gioco",
+    "sigla": "torna 29262 comp",
+    "quando": "tocca(29262, 6) and vol >= p95vol and vol >= 1200",
+    "prezzo": 29262.0,
+    "tipo": "attesa",
+    "tema": "poc composito",
+    "verso": "NESSUN PERMESSO",
+    "testo": "tornati al POC composito 29.262 con volume",
+    "implica": "il mercato e' tornato dove vive davvero (10% di dieci sedute): da qui si decide se la notte era un ritracciamento o una ripartenza",
+    "altrimenti": "-",
+    "attesa": "NON E' UNA DIREZIONE: dice solo che il prezzo e' tornato al baricentro delle dieci sedute con partecipazione, ed e' il momento di guardare. Nessun lato di arrivo vincolato perche' non separa due setup: e' un promemoria, non un segnale. SOSIA: nessuno - il rischio qui non e' scambiare un setup per un altro, e' credere che sia un setup. PAVIMENTO ASSOLUTO: vol >= 1200 per la stessa ragione."
+  }
+]
