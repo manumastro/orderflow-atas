@@ -662,6 +662,13 @@ cinquantanove secondi di ritardo un movimento che ne dura tre. Ogni riga porta `
 `NON CHIUSA`: il numero puo' ancora cambiare, e chi legge deve saperlo. Vale qui la stessa regola
 del presidio — **un conteggio di accettazione si fa solo su barre chiuse**, un avviso no.
 
+**Un movimento su poco volume resta un movimento, ma va detto.** Alle 10:45 del 17 settembre lo
+strappo e' scattato su otto punti fatti con **17, 28 e 32 lotti**: la pausa fra Londra e New York.
+Sopprimerlo sarebbe stato sbagliato — e' esattamente il filtro di troppo che stamattina e' costato
+quattordici minuti — ma lasciarlo indistinguibile da uno strappo vero insegna a ignorare gli
+avvisi, che e' lo stesso danno per un'altra strada. La riga porta quindi **`[SOTTILE N lotti]`**
+quando il volume percorso sta sotto `--vol-strappo` (default 250). **Si marca, non si toglie.**
+
 **Le soglie sono parametri della sessione.** Otto punti su NQ a Londra sono un movimento; sulla
 cash di New York sono rumore, perche' il libro e' sei volte piu' spesso
 ([`la-sessione-di-londra.md`](la-sessione-di-londra.md)). Come gli altri due sorveglianti, **si

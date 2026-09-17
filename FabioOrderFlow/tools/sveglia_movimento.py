@@ -104,6 +104,11 @@ def main() -> int:
                          "insieme al libro e di notte scatta su niente")
     ap.add_argument("--delta-viva", type=float, default=60.0,
                     help="|delta| sulla barra in formazione oltre il quale si avvisa (default 60)")
+    ap.add_argument("--vol-strappo", type=float, default=250.0,
+                    help="lotti scambiati durante lo strappo sotto i quali lo si marca [SOTTILE] "
+                         "(default 250). NON sopprime: un movimento su poco volume resta un "
+                         "movimento, ma chi legge deve poterlo scartare in un colpo d'occhio "
+                         "invece di imparare a ignorare gli avvisi")
     ap.add_argument("--calma", type=int, default=0,
                     help="minuti di immobilita' dopo i quali dirlo (0 = mai, default)")
     ap.add_argument("--fuso", type=int, default=2, help="ore da aggiungere all'UTC (default 2)")
@@ -119,6 +124,7 @@ def main() -> int:
     alto = basso = viva["close"]
     t_alto = t_basso = time.time()
     t_ultimo = time.time()
+    vol_da = viva["time"]               # da quale barra contare il volume dello strappo
     detto: dict[str, str] = {}          # chiave -> time della barra per cui si e' gia' parlato
 
     mostra(f"[movimento attivo] strappo {args.strappo:g} pt, giro ogni {args.intervallo:g}s, "
@@ -150,16 +156,21 @@ def main() -> int:
         su = p - basso
         giu = alto - p
         if su >= args.strappo or giu >= args.strappo:
+            # Il volume percorso dallo strappo, non quello della barra: otto punti su cento lotti
+            # e otto punti su mille sono due fatti diversi, e la riga deve dirlo.
+            vol = sum(b["volume"] for b in barre if b["time"] >= vol_da)
+            peso = "" if vol >= args.vol_strappo else f" [SOTTILE {vol} lotti]"
             if su >= giu:
                 secondi = int(time.time() - t_basso)
-                mostra(f">>> STRAPPO SU +{su:.2f} pt da {basso:.2f} in {secondi}s "
+                mostra(f">>> STRAPPO SU +{su:.2f} pt da {basso:.2f} in {secondi}s{peso} "
                        f"[BARRA VIVA] {ora(viva, args.fuso)} prezzo {p:.2f} | {coda}")
             else:
                 secondi = int(time.time() - t_alto)
-                mostra(f">>> STRAPPO GIU -{giu:.2f} pt da {alto:.2f} in {secondi}s "
+                mostra(f">>> STRAPPO GIU -{giu:.2f} pt da {alto:.2f} in {secondi}s{peso} "
                        f"[BARRA VIVA] {ora(viva, args.fuso)} prezzo {p:.2f} | {coda}")
             alto = basso = p
             t_alto = t_basso = t_ultimo = time.time()
+            vol_da = viva["time"]
             continue
 
         if p > alto:
