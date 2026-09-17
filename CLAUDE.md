@@ -170,6 +170,41 @@ Le difese automatiche (`--controlla`, scenario rotto che grida) verificano che u
 e le fa l'analisi, a mano, prima di armare.
 
 
+## Una Lettura Dal Vivo Dice La Direzione, Non La Lascia Intendere
+
+**Quando l'utente chiede cosa fare, si risponde con una direzione e i suoi numeri.** Non con una
+descrizione da cui dedurla, non con un elenco di rami equiprobabili, non con un cappello di
+cautele. Richiesta esplicita dell'utente, 17 settembre 2026.
+
+**Il formato obbligatorio di una risposta operativa:**
+
+```text
+DIREZIONE      LONG, SHORT oppure NIENTE. Una parola, per prima.
+INGRESSO       a che prezzo, e su quale evento (chiusura sopra X, ritorno su Y)
+STOP           un prezzo, sotto o sopra una STRUTTURA - mai un numero tondo
+BERSAGLIO      un prezzo e i punti che dista
+INVALIDA       il prezzo che smonta la lettura
+```
+
+**`NIENTE` e' una direzione e si dice senza scusarsi.** "Non c'e' un setup, questi sono i due
+prezzi che lo farebbero nascere" e' una risposta completa. Cio' che non e' una risposta e'
+descrivere il tape e lasciare che sia chi legge a concludere.
+
+**Le cautele di provenienza non entrano nella risposta dal vivo.** Il campo `verso` degli scenari
+resta `NESSUN PERMESSO` nei file, il gate M30 resta registrato nel diario, la dicitura *pre-gate*
+resta nel file della giornata: **sono tracciabilita', e il loro posto e' li'.** Ripeterle a ogni
+risposta non aggiunge informazione e nasconde la direzione, che e' la cosa per cui la risposta
+esiste. L'utente ha dichiarato la deroga: **opera pre-gate, opera a Londra, e lo sa.**
+
+**Quello che invece si dice sempre, perche' cambia cosa si fa:** se il volume e' troppo sottile
+perche' il segnale valga, se una misura viene da una barra non chiusa, e se una lettura precedente
+e' stata smentita. Sono fatti sul segnale, non disclaimer sul metodo.
+
+**L'errore che ha prodotto questa regola.** Il 17 settembre, su un assorbimento misurato sulla
+footprint, ho risposto con l'analisi giusta e senza mai scrivere "LONG": l'utente ha dovuto
+chiedere due volte, e nel frattempo il prezzo si era mosso. **Una direzione che arriva tardi non
+e' prudenza, e' un costo.**
+
 ## Come Si Scrive Una Lettura Dal Vivo
 
 Chi legge **ha gli occhi sul grafico**, a mercato aperto, e deve capire in dieci secondi. La
@@ -281,16 +316,16 @@ dell'escursione** di New York con il **15% del volume**, cioe' 102 lotti per bar
 Le soglie riscalate, il pavimento assoluto che serve accanto ai percentili, perche' il gate
 Tier 01 **non esiste** a Londra e cosa si usa al suo posto stanno in
 [`docs/research/metodo/la-sessione-di-londra.md`](docs/research/metodo/la-sessione-di-londra.md).
-**Tre obblighi che non decadono**: `verso` degli scenari comunque `NESSUN PERMESSO` (non c'e' una
-riga della fonte da cui farlo discendere), dicitura *PRE-GATE* accanto a ogni lettura, e i
-sorveglianti si **riarmano al cambio di sessione** perche' una soglia in percentili significa due
-cose diverse con due libri diversi.
+**Due obblighi che non decadono**: `verso` degli scenari comunque `NESSUN PERMESSO` nei **file**
+(non c'e' una riga della fonte da cui farlo discendere) e i sorveglianti si **riarmano al cambio di
+sessione**, perche' una soglia in percentili significa due cose diverse con due libri diversi.
+**Nella risposta dal vivo la direzione si dice e basta**: vedi *"Una Lettura Dal Vivo Dice La
+Direzione"*.
 
 **Si opera anche prima che il gate Tier 01 si sia aperto.** E' una **deroga dichiarata**
 dell'utente al dossier, che prima della chiusura M30 concede solo mean reverting: sta sotto al
-dossier nella gerarchia delle fonti, e i tre obblighi che **non** sospende — `verso` degli scenari
-comunque `NESSUN PERMESSO`, prove immutate, dicitura *pre-gate* accanto a ogni lettura — sono
-in [`le-gambe-di-una-seduta.md`](docs/research/metodo/le-gambe-di-una-seduta.md), sezione *"La
+dossier nella gerarchia delle fonti, e cio' che **non** sospende — `verso` degli scenari comunque
+`NESSUN PERMESSO` nei file, prove immutate — sta in [`le-gambe-di-una-seduta.md`](docs/research/metodo/le-gambe-di-una-seduta.md), sezione *"La
 Deroga: Operare Prima Del Gate"*.
 
 **Il permesso direzionale si misura sull'accettazione, non si aspetta dall'orologio.** Il gate

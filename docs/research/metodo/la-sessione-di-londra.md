@@ -89,10 +89,10 @@ riga che parli di una finestra di apertura europea.
 - **il `verso` di ogni scenario resta `NESSUN PERMESSO`.** Non per prudenza: perche' non esiste una
   riga della fonte da cui farlo discendere, ed e' esattamente la regola di `CLAUDE.md` — *una
   affermazione con conseguenza operativa deve essere tracciabile a una riga della fonte*.
-- **ogni lettura si dichiara `PRE-GATE`**, come gia' impone la deroga in
-  [`le-gambe-di-una-seduta.md`](le-gambe-di-una-seduta.md). Operare prima del gate e' gia'
-  concesso dall'utente; operare **in un'altra sessione** e' la stessa deroga estesa, non una nuova
-  licenza.
+- **la dicitura `PRE-GATE` va nel file della giornata, non in ogni risposta.** Operare prima del
+  gate e a Londra e' una deroga che l'utente ha gia' dichiarato e conosce: ripetergliela a ogni
+  lettura non aggiunge niente e copre la direzione, che e' la cosa per cui la lettura esiste.
+  Regola in `CLAUDE.md`, *"Una Lettura Dal Vivo Dice La Direzione"*.
 - **il permesso di fatto non e' calcolabile** finche' l'IVB non esiste.
   `permesso_di_fatto.py` chiede `--alto` e `--basso`: prima delle 14:00Z quei due numeri sono
   quelli di **ieri**, e misurare l'accettazione su un bordo scaduto risponde a una domanda che
