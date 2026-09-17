@@ -50,5 +50,31 @@
     "implica": "il mercato e' tornato dove vive davvero (10% di dieci sedute): da qui si decide se la notte era un ritracciamento o una ripartenza",
     "altrimenti": "-",
     "attesa": "NON E' UNA DIREZIONE: dice solo che il prezzo e' tornato al baricentro delle dieci sedute con partecipazione, ed e' il momento di guardare. Nessun lato di arrivo vincolato perche' non separa due setup: e' un promemoria, non un segnale. SOSIA: nessuno - il rischio qui non e' scambiare un setup per un altro, e' credere che sia un setup. PAVIMENTO ASSOLUTO: vol >= 1200 per la stessa ragione."
+  },
+  {
+    "nome": "il massimo di ieri cede e si apre la strada al vuoto",
+    "sigla": "rotto 29549 max",
+    "quando": "o < 29549.75 and c > 29549.75 and pos >= 0.65 and delta >= p95delta and vol >= 300 and dpct30 >= 2",
+    "prezzo": 29549.75,
+    "tipo": "rottura",
+    "tema": "massimo di ieri",
+    "verso": "NESSUN PERMESSO",
+    "testo": "massimo di mercoledi superato - la mensola 29.550-29.575 e' l'ultimo volume prima del vuoto",
+    "implica": "sopra restano solo 25 punti di volume vero (29.550-29.575, 1,98%) e poi il valore si assottiglia: bersaglio 29.600, ingresso del vuoto, e dentro il vuoto 29.675, unico appoggio",
+    "altrimenti": "un massimo superato e non tenuto riporta il riferimento al VAH 29.517",
+    "attesa": "LATO DI ARRIVO: o < 29549.75, si arriva da SOTTO. SOSIA: lo sfondamento sottile di Londra, che fa lo stesso massimo e rientra - lo separano delta >= p95 e dpct30 >= 2 insieme. PAVIMENTO ASSOLUTO vol >= 300 (il p95 di Londra, vedi la-sessione-di-londra.md): senza, il p95 di seduta si assottiglia col libro e non filtra. TEMPI: barra singola. PRE-GATE: nessun permesso, il gate Tier 01 non esiste a Londra."
+  },
+  {
+    "nome": "il VAH di ieri non regge il ritest",
+    "sigla": "rifiuto 29517 vah",
+    "quando": "o > 29517 and c < 29517 and pos <= 0.35 and delta <= -p95delta and vol >= 300",
+    "prezzo": 29517.0,
+    "tipo": "rottura",
+    "tema": "vah di ieri",
+    "verso": "NESSUN PERMESSO",
+    "testo": "VAH di ieri perso da sopra - la rottura delle 09:04 non ha tenuto",
+    "implica": "il rialzo di stamattina rientra nel bilanciamento notturno: primo gradino 29.478, poi il POC globex 29.437,50",
+    "altrimenti": "se rientra sopra entro tre barre era uno scrollone",
+    "attesa": "LATO DI ARRIVO: o > 29517, si arriva da SOPRA - e' il lato opposto di 'rotto 29549 max', cosi' il livello e' coperto nei due sensi (settima prova). SOSIA: il ritest che tiene, con lo stesso minimo sotto ma chiusura sopra - lo separano c < 29517 e pos <= 0,35 insieme. PAVIMENTO ASSOLUTO vol >= 300. TEMPI: barra singola. PRE-GATE."
   }
 ]

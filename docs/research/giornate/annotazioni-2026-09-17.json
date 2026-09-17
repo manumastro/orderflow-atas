@@ -1,0 +1,12 @@
+[
+  {
+    "ora": "09:04",
+    "prezzo": 29478.0,
+    "tipo": "rottura",
+    "testo": "massimo globex superato con partecipazione",
+    "misura": "09:04 a 29491.25: vol 761, delta +269, 30m +3.6%. IMPLICA: sopra c'e' solo il tetto IVB di ieri 29.481,50 e poi il VAH 29.517: bersaglio 29.517, 39 punti, e chi ha shortato il crollo di ieri e' sott'acqua ALTRIMENTI: un massimo superato e non tenuto e' il quarto test del tetto: il bilanciamento continua || LATO DI ARRIVO: o < 29478, si arriva da DENTRO il bilanciamento. SOSIA: lo sfondamento sottile della sessione europea, che fa lo stesso massimo e rientra - lo separano delta >= p95 e dpct30 >= 2 insieme. TEMPI: barra singola. ATTENZIONE: 29.478 e 29.481,50 distano 3,5 punti; una rottura del primo che non prende il secondo non ha aperto niente. Lettura PRE-GATE.",
+    "scenario": "il tetto della notte cede al rialzo",
+    "condizione": "o < 29478 and c > 29478 and pos >= 0.65 and delta >= p95delta and dpct30 >= 2",
+    "tema": "tetto notturno"
+  }
+]
