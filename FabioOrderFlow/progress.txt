@@ -136,3 +136,9 @@
             chiamante contiene il nome dello strumento, quindi il pattern uccideva la shell
             stessa (exit 144). Ora si filtra su 'python' e si escludono $$ e $PPID. Uno
             script che spegne va provato contro un processo vero, non a vuoto.
+2026-09-17  /accendi + comandi_sorveglianti.py: le righe per riarmare, tarate sulla sessione
+            in corso, con --from ad adesso e l'elenco di chi gia' gira. Le soglie sono
+            parametri della sessione e sbagliarle e' silenzioso nei due sensi: tarato male,
+            un sorvegliante parla troppo o non parla, e si smette di ascoltarlo.
+            Corretto anche l'ordine delle sezioni 'Dove eravamo': giro_orizzonte.py prende
+            l'ULTIMA, quindi la piu' recente va in fondo, non in cima.

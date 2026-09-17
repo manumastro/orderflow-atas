@@ -293,6 +293,12 @@ andava a bersaglio e si girava di venti punti contro. Sezione *"La Sveglia Del M
 di sessione** come gli altri due: `--strappo` e' una soglia in punti, e otto punti significano due
 cose diverse a Londra e su New York.
 
+**Per riaccenderli c'e' `/accendi`**, che chiede le righe a
+`FabioOrderFlow/tools/comandi_sorveglianti.py` invece di scriverle a memoria: taratura della
+sessione in corso, `--from` all'ora attuale, e l'elenco di chi sta gia' girando. **Le soglie non
+si inventano e `--from` non si lascia indietro**: riarmare con un `--from` di tre ore fa fa
+arrivare tutti gli avvisi insieme, per fatti finiti, e copre quello vero.
+
 **Per spegnerli c'e' `/spegni`**, che fa `TaskStop` su ogni monitor, uccide gli orfani con
 `FabioOrderFlow/tools/spegni_sorveglianti.sh` e **verifica**, poi scrive nel diario che sono
 spenti e da che ora. Un sorvegliante che si crede spento e non lo e' fa suonare notifiche che

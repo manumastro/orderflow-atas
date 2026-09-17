@@ -478,6 +478,38 @@ venti minuti, per venti minuti nessuno legge il log. La notifica dei Monitor cop
 quando arriva, ma non si puo' contarci. **Durante una fase decisiva la sorveglianza non sostituisce
 la presenza.**
 
+## Riaccendere Tutto: `/accendi`
+
+```bash
+python3 FabioOrderFlow/tools/comandi_sorveglianti.py --chart NQZ6
+```
+
+Stampa le tre righe **gia' tarate sulla sessione in corso**, con `--from` all'ora attuale, e dice
+chi sta gia' girando. Non accende niente: i sorveglianti si accendono come `Monitor`, e un
+`Monitor` lo apre l'agente.
+
+**Perche' uno strumento invece di ricordarsele.** Le soglie sono parametri della sessione e
+sbagliarle e' **silenzioso in tutte e due le direzioni**: `--strappo 8` e' un movimento a Londra e
+rumore sulla cash, `--vol-viva 160` e' una barra grossa a Londra e un quarto di barra normale a New
+York. Un sorvegliante tarato sulla sessione sbagliata non da' errore — parla troppo o non parla, e
+in entrambi i casi si smette di ascoltarlo. Le tre tarature stanno nel dizionario `TARATURE` dentro
+lo strumento, ognuna con accanto i percentili da cui viene.
+
+**`--from` e' sempre adesso.** Riarmare lasciando `--from` all'apertura fa rimasticare ore gia'
+viste: gli avvisi arrivano tutti insieme, per fatti finiti, e coprono quello vero. La sola cosa che
+guarda indietro e' `--storia`, che dice **su quante barre** calcolare le soglie di "fuori scala" —
+quello deve guardare indietro, o lo strumento riparte cieco.
+
+**Il quarto sorvegliante non si accende a comando ma a orario.** `permesso_di_fatto.py` ha bisogno
+dei bordi dell'IVB 13:30-14:30Z: prima non e' calcolabile, e inventarli produce un permesso che
+sembra misurato e non lo e'. Lo strumento stampa la riga solo dopo le 14:30Z.
+
+**Non si accende sopra a un sorvegliante gia' vivo.** Gli avvisi arriverebbero doppi e non si
+saprebbe piu' quale dei due dica la verita' su quale barra. Per questo l'ultima sezione stampata e'
+chi sta girando: prima `/spegni`, poi si riaccende.
+
+---
+
 ## Spegnere Tutto: `/spegni`
 
 **Un sorvegliante che si crede spento e non lo e' fa piu' danno di uno acceso.** Continua a
