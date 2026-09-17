@@ -130,3 +130,9 @@
             il prezzo andava a bersaglio e si girava di 20 punti contro. Legge la barra IN
             FORMAZIONE, grida ogni --strappo punti di escursione dall'estremo (mobile, cosi'
             l'inversione e' il primo segnale). Primo avviso reale: +8 pt in 14s invece di 46.
+2026-09-17  /spegni + spegni_sorveglianti.sh: fermare tutto in un comando, e DIMOSTRARLO.
+            Lo script stampa cosa trova, uccide, ricontrolla, ed esce 1 se resta qualcosa.
+            Il primo test l'ha trovato mentre si suicidava: la riga di comando della shell
+            chiamante contiene il nome dello strumento, quindi il pattern uccideva la shell
+            stessa (exit 144). Ora si filtra su 'python' e si escludono $$ e $PPID. Uno
+            script che spegne va provato contro un processo vero, non a vuoto.

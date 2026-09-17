@@ -293,6 +293,12 @@ andava a bersaglio e si girava di venti punti contro. Sezione *"La Sveglia Del M
 di sessione** come gli altri due: `--strappo` e' una soglia in punti, e otto punti significano due
 cose diverse a Londra e su New York.
 
+**Per spegnerli c'e' `/spegni`**, che fa `TaskStop` su ogni monitor, uccide gli orfani con
+`FabioOrderFlow/tools/spegni_sorveglianti.sh` e **verifica**, poi scrive nel diario che sono
+spenti e da che ora. Un sorvegliante che si crede spento e non lo e' fa suonare notifiche che
+nessuno legge, e al riarmo successivo gli avvisi arrivano doppi. Sezione *"Spegnere Tutto"* in
+[`sorveglianza-del-tape.md`](docs/research/metodo/sorveglianza-del-tape.md).
+
 **I tre sorveglianti si accendono come `Monitor`, non come comando in background**: un comando in
 background scrive su un file e non sveglia l'agente. Procedura completa — filtri, riarmo alla
 scadenza, come si sospende e si riprende una pausa, e perche' il log entra nel giro d'orizzonte —

@@ -478,6 +478,37 @@ venti minuti, per venti minuti nessuno legge il log. La notifica dei Monitor cop
 quando arriva, ma non si puo' contarci. **Durante una fase decisiva la sorveglianza non sostituisce
 la presenza.**
 
+## Spegnere Tutto: `/spegni`
+
+**Un sorvegliante che si crede spento e non lo e' fa piu' danno di uno acceso.** Continua a
+interrogare il bridge, fa suonare notifiche che nessuno legge, e al riarmo successivo gli avvisi
+arrivano **doppi** — a quel punto non si sa piu' quale dei due dica la verita' su quale barra.
+
+Il comando [`/spegni`](../../../.claude/commands/spegni.md) fa i tre passi nell'ordine giusto:
+`TaskStop` su ogni monitor, poi lo script che uccide gli orfani, poi la riga nel diario. **Il
+terzo passo non e' burocrazia:** senza, il prossimo giro d'orizzonte dira' che i sorveglianti sono
+accesi e nessuno se ne accorgera' finche' non serviranno.
+
+```bash
+bash FabioOrderFlow/tools/spegni_sorveglianti.sh          # spegne e VERIFICA
+bash FabioOrderFlow/tools/spegni_sorveglianti.sh --lista   # dice cosa gira, non tocca niente
+```
+
+Lo script **stampa cosa trova prima di ucciderlo e ricontrolla dopo**, e se resta qualcosa esce
+con 1 invece di dichiarare il successo: *"spento"* senza la verifica e' un'affermazione, non un
+fatto. Un processo bloccato su una richiesta al bridge puo' ignorare il TERM finche' il timeout non
+scade, e per quello c'e' il secondo giro col KILL.
+
+**Il difetto che il primo test ha trovato, e che vale la pena ricordare.** La versione iniziale
+cercava i processi col solo nome dello strumento. Ma la riga di comando della **shell che lancia
+lo script** contiene quel nome: il pattern trovava la shell chiamante e la uccideva. `/spegni` si
+e' suicidato al primo colpo, exit 144. Ora si uccide solo un processo che sta davvero eseguendo
+`python`, e la shell corrente e la sua genitrice sono escluse per pid. **Uno script che spegne
+deve essere provato contro un processo vero**: provato a vuoto avrebbe stampato *"nessun
+sorvegliante in esecuzione"* e sarebbe sembrato giusto.
+
+---
+
 ## Sospendere E Riprendere La Sorveglianza
 
 Quando si fa una pausa **non si spengono i sorveglianti: si staccano**. La seduta continua, e
