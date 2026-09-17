@@ -19,7 +19,7 @@ divergono, vince l'immagine.
 | termine | righe | cosa NON dare per scontato |
 |---|---|---|
 | **IVB** | 90-138 | e' la prima mezz'ora della cash di New York, e da' **permesso direzionale**, non un bersaglio |
-| **Tier 01 · bias filter** | 90-138 | la chiusura M30 decide: sopra = solo long, sotto = solo short, **dentro = solo mean reverting** |
+| **Tier 01 · bias filter** | 90-138 | la chiusura M30 decide: sopra = solo long, sotto = solo short, **dentro = solo mean reverting**. Vale sulla cash di **New York** e su nessun'altra finestra: a Londra il gate non esiste, vedi [`la-sessione-di-londra.md`](la-sessione-di-londra.md) |
 | **Tier 02·A · Mean Reverting** | 139-196 | e' **solo** il fade dei bordi della value area **verso l'interno**: short al VAH, long al VAL. Una rottura che va **fuori** dal valore non e' mean reverting |
 | **risk envelope del mean reverting** | 182-185 | "rischio stretto" significa **size ridotta e massimo 2 stop-loss al giorno**, non stop vicino. Al secondo stop la sessione e' finita |
 | **il trigger in tre tempi** | 190-194 | stoppino, **poi** assorbimento, **poi** flip di aggressione. **Due su tre non bastano** |

@@ -37,6 +37,17 @@ anche cosa **non** si trasferisce, e come si dichiara un trasferimento non verif
 Esempio applicato: [`../giornate/MCLV6-2026-09-16.md`](../giornate/MCLV6-2026-09-16.md),
 [`../cot/snapshot-MCLV6-2026-09-16.md`](../cot/snapshot-MCLV6-2026-09-16.md).
 
+### 0quater. Operare in una sessione che non sia New York
+
+[**`la-sessione-di-londra.md`**](la-sessione-di-londra.md) — richiesta dell'utente del 17 settembre
+2026. Stesso problema di `come-si-apre-un-asset.md` ma sull'asse del tempo invece che dello
+strumento: il metodo presuppone la cash americana, e aprire Londra significa **scoprire quali
+costanti erano in realta' parametri della sessione**. Misurato su NQZ6: Londra fa il **60%
+dell'escursione di New York con il 15% del volume**, quindi le soglie si riscalano di circa 1:6 e
+servono pavimenti assoluti accanto ai percentili. Il gate Tier 01 **non esiste** a Londra e non si
+inventa: il `verso` resta `NESSUN PERMESSO` e al posto del gate si usa il valore costruito nella
+notte.
+
 ### 1. Il contesto istituzionale, prima di aprire
 
 [**`analisi-istituzionale.md`**](analisi-istituzionale.md) — COT e Data Bridge letti insieme: i due

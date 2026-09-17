@@ -275,6 +275,17 @@ Ogni Lettura"*. Tre obblighi che quelle sezioni impongono e che non vanno dedott
 **esegue** invece di chiederlo, la finestra di misura si **dichiara** accanto al numero, e nessuno
 dei due dipende dalla fase di sessione.
 
+**Si opera anche a Londra, non solo su New York.** E' una richiesta esplicita dell'utente
+(17 settembre 2026) e cambia le soglie, non il metodo: misurato su NQZ6, Londra fa il **60%
+dell'escursione** di New York con il **15% del volume**, cioe' 102 lotti per barra M1 contro 613.
+Le soglie riscalate, il pavimento assoluto che serve accanto ai percentili, perche' il gate
+Tier 01 **non esiste** a Londra e cosa si usa al suo posto stanno in
+[`docs/research/metodo/la-sessione-di-londra.md`](docs/research/metodo/la-sessione-di-londra.md).
+**Tre obblighi che non decadono**: `verso` degli scenari comunque `NESSUN PERMESSO` (non c'e' una
+riga della fonte da cui farlo discendere), dicitura *PRE-GATE* accanto a ogni lettura, e i
+sorveglianti si **riarmano al cambio di sessione** perche' una soglia in percentili significa due
+cose diverse con due libri diversi.
+
 **Si opera anche prima che il gate Tier 01 si sia aperto.** E' una **deroga dichiarata**
 dell'utente al dossier, che prima della chiusura M30 concede solo mean reverting: sta sotto al
 dossier nella gerarchia delle fonti, e i tre obblighi che **non** sospende — `verso` degli scenari
