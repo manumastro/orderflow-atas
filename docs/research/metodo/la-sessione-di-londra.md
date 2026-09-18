@@ -1,5 +1,17 @@
 # La Sessione Di Londra
 
+> **Stato dal 18 settembre 2026: misura conservata, non piu' operativa.**
+>
+> I numeri su NQZ6 restano buoni e la lezione metodologica vale — aprire una sessione nuova serve a
+> scoprire quali costanti erano parametri. Ma **il corso comanda e il corso dice New York**:
+> *"London session is not giving me the same momentum and edge that I have on New York"*,
+> *"you take a lot of stop-loss in the London because the market is really choppy"*
+> (`fabio_q1/fabio_3.txt`, 22:12 e 23:00).
+>
+> La deroga dell'utente del 17 settembre e' anteriore alla decisione del 18 settembre di far
+> comandare il corso. **Questo documento non autorizza piu' una operazione.** Sessione operativa e
+> sue regole: [`i-tre-modelli-del-live-q1.md`](i-tre-modelli-del-live-q1.md), sezione 8.
+
 Questo repository e' nato su New York e lo presuppone dappertutto senza dirlo: l'IVB e' i primi
 trenta minuti delle 13:30Z, il gate Tier 01 e' una chiusura M30 di quella finestra, le soglie in
 lotti vengono dal volume della cash americana. Questo documento dice **cosa cambia se si opera

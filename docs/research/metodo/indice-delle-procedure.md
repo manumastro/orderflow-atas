@@ -1,58 +1,68 @@
 # Indice Delle Procedure: Come Si Fa Una Analisi
 
 Le procedure attive, **nell'ordine in cui si usano**. Il contesto che le ha prodotte sta in
-[`../percorso-del-progetto.md`](../percorso-del-progetto.md): leggilo prima, se non l'hai gia' fatto.
+[`../percorso-del-progetto.md`](../percorso-del-progetto.md).
 
 Qui non ci sono conclusioni di mercato. Le analisi vere stanno in [`../giornate/`](../giornate/) e
 [`../sessioni/`](../sessioni/), e ogni procedura rimanda a quelle come esempio applicato.
 
+**Lo strumento e' NQ e la sessione e' New York.** Decisione del 18 settembre 2026, e discende dal
+corso: vedi il passo 0.
+
 ---
 
-## 0bis. Verificare Un Termine Prima Di Usarlo
+## 0. Il Metodo Che Comanda
 
-[`glossario-del-metodo.md`](glossario-del-metodo.md) — per ogni parola del metodo, **a quali righe
-della fonte tornare**. Non definisce niente: serve a rendere economico l'obbligo di `CLAUDE.md` di
-non parafrasare a memoria. Si usa prima di scrivere un `verso`, una etichetta operativa, o una
-frase che contiene un termine del corso.
+[**`i-tre-modelli-del-live-q1.md`**](i-tre-modelli-del-live-q1.md) — **la fonte operativa**,
+estratta dalle sei lezioni del live Q1, con il minuto citato riga per riga. Contiene la sequenza che
+Fabio esegue ogni volta, i **tre modelli** (balance/mean reverting, momentum, trend following) e la
+regola che sceglie quale sta girando, il vocabolario, come si marca un livello dai soli ordini
+eseguiti, **il regime**, la sessione, la procedura COT esatta e le costanti del framing.
 
-## L'Ordine
+**Prima di dire che un setup esiste si dichiara quale dei tre modelli sta girando**, e lo decide la
+posizione del prezzo rispetto al valore della cash precedente, non l'umore.
 
-### 0. Il modello, per sapere cosa si sta cercando
+### 0bis. I setup
 
-[**`triple-aaa-dossier.md`**](triple-aaa-dossier.md) — trascrizione integrale del dossier del
-corso. Tre livelli: l'**IVB** a 30 minuti sulla cash di New York decide da che parte si puo'
-operare; il **Tier 02** decide dove (mean reverting sui bordi, Triple AAA sulla rottura, A+ sul
-ritracciamento profondo); il **Tier 03** decide quando.
+[**`i-pattern-di-esecuzione.md`**](i-pattern-di-esecuzione.md) — la libreria che Fabio chiama
+*neural pattern recognition*, letta pattern per pattern, piu' i due setup che nomina fuori dalla
+libreria, la distinzione **aggressivo / conservativo**, dove va lo stop (dietro una struttura, mai a
+distanza fissa), dove va il bersaglio (un livello, mai un multiplo di R scelto prima) e gli **otto
+casi in cui un setup non si prende**.
 
-Contiene anche, dichiarato, **cosa e' stato misurato e cosa no**. Non confondere il dossier con
-l'archivio del modello 40R, che ha testato una meccanizzazione parziale di tre soli trigger.
+### 0ter. La gestione, che nel live e' l'edge
 
-### 0ter. Aprire uno strumento nuovo, o riaprirlo dopo un rollover
+[**`la-gestione-della-posizione.md`**](la-gestione-della-posizione.md) — il break even si mette su
+un **livello**, non dopo N punti: e' il prezzo al quale l'analisi si smonta. Piu' i parziali, il
+trailing dietro l'ultimo big trade, il **conto in R** con il tetto sulle esecuzioni, la size che
+discende dallo stop, il budget di rischio e cosa cambia in una giornata choppy.
 
-[**`come-si-apre-un-asset.md`**](come-si-apre-un-asset.md) — **obbligatorio, nove passi**, dal
-controllo del rollover al prefisso dei file. Esiste perche' il metodo e' nato sul Nasdaq e quasi
-tutto il resto presuppone NQ senza dirlo: orologi, soglie in tick, finestra IVB, codice COT. Dice
-anche cosa **non** si trasferisce, e come si dichiara un trasferimento non verificato.
+### 0quater. Verificare un termine prima di usarlo
 
-Esempio applicato: [`../giornate/MCLV6-2026-09-16.md`](../giornate/MCLV6-2026-09-16.md),
-[`../cot/snapshot-MCLV6-2026-09-16.md`](../cot/snapshot-MCLV6-2026-09-16.md).
+[**`glossario-del-metodo.md`**](glossario-del-metodo.md) — per ogni parola del metodo, **a quale
+minuto della lezione** (o a quali righe del dossier) tornare. Non definisce niente: rende economico
+l'obbligo di `CLAUDE.md` di non parafrasare a memoria.
 
-### 0quater. Operare in una sessione che non sia New York
+### 0quinquies. Il dossier, come riferimento
 
-[**`la-sessione-di-londra.md`**](la-sessione-di-londra.md) — richiesta dell'utente del 17 settembre
-2026. Stesso problema di `come-si-apre-un-asset.md` ma sull'asse del tempo invece che dello
-strumento: il metodo presuppone la cash americana, e aprire Londra significa **scoprire quali
-costanti erano in realta' parametri della sessione**. Misurato su NQZ6: Londra fa il **60%
-dell'escursione di New York con il 15% del volume**, quindi le soglie si riscalano di circa 1:6 e
-servono pavimenti assoluti accanto ai percentili. Il gate Tier 01 **non esiste** a Londra e non si
-inventa: il `verso` resta `NESSUN PERMESSO` e al posto del gate si usa il valore costruito nella
-notte.
+[**`triple-aaa-dossier.md`**](triple-aaa-dossier.md) — trascrizione integrale del dossier illustrato:
+IVB, i tre tier, le tre tecniche di esecuzione, la checklist. **E' di Fabio e va menzionato, ma non
+comanda**: descrive lo stesso setup dentro un'impalcatura con un gate orario che nel live non
+esiste. Nessuna condizione armata discende da qui.
+
+---
+
+## L'Ordine Di Una Seduta
 
 ### 1. Il contesto istituzionale, prima di aprire
 
 [**`analisi-istituzionale.md`**](analisi-istituzionale.md) — COT e Data Bridge letti insieme: i due
 livelli e i due orologi, la trappola delle due viste Tradingster, la distinzione fra flusso e
-livello, i cinque osservabili del bridge, la procedura settimanale in sette passi.
+livello, i cinque osservabili del bridge.
+
+**La procedura esatta del live** — Legacy, solo non-commercial, solo l'ultima variazione, la
+matrice sui quattro indici, e poi **la data che diventa un prezzo** — sta alla sezione 9 di
+[`i-tre-modelli-del-live-q1.md`](i-tre-modelli-del-live-q1.md).
 
 **Il controllo del rollover e' il passo zero di tutto**, prima di qualunque misura di flusso.
 
@@ -64,112 +74,87 @@ negativo).
 
 [**`profile-framing.md`**](profile-framing.md) — le sei cose da guardare nell'ordine del live: solo
 cash, dove si costruisce il valore, i profili sovrapposti da unire, value area piu' POC, posizione
-nella curva, i vuoti. Piu' il quadro corrente e l'avvertenza sul continuous non back-adjusted.
+nella curva, i vuoti.
+
+Le costanti dichiarate nel live — **composito a 90 giorni**, shift = VAL e VAH entrambi piu' bassi,
+**due POC** (della seduta e della seduta che ha creato la rottura), premium/fair value/discount —
+stanno alla sezione 10 di [`i-tre-modelli-del-live-q1.md`](i-tre-modelli-del-live-q1.md).
 
 Ci sta anche la regola di lettura piu' importante emersa finora: **un blocco sottile nel composito
-dice solo che poche sedute ci sono passate.** Prima di chiamarlo vuoto, guarda il profilo della
-seduta piu' recente che quel prezzo l'ha visitato.
+dice solo che poche sedute ci sono passate.**
 
-Esempi applicati: [`../sessioni/settimana-2026-09-04-09-11.md`](../sessioni/settimana-2026-09-04-09-11.md),
-[`../sessioni/seduta-2026-09-11.md`](../sessioni/seduta-2026-09-11.md).
+### 2bis. Il quadro: le due sopra si leggono insieme
+
+[**`il-framing-e-il-cot-si-leggono-insieme.md`**](il-framing-e-il-cot-si-leggono-insieme.md) —
+**obbligatorio, e automatico.** Il risultato si scrive nel file della giornata fra `<!-- QUADRO -->`
+e `<!-- /QUADRO -->`, e `giro_orizzonte.py` lo stampa alla **sezione 4bis a ogni messaggio**.
 
 ### 3. I dati, dal bridge
 
 [**`contratto-data-bridge.md`**](contratto-data-bridge.md) — endpoint, parametri, limiti, schema.
-Il client e' `FabioOrderFlow/tools/bridge.py`.
+Client `FabioOrderFlow/tools/bridge.py`.
 
 Una regola che e' costata un errore: **`bar` e' un indice di posizione, non un identificatore.**
-Riparte quando ATAS ricarica l'indicatore. Per riconoscere una barra si usa `time`.
 
 ### 4. I livelli sul chart
 
 [**`livelli-sul-chart.md`**](livelli-sul-chart.md) — il giro completo dai dati grezzi alla linea
-disegnata. Divisione dei ruoli netta: **l'indicatore disegna, `bridge.py` trasporta, la derivazione
-resta nell'analisi.** Non spostare quel calcolo dentro l'indicatore.
+disegnata. **L'indicatore disegna, `bridge.py` trasporta, la derivazione resta nell'analisi.**
 
-Ci sono anche le tre cose che rendono utile un'etichetta — il nome, la misura che la sostiene, lo
-stato — e quella che non ci va mai: la previsione.
+**Quali livelli si marcano** lo dice il live, ed e' una lista di due: la **massima aggressione** e
+il **massimo assorbimento impilato**, entrambi da ordini eseguiti. *"It's not necessary to mark
+intermediate level that are useless for us."*
 
 E l'obbligo che il 16 settembre e' costato una lettura sbagliata: **i livelli si rifanno durante la
-seduta.** Il valore (VAH, VAL, POC) si ricalcola a ogni lettura che lo usa, l'insieme dei livelli
-quando il prezzo esce dalla fascia per cui era stato derivato e sempre dopo la stampa dell'IVB, le
-etichette quando il livello cambia funzione. Sezione *"I Livelli Si Rifanno Durante La Seduta"*.
-
-E il corollario che chiude il giro: **il ridisegno non si chiede, si fa** — file, `POST /levels`,
-scenari riscritti, sorveglianti riavviati, *poi* la lettura. Piu' la regola che dopo l'apertura
-cash il valore si misura **sulla cash**, non sulla finestra che comprende la globex: il 16
-settembre le due misure davano VAH 29.455 contro 29.480,75.
+seduta**, e **il ridisegno non si chiede, si fa**.
 
 ### 4bis. Il delta prezzo per prezzo
 
 [**`la-footprint-e-il-delta-per-prezzo.md`**](la-footprint-e-il-delta-per-prezzo.md) — `candles
---levels` restituisce la footprint di ogni barra: `ask` meno `bid` a **ogni prezzo scambiato**,
-piu' `maxPositiveDelta`, `maxNegativeDelta` e il POC di quella barra.
-
-Serve a separare tre cose che il delta di barra confonde: una **base** (picco di delta e POC della
-barra allo stesso prezzo), un **passaggio** (delta sparso) e un **assorbimento** (volume alto,
-delta vicino a zero). Il 16 settembre ho dichiarato che questo dato non esisteva mentre era
-documentato nel contratto del bridge: prima di dire *"non ce l'ho"* si apre l'elenco degli
-endpoint.
+--levels` restituisce la footprint di ogni barra. **E' lo strumento con cui si misura
+l'assorbimento del live**: sforzo alto, risultato nullo. Separa una **base**, un **passaggio** e un
+**assorbimento**, che il delta di barra confonde.
 
 ### 5. La sorveglianza del tape, durante la seduta
 
 [**`sorveglianza-del-tape.md`**](sorveglianza-del-tape.md) — la procedura standard di studio di una
-seduta. I livelli stanno in un file per giornata, che e' **l'unica fonte**: lo legge sia chi li
-spinge sul chart sia `sveglia_tape.py`, che sorveglia il tape.
+seduta, i tre sorveglianti, e **le sette prove che una condizione deve passare prima di essere
+armata**. Le prove restano obbligatorie: misurano il **sosia**, che la libreria dei pattern non
+misura.
 
-La divisione e' netta e vale la pena capirla. **Gli scenari li scrive l'analisi prima della
-seduta**, in `scenari-AAAA-MM-GG.json`, guardando il contesto di quel giorno: non sono codice fisso,
-sono un file che si riscrive ogni volta. `scenari.py` e' solo il motore che li valuta, e quando uno
-scatta annota da solo — cosi' a schermo compare gia' lo scenario previsto, col nome che gli avevamo
-dato. `sveglia_tape.py` gira in parallelo per cio' che non avevamo previsto, e `annota.py` serve
-alla lettura ragionata che arriva dopo.
-
-**Il terzo sorvegliante non guarda i livelli.** `sveglia_movimento.py` dice che il prezzo ha
-percorso N punti dall'estremo, leggendo la barra **in formazione**: copre il punto cieco degli
-altri due, che **fra un livello e l'altro non parlano**. Il 17 settembre 2026 quel silenzio e'
-durato quattordici minuti, con una posizione aperta dentro. Sezione *"4ter. La Sveglia Del
-Movimento"*.
-
-### 5bis. Il permesso, misurato invece che atteso
-
-[**`il-permesso-si-misura-non-si-aspetta.md`**](il-permesso-si-misura-non-si-aspetta.md) — il gate
-Tier 01 misura la cosa giusta (l'**accettazione** oltre un bordo) alla risoluzione sbagliata: una
-chiusura a 30 minuti puo' far aspettare ventinove minuti per qualcosa che il tape ha gia' detto.
-La stessa domanda su barre M1 — N chiusure oltre, volume oltre, **isteresi obbligatoria** in revoca
-— la risolve in tre.
-
-Il guadagno misurato e' il contrario di quello che sembra: **in apertura il gate M30 non e'
-battibile** (16 settembre: gate 17:00, accettazione 17:01), **in revoca si guadagnano 84 minuti**
-(gate 19:29, accettazione 18:05). Strumento: `permesso_di_fatto.py`, terzo `Monitor` accanto agli
-altri due.
+**Il terzo sorvegliante non guarda i livelli.** `sveglia_movimento.py` copre il punto cieco degli
+altri due, che fra un livello e l'altro non parlano.
 
 ### 6. La giornata, mentre succede
 
-[**`../giornate/come-si-scrive-una-giornata.md`**](../giornate/come-si-scrive-una-giornata.md) — un file per giornata di mercato, scritto
-**durante** la seduta. Contiene la procedura per **riprendere a meta' sessione**: intestazione,
-"Dove eravamo", correzioni, e solo dopo i dati nuovi.
+[**`../giornate/come-si-scrive-una-giornata.md`**](../giornate/come-si-scrive-una-giornata.md) — un
+file per giornata, scritto **durante** la seduta. Contiene la procedura per riprendere a meta'
+sessione. Le letture sbagliate restano scritte con cio' che le ha smentite.
 
-Le letture sbagliate restano scritte con cio' che le ha smentite: e' la parte verificabile del
-documento.
+**Ci va anche il conto in R della giornata e il regime dichiarato**: sono gli input della gestione.
 
 ### 6bis. Le gambe, a seduta chiusa
 
 [**`le-gambe-di-una-seduta.md`**](le-gambe-di-una-seduta.md) — quanto una giornata ha **davvero**
-offerto. Una gamba dura finche' il prezzo non ritraccia piu' di **R** punti dal proprio estremo, e
-R e' un parametro dello strumento (12 su NQ, 3 su ES, 0,25 $ sul crude), non una costante.
+offerto. Una gamba dura finche' il prezzo non ritraccia piu' di **R** punti dal proprio estremo, e R
+e' un parametro dello strumento (12 su NQ).
 
-Esiste perche' il 16 settembre avevo misurato *"il massimo dei 30 minuti successivi"* e chiamato
-quel numero un movimento: era l'**inviluppo dell'opportunita'**, cioe' il risultato di chi indovina
-ogni giro. L'utente l'ha visto dal grafico. Ci avevo gia' costruito sopra una lettura del Triple
-AAA che non stava in piedi.
+Ci sta la lezione che vale oltre il caso: **un pattern trovato leggendo all'indietro dai movimenti
+buoni ha per costruzione il 100% di successo.**
 
-Ci sta anche la lezione che vale oltre il caso: **un pattern trovato leggendo all'indietro dai
-movimenti buoni ha per costruzione il 100% di successo.** Il numero che conta e' quante volte la
-stessa firma compare *senza* il movimento — quel giorno, 19 occorrenze e 42%.
+---
 
-E la **deroga dichiarata** dell'utente: si opera anche **prima del gate** Tier 01, con i tre
-obblighi che la deroga non sospende.
+## Documenti Conservati, Non Piu' Operativi
+
+Restano come misure e come evidenza. **Non autorizzano niente.**
+
+- [`la-sessione-di-londra.md`](la-sessione-di-londra.md) — i numeri su NQZ6 reggono; la sessione
+  operativa e' New York, perche' lo dice il corso.
+- [`la-mattina-europea-sull-oro.md`](la-mattina-europea-sull-oro.md) — lo strumento e' NQ.
+- [`il-permesso-si-misura-non-si-aspetta.md`](il-permesso-si-misura-non-si-aspetta.md) — misurava
+  l'accettazione contro il gate M30 del dossier. **Nel live il gate non c'e'**, quindi la domanda
+  a cui rispondeva non si pone piu'. La misura dell'accettazione su barre M1 resta utile e
+  riusabile; il confronto col gate no.
 
 ---
 
@@ -183,5 +168,10 @@ adattato all'ipotesi dopo averlo visto.
 
 ## Storia
 
-[`storia-del-progetto.md`](storia-del-progetto.md) — cosa c'era prima della baseline attuale, e
-dove sta la discontinuita'. Serve a non riusare soglie e risultati di esperimenti ritirati.
+[`storia-del-progetto.md`](storia-del-progetto.md) — cosa c'era prima della baseline attuale, e dove
+sta la discontinuita'. Serve a non riusare soglie e risultati di esperimenti ritirati.
+
+[`come-si-apre-un-asset.md`](come-si-apre-un-asset.md) — i nove passi per aprire uno strumento
+nuovo. **Con NQ solo, serve a un caso solo: il rollover.** Il resto resta come evidenza di cosa
+costa aprire un asset a meta', documentata in
+[`../giornate/MCLV6-2026-09-16.md`](../giornate/MCLV6-2026-09-16.md).

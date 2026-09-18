@@ -13,11 +13,27 @@ Va letto per intero prima di analizzare il mercato. Non contiene procedure — q
 La fonte e' il corso di order flow di Fabio 'Fabervaale' Valentini, in
 [`../../fabio_course/`](../../fabio_course/).
 
-- **Il corso principale e' il live Q1** (`fabio_course/fabio_q1/`). Gli altri live si aggiungeranno.
-- Le tre lezioni piu' vecchie (`fabio1.txt`, `fabio2.txt`, `fabio3.txt`) e la mappa
-  [`fabio-course-model-map.md`](../../fabio_course/fabio-course-model-map.md) restano come contesto.
-- Il **modello** e' nel dossier illustrato in `fabio_course/ivbaaa/`, trascritto per intero in
-  [`metodo/triple-aaa-dossier.md`](metodo/triple-aaa-dossier.md).
+**Dal 18 settembre 2026 il corso comanda.** Ogni operazione, ogni livello, ogni condizione deve
+poter essere ricondotta a un minuto di una lezione del **live Q1** in `fabio_course/fabio_q1/`. Le
+sei lezioni disponibili sono estratte, con il minuto citato riga per riga, in tre documenti:
+
+- [`metodo/i-tre-modelli-del-live-q1.md`](metodo/i-tre-modelli-del-live-q1.md) — i tre modelli, il
+  vocabolario, il regime, la sessione, il COT, il framing;
+- [`metodo/i-pattern-di-esecuzione.md`](metodo/i-pattern-di-esecuzione.md) — la libreria dei setup;
+- [`metodo/la-gestione-della-posizione.md`](metodo/la-gestione-della-posizione.md) — la gestione,
+  che nel live **e' l'edge**.
+
+**Il dossier illustrato** in `fabio_course/ivbaaa/`, trascritto in
+[`metodo/triple-aaa-dossier.md`](metodo/triple-aaa-dossier.md), e' stato la fonte principale fino al
+18 settembre. Ora e' **riferimento**: e' di Fabio e va menzionato, ma descrive lo stesso setup dentro
+un'impalcatura a tre tier con un **gate orario che nel live non esiste**.
+
+Le tre lezioni piu' vecchie (`fabio1.txt`, `fabio2.txt`, `fabio3.txt`) e la mappa
+[`fabio-course-model-map.md`](../../fabio_course/fabio-course-model-map.md) restano come contesto, e
+sono anteriori al live Q1: dove lo contraddicono, hanno torto.
+
+**Lo strumento e' NQ e la sessione e' New York**, entrambi perche' lo dice il corso
+(`fabio_3.txt`, 1:06:37 e 22:12) e perche' l'utente l'ha deciso il 18 settembre 2026.
 
 La regola che governa tutto il resto, dichiarata fin dall'inizio: **una tecnica citata in una
 lezione non diventa una specifica finche' non si e' stabilito quale parte di essa e' misurabile.**
@@ -69,17 +85,20 @@ Contratto in [`metodo/contratto-data-bridge.md`](metodo/contratto-data-bridge.md
 
 ## 5. Cosa Si Fa Oggi
 
-Dal **15 settembre 2026** lo scope e' la **lettura discrezionale** del live Q1, letta insieme al
-contesto istituzionale. Non c'e' nessun modello attivo e nessuna regola operativa approvata.
+Dal **18 settembre 2026**: la **lettura discrezionale del live Q1 su NQ, sessione di New York**,
+letta insieme al contesto istituzionale. Non c'e' nessun modello attivo e nessuna regola operativa
+approvata.
 
-Una giornata si costruisce cosi', ed e' il percorso che i documenti di metodo descrivono:
+Una giornata si costruisce cosi':
 
 ```text
-COT + posizionamento           ->  la zona dove gli istituzionali si sono mossi
-profilo delle sedute passate   ->  nodi, colli, vuoti, value area, POC
-                     insieme   ->  i livelli del giorno
-                    sul chart  ->  POST /levels, l'indicatore li disegna
-               durante la seduta -> il tape misurato sui livelli, col bridge
+regime                         ->  direzionale, balance o choppy: decide la size prima del setup
+COT non-commercial + framing   ->  il quadro, e la data del cambio che diventa un prezzo
+quale dei tre modelli          ->  lo sceglie la posizione del prezzo, non l'umore
+i livelli                      ->  solo aggressione massima e assorbimento impilato, da ordini eseguiti
+                     sul chart ->  POST /levels, l'indicatore li disegna
+             durante la seduta ->  il tape misurato sui livelli, col bridge
+                     in posizione -> break even sul livello, parziali, conto in R
                         alla fine -> la giornata scritta, correzioni comprese
 ```
 
@@ -89,6 +108,17 @@ Due avvertenze che valgono sempre, e che sono costate errori reali:
   del roll. Per il framing servono i contratti singoli o `build_continuous.py`.
 - **Il controllo del rollover precede ogni altra misura.** Confrontare il volume dei due contratti
   prima di leggere qualunque flusso.
+
+## 6. Cosa E' Stato Chiuso Il 18 Settembre 2026
+
+Per far comandare il corso e' stato necessario ritirare tre cose, tutte conservate come misura:
+
+- **gli strumenti diversi da NQ** — oro (GCZ6, MGCZ6), crude (MCLV6), ES. I file delle giornate
+  restano: contengono errori reali e le regole che ne sono nate.
+- **la sessione di Londra** — i numeri su NQZ6 reggono, ma il corso dice New York col motivo.
+- **il gate Tier 01 e la deroga per operare prima del gate** — la deroga decade perche' nel live
+  **il gate non c'e'**. `permesso_di_fatto.py` misura ancora l'accettazione su M1, che resta utile;
+  il confronto col gate M30 non si pone piu'.
 
 ---
 

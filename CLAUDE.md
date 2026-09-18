@@ -3,49 +3,69 @@
 Questo file **non contiene contesto**. Contiene gli obblighi di lettura e le regole operative. Il
 contesto sta nei documenti linkati, ed e' li' che va cercato: duplicarlo qui lo farebbe divergere.
 
+---
+
+## Le Due Decisioni Che Governano Tutto (18 Settembre 2026)
+
+**1. Il corso di Fabio comanda.** Ogni operazione, ogni livello, ogni condizione armata deve poter
+essere ricondotta a un minuto di una lezione del live Q1. Il **modello IVB / Triple AAA** del
+dossier resta citabile — e' di Fabio, e va menzionato — ma **non comanda**: descrive lo stesso setup
+dentro un'impalcatura con un gate orario che nel live non esiste.
+
+**2. Lo strumento e' NQ, e solo NQ.** *"Get good with one asset, one can pay your bills. One asset,
+one. I choose NASDAQ"* (`fabio_q1/fabio_3.txt`, 1:06:37). Niente oro, niente crude, niente ES. I
+file di quegli strumenti restano in `docs/research/giornate/` come evidenza e non si estendono.
+
+**Conseguenza sulla sessione: si opera New York.** Nel live e' dichiarato due volte, col motivo
+(`fabio_3.txt`, 22:12 e 23:00). La deroga "si opera anche a Londra" del 17 settembre e' anteriore a
+questa decisione e non e' piu' attiva. La deroga "si opera prima del gate" decade da sola: **nel
+live il gate non c'e'**.
+
+### Gerarchia Delle Fonti
+
+```text
+1  fabio_course/fabio_q1/*.txt      le trascrizioni del live Q1   <- COMANDA
+2  fabio_course/ivbaaa/*.webp       il dossier illustrato          <- riferimento
+3  docs/research/metodo/*.md        i documenti di metodo          <- derivati, citano 1 e 2
+4  la conversazione                                                 <- non e' una fonte
+```
+
+Fra 1 e 2 vince 1. Dentro 2, l'immagine batte la trascrizione del dossier. **La memoria non e' una
+fonte.**
+
+---
+
 ## Obbligo Di Lettura
 
 Prima di lavorare su questo repository, **leggi nell'ordine**:
 
 1. [`da-dove-si-comincia.md`](da-dove-si-comincia.md) — cos'e' il progetto e la mappa del repository.
-2. [`docs/research/percorso-del-progetto.md`](docs/research/percorso-del-progetto.md) — **il percorso completo, dall'inizio**: il
-   corso, le due strade chiuse e perche', il contesto istituzionale COT, il Data Bridge, e cosa si
-   fa oggi. E' il documento che ricostruisce come si e' arrivati all'analisi attuale.
-3. [`docs/research/metodo/indice-delle-procedure.md`](docs/research/metodo/indice-delle-procedure.md) — **come si fa** una analisi,
-   procedura per procedura, nell'ordine in cui si usano. Ogni voce rimanda alle analisi passate che
-   la applicano.
-4. [`docs/research/metodo/glossario-del-metodo.md`](docs/research/metodo/glossario-del-metodo.md) — **dove sta scritta** ogni
-   definizione del metodo. Non definisce niente: dice a quali righe della fonte tornare, ed e' lo
-   strumento con cui si rispetta l'obbligo della sezione seguente.
+2. [`docs/research/metodo/i-tre-modelli-del-live-q1.md`](docs/research/metodo/i-tre-modelli-del-live-q1.md)
+   — **il metodo che comanda**: i tre modelli, il vocabolario, il regime, la sessione, il COT, il
+   framing, i timeframe. Ogni riga cita il minuto della lezione da cui viene.
+3. [`docs/research/metodo/i-pattern-di-esecuzione.md`](docs/research/metodo/i-pattern-di-esecuzione.md)
+   — la libreria dei setup, e come si costruiscono ingresso, stop e bersaglio.
+4. [`docs/research/metodo/la-gestione-della-posizione.md`](docs/research/metodo/la-gestione-della-posizione.md)
+   — break even, parziali, conto in R, size, budget di rischio. **Nel live e' l'edge, non un
+   corollario.**
+5. [`docs/research/percorso-del-progetto.md`](docs/research/percorso-del-progetto.md) — come si e'
+   arrivati qui: le strade chiuse e perche', il COT, il Data Bridge.
+6. [`docs/research/metodo/indice-delle-procedure.md`](docs/research/metodo/indice-delle-procedure.md)
+   — **come si fa** una analisi, procedura per procedura, nell'ordine in cui si usano.
+7. [`docs/research/metodo/glossario-del-metodo.md`](docs/research/metodo/glossario-del-metodo.md) —
+   **dove sta scritta** ogni definizione. Non definisce niente: dice a quale minuto o a quale riga
+   tornare.
 
-Nessuna di queste quattro letture e' facoltativa. Se una risposta richiede contesto che non hai, il
-posto dove trovarlo e' li', non nella conversazione.
-
-## Prima Di Aprire Un Asset Nuovo
-
-**Nessuna lettura, nessun livello sul chart e nessuno scenario armato su uno strumento che non ha
-completato i nove passi di
-[`docs/research/metodo/come-si-apre-un-asset.md`](docs/research/metodo/come-si-apre-un-asset.md).**
-Rollover, anagrafica del tick, i due orologi, il contesto istituzionale COT, il framing delle
-sedute precedenti, i livelli, le soglie riscalate, gli scenari e i file col prefisso dello
-strumento. L'obbligo vale **per ogni asset** e i primi otto passi si rifanno **a ogni rollover**.
-
-Il metodo di questo repository e' nato sul Nasdaq, e quasi tutto il resto presuppone NQ senza
-dirlo: l'ora della sessione regolamentata, le soglie in punti, la finestra dell'IVB, il codice
-COT. Aprire un secondo strumento significa **scoprire quali costanti erano in realta' parametri**,
-e un asset aperto a meta' produce numeri che sembrano una analisi e non lo sono.
-
-Primo caso applicato, con gli errori che ha prodotto:
-[`docs/research/giornate/MCLV6-2026-09-16.md`](docs/research/giornate/MCLV6-2026-09-16.md).
+Nessuna di queste letture e' facoltativa. Se una risposta richiede contesto che non hai, il posto
+dove trovarlo e' li', non nella conversazione.
 
 ## Prima Di Analizzare Il Mercato
 
-Oltre alle quattro letture sopra, **prima di chiedere dati al bridge**:
+Oltre alle letture sopra, **prima di chiedere dati al bridge**:
 
-1. [`docs/research/giornate/`](docs/research/giornate/) — il file di **oggi per quello
-   strumento**, se esiste (con il prefisso, dove c'e': `MCLV6-AAAA-MM-GG.md`).
-   L'intestazione dice se e' `APERTO`; la sezione finale **"Dove eravamo"** da' lo stato
-   all'ultimo aggiornamento; la sezione **"Le correzioni"** dice cosa e' gia' stato smentito oggi.
+1. [`docs/research/giornate/`](docs/research/giornate/) — il file di **oggi**, se esiste.
+   L'intestazione dice se e' `APERTO`; la sezione finale **"Dove eravamo"** da' lo stato all'ultimo
+   aggiornamento; la sezione **"Le correzioni"** dice cosa e' gia' stato smentito oggi.
 2. Il file del **giorno precedente**, per il framing: value area, POC e minimi di ieri stanno nella
    sua sezione 1.
 
@@ -66,22 +86,24 @@ L'obbligo vale **per ogni risposta**, non a inizio sessione, e **non dipende dal
 mercato**: in globex, a mercato quasi fermo, a cash chiusa e nel weekend si riconsidera tutto
 esattamente come durante la cash. Una fase tranquilla non e' un contesto piu' piccolo, e' lo stesso
 contesto con meno barre nuove — ed e' quando si e' piu' tentati di rispondere a memoria. Una
-domanda breve non autorizza un contesto breve: le domande piu' corte — *"ha senso che scenda?"*, *"cosa ne pensi?"* — sono quelle
-a cui si risponde piu' facilmente guardando lo schermo invece dei dati, ed e' li' che si sbaglia.
+domanda breve non autorizza un contesto breve: le domande piu' corte — *"ha senso che scenda?"*,
+*"cosa ne pensi?"* — sono quelle a cui si risponde piu' facilmente guardando lo schermo invece dei
+dati, ed e' li' che si sbaglia.
 
 **Non costa niente: arriva da solo.** Un hook `UserPromptSubmit` in
 [`.claude/settings.json`](.claude/settings.json) esegue
 [`.claude/hooks/giro-orizzonte.sh`](.claude/hooks/giro-orizzonte.sh) a ogni messaggio e ne mette lo
-stdout nel contesto del prompt. Mezzo secondo, otto sezioni, prima che la risposta cominci.
+stdout nel contesto del prompt.
+
+**Il giro d'orizzonte automatico si legge, non si ignora.** Se il blocco manca — hook disattivato,
+sessione diversa — si lancia il comando a mano:
 
 ```bash
-python3 FabioOrderFlow/tools/giro_orizzonte.py     # a mano, se serve altro o l'hook e' spento
+python3 FabioOrderFlow/tools/giro_orizzonte.py
 ```
 
-**Il giro d'orizzonte automatico si legge, non si ignora.** E' in cima al prompt proprio perche' la
-risposta si costruisca su quello. Se il blocco manca — hook disattivato, sessione diversa — si
-lancia il comando a mano. Se dice che il bridge non risponde, **lo si dichiara nella risposta**:
-una lettura senza dati va detta tale, non presentata come una lettura.
+Se dice che il bridge non risponde, **lo si dichiara nella risposta**: una lettura senza dati va
+detta tale, non presentata come una lettura.
 
 **Tre cose che il giro d'orizzonte impedisce**, tutte gia' successe:
 
@@ -89,53 +111,97 @@ una lettura senza dati va detta tale, non presentata come una lettura.
   scattato otto minuti prima, e stava scritto nel diario. La sezione 5 lo mette davanti agli occhi.
 - **rispondere sulle ultime barre.** Una lettura costruita su dieci minuti ignora che il POC della
   seduta sta 100 punti sotto e che il delta a 60 minuti dice il contrario di quello a 15.
-- **ripetere un errore gia' corretto oggi.** La sezione 3 elenca le correzioni della giornata: se
-  una risposta sta per ricadere in una di quelle, si vede prima di scriverla.
+- **ripetere un errore gia' corretto oggi.** La sezione 3 elenca le correzioni della giornata.
 
-**Questo non contraddice la brevita' della lettura dal vivo.** Il giro d'orizzonte riguarda
-l'**input**: si guarda tutto. La lettura riguarda l'**output**: si scrive poco, e si sceglie quel
-poco proprio perche' si e' visto tutto. Una risposta corta costruita su un contesto corto e'
-un'altra cosa, ed e' il modo in cui si sbaglia in fretta.
+**Questo non contraddice la brevita' della lettura dal vivo.** Il giro riguarda l'**input**: si
+guarda tutto. La lettura riguarda l'**output**: si scrive poco, e si sceglie quel poco proprio
+perche' si e' visto tutto.
 
+## Il Quadro: Framing E COT, Sempre, Anche Senza Che Lo Si Chieda
+
+**Prima di qualunque lettura si fa il quadro**: dove si e' costruito il valore (profile framing) e
+chi e' posizionato (COT). Le due meta' si leggono **insieme**, perche' e' la coppia a dire la cosa
+che nessuna delle due dice da sola — **se il lato posizionato sta sopra o sotto il cuore del
+volume**. Procedura in
+[`docs/research/metodo/il-framing-e-il-cot-si-leggono-insieme.md`](docs/research/metodo/il-framing-e-il-cot-si-leggono-insieme.md);
+le fonti restano [`profile-framing.md`](docs/research/metodo/profile-framing.md) e
+[`analisi-istituzionale.md`](docs/research/metodo/analisi-istituzionale.md), e la procedura COT
+esatta del live sta alla **sezione 9** di
+[`i-tre-modelli-del-live-q1.md`](docs/research/metodo/i-tre-modelli-del-live-q1.md).
+
+**Non e' su richiesta, ed e' questo il punto.** Il quadro si scrive nel file della giornata fra
+`<!-- QUADRO -->` e `<!-- /QUADRO -->`, e `giro_orizzonte.py` lo stampa alla **sezione 4bis** a ogni
+messaggio. Se il blocco manca, il giro lo dichiara: **una lettura data con la 4bis vuota e' una
+lettura costruita sulle ultime barre**.
+
+**Tre cose che il quadro contiene e che si dimenticano:**
+
+- **la scala dei POC**, non "il bersaglio". Ogni area di valore riattraversata regala il proprio POC
+  come magnete. **Un massimo di seduta non e' un POC.** E il live ne vuole due: quello della singola
+  seduta e **quello della seduta che ha creato la rottura**.
+- **il vuoto e da dove nasce**: un vuoto vero e' lo spazio fra il VAH di una seduta e il VAL di
+  un'altra, non una fascia sottile del composito.
+- **quale campo del COT e' l'estremo.** Nel live si guarda **solo non-commercial, vista Legacy**, e
+  **solo l'ultima variazione** decide chi ha il piede sull'acceleratore. Poi si prende la **data** e
+  si torna sul **prezzo** di quella data: e' li' che il COT diventa un livello.
+
+**Il quadro non contiene direzioni, ingressi, stop o bersagli operativi.** Dice dove si sta, non
+cosa fare.
+
+## Prima Di Dichiarare Che Un Setup Esiste
+
+**Si dichiara quale dei tre modelli sta girando, e lo decide la posizione del prezzo, non l'umore.**
+
+```text
+balance / mean reverting   il prezzo e' chiuso dentro la cash precedente  -> fade dei bordi verso il POC
+momentum                   una balance viene rotta                        -> con speed of tape, o non si entra
+trend following            giornata direzionale                           -> si fade il ritracciamento nel verso del giorno
+```
+
+Prendere un setup momentum dentro la balance, o un mean reverting fuori dal valore, e' lo stesso
+errore con due nomi. Dettaglio e citazioni in
+[`i-tre-modelli-del-live-q1.md`](docs/research/metodo/i-tre-modelli-del-live-q1.md).
+
+**E si dichiara il regime**, perche' decide la size prima di decidere il setup: direzionale (una
+candela copre piu' di cinque candele del range precedente), balance, oppure choppy. Su una giornata
+choppy si riduce la size, si prendono profitti piccoli sui livelli, si accettano i break even e si
+chiude al secondo stop.
 
 ## Prima Di Usare Un Termine Del Metodo
 
 **Un termine del metodo non si parafrasa a memoria. Si apre la fonte e si legge il passo.**
 
-Vale per: IVB, Tier 01/02/03, mean reverting, Triple AAA, Triple A+, deep effort, 40 range,
-candle framing, block-and-reload, risk envelope, e ogni altra parola che viene dal corso.
-[`docs/research/metodo/glossario-del-metodo.md`](docs/research/metodo/glossario-del-metodo.md) dice
-in quali righe di [`triple-aaa-dossier.md`](docs/research/metodo/triple-aaa-dossier.md) sta ciascuna
-definizione, cosi' la verifica costa un `sed -n`.
+Vale per: assorbimento, aggressione, risultato, reload, squeeze, failed auction, muro di liquidita',
+speed of tape, big trades, flip dell'asta, gap, point of no return, station, premium/discount — e
+per ogni termine che viene dal dossier: IVB, Tier 01/02/03, mean reverting, Triple AAA, Triple A+,
+deep effort, 40 range, candle framing, block-and-reload, risk envelope.
+
+[`glossario-del-metodo.md`](docs/research/metodo/glossario-del-metodo.md) dice, per ciascuno, **a
+quale minuto di quale lezione** (o a quali righe del dossier) tornare, cosi' la verifica costa un
+`sed -n` o un `grep`.
 
 L'obbligo scatta **ogni volta**, non solo a inizio sessione, e in particolare quando la risposta
 sembra ovvia: e' li' che si salta il controllo. Il 16 settembre ho definito "mean reverting a
 rischio stretto" un setup che non era mean reverting, con un vincolo di rischio che non era quello
-scritto. Entrambi gli errori stavano in un passo di sessanta righe che non avevo aperto.
+scritto.
 
-**Una affermazione con conseguenza operativa deve essere tracciabile a una riga della fonte.**
-Il `verso` di uno scenario, un permesso, una regola di rischio, un bersaglio: se non si riesce a
-dire da quale riga del dossier discende, il verso corretto e' `NESSUN PERMESSO` e la frase va
-riscritta come osservazione.
-
-**Gerarchia delle fonti**, quando divergono: le immagini in
-[`fabio_course/ivbaaa/`](fabio_course/ivbaaa/) battono il dossier, il dossier batte i documenti di
-metodo, i documenti di metodo battono la conversazione. La memoria non e' una fonte.
+**Una affermazione con conseguenza operativa deve essere tracciabile a un minuto del live.** Un
+permesso, una regola di rischio, un bersaglio: se non si riesce a dire da quale minuto discende, la
+frase va riscritta come osservazione.
 
 ## Un Livello Non E' Mai Il Fine, E' Sempre Una Porta
 
 **Ogni volta che si nomina un prezzo, una zona o un livello, si dice a cosa serve arrivarci.**
 Vale ovunque: letture dal vivo, file della giornata, campi `attesa` e `implica` degli scenari,
-etichette sul chart, risposte a una domanda. Senza il "per cosa", il livello e' un numero e chi
-legge deve indovinare perche' glielo si sta dicendo.
+etichette sul chart, risposte a una domanda.
 
 Un livello puo' servire a **quattro cose**, e va detto quale:
 
 | | cosa cambia arrivandoci |
 |---|---|
-| **permesso** | cambia cosa e' lecito fare: il gate Tier 01, i bordi del valore per il mean reverting |
+| **permesso** | cambia cosa e' lecito fare: i bordi del valore per il mean reverting, la rottura della balance per il momentum |
 | **bersaglio** | apre il tratto successivo — e allora si dice **quale** e **quanti punti** |
-| **invalidazione** | smonta una lettura in corso: uno scenario decade, un rimbalzo smette di esserlo |
+| **invalidazione** | smonta una lettura in corso: un rimbalzo smette di esserlo |
 | **posizionamento** | dice chi resta intrappolato o liberato, e quindi chi dovra' agire |
 
 **Sbagliato:** *"serve riprendere 29.372,50"* — riprenderlo per cosa?
@@ -144,11 +210,12 @@ Un livello puo' servire a **quattro cose**, e va detto quale:
 bersaglio e' la mensola a 29.453,50, ottanta punti, e chi ha comprato stamattina smette di essere
 sott'acqua."*
 
-La stessa frase dice il livello, la sua storia, **cosa apre**, **quanto dista** e **chi libera**.
-Costa una riga in piu' e toglie una domanda.
-
 **Corollario:** se non si sa dire a cosa serve un livello, quel livello non va nominato — e
 probabilmente non andava nemmeno disegnato sul chart.
+
+**E si marcano solo due tipi di livello**, come nel live: la **massima aggressione** e il **massimo
+assorbimento impilato**, entrambi da ordini eseguiti. *"It's not necessary to mark intermediate
+level that are useless for us."*
 
 ## Prima Di Armare Una Condizione
 
@@ -157,18 +224,18 @@ movimento che produce gli stessi numeri e significa il contrario. Un rifiuto del
 valore e una rottura dello stesso bordo dall'alto hanno massimo sopra, chiusura sotto, corpo in
 basso, volume e delta negativo: identici. Li separa **solo** da che parte arriva il prezzo.
 
-Le sette prove obbligatorie — lato di arrivo, sosia dichiarato, verso tracciabile a una riga della
-fonte, `--controlla`, `--prova` sulla storia, tempi del setup dichiarati, livello coperto nei due
-sensi — stanno in
-[`docs/research/metodo/sorveglianza-del-tape.md`](docs/research/metodo/sorveglianza-del-tape.md),
-sezione *"Le Prove Che Una Condizione Deve Passare Prima Di Essere Armata"*, con il caso del
-16 settembre che le ha prodotte. **Nessuna e' facoltativa, e valgono a ogni riscrittura degli
-scenari, non solo alla prima.**
+Le sette prove obbligatorie — lato di arrivo, sosia dichiarato, verso tracciabile alla fonte,
+`--controlla`, `--prova` sulla storia, tempi del setup dichiarati, livello coperto nei due sensi —
+stanno in [`sorveglianza-del-tape.md`](docs/research/metodo/sorveglianza-del-tape.md), sezione *"Le
+Prove Che Una Condizione Deve Passare Prima Di Essere Armata"*. **Nessuna e' facoltativa, e valgono
+a ogni riscrittura degli scenari.**
 
-Le difese automatiche (`--controlla`, scenario rotto che grida) verificano che una condizione sia
-**eseguibile**. Non possono accorgersi che sia **sbagliata**: quello lo fanno solo le sette prove,
-e le fa l'analisi, a mano, prima di armare.
+**Una condizione che usa la derivata di una fascia deve nominare la fascia in cui il prezzo SARA'
+quando la condizione viene valutata**, non quella che sta lasciando: il delta di una fascia si
+congela appena il prezzo ne esce.
 
+Le difese automatiche verificano che una condizione sia **eseguibile**. Non possono accorgersi che
+sia **sbagliata**: quello lo fanno solo le sette prove, a mano, prima di armare.
 
 ## Una Lettura Dal Vivo Dice La Direzione, Non La Lascia Intendere
 
@@ -176,39 +243,34 @@ e le fa l'analisi, a mano, prima di armare.
 descrizione da cui dedurla, non con un elenco di rami equiprobabili, non con un cappello di
 cautele. Richiesta esplicita dell'utente, 17 settembre 2026.
 
-**Il formato obbligatorio di una risposta operativa:**
-
 ```text
 DIREZIONE      LONG, SHORT oppure NIENTE. Una parola, per prima.
 INGRESSO       a che prezzo, e su quale evento (chiusura sopra X, ritorno su Y)
-STOP           un prezzo, sotto o sopra una STRUTTURA - mai un numero tondo
+STOP           un prezzo, dietro una STRUTTURA di ordini eseguiti - mai un numero tondo
+BREAK EVEN     il LIVELLO al quale l'analisi si smonta, e quale struttura lo giustifica
 BERSAGLIO      un prezzo e i punti che dista
 INVALIDA       il prezzo che smonta la lettura
 ```
 
-**`NIENTE` e' una direzione e si dice senza scusarsi.** "Non c'e' un setup, questi sono i due
-prezzi che lo farebbero nascere" e' una risposta completa. Cio' che non e' una risposta e'
-descrivere il tape e lasciare che sia chi legge a concludere.
+**Il campo BREAK EVEN non e' decorativo**: nel live e' l'edge. Uno stop senza il suo punto di break
+even e' meta' istruzione. Sta in
+[`la-gestione-della-posizione.md`](docs/research/metodo/la-gestione-della-posizione.md).
 
-**Le cautele di provenienza non entrano nella risposta dal vivo.** Il campo `verso` degli scenari
-resta `NESSUN PERMESSO` nei file, il gate M30 resta registrato nel diario, la dicitura *pre-gate*
-resta nel file della giornata: **sono tracciabilita', e il loro posto e' li'.** Ripeterle a ogni
-risposta non aggiunge informazione e nasconde la direzione, che e' la cosa per cui la risposta
-esiste. L'utente ha dichiarato la deroga: **opera pre-gate, opera a Londra, e lo sa.**
+**`NIENTE` e' una direzione e si dice senza scusarsi.** "Non c'e' un setup, questi sono i due prezzi
+che lo farebbero nascere" e' una risposta completa. Cio' che non e' una risposta e' descrivere il
+tape e lasciare che sia chi legge a concludere.
 
-**Quello che invece si dice sempre, perche' cambia cosa si fa:** se il volume e' troppo sottile
-perche' il segnale valga, se una misura viene da una barra non chiusa, e se una lettura precedente
-e' stata smentita. Sono fatti sul segnale, non disclaimer sul metodo.
+**Le cautele di provenienza non entrano nella risposta dal vivo.** Restano nei file, che e'
+tracciabilita'. **Quello che invece si dice sempre, perche' cambia cosa si fa:** se il volume e'
+troppo sottile perche' il segnale valga, se una misura viene da una **barra non chiusa**, se una
+lettura precedente e' stata smentita, e **qual e' il regime**.
 
-**L'errore che ha prodotto questa regola.** Il 17 settembre, su un assorbimento misurato sulla
-footprint, ho risposto con l'analisi giusta e senza mai scrivere "LONG": l'utente ha dovuto
-chiedere due volte, e nel frattempo il prezzo si era mosso. **Una direzione che arriva tardi non
-e' prudenza, e' un costo.**
+**Non si da' gestione su una posizione senza sapere che l'utente e' dentro.**
 
 ## Come Si Scrive Una Lettura Dal Vivo
 
-Chi legge **ha gli occhi sul grafico**, a mercato aperto, e deve capire in dieci secondi. La
-lettura serve a dire quello che **non si vede guardando** — non a descrivere quello che si vede.
+Chi legge **ha gli occhi sul grafico**, a mercato aperto, e deve capire in dieci secondi. La lettura
+serve a dire quello che **non si vede guardando**.
 
 **Tre parti, in quest'ordine, e nient'altro:**
 
@@ -218,47 +280,32 @@ lettura serve a dire quello che **non si vede guardando** — non a descrivere q
 
 **Regole:**
 
-- **Un numero entra solo se cambia la conclusione.** Se togliendolo la frase resta vera, era
-  decoro.
-- **Niente tabella sotto le quattro righe.** Due confronti sono due righe di prosa.
-- **Non si rielenca cio' che e' gia' sul chart.** I livelli sono disegnati: si nominano, non si
-  ridescrivono.
+- **Un numero entra solo se cambia la conclusione.**
+- **Niente tabella sotto le quattro righe.**
+- **Non si rielenca cio' che e' gia' sul chart.**
 - **Un termine tecnico si spiega alla prima occorrenza della seduta**, non tutte le volte.
-- **Se non e' cambiato niente, si scrive quella riga sola.** Una lettura che ripete la precedente
-  con parole diverse fa perdere il segnale nelle prossime.
-- **Prima la conclusione, poi il perche'.** Mai il contrario: chi guarda il grafico si ferma dopo
-  la prima riga se quella riga gli basta.
+- **Se non e' cambiato niente, si scrive quella riga sola.**
+- **Prima la conclusione, poi il perche'.**
 
 **L'eccezione, e non e' negoziabile:** il file della giornata in
-[`docs/research/giornate/`](docs/research/giornate/) e i documenti di metodo **restano completi**.
-La brevita' vale per la lettura dal vivo, che si legge con un occhio solo; il diario si legge a
-mercato chiuso e deve contenere tutto, comprese le misure che si riveleranno sbagliate — sono la
-parte verificabile. Accorciare il diario per lo stesso motivo per cui si accorcia una lettura
-significa perdere l'unica cosa che il progetto produce.
+[`docs/research/giornate/`](docs/research/giornate/) e i documenti di metodo **restano completi**. Il
+diario si legge a mercato chiuso e deve contenere tutto, comprese le misure che si riveleranno
+sbagliate — sono la parte verificabile.
 
 ## Regole Di Lavoro
 
-Le cinque regole di metodo stanno in [`docs/research/percorso-del-progetto.md`](docs/research/percorso-del-progetto.md) e valgono
-sempre. Qui solo quelle che riguardano il modo di lavorare:
-
-- **Non esiste un modello attivo** e nessuna regola operativa e' approvata. Descrivere non e'
+- **Non esiste un modello attivo e nessuna regola operativa e' approvata.** Descrivere non e'
   validare.
-- **La fase sistematica sul modello 40R e' chiusa.** Non riaprirla — replay, sweep di parametri,
-  ottimizzazione — senza una richiesta esplicita.
+- **La fase sistematica sul modello 40R e' chiusa.** Non riaprirla senza richiesta esplicita.
 - **Scrivi in modo comprensibile a una persona e a un agente**: spiega un termine tecnico alla prima
-  occorrenza, frasi brevi, e nessuna decisione importante lasciata solo nella conversazione.
+  occorrenza, frasi brevi, nessuna decisione importante lasciata solo nella conversazione.
 - **Per ogni fase sostanziale** aggiorna il documento canonico pertinente e aggiungi **una riga
   datata** a [`FabioOrderFlow/progress.txt`](FabioOrderFlow/progress.txt).
-- **Non accumulare output intermedi**: i file grezzi vanno nella scratchpad di sessione, nel
-  repository entra il risultato.
-- **Ogni file di documentazione ha un nome descrittivo.** Niente `README.md`: il nome deve dire
-  cosa c'e' dentro, cosi' che si riconosca dal percorso e nei risultati di ricerca senza aprirlo.
-  `percorso-del-progetto.md`, non `README.md`; `come-si-scrive-una-giornata.md`, non `README.md`.
-  Il titolo H1 dentro il file deve corrispondere al nome. La regola non fa eccezione per la radice:
-  il repository non ha un `README.md`, l'ingresso e' `da-dove-si-comincia.md`. L'unica cartella
-  esclusa e' `docs/atas/`, documentazione ATAS generata che va lasciata com'e'.
-- **Registra i risultati negativi** con la stessa cura di quelli positivi, e dichiara sempre
-  soglie, convenzioni e orizzonti accanto al numero che producono.
+- **Non accumulare output intermedi**: i file grezzi vanno nella scratchpad di sessione.
+- **Ogni file di documentazione ha un nome descrittivo.** Niente `README.md`. L'ingresso del
+  repository e' `da-dove-si-comincia.md`. L'unica cartella esclusa e' `docs/atas/`.
+- **Registra i risultati negativi** con la stessa cura di quelli positivi, e dichiara sempre soglie,
+  convenzioni e orizzonti accanto al numero che producono.
 
 ## Dati
 
@@ -266,113 +313,58 @@ Il percorso e' il **Data Bridge**. Contratto ed endpoint in
 [`docs/research/metodo/contratto-data-bridge.md`](docs/research/metodo/contratto-data-bridge.md),
 client `FabioOrderFlow/tools/bridge.py`.
 
-Due vincoli tecnici che hanno gia' prodotto errori, e che i documenti linkati spiegano per esteso:
+Due vincoli tecnici che hanno gia' prodotto errori:
 
 - **`bar` e' un indice di posizione, non un identificatore**: riparte quando ATAS ricarica
   l'indicatore. Per riconoscere una barra si usa `time`.
 - **Il contratto continuo di ATAS non e' back-adjusted**: usa i contratti singoli o
   `FabioOrderFlow/tools/build_continuous.py`. Il controllo del rollover precede ogni altra misura.
 
+**Il delta esiste anche prezzo per prezzo.** `bridge.py candles --levels` restituisce la footprint di
+ogni barra — `ask` meno `bid` a ogni prezzo scambiato, piu' `maxPositiveDelta` e il POC di quella
+barra. **E' lo strumento con cui si misura l'assorbimento del live**: sforzo alto, risultato nullo.
+Procedura in
+[`la-footprint-e-il-delta-per-prezzo.md`](docs/research/metodo/la-footprint-e-il-delta-per-prezzo.md).
+
+**I big trades del live sono il filtro di volume nativo**: `bridge.py trades`, **60 su NQ in cash**,
+20-30 in premarket. Non e' una nostra soglia, e' la taratura dichiarata da Fabio.
+
+**La speed of tape non esiste nel bridge.** Il proxy e' il volume per barra M1 contro la
+distribuzione recente. **Va dichiarato come proxy ogni volta che si usa.**
+
 Durante una seduta gli scenari attesi si scrivono **prima**, in
-`docs/research/giornate/scenari-AAAA-MM-GG.json`, guardando il contesto di quel giorno:
-`FabioOrderFlow/tools/scenari.py` e' solo il motore che li valuta, e quando uno scatta annota da
-solo sul chart. **Le condizioni non vanno messe nel programma**: sono un file che si riscrive ogni
-volta, perche' dipendono dai livelli e dalla struttura di quella giornata.
-`FabioOrderFlow/tools/sveglia_tape.py` copre in parallelo cio' che non era previsto, senza
-concludere niente, e `FabioOrderFlow/tools/annota.py` porta sul chart e nel diario la lettura
-ragionata.
+`docs/research/giornate/scenari-AAAA-MM-GG.json`. `FabioOrderFlow/tools/scenari.py` e' solo il motore
+che li valuta. **Le condizioni non vanno messe nel programma**: sono un file che si riscrive ogni
+volta. `sveglia_tape.py` copre in parallelo cio' che non era previsto, e `annota.py` porta sul chart
+e nel diario la lettura ragionata.
 
 **I sorveglianti sono tre, e il terzo non guarda i livelli.** `scenari.py` risponde a *e' successo
 quello che avevamo previsto?*, `sveglia_tape.py` a *e' successo qualcosa su un livello che conta?*,
-`FabioOrderFlow/tools/sveglia_movimento.py` a ***si e' mosso, dovunque fosse?*** — legge la barra
-**in formazione** e grida ogni `--strappo` punti di escursione dall'estremo, senza sapere dove sono
-i livelli. Serve perche' i primi due hanno un punto cieco strutturale: **fra un livello e l'altro
-non parlano.** Il 17 settembre 2026 quel silenzio e' durato quattordici minuti, mentre uno short
-andava a bersaglio e si girava di venti punti contro. Sezione *"La Sveglia Del Movimento"* in
-[`sorveglianza-del-tape.md`](docs/research/metodo/sorveglianza-del-tape.md). **Si riarma al cambio
-di sessione** come gli altri due: `--strappo` e' una soglia in punti, e otto punti significano due
-cose diverse a Londra e su New York.
+`sveglia_movimento.py` a ***si e' mosso, dovunque fosse?*** — legge la barra **in formazione** e
+grida ogni `--strappo` punti di escursione dall'estremo. Serve perche' i primi due **fra un livello
+e l'altro non parlano**: il 17 settembre quel silenzio e' durato quattordici minuti con uno short
+aperto dentro.
 
-**Per riaccenderli c'e' `/accendi`**, che chiede le righe a
-`FabioOrderFlow/tools/comandi_sorveglianti.py` invece di scriverle a memoria: taratura della
-sessione in corso, `--from` all'ora attuale, e l'elenco di chi sta gia' girando. **Le soglie non
-si inventano e `--from` non si lascia indietro**: riarmare con un `--from` di tre ore fa fa
-arrivare tutti gli avvisi insieme, per fatti finiti, e copre quello vero.
-
-**Per spegnerli c'e' `/spegni`**, che fa `TaskStop` su ogni monitor, uccide gli orfani con
-`FabioOrderFlow/tools/spegni_sorveglianti.sh` e **verifica**, poi scrive nel diario che sono
-spenti e da che ora. Un sorvegliante che si crede spento e non lo e' fa suonare notifiche che
-nessuno legge, e al riarmo successivo gli avvisi arrivano doppi. Sezione *"Spegnere Tutto"* in
-[`sorveglianza-del-tape.md`](docs/research/metodo/sorveglianza-del-tape.md).
-
-**I tre sorveglianti si accendono come `Monitor`, non come comando in background**: un comando in
-background scrive su un file e non sveglia l'agente. Procedura completa — filtri, riarmo alla
-scadenza, come si sospende e si riprende una pausa, e perche' il log entra nel giro d'orizzonte —
-in [`sorveglianza-del-tape.md`](docs/research/metodo/sorveglianza-del-tape.md), sezioni *"Come Si
-Tengono Accesi"*, *"Sospendere E Riprendere La Sorveglianza"* e *"La Notifica Non E' L'Unica Rete"*.
-
-**Riavviando la sveglia a seduta in corso, `--from` non basta**: dice da quando sorvegliare, non su
-quante barre calcolare le soglie di "fuori scala". Serve `--storia` (default 480 minuti), o lo
-strumento riparte cieco. Sezione *"`--from` Dice Da Quando, `--storia` Dice Su Cosa Si Misura"*.
-Procedura in
-[`docs/research/metodo/sorveglianza-del-tape.md`](docs/research/metodo/sorveglianza-del-tape.md).
-
-**Il delta esiste anche prezzo per prezzo.** `bridge.py candles --levels` restituisce la footprint
-di ogni barra — `ask` meno `bid` a ogni prezzo scambiato, piu' `maxPositiveDelta` e il POC di
-quella barra. Prima di dichiarare che un dato non c'e', si apre l'elenco degli endpoint in
-[`contratto-data-bridge.md`](docs/research/metodo/contratto-data-bridge.md): il 16 settembre ho
-detto che la footprint non era disponibile mentre era documentata. Procedura in
-[`la-footprint-e-il-delta-per-prezzo.md`](docs/research/metodo/la-footprint-e-il-delta-per-prezzo.md).
+**Per riaccenderli c'e' `/accendi`**, che chiede le righe a `comandi_sorveglianti.py` invece di
+scriverle a memoria. **Le soglie non si inventano e `--from` non si lascia indietro.** **Per
+spegnerli c'e' `/spegni`**, che fa `TaskStop`, uccide gli orfani e **verifica**. I tre si accendono
+come `Monitor`, non come comando in background. **Si riarmano al cambio di sessione.** Riavviando a
+seduta in corso serve anche `--storia`, o lo strumento riparte cieco.
 
 **I livelli, i bordi del valore e la finestra su cui si misurano si rifanno a ogni lettura che li
-usa** — in qualunque fase della giornata, non solo a sessione cash aperta. La procedura completa e'
-**obbligatoria** e sta in
-[`livelli-sul-chart.md`](docs/research/metodo/livelli-sul-chart.md), sezioni *"I Livelli Si Rifanno
-Durante La Seduta"*, *"Il Ridisegno Non Si Chiede, Si Fa"* e *"La Finestra Di Misura Si Sceglie A
-Ogni Lettura"*. Tre obblighi che quelle sezioni impongono e che non vanno dedotti: il ridisegno si
-**esegue** invece di chiederlo, la finestra di misura si **dichiara** accanto al numero, e nessuno
-dei due dipende dalla fase di sessione.
-
-**Si opera anche a Londra, non solo su New York.** E' una richiesta esplicita dell'utente
-(17 settembre 2026) e cambia le soglie, non il metodo: misurato su NQZ6, Londra fa il **60%
-dell'escursione** di New York con il **15% del volume**, cioe' 102 lotti per barra M1 contro 613.
-Le soglie riscalate, il pavimento assoluto che serve accanto ai percentili, perche' il gate
-Tier 01 **non esiste** a Londra e cosa si usa al suo posto stanno in
-[`docs/research/metodo/la-sessione-di-londra.md`](docs/research/metodo/la-sessione-di-londra.md).
-**Due obblighi che non decadono**: `verso` degli scenari comunque `NESSUN PERMESSO` nei **file**
-(non c'e' una riga della fonte da cui farlo discendere) e i sorveglianti si **riarmano al cambio di
-sessione**, perche' una soglia in percentili significa due cose diverse con due libri diversi.
-**Nella risposta dal vivo la direzione si dice e basta**: vedi *"Una Lettura Dal Vivo Dice La
-Direzione"*.
-
-**Si opera anche prima che il gate Tier 01 si sia aperto.** E' una **deroga dichiarata**
-dell'utente al dossier, che prima della chiusura M30 concede solo mean reverting: sta sotto al
-dossier nella gerarchia delle fonti, e cio' che **non** sospende — `verso` degli scenari comunque
-`NESSUN PERMESSO` nei file, prove immutate — sta in [`le-gambe-di-una-seduta.md`](docs/research/metodo/le-gambe-di-una-seduta.md), sezione *"La
-Deroga: Operare Prima Del Gate"*.
-
-**Il permesso direzionale si misura sull'accettazione, non si aspetta dall'orologio.** Il gate
-Tier 01 resta la fonte e resta registrato, ma **non ferma piu' niente**: accanto gira
-`FabioOrderFlow/tools/permesso_di_fatto.py`, che risponde alla stessa domanda su barre M1 e il 16
-settembre ha revocato **84 minuti prima** del gate M30 (sull'apertura invece il gate e' piu' veloce
-di un minuto: non e' battibile li', e aspettarselo porta a leggere male). Regola, isteresi
-obbligatoria, soglie per strumento e cosa si dichiara in una lettura:
-[`il-permesso-si-misura-non-si-aspetta.md`](docs/research/metodo/il-permesso-si-misura-non-si-aspetta.md).
-**Una lettura che usa il permesso di fatto lo dichiara**, e negli scenari il `verso` resta
-`NESSUN PERMESSO`: quel campo dice cosa concede la fonte, non cosa si intende fare.
+usa**, in qualunque fase della giornata. Procedura obbligatoria in
+[`livelli-sul-chart.md`](docs/research/metodo/livelli-sul-chart.md): il ridisegno si **esegue**
+invece di chiederlo, la finestra di misura si **dichiara** accanto al numero, e nessuno dei due
+dipende dalla fase di sessione. I livelli arrivano da `POST /levels`: **l'indicatore disegna,
+`bridge.py` trasporta, la derivazione resta nell'analisi.**
 
 **Un movimento si misura col vincolo di ritracciamento, non come massimo di una finestra.** La
-seconda misura e' l'inviluppo dell'opportunita' e non descrive niente di tenibile; il 16 settembre
-ci avevo costruito sopra una lettura del Triple AAA falsa. Procedura, parametro R per strumento e
-la regola sui pattern letti all'indietro nello stesso documento.
-
-I livelli disegnati sul chart arrivano da `POST /levels`: l'indicatore disegna e basta, `bridge.py`
-trasporta e basta, la derivazione resta nell'analisi. Procedura in
-[`docs/research/metodo/livelli-sul-chart.md`](docs/research/metodo/livelli-sul-chart.md). Non
-spostare quel calcolo dentro l'indicatore.
+seconda misura e' l'inviluppo dell'opportunita'. Procedura e parametro R per strumento in
+[`le-gambe-di-una-seduta.md`](docs/research/metodo/le-gambe-di-una-seduta.md), insieme alla regola
+sui pattern letti all'indietro.
 
 I recorder di agosto 2026 sono archiviati in
-[`docs/research/archivio-2026-08/`](docs/research/archivio-2026-08/) e non vanno estesi senza motivo.
+[`docs/research/archivio-2026-08/`](docs/research/archivio-2026-08/) e non vanno estesi.
 
 ## Build E Deploy
 

@@ -1,5 +1,16 @@
 # The Triple AAA Framework: Trascrizione Integrale Del Dossier
 
+> **Stato dal 18 settembre 2026: riferimento, non fonte che comanda.**
+>
+> Il dossier e' di Fabio e resta citabile. Descrive lo stesso setup del live Q1 dentro una
+> impalcatura a tre tier con un **gate orario** — la chiusura M30 dell'IVB del Tier 01 — che **nel
+> live non esiste**: Fabio opera anche in premarket e sull'apertura, cambiando la taratura dei big
+> trades, e cio' che aspetta e' la stabilita' del prezzo, non un permesso dell'orologio.
+>
+> La fonte che comanda e' [`i-tre-modelli-del-live-q1.md`](i-tre-modelli-del-live-q1.md). Quando
+> dossier e live divergono, vince il live; quando dossier e immagine divergono, vince l'immagine.
+> Nessuna condizione armata discende piu' da questo file.
+
 Fonte: `fabio_course/ivbaaa/` — sette pagine, `1.webp` … `7.webp`.
 Documento originale: **Strategy Dossier v3.0**, *The Triple AAA Setup*, a cura di Fabio
 'Fabervaale' Valentini, dal programma *Blood Sweat & Scalps*. Accompagna il primo live del corso
