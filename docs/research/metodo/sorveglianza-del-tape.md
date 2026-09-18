@@ -193,6 +193,35 @@ di ricordarsi che ce n'e' un altro. **Se un livello puo' essere rotto dai due la
 solo uno, va scritto in `attesa` quale lato si sta ignorando e perche'**, o il silenzio verra'
 letto come "non e' successo niente".
 
+**Il 18 settembre 2026 le prove 1 e 7 sono state dichiarate passate senza essere eseguite.** Sul
+massimo di ieri 4.423,30 di GCZ6 avevo due scenari, `perso 4423.3` e `tiene 4423.3`, e avevo
+scritto che il livello era coperto nei due sensi. **Lo era nel senso sbagliato**: coprivano la
+tenuta e la rottura, ma **entrambi presupponevano l'arrivo da sopra**, perche' erano stati scritti
+quando il prezzo stava sopra. Quando il prezzo e' tornato a testarlo da sotto, il livello piu'
+attraversato della giornata — sei passaggi in diciotto minuti — era **completamente scoperto**.
+
+Sulla fascia 4.419 lo stesso errore ha prodotto il danno opposto: `rifiuto 4419` e' **scattato dal
+lato sbagliato**, perche' il lato di arrivo stava scritto nel campo `attesa`, in prosa, e non nella
+condizione. `tocca(4419.0, 1.5) and c < 4418 and pos <= 0.35` e' vera sia per il rifiuto da sotto
+sia per la rottura da sopra: separa il rifiuto dalla ripresa, **non il rifiuto dalla rottura**.
+
+**Il punto che vale la pena tenere non e' la regola, che era gia' scritta qui sopra alla prova 1 e
+nominava `minuti_sotto(L, n)` per nome.** E' che l'avevo letta, avevo dichiarato la prova
+soddisfatta, e non l'avevo eseguita: il campo `attesa` conteneva la frase *"LATO DI ARRIVO: si
+arriva da SOTTO"* e quella frase mi aveva dato la sensazione di aver fatto la verifica.
+
+**Due letture diverse di "coperto nei due sensi", e la seconda e' quella giusta:**
+
+| | cosa chiede | bastava? |
+|---|---|---|
+| tenuta **contro** rottura | uno scenario per ciascun esito | no: e' quello che avevo |
+| arrivo **da sotto** contro arrivo **da sopra** | uno scenario per ciascun **lato di provenienza**, per esito | si': sono quattro scenari su un livello attraversato nei due sensi |
+
+**Come si esegue la prova, invece di dichiararla.** Si legge `quando` — solo `quando` — e ci si
+chiede se contiene un termine che nomina il livello e guarda **indietro**: `minuti_sotto(L, 10)`,
+oppure `o` confrontato con L. Se nella condizione non c'e', la prova non e' passata, qualunque cosa
+dica `attesa`. **`attesa` documenta la verifica; non e' la verifica.**
+
 **`NESSUN PERMESSO` non si scrive sul chart.** Il campo resta obbligatorio nel file — la prova 3
 non cambia — ma e' di gran lunga il valore piu' frequente, e stamparlo in testa a ogni etichetta
 riempie il grafico di scritte che dicono tutte la stessa cosa e nessuna aiuta a decidere. Il verso
@@ -314,6 +343,41 @@ Quattro vincoli che il filtro deve rispettare:
   scadenza: quello e' il promemoria, non un evento di mercato.
 - **`[attesa]` si toglie prima**, altrimenti ogni barra diventa una notifica e il monitor viene
   spento d'ufficio per troppi eventi.
+
+#### I Due Spazi Zittiscono L'Utente, Non L'Agente: Il Filtro E' L'Unico Silenziatore Del Monitor
+
+**`mostra()` ha un silenziatore, e non copre il `Monitor`.** Le righe che cominciano con due spazi
+— il presidio ordinario, il presidio breve non significativo — non vengono mandate in notifica di
+sistema, e il docstring dice perche': *"una notifica al minuto smetterebbe di essere un avviso"*.
+Quel meccanismo funziona, e protegge chi opera.
+
+**Ma un `Monitor` non legge le notifiche di sistema: legge stdout.** E su stdout la riga c'e'
+comunque, due spazi o no. I due lettori hanno due silenziatori diversi, e **il `grep` e' l'unico
+che l'agente ha**:
+
+| chi legge | cosa lo sveglia | chi lo silenzia |
+|---|---|---|
+| l'utente | la notifica di sistema | i due spazi dentro `mostra()` |
+| l'agente | **ogni riga di stdout** | **solo il `grep` del `Monitor`** |
+
+Per questo il pattern del tape contiene `PRESIDIO FINE` e **non** `PRESIDIO`: il prefisso corto
+farebbe passare ogni barra di presidio ordinario, cioe' proprio le righe che `mostra()` aveva
+declassato apposta.
+
+**Il caso, 18 settembre 2026.** Avevo armato tutti e tre i sorveglianti a mano, con `2>&1` e niente
+`grep`. Dalle 12:11 alle 12:15 il prezzo e' rimasto dentro 1,5 punti dal VAH di ieri, e la sveglia
+mi ha risvegliato **cinque volte in cinque minuti** con la stessa riga di presidio, mentre il
+volume scendeva da 215 a 54 lotti — cioe' mentre il contenuto informativo di ogni riga scendeva
+verso zero. Nessuna delle cinque diceva niente che non fosse gia' nel giro d'orizzonte.
+
+**Cosa costa davvero.** Non e' il fastidio: e' che **il rumore non nasconde il silenzio, nasconde
+il prossimo avviso vero.** Cinque risvegli identici addestrano a non leggere il sesto, e il sesto
+puo' essere l'attraversamento.
+
+**La regola.** Il filtro non e' un abbellimento del comando: e' **parte del sorvegliante**. Un
+`Monitor` armato senza `grep` e' un sorvegliante diverso da quello documentato, anche se lo script
+e' lo stesso. Quando si arma a mano invece che copiando da qui, si controlla la pipe prima del
+`--from`.
 
 ### `--from` Dice Da Quando, `--storia` Dice Su Cosa Si Misura
 
@@ -458,6 +522,18 @@ Ogni evento passa da `avviso.py`, che lo scrive in `~/.fabio-avvisi.log` **prima
 parta. Il log e' quindi la fonte di verita', la notifica e' solo la strada piu' veloce. L'hook
 `giro-orizzonte.sh` legge il log e ne mette il contenuto nella sezione 9 del giro d'orizzonte, che
 arriva a ogni messaggio.
+
+**L'orario nel log e' ORA LOCALE, quello delle barre e' UTC.** `avviso.py` marca ogni riga con
+l'ora della macchina; il bridge, `--from` e i timestamp delle candele sono in UTC. D'estate in
+Italia sono **due ore di scarto**, e le due scale compaiono a pochi centimetri l'una dall'altra
+nella stessa sezione 9.
+
+Il 18 settembre 2026 questo mi e' costato una diagnosi sbagliata: il log diceva `13:24`, l'ora di
+mercato era `11:24`, e ho concluso che il grafico dell'oro fosse fermo da **due ore** mentre
+stampava in tempo reale. Sopra ci ho scritto nel diario che non c'erano dati.
+
+**Quando si confronta un orario del log con un orario di barra, si converte prima.** E quando si
+scrive un orario in una analisi, si dichiara il fuso: `11:24Z` oppure `13:24 locali`, mai `13:24`.
 
 **La sezione 9 mostra tutto il non letto, non una coda fissa.** Il primo tentativo usava
 `tail -12`: durante una fase concitata dodici righe sono otto minuti, e tutto quello che era
@@ -682,6 +758,99 @@ livello non era mai stato toccato.
 **Il presidio non conclude niente**, come il resto dello strumento: dice da che parte il prezzo e'
 entrato e da che parte e' uscito, non se il livello "ha tenuto". Quello dipende da cosa succede
 dopo, e lo scrive l'analisi.
+
+### La Magnitudine Misura L'Intensita' Del Passaggio, Non La Sua Tenuta
+
+Il riassunto di `PRESIDIO FINE` stampa il delta in percentuale del volume della fascia, e la scala
+che si e' usata finora e' **sotto il 5% = consumato, sopra il 20% = deciso**. La parola "deciso"
+dice **quanto era squilibrato l'attraversamento mentre avveniva**, e **non dice niente su quanto
+duri**.
+
+**Il caso che lo ha prodotto.** Il 18 settembre 2026 su GCZ6, sul massimo di ieri 4.423,30:
+
+```text
+  11:05  C 4.418,30  vol 607  delta -142   rottura ribassista, presidio -23,4%
+  11:06  C 4.420,70  vol 201  delta  -45   minimo 4.416,80, chiude in cima al corpo
+  11:07  C 4.423,30  vol  95  delta  +23   recupero completo, ESATTAMENTE sul livello
+```
+
+**−23,4% su 607 lotti era l'unica misura sopra il 20% di tutta la giornata**, cioe' la piu' decisa
+che il presidio avesse visto — ed e' stata **annullata per intero in due barre**. Nella stessa
+sessione quel livello e' stato attraversato **sei volte in diciotto minuti**, e nessun lato ha
+tenuto piu' di quattro barre.
+
+**Quindi, quando si legge un `PRESIDIO FINE`:**
+
+| la magnitudine dice | la magnitudine NON dice |
+|---|---|
+| quanto era squilibrato il libro **nel momento** dell'attraversamento | che il prezzo restera' dall'altra parte |
+| se e' passato qualcuno o solo il prezzo | che l'attraversamento sia un'accettazione |
+
+La tenuta e' una misura **diversa e successiva**: si chiama accettazione, si conta in minuti chiusi
+da un lato piu' quota di volume, e un `PRESIDIO FINE` non la calcola. **Una rottura con magnitudine
+alta e accettazione zero e' una liquidazione, non una rottura** — e sono proprio le due cose che
+dal riassunto di presidio si somigliano.
+
+L'errore da cui nasce questa sezione e' mio: il 18 settembre ho letto il 20% come se dicesse anche
+la durata, e ho lasciato che confermasse una lettura che il minuto dopo era gia' falsa.
+
+### Prima Di Leggere Una Rottura, Si Conta Se Oggi Le Rotture Tengono
+
+**La domanda viene prima del setup e riguarda il regime, non la condizione:** *sul livello piu'
+conteso di questa seduta, quanti attraversamenti ci sono stati e quante barre ha tenuto il lato
+vincente?*
+
+| il conteggio dice | cosa ne segue |
+|---|---|
+| pochi attraversamenti, il lato vincente tiene | una rottura e' un segnale di continuazione: si legge come tale |
+| molti attraversamenti, nessun lato oltre poche barre | **una rottura e' il punto in cui la parte opposta prende profitto**: il verso e' il fade dei bordi |
+
+**Il caso.** Il 18 settembre 2026 su GCZ6 il massimo di ieri 4.423,30 e' stato attraversato **sei
+volte in diciotto minuti, senza che nessun lato tenesse piu' di quattro barre**. Nell'ora
+successiva ho dato **quattro letture direzionali, tutte su rotture, tutte fallite** — due stoppate,
+una annullata in due barre, una col bersaglio mai raggiunto. Vendere e comprare gli stessi bordi
+avrebbe funzionato tutte e quattro le volte.
+
+Il conteggio era gia' scritto nel file della giornata, **da me, un'ora prima**, e l'avevo messo li'
+come cronaca invece che come premessa.
+
+**Perche' le sette prove non bastano a evitarlo.** Le prove verificano che una condizione **separi
+il setup dal suo sosia**. Non verificano che il setup **significhi qualcosa oggi**: una condizione
+puo' essere perfetta, passare tutte e sette, e descrivere un evento che in questa seduta non
+anticipa niente. La prova e' sulla condizione; questa domanda e' sul mercato.
+
+**Non e' una regola di mean reverting.** Il fade dei bordi ha la sua fonte e i suoi vincoli nel
+dossier (Tier 02·A, righe 139-196) e questa sezione non li tocca. Dice solo che **il conteggio
+degli attraversamenti va guardato prima di dare una direzione su una rottura**, e che se dice
+"nessuno tiene", una lettura di rottura va data solo quando il regime cambia — cioe' quando un lato
+comincia a tenere.
+
+### Il Bersaglio Non Si Mette Oltre Una Fascia Con Delta Contrario
+
+**Regola: se fra ingresso e primo bersaglio c'e' una fascia del profilo con delta contrario
+superiore al p90 del profilo stesso, il bersaglio e' quella fascia — non quello che c'e' oltre.
+Se la fascia sta troppo vicino all'ingresso perche' il trade abbia senso, non si entra.**
+
+E' una regola su cosa si arma e dove si mette il target, non una lettura: si applica **prima**, con
+il profilo in mano, e non dipende da cosa fa il tape dopo.
+
+**Il caso.** Sempre il 18 settembre, LONG sulla ripresa di 4.423,30 alle 11:02. Fra l'ingresso e il
+bersaglio dichiarato c'era la fascia **4.425-4.430, delta −300 su 4.639 lotti**, e **l'avevo
+misurata e nominata come ostacolo nel momento stesso dell'ingresso**. Il trade e' stato stoppato
+per 4,7 punti senza mai arrivarci.
+
+Una fascia cosi' non e' "resistenza" in senso grafico: e' **inventario gia' venduto li'**, cioe'
+gente che a quel prezzo ha una ragione per agire di nuovo. Il prezzo ci passa attraverso solo
+consumandola, e consumarla e' un evento che si vede — non un'assunzione che si fa entrando.
+
+**Come si esegue, in tre righe:**
+
+1. si guarda il profilo della finestra dichiarata fra ingresso e bersaglio;
+2. si prende il **p90 del delta assoluto per fascia** di quel profilo;
+3. la prima fascia oltre quella soglia **con segno contrario alla direzione** diventa il bersaglio.
+
+Vale anche quando la fascia sta sopra il bersaglio: allora non cambia niente, e averlo verificato
+costa una misura.
 
 ---
 

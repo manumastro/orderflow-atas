@@ -1,0 +1,15 @@
+[
+ {"price": 4520.0, "label": "POC 3 set - il magnete oltre il vuoto, dove il volume riprende", "color": "#C27BA0", "style": "solid", "width": 3},
+ {"price": 4510.0, "label": "VAL 3 set - sopra si rientra nel valore del 3, bersaglio il POC", "color": "#6AA84F", "style": "dash", "width": 2},
+ {"price": 4490.0, "label": "VAH 4 set - sopra, il vuoto 4.490-4.510 si attraversa in fretta", "color": "#6AA84F", "style": "dash", "width": 2},
+ {"price": 4480.0, "label": "POC 4 set - terzo magnete, 45 pt", "color": "#C27BA0", "style": "solid", "width": 2},
+ {"price": 4460.0, "label": "POC 9 set - secondo magnete, 25 pt", "color": "#C27BA0", "style": "solid", "width": 2},
+ {"price": 4440.0, "label": "POC 8 set - primo magnete sopra, 5 pt", "color": "#C27BA0", "style": "solid", "width": 2},
+ {"price": 4439.8, "label": "Massimo notte - sopra, si apre la scala dei POC", "color": "#888888", "style": "dash", "width": 3},
+ {"price": 4430.0, "label": "POC della notte - baricentro, attraversato alle 11:53", "color": "#C27BA0", "style": "dash", "width": 2},
+ {"price": 4427.1, "label": "VAL 8 set = data del COT - il passo di Fabio: dove stavano i prezzi quando il posizionamento e' stato misurato", "color": "#E69138", "style": "dash", "width": 3},
+ {"price": 4423.3, "label": "Massimo di ieri - sotto, il rialzo notturno e' fallito", "color": "#CC0000", "style": "solid", "width": 3},
+ {"price": 4410.0, "label": "VAH ieri - sotto torna il mean reverting verso 4.405", "color": "#6AA84F", "style": "solid", "width": 2},
+ {"price": 4405.0, "label": "POC ieri e VERTICE del composito - venduto a delta -1.875", "color": "#C27BA0", "style": "solid", "width": 3},
+ {"price": 4372.2, "label": "Minimo notte - sotto, la notte e' annullata", "color": "#CC0000", "style": "solid", "width": 3}
+]

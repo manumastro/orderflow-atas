@@ -1,0 +1,64 @@
+[
+  {
+    "ora": "11:39",
+    "prezzo": 4422.5,
+    "tipo": "rottura",
+    "testo": "SHORT: perso il massimo di ieri 4.423,3, chiusura 4.422,50. Stop 4.426,80 sopra la mensola 4.425,1-4.426,6. Bersaglio 4.410 (VAH ieri, 12,5 pt) poi 4.405 (POC ieri = vertice composito, 17,5 pt).",
+    "misura": "barra 09:38Z 164 lotti delta -60 pos 0.10 - volume discreto non fuori scala (mediana Londra 102, p95 198); la rottura del 4.430 alle 09:25 ne aveva 378"
+  },
+  {
+    "ora": "13:02",
+    "prezzo": 4424.6,
+    "tipo": "rottura",
+    "testo": "LONG: ripreso il massimo di ieri 4.423,30 da sotto, chiusura 4.424,60. Stop 4.419,80 sotto il massimo del 11:00 e sotto la fascia da cui esce. Bersaglio 4.430 (POC notte, 5,5 pt) poi 4.433 (POC swing / VAH swing intero, 8,5 pt) poi 4.439,80 (15 pt).",
+    "misura": "barra 11:01Z 148 lotti delta +70 pos 0.72 - volume piu' alto da 90 minuti, delta 15m da -3,3% a +10,0%. ATTENZIONE: la fascia 4.425-4.430 ha delta -300 su 4.639 lotti, e' dove si e' venduto stamattina"
+  },
+  {
+    "ora": "13:05",
+    "prezzo": 4423.3,
+    "tipo": "rottura",
+    "testo": "il rialzo notturno rientra dentro la seduta di ieri",
+    "misura": "13:05 a 4418.30: vol 607, delta -142, 30m -11.4%. IMPLICA: il valore notturno 4.385-4.440 era distribuzione, non base: bersaglio il POC di ieri 4.400,00 con il 22,6% del volume, 23 punti = 2.300 $, e chi ha comprato stanotte sopra 4.423 e' sott'acqua ALTRIMENTI: un rientro sotto 4.423,30 recuperato entro tre barre e' una presa di profitto, non un fallimento: il valore notturno regge || LATO DI ARRIVO: si arriva da SOPRA, dal valore notturno. SOSIA: il ritracciamento ordinario verso il VAH di ieri 4.420, che attraversa lo stesso prezzo scendendo ma senza aggressione - lo separano delta <= -p95delta e dpct30 <= -2 insieme, cioe' la vendita deve essere fuori scala sulla barra E presente sui trenta minuti. TEMPI: barra singola. ATTENZIONE: 4.423,30 e 4.420,00 distano 3,3 punti; una rottura del primo che non prende il secondo non ha aperto niente, sono 330 $ di distanza. LIVELLO COPERTO NEI DUE SENSI: si', con 'il massimo di ieri regge da sopra'.",
+    "scenario": "il massimo di ieri viene ripreso da sopra",
+    "condizione": "chiude_sotto(4423.3) and vol >= p75vol and vol >= 250 and delta <= -p95delta and dpct30 <= -2",
+    "tema": "il rialzo notturno fallisce"
+  },
+  {
+    "ora": "13:06",
+    "prezzo": 4419.8,
+    "tipo": "nota",
+    "testo": "LONG STOPPATO. La ripresa del 4.423,30 data alle 11:02 e' durata quattro barre: stop 4.419,80 preso alle 11:05. Perdita 4,7 punti. Il 4.423,30 ha ora respinto CINQUE volte, e l'ultima con volume vero.",
+    "misura": "barra 11:05Z 607 lotti delta -142 chiusura 4.418,30 sul minimo (pos 0.08) - la barra piu' grande della giornata. Sequenza: +70 rottura, -71 annullamento, -142 liquidazione: il venditore della 11:03 stava costruendo, non prendendo profitto. Il segnale c'era ed era la fascia 4.425-4.430 a delta -300, dichiarata al momento dell'ingresso"
+  },
+  {
+    "ora": "13:30",
+    "prezzo": 4419.0,
+    "tipo": "rifiuto",
+    "testo": "la fascia sottile attraversata alle 09:44-09:45 respinge il ritorno da sotto",
+    "misura": "13:30 a 4416.90: vol 78, delta -26, 30m -7.2%. IMPLICA: il vuoto 4.415-4.420 (1.413 lotti, 2,4% del profilo notturno, delta -55) resta sopra la testa: bersaglio il VAH di ieri 4.410 (9 punti, 900 $) e poi il POC di ieri 4.405, che e' anche il vertice del composito a 13 sedute (14 punti, 1.400 $) ALTRIMENTI: se il prezzo resta sopra 4.418 il ritest non e' un rifiuto: la fascia e' stata ripresa e il ribasso delle 09:38-09:46 era un prelievo di liquidita' sotto il massimo di ieri || LATO DI ARRIVO: si arriva da SOTTO, il prezzo risale dentro la fascia rotta. SOSIA: la ripresa vera, che attraversa lo stesso prezzo salendo e prosegue verso 4.423,30 - la separano c < 4418 e pos <= 0,35 insieme, che chiedono la chiusura nel terzo basso del range E sotto il bordo. TEMPI: barra singola. NOTA SULLA COSTANTE: tocca() ha d=8 di default, un numero di NQ (800 $ su GC); qui e' passato esplicito a 1,5. ATTENZIONE: la barra 09:46 ha rifiutato il minimo 4.413,10 con 337 lotti, la seconda piu' pesante della mattina dopo i 378 della rottura: sotto c'e' un compratore vero, e se accompagna il prezzo fin qui il ritest non e' un ritest. LIVELLO COPERTO NEI DUE SENSI: si', con 'la fascia sottile viene ripresa'.",
+    "scenario": "la fascia sottile rotta respinge il ritest",
+    "condizione": "tocca(4419.0, 1.5) and c < 4418 and pos <= 0.35 and delta <= -p75vol/4 and dpct15 <= -2",
+    "tema": "rompi-e-ritesta della fascia 4.415-4.420",
+    "superata_da": "13:43"
+  },
+  {
+    "ora": "13:43",
+    "prezzo": 4417.0,
+    "tipo": "rottura",
+    "testo": "il pavimento della fascia 4.415-4.420 cede scendendo",
+    "misura": "13:43 a 4414.00: vol 177, delta -49, 30m -11.5%. IMPLICA: sotto 4.415 il profilo si assottiglia: 4.410-4.415 ha solo il 3,3% del volume con delta -78, cioe' il primo tratto che il prezzo attraversa in fretta. Primo bersaglio 4.410 (7 punti, 700 $), secondo il POC di ieri 4.405 che e' anche il vertice del composito a 13 sedute (12 punti, 1.200 $). E chi ha comprato la fascia 4.415-4.420 (delta +48) resta sott'acqua ALTRIMENTI: una chiusura sotto 4.417 recuperata entro tre barre e' il prelievo di liquidita' sotto il minimo delle 11:05 (4.416,80), non una rottura: la fascia regge e il bersaglio torna 4.423,30 || LATO DI ARRIVO: si arriva da SOPRA, il prezzo scende dentro la fascia e ne esce sotto. SOSIA: lo stoppino comprato, esattamente la barra 11:06 di oggi (minimo 4.416,80 e chiusura in cima al corpo) - lo separano pos <= 0,35 e chiude_sotto(4.417) insieme, che chiedono la chiusura nel terzo basso E sotto tutto il pavimento, non un minimo bucato. TEMPI: barra singola. SOGLIE: nessun pavimento assoluto in lotti, solo p75vol, perche' il libro delle 10:30-11:30 ha mediana 49 e p95 148 - un numero fisso preso da stamattina (mediana 102) qui non scatterebbe mai. LIVELLO COPERTO NEI DUE SENSI: si', con 'la fascia sottile rotta respinge il ritest' e 'la fascia sottile viene ripresa', che coprono l'arrivo da sotto.",
+    "scenario": "la fascia sottile cede da sopra",
+    "condizione": "minuti_sotto(4417.0, 10) <= 3 and chiude_sotto(4417.0) and vol >= p75vol and pos <= 0.35 and delta <= -p75vol/4 and dpct15 <= -5",
+    "tema": "rompi-e-ritesta della fascia 4.415-4.420"
+  },
+  {
+    "ora": "15:02",
+    "prezzo": 4405.0,
+    "tipo": "rottura",
+    "testo": "il POC di ieri e vertice del composito viene riperso dall'alto con partecipazione",
+    "misura": "15:02 a 4404.60: vol 313, delta -29, 30m +3.3%. IMPLICA: annulla l'intero recupero delle 12:30-12:36 e rimette in gioco il minimo 4.392,40. Sotto 4.405 la prima fascia che si oppone davvero e' il 4.395-4.400 a delta +585, la piu' comprata dell'intero profilo: per la regola della fascia contraria il bersaglio e' 4.400,00, dove quella fascia comincia - cinque punti, non i tredici fino al minimo. Chi ha comprato il 4.405-4.415 nell'ultima mezz'ora resta intrappolato ed e' lui a dover agire ALTRIMENTI: una chiusura sotto 4.405 senza volume ne' delta e' il settimo passaggio su un livello che oggi e' stato attraversato in entrambi i sensi nello stesso quarto d'ora || LATO DI ARRIVO: si arriva da SOPRA, codificato in minuti_sotto(4405.0, 10) <= 3 - il contrario dei due scenari sul 4.415, e serve perche' il 4.405 e' stato tetto fino alle 12:32 e pavimento da allora. SOSIA: il rifiuto del 4.405 dall'alto, che ha lo stesso minimo sotto e lo stesso corpo in basso; li separa chiude_sotto(4405.0), che pretende la chiusura PRECEDENTE sopra e questa sotto, piu' delta <= -p75delta. TEMPI: barra singola. VERSO: NESSUN PERMESSO. LIVELLO COPERTO NEI DUE SENSI: parzialmente - il 4.405 arrivato da sotto e' gia' coperto dallo storico 'tiene 4423.3'? NO, non lo e': questo scenario copre solo l'arrivo DA SOPRA. L'arrivo da sotto non serve piu' armarlo perche' e' gia' avvenuto alle 12:32 e ha prodotto il long a bersaglio.",
+    "scenario": "il 4.405 cede da sopra e il recupero si annulla",
+    "condizione": "minuti_sotto(4405.0, 10) <= 3 and chiude_sotto(4405.0) and vol >= p75vol and vol >= 250 and delta <= -p75delta",
+    "tema": "il POC di ieri come pavimento"
+  }
+]

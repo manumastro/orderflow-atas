@@ -145,6 +145,30 @@ def main() -> int:
         if not visto:
             print("  nessuna riga di framing riconosciuta: aprire il file a mano")
 
+    # 4bis ---------------------------------------------- il quadro: framing + COT
+    # Sta qui, automatico, e non a richiesta. La location (dove si e' costruito il valore, dove
+    # sono i POC, dove sono i vuoti) e il posizionamento (chi e' lungo, con che ritardo) sono
+    # CONTESTO: vanno messi davanti agli occhi prima che la risposta cominci, non cercati quando
+    # qualcuno li chiede. Procedura in metodo/il-framing-e-il-cot-si-leggono-insieme.md.
+    titolo("4bis", "IL QUADRO — PROFILE FRAMING E COT")
+    q, fonte = "", ""
+    for f in [oggi] + ([prec[-1]] if prec else []):
+        if f and f.exists():
+            m = re.search(r"<!-- QUADRO -->(.*?)<!-- /QUADRO -->", f.read_text(), re.S)
+            if m and m.group(1).strip():
+                q, fonte = m.group(1).strip(), f.name
+                break
+    if q:
+        if fonte != oggi.name:
+            print(f"  ATTENZIONE: nessun quadro per oggi, questo viene da {fonte} ed e' vecchio")
+        for r in q.splitlines()[:26]:
+            print(f"  {r}")
+    else:
+        print("  NESSUN QUADRO. Il framing e il COT non sono stati fatti, o non sono stati")
+        print("  scritti fra <!-- QUADRO --> e <!-- /QUADRO --> nel file della giornata.")
+        print("  Procedura: docs/research/metodo/il-framing-e-il-cot-si-leggono-insieme.md")
+        print("  Una lettura data senza il quadro e' una lettura sulle ultime barre.")
+
     # 5 ------------------------------------------------------------ cosa e' scattato
     titolo(5, "COSA E' GIA' SCATTATO OGGI (dal diario, non dedotto)")
     ann = GIORNATE / f"annotazioni-{g}.json"

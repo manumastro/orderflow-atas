@@ -1,0 +1,10 @@
+[
+ {"price": 29926.5, "label": "Massimo contratto a libro vero - sopra, nessun riferimento", "color": "#888888", "style": "dash", "width": 3},
+ {"price": 29900.0, "label": "Tondo comprato stanotte - sotto, i lunghi del rialzo vanno sott'acqua", "color": "#6AA84F", "style": "solid", "width": 2},
+ {"price": 29846.0, "label": "Meta' ultima gamba - primo bersaglio del ritracciamento", "color": "#E69138", "style": "dash", "width": 2},
+ {"price": 29793.25, "label": "Massimo cash di ieri - sotto, il rialzo notturno e' rientrato", "color": "#CC0000", "style": "solid", "width": 3},
+ {"price": 29750.0, "label": "VAH cash ieri - sotto torna il mean reverting verso 29.725", "color": "#6AA84F", "style": "solid", "width": 2},
+ {"price": 29725.0, "label": "POC cash ieri - 100.671 lotti assorbiti, i venditori tornano in pari", "color": "#C27BA0", "style": "solid", "width": 3},
+ {"price": 29675.0, "label": "POC globex - bersaglio del ribasso pieno", "color": "#C27BA0", "style": "dash", "width": 2},
+ {"price": 29648.0, "label": "Minimo globex - sotto, la notte e' annullata", "color": "#CC0000", "style": "solid", "width": 3}
+]
