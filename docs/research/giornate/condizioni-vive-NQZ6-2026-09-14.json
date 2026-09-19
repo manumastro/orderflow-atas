@@ -1,0 +1,14 @@
+[
+  {"nome": "mensola 29142", "tipo": "chiusure_sotto", "livello": 29142, "barre": 3,
+   "note": "se rompe con corpo, tutta la salita da qui e' uno stoppino"},
+
+  {"nome": "reload 29237", "tipo": "chiusure_sopra", "livello": 29237, "barre": 2,
+   "note": "VAH Europa: due chiuse sopra e' accettazione, non una punta"},
+
+  {"nome": "big trade sopra 29237", "tipo": "big_trade_sopra", "livello": 29237,
+   "soglia": 60, "da": "13:30Z", "almeno": 1,
+   "note": "senza questo la rottura di 29237 e' senza speed of tape"},
+
+  {"nome": "test POC Asia 29318", "tipo": "chiusure_sopra", "livello": 29318, "barre": 2,
+   "note": "cuore del volume abbandonato: sopra con corpo e' il momentum che ha comprato la notte intera"}
+]

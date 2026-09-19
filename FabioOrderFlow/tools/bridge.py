@@ -106,6 +106,14 @@ def send(base: str, path: str, method: str, params: dict | None = None, body=Non
         raise SystemExit(f"{path} -> il bridge non risponde su {base} ({error.reason}).") from None
 
 
+def parse_watch_line(raw: str) -> dict:
+    """`testo[:colore]`, cosi' una riga del pannello si scriva senza JSON."""
+    parts = raw.rsplit(":", 1)
+    if len(parts) == 2 and parts[1] and not parts[1].startswith(("http", "//")):
+        return {"text": parts[0], "color": parts[1]}
+    return {"text": raw}
+
+
 def parse_level(raw: str) -> dict:
     """`prezzo[:etichetta[:colore[:stile]]]`, cosi' che un livello si scriva senza JSON.
 
@@ -271,6 +279,12 @@ def main() -> None:
     levels.add_argument("--file", help="JSON con l'elenco dei livelli, in alternativa a --set; `-` legge da stdin")
     levels.add_argument("--clear", action="store_true", help="cancella i livelli del chart")
 
+    watch = add("watch")
+    watch.add_argument("--set", action="append", default=[], metavar="TESTO[:COLORE]",
+                       help="riga da depositare sul pannello; ripetibile")
+    watch.add_argument("--file", help="JSON con l'elenco delle righe, in alternativa a --set; `-` legge da stdin")
+    watch.add_argument("--clear", action="store_true", help="cancella il pannello del chart")
+
     depth = add("depth")
     depth.add_argument("--from", dest="begin", required=True)
     depth.add_argument("--to", dest="end", required=True)
@@ -279,7 +293,18 @@ def main() -> None:
     args = parser.parse_args()
     args.base = discover(args.base)
 
-    if args.command == "levels":
+    if args.command == "watch":
+        if args.clear:
+            payload = send(args.base, "/watch", "DELETE", {"chart": args.chart})
+        elif args.set or args.file:
+            if args.file:
+                body = json.load(sys.stdin) if args.file == "-" else json.load(open(args.file))
+            else:
+                body = [parse_watch_line(x) for x in args.set]
+            payload = send(args.base, "/watch", "POST", {"chart": args.chart}, body)
+        else:
+            payload = get(args.base, "/watch", {"chart": args.chart})
+    elif args.command == "levels":
         if args.clear:
             payload = send(args.base, "/levels", "DELETE", {"chart": args.chart})
         elif args.set or args.file:

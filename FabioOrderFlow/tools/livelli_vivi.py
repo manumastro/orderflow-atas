@@ -241,7 +241,9 @@ def main() -> None:
                     quali = "primo deposito" if not precedenti else f"{mossi} mossi"
                     print(f"  -> {len(prezzi)} livelli, {quali}")
                     precedenti = prezzi
-            except Exception as errore:  # un giro fallito non deve spegnere la sorveglianza
+            except (Exception, SystemExit) as errore:  # SystemExit: bridge.py lo usa per il bridge
+                                            # irraggiungibile (es. ATAS in riavvio) - non deve
+                                            # spegnere il ciclo, che deve continuare a riprovare
                 print(f"  ! giro saltato: {errore}")
             sys.stdout.flush()
             time.sleep(args.ogni)

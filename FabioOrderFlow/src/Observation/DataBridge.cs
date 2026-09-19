@@ -9,6 +9,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using ATAS.Indicators;
 using OFT.Rendering.Context;
+using OFT.Rendering.Control;
 using OFT.Rendering.Tools;
 using Utils.Common.Logging;
 
@@ -93,6 +94,16 @@ public sealed class DataBridge : Indicator
     private DateTime _levelsUpdatedUtc = DateTime.MinValue;
 
     /// <summary>
+    /// Le righe del pannello: testo che non sta su un prezzo, e quindi non e' un livello. Serve
+    /// a mostrare una condizione che l'analisi ricalcola in continuo - "chiusure sopra 3/3",
+    /// "big trade sopra il livello: 0" - senza dover aspettare che qualcuno lo chieda a parole.
+    /// Stessa idea dei livelli: l'indicatore disegna, non calcola. Chi scrive qui e' l'analisi.
+    /// </summary>
+    private volatile BridgeWatchLine[] _watch = Array.Empty<BridgeWatchLine>();
+
+    private DateTime _watchUpdatedUtc = DateTime.MinValue;
+
+    /// <summary>
     /// I livelli sopravvivono a un riavvio di ATAS e a un redeploy della DLL. Senza questo
     /// vanno persi a ogni ricarica dell'indicatore, che durante lo sviluppo succede spesso e
     /// che per chi guarda il chart e' semplicemente il lavoro che sparisce. Il file e' uno
@@ -103,6 +114,12 @@ public sealed class DataBridge : Indicator
         Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".fabio-data-bridge-levels.json");
 
     private static readonly object LevelsStoreSync = new();
+
+    /// <summary>Stessa idea dei livelli, per il pannello di testo: un file, una voce per strumento.</summary>
+    private static readonly string WatchStorePath = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".fabio-data-bridge-watch.json");
+
+    private static readonly object WatchStoreSync = new();
 
     public DataBridge()
     {
@@ -141,6 +158,29 @@ public sealed class DataBridge : Indicator
     [Range(0, 400)]
     public int LabelMargin { get; set; } = 8;
 
+    [Display(Name = "Short labels", GroupName = "Levels",
+        Description = "Mostra solo la parte prima di ' · ' (es. 'VAH Europa') e il testo intero " +
+                       "solo al passaggio del mouse sulla riga. Spento, l'etichetta e' sempre intera.")]
+    public bool ShortLabels { get; set; } = true;
+
+    [Display(Name = "Line extent", GroupName = "Levels",
+        Description = "Quanto si estende la riga a sinistra dal bordo destro, in pixel. Basso per " +
+                       "un chart pulito con solo l'etichetta vicino al prezzo attuale; alto per " +
+                       "vedere la riga sulla seduta intera.")]
+    [Range(0, 4000)]
+    public int LevelLineExtent { get; set; } = 160;
+
+    [Display(Name = "Show watch panel", GroupName = "Watch", Description = "Disegna il pannello depositato su /watch.")]
+    public bool ShowWatch { get; set; } = true;
+
+    [Display(Name = "Font size", GroupName = "Watch")]
+    [Range(6, 24)]
+    public int WatchFontSize { get; set; } = 12;
+
+    [Display(Name = "Margin", GroupName = "Watch", Description = "Distanza dal bordo superiore e destro, in pixel.")]
+    [Range(0, 400)]
+    public int WatchMargin { get; set; } = 12;
+
     protected override void OnCalculate(int bar, decimal value)
     {
     }
@@ -150,6 +190,7 @@ public sealed class DataBridge : Indicator
         base.OnInitialize();
         Register();
         RestoreLevels();
+        RestoreWatch();
     }
 
     protected override void OnDispose()
@@ -436,6 +477,7 @@ public sealed class DataBridge : Indicator
                 "/cumulative" => await CumulativeAsync(query, cancellation).ConfigureAwait(false),
                 "/depth" => await DepthAsync(query, cancellation).ConfigureAwait(false),
                 "/levels" => await LevelsAsync(context).ConfigureAwait(false),
+                "/watch" => await WatchAsync(context).ConfigureAwait(false),
             "/charts" => throw new BridgeException(500, "handled by the hub"),
                 _ => throw new BridgeException(404, $"unknown endpoint '{path}'"),
             };
@@ -624,6 +666,152 @@ public sealed class DataBridge : Indicator
         public BridgeLevel[]? Levels { get; init; }
     }
 
+    // ---------------------------------------------------------------- pannello (watch)
+
+    /// <summary>
+    /// Una riga del pannello. Nessun prezzo: sta in un angolo fisso dello schermo, non su una
+    /// candela, perche' quello che deve mostrare - una condizione, un conteggio - non ha un
+    /// prezzo proprio.
+    /// </summary>
+    private sealed record BridgeWatchLine
+    {
+        public string Text { get; init; } = "";
+
+        /// <summary>Esadecimale <c>#RRGGBB</c> o <c>#AARRGGBB</c>; omesso usa il colore di default.</summary>
+        public string? Color { get; init; }
+    }
+
+    private sealed record WatchRequest
+    {
+        public BridgeWatchLine[]? Lines { get; init; }
+    }
+
+    private void RestoreWatch()
+    {
+        var instrument = InstrumentInfo?.Instrument;
+        if (string.IsNullOrWhiteSpace(instrument))
+        {
+            return;
+        }
+
+        try
+        {
+            var store = ReadWatchStore();
+            if (store.TryGetValue(instrument, out var saved) && saved.Length > 0)
+            {
+                _watch = saved;
+                _watchUpdatedUtc = DateTime.UtcNow;
+            }
+        }
+        catch (Exception exception)
+        {
+            this.LogError("FofDataBridge could not restore the saved watch panel.", exception);
+        }
+    }
+
+    private static Dictionary<string, BridgeWatchLine[]> ReadWatchStore()
+    {
+        if (!File.Exists(WatchStorePath))
+        {
+            return new Dictionary<string, BridgeWatchLine[]>(StringComparer.OrdinalIgnoreCase);
+        }
+
+        var json = File.ReadAllText(WatchStorePath);
+        return JsonSerializer.Deserialize<Dictionary<string, BridgeWatchLine[]>>(json, JsonOptions)
+               ?? new Dictionary<string, BridgeWatchLine[]>(StringComparer.OrdinalIgnoreCase);
+    }
+
+    private void PersistWatch()
+    {
+        var instrument = InstrumentInfo?.Instrument;
+        if (string.IsNullOrWhiteSpace(instrument))
+        {
+            return;
+        }
+
+        try
+        {
+            lock (WatchStoreSync)
+            {
+                var store = ReadWatchStore();
+                if (_watch.Length == 0)
+                {
+                    store.Remove(instrument);
+                }
+                else
+                {
+                    store[instrument] = _watch;
+                }
+
+                File.WriteAllText(WatchStorePath, JsonSerializer.Serialize(store, JsonOptions));
+            }
+        }
+        catch (Exception exception)
+        {
+            this.LogError("FofDataBridge could not save the watch panel.", exception);
+        }
+    }
+
+    private async Task<object> WatchAsync(HttpListenerContext context)
+    {
+        var method = context.Request.HttpMethod.ToUpperInvariant();
+
+        if (method is "DELETE")
+        {
+            _watch = Array.Empty<BridgeWatchLine>();
+            _watchUpdatedUtc = DateTime.UtcNow;
+            PersistWatch();
+            Repaint();
+            return WatchPayload();
+        }
+
+        if (method is "POST" or "PUT")
+        {
+            using var reader = new StreamReader(context.Request.InputStream, Encoding.UTF8);
+            var body = await reader.ReadToEndAsync().ConfigureAwait(false);
+            if (string.IsNullOrWhiteSpace(body))
+            {
+                throw new BridgeException(400, "empty body: send a JSON array of lines, or {\"lines\": [...]}");
+            }
+
+            BridgeWatchLine[]? parsed;
+            try
+            {
+                var trimmed = body.TrimStart();
+                parsed = trimmed.StartsWith('[')
+                    ? JsonSerializer.Deserialize<BridgeWatchLine[]>(body, JsonOptions)
+                    : JsonSerializer.Deserialize<WatchRequest>(body, JsonOptions)?.Lines;
+            }
+            catch (JsonException exception)
+            {
+                throw new BridgeException(400, $"malformed JSON: {exception.Message}");
+            }
+
+            if (parsed is null)
+            {
+                throw new BridgeException(400, "no lines in the request");
+            }
+
+            _watch = parsed;
+            _watchUpdatedUtc = DateTime.UtcNow;
+            PersistWatch();
+            Repaint();
+            return WatchPayload();
+        }
+
+        return WatchPayload();
+    }
+
+    private object WatchPayload() => new
+    {
+        schema = Schema,
+        chart = _id,
+        instrument = InstrumentInfo?.Instrument,
+        updatedUtc = Iso(_watchUpdatedUtc),
+        count = _watch.Length,
+        lines = _watch.Select(l => new { text = l.Text, color = l.Color }),
+    };
+
     /// <summary>
     /// Ridisegna subito invece di aspettare il prossimo evento del chart: chi deposita i livelli
     /// da riga di comando si aspetta di vederli comparire, non al primo movimento del mouse.
@@ -701,10 +889,62 @@ public sealed class DataBridge : Indicator
     };
 #pragma warning restore CA1416
 
+    /// <summary>
+    /// Il bordo destro dei DATI, non del pannello: <c>ChartArea</c> arriva fino a includere la
+    /// scala dei prezzi, e ancorare li' un'etichetta o un pannello li fa finire sotto i numeri
+    /// dell'asse (o dietro la sidebar del prezzo). L'ultima barra visibile e' dentro l'area dei
+    /// dati per costruzione, quindi la sua X e' un bordo sicuro qualunque sia la larghezza
+    /// della scala. Usato sia dai livelli sia dal pannello: era duplicato e i due potevano
+    /// divergere - il pannello lo aveva saltato ed e' finito dietro la sidebar (19 settembre).
+    /// </summary>
+    private int DataAreaRight(Rectangle area)
+    {
+        var dataRight = area.Right;
+        try
+        {
+            var container = ChartInfo?.PriceChartContainer;
+            if (container is not null)
+            {
+                var lastBarX = ChartInfo!.GetXByBar(container.LastVisibleBarNumber, false);
+                if (lastBarX > area.Left)
+                {
+                    dataRight = Math.Min(dataRight, lastBarX);
+                }
+            }
+        }
+        catch
+        {
+            // Se il container non e' pronto si resta sul bordo dell'area: peggio l'etichetta
+            // spostata che niente disegnato.
+        }
+        return dataRight;
+    }
+
+    /// <summary>
+    /// Il tooltip dell'etichetta corta dipende dalla posizione del mouse, che ATAS non ridisegna
+    /// da sola a ogni movimento se il chart non sta cambiando: senza questo, passare il mouse
+    /// su una riga non mostrerebbe niente finche' non arriva un tick nuovo.
+    /// </summary>
+    public override bool ProcessMouseMove(RenderControlMouseEventArgs e)
+    {
+        if (ShowLevels && ShortLabels)
+        {
+            Repaint();
+        }
+        return base.ProcessMouseMove(e);
+    }
+
     protected override void OnRender(RenderContext context, DrawingLayouts layout)
     {
+        if (ChartInfo is null)
+        {
+            return;
+        }
+
+        RenderWatchPanel(context);
+
         var levels = _levels;
-        if (!ShowLevels || levels.Length == 0 || ChartInfo is null)
+        if (!ShowLevels || levels.Length == 0)
         {
             return;
         }
@@ -716,24 +956,10 @@ public sealed class DataBridge : Indicator
         // l'etichetta a area.Right la fa finire sotto i numeri dell'asse. L'ultima barra
         // visibile e' dentro l'area dei dati per costruzione, quindi la sua X e' un bordo
         // destro sicuro qualunque sia la larghezza dell'asse.
-        var dataRight = area.Right;
-        try
-        {
-            var container = ChartInfo.PriceChartContainer;
-            if (container is not null)
-            {
-                var lastBarX = ChartInfo.GetXByBar(container.LastVisibleBarNumber, false);
-                if (lastBarX > area.Left)
-                {
-                    dataRight = Math.Min(dataRight, lastBarX);
-                }
-            }
-        }
-        catch
-        {
-            // Se il container non e' pronto si resta sul bordo dell'area: peggio l'etichetta
-            // spostata che nessun livello disegnato.
-        }
+        var dataRight = DataAreaRight(area);
+
+        var mouse = MouseLocationInfo is { IsMouseLeave: false } info ? info.LastPosition : (Point?)null;
+        (string Text, Color Color, Point At)? tooltip = null;
 
         foreach (var level in levels)
         {
@@ -745,21 +971,99 @@ public sealed class DataBridge : Indicator
 
             var color = ParseColor(level.Color);
             var pen = new RenderPen(color, Math.Clamp(level.Width, 1, 5), DashOf(level.Style));
-            context.DrawLine(pen, area.Left, y, dataRight, y);
+            // La riga si ferma a LevelLineExtent pixel dal bordo destro, non attraversa tutto il
+            // chart: il 19 settembre le righe intere, insieme al pannello e alle candele, erano
+            // troppa roba sullo schermo. La linea corta tiene il punto di riferimento vicino al
+            // prezzo attuale, dove serve, senza tagliare la seduta intera in orizzontale.
+            var lineLeft = Math.Max(area.Left, dataRight - LevelLineExtent);
+            context.DrawLine(pen, lineLeft, y, dataRight, y);
 
-            var text = string.IsNullOrWhiteSpace(level.Label)
-                ? level.Price.ToString("0.##", CultureInfo.InvariantCulture)
-                : $"{level.Label}  {level.Price.ToString("0.##", CultureInfo.InvariantCulture)}";
+            var priceText = level.Price.ToString("0.##", CultureInfo.InvariantCulture);
+            var fullText = string.IsNullOrWhiteSpace(level.Label) ? priceText : $"{level.Label}  {priceText}";
+            // La parte prima di ' · ' e' la convenzione del metodo per il nome del livello: il
+            // resto e' la misura che lo sostiene (vedi livelli-sul-chart.md). E' quella la riga
+            // che serve per riconoscerlo al volo; il resto si legge passando il mouse, non prima.
+            var shortText = ShortLabels && level.Label is { } label
+                ? $"{label.Split(" · ", 2)[0]}  {priceText}"
+                : fullText;
 
-            var size = context.MeasureString(text, font);
+            var size = context.MeasureString(shortText, font);
             var x = LabelOnRight
                 ? Math.Max(area.Left + LabelMargin, dataRight - size.Width - LabelMargin)
                 : area.Left + LabelMargin;
 
             // Fondo pieno dietro l'etichetta: sopra un footprint denso il testo nudo e' illeggibile.
-            context.FillRectangle(Color.FromArgb(190, 0, 0, 0),
-                new Rectangle(x - 3, y - size.Height - 2, size.Width + 6, size.Height + 2));
-            context.DrawString(text, font, color, x, y - size.Height - 1);
+            var labelBox = new Rectangle(x - 3, y - size.Height - 2, size.Width + 6, size.Height + 2);
+            context.FillRectangle(Color.FromArgb(190, 0, 0, 0), labelBox);
+            context.DrawString(shortText, font, color, x, y - size.Height - 1);
+
+            if (ShortLabels && shortText != fullText && mouse is { } m)
+            {
+                var lineBand = new Rectangle(lineLeft, y - 4, dataRight - lineLeft, 8);
+                if (labelBox.Contains(m) || lineBand.Contains(m))
+                {
+                    tooltip = (fullText, color, m);
+                }
+            }
+        }
+
+        if (tooltip is { } t)
+        {
+            var size = context.MeasureString(t.Text, font);
+            const int pad = 6;
+            var boxX = Math.Min(t.At.X + 14, dataRight - size.Width - pad * 2);
+            var boxY = t.At.Y - size.Height - pad * 2 - 4;
+            context.FillRectangle(Color.FromArgb(235, 15, 15, 15),
+                new Rectangle(boxX, boxY, size.Width + pad * 2, size.Height + pad * 2));
+            context.DrawString(t.Text, font, t.Color, boxX + pad, boxY + pad);
+        }
+    }
+
+    /// <summary>
+    /// Disegna il pannello in un angolo fisso dello schermo, non sul prezzo: le righe restano
+    /// leggibili qualunque candela sia in vista, e si aggiornano da sole a ogni chiamata di
+    /// OnRender - che ATAS invoca a ogni tick - senza bisogno di un nuovo POST per ogni ridisegno.
+    /// Il contenuto cambia solo quando l'analisi esterna deposita nuove righe: il refresh visivo
+    /// e' gratis, il refresh del DATO dipende da chi scrive su /watch.
+    /// </summary>
+    private void RenderWatchPanel(RenderContext context)
+    {
+        var lines = _watch;
+        if (!ShowWatch || lines.Length == 0)
+        {
+            return;
+        }
+
+        var area = ChartArea;
+        var dataRight = DataAreaRight(area);
+        var font = new RenderFont("Arial", WatchFontSize);
+
+        var widest = 0;
+        var lineHeight = 0;
+        var sizes = new Size[lines.Length];
+        for (var i = 0; i < lines.Length; i++)
+        {
+            sizes[i] = context.MeasureString(lines[i].Text, font);
+            widest = Math.Max(widest, sizes[i].Width);
+            lineHeight = Math.Max(lineHeight, sizes[i].Height);
+        }
+
+        const int padding = 8;
+        const int lineGap = 3;
+        var boxWidth = widest + padding * 2;
+        var boxHeight = lines.Length * (lineHeight + lineGap) - lineGap + padding * 2;
+        var x = Math.Max(area.Left, dataRight - WatchMargin - boxWidth);
+        var y = area.Top + WatchMargin;
+
+        context.FillRectangle(Color.FromArgb(200, 20, 20, 20),
+            new Rectangle(x, y, boxWidth, boxHeight));
+
+        var textY = y + padding;
+        foreach (var (line, size) in lines.Zip(sizes))
+        {
+            var color = ParseColor(line.Color);
+            context.DrawString(line.Text, font, color, x + padding, textY);
+            textY += size.Height + lineGap;
         }
     }
 
