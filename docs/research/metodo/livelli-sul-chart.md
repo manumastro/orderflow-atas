@@ -29,8 +29,10 @@ ATAS  ◀──POST /levels──  bridge.py levels --file  ──────�
 - **I livelli si derivano nell'analisi**, con il metodo di
   [`profile-framing.md`](profile-framing.md), e si scrivono in un file.
 
-Conseguenza da tenere presente: **i livelli sono una fotografia, non sono vivi.** Restano quelli
-finche' qualcuno non rifa' il POST. Vanno rifatti quando la seduta ne costruisce di nuovi.
+Conseguenza da tenere presente: **l'indicatore non aggiorna niente da solo.** I livelli restano
+quelli finche' qualcuno non rifa' il POST. Quelli che si muovono — POC, bordi del valore, estremi
+di sessione — si ridepositano con `livelli_vivi.py`, che risolve la regola invece del prezzo: vedi
+*I Livelli Fissi E I Livelli Vivi*.
 
 ## Dove Vivono
 
@@ -164,6 +166,101 @@ carattere.
 3. **Lo stato**, quando e' cambiato: `rotta 06:21`, `test senza compratori`.
 
 Quello che non ci va e' la previsione. Un'etichetta dice cosa e' successo li', non cosa succedera'.
+
+## I Livelli Fissi E I Livelli Vivi
+
+**Alcuni livelli descrivono un fatto chiuso, altri descrivono una misura che si muove da sola.**
+Tenerli nello stesso elenco statico significa che i secondi invecchiano mentre nessuno se ne
+accorge, perche' sul chart hanno lo stesso aspetto dei primi.
+
+| | esempi | quando cambia |
+|---|---|---|
+| **fisso** | il minimo della notte, il bordo di un nodo, una mensola difesa quattro volte, il prezzo del COT | solo se il prezzo ci ripassa e ne cambia la **funzione**: allora si riscrive l'etichetta, non il numero |
+| **vivo** | POC, VAH, VAL, massimo e minimo della finestra in sviluppo, il bordo della fascia piu' pesante | **a ogni barra** |
+
+Un livello vivo non si ricalcola a mano a ogni lettura: si **dichiara la regola** in
+`docs/research/giornate/livelli-vivi-STRUMENTO-AAAA-MM-GG.json`, e
+[`FabioOrderFlow/tools/livelli_vivi.py`](../../../FabioOrderFlow/tools/livelli_vivi.py) la
+risolve contro il bridge e rideposita tutto.
+
+```json
+{"nome": "POC cash", "tipo": "poc", "finestra": {"da": "13:30Z"},
+ "label": "POC cash {pct} · bersaglio del mean reverting dentro la seduta",
+ "color": "#4FC3F7", "style": "solid", "width": 3}
+```
+
+`{prezzo}`, `{pct}`, `{lotti}` e `{delta}` vengono sostituiti con la misura corrente: l'etichetta
+porta il peso del livello senza che si debba tornare al documento, come chiede la sezione *Cosa
+Rende Un'Etichetta Utile*.
+
+La separazione e' la stessa di `scenari.py`: **il programma e' il motore, le condizioni stanno in
+un file che si riscrive ogni volta.** Quali finestre, quale granularita', quali nodi contano sono
+convenzioni dell'analisi, e devono restare leggibili in un file, non finire dentro il codice.
+
+```bash
+# ricalcola e rideposita, cancellando prima tutto
+python3 FabioOrderFlow/tools/livelli_vivi.py \
+        docs/research/giornate/livelli-vivi-NQZ6-2026-09-14.json --chart NQZ6
+
+# solo calcolo, per controllare prima di scrivere sul grafico
+python3 FabioOrderFlow/tools/livelli_vivi.py ... --chart NQZ6 --prova
+```
+
+### Si Cancella Sempre Prima Di Scrivere
+
+**Il deposito comincia da un `DELETE`, verifica che il chart sia a zero, e solo allora scrive.**
+Non e' ridondante rispetto al fatto che il POST sostituisca la lista: e' la prova che si stia
+parlando col chart giusto. Se la cancellazione finisce altrove il conteggio non torna a zero e il
+programma si ferma li', invece di lasciare due elenchi su due chart e far scoprire l'errore
+guardando il grafico.
+
+Il 19 settembre, aprendo un replay del 14, sul chart c'erano ancora **otto livelli del 18
+settembre**, fra 29.648 e 29.926: quattrocento punti sopra un mercato che girava a 29.130. Non
+erano sbagliati, erano di un altro giorno — ed e' esattamente il caso in cui un residuo non si
+riconosce come tale, perche' un livello vecchio e un livello nuovo si disegnano uguali.
+
+### Due Griglie, E Vanno Dichiarate
+
+Il POC e i bordi del valore **non si cercano sul tick**. Il volume di una notte si distribuisce su
+piu' di mille prezzi da un quarto di punto, e il singolo tick piu' scambiato puo' cadere fuori dal
+cuore del volume.
+
+Il 14 settembre, sulla notte intera: POC sul tick **29.150**, POC su griglia da un punto
+**29.318**. La fascia da 25 punti piu' pesante era 29.300-29.324 con il 17,9% del volume, contro
+il 13,7% di 29.150-29.174. **Il POC sul tick indicava la seconda fascia**, e sul chart sarebbe
+stato un POC che non era il POC.
+
+Quindi due griglie, entrambe dichiarate accanto al numero:
+
+- **`grana`**, default **1 punto**: su questa si cercano POC, VAH e VAL.
+- **`passo`**, default **25 punti**: su questa si misurano i nodi e le percentuali delle etichette.
+
+### Livelli Che Coincidono
+
+Due livelli a meno di **otto punti** non si disegnano entrambi: le etichette si sovrappongono e il
+chart perde due informazioni invece di guadagnarne una. Cade il secondo in ordine di dichiarazione
+— l'ordine nel file e' la priorita' scelta dall'analisi — e il programma stampa quale e' caduto.
+
+**Che due misure coincidano e' un fatto, e va nella lettura, non sul grafico.** Il POC della notte
+che scende sul POC europeo dice che il cuore del volume si e' spostato: e' una frase, non due righe
+sovrapposte.
+
+**L'ordine nel file e' quindi una priorita', non un elenco.** Il 14 settembre, ordinato per prezzo,
+il diradamento buttava via il **POC della cash** — cioe' il livello su cui si appoggia il mean
+reverting — per tenere un bordo di nodo che gli stava a cinque punti. Si dichiarano per primi i
+livelli su cui si costruisce la lettura, e per ultimi quelli di contesto.
+
+### Una Finestra Appena Aperta Non Ha Un Profilo
+
+`minimo_lotti` tiene un livello vivo fuori dal chart finche' la sua finestra non ha scambiato
+abbastanza. Nei primi minuti della cash **tutto il volume sta in una fascia sola**: il POC dice
+*"89% del volume"* perche' non c'e' nient'altro, e il VAH col VAL gli stanno addosso. Non e' una
+misura prematura, e' una misura falsa — un bordo del valore che non e' bordo di niente, esattamente
+l'errore del 16 settembre ma dall'altro capo della giornata.
+
+Sulla cash NQ la soglia usata e' **15.000 lotti**, circa i primi otto minuti. Non e' una costante
+del metodo: e' la scelta di quel giorno, e come tutte le soglie va dichiarata accanto al numero che
+produce.
 
 ## I Livelli Si Rifanno Durante La Seduta, Non Solo All'Apertura
 

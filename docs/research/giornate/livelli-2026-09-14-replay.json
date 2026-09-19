@@ -1,0 +1,70 @@
+[
+  {
+    "price": 29405.0,
+    "label": "Max notte dom 22:00Z · sopra, la caduta della notte e' annullata",
+    "color": "#6B7A99",
+    "style": "dash",
+    "width": 1,
+    "note": "domenica 22:00Z, prima barra della settimana: da li' e' cominciata la discesa"
+  },
+  {
+    "price": 29390.0,
+    "label": "VAH notte · sopra qui si rientra nel valore della notte",
+    "color": "#6B7A99",
+    "style": "dot",
+    "width": 1
+  },
+  {
+    "price": 29318.0,
+    "label": "POC notte 17.9% · cuore del volume abbandonato: bersaglio pieno di un recupero",
+    "color": "#6B7A99",
+    "style": "solid",
+    "width": 2,
+    "note": "il prezzo ci ha passato la sessione asiatica e poi l'ha lasciato: chi ha comprato li' e' sott'acqua di 180 punti"
+  },
+  {
+    "price": 29275.0,
+    "label": "Base area sottile 29.250-29.300 (0,3% Europa) · sopra, niente ostacoli fino al POC notte",
+    "color": "#8A7FA6",
+    "style": "dot",
+    "width": 1,
+    "note": "poco volume scambiato: valore non trasferito, si riattraversa in fretta nei due sensi"
+  },
+  {
+    "price": 29193.0,
+    "label": "VAL notte · il prezzo e' sotto da 12:35: rientrarci toglie il permesso short",
+    "color": "#6B7A99",
+    "style": "dot",
+    "width": 1
+  },
+  {
+    "price": 29174.75,
+    "label": "Top nodo pesante 22.3% d+549 · dove i compratori europei sono entrati, e sono sopra",
+    "color": "#7A8FA6",
+    "style": "solid",
+    "width": 2,
+    "note": "delta fortemente positivo: rientrarci li' rimette in pari, romperlo li' costringe a chiudere"
+  },
+  {
+    "price": 29150.0,
+    "label": "POC Europa 22.3% · prezzo piu' scambiato della gamba che fa il prezzo adesso",
+    "color": "#7A8FA6",
+    "style": "solid",
+    "width": 2
+  },
+  {
+    "price": 29142.0,
+    "label": "Mensola difesa 6 volte 12:36-13:02 · ROTTA 13:03: sopra, la rottura era uno stoppino",
+    "color": "#C77B5A",
+    "style": "dash",
+    "width": 2,
+    "note": "minimi 29141,75 / 29142,00 / 29142,25 / 29147,x: appoggio di ordini eseguiti, non un bordo di profilo"
+  },
+  {
+    "price": 29107.25,
+    "label": "MIN NOTTE · sotto non c'e' piu' nessun riferimento di prezzo",
+    "color": "#6B7A99",
+    "style": "solid",
+    "width": 2
+  }
+]

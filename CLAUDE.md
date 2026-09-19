@@ -358,6 +358,18 @@ invece di chiederlo, la finestra di misura si **dichiara** accanto al numero, e 
 dipende dalla fase di sessione. I livelli arrivano da `POST /levels`: **l'indicatore disegna,
 `bridge.py` trasporta, la derivazione resta nell'analisi.**
 
+**Si cancella sempre tutto prima di ridepositare, e non e' facoltativo.** Un livello che l'analisi
+non ha appena riconfermato non resta sul grafico: un residuo di un altro giorno si disegna esattamente
+come una misura di adesso, e chi guarda non puo' distinguerli. Il 19 settembre, aprendo un replay
+del 14, sul chart c'erano ancora otto livelli del 18 — quattrocento punti sopra il mercato.
+
+**I livelli che si muovono si dichiarano come regola, non come prezzo**, in
+`docs/research/giornate/livelli-vivi-STRUMENTO-AAAA-MM-GG.json`, e si ridepositano con
+[`FabioOrderFlow/tools/livelli_vivi.py`](FabioOrderFlow/tools/livelli_vivi.py). POC, VAH, VAL,
+massimo e minimo della finestra in sviluppo **cambiano a ogni barra**: vanno ricalcolati a ogni
+lettura che li usa, insieme al resto dell'elenco. Il programma e' il motore, le regole stanno nel
+file — la stessa separazione di `scenari.py`.
+
 **Un movimento si misura col vincolo di ritracciamento, non come massimo di una finestra.** La
 seconda misura e' l'inviluppo dell'opportunita'. Procedura e parametro R per strumento in
 [`le-gambe-di-una-seduta.md`](docs/research/metodo/le-gambe-di-una-seduta.md), insieme alla regola

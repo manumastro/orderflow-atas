@@ -170,3 +170,33 @@
 2026-09-18 GCZ6 cash: quattro rotture di livello riassorbite su quattro (12:11 4.410, 13:02 e 13:23 4.405, 13:36 4.394,60), l'ultima con la firma del vuoto a barra chiusa (367 lotti delta +5) che stamattina aveva funzionato due volte su due - la firma dice che il libro e' vuoto, non da che parte si va, e va letta col lato di arrivo come l'assorbimento. Difetto dichiarato: una condizione che usa la derivata di una fascia deve nominare la fascia in cui il prezzo SARA' quando la condizione viene valutata, non quella che sta lasciando (il delta di una fascia si congela appena il prezzo ne esce). Quarto fotogramma letto come fatto, e sulla riga che sosteneva l'ingresso. Pavimento a 4.385,60 con la fascia 4.385-4.390 da +120 a +273: quarta conferma della derivata di fascia, prima su un minimo di seduta. Il POC della finestra si e' spostato da 4.430-4.435 a 4.390-4.395: valore trasferito, non escursione. Conto: +4,8 / -3,6 / -2,1 / 0.
 2026-09-18 chiusura di settimana e riorganizzazione: il corso di Fabio comanda, lo strumento e' NQ e basta, la sessione e' New York. Lette le sei lezioni del live Q1 (fabio_1 corretto dall'utente a meta' lavoro: era un duplicato di fabio_2, e la lezione vera contiene i TRE MODELLI e la procedura COT completa). Estratti tre documenti col minuto citato riga per riga: i-tre-modelli-del-live-q1.md (balance/mean reverting quando il prezzo e' chiuso dentro la cash precedente, momentum sulla rottura di una balance con la speed of tape come conferma, trend following che fade il ritracciamento nel verso del giorno ed entra sul reload; piu' vocabolario, regime, sessione, COT Legacy non-commercial con la data che diventa un prezzo, framing a 90 giorni, timeframe), i-pattern-di-esecuzione.md (i sei pattern della neural pattern recognition, aggressivo contro conservativo, stop dietro una struttura, bersaglio come livello, gli otto veti) e la-gestione-della-posizione.md (il break even e' un LIVELLO - il prezzo al quale l'analisi si smonta - non una distanza; conto in R col tetto sulle esecuzioni; rischio giu' in drawdown e su in profitto; size dallo stop). Il dossier IVB/Triple AAA passa a riferimento: descrive lo stesso setup con un gate orario che nel live non esiste, quindi la deroga 'operare prima del gate' decade da sola. Ritirate come operative la sessione di Londra (il live la esclude col motivo, fabio_3 22:12) e la mattina europea sull'oro. Sorveglianti spenti e verificati, zero orfani.
 2026-09-18 controllo di copertura sulle sei lezioni, su domanda dell'utente: conteggio delle citazioni per lezione (1:30, 2:29, 3:22, 4:38, 5:11, 6:28). La quinta era sottoutilizzata e mancavano due cose sostanziali, ora aggiunte a i-tre-modelli-del-live-q1.md e al glossario: il LIVELLO AD ALTO DELTA ha due mestieri in sequenza - al primo tocco e' dove il lato vincente prende profitto (stopping volume, ed e' un'AREA non un livello), se cede quei contratti devono chiudere e diventa uno squeeze; ed e' la spiegazione meccanica della nostra regola della fascia a delta contrario. E la LIQUIDITA' SOTTILE si ribilancia: un tratto percorso in fretta su poco volume non e' valore trasferito, verra' ripercorso, e non e' un posto dove mettere uno stop. Aggiunta anche la priorita' di studio dichiarata da Fabio: livelli sensibili e regime prima di tutto il resto.
+2026-09-19  livelli_vivi.py: i livelli che si muovono (POC, VAH, VAL, estremi di sessione) si
+            dichiarano come regola in livelli-vivi-*.json e si ridepositano cancellando sempre
+            prima. Due griglie distinte e dichiarate: grana 1 punto per POC e bordi del valore,
+            passo 25 punti per i nodi - sul tick nudo il POC della notte del 14 set cadeva a
+            29.150 invece che a 29.318. Livelli a meno di 8 punti non si disegnano entrambi.
+2026-09-19  replay NQZ6 del 14 settembre: NQZ6 diventa front month proprio quel giorno (173k lotti
+            contro 33k il venerdi), quindi su questo contratto non esiste una cash precedente
+            utilizzabile e il framing parte dalla notte.
+2026-09-19  framing: il profilo di una notte non si fa intero se le due sedute non si sovrappongono.
+            Il 14 set Asia (29.265-29.405, vertice 44,4%) ed Europa (29.107-29.281) si toccano per
+            16 punti; fuse davano un POC a 29.198, nella giunzione dove nessuna delle due ha
+            costruito valore. Il sintomo: il POC si e' spostato di 120 punti in 18 minuti.
+2026-09-19  livelli_vivi.py: minimo_lotti tiene un livello vivo fuori dal chart finche' la finestra
+            non ha scambiato abbastanza (cash NQ: 15.000 lotti). L'ordine nel file e' la priorita'
+            del diradamento, non un elenco per prezzo.
+2026-09-19  giro d'orizzonte: tolto il cablaggio dello strumento e della data dall'hook. Portava
+            CHART="GCZ6" mentre ATAS era su NQZ6, quindi dichiarava il bridge irraggiungibile
+            pur essendo acceso e stampava il quadro dell'oro del 18 come se fosse quello di oggi
+            - un contesto sbagliato si legge come se fosse giusto. Ora lo strumento lo dice
+            /charts, la data la dice marketTimeUtc (non l'orologio di sistema, cosi' funziona in
+            replay, e la riga 1 dichiara quando le due divergono), e il file della giornata si
+            cerca anche col suffisso -replay. Il controllo di raggiungibilita' interroga /charts
+            e non /health, che con piu' chart risponde 400 e sembrava un bridge spento; la porta
+            arriva dal file di discovery invece che dalla costante 8787. La data si estrae con
+            una regex: un rpartition su "NQZ6-2026-09-14-replay" faceva fallire tutto il giro.
+            Sezione 4 rinominata: legge la sezione 1 del file precedente esistente, che dopo un
+            weekend non e' ieri. Sezione 9 dichiara che i suoi orari sono locali, non UTC.
+2026-09-19  comandi_sorveglianti.py: l'IVB e' 13:30-14:00Z, non 13:30-14:30Z (la misura sta al
+            18 settembre in questo stesso file). Aggiunto che dal 18 settembre e' un riferimento
+            e non un cancello: nel live Q1 il gate orario non esiste.

@@ -117,12 +117,19 @@ def main() -> int:
     print()
 
     print("## 4. permesso di fatto — l'accettazione oltre i bordi dell'IVB")
-    if sess == "newyork" and (u.hour * 60 + u.minute) >= 14 * 60 + 30:
-        print(f"# IVB 13:30-14:30Z chiusa: misura i bordi e sostituisci --alto/--basso.")
+    # L'IVB e' 13:30-14:00Z, la prima mezz'ora di cash: la misura sta in progress.txt al
+    # 18 settembre (il gradino di volume e' alle 13:30Z, non all'apertura del floor). Qui
+    # c'era scritto 14:30, cioe' un'ora invece di mezza, e il comando compariva mezz'ora tardi.
+    #
+    # E dal 18 settembre l'IVB e' un RIFERIMENTO, non un cancello: nel live Q1 il gate orario
+    # non esiste, Fabio opera premarket e sull'apertura. Vedi CLAUDE.md, "Le Due Decisioni".
+    if sess == "newyork" and (u.hour * 60 + u.minute) >= 14 * 60:
+        print(f"# IVB 13:30-14:00Z chiusa: misura i bordi e sostituisci --alto/--basso.")
+        print(f"# Riferimento, non permesso: il live non ha un gate orario.")
         print(f"python3 -u FabioOrderFlow/tools/permesso_di_fatto.py --chart {args.chart} \\")
         print(f"    --from {adesso} --alto <TETTO_IVB> --basso <PAVIMENTO_IVB> --attesa 20")
     else:
-        print("# NON si accende: l'IVB di oggi non e' ancora chiusa (serve dopo le 14:30Z).")
+        print("# NON si accende: l'IVB di oggi non e' ancora chiusa (serve dopo le 14:00Z).")
         print("# Senza i suoi bordi il permesso di fatto non e' calcolabile, e inventarli")
         print("# produce un permesso che sembra misurato e non lo e'.")
     print()

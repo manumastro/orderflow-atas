@@ -74,31 +74,68 @@ def coda_sezione(testo: str, titoli: list[str], righe: int = 40) -> str:
 def main() -> int:
     p = argparse.ArgumentParser(description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("--giorno", default=dt.date.today().isoformat())
+    p.add_argument("--giorno", help="chiave del file della giornata; senza, si deduce dal bridge")
     p.add_argument("--barre", type=int, default=15, help="quante barre di tape mostrare")
-    p.add_argument("--chart", help="id o strumento, se ATAS ha piu' di un chart registrato")
+    p.add_argument("--chart", help="id o strumento; senza, si chiede al bridge quale e' registrato")
     a = p.parse_args()
     if a.chart:
         CHART[:] = ["--chart", a.chart]
+
+    # Lo strumento e la data NON si cablano. Cablati, sbagliano in silenzio: il 19 settembre
+    # l'hook portava `CHART="GCZ6"` mentre ATAS era su NQZ6, quindi ogni richiesta veniva
+    # rifiutata e il giro dichiarava il bridge irraggiungibile pur essendo acceso — e stampava
+    # il quadro dell'oro del giorno prima come se fosse quello di oggi. Un contesto sbagliato e'
+    # peggio di nessun contesto, perche' si legge come se fosse giusto.
+    #
+    # E la data e' quella **di mercato**, non quella locale: in replay le due divergono di giorni.
+    if not CHART:
+        c = bridge("charts") or {}
+        registrati = c.get("charts") or []
+        if len(registrati) == 1:
+            CHART[:] = ["--chart", registrati[0]["instrument"]]
+        elif len(registrati) > 1:
+            print(f"  {len(registrati)} chart registrati: serve --chart fra "
+                  f"{', '.join(x['instrument'] for x in registrati)}")
+
+    h = bridge("health")
     g = a.giorno
+    if not g:
+        if h:
+            strumento, data_mercato = h["instrument"], h["marketTimeUtc"][:10]
+            # In replay la giornata e' un file a parte, perche' la seduta e' gia' stata operata
+            # dal vivo e il suo diario non va sovrascritto: si cerca prima quello.
+            # NQZ6 ha inoltre file storici senza prefisso, debito aperto: si prova anche cosi'.
+            candidati = [f"{strumento}-{data_mercato}", data_mercato]
+            if data_mercato != dt.date.today().isoformat():
+                candidati.insert(0, f"{strumento}-{data_mercato}-replay")
+            g = next((k for k in candidati if (GIORNATE / f"{k}.md").exists()), candidati[0])
+        else:
+            g = dt.date.today().isoformat()
 
     # `--giorno` e' una CHIAVE, non una data: puo' portare il prefisso dello strumento
     # (`ESZ6-2026-09-16`), come vuole il passo 8 di come-si-apre-un-asset.md. Qui serve anche la
     # data nuda, per calcolare "ieri" e per il file del giorno precedente: si separano le due cose
     # invece di assumere che coincidano. Il 16 settembre l'assunzione ha fatto fallire l'hook al
     # primo strumento col prefisso.
-    prefisso, _, data_nuda = g.rpartition("-20")
-    data_nuda = ("20" + data_nuda) if prefisso else g
-    prefisso = (prefisso + "-") if prefisso else ""
+    # La data si estrae, non si ricava tagliando la stringa: la chiave puo' avere un prefisso
+    # davanti (`ESZ6-`) e anche un suffisso dietro (`-replay`), e un rpartition se li portava
+    # appresso — `dt.date.fromisoformat("2026-09-14-replay")` fa fallire tutto il giro.
+    m_data = re.search(r"(\d{4}-\d{2}-\d{2})", g)
+    data_nuda = m_data.group(1) if m_data else dt.date.today().isoformat()
+    prefisso = g[:m_data.start()] if m_data and m_data.start() else ""
 
     # 1 --------------------------------------------------------------- il bridge
     titolo(1, "IL BRIDGE E IL CONTRATTO")
-    h = bridge("health")
     if not h:
         print("  bridge non raggiungibile — ogni misura che segue e' vecchia o assente")
     else:
+        oggi_mercato = h["marketTimeUtc"][:10]
+        avviso = ""
+        if oggi_mercato != dt.date.today().isoformat():
+            avviso = f"   <-- REPLAY: la data locale e' {dt.date.today().isoformat()}"
         print(f"  {h['instrument']} {h['timeFrame']}  {h['bars']:,} barre  "
-              f"ora di mercato {h['marketTimeUtc'][11:16]}Z")
+              f"ora di mercato {h['marketTimeUtc'][:16].replace('T', ' ')}Z{avviso}")
+        print(f"  file della giornata usato: {g}.md")
         r = bridge("rollovers")
         if r and r.get("rollovers"):
             print(f"  rollover noti: {r['rollovers']}")
@@ -129,7 +166,10 @@ def main() -> int:
     # Solo le giornate DELLO STESSO strumento: senza prefisso il glob "2*.md" prendeva anche i
     # file di un altro asset, e il framing di ieri sarebbe stato quello del mercato sbagliato.
     prec = sorted(x for x in GIORNATE.glob(f"{prefisso or '2'}*.md") if x.stem < g)
-    titolo(4, f"IL FRAMING DI IERI — {prec[-1].name if prec else 'assente'}")
+    # "ieri" e' il file precedente esistente, non necessariamente il giorno prima: dopo un weekend
+    # o una pausa puo' essere di tre giorni fa, e il nome stampato lo dice.
+    titolo(4, f"IL FRAMING DELLA SEDUTA PRECEDENTE (sezione 1 del file) — "
+              f"{prec[-1].name if prec else 'assente'}")
     if prec:
         t = prec[-1].read_text()
         chiavi = ("value area", "poc", "val ", "vah ", "minimo", "massimo", "chiusura", "delta")
@@ -195,8 +235,11 @@ def main() -> int:
 
     # 7 ------------------------------------------------------------------- il tape
     titolo(7, "IL TAPE RECENTE")
-    # la finestra e' la seduta globex in corso: dalle 22:00 CEST di ieri, cioe' 20:00Z
-    ieri = (dt.date.fromisoformat(data_nuda) - dt.timedelta(days=1)).isoformat()
+    # la finestra e' la seduta globex in corso: dalle 22:00 CEST di ieri, cioe' 20:00Z.
+    # Il giorno e' quello DI MERCATO: in replay la data locale e' un'altra, e usarla chiedeva
+    # barre che nel replay non esistono ancora.
+    base = h["marketTimeUtc"][:10] if h else data_nuda
+    ieri = (dt.date.fromisoformat(base) - dt.timedelta(days=1)).isoformat()
     d = bridge("candles", "--from", f"{ieri}T20:00")
     cs = (d or {}).get("candles") or []
     if not cs:

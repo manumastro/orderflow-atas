@@ -1,0 +1,177 @@
+[
+  {
+    "nome": "POC cash",
+    "tipo": "poc",
+    "finestra": {
+      "da": "13:30Z"
+    },
+    "label": "POC CASH {pct} · bersaglio del mean reverting dentro la seduta",
+    "color": "#4FC3F7",
+    "style": "solid",
+    "width": 3,
+    "minimo_lotti": 15000
+  },
+  {
+    "nome": "VAL cash",
+    "tipo": "val",
+    "finestra": {
+      "da": "13:30Z"
+    },
+    "label": "VAL cash in sviluppo · da qui si fade verso il POC",
+    "color": "#4FC3F7",
+    "style": "dot",
+    "width": 1,
+    "minimo_lotti": 15000
+  },
+  {
+    "nome": "VAH cash",
+    "tipo": "vah",
+    "finestra": {
+      "da": "13:30Z"
+    },
+    "label": "VAH cash in sviluppo · da qui si fade verso il POC",
+    "color": "#4FC3F7",
+    "style": "dot",
+    "width": 1,
+    "minimo_lotti": 15000
+  },
+  {
+    "nome": "min cash",
+    "tipo": "minimo",
+    "finestra": {
+      "da": "13:30Z"
+    },
+    "label": "Min cash · sotto, la seduta continua nel verso della notte",
+    "color": "#4FC3F7",
+    "style": "dash",
+    "width": 1
+  },
+  {
+    "nome": "max cash",
+    "tipo": "massimo",
+    "finestra": {
+      "da": "13:30Z"
+    },
+    "label": "Max cash · sopra, l'apertura e' stata rifiutata",
+    "color": "#4FC3F7",
+    "style": "dash",
+    "width": 1
+  },
+  {
+    "nome": "mensola rotta",
+    "tipo": "fisso",
+    "price": 29142,
+    "label": "Mensola difesa 6 volte 12:36-13:02 · ROTTA 13:03: sopra, la rottura era uno stoppino",
+    "color": "#C77B5A",
+    "style": "dash",
+    "width": 2,
+    "note": "minimi 29141,75 / 29142,00 / 29142,25: appoggio di ordini eseguiti, non un bordo di profilo"
+  },
+  {
+    "nome": "top nodo Europa",
+    "tipo": "nodo_top",
+    "finestra": {
+      "da": "07:00Z",
+      "a": "13:30Z"
+    },
+    "label": "Top nodo pesante {pct} d{delta} · dove i compratori europei sono entrati, e sono sopra",
+    "color": "#7A8FA6",
+    "style": "solid",
+    "width": 2
+  },
+  {
+    "nome": "POC Europa",
+    "tipo": "poc",
+    "finestra": {
+      "da": "07:00Z",
+      "a": "13:30Z"
+    },
+    "label": "POC EUROPA {pct} · prezzo piu' scambiato della gamba che ha portato qui",
+    "color": "#7A8FA6",
+    "style": "solid",
+    "width": 2
+  },
+  {
+    "nome": "VAL Europa",
+    "tipo": "val",
+    "finestra": {
+      "da": "07:00Z",
+      "a": "13:30Z"
+    },
+    "label": "VAL Europa · sotto qui il prezzo e' fuori dal valore della mattina",
+    "color": "#7A8FA6",
+    "style": "dot",
+    "width": 1
+  },
+  {
+    "nome": "VAH Europa",
+    "tipo": "vah",
+    "finestra": {
+      "da": "07:00Z",
+      "a": "13:30Z"
+    },
+    "label": "VAH Europa · sopra qui si esce dal valore in cui il prezzo ha passato la mattina",
+    "color": "#7A8FA6",
+    "style": "dot",
+    "width": 1
+  },
+  {
+    "nome": "min notte",
+    "tipo": "minimo",
+    "finestra": {
+      "da": "07:00Z",
+      "a": "13:30Z"
+    },
+    "label": "MIN NOTTE · sotto non c'e' piu' nessun riferimento di prezzo",
+    "color": "#6B7A99",
+    "style": "solid",
+    "width": 2
+  },
+  {
+    "nome": "giunzione sottile",
+    "tipo": "fisso",
+    "price": 29275,
+    "label": "Giunzione Asia/Europa 29.250-29.300 · nessuna delle due ci ha costruito: si riattraversa in fretta",
+    "color": "#8A7FA6",
+    "style": "dot",
+    "width": 1,
+    "note": "le due sedute della notte non si sovrappongono: fra 29.281 (max Europa) e 29.265 (min Asia) c'e' solo un contatto. Un profilo unico ci mette dentro un POC che non e' di nessuno."
+  },
+  {
+    "nome": "POC Asia",
+    "tipo": "poc",
+    "finestra": {
+      "da": "2026-09-13T22:00:00Z",
+      "a": "07:00Z"
+    },
+    "label": "POC ASIA {pct} · cuore del volume abbandonato: bersaglio pieno di un recupero",
+    "color": "#6B7A99",
+    "style": "solid",
+    "width": 2,
+    "note": "fascia 29.300-29.324 col 44,4% della sola Asia: chi ha comprato li' e' sott'acqua di 180 punti"
+  },
+  {
+    "nome": "VAL Asia",
+    "tipo": "val",
+    "finestra": {
+      "da": "2026-09-13T22:00:00Z",
+      "a": "07:00Z"
+    },
+    "label": "VAL Asia · sopra qui il prezzo rientra nel valore della notte asiatica",
+    "color": "#6B7A99",
+    "style": "dot",
+    "width": 1
+  },
+  {
+    "nome": "max Asia",
+    "tipo": "massimo",
+    "finestra": {
+      "da": "2026-09-13T22:00:00Z",
+      "a": "07:00Z"
+    },
+    "label": "Max notte dom 22:00Z · sopra, la caduta della settimana e' annullata",
+    "color": "#6B7A99",
+    "style": "dash",
+    "width": 1
+  }
+]

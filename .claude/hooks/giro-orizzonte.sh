@@ -9,24 +9,32 @@
 
 cd /Users/sabrinastizzi/orderflow-atas || exit 0
 
-# Il chart da interrogare. ATAS puo' averne registrati piu' di uno (il 16 settembre si e'
-# aggiunto MCLV6) e in quel caso il bridge rifiuta ogni richiesta che non dica quale.
-# Al rollover del contratto si cambia qui.
-CHART="GCZ6"
+# NIENTE STRUMENTO E NIENTE DATA CABLATI QUI.
+#
+# Fino al 19 settembre questo file portava CHART="GCZ6" e GIORNO="GCZ6-$(date ...)". Quando ATAS
+# e' passato a NQZ6 il curl di controllo ha cominciato a interrogare un chart inesistente, il
+# giro ha dichiarato il bridge irraggiungibile pur essendo acceso, e ha stampato il quadro
+# dell'oro del giorno prima come se fosse quello di oggi. Un contesto sbagliato si legge come se
+# fosse giusto: e' peggio di nessun contesto.
+#
+# Ora lo strumento lo dice il bridge (/charts) e la data la dice l'ora di mercato (/health),
+# non l'orologio di sistema — cosi' funziona anche in replay. Se ATAS ha piu' di un chart
+# registrato, giro_orizzonte.py lo dichiara e chiede quale.
 
-# La chiave dei file della giornata. Non e' una data: e' il prefisso dello strumento piu' la
-# data, come vuole il passo 8 di come-si-apre-un-asset.md. Su NQZ6 e' senza prefisso, per ragioni
-# storiche - debito aperto. Cambiando strumento si cambiano ENTRAMBE le righe.
-GIORNO="GCZ6-$(date +%Y-%m-%d)"
+# La porta la annuncia il bridge nel file di discovery; 8787 e' solo il ripiego.
+PORTA=$(python3 -c "import json,os;print(json.load(open(os.path.expanduser('~/.fabio-data-bridge.json')))['port'])" 2>/dev/null || echo 8787)
 
 # Se il bridge non risponde subito, non ha senso aspettare: si dice e si passa oltre.
-if ! curl -s -m 2 "http://127.0.0.1:8787/health?chart=$CHART" >/dev/null 2>&1; then
-  echo "[giro d'orizzonte] bridge non raggiungibile: ogni misura di mercato in questa risposta"
-  echo "sarebbe vecchia o assente, e va dichiarato invece di presentarla come una lettura."
+# Si interroga /charts, che e' servito dall'hub e resta valido con qualunque numero di chart:
+# /health con piu' chart registrati risponde 400, e verrebbe scambiato per un bridge spento.
+if ! curl -s -m 2 "http://127.0.0.1:$PORTA/charts" >/dev/null 2>&1; then
+  echo "[giro d'orizzonte] bridge non raggiungibile sulla porta $PORTA: ogni misura di mercato"
+  echo "in questa risposta sarebbe vecchia o assente, e va dichiarato invece di presentarla"
+  echo "come una lettura."
   exit 0
 fi
 
-OUT=$(python3 FabioOrderFlow/tools/giro_orizzonte.py --barre 8 --chart "$CHART" --giorno "$GIORNO" 2>&1)
+OUT=$(python3 FabioOrderFlow/tools/giro_orizzonte.py --barre 8 2>&1)
 if [ $? -ne 0 ]; then
   echo "[giro d'orizzonte] fallito:"
   echo "$OUT" | tail -5
@@ -35,7 +43,6 @@ fi
 
 echo "=== GIRO D'ORIZZONTE (automatico, CLAUDE.md) ============================="
 echo "$OUT"
-
 # Gli avvisi dei monitor, letti dal log invece che dalla notifica.
 #
 # La sveglia e gli scenari girano in background e ogni evento passa da avviso.py, che lo
@@ -66,7 +73,7 @@ if [ -f "$AVVISI" ]; then
     [ "$LETTE" -eq 0 ] && [ "$NUOVE" -gt 15 ] && NUOVE=15
     echo
     echo "──────────────────────────────────────────────────────────────────────────────"
-    echo "9. GLI AVVISI DEI MONITOR — $NUOVE nuovi dall'ultimo messaggio (~/.fabio-avvisi.log)"
+    echo "9. GLI AVVISI DEI MONITOR — $NUOVE nuovi (~/.fabio-avvisi.log; ORARI LOCALI, non UTC)"
     echo "──────────────────────────────────────────────────────────────────────────────"
     tail -n "$NUOVE" "$AVVISI" | sed 's/^/  /'
   else
