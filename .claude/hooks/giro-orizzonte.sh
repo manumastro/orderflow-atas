@@ -7,7 +7,10 @@
 #
 # Non blocca mai: qualunque errore esce 0 con una riga che lo dichiara.
 
-cd /Users/sabrinastizzi/orderflow-atas || exit 0
+# Non un percorso cablato: questo repo cambia macchina (Mac -> PC, settembre 2026), e un
+# percorso assoluto sopravvive a un utente ma non a un sistema operativo diverso. La variabile
+# la mette l'harness prima di lanciare l'hook - vedi la nota sul percorso in settings.json.
+cd "$CLAUDE_PROJECT_DIR" || exit 0
 
 # NIENTE STRUMENTO E NIENTE DATA CABLATI QUI.
 #

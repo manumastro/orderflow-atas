@@ -200,3 +200,12 @@
 2026-09-19  comandi_sorveglianti.py: l'IVB e' 13:30-14:00Z, non 13:30-14:30Z (la misura sta al
             18 settembre in questo stesso file). Aggiunto che dal 18 settembre e' un riferimento
             e non un cancello: nel live Q1 il gate orario non esiste.
+2026-09-19  il repo (compreso ATAS e il bridge) si sposta dal Mac a un PC Windows - decisione
+            dell'utente, non solo per l'esecuzione via Tradeify/RTrader Pro come inizialmente
+            previsto. Cercato e sistemato cio' che assumeva macOS: l'hook giro-orizzonte.sh e
+            settings.json usavano un percorso assoluto (era anche la causa dell'errore ricorrente
+            "No such file or directory"), portato a $CLAUDE_PROJECT_DIR; avviso.py aveva solo
+            osascript per la notifica di sistema, aggiunto un ramo Windows via PowerShell/WinForms
+            - NON VERIFICATO, da controllare la prima volta sul PC. deploy.sh e DataBridge.cs erano
+            gia' cross-platform. Non sistemato, da rifare sul PC: .mcp.json punta a un'installazione
+            locale di playwright-mcp su questo Mac.

@@ -20,6 +20,7 @@ from pathlib import Path
 
 LOG = Path.home() / ".fabio-avvisi.log"
 MACOS = sys.platform == "darwin"
+WINDOWS = sys.platform == "win32"
 
 
 def avvisa(riga: str, titolo: str = "tape", suono: str = "Submarine") -> None:
@@ -32,15 +33,40 @@ def avvisa(riga: str, titolo: str = "tape", suono: str = "Submarine") -> None:
     except Exception:
         pass
 
-    if not MACOS:
+    if not (MACOS or WINDOWS):
         return
+
+    # Il testo va troncato: una notifica lunga viene tagliata dal sistema nel punto sbagliato.
+    testo = riga if len(riga) <= 180 else riga[:177] + "..."
+    testo = testo.replace('"', "'").replace("\\", "/")
+
+    if MACOS:
+        try:
+            subprocess.run(
+                ["osascript", "-e",
+                 f'display notification "{testo}" with title "{titolo}" sound name "{suono}"'],
+                capture_output=True, timeout=5)
+        except Exception:
+            pass
+        return
+
+    # WINDOWS: nessun equivalente diretto di osascript. Un balloon tip via WinForms non chiede
+    # nessun modulo extra (System.Windows.Forms e' nel .NET di sistema), ma NON E' STATO
+    # VERIFICATO su una macchina Windows vera - il repo si sposta la' a settembre 2026 e questo
+    # e' il primo tentativo. Se non compare niente, il log resta comunque la fonte di verita'.
     try:
-        # Il testo va troncato: una notifica lunga viene tagliata dal sistema nel punto sbagliato.
-        testo = riga if len(riga) <= 180 else riga[:177] + "..."
-        testo = testo.replace('"', "'").replace("\\", "/")
-        subprocess.run(
-            ["osascript", "-e",
-             f'display notification "{testo}" with title "{titolo}" sound name "{suono}"'],
-            capture_output=True, timeout=5)
+        script = (
+            "Add-Type -AssemblyName System.Windows.Forms;"
+            "Add-Type -AssemblyName System.Drawing;"
+            "$n = New-Object System.Windows.Forms.NotifyIcon;"
+            "$n.Icon = [System.Drawing.SystemIcons]::Information;"
+            "$n.Visible = $true;"
+            f'$n.ShowBalloonTip(6000, "{titolo}", "{testo}", '
+            "[System.Windows.Forms.ToolTipIcon]::Info);"
+            "Start-Sleep -Seconds 6;"
+            "$n.Dispose()"
+        )
+        subprocess.run(["powershell", "-NoProfile", "-Command", script],
+                       capture_output=True, timeout=10)
     except Exception:
         pass
