@@ -397,7 +397,7 @@ tenuti solo finche' rispondono a una domanda che il live pone.
 | domanda del live | come la misuriamo qui |
 |---|---|
 | assorbimento o aggressione su un prezzo | `bridge.py candles --levels` — la footprint, `ask` meno `bid` prezzo per prezzo ([`la-footprint-e-il-delta-per-prezzo.md`](la-footprint-e-il-delta-per-prezzo.md)) |
-| big trades sopra la size | `bridge.py trades` col filtro di volume nativo, **60 su NQ in cash** |
+| big trades sopra la size | `bridge.py cumulative --min-volume 60`, il filtro di volume nativo di ATAS. **60 su NQ in cash**, 20-30 in premarket. (`bridge.py trades` non esiste) |
 | dov'e' il muro | volume e delta della fascia del profilo |
 | chi sta vincendo la battaglia sul livello | la **derivata del delta di fascia**: come cambia il delta cumulato della fascia *mentre* il prezzo la attraversa. **Misura nostra, non del corso**; 4 conferme su 4 il 18 settembre |
 | speed of tape | **non c'e' nel bridge.** Il proxy e' il volume per barra M1 contro la distribuzione recente (`--vol-viva`). Va dichiarato come proxy ogni volta |
