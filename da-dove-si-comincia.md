@@ -35,6 +35,7 @@ decisione la prenda una persona.
 | **Build e deploy**, e cosa un `git pull` non porta | [`docs/research/build-e-deploy.md`](docs/research/build-e-deploy.md) |
 | **Cosa e' gia' stato analizzato**, giorno per giorno | [`docs/research/giornate/`](docs/research/giornate/) |
 | Le regole operative per lavorare nel repository | [`CLAUDE.md`](CLAUDE.md) |
+| Le regole che valgono solo su una parte del repo, e si caricano da sole quando la si tocca | [`.claude/rules/`](.claude/rules/) |
 | Quali fonti esistono e quale batte quale | [`fabio_course/mappa-delle-fonti.md`](fabio_course/mappa-delle-fonti.md) |
 
 ## Le Fasi Chiuse

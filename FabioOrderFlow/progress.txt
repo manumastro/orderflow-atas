@@ -508,3 +508,31 @@
             VERIFICATO COL REPLAY IN MOVIMENTO: il ricalcolo a ogni barra funziona davvero. Con il
             replay in play il motore ha seguito da solo 13:00 -> 13:02 -> 13:08, riscrivendo i
             livelli senza che nessuno chiedesse niente. Era l'ultima cosa che restava da vedere.
+
+2026-09-20  CLAUDE.md DA 217 A 82 RIGHE, con le best practice ufficiali alla mano.
+            L'utente ha chiesto di cercarle invece di decidere a naso. Cosa dicono, e cosa
+            cambiava rispetto a quello che avevo fatto:
+              - obiettivo dichiarato da Anthropic: SOTTO 200 RIGHE per file. "Longer files consume
+                more context and reduce adherence." Ero a 217, quindi ancora sopra.
+              - la regola che mi ero perso: "if an entry is a multi-step procedure or only matters
+                for ONE PART of the codebase, move it to a skill or a PATH-SCOPED RULE".
+              - .claude/rules/*.md con frontmatter `paths:` si caricano SOLO quando l'agente tocca
+                file che combaciano. Una rule SENZA `paths` si carica sempre: sposta il costo, non
+                lo toglie. Tutte e quattro le nostre ne hanno uno.
+              - gli @import costano contesto a ogni sessione anche se non servono; i link markdown
+                normali NO, sono solo puntatori. Il nostro file usa solo link, quindi la critica
+                "avoid pointers" di alcune fonti non ci riguarda.
+              - HumanLayer: un LLM segue ~150-200 istruzioni con costanza e il system prompt di
+                Claude Code ne usa gia' ~50. Il loro CLAUDE.md sta sotto le sessanta righe.
+              - una fonte (McMillan, 1.650 sessioni) sostiene che la lunghezza NON cambia
+                l'aderenza e che il vincolo vero e' il costo. Registrata perche' contraddice le
+                altre: comunque sia, accorciare non fa danno e il file adesso si rilegge in un
+                minuto, che era la richiesta.
+            Quattro rule path-scoped: dati-e-bridge (tools + giornate), indicatore-e-deploy (src +
+            docs/atas), il-file-della-giornata (giornate), le-regole-dei-livelli (il json e il
+            motore C#). Gli otto obblighi restano in CLAUDE.md, NON path-scoped: una lettura dal
+            vivo puo' non toccare nessun file, e scoparli li renderebbe muti proprio quando
+            servono.
+            VERIFICATO che niente sia andato perso: la revoca della deroga di Londra sta gia' in
+            la-sessione-di-londra.md, le gambe e la memoria di orientamento sono raggiungibili da
+            indice-delle-procedure e da-dove-si-comincia. Zero link rotti.
