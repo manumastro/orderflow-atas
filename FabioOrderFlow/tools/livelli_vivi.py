@@ -222,6 +222,12 @@ def risolvi(definizione: dict, base: str, chart: str, adesso: dt.datetime, cache
     # diventi operabile, e il pannello mostra quali lo sono gia'.
     if definizione.get("condizioni"):
         livello["conditions"] = definizione["condizioni"]
+    # LO SCENARIO E' CIO' A CUI LE CONDIZIONI SERVONO. Senza, una lista di prerequisiti spuntati
+    # non dice per cosa: quale direzione, verso quale bersaglio, e cosa la smonta. I prezzi si
+    # dichiarano per NOME di livello e si risolvono qui sotto, perche' un bersaglio scritto come
+    # numero invecchia - il POC della cash si sposta a ogni barra.
+    if definizione.get("scenario"):
+        livello["scenario"] = dict(definizione["scenario"])
     return livello
 
 
@@ -295,10 +301,27 @@ def giro(base: str, args) -> list[dict]:
     definizioni = json.loads(Path(args.definizione).read_text(encoding="utf-8"))
     cache: dict = {}
     livelli = []
+    prezzo_di: dict[str, float] = {}
     for d in definizioni:
         risolto = risolvi(d, base, args.chart, adesso, cache)
         if risolto:
             livelli.append(risolto)
+            prezzo_di[d.get("nome", "")] = risolto["price"]
+
+    # Secondo passaggio: i bersagli e le invalidazioni dichiarati per nome diventano prezzi. Si fa
+    # DOPO aver risolto tutto, perche' uno scenario puo' puntare a un livello dichiarato piu' sotto.
+    for l in livelli:
+        sc = l.get("scenario")
+        if not sc:
+            continue
+        for campo in ("bersaglio", "invalida"):
+            nome = sc.pop(f"{campo}_livello", None)
+            if nome and nome in prezzo_di:
+                sc[campo] = prezzo_di[nome]
+            elif nome:
+                # Un bersaglio che non si risolve non va inventato: si toglie, e il pannello
+                # mostrera' lo scenario senza quel prezzo invece di uno sbagliato.
+                print(f"  ! scenario di {l['label'][:30]}: '{nome}' non risolto, {campo} omesso")
 
     livelli = sfoltisci(livelli, args.minimo_stacco)
     for l in livelli:

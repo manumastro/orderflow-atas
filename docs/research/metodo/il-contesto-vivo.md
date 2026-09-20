@@ -73,16 +73,20 @@ fermo a mentire**.
 male proprio quando il prezzo si muove. Ci sono tre cose, in quest'ordine.
 
 ```text
-15:49   NQZ6   29.313,00
-VALORE     FUORI cash, sopra  29.170,00-29.239,00  POC 29.195,00
-IN GIOCO   POC ASIA 43.5% ~   29.318,00
-           -5,00 sotto   arrivato da SOTTO
-LI'        3.482 lotti   d -412   4 tocchi, 3 respinti   (10 barre)
-SERVE
-   [x] arrivato da sotto: e' un bersaglio, non un muro
-   [x] volume che sostiene l'arrivo   (3.482)
-   [ ] delta positivo li' (nessun venditore in attesa)   (-412)
-ADESSO     v 298   d +40   pos 0.68
+15:59   NQZ6   29.294,50
+VALORE     DENTRO cash  29.168,00-29.289,00  POC 29.195,00
+           sopra il POC
+IN GIOCO   VAH cash in sviluppo ~   29.289,00
+           +5,50 sopra   arrivato da SOTTO
+SFORZO     3.482 lotti al livello in 10 barre
+           delta -412  venditori aggressivi
+RISULTATO  toccato 4x, respinto 3x, passato 1x
+SERVE A     SHORT  fade del bordo alto verso il POC (mean reverting)
+           bersaglio 29.195,00 (-99,50)   invalida 29.336,25
+SERVE      2 di 3
+   [x] arrivato da dentro il valore
+   [x] venditori al bordo (delta negativo li')   (-412)
+   [ ] chiusura M1 di nuovo sotto il bordo
 ```
 
 ### 1. `VALORE` — dentro o fuori, e di quale
@@ -111,23 +115,57 @@ e' chiave, l'intestazione e' minuscola (`in gioco`).
 
 **Quando nessun livello e' in gioco il pannello lo dice**, e mostra le due porte piu' vicine.
 
-### 3. `SERVE` — le condizioni, scritte dall'analisi e spuntate dalla macchina
+### 3. `SFORZO` e `RISULTATO` — la coppia con cui si legge l'assorbimento
+
+**I numeri nudi non dicono niente.** 3.482 lotti sono tanti o pochi a seconda di cosa hanno
+prodotto: il metodo legge **sempre la coppia** — quanto e' stato speso li', e se il prezzo e'
+passato. Sforzo alto e risultato nullo e' assorbimento; sforzo alto e prezzo che passa e' una
+rottura vera. Le due righe stanno una sopra l'altra proprio per non lasciare la sottrazione a chi
+guarda.
+
+- **`SFORZO`** e' la footprint sommata sulla fascia di due tick attorno al livello, nelle ultime
+  `Lookback bars`: **non** il volume della barra, **non** quello della seduta. Il delta ha accanto
+  chi e' stato aggressivo, che e' la sua definizione e non un giudizio: delta negativo vuol dire
+  piu' scambiato in bid, cioe' venditori che colpiscono.
+- **`RISULTATO`** e' cosa ne e' venuto fuori. Un tocco e' una barra che contiene il livello; e'
+  *respinto* se chiude dallo stesso lato da cui veniva, *passato* se chiude dall'altro.
+
+### 4. `SERVE A` e `SERVE` — lo scenario, e i prerequisiti che gli servono
+
+**Una lista di condizioni spuntate senza uno scenario e' solo numeri.** `SERVE A` dice a cosa
+servono: quale **direzione**, quale **setup**, verso quale **bersaglio**, e cosa lo **invalida**.
+E' la stessa regola che vale ovunque nel repository — un livello non e' mai il fine, e' una porta,
+e va detto a cosa serve attraversarla.
 
 **Non sono condizioni armate, e la differenza e' tutta qui: non scattano, non avvisano, non fanno
 niente.** Il vecchio impianto valutava condizioni e gridava, e per armarne una servivano sette
-prove. Queste dicono soltanto *cosa dovrebbe essere vero perche' questo livello diventi operabile*,
-e il pannello mostra quali prerequisiti sono gia' soddisfatti.
+prove. Queste dicono soltanto cosa dovrebbe essere vero, e il pannello mostra quanti prerequisiti
+sono gia' soddisfatti (`2 di 3`).
 
 Si dichiarano nel file delle regole, accanto al livello:
 
 ```json
+"scenario": {
+  "direzione": "SHORT",
+  "nome": "fade del bordo alto verso il POC (mean reverting)",
+  "bersaglio_livello": "POC cash",
+  "invalida_livello": "max cash"
+},
 "condizioni": [
   {"cosa": "arrivo",   "verso": "SOTTO", "testo": "arrivato da dentro il valore"},
   {"cosa": "delta",    "almeno": -150,   "testo": "venditori al bordo"},
-  {"cosa": "volume",   "almeno": 2000,   "testo": "volume che sostiene l'arrivo"},
   {"cosa": "chiusura", "verso": "sotto", "testo": "chiusura M1 di nuovo sotto il bordo"}
 ]
 ```
+
+**Bersaglio e invalidazione si dichiarano per NOME di livello, mai come numero.** Il POC della cash
+si sposta a ogni barra: un bersaglio scritto 29.195 sarebbe giusto per dieci minuti e poi sbagliato
+in silenzio, che e' lo stesso difetto dei livelli non ridisegnati. `livelli_vivi.py` li risolve a
+ogni giro; se un nome non esiste, **toglie il campo e lo dice**, invece di inventare un prezzo.
+
+**Lo scenario va scritto dopo aver riconosciuto il modello**, non prima: dentro il valore si fa
+mean reverting sui bordi verso il POC, una balance rotta e' momentum e senza speed of tape non si
+prende. Il nome del modello sta nella riga, cosi' chi legge sa da dove discende.
 
 | `cosa` | com'e' verificata |
 |---|---|
@@ -137,8 +175,12 @@ Si dichiarano nel file delle regole, accanto al livello:
 | `chiusura` | il prezzo sta oltre `prezzo` nel verso indicato; senza `prezzo`, oltre il livello |
 
 **`testo` sono le parole dell'analisi e vengono mostrate com'e': la macchina non le interpreta.**
-Un tipo `cosa` che non conosce lo lascia non soddisfatto e scrive *condizione sconosciuta*, invece
-di far finta che sia vera.
+Un tipo `cosa` sconosciuto resta non soddisfatto e scrive *condizione sconosciuta*, invece di
+passare per vero.
+
+**Il volume come condizione e' un proxy della speed of tape, e va scritto nel testo.** Il bridge non
+espone la speed of tape, e una condizione che la sottintende senza dirlo la fa passare per una
+misura.
 
 ## Sul Chart: La Banda Del Valore, E Cosa Conta
 

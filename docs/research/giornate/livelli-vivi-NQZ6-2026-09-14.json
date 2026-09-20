@@ -40,7 +40,13 @@
         "verso": "sopra",
         "testo": "chiusura M1 di nuovo sopra il bordo"
       }
-    ]
+    ],
+    "scenario": {
+      "direzione": "LONG",
+      "nome": "fade del bordo basso verso il POC (mean reverting)",
+      "bersaglio_livello": "POC cash",
+      "invalida_livello": "min cash"
+    }
   },
   {
     "nome": "VAH cash",
@@ -70,7 +76,13 @@
         "verso": "sotto",
         "testo": "chiusura M1 di nuovo sotto il bordo"
       }
-    ]
+    ],
+    "scenario": {
+      "direzione": "SHORT",
+      "nome": "fade del bordo alto verso il POC (mean reverting)",
+      "bersaglio_livello": "POC cash",
+      "invalida_livello": "max cash"
+    }
   },
   {
     "nome": "min cash",
@@ -205,14 +217,20 @@
       {
         "cosa": "volume",
         "almeno": 2000,
-        "testo": "volume che sostiene l'arrivo"
+        "testo": "volume che sostiene la rottura (proxy speed of tape)"
       },
       {
         "cosa": "delta",
         "almeno": 200,
         "testo": "delta positivo li' (nessun venditore in attesa)"
       }
-    ]
+    ],
+    "scenario": {
+      "direzione": "LONG",
+      "nome": "prosecuzione sul volume abbandonato della notte (momentum)",
+      "bersaglio_livello": "max Asia",
+      "invalida_livello": "VAL Asia"
+    }
   },
   {
     "nome": "VAL Asia",

@@ -577,6 +577,31 @@ public sealed class DataBridge : Indicator
 
         /// <summary>Cosa dovrebbe essere vero perche' il livello diventi operabile.</summary>
         public BridgeCondition[]? Conditions { get; init; }
+
+        /// <summary>A cosa servono quelle condizioni: quale setup, in che verso, verso dove.</summary>
+        public BridgeScenario? Scenario { get; init; }
+    }
+
+    /// <summary>
+    /// Lo sviluppo a cui le condizioni di un livello servono.
+    ///
+    /// Senza, una lista di prerequisiti spuntati non dice **per cosa**: un livello non e' mai il
+    /// fine, e' una porta, e bisogna dire a cosa serve attraversarla. Lo dichiara l'analisi nel
+    /// file delle regole; la macchina lo mostra e basta, e non lo verifica.
+    /// </summary>
+    private sealed record BridgeScenario
+    {
+        /// <summary>LONG | SHORT | NIENTE.</summary>
+        public string? Direzione { get; init; }
+
+        /// <summary>Come si chiama il setup: "fade del bordo alto verso il POC".</summary>
+        public string? Nome { get; init; }
+
+        /// <summary>Dove si va se funziona. Risolto da un nome di livello, non scritto a mano.</summary>
+        public decimal? Bersaglio { get; init; }
+
+        /// <summary>Il prezzo che smonta la lettura.</summary>
+        public decimal? Invalida { get; init; }
     }
 
     /// <summary>
@@ -1474,23 +1499,63 @@ public sealed class DataBridge : Indicator
             }
         }
 
+        // --- sforzo e risultato, che e' la coppia con cui si legge l'assorbimento -------------
+        // I numeri nudi non dicono niente: 3.482 lotti sono tanti o pochi a seconda di cosa hanno
+        // prodotto. Il metodo legge SEMPRE la coppia - quanto e' stato speso li', e se il prezzo
+        // e' passato. Sforzo alto e risultato nullo e' assorbimento; le due righe lo mettono una
+        // sopra l'altra invece di lasciare la sottrazione a chi guarda.
+        var chi = delta > 0 ? "compratori aggressivi" : delta < 0 ? "venditori aggressivi" : "pari";
         righe.Add(new RigaPannello(
-            $"LI'        {Lotti(vol)} lotti   d {Segnato(delta)}"
-            + $"   {tocchi} tocchi, {respinti} respinti   ({PanelLookback} barre)",
+            $"SFORZO     {Lotti(vol)} lotti al livello in {PanelLookback} barre",
+            PanelGrigio));
+        righe.Add(new RigaPannello(
+            $"           delta {Segnato(delta)}  {chi}",
             delta > 0 ? PanelVerde : delta < 0 ? PanelRosso : PanelGrigio));
+        righe.Add(new RigaPannello(
+            $"RISULTATO  toccato {tocchi}x, respinto {respinti}x, passato {passati}x",
+            PanelGrigio));
 
-        // --- le condizioni dichiarate dall'analisi -------------------------------------------
-        // La macchina le SPUNTA, non le inventa e non le fa scattare. Vedi BridgeCondition.
+        // --- lo scenario, e poi le condizioni che gli servono ---------------------------------
+        // Le condizioni le SPUNTA la macchina, non le inventa e non le fa scattare. Lo scenario
+        // non lo verifica affatto: e' la dichiarazione dell'analisi su cosa ci si fa, qui.
+        if (gioco.Scenario is { } sc)
+        {
+            var verso = (sc.Direzione ?? "").ToUpperInvariant();
+            var colore = verso == "LONG" ? PanelVerde : verso == "SHORT" ? PanelRosso : PanelGrigio;
+            righe.Add(new RigaPannello($"SERVE A     {verso}  {sc.Nome}", colore));
+            var coda = new List<string>();
+            if (sc.Bersaglio is { } t)
+            {
+                coda.Add($"bersaglio {Prezzo(t)} ({SegnatoPrezzo(t - prezzo)})");
+            }
+            if (sc.Invalida is { } inv)
+            {
+                coda.Add($"invalida {Prezzo(inv)}");
+            }
+            if (coda.Count > 0)
+            {
+                righe.Add(new RigaPannello("           " + string.Join("   ", coda), PanelGrigio));
+            }
+        }
+
         if (gioco.Conditions is { Length: > 0 } condizioni)
         {
-            righe.Add(new RigaPannello("SERVE", PanelGrigio));
+            var fatte = 0;
+            var righeCond = new List<RigaPannello>();
             foreach (var c in condizioni)
             {
                 var (ok, misura) = ValutaCondizione(c, gioco, prezzo, delta, vol, arrivo);
-                righe.Add(new RigaPannello(
-                    $"   {(ok ? "[x]" : "[ ]")} {c.Testo}{misura}",
-                    ok ? PanelVerde : PanelGrigio));
+                if (ok)
+                {
+                    fatte++;
+                }
+                righeCond.Add(new RigaPannello($"   {(ok ? "[x]" : "[ ]")} {c.Testo}{misura}",
+                                               ok ? PanelVerde : PanelGrigio));
             }
+            righe.Add(new RigaPannello(
+                $"SERVE      {fatte} di {condizioni.Length}",
+                fatte == condizioni.Length ? PanelVerde : PanelGrigio));
+            righe.AddRange(righeCond);
         }
 
         var rng = viva.High - viva.Low;

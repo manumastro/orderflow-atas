@@ -360,3 +360,22 @@
             NOTA OPERATIVA: livelli_vivi.py in ciclo tiene il MODULO in memoria. Cambiare il codice
             del risolutore non basta, il demone va riavviato - il file delle regole invece si
             rilegge a ogni giro.
+
+2026-09-20  LE CONDIZIONI ADESSO DICONO A COSA SERVONO, E "LI'" DIVENTA SFORZO/RISULTATO. Due
+            rilievi dell'utente, entrambi giusti.
+            (1) Una lista di prerequisiti spuntati non diceva PER COSA. Aggiunto il blocco
+            "scenario" al file delle regole: direzione, nome del setup, bersaglio, invalidazione.
+            Il pannello lo scrive sopra le condizioni ("SERVE A  SHORT  fade del bordo alto verso
+            il POC"). Bersaglio e invalidazione si dichiarano per NOME DI LIVELLO, mai come numero:
+            il POC della cash si sposta a ogni barra, e un bersaglio scritto 29.195 sarebbe giusto
+            per dieci minuti e poi sbagliato in silenzio. livelli_vivi.py li risolve in un secondo
+            passaggio, dopo aver risolto tutti i livelli; un nome che non esiste fa togliere il
+            campo e stampare un avviso, invece di produrre un prezzo inventato.
+            (2) La riga "LI'" era tre numeri senza cornice. Diventa due righe, SFORZO e RISULTATO,
+            che e' la coppia con cui il metodo legge l'assorbimento: quanto e' stato speso al
+            livello, e se il prezzo e' passato. Il delta porta accanto chi e' stato aggressivo -
+            e' la sua definizione, non un giudizio.
+            Dichiarati tre scenari su NQZ6: fade del VAH e del VAL della cash verso il POC (mean
+            reverting), prosecuzione sopra il POC Asia (momentum). Il nome del modello sta nella
+            riga, cosi' si vede da dove discende. La condizione di volume sul momentum e' marcata
+            "(proxy speed of tape)", che nel bridge non esiste.
