@@ -50,6 +50,9 @@ Prima di lavorare su questo repository, **leggi nell'ordine**:
    corollario.**
 5. [`docs/research/percorso-del-progetto.md`](docs/research/percorso-del-progetto.md) — come si e'
    arrivati qui: le strade chiuse e perche', il COT, il Data Bridge.
+5bis. [`docs/research/come-lavora-l-utente.md`](docs/research/come-lavora-l-utente.md) — come va
+   condotto il lavoro, e **il caso concreto da cui nascono** alcune regole di questo file. Una
+   regola di cui si e' perso il motivo si erode.
 6. [`docs/research/metodo/indice-delle-procedure.md`](docs/research/metodo/indice-delle-procedure.md)
    — **come si fa** una analisi, procedura per procedura, nell'ordine in cui si usano.
 7. [`docs/research/metodo/glossario-del-metodo.md`](docs/research/metodo/glossario-del-metodo.md) —

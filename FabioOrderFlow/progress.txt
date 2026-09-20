@@ -217,3 +217,14 @@
             cambia con la macchina. Scritto docs/research/portare-il-repo-su-un-altra-macchina.md
             con la sequenza completa e cosa va rifatto a mano (memoria, .mcp.json, file di stato
             in ~/.fabio-*), linkato da CLAUDE.md sezione Build E Deploy.
+2026-09-20  la memoria dell'agente si trasferisce nel repo e si svuota. Dei dieci file, otto
+            duplicavano documenti gia' presenti (risultati negativi -> percorso-del-progetto,
+            COT come livello -> CLAUDE.md 4bis, le gambe -> metodo/le-gambe-di-una-seduta,
+            dossier -> metodo/triple-aaa-dossier, setup -> portare-il-repo-su-un-altra-macchina)
+            e DUE ERANO SCADUTI, cioe' dicevano il contrario di CLAUDE.md: "operare prima del
+            gate" (la deroga e' decaduta il 18 set, nel live il gate non c'e') e il dossier
+            descritto come fonte allo stesso titolo delle trascrizioni (dal 18 set e' riferimento,
+            non comanda). L'unico contenuto non duplicato - come lavora l'utente e i due casi da
+            cui nascono le regole - e' ora in docs/research/come-lavora-l-utente.md, linkato
+            dall'obbligo di lettura. In memoria resta un solo puntatore che dice di non tenerci
+            contesto: non viaggia fra macchine e non si accorge quando diverge dal repo.
