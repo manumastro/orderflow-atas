@@ -467,7 +467,12 @@ public sealed partial class DataBridge
             var vicino = tenuti.FirstOrDefault(t => Math.Abs(t.Price - livello.Price) < StaccoMinimoFraLivelli);
             if (vicino is not null)
             {
-                saltate.Add($"{livello.Nome}: {Prezzo(livello.Price)} coincide con {Prezzo(vicino.Price)}");
+                // Il motivo deve dire CHI ha vinto e di quanto: "coincide con 29.172" obbligava
+                // chi legge il pannello a cercarsi a mano quale livello fosse quel prezzo.
+                saltate.Add(
+                    $"{livello.Nome} {Prezzo(livello.Price)}: a "
+                    + $"{Prezzo(Math.Abs(vicino.Price - livello.Price))} punti da «{vicino.Nome}», "
+                    + $"che e' dichiarato prima (stacco minimo {StaccoMinimoFraLivelli})");
                 continue;
             }
 

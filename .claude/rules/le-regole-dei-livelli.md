@@ -22,6 +22,9 @@ python3 FabioOrderFlow/tools/bridge.py rules --chart NQZ6 --file <questo file>
 - **`minimo_lotti` non e' prudenza:** senza, nei primi minuti di cash il POC dichiara "89% del
   volume" perche' non c'e' altro, e non e' una misura prematura, e' una misura falsa.
 - **Bersagli e invalidazioni si dichiarano per NOME di livello**, mai come prezzo.
-- **Leggi sempre cosa il deposito dice di non aver disegnato**: e' contesto, non diagnostica.
+- **Leggi sempre cosa il deposito dice di non aver disegnato** (`skipped`, e il blocco
+  `NON SUL CHART` del pannello): e' contesto, non diagnostica. Il caso piu' frequente e' due
+  livelli a meno di otto punti, e li' il fatto che conta e' proprio quello — due letture diverse
+  indicano lo stesso posto.
 - **Non lanciare `livelli_vivi.py`**: e' ritirato, deposita su `/levels`, e un POST li' spegne le
   regole.

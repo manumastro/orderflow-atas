@@ -536,3 +536,51 @@
             VERIFICATO che niente sia andato perso: la revoca della deroga di Londra sta gia' in
             la-sessione-di-londra.md, le gambe e la memoria di orientamento sono raggiungibili da
             indice-delle-procedure e da-dove-si-comincia. Zero link rotti.
+
+--- 20 settembre 2026 (sera) — il pannello dichiara su cosa misura -----------
+
+Richiesta: "dove c'e' sforzo, e il delta, a cosa fa riferimento? vorrei che il
+riquadro fosse piu' chiaro e comprensibile, e nel caso inserire delta in un
+contesto temporale maggiore, se la strategia ne necessita".
+
+Erano tre difetti distinti, tutti di ETICHETTA, non di misura.
+
+1. "non disegnato: min cash 29.167,75 coincide con 29.172,00" non diceva QUALE
+   livello fosse 29.172, e obbligava a cercarselo a mano. Adesso dice il nome,
+   la distanza e che vince il primo dichiarato. Sopra c'e' una testata che
+   toglie l'aria da guasto: "NON SUL CHART 4 regole, e non sono un guasto".
+   Mostrate 4 invece di 3, con il conto delle restanti.
+
+2. "SFORZO 3.482 lotti / delta -412" non diceva ne' a quale prezzo ne' su quale
+   finestra, e quel delta si leggeva come il delta della seduta mentre erano i
+   soli lotti dentro una fascia di due tick in dieci barre. Adesso la testata
+   e' "AL LIVELLO 29.289,00 +/-0,50, ultime 10 barre" e tutto cio' che sta
+   indentato sotto e' misurato li' dentro.
+
+3. "ADESSO v 787 d +77 pos 0.95" era illeggibile senza spiegazione. Adesso:
+   "BARRA APERTA 15:59, cambia ancora / 787 lotti delta +77 (+9,8%) chiude nel
+   95% alto del suo range".
+
+NUOVO: blocco "SU TUTTE LE BARRE", delta su 30 barre e dall'apertura cash. La
+strategia ne ha bisogno, e la prova e' nel repo: il 16 settembre un permesso
+LONG e' stato tenuto in piedi 84 minuti da un gate orario mentre il delta
+cumulato dello stesso intervallo era negativo. Un delta al livello non si
+giudica da solo. Barre INTERE, non la fascia: popolazione diversa, e la testata
+lo dichiara perche' un delta di fascia si legge CONTRO quello di seduta, non si
+somma con lui.
+
+Il delta si stampa sempre anche come quota del volume, +1.745 (+4,5%), perche'
+la percentuale dice se e' tanto senza sapere a memoria quanto scambia NQ. Sotto
+i 100 lotti la percentuale non si stampa: su un campione minuscolo e' rumore
+travestito da misura.
+
+Due impostazioni nuove: "Lookback largo" (30 barre) e "Apertura cash (UTC)"
+(13:30Z). L'apertura si aggancia al giorno dell'ULTIMA BARRA, non all'orologio
+di casa: in replay sono due date diverse, ed e' il caso in cui serve.
+
+Verificato sul replay in corso (NQZ6 14/09, 13:53Z): deploy senza riavvio, e i
+motivi nuovi arrivano su /rules - "min cash 29.167,75: a 2,25 punti da <<VAL
+cash>>, che e' dichiarato prima (stacco minimo 8)".
+
+Documentato in docs/research/metodo/il-contesto-vivo.md (sezioni 3 e 3bis
+riscritte, esempio del pannello rifatto per intero).

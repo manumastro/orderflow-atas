@@ -212,6 +212,17 @@ public sealed partial class DataBridge : Indicator
     [Range(2, 500)]
     public int PanelLookback { get; set; } = 10;
 
+    [Display(Name = "Lookback largo", GroupName = "Watch",
+        Description = "La seconda finestra del delta, in barre. Serve a dare una scala al delta " +
+                      "misurato al livello: lo stesso conto su tutte le barre, non solo li'.")]
+    [Range(5, 1000)]
+    public int PanelLookbackLargo { get; set; } = 30;
+
+    [Display(Name = "Apertura cash (UTC)", GroupName = "Watch",
+        Description = "L'ora UTC da cui il pannello somma il delta di seduta. Su NQ e' 13:30Z " +
+                      "(15:30 italiane in ora legale). Non tocca i livelli: solo il pannello.")]
+    public string AperturaCash { get; set; } = "13:30Z";
+
     [Display(Name = "Price axis padding", GroupName = "Levels",
         Description = "Pixel in piu' oltre la larghezza misurata della scala dei prezzi. " +
                       "Alzalo se etichette o pannello finiscono ancora sopra i numeri dell'asse.")]
@@ -1217,6 +1228,15 @@ public sealed partial class DataBridge : Indicator
     ///   come ha retto       quante volte e' stato toccato, e quante volte il prezzo e' tornato
     ///                       indietro invece di passare.
     ///
+    /// **Ogni blocco dichiara su cosa e' misurato, in testata.** `AL LIVELLO` e' la footprint
+    /// dentro una fascia di due tick; `SU TUTTE LE BARRE` e' il delta delle barre intere, su una
+    /// finestra larga e dalla cash. Sono popolazioni diverse e finche' si chiamavano tutte
+    /// "delta" il pannello invitava a confrontarle: un delta di fascia si legge contro il delta
+    /// di seduta, non si somma con lui.
+    ///
+    /// **Il delta si stampa sempre come quota del volume.** Un numero assoluto non dice se e'
+    /// tanto; la percentuale si', e non richiede di sapere a memoria quanto scambia NQ.
+    ///
     /// Si ridisegna a **ogni tick**, perche' e' l'indicatore a calcolarlo: non dipende da nessun
     /// processo esterno, e non puo' restare fermo a mentire mentre il mercato si muove.
     ///
@@ -1404,6 +1424,73 @@ public sealed partial class DataBridge : Indicator
     private static string SegnatoPrezzo(decimal v) =>
         (v >= 0 ? "+" : "-") + Math.Abs(v).ToString("N2", Italiano);
 
+    /// <summary>
+    /// Il delta come quota del volume che l'ha prodotto. E' la sola forma in cui un delta si
+    /// giudica senza conoscere a memoria quanto scambia lo strumento: <c>+1.745</c> non dice
+    /// niente, <c>+4,5%</c> dice che su cento lotti quattro e mezzo sono aggressione netta.
+    /// Sotto i cento lotti non si stampa: la percentuale di un campione minuscolo e' rumore
+    /// travestito da misura.
+    /// </summary>
+    private static string Quota(decimal delta, decimal volume) =>
+        volume >= 100m ? $" ({(delta >= 0 ? "+" : "-")}{Math.Abs(delta) * 100m / volume:0.0}%)" : string.Empty;
+
+    /// <summary>
+    /// Delta e volume delle barre <b>intere</b> da <paramref name="da"/> a <paramref name="a"/>,
+    /// estremi inclusi. Niente fascia di prezzo: e' il conto della seduta, non quello al livello.
+    /// </summary>
+    private (decimal Delta, decimal Volume) DeltaDiBarre(int da, int a)
+    {
+        decimal delta = 0m;
+        decimal volume = 0m;
+        for (var bar = Math.Max(0, da); bar <= a; bar++)
+        {
+            var c = GetCandle(bar);
+            if (c is null)
+            {
+                continue;
+            }
+            delta += c.Delta;
+            volume += c.Volume;
+        }
+
+        return (delta, volume);
+    }
+
+    /// <summary>
+    /// La prima barra dell'apertura di cash del giorno di mercato dell'ultima barra, o -1 se
+    /// quell'ora non e' ancora arrivata o non c'e' abbastanza storico.
+    ///
+    /// <para>Il giorno lo si prende <b>dall'ultima barra</b>, non dall'orologio di casa: in
+    /// replay sono due date diverse, ed e' esattamente il caso in cui serve.</para>
+    /// </summary>
+    private int BarraDellApertura(int ultimo)
+    {
+        DateTime apertura;
+        try
+        {
+            apertura = Momento(AperturaCash, GetCandle(ultimo).Time);
+        }
+        catch (FormatException)
+        {
+            return -1; // ora scritta male nelle impostazioni: si tace, non si inventa una seduta
+        }
+
+        if (GetCandle(ultimo).Time < apertura)
+        {
+            return -1;
+        }
+
+        for (var bar = ultimo; bar >= 0; bar--)
+        {
+            if (GetCandle(bar).Time < apertura)
+            {
+                return bar + 1;
+            }
+        }
+
+        return 0;
+    }
+
     /// <summary>Il nome del livello: la parte prima di " · ", che e' la convenzione del metodo.</summary>
     private static string NomeCorto(string? label)
     {
@@ -1450,9 +1537,26 @@ public sealed partial class DataBridge : Indicator
                 vecchie || _regoleAllaBarra < 0 ? PanelAmbra : PanelGrigio));
             righe.Add(new RigaPannello(
                 "           ~ si muove    = misurato, fermo    * dichiarato a mano", PanelGrigio));
-            foreach (var motivo in _regoleSaltate.Take(3))
+
+            // Le regole che non hanno prodotto una riga sul chart. Non e' diagnostica, e il
+            // titolo lo deve dire: "non disegnato" da solo sembrava un guasto, mentre nel caso
+            // piu' frequente - due livelli a meno di otto punti - e' il fatto che conta, perche'
+            // vuol dire che due letture diverse indicano lo stesso posto.
+            if (_regoleSaltate.Length > 0)
             {
-                righe.Add(new RigaPannello($"           non disegnato: {motivo}", PanelGrigio));
+                righe.Add(new RigaPannello(
+                    $"NON SUL CHART  {_regoleSaltate.Length} regole, e non sono un guasto:",
+                    PanelGrigio));
+                foreach (var motivo in _regoleSaltate.Take(4))
+                {
+                    righe.Add(new RigaPannello($"           - {motivo}", PanelGrigio));
+                }
+                if (_regoleSaltate.Length > 4)
+                {
+                    righe.Add(new RigaPannello(
+                        $"           - e altre {_regoleSaltate.Length - 4}, tutte su /rules",
+                        PanelGrigio));
+                }
             }
         }
 
@@ -1582,18 +1686,52 @@ public sealed partial class DataBridge : Indicator
         // --- sforzo e risultato, che e' la coppia con cui si legge l'assorbimento -------------
         // I numeri nudi non dicono niente: 3.482 lotti sono tanti o pochi a seconda di cosa hanno
         // prodotto. Il metodo legge SEMPRE la coppia - quanto e' stato speso li', e se il prezzo
-        // e' passato. Sforzo alto e risultato nullo e' assorbimento; le due righe lo mettono una
+        // e' passato. Sforzo alto e risultato nullo e' assorbimento; le righe lo mettono una
         // sopra l'altra invece di lasciare la sottrazione a chi guarda.
+        //
+        // **La testata dichiara la misura, e non e' pignoleria.** "SFORZO 3.482 lotti" non diceva
+        // ne' a quale prezzo ne' su quale finestra, e il delta sotto sembrava il delta della
+        // seduta mentre erano i soli lotti scambiati dentro una fascia di due tick, in dieci
+        // barre. Due numeri con lo stesso nome e significati diversi e' il modo piu' rapido di
+        // leggere il chart al contrario.
         var chi = delta > 0 ? "compratori aggressivi" : delta < 0 ? "venditori aggressivi" : "pari";
         righe.Add(new RigaPannello(
-            $"SFORZO     {Lotti(vol)} lotti al livello in {PanelLookback} barre",
+            $"AL LIVELLO {Prezzo(livello)} +/-{Prezzo(fascia)}, ultime {PanelLookback} barre",
             PanelGrigio));
         righe.Add(new RigaPannello(
-            $"           delta {Segnato(delta)}  {chi}",
+            $"  sforzo   {Lotti(vol)} lotti scambiati a questo prezzo",
+            PanelGrigio));
+        righe.Add(new RigaPannello(
+            $"  delta    {Segnato(delta)}{Quota(delta, vol)}  {chi}",
             delta > 0 ? PanelVerde : delta < 0 ? PanelRosso : PanelGrigio));
         righe.Add(new RigaPannello(
-            $"RISULTATO  toccato {tocchi}x, respinto {respinti}x, passato {passati}x",
+            $"  esito    toccato {tocchi}x, respinto {respinti}x, passato {passati}x",
             PanelGrigio));
+
+        // --- lo stesso conto su finestre piu' larghe -----------------------------------------
+        // Serve a dare una scala. Un delta di +120 al livello non si giudica da solo: se la
+        // seduta sta a +2.300 e' un rivolo nella stessa direzione, se la seduta sta a -1.500 e'
+        // una divergenza, ed e' la misura che il 16 settembre ha smentito un permesso LONG tenuto
+        // in piedi per ottantaquattro minuti da un gate orario
+        // (docs/research/metodo/il-permesso-si-misura-non-si-aspetta.md).
+        //
+        // Qui il delta e' quello delle barre INTERE, non della fascia al livello: e' una
+        // popolazione diversa e la testata lo dice, altrimenti si finisce per confrontare due
+        // numeri che non sono confrontabili.
+        var (dLargo, vLargo) = DeltaDiBarre(Math.Max(0, ultimo - PanelLookbackLargo + 1), ultimo);
+        righe.Add(new RigaPannello("SU TUTTE LE BARRE, non solo al livello:", PanelGrigio));
+        righe.Add(new RigaPannello(
+            $"  {PanelLookbackLargo} barre {Segnato(dLargo)}{Quota(dLargo, vLargo)}  su {Lotti(vLargo)} lotti",
+            dLargo > 0 ? PanelVerde : dLargo < 0 ? PanelRosso : PanelGrigio));
+
+        var apertura = BarraDellApertura(ultimo);
+        if (apertura >= 0 && apertura < ultimo)
+        {
+            var (dCash, vCash) = DeltaDiBarre(apertura, ultimo);
+            righe.Add(new RigaPannello(
+                $"  da {AperturaCash} {Segnato(dCash)}{Quota(dCash, vCash)}  su {Lotti(vCash)} lotti",
+                dCash > 0 ? PanelVerde : dCash < 0 ? PanelRosso : PanelGrigio));
+        }
 
         // --- lo scenario, e poi le condizioni che gli servono ---------------------------------
         // Le condizioni le SPUNTA la macchina, non le inventa e non le fa scattare. Lo scenario
@@ -1640,8 +1778,14 @@ public sealed partial class DataBridge : Indicator
 
         var rng = viva.High - viva.Low;
         var pos = rng > 0 ? (viva.Close - viva.Low) / rng : 0m;
+        // La barra in formazione, e va detto che lo e': i suoi numeri cambiano fino alla
+        // chiusura, e "pos 0.95" era il solo dato del pannello che nessuno sapeva leggere senza
+        // che glielo avessero spiegato una volta.
         righe.Add(new RigaPannello(
-            $"ADESSO     v {Lotti(viva.Volume)}   d {Segnato(viva.Delta)}   pos {pos:0.00}",
+            $"BARRA APERTA {OraLocale(viva.Time):HH:mm}, cambia ancora", PanelGrigio));
+        righe.Add(new RigaPannello(
+            $"  {Lotti(viva.Volume)} lotti   delta {Segnato(viva.Delta)}{Quota(viva.Delta, viva.Volume)}"
+            + $"   chiude nel {pos * 100m:0}% alto del suo range",
             viva.Delta > 0 ? PanelVerde : viva.Delta < 0 ? PanelRosso : PanelGrigio));
 
         return righe;

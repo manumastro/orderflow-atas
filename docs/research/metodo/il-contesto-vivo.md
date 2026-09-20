@@ -68,24 +68,42 @@ fermo a mentire**.
 ## Cosa C'e' Nel Pannello: Il Valore, Il Livello, Cosa Serve
 
 **Non e' un riassunto della seduta.** Un pannello che elenca tutto costringe a cercare, e si cerca
-male proprio quando il prezzo si muove. Ci sono tre cose, in quest'ordine.
+male proprio quando il prezzo si muove. Si legge dall'alto: **dove si sta** (il valore), **cosa si
+sta testando** (il livello in gioco), **cosa e' passato li'**, **quanto vale in scala** (le
+finestre larghe) e **a cosa serve** (lo scenario).
 
 ```text
 15:59   NQZ6   29.294,50
+REGOLE     11 livelli da 15 regole, barra 15:59
+           ~ si muove    = misurato, fermo    * dichiarato a mano
+NON SUL CHART  4 regole, e non sono un guasto:
+           - POC Europa 29.198,00: a 3,00 punti da «POC cash», che e' dichiarato prima (stacco minimo 8)
 VALORE     DENTRO cash  29.168,00-29.289,00  POC 29.195,00
            sopra il POC
 IN GIOCO   VAH cash in sviluppo ~   29.289,00
            +5,50 sopra   arrivato da SOTTO
-SFORZO     3.482 lotti al livello in 10 barre
-           delta -412  venditori aggressivi
-RISULTATO  toccato 4x, respinto 3x, passato 1x
+AL LIVELLO 29.289,00 +/-0,50, ultime 10 barre
+  sforzo   3.482 lotti scambiati a questo prezzo
+  delta    -412 (-11,8%)  venditori aggressivi
+  esito    toccato 4x, respinto 3x, passato 1x
+SU TUTTE LE BARRE, non solo al livello:
+  30 barre +1.745 (+4,5%)  su 38.913 lotti
+  da 13:30Z +2.300 (+4,9%)  su 46.730 lotti
 SERVE A     SHORT  fade del bordo alto verso il POC (mean reverting)
            bersaglio 29.195,00 (-99,50)   invalida 29.336,25
 SERVE      2 di 3
    [x] arrivato da dentro il valore
    [x] venditori al bordo (delta negativo li')   (-412)
    [ ] chiusura M1 di nuovo sotto il bordo
+BARRA APERTA 15:59, cambia ancora
+  787 lotti   delta +77 (+9,8%)   chiude nel 95% alto del suo range
 ```
+
+**Ogni blocco dichiara in testata su cosa e' misurato**, e non e' pignoleria: fino al 20 settembre
+2026 il pannello scriveva `SFORZO 3.482 lotti` e sotto `delta -412`, senza dire ne' a quale prezzo
+ne' su quale finestra. Chi guardava leggeva quel delta come il delta della seduta, mentre erano i
+soli lotti scambiati dentro una fascia di **due tick**, in **dieci barre**. Due numeri con lo
+stesso nome e significati diversi e' il modo piu' rapido di leggere il chart al contrario.
 
 ### 1. `VALORE` — dentro o fuori, e di quale
 
@@ -113,20 +131,47 @@ e' chiave, l'intestazione e' minuscola (`in gioco`).
 
 **Quando nessun livello e' in gioco il pannello lo dice**, e mostra le due porte piu' vicine.
 
-### 3. `SFORZO` e `RISULTATO` — la coppia con cui si legge l'assorbimento
+### 3. `AL LIVELLO` — sforzo e risultato, la coppia con cui si legge l'assorbimento
 
 **I numeri nudi non dicono niente.** 3.482 lotti sono tanti o pochi a seconda di cosa hanno
 prodotto: il metodo legge **sempre la coppia** — quanto e' stato speso li', e se il prezzo e'
 passato. Sforzo alto e risultato nullo e' assorbimento; sforzo alto e prezzo che passa e' una
-rottura vera. Le due righe stanno una sopra l'altra proprio per non lasciare la sottrazione a chi
+rottura vera. Le righe stanno una sopra l'altra proprio per non lasciare la sottrazione a chi
 guarda.
 
-- **`SFORZO`** e' la footprint sommata sulla fascia di due tick attorno al livello, nelle ultime
-  `Lookback bars`: **non** il volume della barra, **non** quello della seduta. Il delta ha accanto
-  chi e' stato aggressivo, che e' la sua definizione e non un giudizio: delta negativo vuol dire
-  piu' scambiato in bid, cioe' venditori che colpiscono.
-- **`RISULTATO`** e' cosa ne e' venuto fuori. Un tocco e' una barra che contiene il livello; e'
+La testata dice **il prezzo, la larghezza della fascia e quante barre**: `AL LIVELLO 29.289,00
++/-0,50, ultime 10 barre`. Tutto cio' che sta indentato sotto e' misurato **li' dentro** e in
+nessun altro posto.
+
+- **`sforzo`** e' la footprint sommata sulla fascia di due tick attorno al livello: **non** il
+  volume della barra, **non** quello della seduta.
+- **`delta`** e' la stessa somma, ask meno bid. Accanto c'e' chi e' stato aggressivo, che e' la
+  sua definizione e non un giudizio: delta negativo vuol dire piu' scambiato in bid, cioe'
+  venditori che colpiscono.
+- **`esito`** e' cosa ne e' venuto fuori. Un tocco e' una barra che contiene il livello; e'
   *respinto* se chiude dallo stesso lato da cui veniva, *passato* se chiude dall'altro.
+
+### 3bis. `SU TUTTE LE BARRE` — il delta in una finestra larga, che e' la scala
+
+**Un delta non si giudica da solo, e questo e' il motivo per cui il blocco esiste.** `-412` al
+livello e' una divergenza se la seduta sta a `+2.300`, ed e' la stessa direzione di tutti se la
+seduta sta a `-4.000`. Senza il secondo numero il primo si legge come si vuole.
+
+E' la misura che il **16 settembre 2026** ha smentito un permesso LONG tenuto in piedi per
+ottantaquattro minuti da un gate orario: il prezzo era rientrato dentro l'IVB e il delta cumulato
+in quello stesso intervallo era **negativo** →
+[`il-permesso-si-misura-non-si-aspetta.md`](il-permesso-si-misura-non-si-aspetta.md).
+
+**Sono barre intere, non la fascia al livello, e la testata lo dice apposta.** Sono due
+popolazioni diverse: un delta di fascia si legge **contro** il delta di seduta, non si somma con
+lui. Le due finestre sono `Lookback largo` (30 barre) e **dall'apertura della cash**
+(`Apertura cash (UTC)`, `13:30Z` su NQ); il giorno lo prende dall'ultima barra e non
+dall'orologio di casa, perche' in replay sono due date diverse.
+
+**Il delta si stampa sempre anche come quota del volume** — `+1.745 (+4,5%)` — perche' la
+percentuale dice se e' tanto senza dover sapere a memoria quanto scambia NQ: su cento lotti,
+quattro e mezzo sono aggressione netta. Sotto i cento lotti la percentuale non si stampa: su un
+campione minuscolo e' rumore travestito da misura.
 
 ### 4. `SERVE A` e `SERVE` — lo scenario, e i prerequisiti che gli servono
 
