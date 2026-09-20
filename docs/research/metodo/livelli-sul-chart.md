@@ -1,6 +1,13 @@
 # Livelli Sul Chart: Come Arrivano Da ATAS E Come Ci Tornano
 
-Stato: **procedura**. Descrive il giro completo, dai dati grezzi alla linea disegnata.
+Stato: **procedura**, e dal 20 settembre 2026 descrive solo meta' del giro.
+
+> **Il deposito di prezzi gia' risolti non e' piu' il modo normale di mettere livelli sul
+> chart.** Adesso si depositano **regole** e a calcolarle e' l'indicatore, a ogni barra:
+> [`i-livelli-li-calcola-l-indicatore.md`](i-livelli-li-calcola-l-indicatore.md). Questo
+> documento resta valido per il trasporto, il formato di un livello, dove vivono i livelli e
+> come si disegnano — e per il caso in cui si voglia depositare qualcosa a mano, sapendo che
+> quel POST **spegne le regole**.
 
 ## Chi Fa Cosa
 
@@ -21,18 +28,20 @@ ATAS  ◀──POST /levels──  bridge.py levels --file  ──────�
   └─▶  OnRender disegna linea ed etichetta
 ```
 
-- **L'indicatore non calcola niente.** Riceve una lista di prezzi con etichetta e la disegna. Se
-  la derivazione finisse dentro l'indicatore, le soglie — quanti punti per blocco, quante sedute,
-  cosa e' un collo — diventerebbero codice sul chart invece che convenzioni dichiarate in un
-  documento, e il bridge smetterebbe di essere uno strumento di raccolta.
+- **L'indicatore calcola i prezzi dei livelli, e nient'altro.** Fino al 20 settembre non
+  calcolava niente, e la ragione era buona: le soglie non devono diventare codice sul chart
+  invece che convenzioni dichiarate in un documento. La ragione regge ancora, ed e' il motivo
+  per cui dentro l'indicatore e' finito **il motore** e non **le regole**: quante sedute, quale
+  finestra, che cosa conta restano dichiarati in un file, fuori dal codice. Quello che e'
+  passato dentro e' solo il conteggio — e ci e' passato perche' un conteggio affidato a un
+  processo esterno muore, e quando muore mente.
 - **`bridge.py` non calcola niente.** Il sottocomando `levels` e' solo trasporto HTTP.
 - **I livelli si derivano nell'analisi**, con il metodo di
   [`profile-framing.md`](profile-framing.md), e si scrivono in un file.
 
-Conseguenza da tenere presente: **l'indicatore non aggiorna niente da solo.** I livelli restano
-quelli finche' qualcuno non rifa' il POST. Quelli che si muovono — POC, bordi del valore, estremi
-di sessione — si ridepositano con `livelli_vivi.py`, che risolve la regola invece del prezzo: vedi
-*I Livelli Fissi E I Livelli Vivi*.
+Conseguenza da tenere presente: **i livelli depositati come prezzi non si aggiornano da soli.**
+Restano quelli finche' qualcuno non rifa' il POST, ed e' esattamente il problema che le regole
+tolgono di mezzo. `livelli_vivi.py`, che faceva questo lavoro da fuori, e' ritirato.
 
 ## Dove Vivono
 
@@ -178,10 +187,13 @@ accorge, perche' sul chart hanno lo stesso aspetto dei primi.
 | **fisso** | il minimo della notte, il bordo di un nodo, una mensola difesa quattro volte, il prezzo del COT | solo se il prezzo ci ripassa e ne cambia la **funzione**: allora si riscrive l'etichetta, non il numero |
 | **vivo** | POC, VAH, VAL, massimo e minimo della finestra in sviluppo, il bordo della fascia piu' pesante | **a ogni barra** |
 
-Un livello vivo non si ricalcola a mano a ogni lettura: si **dichiara la regola** in
-`docs/research/giornate/livelli-vivi-STRUMENTO-AAAA-MM-GG.json`, e
-[`FabioOrderFlow/tools/livelli_vivi.py`](../../../FabioOrderFlow/tools/livelli_vivi.py) la
-risolve contro il bridge e rideposita tutto.
+> **La coppia fisso/vivo e' superata.** Gli assi sono due — *misurato* contro *dichiarato*, e
+> *finestra aperta* contro *finestra chiusa* — e i marcatori sul chart sono tre: `~` `=` `*`.
+> Vedi [`i-livelli-li-calcola-l-indicatore.md`](i-livelli-li-calcola-l-indicatore.md).
+
+Un livello non si ricalcola a mano a ogni lettura: si **dichiara la regola** in
+`docs/research/giornate/regole-dei-livelli-STRUMENTO-AAAA-MM-GG.json`, si deposita una volta con
+`bridge.py rules`, e da li' in poi la risolve l'indicatore a ogni barra.
 
 ```json
 {"nome": "POC cash", "tipo": "poc", "finestra": {"da": "13:30Z"},

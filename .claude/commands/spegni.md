@@ -2,6 +2,19 @@
 description: Spegne il contesto vivo e ogni residuo della vecchia sorveglianza, e lo verifica
 ---
 
+> **Dal 20 settembre 2026 i livelli non hanno piu' un processo da spegnere.** Li calcola
+> l'indicatore a ogni barra, e restano sul chart finche' l'indicatore c'e': per toglierli si
+> cancellano le regole, non si uccide niente.
+>
+> ```bash
+> python3 FabioOrderFlow/tools/bridge.py rules --chart STRUMENTO --clear
+> ```
+>
+> Quello che segue serve ancora, perche' **un processo della fase chiusa rimasto vivo da una
+> sessione precedente continua a scrivere su `/levels`, e un POST li' spegne le regole**: il
+> chart smette di aggiornarsi e nessuno vede perche'.
+
+
 **Spegni tutto, adesso, e dimostra che e' spento.** Nessuna conferma: l'utente l'ha gia' data
 scrivendo il comando.
 

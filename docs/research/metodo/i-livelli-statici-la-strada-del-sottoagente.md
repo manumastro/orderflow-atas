@@ -1,8 +1,17 @@
 # I Livelli Statici: La Strada Del Sottoagente, E Perche' E' Chiusa
 
-Stato: **strada chiusa il 20 settembre 2026**, il giorno stesso in cui era stata aperta. Conservata
-qui come evidenza, con quello che si e' visto nell'unica prova e con il problema che resta aperto.
+Stato: **strada chiusa il 20 settembre 2026**, il giorno stesso in cui era stata aperta.
 Non si riapre senza richiesta esplicita.
+
+> **IL PROBLEMA CHE QUESTO DOCUMENTO DESCRIVE NON E' PIU' APERTO.** La sera dello stesso giorno
+> si e' visto che era mal posto: i livelli "fissi" erano fissi quasi solo per abitudine. Su
+> quindici regole del 14 settembre, tredici erano gia' calcolate; le due restanti sono diventate
+> tipi calcolati — `mensola`, e la mensola trovata dalla macchina era **piu' precisa** di quella
+> scritta a mano. Il motore e' passato dentro l'indicatore, e con lui e' sparito anche il guasto
+> del processo che muore. Vedi
+> [`i-livelli-li-calcola-l-indicatore.md`](i-livelli-li-calcola-l-indicatore.md).
+>
+> Quello che segue resta come **evidenza della strada del sottoagente**, che resta chiusa.
 
 > *"voglio togliere la questione del sottoagente che rifà i modelli, dobbiamo trovare un metodo
 > migliore, l'importante è che documenti tutto"* — l'utente, 20 settembre 2026

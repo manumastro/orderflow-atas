@@ -14,6 +14,7 @@ Esempi:
     ./bridge.py rollovers --from 2026-06-01 --to 2026-12-31
     ./bridge.py profile --period LastDay
     ./bridge.py candles --levels --out candles.json
+    ./bridge.py rules --file docs/research/giornate/regole-dei-livelli-NQZ6-2026-09-14.json
     ./bridge.py cumulative --from 2026-09-04 --to 2026-09-11 --min-volume 50
 """
 
@@ -279,6 +280,15 @@ def main() -> None:
     levels.add_argument("--file", help="JSON con l'elenco dei livelli, in alternativa a --set; `-` legge da stdin")
     levels.add_argument("--clear", action="store_true", help="cancella i livelli del chart")
 
+    # LE REGOLE, che sono il modo normale di mettere livelli sul chart dal 20 settembre 2026.
+    # `levels` deposita PREZZI gia' risolti e li lascia li' a invecchiare; `rules` deposita
+    # COME SI TROVANO, e a ricalcolarli e' l'indicatore a ogni barra. Vedi
+    # docs/research/metodo/i-livelli-li-calcola-l-indicatore.md
+    rules = add("rules")
+    rules.add_argument("--file", help="JSON con l'elenco delle regole; `-` legge da stdin")
+    rules.add_argument("--clear", action="store_true",
+                       help="cancella le regole del chart, e con esse i livelli che producevano")
+
     watch = add("watch")
     watch.add_argument("--set", action="append", default=[], metavar="TESTO[:COLORE]",
                        help="riga da depositare sul pannello; ripetibile")
@@ -304,6 +314,19 @@ def main() -> None:
             payload = send(args.base, "/watch", "POST", {"chart": args.chart}, body)
         else:
             payload = get(args.base, "/watch", {"chart": args.chart})
+    elif args.command == "rules":
+        if args.clear:
+            payload = send(args.base, "/rules", "DELETE", {"chart": args.chart})
+        elif args.file:
+            body = json.load(sys.stdin) if args.file == "-" else json.load(open(args.file, encoding="utf-8"))
+            payload = send(args.base, "/rules", "POST", {"chart": args.chart}, body)
+        else:
+            payload = get(args.base, "/rules", {"chart": args.chart})
+        # Il deposito risponde con cosa NON e' uscito, e va letto: una regola che non produce
+        # un livello e' la stessa cosa di un livello mancante sul chart, e senza questa riga si
+        # nota solo guardando il grafico e chiedendosi dove sia finita una riga.
+        for motivo in (payload.get("skipped") or []):
+            print(f"  non disegnato: {motivo}", file=sys.stderr)
     elif args.command == "levels":
         if args.clear:
             payload = send(args.base, "/levels", "DELETE", {"chart": args.chart})

@@ -109,17 +109,6 @@
     "chiave": true
   },
   {
-    "nome": "mensola rotta",
-    "tipo": "fisso",
-    "price": 29142,
-    "label": "Mensola difesa 6 volte 12:36-13:02 · ROTTA 13:03: sopra, la rottura era uno stoppino",
-    "color": "#C77B5A",
-    "style": "dash",
-    "width": 2,
-    "note": "minimi 29141,75 / 29142,00 / 29142,25: appoggio di ordini eseguiti, non un bordo di profilo",
-    "chiave": false
-  },
-  {
     "nome": "top nodo Europa",
     "tipo": "nodo_top",
     "finestra": {
@@ -156,6 +145,21 @@
     "color": "#7A8FA6",
     "style": "dot",
     "width": 1,
+    "chiave": false
+  },
+  {
+    "nome": "mensola europea",
+    "tipo": "mensola",
+    "finestra": {
+      "da": "12:30Z"
+    },
+    "grana": 1,
+    "appoggi_minimi": 3,
+    "label": "MENSOLA {tocchi} minimi · sotto, si perde l'ultimo appoggio prima del min notte",
+    "color": "#C77B5A",
+    "style": "dash",
+    "width": 2,
+    "note": "la trova il motore contando i minimi su griglia da 1 punto. A mano era scritta 29.142: quello e' un minimo singolo piu' profondo, l'appoggio vero sta dove i minimi si ripetono.",
     "chiave": false
   },
   {

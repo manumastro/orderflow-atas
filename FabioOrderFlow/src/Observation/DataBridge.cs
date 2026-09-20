@@ -39,7 +39,7 @@ namespace FabioOrderFlow.Observation;
 /// Il listener e' legato a 127.0.0.1: non e' raggiungibile dalla rete.
 /// </summary>
 [DisplayName("Fabio Data Bridge")]
-public sealed class DataBridge : Indicator
+public sealed partial class DataBridge : Indicator
 {
     private const string Schema = "fof-data-bridge-v1";
 
@@ -218,8 +218,31 @@ public sealed class DataBridge : Indicator
     [Range(0, 200)]
     public int PriceAxisPadding { get; set; } = 10;
 
+    /// <summary>
+    /// L'orologio del motore dei livelli: l'indice dell'ultima barra su cui si e' ricalcolato.
+    /// </summary>
+    private int _ultimaBarraVista = -1;
+
     protected override void OnCalculate(int bar, decimal value)
     {
+        // IL RICALCOLO STA QUI, E NON IN UN PROCESSO ESTERNO. Una barra nuova e' l'unico momento
+        // in cui un POC, un bordo del valore o un estremo possono essere cambiati: dentro la
+        // barra in formazione le misure non si prendono affatto, perche' cambierebbero da sole
+        // fra un tick e il successivo.
+        //
+        // Il filtro sull'ultima barra e' necessario: senza, il caricamento storico chiamerebbe
+        // OnCalculate settemila volte e ricalcolerebbe settemila profili all'apertura del chart.
+        if (bar < CurrentBar - 1 || bar <= _ultimaBarraVista)
+        {
+            return;
+        }
+
+        _ultimaBarraVista = bar;
+        if (_rules.Length > 0)
+        {
+            RisolviRegole();
+            Repaint();
+        }
     }
 
     protected override void OnInitialize()
@@ -227,6 +250,7 @@ public sealed class DataBridge : Indicator
         base.OnInitialize();
         Register();
         RestoreLevels();
+        RestoreRules();
         RestoreWatch();
     }
 
@@ -514,6 +538,7 @@ public sealed class DataBridge : Indicator
                 "/cumulative" => await CumulativeAsync(query, cancellation).ConfigureAwait(false),
                 "/depth" => await DepthAsync(query, cancellation).ConfigureAwait(false),
                 "/levels" => await LevelsAsync(context).ConfigureAwait(false),
+                "/rules" => await RulesAsync(context).ConfigureAwait(false),
                 "/watch" => await WatchAsync(context).ConfigureAwait(false),
             "/charts" => throw new BridgeException(500, "handled by the hub"),
                 _ => throw new BridgeException(404, $"unknown endpoint '{path}'"),
@@ -580,6 +605,19 @@ public sealed class DataBridge : Indicator
 
         /// <summary>A cosa servono quelle condizioni: quale setup, in che verso, verso dove.</summary>
         public BridgeScenario? Scenario { get; init; }
+
+        /// <summary>
+        /// Il nome della regola che ha prodotto il livello. Serve a due cose che dal prezzo non
+        /// si deducono: risolvere un bersaglio dichiarato per nome, e dire nel pannello quale
+        /// regola non ha prodotto niente.
+        /// </summary>
+        public string? Nome { get; init; }
+
+        /// <summary>
+        /// <c>~</c> misurato su finestra aperta, <c>=</c> misurato su finestra chiusa,
+        /// <c>*</c> dichiarato a mano dall'analisi. Vedi RegoleDeiLivelli.cs.
+        /// </summary>
+        public string? Marcatore { get; init; }
     }
 
     /// <summary>
@@ -750,6 +788,20 @@ public sealed class DataBridge : Indicator
             if (bad is not null)
             {
                 throw new BridgeException(400, "every level needs a positive 'price'");
+            }
+
+            // DEPOSITARE LIVELLI A MANO SPEGNE LE REGOLE, ed e' esplicito apposta.
+            //
+            // Le due cose scrivono nello stesso posto: se restassero accese entrambe, alla
+            // prima barra nuova il motore ricalcolerebbe e i livelli appena depositati
+            // sparirebbero senza che nessuno abbia sbagliato niente. Meglio dire che il
+            // controllo e' passato a mano, che vederlo tornare indietro da solo.
+            if (_rules.Length > 0)
+            {
+                _rules = Array.Empty<BridgeRule>();
+                _regoleSaltate = new[] { "regole spente: livelli depositati a mano su /levels" };
+                _regoleAllaBarra = -1;
+                PersistRules();
             }
 
             _levels = parsed.OrderByDescending(level => level.Price).ToArray();
@@ -1380,9 +1432,37 @@ public sealed class DataBridge : Indicator
             $"{OraLocale(viva.Time):HH:mm}   {InstrumentInfo?.Instrument}   {Prezzo(prezzo)}",
             PanelBianco));
 
+        // --- CHI TIENE I LIVELLI, E DA QUANDO -----------------------------------------------
+        // Un pannello fermo e' indistinguibile da uno aggiornato, e i livelli non avevano
+        // nessuna difesa: quando il processo esterno moriva, le righe restavano sul chart con
+        // la tilde che prometteva un aggiornamento che non arrivava piu'. Adesso il motore e'
+        // qui dentro e non puo' morire da solo — ma l'eta' si dichiara lo stesso, perche' una
+        // eccezione dentro il ricalcolo produrrebbe esattamente lo stesso inganno in silenzio.
+        if (_rules.Length > 0)
+        {
+            var vecchie = _regoleAllaBarra >= 0 && ultimo - _regoleAllaBarra > 1;
+            righe.Add(new RigaPannello(
+                _regoleAllaBarra < 0
+                    ? $"REGOLE     {_rules.Length} regole, nessun ricalcolo ancora"
+                    : $"REGOLE     {livelli.Length} livelli da {_rules.Length} regole, "
+                      + $"barra {OraLocale(_regoleAllOra):HH:mm}"
+                      + (vecchie ? $"  FERME DA {ultimo - _regoleAllaBarra} BARRE" : string.Empty),
+                vecchie || _regoleAllaBarra < 0 ? PanelAmbra : PanelGrigio));
+            righe.Add(new RigaPannello(
+                "           ~ si muove    = misurato, fermo    * dichiarato a mano", PanelGrigio));
+            foreach (var motivo in _regoleSaltate.Take(3))
+            {
+                righe.Add(new RigaPannello($"           non disegnato: {motivo}", PanelGrigio));
+            }
+        }
+
         if (livelli.Length == 0)
         {
-            righe.Add(new RigaPannello("nessun livello depositato", PanelAmbra));
+            righe.Add(new RigaPannello(
+                _rules.Length > 0
+                    ? "nessuna regola ha prodotto un livello"
+                    : "nessun livello depositato",
+                PanelAmbra));
             return righe;
         }
 

@@ -44,6 +44,23 @@ if ! curl -s -m 2 "http://127.0.0.1:$PORTA/charts" >/dev/null 2>&1; then
   exit 0
 fi
 
+# IL DIARIO TORNA INDIETRO COL REPLAY, e succede qui perche' deve succedere PRIMA del giro.
+#
+# Riavvolgendo il replay l'orologio di mercato torna indietro; il file della giornata no, e i
+# blocchi di un giro precedente restano a raccontare minuti non ancora successi. Il giro sa gia'
+# non STAMPARE la sezione avanti, ma nascondere non basta: il file resta sul disco e chiunque lo
+# apra lo legge lo stesso. Il 20 settembre e' stato riaperto e letto.
+#
+# riavvolgi_giornata.py li sposta in fondo al file, dichiarati. Non cancella niente e non tocca
+# niente quando non c'e' niente da spostare, quindi gira sempre: dal vivo e' un comando che non
+# fa nulla. Si stampa solo quando ha agito — altrimenti ogni messaggio porterebbe righe uguali.
+RIAVVOLTO=$(python3 FabioOrderFlow/tools/riavvolgi_giornata.py 2>&1)
+if echo "$RIAVVOLTO" | grep -q "parcheggio\|spostati"; then
+  echo "=== IL DIARIO E' STATO RIAVVOLTO COL REPLAY ============================="
+  echo "$RIAVVOLTO"
+  echo
+fi
+
 OUT=$(python3 FabioOrderFlow/tools/giro_orizzonte.py --barre 8 2>&1)
 if [ $? -ne 0 ]; then
   echo "[giro d'orizzonte] fallito:"

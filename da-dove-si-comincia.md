@@ -6,7 +6,7 @@ Il repository non contiene un sistema di trading. Contiene un **metodo**: partir
 corso insegna, isolare quali affermazioni sono osservabili, misurarle, e registrare tanto cio' che
 regge quanto cio' che non regge. Nessuna regola operativa e' stata approvata.
 
-## Le Due Decisioni Che Governano Tutto (18 Settembre 2026)
+## Le Tre Decisioni Che Governano Tutto
 
 **Il corso comanda.** Ogni operazione, ogni livello, ogni condizione deve poter essere ricondotta a
 un minuto di una lezione del live Q1 in
@@ -15,6 +15,10 @@ illustrato resta citabile — e' di Fabio e va menzionato — ma **non comanda**
 
 **Lo strumento e' NQ, e solo NQ.** Con la conseguenza che la sessione operativa e' **New York**,
 perche' e' quello che il corso dice e il corso comanda.
+
+**L'agente costruisce il contesto, non opera** (20 settembre 2026). Non prende decisioni
+operative e non arma condizioni: tiene aggiornato tutto il contesto necessario perche' la
+decisione la prenda una persona.
 
 ## Da Dove Si Comincia
 
@@ -25,6 +29,10 @@ perche' e' quello che il corso dice e il corso comanda.
 | **La gestione**: break even, parziali, conto in R, size. Nel live e' l'edge | [`docs/research/metodo/la-gestione-della-posizione.md`](docs/research/metodo/la-gestione-della-posizione.md) |
 | **Come si e' arrivati qui**: le strade chiuse, il COT, il Data Bridge | [`docs/research/percorso-del-progetto.md`](docs/research/percorso-del-progetto.md) |
 | **Come si fa** una analisi, procedura per procedura | [`docs/research/metodo/indice-delle-procedure.md`](docs/research/metodo/indice-delle-procedure.md) |
+| **Cosa si guarda prima di rispondere**: il giro d'orizzonte e il quadro | [`docs/research/metodo/il-giro-d-orizzonte.md`](docs/research/metodo/il-giro-d-orizzonte.md) |
+| **Come si risponde dal vivo**: direzione, forma, livelli come porte, termini | [`docs/research/metodo/come-si-risponde-dal-vivo.md`](docs/research/metodo/come-si-risponde-dal-vivo.md) |
+| **Chi calcola i livelli** e con quale vocabolario | [`docs/research/metodo/i-livelli-li-calcola-l-indicatore.md`](docs/research/metodo/i-livelli-li-calcola-l-indicatore.md) |
+| **Build e deploy**, e cosa un `git pull` non porta | [`docs/research/build-e-deploy.md`](docs/research/build-e-deploy.md) |
 | **Cosa e' gia' stato analizzato**, giorno per giorno | [`docs/research/giornate/`](docs/research/giornate/) |
 | Le regole operative per lavorare nel repository | [`CLAUDE.md`](CLAUDE.md) |
 | Quali fonti esistono e quale batte quale | [`fabio_course/mappa-delle-fonti.md`](fabio_course/mappa-delle-fonti.md) |

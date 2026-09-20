@@ -48,11 +48,16 @@ dice che e' il p95 e di quante barre.
 ## I File Di Una Giornata
 
 ```text
-AAAA-MM-GG.md              la cronaca, scritta durante la seduta
-livelli-AAAA-MM-GG.json    i livelli attivi, derivati dall'analisi
-scenari-AAAA-MM-GG.json    cosa ci aspettiamo, come condizioni valutabili
-annotazioni-AAAA-MM-GG.json  il diario delle letture, con ora e misura
+AAAA-MM-GG.md                                la cronaca, scritta durante la seduta
+regole-dei-livelli-STRUMENTO-AAAA-MM-GG.json  COME si trovano i livelli, non quali prezzi sono
+annotazioni-AAAA-MM-GG.json                  il diario delle letture, con ora e misura
 ```
+
+Il file delle regole **contiene regole, non livelli**, e per questo si chiama cosi': le deposita
+`bridge.py rules` una volta e a risolverle e' l'indicatore, a ogni barra. Vedi
+[`../metodo/i-livelli-li-calcola-l-indicatore.md`](../metodo/i-livelli-li-calcola-l-indicatore.md).
+I vecchi `livelli-AAAA-MM-GG.json` e `scenari-AAAA-MM-GG.json` restano come evidenza delle fasi
+chiuse e non si estendono.
 
 Gli **scenari** si scrivono prima della seduta e dicono cosa ci aspettiamo: il motore li valuta e
 quando uno scatta lo mette sul chart da solo, col nome che gli avevamo dato. A fine giornata si
@@ -64,13 +69,13 @@ ricostruirla a memoria.
 
 Come si usano: [`../metodo/sorveglianza-del-tape.md`](../metodo/sorveglianza-del-tape.md).
 
-### Il file dei livelli
+### Il file delle regole
 
-Accanto a `AAAA-MM-GG.md` sta `livelli-AAAA-MM-GG.json`: i livelli attivi quel giorno, nel formato
-che il chart e la sorveglianza leggono entrambi. Resta nel repository perche' rileggere una giornata
-senza sapere quali livelli erano attivi non serve a niente.
+Accanto a `AAAA-MM-GG.md` sta `regole-dei-livelli-STRUMENTO-AAAA-MM-GG.json`. Resta nel repository
+perche' rileggere una giornata senza sapere quali livelli erano attivi non serve a niente — e
+siccome contiene **regole**, non prezzi, rileggerlo dice anche *perche'* quei livelli erano li'.
 
-Come si usa: [`../metodo/sorveglianza-del-tape.md`](../metodo/sorveglianza-del-tape.md).
+Come si scrive: [`../metodo/i-livelli-li-calcola-l-indicatore.md`](../metodo/i-livelli-li-calcola-l-indicatore.md).
 
 ## Come Si Riprende Una Giornata Gia' Iniziata
 
@@ -92,6 +97,29 @@ Nell'ordine:
 
 Il file del giorno prima si legge per la stessa ragione: il framing di oggi nasce dalla value area
 e dai minimi di ieri, e quelli sono nella sua sezione 1.
+
+### In Replay Il Diario Torna Indietro Da Solo
+
+Riavvolgendo un replay l'orologio di mercato torna indietro, **il file no**: i blocchi di un giro
+precedente restano a raccontare minuti che nella sessione in corso non sono ancora successi, e si
+leggono come contesto. La disciplina del replay e' non sapere come finisce, e un diario avanti la
+toglie in silenzio.
+
+`riavvolgi_giornata.py` sposta quei blocchi in fondo al file, sotto **«Il futuro di un giro
+precedente»**, e gira da solo nell'hook del giro d'orizzonte. **Non cancella niente**: sono il
+registro di un giro che c'e' stato davvero, e servono al confronto di fine sessione.
+
+**Si sposta solo cio' che dichiara il proprio orario in apertura** — `**13:03Z — la mensola
+cade.**`, `### 15:31 Dove eravamo`. Un blocco che si limita a *citare* un orario avanti resta
+dov'e' e viene **segnalato**: in quel caso il problema non e' un pezzo di diario di troppo, e' una
+misura presa su una finestra che finisce nel futuro del replay, e si corregge rifacendo la misura.
+
+**Non torna avanti da solo.** Se il replay risupera un blocco parcheggiato, il blocco resta nel
+parcheggio e il programma lo dice: rimetterlo dentro spaccerebbe il testo di un altro giro per la
+cronaca di questo. Si fa a mano, con `--ripristina`.
+
+**Una sezione svuotata va riscritta, e il programma dice quali.** Quello che resta sotto il titolo
+sono le righe non datate, che descrivevano il momento portato via.
 
 ### Le tre parti che esistono per essere rilette
 

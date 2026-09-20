@@ -34,9 +34,9 @@ Il nuovo impianto non prevede niente. **Dice sempre tutto**, e chi guarda decide
 
 | | chi lo fa | quando |
 |---|---|---|
-| **livelli vivi** — POC, VAH, VAL, estremi, bordi dei nodi | `livelli_vivi.py --ogni`, da solo | ogni 30 secondi |
+| **il prezzo di ogni livello** — POC, bordi, estremi, nodi, mensole, aggressione, assorbimento | **l'indicatore**, in C# | a **ogni barra** |
 | **pannello** — il livello in gioco e le prove per giudicarlo | **l'indicatore**, in C# | a **ogni tick** |
-| **livelli statici** — mensole, nodi, prezzi del COT, rotture | **l'agente**, riscrivendo il file delle regole | quando la struttura cambia |
+| **quali regole**, su quale finestra, e a cosa serve arrivarci | **l'agente**, scrivendo il file delle regole | quando la struttura cambia |
 | **la lettura** — cosa significa | l'agente, su richiesta | quando si chiede |
 
 **La separazione non e' negoziabile: il programma misura, l'agente interpreta.** Un programma che
@@ -44,20 +44,18 @@ classifica da solo finisce per chiamare assorbimento su un supporto quello che e
 resistenza, perche' il ruolo di un livello cambia durante la seduta e una barra non basta a saperlo.
 E' gia' successo, ed e' il motivo per cui i sorveglianti erano deliberatamente grossolani.
 
-## I Due Comandi, E Uno Solo Va Acceso
+## Non C'e' Niente Da Accendere
 
-I **livelli vivi** hanno un processo, il **pannello** no: il pannello e' l'indicatore, e c'e'
-finche' l'indicatore e' sul chart.
+Ne' i livelli ne' il pannello hanno un processo: sono entrambi l'indicatore, e ci sono finche'
+l'indicatore e' sul chart. Le regole si depositano **una volta**, e da li' in poi il ricalcolo
+e' dell'indicatore, a ogni barra.
 
 ```bash
-python3 FabioOrderFlow/tools/livelli_vivi.py \
-        docs/research/giornate/livelli-vivi-NQZ6-AAAA-MM-GG.json --chart NQZ6 --ogni 30
-
-# per vedere cosa uscirebbe, senza depositare
-python3 FabioOrderFlow/tools/livelli_vivi.py ... --chart NQZ6 --prova
+python3 FabioOrderFlow/tools/bridge.py rules --chart NQZ6 --file         docs/research/giornate/regole-dei-livelli-NQZ6-AAAA-MM-GG.json
 ```
 
-Gira **in background**, non come `Monitor`: non deve interrompere niente, deve solo esserci. Uno
+Il resto di questa sezione descrive il processo esterno che faceva questo lavoro fino al
+20 settembre 2026, ed e' conservato come evidenza. Uno
 solo per chart. Si riavvia quando cambia il file delle regole? **No**: il file si rilegge a ogni
 giro, apposta, perche' correggere una definizione non deve richiedere un riavvio.
 
@@ -160,7 +158,7 @@ Si dichiarano nel file delle regole, accanto al livello:
 
 **Bersaglio e invalidazione si dichiarano per NOME di livello, mai come numero.** Il POC della cash
 si sposta a ogni barra: un bersaglio scritto 29.195 sarebbe giusto per dieci minuti e poi sbagliato
-in silenzio, che e' lo stesso difetto dei livelli non ridisegnati. `livelli_vivi.py` li risolve a
+in silenzio, che e' lo stesso difetto dei livelli non ridisegnati. Li risolve il motore dentro l'indicatore a
 ogni giro; se un nome non esiste, **toglie il campo e lo dice**, invece di inventare un prezzo.
 
 **Lo scenario va scritto dopo aver riconosciuto il modello**, non prima: dentro il valore si fa
@@ -193,9 +191,11 @@ se lo dichiara il file delle regole con `"chiave": true`; in mancanza, lo spesso
 dichiarazione. Senza questa distinzione dodici righe hanno tutte lo stesso peso visivo, e quella su
 cui si decide non si trova a colpo d'occhio — che e' l'unico momento in cui serve.
 
-**Un `~` dopo il nome dice che il livello e' vivo**, cioe' si muove da solo. Senza marcatore un POC
-che si sposta a ogni barra e una mensola scritta stamattina si disegnano identici, e chi guarda non
-sa se sta leggendo una misura di adesso o un fatto che potrebbe essere invecchiato.
+**Tre marcatori dopo il nome**, perche' le cose sono tre: `~` misurato su finestra ancora aperta,
+`=` misurato su finestra chiusa, `*` dichiarato a mano dall'analisi. Senza, un POC che si sposta a
+ogni barra, un massimo della notte ormai definitivo e una mensola scritta stamattina si disegnano
+identici, e chi guarda non sa quale delle tre sta leggendo. Dettaglio in
+[`i-livelli-li-calcola-l-indicatore.md`](i-livelli-li-calcola-l-indicatore.md).
 
 ### Le Manopole
 
@@ -226,30 +226,33 @@ quando si vuole sapere se la mappa regge:
 
 ```bash
 python3 FabioOrderFlow/tools/serve_rifare.py \
-        docs/research/giornate/livelli-vivi-NQZ6-AAAA-MM-GG.json --chart NQZ6
+        docs/research/giornate/regole-dei-livelli-NQZ6-AAAA-MM-GG.json --chart NQZ6
 ```
 
 Risponde `NIENTE` o `SERVE` con le ragioni — fuori fascia, attraversato, niente in gioco, sessione,
 deriva. **Non giudica il mercato**: dice *quella riga sul chart non descrive piu' dove siamo*.
 
-Finche' non c'e' un metodo migliore, **i fissi li rifa' l'agente su richiesta**, in primo piano.
+## Il Guasto Che C'Era, E Come Si E' Chiuso
 
-## Il Guasto Aperto: Un Livello Vivo Fermo Non Lo Dice
+**Quando il processo dei livelli moriva, le righe restavano sul chart identiche a prima.** Il
+20 settembre e' morto due volte: la mattina insieme alla sessione, con undici livelli fermi mentre
+il replay andava avanti, e la sera semplicemente non girava, con otto righe che sembravano di
+adesso.
 
-**Quando il processo dei livelli muore, le righe restano sul chart identiche a prima.** Il
-20 settembre e' morto insieme alla sessione, e sul chart sono rimasti undici livelli fermi mentre
-il replay andava avanti.
-
-E' peggio di un livello fisso scaduto: **il `~` promette che quel livello si muove.** Un POC fermo
-che dichiara di essere vivo inganna piu' di uno che non dichiara niente.
+Era peggio di un livello fisso scaduto: **il `~` prometteva che quel livello si muoveva.** Un POC
+fermo che si dichiara vivo inganna piu' di uno che non dichiara niente.
 
 ```text
 il pannello   vive nell'indicatore, dichiara la propria eta'   -> non puo' mentire
-i livelli     vivono in un processo esterno, nessuna difesa    -> mentono in silenzio
+i livelli     vivevano in un processo esterno, nessuna difesa  -> mentivano in silenzio
 ```
 
-**La difesa va messa dove non muore**, cioe' nell'indicatore: un livello vivo non ridepositato entro
-una soglia va marcato o spento. Non e' stato fatto, ed e' il primo lavoro da riprendere.
+**La difesa non e' stata accorgersene: e' stata togliere di mezzo la cosa che moriva.** Il motore
+e' passato dentro l'indicatore la sera del 20 settembre. Chart aperto, livelli di adesso; chart
+chiuso, niente da ingannare — lo stato intermedio non esiste piu'. L'eta' il pannello continua a
+dichiararla, perche' un'eccezione dentro il ricalcolo produrrebbe lo stesso inganno in silenzio.
+Procedura e difese in
+[`i-livelli-li-calcola-l-indicatore.md`](i-livelli-li-calcola-l-indicatore.md).
 
 ## Cosa Non Fa, E Va Detto
 

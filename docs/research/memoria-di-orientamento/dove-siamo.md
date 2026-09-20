@@ -32,9 +32,13 @@ e' chiusa da metà settembre. Vedi [[la-storia-del-progetto]].
 - **Si sta facendo pratica in replay**, non solo dal vivo. L'ultimo e' il replay del 14 settembre
   su NQZ6, con la disciplina di non leggere il diario della giornata vera prima di aver dato la
   lettura.
-- **Il chart si aggiorna da solo**: `livelli_vivi.py` ridisegna POC, bordi del valore ed estremi a
-  ogni giro, e `condizione_viva.py` scrive sul pannello in alto a destra i contatori di una
-  condizione dichiarata, cosi' l'utente li vede senza aspettare una risposta scritta.
+- **Il chart si aggiorna da solo, e il motore sta dentro l'indicatore** dal 20 settembre 2026:
+  l'analisi deposita delle *regole* (`bridge.py rules`) e l'indicatore ricalcola POC, bordi del
+  valore, estremi, nodi e mensole a ogni barra. Non c'e' nessun processo da tenere acceso, e il
+  guasto del "livello vivo fermo che non lo dice" si e' chiuso togliendo di mezzo il processo che
+  moriva. All'agente resta **quali** livelli contano e **a cosa serve arrivarci**, non il prezzo.
+- **In replay il diario torna indietro da solo**: `riavvolgi_giornata.py` sposta in fondo al file
+  i blocchi datati dopo l'orologio del replay, e gira nell'hook del giro d'orizzonte.
 - **Il lavoro si sta spostando su un PC Windows**, perche' l'esecuzione passa da Tradeify che
   richiede R|Trader Pro, che non esiste su macOS. Il trasloco e' cominciato il 20 settembre e non
   e' ancora verificato del tutto: la notifica di sistema di `avviso.py` su Windows e' scritta ma

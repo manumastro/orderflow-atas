@@ -12,7 +12,7 @@ Serve perche' diverse informazioni utili esistono solo dentro il processo ATAS: 
 
 Non calcola indicatori, non classifica partecipanti, non applica soglie e non invia ordini. Legge, converte in JSON, restituisce. Ogni risposta riporta lo strumento e il timeframe del chart su cui il bridge e' caricato, perche' quel contesto fa parte del dato.
 
-L'unica eccezione e' `/levels`: un elenco di prezzi con etichetta che l'analisi deposita e che l'indicatore disegna. Sono dati dell'indicatore, non entrano in nessun calcolo e non producono segnali; servono a non dover ridisegnare a mano su ATAS i livelli che l'analisi ha gia' individuato.
+Le eccezioni sono due, e sono la stessa cosa a due stadi. `/rules` riceve **come si trova** un livello — un POC, un bordo del valore, una mensola, su una finestra dichiarata — e l'indicatore lo ricalcola a ogni barra: vedi [`i-livelli-li-calcola-l-indicatore.md`](i-livelli-li-calcola-l-indicatore.md). `/levels`: un elenco di prezzi con etichetta che l'analisi deposita e che l'indicatore disegna. Sono dati dell'indicatore, non entrano in nessun calcolo e non producono segnali; servono a non dover ridisegnare a mano su ATAS i livelli che l'analisi ha gia' individuato.
 
 ## Sicurezza
 
@@ -32,7 +32,8 @@ Il listener e' legato a `127.0.0.1` e non e' raggiungibile dalla rete. Espone da
 | `/candles` | `from`, `to`, `fromBar`, `toBar`, `levels` | candele del chart con volume, tick, bid/ask, delta, `maxDelta`/`minDelta`, VWAP, POC, value area, open interest e footprint opzionale |
 | `/cumulative` | `from`, `to`, `minVolume`, `maxVolume`, `mode`, `ticks` | trade aggregati storici con il filtro di volume nativo di ATAS |
 | `/depth` | `from`, `to`, `periodSeconds` | snapshot storici del book |
-| `/levels` | `chart` | `GET` restituisce i livelli del chart, `POST`/`PUT` li sostituisce, `DELETE` li cancella |
+| `/levels` | `chart` | `GET` restituisce i livelli del chart, `POST`/`PUT` li sostituisce, `DELETE` li cancella. **Un POST qui spegne le regole**: il controllo passa a mano |
+| `/rules` | `chart` | `GET` restituisce le regole e cosa non hanno prodotto, `POST`/`PUT` le sostituisce e ricalcola subito, `DELETE` le cancella insieme ai livelli che producevano |
 
 ### Livelli
 
@@ -47,6 +48,11 @@ python3 FabioOrderFlow/tools/bridge.py levels --chart NQZ6 --set 29454:mensola:#
 python3 FabioOrderFlow/tools/bridge.py levels --chart NQZ6 --file livelli.json
 python3 FabioOrderFlow/tools/bridge.py levels --chart NQZ6
 python3 FabioOrderFlow/tools/bridge.py levels --chart NQZ6 --clear
+
+# il modo normale: si depositano le REGOLE, e a calcolarle e' l'indicatore
+python3 FabioOrderFlow/tools/bridge.py rules --chart NQZ6 --file regole-dei-livelli-NQZ6-2026-09-14.json
+python3 FabioOrderFlow/tools/bridge.py rules --chart NQZ6
+python3 FabioOrderFlow/tools/bridge.py rules --chart NQZ6 --clear
 ```
 
 `maxDelta` e `minDelta` sono il delta massimo e minimo raggiunti **durante** la barra: sono la misura diretta dello sforzo che non ottiene risultato, non ricavabile dal solo delta di chiusura.
@@ -87,3 +93,39 @@ python3 FabioOrderFlow/tools/bridge.py rollovers --from 2026-06-01 --to 2026-12-
 python3 FabioOrderFlow/tools/bridge.py profile --period LastDay --out profile.json
 python3 FabioOrderFlow/tools/bridge.py cumulative --from 2026-09-04 --to 2026-09-11 --min-volume 50 --out big.json
 ```
+
+## I Vincoli Che Hanno Gia' Prodotto Errori
+
+Quattro, e ciascuno e' costato una misura sbagliata almeno una volta.
+
+- **`bar` e' un indice di posizione, non un identificatore**: riparte quando ATAS ricarica
+  l'indicatore, che succede a ogni deploy. Per riconoscere una barra si usa **`time`**.
+- **Il contratto continuo di ATAS non e' back-adjusted**: si usano i contratti singoli, o
+  `FabioOrderFlow/tools/build_continuous.py`. **Il controllo del rollover precede ogni altra
+  misura**: il 14 settembre NQZ6 e' diventato front month da 8.600 a 173.480 lotti in un giorno,
+  e i prezzi delle sedute precedenti su quel contratto non sono valore trasferito.
+- **La speed of tape non esiste nel bridge.** Il proxy e' il volume per barra M1 contro la
+  distribuzione recente, e **va dichiarato come proxy ogni volta che si usa**.
+- **L'id del chart cambia a ogni ricarica dell'indicatore**, quindi non si cabla da nessuna parte:
+  lo si chiede a `/charts` o `/health`.
+
+### Il Delta Esiste Anche Prezzo Per Prezzo
+
+`bridge.py candles --levels` restituisce la **footprint** di ogni barra — `ask` meno `bid` a ogni
+prezzo scambiato, piu' `maxPositiveDelta` e il POC di quella barra.
+
+**E' lo strumento con cui si misura l'assorbimento del live**: sforzo alto, risultato nullo.
+Procedura in [`la-footprint-e-il-delta-per-prezzo.md`](la-footprint-e-il-delta-per-prezzo.md).
+
+### I Big Trades Sono Il Filtro Di Volume Nativo
+
+Non e' una nostra soglia, e' la taratura dichiarata da Fabio: **60 su NQ in cash**, 20-30 in
+premarket.
+
+```bash
+python3 FabioOrderFlow/tools/bridge.py cumulative --chart NQZ6 \
+        --from 2026-09-14T12:20:00Z --to 2026-09-14T13:00:00Z --min-volume 60
+```
+
+Il sottocomando e' `cumulative --min-volume`, non `trades`: `bridge.py trades` non esiste, ed e'
+stato citato per errore in `CLAUDE.md` fino al 20 settembre 2026.

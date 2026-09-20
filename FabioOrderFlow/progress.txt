@@ -435,3 +435,76 @@
             la piu' vicina allo scope dichiarato.
             VERIFICATO SUL CAMPO: riavvolgendo il replay a 15:00 la protezione scritta stamattina
             ha tagliato la sezione "Dove eravamo" datata 15:31, dichiarandolo.
+
+2026-09-20  IL MOTORE DEI LIVELLI PASSA DENTRO L'INDICATORE, e il diario torna indietro col replay.
+            Quattro pezzi, in replay sul 14 settembre fermo alle 13:00Z.
+
+            1. IL DIARIO SI RIAVVOLGE DA SOLO. riavvolgi_giornata.py sposta in fondo al file, sotto
+            "Il futuro di un giro precedente", i blocchi che DICHIARANO in apertura un orario piu'
+            avanti dell'orologio di mercato. Non cancella: sono il registro del giro precedente.
+            Gira nell'hook UserPromptSubmit, prima del giro d'orizzonte, e stampa solo quando agisce.
+            La regola e' stretta apposta: un blocco che si limita a CITARE un orario avanti resta e
+            viene segnalato - il quadro del 14 e' misurato su una finestra che finisce alle 13:11Z,
+            e spostarlo avrebbe svuotato la sezione 4bis del giro. Orari nudi oltre sei ore avanti
+            si ignorano: "22:00Z" in un file del 14 e' domenica sera, non stanotte.
+            Primo giro vero: 7 blocchi parcheggiati, struttura del file intatta, idempotente.
+
+            2. IL MOTORE E' L'INDICATORE (RegoleDeiLivelli.cs, partial di DataBridge). POST /rules
+            riceve lo stesso JSON che livelli_vivi.py leggeva; l'indicatore risolve a ogni barra
+            nuova da OnCalculate, dalle candele che ha gia' in memoria. Porta identica del motore
+            Python: stessi 8 livelli, stessi prezzi, stessi scarti. IL GUASTO APERTO SI CHIUDE NON
+            RIPARANDOLO MA TOGLIENDO DI MEZZO IL PROCESSO CHE MORIVA: chart aperto, livelli di
+            adesso; chart chiuso, niente da ingannare. Le regole sopravvivono al redeploy in
+            ~/.fabio-data-bridge-rules.json. Un POST su /levels SPEGNE le regole ed e' esplicito:
+            due scrittori sullo stesso posto farebbero sparire i livelli alla barra dopo.
+
+            3. TRE MARCATORI AL POSTO DI UNO. ~ misurato su finestra aperta, = misurato su finestra
+            chiusa, * dichiarato a mano. La vecchia coppia vivo/statico metteva insieme un massimo
+            della notte (vero per costruzione) e una mensola scritta a mano (un'affermazione).
+            DIFETTO TROVATO AL PRIMO GIRO: una finestra 07:00Z-13:30Z alle 13:00Z non e' chiusa, e
+            marcarla "=" avrebbe detto fermo di un livello che si muove. Il marcatore guarda
+            l'ultima barra chiusa, non il calendario.
+
+            4. MENO PREZZI A MANO. Tipi nuovi: mensola (minimi ripetuti), tetto (massimi ripetuti),
+            aggressione (max |delta| per prezzo), assorbimento (molto volume, delta quasi nullo) -
+            gli ultimi due sono i soli livelli che il live dice di marcare.
+            SBAGLIATO AL PRIMO TENTATIVO, e vale la pena: contando insieme massimi e minimi la
+            mensola rispondeva 29.172, il CENTRO del range 29.142-29.195. Un appoggio e' fatto di
+            minimi ripetuti, un tetto di massimi ripetuti, la loro somma non e' niente. Separati, su
+            grana 1 punto, la stessa finestra da' 29.147 con 4 minimi - piu' preciso del 29.142
+            scritto a mano, che era un minimo singolo piu' profondo. Su 15 regole del 14 settembre
+            resta UN SOLO livello dichiarato a mano, la giunzione fra i due profili della notte.
+            Il problema aperto "chi rifa' i livelli statici" non si risolve: si dissolve.
+
+            VERIFICATO: su ATAS X il deploy basta, non serve riavviare, e il replay non perde la
+            posizione. CLAUDE.md diceva il contrario ed e' corretto.
+            Documentazione: nuovo docs/research/metodo/i-livelli-li-calcola-l-indicatore.md, e
+            aggiornati CLAUDE.md, il-contesto-vivo.md, livelli-sul-chart.md, contratto-data-bridge.md,
+            indice-delle-procedure.md, i-livelli-statici-la-strada-del-sottoagente.md,
+            come-si-scrive-una-giornata.md, /accendi, /spegni, deploy.sh, memoria di orientamento.
+            livelli_vivi.py e' ritirato (resta come evidenza); il file del giorno si chiama ora
+            regole-dei-livelli-STRUMENTO-AAAA-MM-GG.json.
+
+2026-09-20  CLAUDE.md DA 496 A 217 RIGHE, spostando il dettaglio nei documenti invece di tagliarlo.
+            Il file era diventato illeggibile: l'utente ha detto di non riuscire a capire se fosse
+            tutto a posto. Ora contiene le tre decisioni che governano tutto, la gerarchia delle
+            fonti, l'obbligo di lettura, OTTO OBBLIGHI in una riga ciascuno con la freccia al
+            documento che lo spiega, e le regole di lavoro. Ogni riga dichiara che non basta per
+            agire: dice che c'e' un obbligo e dove sta scritto come si assolve.
+            Tre documenti nuovi ricevono quello che e' uscito, testo per testo:
+              il-giro-d-orizzonte.md       l'INPUT: guardare tutto, il quadro, cosa leggere prima
+                                           del bridge, i tre errori che il giro impedisce
+              come-si-risponde-dal-vivo.md l'OUTPUT: direzione e numeri, la forma in tre parti,
+                                           modello e regime, il livello come porta, i termini
+                                           alla fonte, le sette prove
+              build-e-deploy.md            deploy, ATAS X senza riavvio, cosa un pull non porta,
+                                           la memoria che si installa, reflection sugli assembly
+            I vincoli sui dati sono andati in contratto-data-bridge.md, dove e' anche corretto un
+            errore vecchio: "bridge.py trades" non esiste, il comando e' cumulative --min-volume.
+            VERIFICATO: nessuna regola persa (controllo per frasi distintive), zero link rotti nei
+            file toccati, i 47 rotti che restano sono preesistenti in docs/atas/programming.
+            Aggiornati da-dove-si-comincia.md e indice-delle-procedure.md.
+
+            VERIFICATO COL REPLAY IN MOVIMENTO: il ricalcolo a ogni barra funziona davvero. Con il
+            replay in play il motore ha seguito da solo 13:00 -> 13:02 -> 13:08, riscrivendo i
+            livelli senza che nessuno chiedesse niente. Era l'ultima cosa che restava da vedere.

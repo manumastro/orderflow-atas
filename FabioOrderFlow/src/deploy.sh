@@ -35,4 +35,7 @@ copy_indicator "PreSessionProfile" "FabioPreSessionProfileRecorder"
 copy_indicator "DataBridge" "FabioDataBridge"
 
 echo "Five separate DLLs deployed to $atas_ind."
-echo "Restart ATAS or add each DLL through Add custom indicator."
+# ATAS X ricarica l'indicatore da solo dopo la copia, e in replay non perde la posizione:
+# verificato il 20 settembre 2026 ricaricando il motore dei livelli col replay fermo. Il vecchio
+# ATAS 8 invece richiedeva il riavvio, ed e' da li' che veniva l'istruzione precedente.
+echo "ATAS X reloads them on its own. On older ATAS, restart or re-add each DLL."

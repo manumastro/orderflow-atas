@@ -11,6 +11,24 @@ corso: vedi il passo 0.
 
 ---
 
+## 0pre. Prima Di Ogni Risposta, E Poi Come Si Risponde
+
+Due procedure che non si saltano mai, e che nelle istruzioni compaiono solo come una riga.
+
+[**`il-giro-d-orizzonte.md`**](il-giro-d-orizzonte.md) — **l'input**: cosa si guarda prima di
+rispondere, per ogni risposta e in qualunque fase di mercato, piu' **il quadro** (profile framing
+e COT insieme) che si fa anche senza che lo si chieda. Arriva da solo con un hook, e va letto.
+
+[**`come-si-risponde-dal-vivo.md`**](come-si-risponde-dal-vivo.md) — **l'output**: la direzione e
+i suoi numeri (`LONG` / `SHORT` / `NIENTE`, ingresso, stop, **break even**, bersaglio,
+invalidazione), la forma in tre parti, l'obbligo di dichiarare modello e regime, l'obbligo di dire
+**a cosa serve** ogni livello che si nomina, e la verifica di ogni termine alla fonte.
+
+Il primo riguarda l'input e il secondo l'output: **si guarda tutto, si scrive poco, e si sceglie
+quel poco proprio perche' si e' visto tutto.**
+
+---
+
 ## 0. Il Metodo Che Comanda
 
 [**`i-tre-modelli-del-live-q1.md`**](i-tre-modelli-del-live-q1.md) — **la fonte operativa**,
@@ -118,19 +136,25 @@ l'assorbimento del live**: sforzo alto, risultato nullo. Separa una **base**, un
 ### 5. Il contesto vivo, durante la seduta
 
 [**`il-contesto-vivo.md`**](il-contesto-vivo.md) — **l'impianto attivo dal 20 settembre 2026.**
-`livelli_vivi.py --ogni` tiene aggiornati i **livelli vivi**; il **pannello** e' dentro
-l'indicatore e si ridisegna a ogni tick. Nessuno dei due giudica, avvisa o arma niente. I livelli **statici** restano all'agente, che li rivede a
-intervalli. La lettura si chiede.
+Nessun processo esterno: **i livelli li calcola l'indicatore** a ogni barra, dalle regole che
+l'analisi deposita una volta, e il **pannello** si ridisegna a ogni tick. Nessuno dei due giudica,
+avvisa o arma niente. La lettura si chiede.
+
+[**`i-livelli-li-calcola-l-indicatore.md`**](i-livelli-li-calcola-l-indicatore.md) — **il
+documento che dice chi calcola cosa**: i due assi del vocabolario (misurato / dichiarato, finestra
+aperta / chiusa), i tre marcatori `~` `=` `*`, i tipi di regola compresi `mensola`, `tetto`,
+`aggressione` e `assorbimento`, le difese, e cosa resta all'agente — che e' **quali** livelli
+contano e **a cosa serve arrivarci**, non il loro prezzo.
 
 Quello che segue descrive la **fase chiusa** della sorveglianza a condizioni armate, conservata
 come evidenza.
 
-### 5ter. I livelli statici, STRADA CHIUSA
+### 5ter. I livelli statici, PROBLEMA DISSOLTO
 
 [**`i-livelli-statici-la-strada-del-sottoagente.md`**](i-livelli-statici-la-strada-del-sottoagente.md)
-— chi si accorge che i livelli fissi sono scaduti, e chi li rifa', e' **ancora senza risposta**. Il
-tentativo del sottoagente in background e' durato un giorno. Il documento tiene cosa si e' visto, il
-filtro `serve_rifare.py` che e' sopravvissuto, e le tre direzioni da cui ripartire.
+— chi rifa' i livelli fissi non e' piu' una domanda aperta: quasi tutti erano gia' regole, e i
+pochi che non lo erano sono diventati tipi calcolati. Il documento resta come evidenza della strada
+del sottoagente, chiusa il giorno stesso in cui era stata aperta.
 
 ### 5bis. La sorveglianza del tape, FASE CHIUSA
 
