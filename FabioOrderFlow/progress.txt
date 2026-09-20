@@ -209,3 +209,11 @@
             - NON VERIFICATO, da controllare la prima volta sul PC. deploy.sh e DataBridge.cs erano
             gia' cross-platform. Non sistemato, da rifare sul PC: .mcp.json punta a un'installazione
             locale di playwright-mcp su questo Mac.
+2026-09-20  primo pull sul PC: mancava "tutto" - in realta' mancavano tre cose che viaggiano in
+            modo diverso e si somigliano. Il codice e CLAUDE.md erano arrivati; l'INDICATORE no,
+            perche' bin/ e obj/ sono in .gitignore e ATAS carica la DLL da %APPDATA%, quindi il
+            pannello non puo' comparire senza deploy.sh e riavvio; la MEMORIA dell'agente neanche,
+            perche' sta in ~/.claude/projects/<percorso>/memory/, fuori dal repo, con un nome che
+            cambia con la macchina. Scritto docs/research/portare-il-repo-su-un-altra-macchina.md
+            con la sequenza completa e cosa va rifatto a mano (memoria, .mcp.json, file di stato
+            in ~/.fabio-*), linkato da CLAUDE.md sezione Build E Deploy.

@@ -388,6 +388,16 @@ cd FabioOrderFlow/src
 Target `net10.0` senza WPF, requisito di ATAS X. Gli assembly ATAS sono risolti dal bundle
 dell'applicazione su macOS e da `Program Files` su Windows. Dopo il deploy ATAS va riavviato.
 
+**Un `git pull` non porta l'indicatore.** Nel repo c'e' il sorgente C#, non la DLL: `bin/` e
+`obj/` sono in `.gitignore`, e ATAS carica il binario da `%APPDATA%\ATAS\Indicators` (Windows) o
+da `~/Library/Application Support/ATAS/Indicators` (macOS). Finche' non si esegue `deploy.sh` e
+non si riavvia ATAS, sul chart resta la versione precedente — **e non e' distinguibile a occhio da
+un pull che non ha funzionato.** Non porta nemmeno la **memoria dell'agente**, che vive in
+`~/.claude/projects/<percorso>/memory/`, fuori dal repo.
+
+Su una macchina nuova, la sequenza completa e cosa va rifatto a mano stanno in
+[`portare-il-repo-su-un-altra-macchina.md`](docs/research/portare-il-repo-su-un-altra-macchina.md).
+
 Quando l'API ATAS non e' chiara, **ispeziona gli assembly con reflection** invece di dedurla dalla
 documentazione: `docs/atas/` non sempre coincide con la build ATAS X installata.
 
