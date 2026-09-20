@@ -1144,7 +1144,34 @@ public sealed partial class DataBridge : Indicator
             return;
         }
 
-        RenderWatchPanel(context);
+        // IL PANNELLO NON PUO' PORTARSI VIA I LIVELLI, e questa non e' prudenza generica: e'
+        // successo. Una lettura fuori intervallo dentro una misura del pannello ha svuotato il
+        // chart per intero, e dal di fuori era indistinguibile da un motore che aveva smesso di
+        // funzionare - mentre il motore stava risolvendo dodici livelli a ogni barra.
+        //
+        // I livelli sono il dato su cui si decide; il pannello e' il commento. Se il commento si
+        // rompe, il dato resta, e il guasto si DICHIARA sul chart invece di presentarsi come
+        // assenza. Un chart vuoto non dice se manca il dato o manca il disegno.
+        try
+        {
+            RenderWatchPanel(context);
+        }
+        catch (Exception errore)
+        {
+            this.LogError("pannello non disegnato", errore);
+            try
+            {
+                context.DrawString(
+                    $"PANNELLO IN ERRORE: {errore.GetType().Name}. I livelli sono veri, il pannello no.",
+                    new RenderFont("Arial", LevelFontSize), PanelAmbra,
+                    ChartArea.Left + 8, ChartArea.Top + 8);
+            }
+            catch (Exception)
+            {
+                // Se non si riesce nemmeno a scrivere l'avviso, si tace e si disegnano i livelli:
+                // sono loro la cosa che serve.
+            }
+        }
 
         var levels = _levels;
         if (!ShowLevels || levels.Length == 0)

@@ -669,3 +669,26 @@ Stato del replay alla fine del lavoro (NQZ6 14/09, 15:09Z): CHOPPY, efficienza
 0,12 - 74 punti netti su 609 di strada in mezz'ora - 5 rotture rientrate,
 velocita' al 29 percentile. Il motore lo dice da solo.
 
+--- 20 settembre 2026 — il chart e' rimasto nudo, e il perche' vale il difetto
+
+Segnalazione dell'utente: "ora non vedo il pannello sul grafico, ne' i livelli".
+
+CAUSA. FinestraDelTape leggeva GetCandle(ultimo + 1). Il pannello la chiama con
+ultimo = CurrentBar - 1, quindi ultimo + 1 era la barra che non esiste ancora.
+GetCandle fuori intervallo NON restituisce null: tira un'eccezione. Partendo
+dentro OnRender, l'eccezione non si e' fermata alla misura - ha portato giu' il
+disegno di tutto, pannello E livelli.
+
+PERCHE' NON L'AVEVO VISTO. L'endpoint /regime usa ultimo = CurrentBar - 2, e con
+quello ultimo + 1 e' valido. Ho verificato la misura da li', e tornava. La stessa
+funzione chiamata dal pannello andava fuori. Verificare da un solo lato non e'
+verificare.
+
+LA SECONDA CORREZIONE E' PIU' IMPORTANTE DELLA PRIMA. I livelli sono il dato su
+cui si decide, il pannello e' il commento: adesso RenderWatchPanel sta dentro un
+try, e un suo guasto lascia i livelli sul chart e SCRIVE che il pannello e' in
+errore. Prima il sintomo era un chart vuoto, che dal di fuori e' indistinguibile
+da un motore che ha smesso di funzionare - mentre il motore stava risolvendo
+dodici livelli a ogni barra. E' la stessa famiglia del livello vivo fermo: non
+il guasto, ma il guasto che si presenta come assenza.
+

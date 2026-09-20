@@ -578,9 +578,16 @@ public sealed partial class DataBridge
     private (DateTime Da, DateTime A) FinestraDelTape(int ultimo)
     {
         var da = GetCandle(Math.Max(0, ultimo - PanelLookback + 1))?.Time ?? DateTime.MinValue;
-        var ultima = GetCandle(ultimo)?.Time ?? DateTime.MaxValue;
-        // La barra chiusa copre fino all'inizio della successiva: si prende quella, esclusa.
-        var a = GetCandle(ultimo + 1)?.Time.AddTicks(-1) ?? ultima.AddMinutes(1).AddTicks(-1);
+
+        // MAI OLTRE L'ULTIMA BARRA. GetCandle(CurrentBar) non restituisce null: va fuori
+        // intervallo e tira un'eccezione. Il pannello chiama questa funzione con
+        // ultimo = CurrentBar - 1, quindi ultimo + 1 era precisamente la barra che non esiste -
+        // e l'eccezione, partendo dentro OnRender, non si e' fermata alla misura: ha portato giu'
+        // il disegno di TUTTO, pannello e livelli insieme. Il 20 settembre 2026 il chart e'
+        // rimasto nudo mentre il motore risolveva regolarmente dodici livelli.
+        var a = ultimo + 1 <= CurrentBar - 1
+            ? GetCandle(ultimo + 1).Time.AddTicks(-1)
+            : DateTime.MaxValue; // l'ultima barra e' quella in formazione: la finestra arriva a adesso
         return (da, a);
     }
 
