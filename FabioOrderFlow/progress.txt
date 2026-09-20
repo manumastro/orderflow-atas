@@ -292,3 +292,8 @@
             al bordo destro, pannello fisso in alto a destra, niente sopra l'asse.
             REGOLA: ChartArea e ChartContainer.Region comprendono l'asse dei prezzi. Chi disegna
             vicino al bordo destro passa da DataAreaRight, non da area.Right.
+
+2026-09-20  Il pannello aveva UN margine solo per alto e destra, quindi non si poteva spostare in
+            una direzione sola: incollato all'angolo finiva sotto la barra degli strumenti e
+            sopra l'asse, cioe' dove si guarda di meno. Sdoppiato in "Offset from top" (56) e
+            "Offset from right" (110), regolabili dalle impostazioni senza ricompilare.

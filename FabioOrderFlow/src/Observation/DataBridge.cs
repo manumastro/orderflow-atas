@@ -177,9 +177,19 @@ public sealed class DataBridge : Indicator
     [Range(6, 24)]
     public int WatchFontSize { get; set; } = 12;
 
-    [Display(Name = "Margin", GroupName = "Watch", Description = "Distanza dal bordo superiore e destro, in pixel.")]
-    [Range(0, 400)]
-    public int WatchMargin { get; set; } = 12;
+    // Due distanze separate, non una sola: incollato all'angolo il pannello finisce sotto la
+    // barra degli strumenti del chart e sopra i numeri dell'asse, ed e' proprio dove si guarda
+    // di meno. Staccarlo un po' lo mette in mezzo al campo visivo, che e' lo scopo.
+    [Display(Name = "Offset from top", GroupName = "Watch",
+        Description = "Distanza dal bordo superiore dell'area dati, in pixel.")]
+    [Range(0, 600)]
+    public int WatchOffsetTop { get; set; } = 56;
+
+    [Display(Name = "Offset from right", GroupName = "Watch",
+        Description = "Distanza dal bordo destro dell'area dati, in pixel. Alzalo per spostare " +
+                      "il pannello verso il centro.")]
+    [Range(0, 900)]
+    public int WatchOffsetRight { get; set; } = 110;
 
     [Display(Name = "Price axis padding", GroupName = "Levels",
         Description = "Pixel in piu' oltre la larghezza misurata della scala dei prezzi. " +
@@ -1078,8 +1088,8 @@ public sealed class DataBridge : Indicator
         const int lineGap = 3;
         var boxWidth = widest + padding * 2;
         var boxHeight = lines.Length * (lineHeight + lineGap) - lineGap + padding * 2;
-        var x = Math.Max(area.Left, dataRight - WatchMargin - boxWidth);
-        var y = area.Top + WatchMargin;
+        var x = Math.Max(area.Left, dataRight - WatchOffsetRight - boxWidth);
+        var y = area.Top + WatchOffsetTop;
 
         context.FillRectangle(Color.FromArgb(200, 20, 20, 20),
             new Rectangle(x, y, boxWidth, boxHeight));
