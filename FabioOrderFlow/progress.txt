@@ -714,3 +714,33 @@ UNA RIGA E' RIMASTA, e si vede solo quando c'e' da vederla:
 In condizioni normali non stampa niente. Non si toglie per fare spazio: un
 pannello fermo e' indistinguibile da uno aggiornato, ed e' il guasto del livello
 vivo che tutto questo impianto e' nato per chiudere.
+
+--- 20 settembre 2026 — il pannello esce dal bridge --------------------------
+
+Domanda dell'utente: "il pannello e' fatto per essere letto dall'agente dal
+bridge? cioe' puoi vedere quei dati?". La risposta era NO, e per meta' era un
+buco serio.
+
+Vedevo: /regime (regime, velocita', big trades), /rules (livelli e skipped),
+/levels (scenario con bersaglio, invalida, pareggio).
+NON vedevo: quale livello e' IN GIOCO, il lato di arrivo - che e' la cosa che
+separa un setup dal suo sosia - sforzo/delta/esito al livello, big al livello,
+dentro o fuori quale valore, le condizioni spuntate, i VETI.
+
+Erano calcolati in ComponiPannello e SOLTANTO disegnati. Per parlarne avrei
+dovuto rifare quei conti dalle candele grezze, cioe' duplicare la logica. Una
+copia diverge, e il giorno che diverge dico un numero mentre l'utente ne ha un
+altro davanti: il peggiore degli esiti, perche' nessuno dei due se ne accorge.
+
+NUOVO /panel, e restituisce le RIGHE GIA' COMPOSTE, non i dati per ricomporle.
+Cosi' non esiste una seconda formattazione che possa scostarsi dalla prima:
+quello che esce e' quello che sta sul chart, carattere per carattere. Il giro
+le stampa alla 6bis, che ha sostituito il blocco del regime - lo conteneva gia'.
+
+UN DIFETTO ALLA PRIMA LETTURA, e vale la pena ricordarlo. Avevo derivato il
+"peso" della riga dal colore, e sul pannello il rosso vuol dire DUE cose: veto,
+e direzione SHORT. A schermo le separa il contesto; nel JSON no, e "SERVE A
+SHORT" e' uscito marcato come veto. Un allarme falso su una riga che descrive il
+setup e' peggio di nessun allarme, perche' sposta la lettura. Adesso il peso si
+DICHIARA su chi lo porta; il colore resta come ripiego e al massimo dice
+"contro".

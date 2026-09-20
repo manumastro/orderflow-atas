@@ -159,6 +159,28 @@ rifarla a mano a ogni messaggio:
 python3 FabioOrderFlow/tools/bridge.py regime --chart NQZ6
 ```
 
+### 0ter. Il Pannello Si Legge Anche Dal Bridge
+
+**Fino al 20 settembre 2026 il pannello era l'unico posto dove vivevano** il livello in gioco, il
+lato di arrivo, lo sforzo al livello, le condizioni spuntate e i veti. Erano calcolati
+nell'indicatore e **soltanto disegnati**: l'agente che rispondeva dal vivo doveva rifare quei conti
+dalle candele grezze, cioe' duplicare la logica. Una copia diverge, e il giorno che diverge
+l'agente dice un numero mentre l'utente ne ha un altro davanti — **e nessuno dei due se ne
+accorge**.
+
+```bash
+python3 FabioOrderFlow/tools/bridge.py panel --chart NQZ6
+```
+
+Escono le **righe gia' composte**, non i dati per ricomporle: cosi' non c'e' una seconda
+formattazione che possa scostarsi dalla prima. Il giro d'orizzonte le stampa alla sezione **6bis**,
+e quello che l'agente legge li' e' carattere per carattere quello che sta sul chart.
+
+**Il peso di ogni riga si dichiara, non si deduce dal colore**, e la ragione e' un errore fatto
+alla prima lettura: sul pannello il rosso vuol dire sia "veto" sia "direzione SHORT", e a schermo
+li separa il contesto. Nel JSON no, e `SERVE A SHORT` e' uscito marcato come un veto. Un allarme
+falso su una riga che descrive il setup e' peggio di nessun allarme, perche' sposta la lettura.
+
 ### 0bis. Cosa Il Pannello NON Dice Piu', E Dove E' Finito
 
 **Il 20 settembre 2026 sono usciti dal pannello il conteggio delle regole, la legenda dei

@@ -291,41 +291,25 @@ def main() -> int:
         for s in json.load(sc.open(encoding="utf-8")):
             print(f"  {s.get('prezzo'):>10}  {s['sigla']:<26} [{s.get('verso','-')}]")
 
-    # 6bis ---------------------------------------------------------------- il regime
-    # IL REGIME E' LA PRIMA DOMANDA DELLA GIORNATA, non l'ultima: decide la size prima che
-    # decida il setup. "I would start from sensitive level of the market like we are doing
-    # together, and regime" [5 · 1:18:06]. Lo misura l'indicatore a ogni barra; qui si legge
-    # e basta, perche' una misura che vive solo sul pannello obbliga l'agente a rifarla a mano
-    # a ogni messaggio - ed e' esattamente il lavoro che si e' tolto di mezzo.
-    titolo("6bis", "IL REGIME, LA VELOCITA' E I BIG TRADES (misurati dall'indicatore)")
-    rg = bridge("regime")
-    if not rg:
-        print("  il bridge non risponde su /regime: il regime NON e' noto, e non si deduce")
+    # 6bis ---------------------------------------------------------------- il pannello
+    # SI STAMPA IL PANNELLO VERO, non una sua ricostruzione. Il livello in gioco, il lato di
+    # arrivo, lo sforzo al livello e i veti erano calcolati dentro l'indicatore e SOLTANTO
+    # disegnati: per parlarne bisognava rifare quei conti dalle candele grezze, cioe' duplicare
+    # la logica. Una copia diverge, e il giorno che diverge l'agente dice un numero mentre lo
+    # schermo ne mostra un altro - il peggiore degli esiti, perche' nessuno dei due se ne accorge.
+    # Dal 20 settembre 2026 il pannello esce da /panel gia' composto: quello che si legge qui e'
+    # carattere per carattere quello che l'utente ha davanti.
+    titolo("6bis", "IL PANNELLO, ESATTAMENTE COM'E' SUL CHART")
+    pn = bridge("panel")
+    if not pn:
+        print("  il bridge non risponde su /panel: il pannello NON e' noto, e non si ricostruisce")
     else:
-        r, v, b = rg["regime"], rg["velocita"], rg["bigTrades"]
-        print(f"  REGIME     {r['nome']}")
-        print(f"             {r['perche']}")
-        if r.get("size"):
-            print(f"             {r['size']}")
-        print(f"             soglie: direzionale >= {r['soglie']['direzionale']}, "
-              f"choppy < {r['soglie']['choppy']} oppure >= {r['soglie']['rientriChoppy']} rientri, "
-              f"finestra {r['finestraBarre']} barre")
-        if v.get("misurabile"):
-            lotti = f"{v['volumeBarra']:,.0f}".replace(",", ".")
-            print(f"  VELOCITA'  {v['percentile']}° percentile su {v['finestraBarre']} barre "
-                  f"({lotti} lotti)")
-        else:
-            print("  VELOCITA'  non misurabile: poche barre")
-        # LA PAROLA PROXY STA QUI OGNI VOLTA, non una volta sola nella documentazione.
-        print("             e' un PROXY: la speed of tape e' il ritmo di immissione degli "
-              "ordini, e nel bridge non c'e'")
-        if not b.get("copreTuttaLaFinestra"):
-            da = (b.get("registroDaUtc") or "mai")[11:16]
-            print(f"  BIG TRADE  il registro copre solo da {da}Z: non e' zero, e' non lo so")
-        else:
-            netto = f"{b['netto']:+,.0f}".replace(",", ".")
-            print(f"  BIG TRADE  {b['quanti']} da {b['soglia']}+ lotti nelle ultime "
-                  f"{b['finestraBarre']} barre, netto {netto}")
+        for riga in pn.get("lines", []):
+            # Il peso porta il colore, e il colore e' meta' del messaggio: un veto rosso letto
+            # come una riga qualunque e' un veto perso.
+            marca = {"veto": "!!", "attenzione": " *"}.get(riga.get("peso"), "  ")
+            print(f"  {marca} {riga.get('text', '')}")
+        print("     (la barra in formazione e' inclusa: i suoi numeri cambiano da soli)")
 
     # 6ter ----------------------------------------------------------------- i livelli
     # QUESTA SEZIONE ESISTE PERCHE' IL PANNELLO NON LO DICE PIU'. Il 20 settembre 2026 il blocco

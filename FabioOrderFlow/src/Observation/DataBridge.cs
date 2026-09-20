@@ -562,6 +562,7 @@ public sealed partial class DataBridge : Indicator
                 "/levels" => await LevelsAsync(context).ConfigureAwait(false),
                 "/rules" => await RulesAsync(context).ConfigureAwait(false),
                 "/regime" => Regime(),
+                "/panel" => Pannello(),
                 "/watch" => await WatchAsync(context).ConfigureAwait(false),
             "/charts" => throw new BridgeException(500, "handled by the hub"),
                 _ => throw new BridgeException(404, $"unknown endpoint '{path}'"),
@@ -1436,7 +1437,18 @@ public sealed partial class DataBridge : Indicator
         return (vicina, false);
     }
 
-    private readonly record struct RigaPannello(string Testo, Color Colore);
+    /// <summary>
+    /// Una riga del pannello.
+    ///
+    /// <para><b><paramref name="Peso"/> esiste perche' il colore non basta a dire il senso.</b>
+    /// Il rosso sul pannello vuol dire due cose diverse: "questo e' un veto" e "questa direzione
+    /// e' SHORT". A schermo si distinguono dal contesto; in un JSON no, e la prima lettura di
+    /// <c>/panel</c> ha marcato <c>SERVE A SHORT</c> come un veto. Un allarme falso su una riga
+    /// che descrive il setup e' peggio di nessun allarme, perche' sposta la lettura.</para>
+    ///
+    /// <para>Quindi il peso si <b>dichiara</b> dove conta, invece di dedurlo dal colore a valle.</para>
+    /// </summary>
+    private readonly record struct RigaPannello(string Testo, Color Colore, string? Peso = null);
 
     private static readonly Color PanelBianco = Color.FromArgb(235, 235, 235);
     private static readonly Color PanelGrigio = Color.FromArgb(158, 158, 158);
@@ -1546,6 +1558,64 @@ public sealed partial class DataBridge : Indicator
         }
         var i = label!.IndexOf(" · ", StringComparison.Ordinal);
         return (i > 0 ? label[..i] : label).Trim();
+    }
+
+    /// <summary>
+    /// Il pannello, come testo, per chi non guarda lo schermo.
+    ///
+    /// <para><b>Perche' esiste.</b> Il pannello e' l'unico posto dove vivevano il livello in
+    /// gioco, il lato di arrivo, lo sforzo al livello e i veti: erano calcolati qui e soltanto
+    /// disegnati. L'agente che risponde dal vivo doveva rifare quei conti dalle candele grezze —
+    /// cioe' duplicare questa logica — e una copia diverge. Il rischio non e' teorico: avrei
+    /// detto un numero mentre lo schermo ne mostrava un altro, ed e' il peggiore degli esiti,
+    /// perche' nessuno dei due si accorge dell'altro.</para>
+    ///
+    /// <para><b>Si restituiscono le righe gia' composte, non i dati per ricomporle.</b> Cosi' non
+    /// c'e' nessuna seconda formattazione che possa scostarsi dalla prima: quello che esce di qui
+    /// <b>e'</b> quello che sta sul chart, carattere per carattere. Il colore esce insieme al
+    /// testo perche' porta significato - rosso e' un veto, ambra un avvertimento - e senza si
+    /// perderebbe la meta' urgente del messaggio.</para>
+    /// </summary>
+    private object Pannello()
+    {
+        if (ChartInfo is null)
+        {
+            throw new BridgeException(409, "il chart non ha ancora un contesto di disegno");
+        }
+
+        var righe = ComponiPannello();
+        foreach (var l in _watch)
+        {
+            righe.Add(new RigaPannello(l.Text ?? string.Empty, ParseColor(l.Color)));
+        }
+
+        var ultimo = CurrentBar - 1;
+        return new
+        {
+            schema = Schema,
+            instrument = InstrumentInfo?.Instrument,
+            marketTimeUtc = ultimo >= 0 ? Iso(GetCandle(ultimo).Time) : null,
+            // La barra in formazione E' inclusa nel pannello, e va detto: i suoi numeri cambiano
+            // fra una lettura e la successiva senza che il mercato abbia fatto niente di nuovo.
+            barraInFormazione = true,
+            count = righe.Count,
+            lines = righe.Select(r => new
+            {
+                text = r.Testo,
+                color = $"#{r.Colore.R:X2}{r.Colore.G:X2}{r.Colore.B:X2}",
+                // Il senso del colore, perche' un esadecimale non si legge a colpo d'occhio in
+                // un JSON e il livello di allarme e' la cosa che si cerca per prima.
+                // Il peso dichiarato vince sempre. Il colore e' un ripiego e NON puo' produrre
+                // un "veto" da solo: il rosso dice anche "direzione SHORT", e due significati
+                // sullo stesso segnale diventano un allarme falso appena escono dallo schermo.
+                peso = r.Peso
+                    ?? (r.Colore == PanelAmbra ? "attenzione"
+                        : r.Colore == PanelVerde ? "a favore"
+                        : r.Colore == PanelRosso ? "contro"
+                        : r.Colore == PanelBianco ? "forte"
+                        : "normale"),
+            }),
+        };
     }
 
     private List<RigaPannello> ComponiPannello()
@@ -1714,7 +1784,7 @@ public sealed partial class DataBridge : Indicator
             // This is not where I want to engage" [4 · 17:37] descrive esattamente questo stato.
             foreach (var v in Veti(ultimo, prezzo, regime, null, dentro))
             {
-                righe.Add(new RigaPannello($"   ! {v}", PanelRosso));
+                righe.Add(new RigaPannello($"   ! {v}", PanelRosso, "veto"));
             }
             return righe;
         }
@@ -1908,10 +1978,10 @@ public sealed partial class DataBridge : Indicator
         if (veti.Count > 0)
         {
             righe.Add(new RigaPannello(
-                $"VETI       {veti.Count}, e ne basta uno", PanelRosso));
+                $"VETI       {veti.Count}, e ne basta uno", PanelRosso, "veto"));
             foreach (var v in veti)
             {
-                righe.Add(new RigaPannello($"   ! {v}", PanelRosso));
+                righe.Add(new RigaPannello($"   ! {v}", PanelRosso, "veto"));
             }
         }
 

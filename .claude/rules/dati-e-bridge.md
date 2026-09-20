@@ -24,3 +24,9 @@ barra: e' lo strumento con cui si misura l'assorbimento del live — sforzo alto
 
 **I big trades sono il filtro di volume nativo**, taratura di Fabio: **60 su NQ in cash**, 20-30 in
 premarket. Il sottocomando e' `cumulative --min-volume`; **`bridge.py trades` non esiste**.
+
+**Il pannello si legge, non si ricostruisce.** `bridge.py panel` restituisce le righe gia'
+composte — livello in gioco, lato di arrivo, sforzo, condizioni, veti — ed e' quello che l'utente
+ha davanti, carattere per carattere. **Rifare quei conti dalle candele e' un errore**, anche se
+viene bene: due calcoli della stessa cosa divergono, e quando divergono nessuno dei due se ne
+accorge.

@@ -230,7 +230,7 @@ def main() -> None:
     # `regime` e' di sola lettura e non prende argomenti: il regime, il proxy della velocita'
     # e i big trades, come li misura l'indicatore. Ogni numero esce con la soglia che lo
     # classifica accanto, perche' una classificazione senza la sua regola non si contesta.
-    for name in ("health", "charts", "instrument", "limits", "regime"):
+    for name in ("health", "charts", "instrument", "limits", "regime", "panel"):
         add(name)
 
     session = add("session")
@@ -343,7 +343,7 @@ def main() -> None:
             payload = send(args.base, "/levels", "POST", {"chart": args.chart}, body)
         else:
             payload = get(args.base, "/levels", {"chart": args.chart})
-    elif args.command in ("health", "charts", "instrument", "limits", "regime"):
+    elif args.command in ("health", "charts", "instrument", "limits", "regime", "panel"):
         payload = get(args.base, f"/{args.command}", {"chart": args.chart})
     elif args.command == "session":
         payload = get(args.base, "/session", {"chart": args.chart, "at": iso(parse_time(args.at)) if args.at else None})

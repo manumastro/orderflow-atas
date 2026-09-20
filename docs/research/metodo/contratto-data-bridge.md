@@ -34,6 +34,7 @@ Il listener e' legato a `127.0.0.1` e non e' raggiungibile dalla rete. Espone da
 | `/depth` | `from`, `to`, `periodSeconds` | snapshot storici del book |
 | `/levels` | `chart` | `GET` restituisce i livelli del chart, `POST`/`PUT` li sostituisce, `DELETE` li cancella. **Un POST qui spegne le regole**: il controllo passa a mano |
 | `/rules` | `chart` | `GET` restituisce le regole e cosa non hanno prodotto, `POST`/`PUT` le sostituisce e ricalcola subito, `DELETE` le cancella insieme ai livelli che producevano |
+| `/panel` | `chart` | `GET`, sola lettura: **il pannello gia' composto**, riga per riga, come sta sul chart. Ogni riga ha `text`, `color` e `peso` (`veto`, `attenzione`, `a favore`, `contro`, `forte`, `normale`) |
 | `/regime` | `chart` | `GET`, sola lettura: il **regime**, il **proxy** della velocita' e i **big trades**, come li misura l'indicatore a ogni barra. Ogni numero esce con la soglia che lo classifica accanto — una classificazione senza la sua regola non si contesta |
 
 ### Livelli
@@ -144,3 +145,23 @@ stato citato per errore in `CLAUDE.md` fino al 20 settembre 2026.
   confondono.
 - **`regime.efficienza` e' una misura di questo repository, non del corso.** Netto diviso strada
   percorsa. Il live la fa a occhio; qui serviva un numero, e il numero esce con le sue soglie.
+
+## `/panel`: Perche' Il Pannello Esce Gia' Composto
+
+**Il livello in gioco, il lato di arrivo, lo sforzo al livello e i veti vivevano solo sullo
+schermo.** Erano calcolati dentro l'indicatore e soltanto disegnati: per parlarne, l'agente doveva
+rifare quei conti dalle candele grezze — cioe' **duplicare la logica**. Una copia diverge, e il
+giorno che diverge l'agente dice un numero mentre l'utente ne ha un altro davanti. E' il peggiore
+degli esiti, perche' nessuno dei due si accorge dell'altro.
+
+**Per questo escono le righe gia' composte e non i dati per ricomporle.** Non c'e' nessuna seconda
+formattazione che possa scostarsi dalla prima: quello che esce di qui **e'** quello che sta sul
+chart, carattere per carattere.
+
+**`peso` si dichiara, non si deduce dal colore.** Sul pannello il rosso vuol dire due cose — "veto"
+e "direzione SHORT" — e a schermo si distinguono dal contesto. Nel JSON no: la prima lettura di
+`/panel` ha marcato `SERVE A SHORT` come un veto. Adesso il peso `veto` lo porta solo chi lo
+dichiara; il colore resta come ripiego e produce al massimo `contro`.
+
+**La barra in formazione e' inclusa** (`barraInFormazione: true`), come sul chart: i suoi numeri
+cambiano fra una lettura e la successiva senza che il mercato abbia fatto niente.
