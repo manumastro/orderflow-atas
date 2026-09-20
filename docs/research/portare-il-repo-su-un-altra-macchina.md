@@ -11,7 +11,7 @@ somigliano abbastanza da farle confondere.
 | | dove sta | viaggia con `git pull`? |
 |---|---|---|
 | **il codice e le istruzioni** — `CLAUDE.md`, i documenti di metodo, gli script Python, il sorgente C# | nel repo | **si'** |
-| **l'indicatore compilato** — la DLL che ATAS carica, cioe' i livelli sul chart e il pannello | `%APPDATA%\ATAS\Indicators` (Windows), `~/Library/Application Support/ATAS/Indicators` (macOS) | **no**: `bin/` e `obj/` sono in `.gitignore`, nel repo c'e' il **sorgente**, non il binario |
+| **l'indicatore compilato** — la DLL che ATAS carica, cioe' i livelli sul chart e il pannello | `%APPDATA%\ATAS X\Indicators` (Windows, vedi sotto), `~/Library/Application Support/ATAS/Indicators` (macOS) | **no**: `bin/` e `obj/` sono in `.gitignore`, nel repo c'e' il **sorgente**, non il binario |
 | **la memoria dell'agente** — `MEMORY.md` e i file in `memory/` | `~/.claude/projects/<percorso-del-progetto>/memory/`, **fuori dal repo** | **no**, e il nome della cartella cambia con la macchina perche' deriva dal percorso |
 
 **Il sintomo che ha fatto scoprire la cosa:** dopo il pull sul PC non c'era il pannello in alto a
@@ -29,12 +29,33 @@ cd orderflow-atas/FabioOrderFlow/src
 
 Poi **si riavvia ATAS**, altrimenti resta caricata la DLL precedente.
 
-`deploy.sh` e `Indicators/Directory.Build.props` scelgono da soli il sistema: gli assembly ATAS
-vengono da `/Applications/ATAS X.app/Contents/MonoBundle` su macOS e da
-`C:\Program Files (x86)\ATAS Platform` su Windows; le DLL finiscono in
-`~/Library/Application Support/ATAS/Indicators` oppure in `%APPDATA%\ATAS\Indicators`. Non c'e'
-niente da cambiare a mano: se la build fallisce, il primo sospetto e' che ATAS non sia installato
-in quel percorso, non che lo script sia sbagliato.
+`deploy.sh` e `Indicators/Directory.Build.props` scelgono da soli il sistema. Non c'e' niente da
+cambiare a mano, ma **su Windows i percorsi non sono quelli che sembrano**, ed e' costato una
+build fallita e un deploy finito nel posto sbagliato il 20 settembre 2026.
+
+## Su Windows Esistono Due ATAS, E Si Chiamano Quasi Uguale
+
+| | ATAS X — quello che si usa | ATAS 8 — il vecchio |
+|---|---|---|
+| gli assembly | `C:\ATASX` | `C:\Program Files (x86)\ATAS Platform` |
+| gli indicatori | `%APPDATA%\ATAS X\Indicators` | `%APPDATA%\ATAS\Indicators` |
+| il processo | `AtasLauncherX.exe` | `Atas.exe` |
+
+**Non sono intercambiabili, e sbagliare non da' un errore chiaro.**
+
+- **Compilare contro ATAS 8** fa morire la build con un `CS1705` sul `System.Drawing.Common` che
+  `OFT.Rendering` si aspetta, piu' due `CS1061` su `IInstrumentInfo.TimeZoneOffset` e
+  `Security.ExpirationMoment`: sono API che ATAS 8 non ha. Sembra un errore del codice, non del
+  percorso.
+- **Copiare in `%APPDATA%\ATAS\Indicators`** mentre gira ATAS X non da' **nessun** errore: il
+  deploy stampa "deployed", ATAS X non guarda quella cartella, e sul chart resta la DLL
+  precedente. E' lo stesso sintomo di un `git pull` che non e' arrivato.
+
+Entrambi gli script adesso provano ATAS X per primo. Il percorso degli assembly si puo' forzare con
+`dotnet build -p:AtasAssemblyDir=...` se un giorno l'installazione si sposta.
+
+Su macOS gli assembly vengono da `/Applications/ATAS X.app/Contents/MonoBundle` e le DLL finiscono
+in `~/Library/Application Support/ATAS/Indicators`.
 
 ## Cosa Va Rifatto A Mano, Perche' Non Puo' Viaggiare
 
@@ -48,8 +69,15 @@ in quel percorso, non che lo script sia sbagliato.
 
   Va lanciato **dopo** aver aperto l'agente una volta nel repo, cosi' la cartella di progetto
   esiste gia' e non va indovinata.
-- **`.mcp.json`.** Punta all'installazione locale di `playwright-mcp`. Va reinstallato e il
-  percorso riscritto: non si puo' sapere in anticipo dove finira' `npm` sulla macchina nuova.
+- **`.mcp.json`.** Puntava all'installazione locale di `playwright-mcp` del Mac. Adesso non
+  contiene piu' un percorso: lancia `npx.cmd -y @playwright/mcp@latest`, che si risolve da solo
+  ovunque sia `npm`. Resta da fare una volta per macchina `npx playwright install chromium`, che
+  scarica il browser (~115 MB) fuori dal repo.
+
+  **Perche' `npx.cmd` e non `npx`:** il client MCP lancia il comando **senza shell**, e su Windows
+  un `npx` nudo non e' un eseguibile — si ottiene `WinError 2`, che il client riporta come
+  `CONNECTION_CLOSED`, cioe' esattamente come un server che parte e muore. E' Windows-only: su
+  macOS tornerebbe `npx`.
 - **I file di stato locali**, tutti nella home e tutti rigenerabili: `~/.fabio-data-bridge.json`
   (la porta, la scrive il bridge da solo), `~/.fabio-data-bridge-levels.json` e
   `~/.fabio-data-bridge-watch.json` (livelli e pannello dell'ultima sessione),
@@ -65,10 +93,14 @@ in quel percorso, non che lo script sia sbagliato.
 2. **Che l'indicatore sia quello nuovo.** Sul chart: le righe dei livelli devono essere **corte**
    (si fermano vicino al bordo destro) e l'etichetta deve mostrare solo il nome, col testo intero
    al passaggio del mouse. Se le righe attraversano tutto il chart, ATAS ha ancora la DLL vecchia.
-3. **`avviso.py` su Windows.** Il ramo che fa la notifica di sistema con suono e' scritto ma **mai
-   eseguito su Windows**: usa un balloon tip via PowerShell/WinForms al posto di `osascript`. Se
-   non compare niente, non e' un blocco — `~/.fabio-avvisi.log` resta la fonte di verita' — ma va
-   sistemato, perche' quella notifica e' l'unica che si vede **senza guardare**.
+3. **`avviso.py` su Windows.** Eseguito per la prima volta il 20 settembre 2026. Il balloon tip
+   via WinForms **torna senza errore ma su Windows 11 spesso non si vede**: l'icona viene creata e
+   distrutta prima che il sistema la mostri. Adesso si prova prima un **toast WinRT**, che compare
+   sopra ad ATAS, suona e resta nel centro notifiche; il balloon resta come ripiego.
+
+   **Attenzione a cosa prova cosa:** entrambe le strade escono con codice 0 anche quando non si
+   vede niente, quindi **il codice di uscita non e' una verifica**. L'unica verifica e' guardare.
+   `~/.fabio-avvisi.log` resta la fonte di verita'.
 4. **Il bridge.** `python3 FabioOrderFlow/tools/bridge.py health --chart NQZ6`. Su Windows il
    comando potrebbe essere `python` invece di `python3`.
 5. **Che il giro d'orizzonte esca intero**, tutte e nove le sezioni. Su Windows la console e'

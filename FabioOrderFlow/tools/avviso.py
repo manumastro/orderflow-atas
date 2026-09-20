@@ -50,12 +50,46 @@ def avvisa(riga: str, titolo: str = "tape", suono: str = "Submarine") -> None:
             pass
         return
 
-    # WINDOWS: nessun equivalente diretto di osascript. Un balloon tip via WinForms non chiede
-    # nessun modulo extra (System.Windows.Forms e' nel .NET di sistema), ma NON E' STATO
-    # VERIFICATO su una macchina Windows vera - il repo si sposta la' a settembre 2026 e questo
-    # e' il primo tentativo. Se non compare niente, il log resta comunque la fonte di verita'.
+    # WINDOWS: nessun equivalente diretto di osascript, e due strade che si somigliano.
+    #
+    #   toast (WinRT)   e' quello che Windows 11 mostra davvero: compare sopra ad ATAS, suona,
+    #                   e resta nel centro notifiche. Richiede un AppUserModelID gia' registrato
+    #                   nel sistema - si usa quello di PowerShell, che c'e' sempre.
+    #   balloon tip     la vecchia NotifyIcon. Non da' errore, ma su Windows 11 spesso NON
+    #                   compare: l'icona viene creata e distrutta prima che il sistema la mostri.
+    #                   Resta come ripiego per le build dove il toast non passa.
+    #
+    # Verificato su Windows 11 il 20 settembre 2026: entrambe le chiamate tornano senza errore,
+    # quindi il codice di uscita NON basta a dire che la notifica si e' vista. Il log resta la
+    # fonte di verita'.
+    testo_ps = testo.replace("&", "e").replace("<", "(").replace(">", ")")
+    titolo_ps = titolo.replace('"', "'").replace("&", "e").replace("<", "(").replace(">", ")")
+
+    toast = (
+        "$ErrorActionPreference='Stop';"
+        r"$app='{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\WindowsPowerShell\v1.0\powershell.exe';"
+        "[Windows.UI.Notifications.ToastNotificationManager,Windows.UI.Notifications,"
+        "ContentType=WindowsRuntime]|Out-Null;"
+        "[Windows.Data.Xml.Dom.XmlDocument,Windows.Data.Xml.Dom,"
+        "ContentType=WindowsRuntime]|Out-Null;"
+        "$x=New-Object Windows.Data.Xml.Dom.XmlDocument;"
+        "$x.LoadXml('<toast><visual><binding template=\"ToastGeneric\">"
+        f"<text>{titolo_ps}</text><text>{testo_ps}</text>"
+        "</binding></visual>"
+        "<audio src=\"ms-winsoundevent:Notification.Looping.Alarm2\"/></toast>');"
+        "$t=New-Object Windows.UI.Notifications.ToastNotification $x;"
+        "[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier($app).Show($t)"
+    )
     try:
-        script = (
+        esito = subprocess.run(["powershell", "-NoProfile", "-Command", toast],
+                               capture_output=True, timeout=15)
+        if esito.returncode == 0:
+            return
+    except Exception:
+        pass
+
+    try:
+        balloon = (
             "Add-Type -AssemblyName System.Windows.Forms;"
             "Add-Type -AssemblyName System.Drawing;"
             "$n = New-Object System.Windows.Forms.NotifyIcon;"
@@ -66,7 +100,7 @@ def avvisa(riga: str, titolo: str = "tape", suono: str = "Submarine") -> None:
             "Start-Sleep -Seconds 6;"
             "$n.Dispose()"
         )
-        subprocess.run(["powershell", "-NoProfile", "-Command", script],
-                       capture_output=True, timeout=10)
+        subprocess.run(["powershell", "-NoProfile", "-Command", balloon],
+                       capture_output=True, timeout=15)
     except Exception:
         pass

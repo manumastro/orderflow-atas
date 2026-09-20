@@ -240,3 +240,25 @@
             docs/research/memoria-di-orientamento/ e si installa con tools/semina_memoria.py, che
             trova da solo la cartella di memoria della macchina. Resta fermo che in memoria va solo
             l'orientamento, non le regole.
+
+2026-09-20  IL TRASLOCO SU WINDOWS, LA PARTE CHE NON SI COMPILAVA. Su Windows esistono DUE ATAS
+            con nomi quasi uguali, e il repo puntava al vecchio. ATAS X sta in C:\ATASX e carica
+            gli indicatori da %APPDATA%\ATAS X\Indicators; ATAS 8 sta in Program Files (x86) e
+            carica da %APPDATA%\ATAS\Indicators. Directory.Build.props referenziava gli assembly
+            di ATAS 8 -> build morta con CS1705 su System.Drawing.Common e due CS1061 su
+            IInstrumentInfo.TimeZoneOffset e Security.ExpirationMoment, API che ATAS 8 non ha.
+            deploy.sh copiava in %APPDATA%\ATAS\Indicators, cioe' in una cartella che ATAS X non
+            guarda: nessun errore, "deployed" stampato, e sul chart la DLL precedente - lo stesso
+            sintomo di un pull non arrivato. Entrambi provano ora ATAS X per primo, e si puo'
+            forzare con -p:AtasAssemblyDir=. deploy.bat era indietro sulle stesse tre cose piu'
+            il TFM (net10.0-windows) e non copiava affatto FabioDataBridge: riallineato.
+            Build pulita, cinque DLL deployate.
+            avviso.py eseguito per la prima volta su Windows: il balloon tip WinForms torna 0 ma
+            su Windows 11 spesso non si vede. Ora prova prima un toast WinRT (suona, resta nel
+            centro notifiche), balloon come ripiego. NOTA: entrambe escono 0 anche se non si vede
+            niente - il codice di uscita non e' una verifica, ~/.fabio-avvisi.log resta la fonte.
+            .mcp.json puntava a /Users/sabrinastizzi/ del Mac: adesso npx.cmd -y @playwright/mcp,
+            senza percorsi. npx nudo non e' spawnabile senza shell su Windows (WinError 2, che il
+            client riporta come CONNECTION_CLOSED, identico a un server che muore).
+            Verificati: giro d'orizzonte intero con le nove sezioni anche lanciato a mano,
+            bridge health OK su NQZ6, memoria di orientamento installata (4 file).

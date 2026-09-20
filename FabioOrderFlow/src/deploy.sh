@@ -1,18 +1,22 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Build e deploy delle estensioni ATAS. Funziona sia su ATAS X (macOS) sia su
-# ATAS classico (Windows): la cartella di destinazione cambia con il sistema.
+# Build e deploy delle estensioni ATAS. La cartella di destinazione cambia con il
+# sistema E con la versione di ATAS, e le due cose si confondono facilmente:
+# su Windows ATAS X carica da "%APPDATA%\ATAS X\Indicators", il vecchio ATAS 8 da
+# "%APPDATA%\ATAS\Indicators". Copiare nella seconda mentre gira il primo NON da'
+# errore: il deploy dice "fatto" e sul chart resta la DLL precedente.
 
 echo "Building the FabioOrderFlow research indicators..."
 dotnet build FabioOrderFlow.slnx -c Release
 
+tfm="net10.0"
 if [[ "$(uname -s)" == "Darwin" ]]; then
     atas_ind="${HOME}/Library/Application Support/ATAS/Indicators"
-    tfm="net10.0"
+elif [[ -d "${APPDATA}/ATAS X" ]]; then
+    atas_ind="${APPDATA}/ATAS X/Indicators"
 else
     atas_ind="${APPDATA}/ATAS/Indicators"
-    tfm="net10.0"
 fi
 
 mkdir -p "$atas_ind"

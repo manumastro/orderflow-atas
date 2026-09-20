@@ -1,0 +1,10 @@
+# Il repo e' nato su macOS e adesso vive su Windows, dove git ha core.autocrlf=true.
+# Senza questo file gli script di shell prendono CRLF al checkout, e uno script con \r
+# nello shebang non parte - con un messaggio che non nomina mai il vero motivo.
+* text=auto eol=lf
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+*.png binary
+*.webp binary
+*.jpg binary
+*.dll binary

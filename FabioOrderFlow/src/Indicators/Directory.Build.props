@@ -7,11 +7,18 @@
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
 
-  <!-- ATAS X su macOS: gli assembly vivono dentro il bundle dell'applicazione.
-       ATAS classico su Windows: restano in Program Files. Il percorso viene scelto
-       in base al sistema su cui gira la build, cosi' la stessa solution compila su entrambi. -->
+  <!-- Dove vivono gli assembly di ATAS, che cambia con il sistema E con la versione.
+       macOS: dentro il bundle di ATAS X.
+       Windows: ATAS X si installa in C:\ATASX; il vecchio ATAS 8 sta in Program Files (x86).
+       I due NON sono intercambiabili: ATAS 8 non ha IInstrumentInfo.TimeZoneOffset ne'
+       Security.ExpirationMoment, e il suo OFT.Rendering vuole un System.Drawing.Common
+       piu' recente di quello che spedisce - la build muore con CS1705 e due CS1061.
+       Si prova quindi ATAS X per primo, e si puo' forzare tutto con -p:AtasAssemblyDir=... -->
   <PropertyGroup Condition="'$(AtasAssemblyDir)' == '' and $([MSBuild]::IsOSPlatform('OSX'))">
     <AtasAssemblyDir>/Applications/ATAS X.app/Contents/MonoBundle</AtasAssemblyDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(AtasAssemblyDir)' == '' and Exists('C:\ATASX\ATAS.Indicators.dll')">
+    <AtasAssemblyDir>C:\ATASX</AtasAssemblyDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(AtasAssemblyDir)' == ''">
     <AtasAssemblyDir>C:\Program Files (x86)\ATAS Platform</AtasAssemblyDir>

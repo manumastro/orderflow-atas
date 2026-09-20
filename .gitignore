@@ -25,3 +25,7 @@ Thumbs.db
 
 # Playwright MCP output
 .playwright-mcp/
+
+# residui locali, non viaggiano
+__pycache__/
+.tmp-*
