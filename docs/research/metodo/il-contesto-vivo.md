@@ -209,22 +209,72 @@ Sull'istanza dell'indicatore:
 | `Show value band` | Levels | acceso | dipinge la fascia del valore |
 | `Value band opacity` | Levels | 18 su 255 | quanto e' marcata |
 
-## I Livelli Statici: L'Agente Si Sveglia Da Solo
+## I Livelli Statici: Un Filtro Che Gira Spesso, Un Agente Che Si Sveglia Di Rado
 
 I livelli vivi si aggiornano programmaticamente. **I fissi no, e non devono**: sono affermazioni
 dell'analisi — *questa mensola e' stata difesa sei volte*, *qui i Leveraged Funds hanno costruito
 gli short* — e un programma non puo' scriverle senza classificare, che e' esattamente cio' che non
 deve fare.
 
-L'agente li rivede **a intervalli, di propria iniziativa**, e interviene solo se serve. Il segnale
-che qualcosa va rifatto e' quello che il pannello gia' mostra:
+Ma qualcuno deve **accorgersi che sono scaduti**, e le due cose costano in modo diverso:
 
-1. il prezzo e' **uscito dalla fascia** per cui i fissi erano stati derivati;
-2. un livello fisso ha cambiato **funzione** — un tetto diventato pavimento: il prezzo resta,
-   l'etichetta no;
-3. e' passata una **stampa che ridefinisce la giornata** (apertura cash, IVB, una news).
+```text
+accorgersene    due chiamate al bridge          -> puo' girare ogni minuto
+rifarli         tape, footprint, profilo, COT   -> e' il lavoro di un agente
+```
 
-Quando non cambia niente, non si scrive niente. Un giro che non produce modifiche e' il caso
+Se stessero insieme, ogni giro pagherebbe il prezzo del secondo per ottenere quasi sempre la
+risposta del primo. Quindi sono due pezzi.
+
+### Il filtro: `serve_rifare.py`
+
+Gira **spesso**, dentro un `/loop`, e risponde `NIENTE` quasi sempre.
+
+```bash
+python3 FabioOrderFlow/tools/serve_rifare.py \
+        docs/research/giornate/livelli-vivi-NQZ6-AAAA-MM-GG.json --chart NQZ6
+```
+
+Le sue cinque ragioni misurano la **scadenza della mappa**, mai cosa il prezzo stia facendo:
+
+| | cosa ha visto |
+|---|---|
+| `FUORI FASCIA` | il prezzo e' uscito dall'intervallo per cui i fissi erano stati derivati |
+| `ATTRAVERSATO` | un fisso ha cambiato lato: il tetto e' diventato pavimento, e l'etichetta dice ancora la funzione vecchia |
+| `NIENTE IN GIOCO` | nessun livello entro il raggio: si viaggia fuori dalla mappa |
+| `SESSIONE` | e' passata l'apertura della cash, che ridefinisce la giornata |
+| `DERIVA` | il prezzo si e' spostato di piu' della soglia da quando la mappa fu scritta |
+
+**Non e' una condizione armata, e non ci torna.** Non dice mai *compra*: dice *quella riga sul
+chart non descrive piu' dove siamo*.
+
+**Il riferimento e' il prezzo di quando il file e' stato scritto**, non quello dell'ultimo giro.
+Confrontare con il giro precedente renderebbe invisibile una deriva lenta, che e' proprio il caso
+in cui la mappa scade senza che nessuno se ne accorga. Lo stato sta in
+`~/.fabio-livelli-statici.json` ed e' rigenerabile: perderlo costa un falso `NIENTE` al primo giro.
+
+### L'agente: `livelli-statici`
+
+Quando il filtro dice `SERVE`, e **solo allora**, si sveglia un sottoagente in background
+(`.claude/agents/livelli-statici.md`), passandogli **le ragioni verbatim**. Riscriverle a memoria
+e' il modo in cui si perde il motivo.
+
+L'agente rifa' i fissi e nient'altro: non dice la direzione, non propone ingressi, non tocca i
+livelli vivi. Cambia il meno possibile — spesso cio' che e' cambiato e' l'**etichetta**, non il
+prezzo: un tetto diventato pavimento resta allo stesso numero e cambia funzione.
+
+**Uno per volta.** Due agenti che riscrivono lo stesso file si sovrascrivono a vicenda, e il
+secondo non se ne accorge.
+
+### Il ciclo
+
+Il comando `/sorveglia` fa un giro solo e sa cosa fare di ciascuna risposta; `/loop` lo ripete.
+
+```text
+/loop 2m /sorveglia
+```
+
+**Quando non cambia niente, non si scrive niente.** Un giro che non produce modifiche e' il caso
 normale, non un fallimento.
 
 ## Cosa Non Fa, E Va Detto

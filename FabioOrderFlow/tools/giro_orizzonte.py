@@ -67,6 +67,34 @@ def titolo(n: int, testo: str) -> None:
     print(f"\n{'─' * 78}\n{n}. {testo}\n{'─' * 78}")
 
 
+def ora_piu_avanti(testo: str, adesso_utc: str) -> str | None:
+    """L'orario piu' avanti citato nel testo, se supera l'ora di mercato. Altrimenti None.
+
+    Serve a non stampare, in replay, un pezzo di diario scritto in un giro precedente che era
+    arrivato piu' avanti: quel testo racconta minuti che nella sessione in corso non sono ancora
+    successi. Si cercano sia gli orari in Z (`13:31Z`) sia quelli italiani (`15:31`), perche' il
+    diario contiene entrambi, e si confronta il piu' avanti di tutti - conservativo apposta: un
+    dubbio costa una sezione non mostrata, uno sbaglio costa una lettura contaminata.
+    """
+    adesso = ora.italiana(adesso_utc)
+    peggio = None
+    for grezzo, in_utc in [(m, True) for m in re.findall(r"\b(\d{1,2}:\d{2})Z", testo)] + \
+                          [(m, False) for m in re.findall(r"\b(\d{1,2}:\d{2})(?![Z\d])", testo)]:
+        try:
+            hh, mm = (int(x) for x in grezzo.split(":"))
+        except ValueError:
+            continue
+        if not (0 <= hh <= 23 and 0 <= mm <= 59):
+            continue
+        quando = adesso.replace(hour=hh, minute=mm)
+        if in_utc:
+            quando = ora.italiana(adesso.astimezone(dt.timezone.utc)
+                                  .replace(hour=hh, minute=mm))
+        if quando > adesso and (peggio is None or quando > peggio):
+            peggio = quando
+    return peggio.strftime("%H:%M") if peggio else None
+
+
 def coda_sezione(testo: str, titoli: list[str], righe: int = 40) -> str:
     """Estrae l'ultima sezione il cui titolo contiene una delle chiavi."""
     linee = testo.splitlines()
@@ -167,7 +195,21 @@ def main() -> int:
         if m:
             print(f"  {m.group(0)}")
         s = coda_sezione(t, ["dove eravamo"], 30)
-        print(s if s else "  nessuna sezione 'Dove eravamo'")
+        if not s:
+            print("  nessuna sezione 'Dove eravamo'")
+        else:
+            avanti = ora_piu_avanti(s, h["marketTimeUtc"]) if h else None
+            if avanti:
+                # IL DIARIO PUO' ESSERE PIU' AVANTI DEL REPLAY, e allora racconta il futuro.
+                # E' successo il 20 settembre: il replay era alle 13:11Z e la sezione era datata
+                # 13:31Z, scritta in un giro precedente dello stesso replay. Stamparla contamina
+                # la lettura con venti minuti che non sono ancora successi, e la disciplina del
+                # replay e' non sapere come finisce. Si dichiara e non si stampa.
+                print(f"  SEZIONE NON MOSTRATA: e' datata {avanti} e il mercato e' a "
+                      f"{ora.hhmm(h['marketTimeUtc'])}. In replay il diario di un giro precedente")
+                print("  racconta il futuro: leggerlo qui contaminerebbe la lettura.")
+            else:
+                print(s)
 
         titolo(3, "LE CORREZIONI GIA' FATTE OGGI")
         c = coda_sezione(t, ["correzioni"], 200)

@@ -49,6 +49,11 @@ import ora  # noqa: E402
 
 TIPI_VIVI = {"poc", "vah", "val", "massimo", "minimo", "nodo_top", "nodo_base"}
 
+#: Punti minimi fra un livello e la sua invalidazione. Sotto questa distanza lo stop sta
+#: dentro il rumore e non dietro una struttura; si dichiara per scenario con
+#: "stacco_minimo". Il valore e' tarato su NQ e va rivisto per un altro strumento.
+STACCO_INVALIDAZIONE = 10.0
+
 
 def momento(raw: str, giorno: dt.date) -> dt.datetime:
     """Accetta un ISO completo oppure la sola ora ('13:30Z'), che si riferisce a `giorno`."""
@@ -322,6 +327,18 @@ def giro(base: str, args) -> list[dict]:
                 # Un bersaglio che non si risolve non va inventato: si toglie, e il pannello
                 # mostrera' lo scenario senza quel prezzo invece di uno sbagliato.
                 print(f"  ! scenario di {l['label'][:30]}: '{nome}' non risolto, {campo} omesso")
+
+        # UNA INVALIDAZIONE TROPPO VICINA NON E' UNA INVALIDAZIONE. Il 20 settembre il fade sul
+        # VAL della cash e' uscito con invalidazione a un tick dall'ingresso, perche' il minimo
+        # della cash stava appiccicato al bordo del valore: uno stop li' lo prende il rumore, non
+        # il mercato. Un numero del genere sul pannello e' peggio di un campo vuoto, perche'
+        # sembra una misura. Si toglie e si dichiara.
+        stacco = float(sc.pop("stacco_minimo", STACCO_INVALIDAZIONE))
+        if "invalida" in sc and abs(float(sc["invalida"]) - l["price"]) < stacco:
+            print(f"  ! scenario di {l['label'][:30]}: invalidazione a "
+                  f"{abs(float(sc['invalida']) - l['price']):.2f} punti, sotto i {stacco:g} "
+                  f"richiesti - omessa, serve una struttura piu' lontana")
+            sc.pop("invalida")
 
     livelli = sfoltisci(livelli, args.minimo_stacco)
     for l in livelli:

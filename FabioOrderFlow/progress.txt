@@ -379,3 +379,30 @@
             reverting), prosecuzione sopra il POC Asia (momentum). Il nome del modello sta nella
             riga, cosi' si vede da dove discende. La condizione di volume sul momentum e' marcata
             "(proxy speed of tape)", che nel bridge non esiste.
+
+2026-09-20  LE TRE CORREZIONI IN SOSPESO, E IL CICLO SUI LIVELLI STATICI.
+            (1) IL GIRO D'ORIZZONTE NON STAMPA PIU' IL FUTURO. In replay il diario puo' essere
+            piu' avanti del mercato - il 20 settembre il replay era a 13:11Z e la sezione "Dove
+            eravamo" era datata 13:31Z, scritta in un giro precedente dello stesso replay: venti
+            minuti di futuro dentro il contesto, e la disciplina del replay e' non sapere come
+            finisce. giro_orizzonte.ora_piu_avanti() cerca gli orari citati (sia Z sia italiani),
+            e se il piu' avanti supera l'ora di mercato la sezione non si stampa e si dichiara.
+            Conservativo apposta: un dubbio costa una sezione non mostrata, uno sbaglio costa una
+            lettura contaminata.
+            (2) INVALIDAZIONE TROPPO VICINA = NESSUNA INVALIDAZIONE. Il fade sul VAL della cash era
+            uscito con invalidazione a UN TICK dall'ingresso, perche' il minimo della cash stava
+            appiccicato al bordo del valore: uno stop li' lo prende il rumore. livelli_vivi.py
+            adesso la toglie sotto STACCO_INVALIDAZIONE (10 punti su NQ, dichiarabile per scenario)
+            e stampa perche'. L'invalidazione del fade sul VAL e' passata a VAL Europa: le tre
+            adesso stanno a 23, 43 e 15 punti.
+            (3) IL CICLO SUI LIVELLI STATICI, in due pezzi perche' costano in modo diverso.
+            serve_rifare.py risponde NIENTE quasi sempre e costa due chiamate al bridge; quando
+            dice SERVE elenca il perche' (fuori fascia, attraversato, niente in gioco, sessione,
+            deriva) e solo allora si sveglia il sottoagente .claude/agents/livelli-statici.md, in
+            background, con le ragioni VERBATIM. Comando /sorveglia per un giro, /loop 2m
+            /sorveglia per il ciclo. Il riferimento della deriva e' il prezzo di QUANDO IL FILE E'
+            STATO SCRITTO, non quello del giro prima: confrontando col giro prima una deriva lenta
+            non si vede mai, ed e' proprio il caso in cui la mappa scade in silenzio.
+            IL FILTRO NON E' UNA CONDIZIONE ARMATA e non ci torna: misura la scadenza della mappa,
+            non cosa fa il prezzo. Non dice mai "compra", dice "quella riga non descrive piu' dove
+            siamo".

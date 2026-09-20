@@ -45,7 +45,7 @@
       "direzione": "LONG",
       "nome": "fade del bordo basso verso il POC (mean reverting)",
       "bersaglio_livello": "POC cash",
-      "invalida_livello": "min cash"
+      "invalida_livello": "VAL Europa"
     }
   },
   {
