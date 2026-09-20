@@ -188,15 +188,40 @@ def risolvi(definizione: dict, base: str, chart: str, adesso: dt.datetime, cache
         nome, sep, resto = etichetta.partition(" · ")
         etichetta = f"{nome} ~{sep}{resto}"
 
+    larghezza = definizione.get("width", 1)
+
+    # IL LIVELLO PORTA IL PROPRIO RUOLO, non solo il prezzo. Serve all'indicatore per due cose
+    # che da una lista di prezzi non si possono dedurre:
+    #   - disegnare la BANDA della value area, che richiede di sapere quale VAL e quale VAH
+    #     appartengono alla stessa area (e i bordi di due aree diverse si somigliano);
+    #   - distinguere cio' che conta per la strategia da cio' che e' contesto.
+    # `area` si ricava dal nome della regola, che e' gia' scritto cosi': "VAL Europa", "POC cash".
+    area = ""
+    if tipo in ("poc", "vah", "val"):
+        area = definizione.get("nome", "")
+        for prefisso in ("VAL", "VAH", "POC"):
+            area = area.replace(prefisso, "")
+        area = area.strip()
+
     livello = {
         "price": round(prezzo * 4) / 4,
         "label": etichetta,
         "color": definizione.get("color", "#7A8FA6"),
         "style": definizione.get("style", "solid"),
-        "width": definizione.get("width", 1),
+        "width": larghezza,
+        "role": tipo,
+        "area": area,
+        # Chiave = conta per la strategia. Se non e' dichiarato, lo spessore sul chart e' gia' il
+        # modo in cui l'analisi dice cosa conta: e' la convenzione che usava la vecchia sveglia.
+        "key": bool(definizione.get("chiave", larghezza >= 2)),
     }
     if definizione.get("note"):
         livello["note"] = definizione["note"]
+    # Le condizioni le SCRIVE L'ANALISI e le SPUNTA la macchina. Non sono condizioni armate: non
+    # scattano, non avvisano, non fanno niente. Dicono cosa dovrebbe essere vero perche' il livello
+    # diventi operabile, e il pannello mostra quali lo sono gia'.
+    if definizione.get("condizioni"):
+        livello["conditions"] = definizione["condizioni"]
     return livello
 
 

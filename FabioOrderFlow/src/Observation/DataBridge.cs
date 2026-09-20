@@ -191,6 +191,16 @@ public sealed class DataBridge : Indicator
     [Range(0, 900)]
     public int WatchOffsetRight { get; set; } = 110;
 
+    [Display(Name = "Show value band", GroupName = "Levels",
+        Description = "Dipinge la fascia fra VAL e VAH. Due righe dicono dove sono i bordi, " +
+                      "non che in mezzo c'e' un dentro - ed e' il dentro che sceglie il modello.")]
+    public bool ShowValueBand { get; set; } = true;
+
+    [Display(Name = "Value band opacity", GroupName = "Levels",
+        Description = "Quanto e' marcata la fascia del valore, su 255. Alta copre le candele.")]
+    [Range(0, 120)]
+    public int ValueBandOpacity { get; set; } = 18;
+
     [Display(Name = "In-play radius", GroupName = "Watch",
         Description = "Entro quanti punti dal prezzo un livello si considera IN GIOCO. " +
                       "Oltre, il pannello dice che non c'e' niente in gioco e mostra le due porte.")]
@@ -555,6 +565,45 @@ public sealed class DataBridge : Indicator
 
         /// <summary>Testo libero: non viene disegnato, torna su GET. Serve a ricordare perche' il livello c'e'.</summary>
         public string? Note { get; init; }
+
+        /// <summary>poc | vah | val | massimo | minimo | nodo_top | nodo_base | fisso.</summary>
+        public string? Role { get; init; }
+
+        /// <summary>Il nome dell'area di valore a cui il bordo appartiene: "Europa", "cash", "Asia".</summary>
+        public string? Area { get; init; }
+
+        /// <summary>Vero se il livello conta per la strategia; il contesto si disegna piu' spento.</summary>
+        public bool Key { get; init; }
+
+        /// <summary>Cosa dovrebbe essere vero perche' il livello diventi operabile.</summary>
+        public BridgeCondition[]? Conditions { get; init; }
+    }
+
+    /// <summary>
+    /// Una condizione **dichiarata dall'analisi e spuntata dalla macchina**.
+    ///
+    /// Non e' una condizione armata: non scatta, non avvisa, non fa niente. Il vecchio impianto
+    /// valutava condizioni e gridava, e per armarne una servivano sette prove; qui la macchina
+    /// misura soltanto, e chi guarda vede quali prerequisiti sono gia' soddisfatti.
+    ///
+    /// `Testo` sono le parole dell'analisi e viene mostrato com'e': la macchina non lo interpreta.
+    /// </summary>
+    private sealed record BridgeCondition
+    {
+        /// <summary>chiusura | delta | volume | arrivo</summary>
+        public string? Cosa { get; init; }
+
+        /// <summary>Per <c>chiusura</c>: sopra | sotto. Per <c>arrivo</c>: SOPRA | SOTTO.</summary>
+        public string? Verso { get; init; }
+
+        /// <summary>Per <c>chiusura</c>: il prezzo da superare. Omesso, e' il livello stesso.</summary>
+        public decimal? Prezzo { get; init; }
+
+        /// <summary>Per <c>delta</c> e <c>volume</c>: la soglia, misurata AL LIVELLO.</summary>
+        public decimal? Almeno { get; init; }
+
+        /// <summary>Le parole dell'analisi, mostrate cosi' come sono.</summary>
+        public string? Testo { get; init; }
     }
 
     /// <summary>Rilegge dal file i livelli di questo strumento, se ce ne sono.</summary>
@@ -1005,6 +1054,8 @@ public sealed class DataBridge : Indicator
         // destro sicuro qualunque sia la larghezza dell'asse.
         var dataRight = DataAreaRight(context, area);
 
+        DisegnaBandaValore(context, area, levels);
+
         var mouse = MouseLocationInfo is { IsMouseLeave: false } info ? info.LastPosition : (Point?)null;
         (string Text, Color Color, Point At)? tooltip = null;
 
@@ -1016,7 +1067,14 @@ public sealed class DataBridge : Indicator
                 continue;
             }
 
+            // Cio' che conta per la strategia si disegna pieno, il contesto piu' spento. Senza
+            // questa distinzione dodici righe hanno tutte lo stesso peso visivo, e quella su cui
+            // si decide non si trova a colpo d'occhio - che e' l'unico momento in cui serve.
             var color = ParseColor(level.Color);
+            if (!level.Key)
+            {
+                color = Color.FromArgb(120, color.R, color.G, color.B);
+            }
             var pen = new RenderPen(color, Math.Clamp(level.Width, 1, 5), DashOf(level.Style));
             // La riga si ferma a LevelLineExtent pixel dal bordo destro, non attraversa tutto il
             // chart: il 19 settembre le righe intere, insieme al pannello e alle candele, erano
@@ -1135,6 +1193,106 @@ public sealed class DataBridge : Indicator
         }
     }
 
+    /// <summary>
+    /// Un'area di valore ricomposta dai bordi depositati: e' la coppia VAL/VAH che porta la
+    /// stessa <c>area</c>. Si raggruppa per area e non per vicinanza, perche' i bordi di due
+    /// sessioni diverse possono stare a pochi punti e non sono bordi della stessa cosa.
+    /// </summary>
+    private sealed class AreaValore
+    {
+        public string Nome = string.Empty;
+        public decimal? Val;
+        public decimal? Vah;
+        public decimal? Poc;
+        public bool Chiave;
+        public bool Completa => Val is not null && Vah is not null;
+    }
+
+    private List<AreaValore> AreeDiValore(BridgeLevel[] livelli)
+    {
+        var mappa = new Dictionary<string, AreaValore>(StringComparer.OrdinalIgnoreCase);
+        foreach (var l in livelli)
+        {
+            var ruolo = l.Role ?? string.Empty;
+            if (ruolo is not ("val" or "vah" or "poc"))
+            {
+                continue;
+            }
+            var nome = string.IsNullOrWhiteSpace(l.Area) ? "valore" : l.Area!;
+            if (!mappa.TryGetValue(nome, out var a))
+            {
+                a = new AreaValore { Nome = nome };
+                mappa[nome] = a;
+            }
+            if (ruolo == "val") { a.Val = l.Price; }
+            else if (ruolo == "vah") { a.Vah = l.Price; }
+            else { a.Poc = l.Price; }
+            a.Chiave |= l.Key;
+        }
+        return mappa.Values.Where(a => a.Completa).ToList();
+    }
+
+    /// <summary>
+    /// La fascia fra VAL e VAH, dipinta dietro le candele.
+    ///
+    /// Due righe orizzontali dicono dove sono i bordi; **non** dicono che in mezzo c'e' un dentro.
+    /// E dentro o fuori dal valore e' la prima cosa che sceglie il modello: dentro si fa mean
+    /// reverting sui bordi verso il POC, fuori no. La banda rende quella domanda una cosa che si
+    /// vede invece di una che si calcola.
+    /// </summary>
+    private void DisegnaBandaValore(RenderContext context, Rectangle area, BridgeLevel[] livelli)
+    {
+        if (!ShowValueBand)
+        {
+            return;
+        }
+        var dataRight = DataAreaRight(context, area);
+        foreach (var a in AreeDiValore(livelli))
+        {
+            var yAlto = ChartInfo!.GetYByPrice(a.Vah!.Value, false);
+            var yBasso = ChartInfo!.GetYByPrice(a.Val!.Value, false);
+            if (yBasso < yAlto)
+            {
+                (yAlto, yBasso) = (yBasso, yAlto);
+            }
+            var top = Math.Max(area.Top, yAlto);
+            var bottom = Math.Min(area.Bottom, yBasso);
+            if (bottom <= top)
+            {
+                continue;
+            }
+            context.FillRectangle(Color.FromArgb(ValueBandOpacity, 79, 195, 247),
+                new Rectangle(area.Left, top, dataRight - area.Left, bottom - top));
+        }
+    }
+
+    /// <summary>L'area di valore che contiene il prezzo, o quella piu' vicina se e' fuori.</summary>
+    private (AreaValore? Area, bool Dentro) ValoreCorrente(BridgeLevel[] livelli, decimal prezzo)
+    {
+        var aree = AreeDiValore(livelli);
+        if (aree.Count == 0)
+        {
+            return (null, false);
+        }
+        // CHI VINCE FRA DUE AREE. Durante la cash ci sono almeno due valori sul chart - quello
+        // della notte e quello in sviluppo - e il piu' VICINO non e' il piu' importante: il
+        // valore su cui si decide e' quello dichiarato chiave dall'analisi. Il 20 settembre,
+        // col prezzo sopra entrambi, la sola distanza avrebbe mostrato il valore europeo mentre
+        // la cash era aperta da venti minuti.
+        var dentro = aree.Where(a => a.Val!.Value <= prezzo && prezzo <= a.Vah!.Value)
+                         .OrderByDescending(a => a.Chiave)
+                         .FirstOrDefault();
+        if (dentro is not null)
+        {
+            return (dentro, true);
+        }
+        var vicina = aree.OrderByDescending(a => a.Chiave)
+                         .ThenBy(a => Math.Min(Math.Abs(prezzo - a.Val!.Value),
+                                               Math.Abs(prezzo - a.Vah!.Value)))
+                         .First();
+        return (vicina, false);
+    }
+
     private readonly record struct RigaPannello(string Testo, Color Colore);
 
     private static readonly Color PanelBianco = Color.FromArgb(235, 235, 235);
@@ -1142,6 +1300,7 @@ public sealed class DataBridge : Indicator
     private static readonly Color PanelVerde = Color.FromArgb(102, 187, 106);
     private static readonly Color PanelRosso = Color.FromArgb(239, 83, 80);
     private static readonly Color PanelAmbra = Color.FromArgb(255, 183, 77);
+    private static readonly Color PanelAzzurro = Color.FromArgb(79, 195, 247);
 
     private static readonly CultureInfo Italiano = CultureInfo.GetCultureInfo("it-IT");
 
@@ -1202,21 +1361,45 @@ public sealed class DataBridge : Indicator
             return righe;
         }
 
+        // --- il valore in cui si sta ---------------------------------------------------------
+        // Prima riga dopo il prezzo, e non e' un ornamento: dentro o fuori dal valore sceglie il
+        // modello. Dentro si fa mean reverting sui bordi verso il POC; fuori quel permesso non c'e'.
+        var (zona, dentro) = ValoreCorrente(livelli, prezzo);
+        if (zona is not null)
+        {
+            var dovePoc = zona.Poc is null ? string.Empty
+                : prezzo >= zona.Poc.Value ? "  sopra il POC" : "  sotto il POC";
+            var poc = zona.Poc is null ? string.Empty : $"  POC {Prezzo(zona.Poc.Value)}";
+            righe.Add(new RigaPannello(
+                dentro
+                    ? $"VALORE     DENTRO {zona.Nome}  {Prezzo(zona.Val!.Value)}-{Prezzo(zona.Vah!.Value)}{poc}"
+                    : $"VALORE     FUORI {zona.Nome}, {(prezzo > zona.Vah!.Value ? "sopra" : "sotto")}"
+                      + $"  {Prezzo(zona.Val!.Value)}-{Prezzo(zona.Vah!.Value)}{poc}",
+                dentro ? PanelAzzurro : PanelAmbra));
+            if (dentro && dovePoc.Length > 0)
+            {
+                righe.Add(new RigaPannello($"          {dovePoc.Trim()}", PanelGrigio));
+            }
+        }
+
+        // --- il livello in gioco -------------------------------------------------------------
         BridgeLevel? gioco = null;
         var minDist = decimal.MaxValue;
         foreach (var l in livelli)
         {
             var d = Math.Abs(l.Price - prezzo);
-            if (d <= InPlayRadius && d < minDist)
+            // A parita' di distanza vince quello che conta per la strategia: un bordo di contesto
+            // non deve rubare il posto al livello su cui si decide.
+            var peso = l.Key ? d : d + 0.01m;
+            if (d <= InPlayRadius && peso < minDist)
             {
-                minDist = d;
+                minDist = peso;
                 gioco = l;
             }
         }
 
         if (gioco is null)
         {
-            // Nessun livello in gioco non e' un vuoto: dice che si viaggia fra due porte, e quali.
             righe.Add(new RigaPannello("NIENTE IN GIOCO   le due porte:", PanelAmbra));
             var sopra = livelli.Where(l => l.Price > prezzo).OrderBy(l => l.Price).FirstOrDefault();
             var sotto = livelli.Where(l => l.Price <= prezzo).OrderByDescending(l => l.Price).FirstOrDefault();
@@ -1224,13 +1407,13 @@ public sealed class DataBridge : Indicator
             {
                 righe.Add(new RigaPannello(
                     $"   sopra  {Prezzo(sopra.Price)}  {NomeCorto(sopra.Label)}  {SegnatoPrezzo(sopra.Price - prezzo)}",
-                    PanelGrigio));
+                    sopra.Key ? PanelBianco : PanelGrigio));
             }
             if (sotto is not null)
             {
                 righe.Add(new RigaPannello(
                     $"   sotto  {Prezzo(sotto.Price)}  {NomeCorto(sotto.Label)}  {SegnatoPrezzo(sotto.Price - prezzo)}",
-                    PanelGrigio));
+                    sotto.Key ? PanelBianco : PanelGrigio));
             }
             return righe;
         }
@@ -1238,28 +1421,18 @@ public sealed class DataBridge : Indicator
         var livello = gioco.Price;
         var dove = prezzo >= livello ? "sopra" : "sotto";
 
-        // --- da che lato ci e' arrivato ------------------------------------------------------
-        // Si torna indietro finche' una barra non chiude OLTRE una fascia di tolleranza: una
-        // chiusura dentro la fascia non dice da che parte si veniva, dice solo che si era li'.
         var tick = InstrumentInfo?.TickSize ?? 0.25m;
         var soglia = Math.Max(tick * 4, InPlayRadius / 4m);
         var arrivo = string.Empty;
-        for (var b = ultimo; b >= Math.Max(0, ultimo - 240); b--)
+        for (var bar = ultimo; bar >= Math.Max(0, ultimo - 240); bar--)
         {
-            var c = GetCandle(b);
-            if (c.Close > livello + soglia)
-            {
-                arrivo = "SOPRA";
-                break;
-            }
-            if (c.Close < livello - soglia)
-            {
-                arrivo = "SOTTO";
-                break;
-            }
+            var c = GetCandle(bar);
+            if (c.Close > livello + soglia) { arrivo = "SOPRA"; break; }
+            if (c.Close < livello - soglia) { arrivo = "SOTTO"; break; }
         }
 
-        righe.Add(new RigaPannello($"IN GIOCO   {NomeCorto(gioco.Label)}   {Prezzo(livello)}",
+        var titolo = gioco.Key ? "IN GIOCO  " : "in gioco  ";
+        righe.Add(new RigaPannello($"{titolo} {NomeCorto(gioco.Label)}   {Prezzo(livello)}",
                                    ParseColor(gioco.Color)));
         righe.Add(new RigaPannello(
             arrivo.Length > 0
@@ -1267,7 +1440,7 @@ public sealed class DataBridge : Indicator
                 : $"           {SegnatoPrezzo(prezzo - livello)} {dove}   lato di arrivo non deciso",
             arrivo.Length > 0 ? PanelBianco : PanelAmbra));
 
-        // --- cosa e' stato scambiato A QUEL PREZZO -------------------------------------------
+        // --- cosa e' stato scambiato A QUEL PREZZO --------------------------------------------
         var da = Math.Max(0, ultimo - PanelLookback + 1);
         decimal vol = 0m;
         decimal delta = 0m;
@@ -1276,9 +1449,9 @@ public sealed class DataBridge : Indicator
         var passati = 0;
         var fascia = tick * 2;
 
-        for (var b = da; b <= ultimo; b++)
+        for (var bar = da; bar <= ultimo; bar++)
         {
-            var c = GetCandle(b);
+            var c = GetCandle(bar);
             for (var pz = livello - fascia; pz <= livello + fascia; pz += tick)
             {
                 var info = c.GetPriceVolumeInfo(pz);
@@ -1293,36 +1466,77 @@ public sealed class DataBridge : Indicator
             if (c.Low - fascia <= livello && livello <= c.High + fascia)
             {
                 tocchi++;
-                if (b > 0)
+                if (bar > 0)
                 {
-                    var lato = GetCandle(b - 1).Close >= livello;
-                    if ((c.Close >= livello) == lato)
-                    {
-                        respinti++;
-                    }
-                    else
-                    {
-                        passati++;
-                    }
+                    var lato = GetCandle(bar - 1).Close >= livello;
+                    if ((c.Close >= livello) == lato) { respinti++; } else { passati++; }
                 }
             }
         }
 
-        righe.Add(new RigaPannello($"A QUEL PREZZO, ultime {PanelLookback} barre", PanelGrigio));
-        righe.Add(new RigaPannello($"           scambiati {Lotti(vol)}   d {Segnato(delta)}",
-            delta > 0 ? PanelVerde : delta < 0 ? PanelRosso : PanelGrigio));
         righe.Add(new RigaPannello(
-            $"           {tocchi} tocchi   {respinti} respinti   {passati} passati", PanelGrigio));
+            $"LI'        {Lotti(vol)} lotti   d {Segnato(delta)}"
+            + $"   {tocchi} tocchi, {respinti} respinti   ({PanelLookback} barre)",
+            delta > 0 ? PanelVerde : delta < 0 ? PanelRosso : PanelGrigio));
 
-        // --- la barra in corso ---------------------------------------------------------------
+        // --- le condizioni dichiarate dall'analisi -------------------------------------------
+        // La macchina le SPUNTA, non le inventa e non le fa scattare. Vedi BridgeCondition.
+        if (gioco.Conditions is { Length: > 0 } condizioni)
+        {
+            righe.Add(new RigaPannello("SERVE", PanelGrigio));
+            foreach (var c in condizioni)
+            {
+                var (ok, misura) = ValutaCondizione(c, gioco, prezzo, delta, vol, arrivo);
+                righe.Add(new RigaPannello(
+                    $"   {(ok ? "[x]" : "[ ]")} {c.Testo}{misura}",
+                    ok ? PanelVerde : PanelGrigio));
+            }
+        }
+
         var rng = viva.High - viva.Low;
         var pos = rng > 0 ? (viva.Close - viva.Low) / rng : 0m;
         righe.Add(new RigaPannello(
-            $"ADESSO     barra {OraLocale(viva.Time):HH:mm}   v {Lotti(viva.Volume)}"
-            + $"   d {Segnato(viva.Delta)}   pos {pos:0.00}",
+            $"ADESSO     v {Lotti(viva.Volume)}   d {Segnato(viva.Delta)}   pos {pos:0.00}",
             viva.Delta > 0 ? PanelVerde : viva.Delta < 0 ? PanelRosso : PanelGrigio));
 
         return righe;
+    }
+
+    /// <summary>
+    /// Spunta una condizione contro cio' che e' gia' stato misurato. Non calcola niente di nuovo
+    /// e non decide niente: se il tipo non e' riconosciuto la lascia non soddisfatta e lo dice,
+    /// invece di far finta che sia vera.
+    /// </summary>
+    private (bool Ok, string Misura) ValutaCondizione(
+        BridgeCondition c, BridgeLevel livello, decimal prezzo,
+        decimal deltaAlLivello, decimal volumeAlLivello, string arrivo)
+    {
+        switch ((c.Cosa ?? string.Empty).ToLowerInvariant())
+        {
+            case "chiusura":
+            {
+                var soglia = c.Prezzo ?? livello.Price;
+                var sopra = (c.Verso ?? "sopra").StartsWith("sop", StringComparison.OrdinalIgnoreCase);
+                return (sopra ? prezzo > soglia : prezzo < soglia, string.Empty);
+            }
+            case "delta":
+            {
+                var soglia = c.Almeno ?? 0m;
+                var ok = soglia >= 0 ? deltaAlLivello >= soglia : deltaAlLivello <= soglia;
+                return (ok, $"   ({Segnato(deltaAlLivello)})");
+            }
+            case "volume":
+            {
+                var soglia = c.Almeno ?? 0m;
+                return (volumeAlLivello >= soglia, $"   ({Lotti(volumeAlLivello)})");
+            }
+            case "arrivo":
+                return (arrivo.Length > 0
+                        && string.Equals(arrivo, c.Verso, StringComparison.OrdinalIgnoreCase),
+                    arrivo.Length > 0 ? $"   ({arrivo})" : "   (non deciso)");
+            default:
+                return (false, "   (condizione sconosciuta)");
+        }
     }
 
     // ---------------------------------------------------------------- endpoints

@@ -9,7 +9,8 @@
     "color": "#4FC3F7",
     "style": "solid",
     "width": 3,
-    "minimo_lotti": 15000
+    "minimo_lotti": 15000,
+    "chiave": true
   },
   {
     "nome": "VAL cash",
@@ -21,7 +22,25 @@
     "color": "#4FC3F7",
     "style": "dot",
     "width": 1,
-    "minimo_lotti": 15000
+    "minimo_lotti": 15000,
+    "chiave": true,
+    "condizioni": [
+      {
+        "cosa": "arrivo",
+        "verso": "SOPRA",
+        "testo": "arrivato da dentro il valore"
+      },
+      {
+        "cosa": "delta",
+        "almeno": 150,
+        "testo": "compratori al bordo (delta positivo li')"
+      },
+      {
+        "cosa": "chiusura",
+        "verso": "sopra",
+        "testo": "chiusura M1 di nuovo sopra il bordo"
+      }
+    ]
   },
   {
     "nome": "VAH cash",
@@ -33,7 +52,25 @@
     "color": "#4FC3F7",
     "style": "dot",
     "width": 1,
-    "minimo_lotti": 15000
+    "minimo_lotti": 15000,
+    "chiave": true,
+    "condizioni": [
+      {
+        "cosa": "arrivo",
+        "verso": "SOTTO",
+        "testo": "arrivato da dentro il valore"
+      },
+      {
+        "cosa": "delta",
+        "almeno": -150,
+        "testo": "venditori al bordo (delta negativo li')"
+      },
+      {
+        "cosa": "chiusura",
+        "verso": "sotto",
+        "testo": "chiusura M1 di nuovo sotto il bordo"
+      }
+    ]
   },
   {
     "nome": "min cash",
@@ -44,7 +81,8 @@
     "label": "Min cash · sotto, la seduta continua nel verso della notte",
     "color": "#4FC3F7",
     "style": "dash",
-    "width": 1
+    "width": 1,
+    "chiave": true
   },
   {
     "nome": "max cash",
@@ -55,7 +93,8 @@
     "label": "Max cash · sopra, l'apertura e' stata rifiutata",
     "color": "#4FC3F7",
     "style": "dash",
-    "width": 1
+    "width": 1,
+    "chiave": true
   },
   {
     "nome": "mensola rotta",
@@ -65,7 +104,8 @@
     "color": "#C77B5A",
     "style": "dash",
     "width": 2,
-    "note": "minimi 29141,75 / 29142,00 / 29142,25: appoggio di ordini eseguiti, non un bordo di profilo"
+    "note": "minimi 29141,75 / 29142,00 / 29142,25: appoggio di ordini eseguiti, non un bordo di profilo",
+    "chiave": false
   },
   {
     "nome": "top nodo Europa",
@@ -77,7 +117,8 @@
     "label": "Top nodo pesante {pct} d{delta} · dove i compratori europei sono entrati, e sono sopra",
     "color": "#7A8FA6",
     "style": "solid",
-    "width": 2
+    "width": 2,
+    "chiave": false
   },
   {
     "nome": "POC Europa",
@@ -89,7 +130,8 @@
     "label": "POC EUROPA {pct} · prezzo piu' scambiato della gamba che ha portato qui",
     "color": "#7A8FA6",
     "style": "solid",
-    "width": 2
+    "width": 2,
+    "chiave": true
   },
   {
     "nome": "VAL Europa",
@@ -101,7 +143,8 @@
     "label": "VAL Europa · sotto qui il prezzo e' fuori dal valore della mattina",
     "color": "#7A8FA6",
     "style": "dot",
-    "width": 1
+    "width": 1,
+    "chiave": false
   },
   {
     "nome": "VAH Europa",
@@ -113,7 +156,8 @@
     "label": "VAH Europa · sopra qui si esce dal valore in cui il prezzo ha passato la mattina",
     "color": "#7A8FA6",
     "style": "dot",
-    "width": 1
+    "width": 1,
+    "chiave": false
   },
   {
     "nome": "min notte",
@@ -125,7 +169,8 @@
     "label": "MIN NOTTE · sotto non c'e' piu' nessun riferimento di prezzo",
     "color": "#6B7A99",
     "style": "solid",
-    "width": 2
+    "width": 2,
+    "chiave": true
   },
   {
     "nome": "giunzione sottile",
@@ -135,7 +180,8 @@
     "color": "#8A7FA6",
     "style": "dot",
     "width": 1,
-    "note": "le due sedute della notte non si sovrappongono: fra 29.281 (max Europa) e 29.265 (min Asia) c'e' solo un contatto. Un profilo unico ci mette dentro un POC che non e' di nessuno."
+    "note": "le due sedute della notte non si sovrappongono: fra 29.281 (max Europa) e 29.265 (min Asia) c'e' solo un contatto. Un profilo unico ci mette dentro un POC che non e' di nessuno.",
+    "chiave": false
   },
   {
     "nome": "POC Asia",
@@ -148,7 +194,25 @@
     "color": "#6B7A99",
     "style": "solid",
     "width": 2,
-    "note": "fascia 29.300-29.324 col 44,4% della sola Asia: chi ha comprato li' e' sott'acqua di 180 punti"
+    "note": "fascia 29.300-29.324 col 44,4% della sola Asia: chi ha comprato li' e' sott'acqua di 180 punti",
+    "chiave": true,
+    "condizioni": [
+      {
+        "cosa": "arrivo",
+        "verso": "SOTTO",
+        "testo": "arrivato da sotto: e' un bersaglio, non un muro"
+      },
+      {
+        "cosa": "volume",
+        "almeno": 2000,
+        "testo": "volume che sostiene l'arrivo"
+      },
+      {
+        "cosa": "delta",
+        "almeno": 200,
+        "testo": "delta positivo li' (nessun venditore in attesa)"
+      }
+    ]
   },
   {
     "nome": "VAL Asia",
@@ -160,7 +224,8 @@
     "label": "VAL Asia · sopra qui il prezzo rientra nel valore della notte asiatica",
     "color": "#6B7A99",
     "style": "dot",
-    "width": 1
+    "width": 1,
+    "chiave": false
   },
   {
     "nome": "max Asia",
@@ -172,6 +237,7 @@
     "label": "Max notte dom 22:00Z · sopra, la caduta della settimana e' annullata",
     "color": "#6B7A99",
     "style": "dash",
-    "width": 1
+    "width": 1,
+    "chiave": false
   }
 ]

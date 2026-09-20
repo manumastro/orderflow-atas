@@ -356,11 +356,22 @@ python3 FabioOrderFlow/tools/livelli_vivi.py \
 Tiene aggiornati **i livelli vivi**, rileggendo il file delle regole a ogni giro: correggere una
 definizione non richiede un riavvio. Gira in background, non come `Monitor`.
 
-**Il pannello non ha un comando: e' l'indicatore.** Si ridisegna a ogni tick e mostra **una cosa
-sola** — il livello **in gioco**, da che lato il prezzo ci e' arrivato, cosa e' stato scambiato
-**a quel prezzo** nelle ultime barre, e quante volte ha retto. Il lato di arrivo non e' un
-dettaglio: e' cio' che separa un rifiuto del bordo da una rottura dello stesso bordo, che
-producono numeri identici.
+**Il pannello non ha un comando: e' l'indicatore.** Si ridisegna a ogni tick e mostra tre cose:
+
+1. **il valore** in cui si sta, dentro o fuori — e' la domanda che sceglie il modello;
+2. **il livello in gioco**, da che lato il prezzo ci e' arrivato, cosa e' stato scambiato **a quel
+   prezzo** nelle ultime barre, e quante volte ha retto;
+3. **cosa serve** perche' quel livello diventi operabile, spuntato man mano.
+
+Il lato di arrivo non e' un dettaglio: separa un rifiuto del bordo da una rottura dello stesso
+bordo, che producono numeri identici.
+
+**Le condizioni le scrive l'analisi nel file delle regole, la macchina le spunta soltanto.** Non
+scattano, non avvisano e non fanno niente: non sono le condizioni armate della fase chiusa.
+
+**Sul chart si distingue cosa conta.** La fascia fra VAL e VAH e' dipinta, perche' due righe dicono
+dove sono i bordi ma non che in mezzo c'e' un dentro; i livelli `"chiave": true` si disegnano pieni
+e il contesto piu' spento.
 
 **La divisione del lavoro, ed e' la regola:**
 

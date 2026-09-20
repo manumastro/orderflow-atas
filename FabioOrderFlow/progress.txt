@@ -337,3 +337,26 @@
             sembrano un orario giusto. Helper OraLocale(), che dichiara il Kind prima di convertire.
             contesto_vivo.py, scritto e poi rimosso nella stessa sessione: la meta' pannello e'
             superata dall'indicatore e la meta' livelli duplicava livelli_vivi.py --ogni.
+
+2026-09-20  IL PANNELLO DICE TRE COSE, E IL CHART DISTINGUE COSA CONTA. Richieste dell'utente:
+            vedere la value area nel pannello, vedere le condizioni da soddisfare, e capire a
+            colpo d'occhio quali livelli contano per la strategia - restando concisi.
+            Il livello depositato porta adesso role, area, key e conditions, emessi da
+            livelli_vivi.py: da una lista di prezzi l'indicatore non poteva dedurre quale VAL e
+            quale VAH fossero bordi della STESSA area, e i bordi di due sessioni diverse stanno a
+            pochi punti l'uno dall'altro.
+            PANNELLO: 1) VALORE, dentro o fuori e di quale - e' la domanda che sceglie il modello,
+            quindi sta per prima. Con due aree vince quella CHIAVE, non la piu' vicina: col prezzo
+            sopra entrambe la sola distanza mostrava il valore europeo mentre la cash era aperta da
+            venti minuti. 2) IN GIOCO, col lato di arrivo e la footprint al livello. A parita' di
+            distanza vince il livello chiave. 3) SERVE, le condizioni.
+            LE CONDIZIONI NON SONO CONDIZIONI ARMATE: le scrive l'analisi nel file delle regole, la
+            macchina le spunta e basta. Non scattano, non avvisano, non fanno niente. Vocabolario:
+            arrivo / delta / volume / chiusura. Un tipo sconosciuto resta non soddisfatto e lo
+            dichiara, invece di passare per vero.
+            CHART: banda dipinta fra VAL e VAH (Show value band, opacita' 18/255) - due righe dicono
+            dove sono i bordi, non che in mezzo c'e' un dentro, ed e' il dentro che decide se il
+            mean reverting e' lecito. I livelli non chiave si disegnano al 47% di alpha.
+            NOTA OPERATIVA: livelli_vivi.py in ciclo tiene il MODULO in memoria. Cambiare il codice
+            del risolutore non basta, il demone va riavviato - il file delle regole invece si
+            rilegge a ogni giro.

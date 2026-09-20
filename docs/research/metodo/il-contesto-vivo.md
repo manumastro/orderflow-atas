@@ -67,53 +67,105 @@ e' proprio la barra in formazione quella che si guarda quando si decide. L'indic
 footprint sotto mano a ogni tick, e non dipendendo da nessun processo acceso **non puo' restare
 fermo a mentire**.
 
-## Cosa C'e' Nel Pannello: Una Cosa Sola
+## Cosa C'e' Nel Pannello: Il Valore, Il Livello, Cosa Serve
 
 **Non e' un riassunto della seduta.** Un pannello che elenca tutto costringe a cercare, e si cerca
-male proprio quando il prezzo si muove. C'e' il livello **in gioco** - quello entro `In-play radius`
-punti dal prezzo - e le prove che servono a giudicarlo.
+male proprio quando il prezzo si muove. Ci sono tre cose, in quest'ordine.
 
 ```text
-15:34   NQZ6   29.192,50
-IN GIOCO   Max cash ~   29.210,50
-           -18,00 sotto   arrivato da SOTTO
-A QUEL PREZZO, ultime 10 barre
-           scambiati 3.482   d -412
-           4 tocchi   3 respinti   1 passati
-ADESSO     barra 15:34   v 1.714   d +40   pos 0.38
+15:49   NQZ6   29.313,00
+VALORE     FUORI cash, sopra  29.170,00-29.239,00  POC 29.195,00
+IN GIOCO   POC ASIA 43.5% ~   29.318,00
+           -5,00 sotto   arrivato da SOTTO
+LI'        3.482 lotti   d -412   4 tocchi, 3 respinti   (10 barre)
+SERVE
+   [x] arrivato da sotto: e' un bersaglio, non un muro
+   [x] volume che sostiene l'arrivo   (3.482)
+   [ ] delta positivo li' (nessun venditore in attesa)   (-412)
+ADESSO     v 298   d +40   pos 0.68
 ```
 
-**Perche' proprio queste righe.**
+### 1. `VALORE` — dentro o fuori, e di quale
 
-- **Il lato di arrivo** e' cio' che separa un setup dal suo sosia. Un rifiuto del bordo alto del
-  valore e una rottura dello stesso bordo dall'alto hanno massimo sopra, chiusura sotto, corpo in
-  basso, volume e delta negativo: **identici**. Li distingue solo da che parte arriva il prezzo, e
-  senza quella riga il pannello mostrerebbe due cose opposte con gli stessi numeri.
-- **`A QUEL PREZZO`** non e' il volume della barra ne' quello della seduta: e' la footprint sommata
-  sulla fascia di due tick attorno al livello, nelle ultime `Lookback bars`. **Sforzo alto e
-  risultato nullo e' la misura dell'assorbimento del live**, e si vede solo prezzo per prezzo.
-- **`tocchi / respinti / passati`** dice se il livello ha una storia o e' al primo esame. Un tocco
-  e' una barra che lo contiene; e' *respinto* se chiude dallo stesso lato da cui veniva, *passato*
-  se chiude dall'altro.
-- **`~`** dopo il nome dice che il livello e' **vivo**, cioe' si muove da solo. Senza marcatore un
-  POC che si sposta a ogni barra e una mensola scritta stamattina si disegnano identici, e chi
-  guarda non sa se sta leggendo una misura di adesso o un fatto che potrebbe essere invecchiato.
+E' la prima riga dopo il prezzo perche' **e' la domanda che sceglie il modello**: dentro il valore
+si fa mean reverting sui bordi verso il POC, fuori quel permesso non c'e'. Prendere un mean
+reverting fuori dal valore e un momentum dentro la balance sono lo stesso errore con due nomi.
 
-**Quando nessun livello e' in gioco il pannello lo dice**, e mostra le due porte piu' vicine:
-viaggiare in mezzo al niente e' una informazione, non un vuoto.
+**Quando ci sono due aree vince quella dichiarata chiave, non la piu' vicina.** Durante la cash sul
+chart ci sono almeno due valori — quello della notte e quello in sviluppo — e il piu' vicino non e'
+il piu' importante.
 
-**Sotto restano le righe depositate su `/watch`**, che sono cio' che scrive l'analisi. Vanno tenute
-distinte da cio' che misura la macchina, ed e' il motivo per cui stanno in fondo.
+### 2. `IN GIOCO` — il livello che il prezzo sta testando
 
-### Le Tre Manopole
+Quello entro `In-play radius` punti. **A parita' di distanza vince quello dichiarato chiave**: un
+bordo di contesto non deve rubare il posto al livello su cui si decide. Se il livello in gioco non
+e' chiave, l'intestazione e' minuscola (`in gioco`).
 
-Sull'istanza dell'indicatore, gruppo **Watch**:
+- **Il lato di arrivo** separa un setup dal suo sosia. Un rifiuto del bordo alto del valore e una
+  rottura dello stesso bordo dall'alto hanno massimo sopra, chiusura sotto, corpo in basso, volume
+  e delta negativo: **identici**. Li distingue solo da che parte arriva il prezzo.
+- **`LI'`** non e' il volume della barra ne' quello della seduta: e' la footprint sommata sulla
+  fascia di due tick attorno al livello, nelle ultime `Lookback bars`. **Sforzo alto e risultato
+  nullo e' la misura dell'assorbimento**, e si vede solo prezzo per prezzo.
+- **`tocchi, respinti`** dice se il livello ha una storia o e' al primo esame.
 
-| | default | a cosa serve |
-|---|---|---|
-| `In-play radius` | 12 punti | entro quanti punti un livello e' in gioco |
-| `Lookback bars` | 10 | quante barre indietro si somma la footprint al livello |
-| `Offset from top` / `from right` | 56 / 110 px | dove sta il pannello nell'area dati |
+**Quando nessun livello e' in gioco il pannello lo dice**, e mostra le due porte piu' vicine.
+
+### 3. `SERVE` — le condizioni, scritte dall'analisi e spuntate dalla macchina
+
+**Non sono condizioni armate, e la differenza e' tutta qui: non scattano, non avvisano, non fanno
+niente.** Il vecchio impianto valutava condizioni e gridava, e per armarne una servivano sette
+prove. Queste dicono soltanto *cosa dovrebbe essere vero perche' questo livello diventi operabile*,
+e il pannello mostra quali prerequisiti sono gia' soddisfatti.
+
+Si dichiarano nel file delle regole, accanto al livello:
+
+```json
+"condizioni": [
+  {"cosa": "arrivo",   "verso": "SOTTO", "testo": "arrivato da dentro il valore"},
+  {"cosa": "delta",    "almeno": -150,   "testo": "venditori al bordo"},
+  {"cosa": "volume",   "almeno": 2000,   "testo": "volume che sostiene l'arrivo"},
+  {"cosa": "chiusura", "verso": "sotto", "testo": "chiusura M1 di nuovo sotto il bordo"}
+]
+```
+
+| `cosa` | com'e' verificata |
+|---|---|
+| `arrivo` | il lato da cui il prezzo e' arrivato coincide con `verso` |
+| `delta` | il delta **al livello** supera `almeno` (negativo: deve stare sotto) |
+| `volume` | i lotti **al livello** superano `almeno` |
+| `chiusura` | il prezzo sta oltre `prezzo` nel verso indicato; senza `prezzo`, oltre il livello |
+
+**`testo` sono le parole dell'analisi e vengono mostrate com'e': la macchina non le interpreta.**
+Un tipo `cosa` che non conosce lo lascia non soddisfatto e scrive *condizione sconosciuta*, invece
+di far finta che sia vera.
+
+## Sul Chart: La Banda Del Valore, E Cosa Conta
+
+**Due righe orizzontali dicono dove sono i bordi; non dicono che in mezzo c'e' un dentro.** La
+fascia fra VAL e VAH viene dipinta dietro le candele (`Show value band`, opacita' regolabile), e la
+domanda *sono dentro o fuori?* diventa una cosa che si vede invece di una che si calcola.
+
+**Cio' che conta per la strategia si disegna pieno, il contesto piu' spento.** Un livello e' chiave
+se lo dichiara il file delle regole con `"chiave": true`; in mancanza, lo spessore vale come
+dichiarazione. Senza questa distinzione dodici righe hanno tutte lo stesso peso visivo, e quella su
+cui si decide non si trova a colpo d'occhio — che e' l'unico momento in cui serve.
+
+**Un `~` dopo il nome dice che il livello e' vivo**, cioe' si muove da solo. Senza marcatore un POC
+che si sposta a ogni barra e una mensola scritta stamattina si disegnano identici, e chi guarda non
+sa se sta leggendo una misura di adesso o un fatto che potrebbe essere invecchiato.
+
+### Le Manopole
+
+Sull'istanza dell'indicatore:
+
+| | gruppo | default | a cosa serve |
+|---|---|---|---|
+| `In-play radius` | Watch | 12 punti | entro quanti punti un livello e' in gioco |
+| `Lookback bars` | Watch | 10 | quante barre indietro si somma la footprint al livello |
+| `Offset from top` / `from right` | Watch | 56 / 110 px | dove sta il pannello nell'area dati |
+| `Show value band` | Levels | acceso | dipinge la fascia del valore |
+| `Value band opacity` | Levels | 18 su 255 | quanto e' marcata |
 
 ## I Livelli Statici: L'Agente Si Sveglia Da Solo
 
