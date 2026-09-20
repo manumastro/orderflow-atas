@@ -44,7 +44,8 @@ from collections import defaultdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import bridge  # noqa: E402
+import bridge
+import ora  # noqa: E402
 
 TIPI_VIVI = {"poc", "vah", "val", "massimo", "minimo", "nodo_top", "nodo_base"}
 
@@ -253,7 +254,8 @@ def main() -> None:
 def giro(base: str, args) -> list[dict]:
     salute = bridge.get(base, "/health", {"chart": args.chart})
     adesso = bridge.parse_time(salute["marketTimeUtc"])
-    print(f"chart {salute['chart']} {salute['instrument']} {salute['timeFrame']} — ora di mercato {bridge.iso(adesso)}")
+    print(f"chart {salute['chart']} {salute['instrument']} {salute['timeFrame']} — "
+          f"ora di mercato {ora.completa(adesso)} {ora.sigla_di(adesso)} (ora italiana)")
 
     # si rilegge a ogni giro: correggere una definizione non deve richiedere un riavvio
     definizioni = json.loads(Path(args.definizione).read_text(encoding="utf-8"))

@@ -297,3 +297,14 @@
             una direzione sola: incollato all'angolo finiva sotto la barra degli strumenti e
             sopra l'asse, cioe' dove si guarda di meno. Sdoppiato in "Offset from top" (56) e
             "Offset from right" (110), regolabili dalle impostazioni senza ricompilare.
+
+2026-09-20  GLI ORARI SI STAMPANO IN ITALIANO. Richiesta esplicita dell'utente: chi guarda il
+            grafico ha un orologio solo, ed e' il suo; un tape in Z chiede una sottrazione a ogni
+            riga e la sottrazione si sbaglia quando si ha fretta. Nuovo modulo tools/ora.py, usato
+            da giro_orizzonte.py e livelli_vivi.py. La convenzione: DENTRO resta tutto UTC (il
+            bridge, le finestre nei file, i confronti fra barre), FUORI si scrive italiano.
+            Si converte, non si somma +2: lo scarto e' +1 d'inverno, e i cambi ora europeo e
+            americano non coincidono - in quelle due settimane l'apertura della cash cade a un'ora
+            italiana diversa dal solito, cioe' proprio quando sommare una costante sbaglia.
+            Su Windows zoneinfo non trova i fusi senza il pacchetto tzdata: installato. Se manca,
+            ora.py resta su UTC e lo dichiara invece di spacciarlo per ora italiana.

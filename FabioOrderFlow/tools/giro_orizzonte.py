@@ -36,6 +36,8 @@ from pathlib import Path
 #
 # Si difende qui e non solo nell'hook perche' CLAUDE.md dice di lanciare questo comando a mano
 # quando il blocco manca: un programma che funziona solo se chiamato dal suo hook non e' difeso.
+import ora  # gli orari si stampano in italiano, vedi ora.py
+
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
@@ -145,7 +147,10 @@ def main() -> int:
         if oggi_mercato != dt.date.today().isoformat():
             avviso = f"   <-- REPLAY: la data locale e' {dt.date.today().isoformat()}"
         print(f"  {h['instrument']} {h['timeFrame']}  {h['bars']:,} barre  "
-              f"ora di mercato {h['marketTimeUtc'][:16].replace('T', ' ')}Z{avviso}")
+              f"ora di mercato {ora.completa(h['marketTimeUtc'])} "
+              f"{ora.sigla_di(h['marketTimeUtc'])}{avviso}")
+        print(f"  TUTTI GLI ORARI DI QUESTO BLOCCO SONO ITALIANI. La cash di New York apre alle "
+              f"{ora.hhmm(h['marketTimeUtc'][:10] + 'T13:30:00Z')}.")
         print(f"  file della giornata usato: {g}.md")
         r = bridge("rollovers")
         if r and r.get("rollovers"):
@@ -262,7 +267,7 @@ def main() -> int:
             rng = c["high"] - c["low"]
             pos = (c["close"] - c["low"]) / rng if rng else 0
             viva = "  <-- IN FORMAZIONE, non e' una chiusura" if c is cs[-1] else ""
-            print(f"  {c['time'][11:16]}Z  H{c['high']:9.2f} L{c['low']:9.2f} C{c['close']:9.2f}"
+            print(f"  {ora.hhmm(c['time'])}  H{c['high']:9.2f} L{c['low']:9.2f} C{c['close']:9.2f}"
                   f"  v{c['volume']:6,.0f} d{c.get('delta',0):+6,.0f} pos{pos:.2f}{viva}")
         cs_chiuse = cs[:-1] or cs
         for n in (15, 30, 60):
@@ -294,8 +299,8 @@ def main() -> int:
             b[k] += c["volume"]
             dl[k] += c.get("delta", 0)
         tot = sum(b.values())
-        print(f"  {len(cs)} barre, {cs[0]['time'][5:16].replace('T',' ')}Z -> "
-              f"{cs[-1]['time'][11:16]}Z, {tot:,} lotti")
+        print(f"  {len(cs)} barre, {ora.data_e_ora(cs[0]['time'])} -> "
+              f"{ora.hhmm(cs[-1]['time'])}, {tot:,} lotti")
         poc = max(b, key=b.get)
         for k in sorted(b, reverse=True):
             q = b[k] / tot * 100
