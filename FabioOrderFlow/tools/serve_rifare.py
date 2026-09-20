@@ -7,12 +7,17 @@ scriverle senza classificare. Ma qualcuno deve accorgersi che sono **scaduti**, 
 costa: rileggere tape, profilo e contesto a ogni giro sarebbe il lavoro di un agente, ogni minuto,
 per niente.
 
-Questo programma e' il filtro davanti a quel lavoro. Gira spesso, costa due chiamate al bridge, e
-risponde **NIENTE** quasi sempre. Quando risponde **SERVE**, dice anche perche', e solo allora ha
-senso svegliare un agente.
+Questo programma risponde a quella domanda e basta. Costa due chiamate al bridge e si lancia a
+mano, quando si vuole sapere se la mappa regge.
 
-    NIENTE   il quadro regge: nessun agente, nessun token, nessuna riga scritta
-    SERVE    il perche', in chiaro, cosi' chi viene svegliato sa da dove partire
+    NIENTE   il quadro regge
+    SERVE    il perche', in chiaro, cosi' chi rifa' i livelli sa da dove partire
+
+**Non sveglia niente e non lancia niente.** Nasceva come filtro davanti a un sottoagente che
+rifaceva i fissi in background: quella strada e' stata chiusa il 20 settembre 2026, il giorno
+stesso in cui era stata aperta, e il motivo sta in
+`docs/research/metodo/i-livelli-statici-la-strada-del-sottoagente.md`. Chi rifa' i livelli statici
+resta un problema aperto; per ora e' l'agente, su richiesta, in primo piano.
 
 **Le cinque ragioni, e nessuna e' un giudizio sul mercato.** Sono tutte misure di *scadenza della
 mappa*, non di cosa il prezzo stia facendo:

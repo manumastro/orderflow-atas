@@ -125,6 +125,13 @@ intervalli. La lettura si chiede.
 Quello che segue descrive la **fase chiusa** della sorveglianza a condizioni armate, conservata
 come evidenza.
 
+### 5ter. I livelli statici, STRADA CHIUSA
+
+[**`i-livelli-statici-la-strada-del-sottoagente.md`**](i-livelli-statici-la-strada-del-sottoagente.md)
+— chi si accorge che i livelli fissi sono scaduti, e chi li rifa', e' **ancora senza risposta**. Il
+tentativo del sottoagente in background e' durato un giorno. Il documento tiene cosa si e' visto, il
+filtro `serve_rifare.py` che e' sopravvissuto, e le tre direzioni da cui ripartire.
+
 ### 5bis. La sorveglianza del tape, FASE CHIUSA
 
 [**`sorveglianza-del-tape.md`**](sorveglianza-del-tape.md) — la procedura standard di studio di una

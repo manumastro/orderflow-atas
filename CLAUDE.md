@@ -373,21 +373,28 @@ scattano, non avvisano e non fanno niente: non sono le condizioni armate della f
 dove sono i bordi ma non che in mezzo c'e' un dentro; i livelli `"chiave": true` si disegnano pieni
 e il contesto piu' spento.
 
-**I livelli statici li rifa' un sottoagente, svegliato da un filtro che costa due chiamate.**
-`serve_rifare.py` gira spesso dentro `/loop 2m /sorveglia` e risponde `NIENTE` quasi sempre; quando
-dice `SERVE` elenca il perche', e quelle ragioni si passano **verbatim** all'agente
-`livelli-statici`. Accorgersi che la mappa e' scaduta costa due chiamate al bridge, rifarla costa
-una analisi: tenerle separate e' il motivo per cui il ciclo puo' girare ogni due minuti.
+**Chi rifa' i livelli statici e' un problema aperto, e la strada del sottoagente e' chiusa.**
+Il tentativo del 20 settembre — un filtro che svegliava un agente in background — e' durato un
+giorno; cosa si e' visto e da dove ripartire stanno in
+[`i-livelli-statici-la-strada-del-sottoagente.md`](docs/research/metodo/i-livelli-statici-la-strada-del-sottoagente.md).
+**Non si riapre senza richiesta esplicita.** Finche' non c'e' un metodo migliore, **i fissi li rifa'
+l'agente su richiesta, in primo piano**.
 
-**Il filtro non giudica il mercato e non e' una condizione armata**: dice *quella riga sul chart non
-descrive piu' dove siamo*, mai *compra*.
+Resta utilizzabile il filtro, che non sveglia piu' niente:
+`serve_rifare.py` risponde `NIENTE` o `SERVE` con le ragioni. **Non giudica il mercato e non e' una
+condizione armata**: dice *quella riga sul chart non descrive piu' dove siamo*, mai *compra*.
+
+**GUASTO APERTO: un livello vivo fermo non lo dice.** Se il processo muore, le righe restano sul
+chart identiche a prima, e il `~` continua a promettere che si muovono. Il pannello una difesa ce
+l'ha — vive nell'indicatore e dichiara la propria eta'; i livelli no. **La difesa va messa
+nell'indicatore, dove non muore.**
 
 **La divisione del lavoro, ed e' la regola:**
 
 | | chi |
 |---|---|
 | livelli **vivi** — POC, VAH, VAL, estremi, bordi dei nodi | il programma, da solo |
-| livelli **statici** — mensole, nodi, prezzi del COT, rotture | **un sottoagente**, svegliato dal filtro `serve_rifare.py` |
+| livelli **statici** — mensole, nodi, prezzi del COT, rotture | **l'agente, su richiesta**: chi li rifa' da solo e' un problema aperto |
 | la **lettura** — direzione, ingresso, stop, bersaglio | l'agente, **su richiesta** |
 
 **Un livello vivo porta `~` in coda al nome.** Senza marcatore un POC che si sposta a ogni barra e

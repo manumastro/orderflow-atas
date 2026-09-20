@@ -406,3 +406,32 @@
             IL FILTRO NON E' UNA CONDIZIONE ARMATA e non ci torna: misura la scadenza della mappa,
             non cosa fa il prezzo. Non dice mai "compra", dice "quella riga non descrive piu' dove
             siamo".
+
+2026-09-20  STRADA CHIUSA: IL SOTTOAGENTE CHE RIFA' I LIVELLI STATICI. Aperta e chiusa nello stesso
+            giorno, su decisione dell'utente ("dobbiamo trovare un metodo migliore"). Documento
+            dedicato: docs/research/metodo/i-livelli-statici-la-strada-del-sottoagente.md.
+            Cosa si e' visto nell'unica prova, e va detto senza gonfiarlo: il filtro ha funzionato
+            e aveva ragione (SERVE, FUORI FASCIA, col prezzo 44 punti sopra la fascia dei fissi);
+            il sottoagente e' stato lanciato in background e fermato prima di produrre qualcosa -
+            file delle regole identico, nessun lavoro parziale; il processo in background E' MORTO
+            CON LA SESSIONE. Quest'ultima e' strutturale, non un incidente: una manutenzione che
+            conta puo' non avvenire in silenzio, che e' il difetto per cui era stata chiusa la
+            sorveglianza a condizioni armate. In piu', una ragione di metodo gia' visibile: un
+            sottoagente in background riscrive il chart mentre nessuno guarda, e reintroduce
+            l'automatismo che decide.
+            RIMOSSI .claude/agents/livelli-statici.md e .claude/commands/sorveglia.md. SOPRAVVIVE
+            serve_rifare.py, che non sveglia piu' niente e si lancia a mano: le sue cinque ragioni
+            restano il vocabolario della scadenza di una mappa.
+            GUASTO APERTO, TROVATO NELLA STESSA PROVA: quando il processo dei livelli muore, le
+            righe restano sul chart identiche a prima. E' peggio di un fisso scaduto, perche' il
+            "~" promette che quel livello si muove: un POC fermo che si dichiara vivo inganna piu'
+            di uno che non dichiara niente. Il pannello una difesa ce l'ha (vive nell'indicatore,
+            dichiara la propria eta'), i livelli no. LA DIFESA VA MESSA NELL'INDICATORE, dove non
+            muore. Non fatto: e' il primo lavoro da riprendere.
+            Tre direzioni per il metodo migliore, nessuna scelta: (1) invecchiamento dei livelli
+            vivi dentro l'indicatore - indipendente dalle altre e serve comunque; (2) rendere
+            programmatici i fissi riconoscibili dalla footprint, lasciando all'agente solo le
+            affermazioni vere; (3) rifarli in primo piano, col filtro che lo dice nel pannello -
+            la piu' vicina allo scope dichiarato.
+            VERIFICATO SUL CAMPO: riavvolgendo il replay a 15:00 la protezione scritta stamattina
+            ha tagliato la sezione "Dove eravamo" datata 15:31, dichiarandolo.
