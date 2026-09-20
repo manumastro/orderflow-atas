@@ -291,6 +291,42 @@ def main() -> int:
         for s in json.load(sc.open(encoding="utf-8")):
             print(f"  {s.get('prezzo'):>10}  {s['sigla']:<26} [{s.get('verso','-')}]")
 
+    # 6bis ---------------------------------------------------------------- il regime
+    # IL REGIME E' LA PRIMA DOMANDA DELLA GIORNATA, non l'ultima: decide la size prima che
+    # decida il setup. "I would start from sensitive level of the market like we are doing
+    # together, and regime" [5 · 1:18:06]. Lo misura l'indicatore a ogni barra; qui si legge
+    # e basta, perche' una misura che vive solo sul pannello obbliga l'agente a rifarla a mano
+    # a ogni messaggio - ed e' esattamente il lavoro che si e' tolto di mezzo.
+    titolo("6bis", "IL REGIME, LA VELOCITA' E I BIG TRADES (misurati dall'indicatore)")
+    rg = bridge("regime")
+    if not rg:
+        print("  il bridge non risponde su /regime: il regime NON e' noto, e non si deduce")
+    else:
+        r, v, b = rg["regime"], rg["velocita"], rg["bigTrades"]
+        print(f"  REGIME     {r['nome']}")
+        print(f"             {r['perche']}")
+        if r.get("size"):
+            print(f"             {r['size']}")
+        print(f"             soglie: direzionale >= {r['soglie']['direzionale']}, "
+              f"choppy < {r['soglie']['choppy']} oppure >= {r['soglie']['rientriChoppy']} rientri, "
+              f"finestra {r['finestraBarre']} barre")
+        if v.get("misurabile"):
+            lotti = f"{v['volumeBarra']:,.0f}".replace(",", ".")
+            print(f"  VELOCITA'  {v['percentile']}° percentile su {v['finestraBarre']} barre "
+                  f"({lotti} lotti)")
+        else:
+            print("  VELOCITA'  non misurabile: poche barre")
+        # LA PAROLA PROXY STA QUI OGNI VOLTA, non una volta sola nella documentazione.
+        print("             e' un PROXY: la speed of tape e' il ritmo di immissione degli "
+              "ordini, e nel bridge non c'e'")
+        if not b.get("copreTuttaLaFinestra"):
+            da = (b.get("registroDaUtc") or "mai")[11:16]
+            print(f"  BIG TRADE  il registro copre solo da {da}Z: non e' zero, e' non lo so")
+        else:
+            netto = f"{b['netto']:+,.0f}".replace(",", ".")
+            print(f"  BIG TRADE  {b['quanti']} da {b['soglia']}+ lotti nelle ultime "
+                  f"{b['finestraBarre']} barre, netto {netto}")
+
     # 7 ------------------------------------------------------------------- il tape
     titolo(7, "IL TAPE RECENTE")
     # la finestra e' la seduta globex in corso: dalle 22:00 CEST di ieri, cioe' 20:00Z.

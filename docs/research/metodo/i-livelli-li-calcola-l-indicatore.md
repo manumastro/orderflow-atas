@@ -148,6 +148,40 @@ finirebbe dopo la frase che dice a cosa serve il livello, dove nessuno lo cerca.
 
 ---
 
+## Lo Scenario: Tre Nomi, Non Tre Prezzi
+
+Uno scenario dichiara a cosa serve arrivare al livello, e lo fa **per nome**, mai scrivendo un
+prezzo: i prezzi cambiano a ogni barra, i nomi no.
+
+```json
+"scenario": {
+  "direzione": "LONG",
+  "nome": "fade del bordo basso verso il POC (mean reverting)",
+  "bersaglio_livello": "POC cash",
+  "invalida_livello": "VAL Europa",
+  "pareggio_livello": "mensola europea"
+}
+```
+
+**`pareggio_livello` e' il break even, ed e' il campo che mancava fino al 20 settembre 2026.** Nel
+live Q1 la gestione **e' l'edge** e questa ne e' la regola singola piu' importante: il break even
+si mette **su un livello** — il prezzo al quale l'analisi si smonta, cioe' dove il lato opposto
+tornerebbe a vincere — e **non dopo N punti**.
+
+> *"Why I put the break even point at zero is point at 65? This is where the buyers got completely
+> absorbed. So it's a level where you could expect to see sellers getting back in."* `[1 · 2:11:58]`
+
+Due differenze dagli altri due campi, e sono deliberate:
+
+- **non ha lo stacco minimo** che difende l'invalidazione. Il break even di Fabio e' vicino
+  apposta — *"now you understand why my break even point was so close"* `[3 · 15:39]` — e se viene
+  toccato non si perde niente: *"break even it's a free attempt, so you don't risk anything"*
+  `[3 · 14:42]`. Applicargli la difesa dello stop lo cancellerebbe proprio quando e' fatto bene.
+- **quando manca, il pannello lo scrive** (`pareggio NON DICHIARATO`) invece di tacere. Uno stop
+  senza il suo break even e' meta' istruzione, e il campo vuoto e' esattamente il difetto.
+
+---
+
 ## Come Si Deposita
 
 ```bash
@@ -202,7 +236,9 @@ niente. Meglio dire che il controllo e' passato a mano, che vederlo tornare indi
 ```text
 REGOLE     7 livelli da 15 regole, barra 15:00
            ~ si muove    = misurato, fermo    * dichiarato a mano
-           non disegnato: POC cash: finestra ancora vuota
+NON SUL CHART  2 regole, e non sono un guasto:
+           - POC cash: finestra ancora vuota
+           - POC Europa 29.198,00: a 3,00 punti da «POC cash», che e' dichiarato prima (stacco minimo 8)
 ```
 
 L'eta' si dichiara **anche adesso che il motore non puo' morire da solo**: un'eccezione dentro il
@@ -211,7 +247,12 @@ una barra, la riga diventa ambra e lo scrive.
 
 Le regole che non hanno prodotto un livello sono **contesto, non diagnostica**: *"POC cash:
 finestra ancora vuota"* dice che la cash non e' aperta. Senza quella riga si nota soltanto che una
-riga attesa non c'e'.
+riga attesa non c'e' — e per questo la testata dice *"e non sono un guasto"*.
+
+**Il motivo nomina chi ha vinto, non solo il prezzo.** Il caso piu' frequente e' due livelli a
+meno di otto punti, e li' il fatto che conta e' proprio quello: due letture indipendenti che
+indicano lo stesso posto. Scritto *"coincide con 29.172,00"*, come era fino al 20 settembre,
+obbligava a cercarsi a mano quale livello fosse quel prezzo.
 
 ---
 

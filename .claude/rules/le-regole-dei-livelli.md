@@ -21,7 +21,12 @@ python3 FabioOrderFlow/tools/bridge.py rules --chart NQZ6 --file <questo file>
   primo dichiarato. Una mensola messa prima del POC lo cancella dal chart.
 - **`minimo_lotti` non e' prudenza:** senza, nei primi minuti di cash il POC dichiara "89% del
   volume" perche' non c'e' altro, e non e' una misura prematura, e' una misura falsa.
-- **Bersagli e invalidazioni si dichiarano per NOME di livello**, mai come prezzo.
+- **Bersagli, invalidazioni e pareggi si dichiarano per NOME di livello**, mai come prezzo.
+- **`pareggio_livello` va messo su ogni scenario**, ed e' il prezzo dove il lato opposto torna a
+  vincere — non una distanza, non "dopo 1R". Nel live la gestione e' l'edge e questa ne e' la
+  regola centrale; **non ha lo stacco minimo** dell'invalidazione, perche' il break even e' vicino
+  apposta. Quando manca, il pannello scrive `pareggio NON DICHIARATO`: e' un promemoria, non un
+  guasto.
 - **Leggi sempre cosa il deposito dice di non aver disegnato** (`skipped`, e il blocco
   `NON SUL CHART` del pannello): e' contesto, non diagnostica. Il caso piu' frequente e' due
   livelli a meno di otto punti, e li' il fatto che conta e' proprio quello — due letture diverse

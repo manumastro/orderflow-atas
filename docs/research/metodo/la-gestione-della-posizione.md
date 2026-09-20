@@ -155,13 +155,21 @@ Tradotto in obblighi, perche' altrimenti resta una lettura piacevole:
 
 - **Una lettura operativa dichiara il punto di break even insieme allo stop**, e lo dichiara come
   *livello*, dicendo quale struttura lo giustifica. Uno stop senza il suo break even e' meta'
-  istruzione.
+  istruzione. **Dal 20 settembre 2026 il break even sta anche sul chart**: si dichiara con
+  `pareggio_livello` nella regola, per nome, e il pannello lo mostra accanto a bersaglio e
+  invalidazione — oppure scrive che manca. Non ha lo stacco minimo dell'invalidazione, perche'
+  e' vicino apposta. Vedi
+  [`i-livelli-li-calcola-l-indicatore.md`](i-livelli-li-calcola-l-indicatore.md).
 - **Il bersaglio si nomina insieme a cosa lo invaliderebbe prima**: se fra ingresso e bersaglio c'e'
   una fascia a delta contrario oltre il p90, **quella fascia e' il bersaglio** (regola misurata qui,
   non nel live: [`sorveglianza-del-tape.md`](sorveglianza-del-tape.md)).
 - **Il conto in R della giornata sta nel file della giornata**, ed e' quello che decide se un altro
   setup e' ammesso.
-- **Il regime si dichiara** all'inizio della seduta e si rivede quando cambia: e' l'input della size.
+- **Il regime si dichiara** all'inizio della seduta e si rivede quando cambia: e' l'input della
+  size. **Non si deduce piu' a mano**: lo misura l'indicatore a ogni barra e il giro d'orizzonte
+  lo stampa alla sezione 6bis, con le soglie accanto ai numeri
+  ([`il-contesto-vivo.md`](il-contesto-vivo.md), sezione 0). Una dichiarazione che contraddice la
+  misura si puo' fare, ma va motivata — non lasciata cadere.
 - **Non si da' gestione su una posizione senza sapere che l'utente e' dentro.** Regola di questo
   repository, non del live, e resta.
 

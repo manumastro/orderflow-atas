@@ -249,6 +249,17 @@ public sealed partial class DataBridge : Indicator
         }
 
         _ultimaBarraVista = bar;
+
+        // LA SEMINA DEL TAPE STA QUI E NON IN OnInitialize, per una ragione sola: in
+        // OnInitialize le barre non ci sono ancora, e la richiesta storica avrebbe bisogno di
+        // un istante di mercato che nessuno sa ancora qual e'. Alla prima barra utile invece
+        // l'orologio del chart esiste - ed e' quello del replay, non quello di casa.
+        var quando = GetCandle(bar)?.Time;
+        if (quando is not null)
+        {
+            _ = SeminaIlTapeAsync(quando.Value);
+        }
+
         if (_rules.Length > 0)
         {
             RisolviRegole();
@@ -550,6 +561,7 @@ public sealed partial class DataBridge : Indicator
                 "/depth" => await DepthAsync(query, cancellation).ConfigureAwait(false),
                 "/levels" => await LevelsAsync(context).ConfigureAwait(false),
                 "/rules" => await RulesAsync(context).ConfigureAwait(false),
+                "/regime" => Regime(),
                 "/watch" => await WatchAsync(context).ConfigureAwait(false),
             "/charts" => throw new BridgeException(500, "handled by the hub"),
                 _ => throw new BridgeException(404, $"unknown endpoint '{path}'"),
@@ -651,6 +663,13 @@ public sealed partial class DataBridge : Indicator
 
         /// <summary>Il prezzo che smonta la lettura.</summary>
         public decimal? Invalida { get; init; }
+
+        /// <summary>
+        /// Dove si porta lo stop a pareggio: il prezzo oltre il quale il lato opposto tornerebbe
+        /// a vincere. Nel live Q1 la gestione e' l'edge, e questo ne e' il numero centrale —
+        /// <i>"break even it's a free attempt, so you don't risk anything"</i> <c>[3 · 14:42]</c>.
+        /// </summary>
+        public decimal? Pareggio { get; init; }
     }
 
     /// <summary>
@@ -1519,6 +1538,56 @@ public sealed partial class DataBridge : Indicator
             $"{OraLocale(viva.Time):HH:mm}   {InstrumentInfo?.Instrument}   {Prezzo(prezzo)}",
             PanelBianco));
 
+        // --- IL REGIME, E STA IN CIMA PERCHE' DECIDE LA SIZE ---------------------------------
+        // "I would start from sensitive level of the market like we are doing together, and
+        // regime" [5 · 1:18:06]. I livelli li calcola il motore delle regole; il regime, fino a
+        // stasera, era una parola scritta a mano nel file della giornata - e da li' restava
+        // ferma. Un regime fermo e' lo stesso difetto del livello vivo fermo, su una parola
+        // invece che su un prezzo.
+        var regime = LeggiIlRegime(ultimo);
+        righe.Add(new RigaPannello(
+            $"REGIME     {regime.Nome}",
+            regime.Nome switch
+            {
+                "DIREZIONALE" => PanelVerde,
+                "CHOPPY" => PanelAmbra,
+                "BALANCE" => PanelAzzurro,
+                _ => PanelGrigio,
+            }));
+        righe.Add(new RigaPannello($"           {regime.Perche}", PanelGrigio));
+        if (regime.Size.Length > 0)
+        {
+            righe.Add(new RigaPannello($"           {regime.Size}", PanelGrigio));
+        }
+
+        // --- LA VELOCITA', E LA PAROLA PROXY NON E' UNA CAUTELA ------------------------------
+        // La speed of tape e' "how fast order are being inputs" [3 · 1:08:41]. Il bridge non ha
+        // quel dato: qui c'e' il volume della barra contro la distribuzione recente, che e' un
+        // altro numero. Mille lotti in dieci secondi e mille in sessanta hanno lo stesso volume
+        // e velocita' opposte. Chi legge deve saperlo ogni volta, non una volta.
+        var (percentile, volumeBarra, velocitaOk) = VelocitaProxy(ultimo);
+        var (tapeDa, tapeA) = FinestraDelTape(ultimo);
+        var (bigFinestra, bigNetto, copreFinestra) = BigTradesNellaFinestra(tapeDa, tapeA);
+        var quantoVeloce = !velocitaOk ? "non misurabile"
+            : percentile >= PercentileAlto ? "alta"
+            : percentile <= PercentileMorto ? "morta"
+            : "normale";
+        righe.Add(new RigaPannello(
+            $"VELOCITA'  {quantoVeloce} — {Lotti(volumeBarra)} lotti, {percentile}° percentile su "
+            + $"{FinestraVelocita} barre  (PROXY, non la speed of tape)",
+            !velocitaOk ? PanelGrigio
+                : percentile >= PercentileAlto ? PanelVerde
+                : percentile <= PercentileMorto ? PanelAmbra
+                : PanelGrigio));
+        righe.Add(new RigaPannello(
+            !copreFinestra
+                ? $"           big trade: il registro copre solo da {EtaDelTape()}. Non e' zero, e' non lo so"
+                : $"           {bigFinestra} big trade da {SogliaBigTrade}+ lotti in {PanelLookback} barre, "
+                  + $"netto {Segnato(bigNetto)}",
+            !copreFinestra ? PanelAmbra
+                : bigFinestra == 0 ? PanelAmbra
+                : bigNetto > 0 ? PanelVerde : bigNetto < 0 ? PanelRosso : PanelGrigio));
+
         // --- CHI TIENE I LIVELLI, E DA QUANDO -----------------------------------------------
         // Un pannello fermo e' indistinguibile da uno aggiornato, e i livelli non avevano
         // nessuna difesa: quando il processo esterno moriva, le righe restavano sul chart con
@@ -1624,6 +1693,15 @@ public sealed partial class DataBridge : Indicator
                     $"   sotto  {Prezzo(sotto.Price)}  {NomeCorto(sotto.Label)}  {SegnatoPrezzo(sotto.Price - prezzo)}",
                     sotto.Key ? PanelBianco : PanelGrigio));
             }
+
+            // I VETI VANNO DETTI ANCHE QUI, E SOPRATTUTTO QUI. Senza un livello in gioco il
+            // pannello usciva subito, e il veto del mezzo range - che e' proprio quello che vale
+            // quando non si sta testando niente - non poteva scattare mai. "We are in the middle.
+            // This is not where I want to engage" [4 · 17:37] descrive esattamente questo stato.
+            foreach (var v in Veti(ultimo, prezzo, regime, null, dentro))
+            {
+                righe.Add(new RigaPannello($"   ! {v}", PanelRosso));
+            }
             return righe;
         }
 
@@ -1708,6 +1786,22 @@ public sealed partial class DataBridge : Indicator
             $"  esito    toccato {tocchi}x, respinto {respinti}x, passato {passati}x",
             PanelGrigio));
 
+        // I BIG TRADES SONO LA META' MANCANTE DELLO SFORZO. Mille lotti in ordini da due non
+        // sono un muro; mille lotti in sei ordini da centosessanta lo sono, e il live guarda
+        // sempre la seconda cosa: "look how many absorption contract you have here on this
+        // horizontal level: 70, 75, 141, 33" [6 · 1:01:24]. Il volume da solo non lo distingue.
+        var (bigQui, bigQuiNetto, bigQuiTot, copreQui) = BigTradesAlLivello(
+            livello, fascia, GetCandle(da)?.Time ?? DateTime.MinValue, tapeA);
+        righe.Add(new RigaPannello(
+            !copreQui
+                ? $"  big      il registro copre solo da {EtaDelTape()}: non si puo' dire"
+                : bigQui == 0
+                    ? $"  big      nessun ordine da {SogliaBigTrade}+ lotti a questo prezzo"
+                    : $"  big      {bigQui} ordini da {SogliaBigTrade}+ lotti, {Lotti(bigQuiTot)} lotti, "
+                      + $"netto {Segnato(bigQuiNetto)}",
+            !copreQui || bigQui == 0 ? PanelAmbra
+                : bigQuiNetto > 0 ? PanelVerde : bigQuiNetto < 0 ? PanelRosso : PanelGrigio));
+
         // --- lo stesso conto su finestre piu' larghe -----------------------------------------
         // Serve a dare una scala. Un delta di +120 al livello non si giudica da solo: se la
         // seduta sta a +2.300 e' un rivolo nella stessa direzione, se la seduta sta a -1.500 e'
@@ -1754,6 +1848,15 @@ public sealed partial class DataBridge : Indicator
             {
                 righe.Add(new RigaPannello("           " + string.Join("   ", coda), PanelGrigio));
             }
+            // IL BREAK EVEN VA DETTO CON LO STOP, NON DOPO. Nel live Q1 la gestione e' l'edge e
+            // questa ne e' la regola singola piu' importante: uno stop senza il suo break even
+            // e' meta' istruzione. Quando l'analisi non lo ha dichiarato, il pannello lo dice
+            // invece di tacere, perche' il campo vuoto e' esattamente il difetto.
+            righe.Add(new RigaPannello(
+                sc.Pareggio is { } pg
+                    ? $"           pareggio {Prezzo(pg)} ({SegnatoPrezzo(pg - prezzo)}) — li' il lato opposto torna a vincere"
+                    : "           pareggio NON DICHIARATO: metti pareggio_livello nella regola",
+                sc.Pareggio is null ? PanelAmbra : PanelGrigio));
         }
 
         if (gioco.Conditions is { Length: > 0 } condizioni)
@@ -1778,6 +1881,26 @@ public sealed partial class DataBridge : Indicator
 
         var rng = viva.High - viva.Low;
         var pos = rng > 0 ? (viva.Close - viva.Low) / rng : 0m;
+        // --- I VETI, E STANNO IN FONDO PERCHE' ANNULLANO CIO' CHE STA SOPRA -----------------
+        // Non sono il complemento dei prerequisiti. I prerequisiti si contano - "2 di 3" - e
+        // servono TUTTI; i veti no: ne basta UNO e il setup non si prende, quante che siano le
+        // spunte verdi sopra. "We cannot force setups. Only when it's there" [4 · 43:22].
+        //
+        // Ce ne sono quattro misurabili con quello che il bridge ha. I due che mancano - "troppo
+        // vicini al muro" e la posizione nella curva del composito - chiedono un dato che questo
+        // chart non tiene, e NON si simulano: un veto inventato fa saltare setup buoni con
+        // l'aria di una misura, ed e' un danno peggiore di un veto mancante.
+        var veti = Veti(ultimo, prezzo, regime, gioco, dentro);
+        if (veti.Count > 0)
+        {
+            righe.Add(new RigaPannello(
+                $"VETI       {veti.Count}, e ne basta uno", PanelRosso));
+            foreach (var v in veti)
+            {
+                righe.Add(new RigaPannello($"   ! {v}", PanelRosso));
+            }
+        }
+
         // La barra in formazione, e va detto che lo e': i suoi numeri cambiano fino alla
         // chiusura, e "pos 0.95" era il solo dato del pannello che nessuno sapeva leggere senza
         // che glielo avessero spiegato una volta.

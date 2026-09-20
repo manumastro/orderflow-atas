@@ -584,3 +584,88 @@ cash>>, che e' dichiarato prima (stacco minimo 8)".
 
 Documentato in docs/research/metodo/il-contesto-vivo.md (sezioni 3 e 3bis
 riscritte, esempio del pannello rifatto per intero).
+
+--- 20 settembre 2026 (notte) — le cinque cose che la strategia chiedeva ------
+
+Rilettura di i-tre-modelli-del-live-q1.md, i-pattern-di-esecuzione.md e
+la-gestione-della-posizione.md contro quello che il chart sapeva davvero fare.
+Il pannello serviva bene i passi 4 e 5 della sequenza (i livelli, l'interazione)
+e non serviva affatto i passi 3 e 7. Cinque buchi, tutti chiusi.
+
+1. IL REGIME. "I would start from sensitive level of the market and regime"
+   [5 · 1:18:06]: e' la PRIMA domanda, decide la size, ed era una parola scritta
+   a mano nel file della giornata - quindi ferma. Adesso lo misura l'indicatore
+   a ogni barra, con tre misure ordinate:
+     copertura   una candela copre piu' di 5 candele del range precedente
+                 [6 · 1:19:04]
+     efficienza  netto diviso strada percorsa. MISURA NOSTRA, non del corso
+     rientri     rotture degli estremi che rientrano entro tre barre
+                 [6 · 54:03]
+   Choppy ha la precedenza su direzionale, e il motivo sta nel costo
+   dell'errore: una tossica presa per direzionale fa aprire con size piena su
+   rotture che rientrano [4 · 1:22:54]; una direzionale presa per choppy fa
+   perdere un treno, e un treno perso non toglie soldi dal conto.
+
+2. LA VELOCITA', COME PROXY DICHIARATO. La speed of tape e' il RITMO di
+   immissione degli ordini [3 · 1:08:41] e nel bridge non c'e'. Quello che c'e'
+   e' il volume della barra contro la distribuzione delle ultime 60. Mille lotti
+   in dieci secondi e mille in sessanta danno lo stesso volume e velocita'
+   opposte. Per questo il proxy entra NEI VETI e non nei prerequisiti: un veto
+   su un proxy resta onesto, un permesso su un proxy no. La parola "PROXY" esce
+   insieme al numero, sul pannello e nel giro, ogni volta.
+
+3. I BIG TRADES AL LIVELLO, ADESSO. Registro del tape vivo dentro l'indicatore
+   (OnCumulativeTrade), soglia 60 [5 · 6:04]. E' la meta' mancante dello sforzo:
+   mille lotti in ordini da due non sono un muro, mille in sei ordini da 160 si
+   [6 · 1:01:24].
+
+4. IL BREAK EVEN NELLO SCHEMA. Mancava il campo, mentre nel live la gestione E'
+   l'edge e il break even ne e' la regola centrale: si mette su un LIVELLO, dove
+   il lato opposto torna a vincere [1 · 2:11:58]. Adesso c'e' pareggio_livello,
+   risolto per nome. NON ha lo stacco minimo dell'invalidazione, perche' il
+   break even di Fabio e' vicino apposta [3 · 15:39] e se viene toccato non si
+   perde niente [3 · 14:42]. Quando manca, il pannello lo scrive.
+
+5. I VETI. Non sono il complemento dei prerequisiti: i prerequisiti si contano e
+   servono tutti, i veti no - ne basta UNO. Quattro misurabili: mezzo range
+   [4 · 17:37], libro sottile [2 · 44:17], regime choppy, controtrend rispetto
+   al delta di seduta [2 · 1:56:36], piu' il modello sbagliato rispetto al
+   valore. I due che mancano - "troppo vicini al muro" e la posizione nella
+   curva del composito - chiedono un dato che il chart non tiene e NON si
+   simulano: un veto inventato fa saltare setup buoni con l'aria di una misura.
+
+DUE DIFETTI TROVATI VERIFICANDO, non ragionando, e vanno ricordati perche' il
+modo di trovarli vale piu' del difetto.
+
+  a) Il registro contava 5 big trade dove la richiesta storica ne trovava 4.
+     Due cause insieme: la finestra non aveva limite superiore (contava anche la
+     barra in formazione, e la riga diceva "in 10 barre"), e la semina svuotava
+     la mappa degli indici, per cui un trade ancora in crescita si duplicava al
+     primo aggiornamento. Adesso FinestraDelTape da' i due estremi e
+     RicostruisciLaMappa tiene gli indici. Riverificato: 6 e 6, netto -6 e -6.
+
+  b) Subito dopo un deploy il registro era vuoto e il pannello avrebbe scritto
+     "nessun ordine da 60+ lotti" su una finestra che ne conteneva TRE (75 Buy,
+     90 Sell, 61 Sell). Difesa doppia: il registro si semina all'avvio con 90
+     minuti di storico, e dichiara SEMPRE da quando copre. Se la finestra
+     chiesta comincia prima, la risposta non e' un numero: e' "non lo so".
+     Zero e nessun dato non si stampano mai uguali.
+
+NUOVO ENDPOINT /regime, e bridge.py regime. Serve al giro d'orizzonte, che
+adesso stampa la sezione 6bis: una misura che vive solo sul pannello obbliga
+l'agente a rifarla a mano a ogni messaggio, cioe' il lavoro che si e' tolto.
+Ogni numero esce con la soglia che lo classifica accanto - una classificazione
+senza la sua regola non si contesta.
+
+Sul file della giornata sono stati dichiarati i tre pareggi, dalla struttura:
+VAL cash LONG -> mensola europea 29.279 (sta fra ingresso e POC cash);
+VAH cash SHORT -> POC Asia 29.318 (idem, dall'altro lato);
+POC Asia LONG -> VAH cash 29.370. Sono scelte di analisi, non misure.
+
+Corretto anche i-tre-modelli-del-live-q1.md sezione 12: citava "bridge.py
+trades", che non esiste. E' cumulative --min-volume 60.
+
+Stato del replay alla fine del lavoro (NQZ6 14/09, 15:09Z): CHOPPY, efficienza
+0,12 - 74 punti netti su 609 di strada in mezz'ora - 5 rotture rientrate,
+velocita' al 29 percentile. Il motore lo dice da solo.
+

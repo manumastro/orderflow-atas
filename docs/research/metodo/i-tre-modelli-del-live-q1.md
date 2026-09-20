@@ -400,8 +400,10 @@ tenuti solo finche' rispondono a una domanda che il live pone.
 | big trades sopra la size | `bridge.py cumulative --min-volume 60`, il filtro di volume nativo di ATAS. **60 su NQ in cash**, 20-30 in premarket. (`bridge.py trades` non esiste) |
 | dov'e' il muro | volume e delta della fascia del profilo |
 | chi sta vincendo la battaglia sul livello | la **derivata del delta di fascia**: come cambia il delta cumulato della fascia *mentre* il prezzo la attraversa. **Misura nostra, non del corso**; 4 conferme su 4 il 18 settembre |
-| speed of tape | **non c'e' nel bridge.** Il proxy e' il volume per barra M1 contro la distribuzione recente (`--vol-viva`). Va dichiarato come proxy ogni volta |
-| il regime | conteggio delle rotture rientrate, e l'ampiezza della candela contro il range precedente |
+| speed of tape | **non c'e' nel bridge.** Il proxy e' il volume per barra contro la distribuzione delle ultime 60, e **lo calcola l'indicatore**: `bridge.py regime`, o la riga `VELOCITA'` del pannello. La parola *proxy* esce insieme al numero, ogni volta |
+| il regime | **lo calcola l'indicatore a ogni barra**: copertura (`[6 · 1:19:04]`), efficienza — netto diviso strada, misura nostra — e rotture rientrate (`[6 · 54:03]`). `bridge.py regime`, o la riga `REGIME` del pannello |
+| i big trades su un livello, adesso | il registro del tape vivo dentro l'indicatore, soglia 60. Dichiara **da quando copre**, perche' zero e "non lo so" sono due cose diverse |
+| dove si porta il break even | `pareggio_livello` nella regola, risolto per nome come bersaglio e invalidazione. Senza stacco minimo: il break even di Fabio e' vicino apposta `[3 · 15:39]` |
 
 **Cosa non c'entra piu':** il gate orario, il `verso` come permesso derivato dal dossier, le soglie
 tarate su strumenti diversi da NQ. Restano in archivio come evidenza, non come procedura.

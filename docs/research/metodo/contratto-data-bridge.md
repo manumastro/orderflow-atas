@@ -34,6 +34,7 @@ Il listener e' legato a `127.0.0.1` e non e' raggiungibile dalla rete. Espone da
 | `/depth` | `from`, `to`, `periodSeconds` | snapshot storici del book |
 | `/levels` | `chart` | `GET` restituisce i livelli del chart, `POST`/`PUT` li sostituisce, `DELETE` li cancella. **Un POST qui spegne le regole**: il controllo passa a mano |
 | `/rules` | `chart` | `GET` restituisce le regole e cosa non hanno prodotto, `POST`/`PUT` le sostituisce e ricalcola subito, `DELETE` le cancella insieme ai livelli che producevano |
+| `/regime` | `chart` | `GET`, sola lettura: il **regime**, il **proxy** della velocita' e i **big trades**, come li misura l'indicatore a ogni barra. Ogni numero esce con la soglia che lo classifica accanto — una classificazione senza la sua regola non si contesta |
 
 ### Livelli
 
@@ -129,3 +130,17 @@ python3 FabioOrderFlow/tools/bridge.py cumulative --chart NQZ6 \
 
 Il sottocomando e' `cumulative --min-volume`, non `trades`: `bridge.py trades` non esiste, ed e'
 stato citato per errore in `CLAUDE.md` fino al 20 settembre 2026.
+
+## `/regime`: Tre Avvertenze Che Contano Piu' Dei Numeri
+
+- **`velocita` non e' la speed of tape, ed e' per questo che il campo si chiama `proxy`.** La
+  speed of tape e' il *ritmo* di immissione degli ordini `[3 · 1:08:41]`; qui c'e' il volume della
+  barra contro la distribuzione delle ultime sessanta. Mille lotti in dieci secondi e mille in
+  sessanta hanno lo stesso volume e velocita' opposte. Una lettura che lo usa **lo dichiara**,
+  come si dichiara la finestra accanto a una misura.
+- **`bigTrades.copreTuttaLaFinestra` va letto prima del conteggio.** Il registro del tape si
+  riempie da quando l'indicatore si carica, e all'avvio si semina con novanta minuti di storico.
+  Se copre solo da meta' finestra, `quanti` non e' zero: e' **non lo so**, e i due casi non si
+  confondono.
+- **`regime.efficienza` e' una misura di questo repository, non del corso.** Netto diviso strada
+  percorsa. Il live la fa a occhio; qui serviva un numero, e il numero esce con le sue soglie.

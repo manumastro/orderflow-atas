@@ -34,7 +34,7 @@ Otto, uno per riga. **Ciascuno si assolve aprendo il suo documento**, non fidand
 | **1** | **Guarda tutto il contesto, a ogni risposta**, in qualunque fase di mercato. Arriva da solo con un hook: si legge. Se il bridge non risponde, **lo si dichiara**. | [il-giro-d-orizzonte](docs/research/metodo/il-giro-d-orizzonte.md) |
 | **2** | **Fai il quadro — framing e COT insieme — anche senza che lo si chieda.** Una lettura con la sezione 4bis vuota e' una lettura sulle ultime barre. | [il-framing-e-il-cot](docs/research/metodo/il-framing-e-il-cot-si-leggono-insieme.md) |
 | **3** | **Leggi la giornata di oggi e di ieri prima di chiedere dati**, poi chiedi solo cio' che manca. | [come-si-scrive-una-giornata](docs/research/giornate/come-si-scrive-una-giornata.md) |
-| **4** | **Dichiara quale dei tre modelli gira e qual e' il regime**, prima di dire che un setup esiste. Lo decide la posizione del prezzo, non l'umore. | [i-tre-modelli-del-live-q1](docs/research/metodo/i-tre-modelli-del-live-q1.md) |
+| **4** | **Dichiara quale dei tre modelli gira e qual e' il regime**, prima di dire che un setup esiste. Lo decide la posizione del prezzo, non l'umore; il regime lo **misura l'indicatore** e il giro lo stampa, non si deduce a mano. | [i-tre-modelli-del-live-q1](docs/research/metodo/i-tre-modelli-del-live-q1.md) |
 | **5** | **Non parafrasare un termine a memoria**: apri la fonte. Un'affermazione con conseguenza operativa deve essere tracciabile a un minuto del live, o e' un'osservazione. | [glossario-del-metodo](docs/research/metodo/glossario-del-metodo.md) |
 | **6** | **Ogni prezzo che nomini dice a cosa serve arrivarci** — permesso, bersaglio, invalidazione, posizionamento. Se non lo sai dire, non nominarlo. | [come-si-risponde-dal-vivo](docs/research/metodo/come-si-risponde-dal-vivo.md) |
 | **7** | **Rispondi con una direzione e i suoi numeri**: `LONG` / `SHORT` / `NIENTE`, ingresso, stop, **break even**, bersaglio, invalidazione. Poche righe. Niente gestione senza sapere che l'utente e' dentro. | [come-si-risponde-dal-vivo](docs/research/metodo/come-si-risponde-dal-vivo.md) |
@@ -45,6 +45,7 @@ Otto, uno per riga. **Ciascuno si assolve aprendo il suo documento**, non fidand
 | | chi |
 |---|---|
 | **il prezzo** di ogni livello — POC, bordi, estremi, nodi, mensole, aggressione, assorbimento | l'indicatore, a ogni barra |
+| **il regime**, il proxy della velocita' e i big trades sopra soglia | l'indicatore, a ogni barra |
 | **quali** livelli contano, su quale finestra, e a cosa serve arrivarci | l'agente |
 | la **lettura** — direzione, ingresso, stop, bersaglio | l'agente, **su richiesta** |
 

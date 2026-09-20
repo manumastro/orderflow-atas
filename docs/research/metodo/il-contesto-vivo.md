@@ -74,6 +74,11 @@ finestre larghe) e **a cosa serve** (lo scenario).
 
 ```text
 15:59   NQZ6   29.294,50
+REGIME     CHOPPY
+           efficienza 0,12 (netto 74,25 su strada 609,00), 5 rotture rientrate, copertura si
+           size ridotta, si rubano 1.000-2.000, due stop e si chiude
+VELOCITA'  morta — 718 lotti, 29° percentile su 60 barre  (PROXY, non la speed of tape)
+           6 big trade da 60+ lotti in 10 barre, netto -6
 REGOLE     11 livelli da 15 regole, barra 15:59
            ~ si muove    = misurato, fermo    * dichiarato a mano
 NON SUL CHART  4 regole, e non sono un guasto:
@@ -86,15 +91,19 @@ AL LIVELLO 29.289,00 +/-0,50, ultime 10 barre
   sforzo   3.482 lotti scambiati a questo prezzo
   delta    -412 (-11,8%)  venditori aggressivi
   esito    toccato 4x, respinto 3x, passato 1x
+  big      4 ordini da 60+ lotti, 314 lotti, netto -182
 SU TUTTE LE BARRE, non solo al livello:
   30 barre +1.745 (+4,5%)  su 38.913 lotti
   da 13:30Z +2.300 (+4,9%)  su 46.730 lotti
 SERVE A     SHORT  fade del bordo alto verso il POC (mean reverting)
            bersaglio 29.195,00 (-99,50)   invalida 29.336,25
+           pareggio 29.318,00 (+23,50) — li' il lato opposto torna a vincere
 SERVE      2 di 3
    [x] arrivato da dentro il valore
    [x] venditori al bordo (delta negativo li')   (-412)
    [ ] chiusura M1 di nuovo sotto il bordo
+VETI       1, e ne basta uno
+   ! regime choppy: size ridotta, niente bersagli lontani, due stop e si chiude
 BARRA APERTA 15:59, cambia ancora
   787 lotti   delta +77 (+9,8%)   chiude nel 95% alto del suo range
 ```
@@ -104,6 +113,55 @@ BARRA APERTA 15:59, cambia ancora
 ne' su quale finestra. Chi guardava leggeva quel delta come il delta della seduta, mentre erano i
 soli lotti scambiati dentro una fascia di **due tick**, in **dieci barre**. Due numeri con lo
 stesso nome e significati diversi e' il modo piu' rapido di leggere il chart al contrario.
+
+### 0. `REGIME` e `VELOCITA'` — quello che nel live viene prima di tutto
+
+**Sta in cima perche' decide la size, non il setup.** A chi gli chiede da dove cominciare Fabio
+riduce tutta la sequenza a due cose: *"I would start from sensitive level of the market like we
+are doing together, and regime"* `[5 · 1:18:06]`. I livelli li calcolava gia' il motore delle
+regole; il regime, fino al 20 settembre 2026, era **una parola scritta a mano nel file della
+giornata** — e da li' restava ferma finche' qualcuno non la riscriveva. Un regime fermo e' lo
+stesso difetto del livello vivo fermo, spostato da un prezzo a una parola.
+
+**Tre misure, e ciascuna risponde a una riga del live.** Sono misure di questo repository: il live
+riconosce il regime a occhio, qui serve un numero, e allora ogni soglia esce accanto al numero che
+produce.
+
+| | cos'e' | riga |
+|---|---|---|
+| **copertura** | una candela copre piu' di **cinque** candele del range precedente | *"when you are directional, one candle cover more than five candle of the previous range"* `[6 · 1:19:04]` |
+| **efficienza** | spostamento **netto** diviso la strada percorsa. **Misura nostra** | nel live la distinzione fra "va da qualche parte" e "balla" e' a occhio |
+| **rientri** | rotture degli estremi recenti che rientrano entro tre barre | *"they go from one side of the auction to the other side"* `[6 · 54:03]` |
+
+**Le tre non si sommano, si ordinano, e choppy ha la precedenza.** Una candela che copre cinque
+candele dentro una finestra che torna al punto di partenza non e' una giornata direzionale: e' uno
+strappo dentro il chop, ed e' proprio il caso in cui Fabio si aspetta il chop *dopo* l'esplosione —
+*"usually what you see is profit release and then you start like this for hours and hours"* `[4 ·
+1:05]`. Choppy vince anche perche' e' il regime dove l'errore costa di piu': una tossica presa per
+direzionale fa aprire con size piena su rotture che rientrano, che e' il modo documentato di
+restituire una giornata alle commissioni `[4 · 1:22:54]`. Il contrario fa perdere un treno, e un
+treno perso non toglie soldi dal conto.
+
+**La velocita' e' un PROXY, e la riga lo dice ogni volta.** La speed of tape e' *"how fast order
+are being inputs"* `[3 · 1:08:41]`: il **ritmo** con cui gli ordini entrano. Il bridge non ha quel
+dato. Quello che c'e' e' il volume della barra e quanto sta in alto nella distribuzione delle
+ultime sessanta — un altro numero: mille lotti in dieci secondi e mille in sessanta danno lo stesso
+volume e velocita' opposte. Per questo il proxy entra **nei veti e non nei prerequisiti**: un veto
+su un proxy resta onesto, un permesso su un proxy no.
+
+**I big trades sono la taratura di Fabio**, 60 lotti su NQ in cash `[5 · 6:04]`, e arrivano dal
+tape vivo. **Zero e "non lo so" sono due cose diverse** e la riga le separa: il registro dichiara
+da quando copre, perche' comincia a riempirsi quando l'indicatore si carica. Il 20 settembre,
+subito dopo una ricarica, avrebbe scritto *"nessun ordine da 60+ lotti"* su una finestra che ne
+conteneva **tre**. Adesso il registro si semina all'avvio con una richiesta storica di novanta
+minuti, e quando la finestra chiesta comincia prima della copertura la risposta non e' un numero.
+
+Lo stesso blocco esce dal bridge, perche' una misura che vive solo sul pannello obbliga l'agente a
+rifarla a mano a ogni messaggio:
+
+```bash
+python3 FabioOrderFlow/tools/bridge.py regime --chart NQZ6
+```
 
 ### 1. `VALORE` — dentro o fuori, e di quale
 
@@ -173,6 +231,16 @@ percentuale dice se e' tanto senza dover sapere a memoria quanto scambia NQ: su 
 quattro e mezzo sono aggressione netta. Sotto i cento lotti la percentuale non si stampa: su un
 campione minuscolo e' rumore travestito da misura.
 
+### 3ter. `big` — la meta' mancante dello sforzo
+
+**Mille lotti in ordini da due non sono un muro; mille lotti in sei ordini da centosessanta lo
+sono.** Il volume da solo non distingue i due casi, e il live guarda sempre il secondo: *"look how
+many absorption contract you have here on this horizontal level: 70, 75, 141, 33. This means that
+there is a liquidity wall here. There is no other way"* `[6 · 1:01:24]`.
+
+La riga conta gli ordini sopra la soglia **dentro la stessa fascia e la stessa finestra** dello
+sforzo, cosi' i due numeri si leggono insieme senza doverli riconciliare.
+
 ### 4. `SERVE A` e `SERVE` — lo scenario, e i prerequisiti che gli servono
 
 **Una lista di condizioni spuntate senza uno scenario e' solo numeri.** `SERVE A` dice a cosa
@@ -180,10 +248,53 @@ servono: quale **direzione**, quale **setup**, verso quale **bersaglio**, e cosa
 E' la stessa regola che vale ovunque nel repository — un livello non e' mai il fine, e' una porta,
 e va detto a cosa serve attraversarla.
 
+**Il `pareggio` e' la terza riga, e non e' un di piu'.** Nel live Q1 la gestione **e' l'edge**, e
+il break even ne e' la regola singola piu' importante: si mette **su un livello**, non dopo N
+punti, ed e' il prezzo al quale l'analisi si smonta. *"Why I put the break even point at zero is
+point at 65? This is where the buyers got completely absorbed. So it's a level where you could
+expect to see sellers getting back in"* `[1 · 2:11:58]`. Uno stop senza il suo break even e' meta'
+istruzione, e infatti `CLAUDE.md` obbliga a dichiararlo a ogni risposta operativa — mentre fino al
+20 settembre il chart non aveva nemmeno il campo.
+
+Si dichiara con `pareggio_livello` **per nome**, come bersaglio e invalidazione. Due differenze:
+**non ha lo stacco minimo** dell'invalidazione, perche' il break even di Fabio e' deliberatamente
+vicino — *"now you understand why my break even point was so close"* `[3 · 15:39]` — e se viene
+toccato non si perde niente, si restituisce il tentativo. E quando manca **il pannello lo dice**
+invece di tacere, perche' il campo vuoto e' esattamente il difetto.
+
 **Non sono condizioni armate, e la differenza e' tutta qui: non scattano, non avvisano, non fanno
 niente.** Il vecchio impianto valutava condizioni e gridava, e per armarne una servivano sette
 prove. Queste dicono soltanto cosa dovrebbe essere vero, e il pannello mostra quanti prerequisiti
 sono gia' soddisfatti (`2 di 3`).
+
+### 5. `VETI` — e ne basta uno
+
+**Non sono il complemento dei prerequisiti, e la differenza e' aritmetica.** I prerequisiti si
+contano e servono **tutti**: `2 di 3` vuol dire che manca qualcosa. I veti no: **ne basta uno** e
+il setup non si prende, quante che siano le spunte verdi sopra. Nel live sono una lista dichiarata
+a parte `[4 · 17:37]`, `[2 · 44:17]`, `[2 · 1:56:36]`, `[6 · 44:25]`, e il veto che li riassume e'
+*"we cannot force setups. Only when it's there"* `[4 · 43:22]`.
+
+Il pannello ne valuta **quattro**, quelli misurabili con cio' che il bridge ha:
+
+```text
+mezzo range     il prezzo sta nel terzo centrale della finestra del regime e non c'e'
+                nessun livello in gioco: niente strada pulita        [4 · 17:37]
+libro sottile   nessun big trade sopra soglia e velocita' sotto il 30° percentile
+                "no support from the aggressive order participants"  [2 · 44:17]
+regime choppy   non vieta di operare: vieta la size piena e il terzo tentativo
+controtrend     lo scenario dice SHORT ma il delta di seduta e' lungo, o viceversa
+                "the auction is still long"                          [2 · 1:56:36]
+modello sbagliato   uno scenario di mean reverting col prezzo FUORI dal valore
+```
+
+**I due che mancano non si simulano.** "Troppo vicini al muro" `[2 · 1:36:58]` e la posizione nella
+curva del composito `[6 · 1:13:50]` chiedono un dato che questo chart non tiene. **Un veto
+inventato e' peggio di un veto mancante**, perche' fa saltare setup buoni con l'aria di una misura:
+restano dichiarati qui come mancanti, e li valuta l'analisi.
+
+Il veto del mezzo range si vede **soprattutto quando non c'e' niente in gioco**, ed e' il caso in
+cui il pannello prima usciva subito.
 
 Si dichiarano nel file delle regole, accanto al livello:
 

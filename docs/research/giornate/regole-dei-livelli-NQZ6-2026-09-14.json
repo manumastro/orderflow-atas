@@ -45,7 +45,8 @@
       "direzione": "LONG",
       "nome": "fade del bordo basso verso il POC (mean reverting)",
       "bersaglio_livello": "POC cash",
-      "invalida_livello": "VAL Europa"
+      "invalida_livello": "VAL Europa",
+      "pareggio_livello": "mensola europea"
     }
   },
   {
@@ -81,7 +82,8 @@
       "direzione": "SHORT",
       "nome": "fade del bordo alto verso il POC (mean reverting)",
       "bersaglio_livello": "POC cash",
-      "invalida_livello": "max cash"
+      "invalida_livello": "max cash",
+      "pareggio_livello": "POC Asia"
     }
   },
   {
@@ -233,7 +235,8 @@
       "direzione": "LONG",
       "nome": "prosecuzione sul volume abbandonato della notte (momentum)",
       "bersaglio_livello": "max Asia",
-      "invalida_livello": "VAL Asia"
+      "invalida_livello": "VAL Asia",
+      "pareggio_livello": "VAH cash"
     }
   },
   {

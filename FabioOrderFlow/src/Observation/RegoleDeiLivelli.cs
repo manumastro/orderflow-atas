@@ -183,6 +183,20 @@ public sealed partial class DataBridge
         [JsonPropertyName("invalida_livello")]
         public string? InvalidaLivello { get; init; }
 
+        /// <summary>
+        /// Il livello su cui si porta lo stop a pareggio. <b>E' il prezzo al quale l'analisi si
+        /// smonta</b>, cioe' dove il lato opposto tornerebbe a vincere la battaglia — non una
+        /// distanza e non "dopo 1R". <i>"Why I put the break even point at zero is point at 65?
+        /// This is where the buyers got completely absorbed. So it's a level where you could
+        /// expect to see sellers getting back in"</i> <c>[1 · 2:11:58]</c>.
+        ///
+        /// <para>Sta qui e non nella testa di chi legge perche' nel live Q1 la gestione <b>e'
+        /// l'edge</b>, e il break even ne e' la regola singola piu' importante. Uno stop senza il
+        /// suo break even e' meta' istruzione.</para>
+        /// </summary>
+        [JsonPropertyName("pareggio_livello")]
+        public string? PareggioLivello { get; init; }
+
         [JsonPropertyName("stacco_minimo")]
         public decimal? StaccoMinimo { get; init; }
     }
@@ -445,6 +459,24 @@ public sealed partial class DataBridge
                 }
             }
 
+            // IL PAREGGIO SI RISOLVE COME GLI ALTRI, MA NON HA LO STACCO MINIMO. Il break even
+            // di Fabio e' deliberatamente vicino - "now you understand why my break even point
+            // was so close" [3 · 15:39] - perche' non e' uno stop: se viene toccato non si perde
+            // niente, si restituisce il tentativo. Applicargli la difesa dell'invalidazione lo
+            // cancellerebbe proprio quando e' fatto bene.
+            decimal? pareggio = null;
+            if (!string.IsNullOrWhiteSpace(sc.PareggioLivello))
+            {
+                if (prezzoDi.TryGetValue(sc.PareggioLivello!, out var pg))
+                {
+                    pareggio = pg;
+                }
+                else
+                {
+                    saltate.Add($"{livello.Nome}: pareggio «{sc.PareggioLivello}» non risolto");
+                }
+            }
+
             risolti[k] = livello with
             {
                 Scenario = new BridgeScenario
@@ -453,6 +485,7 @@ public sealed partial class DataBridge
                     Nome = sc.Nome,
                     Bersaglio = bersaglio,
                     Invalida = invalida,
+                    Pareggio = pareggio,
                 },
             };
         }
