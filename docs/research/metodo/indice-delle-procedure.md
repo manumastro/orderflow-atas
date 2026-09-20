@@ -115,7 +115,17 @@ seduta**, e **il ridisegno non si chiede, si fa**.
 l'assorbimento del live**: sforzo alto, risultato nullo. Separa una **base**, un **passaggio** e un
 **assorbimento**, che il delta di barra confonde.
 
-### 5. La sorveglianza del tape, durante la seduta
+### 5. Il contesto vivo, durante la seduta
+
+[**`il-contesto-vivo.md`**](il-contesto-vivo.md) — **l'impianto attivo dal 20 settembre 2026.**
+`livelli_vivi.py --ogni` tiene aggiornati i **livelli vivi**; il **pannello** e' dentro
+l'indicatore e si ridisegna a ogni tick. Nessuno dei due giudica, avvisa o arma niente. I livelli **statici** restano all'agente, che li rivede a
+intervalli. La lettura si chiede.
+
+Quello che segue descrive la **fase chiusa** della sorveglianza a condizioni armate, conservata
+come evidenza.
+
+### 5bis. La sorveglianza del tape, FASE CHIUSA
 
 [**`sorveglianza-del-tape.md`**](sorveglianza-del-tape.md) — la procedura standard di studio di una
 seduta, i tre sorveglianti, e **le sette prove che una condizione deve passare prima di essere

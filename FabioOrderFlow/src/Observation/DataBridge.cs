@@ -191,6 +191,17 @@ public sealed class DataBridge : Indicator
     [Range(0, 900)]
     public int WatchOffsetRight { get; set; } = 110;
 
+    [Display(Name = "In-play radius", GroupName = "Watch",
+        Description = "Entro quanti punti dal prezzo un livello si considera IN GIOCO. " +
+                      "Oltre, il pannello dice che non c'e' niente in gioco e mostra le due porte.")]
+    [Range(1, 500)]
+    public int InPlayRadius { get; set; } = 12;
+
+    [Display(Name = "Lookback bars", GroupName = "Watch",
+        Description = "Quante barre indietro si misura cio' che e' stato scambiato AL livello.")]
+    [Range(2, 500)]
+    public int PanelLookback { get; set; } = 10;
+
     [Display(Name = "Price axis padding", GroupName = "Levels",
         Description = "Pixel in piu' oltre la larghezza misurata della scala dei prezzi. " +
                       "Alzalo se etichette o pannello finiscono ancora sopra i numeri dell'asse.")]
@@ -1056,16 +1067,40 @@ public sealed class DataBridge : Indicator
     }
 
     /// <summary>
-    /// Disegna il pannello in un angolo fisso dello schermo, non sul prezzo: le righe restano
-    /// leggibili qualunque candela sia in vista, e si aggiornano da sole a ogni chiamata di
-    /// OnRender - che ATAS invoca a ogni tick - senza bisogno di un nuovo POST per ogni ridisegno.
-    /// Il contenuto cambia solo quando l'analisi esterna deposita nuove righe: il refresh visivo
-    /// e' gratis, il refresh del DATO dipende da chi scrive su /watch.
+    /// Il pannello: **una cosa sola, quella su cui si decide adesso**.
+    ///
+    /// Non e' un riassunto della seduta. Un pannello che elenca tutto costringe a cercare, e si
+    /// cerca male proprio quando il prezzo si muove. Qui c'e' il livello **in gioco** - quello
+    /// entro `InPlayRadius` punti - e le tre cose che servono a giudicarlo:
+    ///
+    ///   il lato di arrivo   e' cio' che separa un setup dal suo sosia. Un rifiuto del bordo alto
+    ///                       e una rottura dello stesso bordo dall'alto hanno gli stessi numeri:
+    ///                       li distingue **solo** da che parte arriva il prezzo.
+    ///   cosa e' passato LI'  non nella barra e non nella seduta: **a quel prezzo**, sommando la
+    ///                       footprint delle ultime `PanelLookback` barre. Sforzo alto e risultato
+    ///                       nullo e' la misura dell'assorbimento.
+    ///   come ha retto       quante volte e' stato toccato, e quante volte il prezzo e' tornato
+    ///                       indietro invece di passare.
+    ///
+    /// Si ridisegna a **ogni tick**, perche' e' l'indicatore a calcolarlo: non dipende da nessun
+    /// processo esterno, e non puo' restare fermo a mentire mentre il mercato si muove.
+    ///
+    /// Le righe depositate su `/watch` restano, sotto: sono cio' che scrive l'analisi, e vanno
+    /// distinte da cio' che misura la macchina.
     /// </summary>
     private void RenderWatchPanel(RenderContext context)
     {
-        var lines = _watch;
-        if (!ShowWatch || lines.Length == 0)
+        if (!ShowWatch)
+        {
+            return;
+        }
+
+        var righe = ComponiPannello();
+        foreach (var l in _watch)
+        {
+            righe.Add(new RigaPannello(l.Text ?? string.Empty, ParseColor(l.Color)));
+        }
+        if (righe.Count == 0)
         {
             return;
         }
@@ -1075,19 +1110,17 @@ public sealed class DataBridge : Indicator
         var font = new RenderFont("Arial", WatchFontSize);
 
         var widest = 0;
-        var lineHeight = 0;
-        var sizes = new Size[lines.Length];
-        for (var i = 0; i < lines.Length; i++)
+        var sizes = new Size[righe.Count];
+        for (var i = 0; i < righe.Count; i++)
         {
-            sizes[i] = context.MeasureString(lines[i].Text, font);
+            sizes[i] = context.MeasureString(righe[i].Testo, font);
             widest = Math.Max(widest, sizes[i].Width);
-            lineHeight = Math.Max(lineHeight, sizes[i].Height);
         }
 
         const int padding = 8;
         const int lineGap = 3;
         var boxWidth = widest + padding * 2;
-        var boxHeight = lines.Length * (lineHeight + lineGap) - lineGap + padding * 2;
+        var boxHeight = sizes.Sum(z => z.Height + lineGap) - lineGap + padding * 2;
         var x = Math.Max(area.Left, dataRight - WatchOffsetRight - boxWidth);
         var y = area.Top + WatchOffsetTop;
 
@@ -1095,12 +1128,201 @@ public sealed class DataBridge : Indicator
             new Rectangle(x, y, boxWidth, boxHeight));
 
         var textY = y + padding;
-        foreach (var (line, size) in lines.Zip(sizes))
+        for (var i = 0; i < righe.Count; i++)
         {
-            var color = ParseColor(line.Color);
-            context.DrawString(line.Text, font, color, x + padding, textY);
-            textY += size.Height + lineGap;
+            context.DrawString(righe[i].Testo, font, righe[i].Colore, x + padding, textY);
+            textY += sizes[i].Height + lineGap;
         }
+    }
+
+    private readonly record struct RigaPannello(string Testo, Color Colore);
+
+    private static readonly Color PanelBianco = Color.FromArgb(235, 235, 235);
+    private static readonly Color PanelGrigio = Color.FromArgb(158, 158, 158);
+    private static readonly Color PanelVerde = Color.FromArgb(102, 187, 106);
+    private static readonly Color PanelRosso = Color.FromArgb(239, 83, 80);
+    private static readonly Color PanelAmbra = Color.FromArgb(255, 183, 77);
+
+    private static readonly CultureInfo Italiano = CultureInfo.GetCultureInfo("it-IT");
+
+    /// <summary>
+    /// L'ora della barra nel fuso di chi guarda, che e' l'unico orologio che conta per chi opera.
+    ///
+    /// `IndicatorCandle.Time` arriva con `Kind == Unspecified` ma **e' UTC**: e' la stessa
+    /// convenzione che usa gia' `Iso()`. Chiamarci sopra `ToLocalTime()` direttamente non fa
+    /// niente - .NET tratta `Unspecified` come locale e restituisce lo stesso valore - e il
+    /// pannello finirebbe per scrivere l'ora UTC spacciandola per l'ora di casa: due ore di
+    /// sfasamento che sembrano un orario giusto. Va dichiarato UTC prima di convertire.
+    /// </summary>
+    private static DateTime OraLocale(DateTime t)
+        => DateTime.SpecifyKind(t, t.Kind == DateTimeKind.Unspecified ? DateTimeKind.Utc : t.Kind)
+            .ToLocalTime();
+
+    private static string Prezzo(decimal p) => p.ToString("N2", Italiano);
+
+    private static string Lotti(decimal v) => v.ToString("N0", Italiano);
+
+    private static string Segnato(decimal v) =>
+        (v >= 0 ? "+" : "-") + Math.Abs(v).ToString("N0", Italiano);
+
+    private static string SegnatoPrezzo(decimal v) =>
+        (v >= 0 ? "+" : "-") + Math.Abs(v).ToString("N2", Italiano);
+
+    /// <summary>Il nome del livello: la parte prima di " · ", che e' la convenzione del metodo.</summary>
+    private static string NomeCorto(string? label)
+    {
+        if (string.IsNullOrWhiteSpace(label))
+        {
+            return "livello";
+        }
+        var i = label!.IndexOf(" · ", StringComparison.Ordinal);
+        return (i > 0 ? label[..i] : label).Trim();
+    }
+
+    private List<RigaPannello> ComponiPannello()
+    {
+        var righe = new List<RigaPannello>();
+        var ultimo = CurrentBar - 1;
+        if (ultimo < 1 || ChartInfo is null)
+        {
+            return righe;
+        }
+
+        var viva = GetCandle(ultimo);
+        var prezzo = viva.Close;
+        var livelli = _levels;
+
+        righe.Add(new RigaPannello(
+            $"{OraLocale(viva.Time):HH:mm}   {InstrumentInfo?.Instrument}   {Prezzo(prezzo)}",
+            PanelBianco));
+
+        if (livelli.Length == 0)
+        {
+            righe.Add(new RigaPannello("nessun livello depositato", PanelAmbra));
+            return righe;
+        }
+
+        BridgeLevel? gioco = null;
+        var minDist = decimal.MaxValue;
+        foreach (var l in livelli)
+        {
+            var d = Math.Abs(l.Price - prezzo);
+            if (d <= InPlayRadius && d < minDist)
+            {
+                minDist = d;
+                gioco = l;
+            }
+        }
+
+        if (gioco is null)
+        {
+            // Nessun livello in gioco non e' un vuoto: dice che si viaggia fra due porte, e quali.
+            righe.Add(new RigaPannello("NIENTE IN GIOCO   le due porte:", PanelAmbra));
+            var sopra = livelli.Where(l => l.Price > prezzo).OrderBy(l => l.Price).FirstOrDefault();
+            var sotto = livelli.Where(l => l.Price <= prezzo).OrderByDescending(l => l.Price).FirstOrDefault();
+            if (sopra is not null)
+            {
+                righe.Add(new RigaPannello(
+                    $"   sopra  {Prezzo(sopra.Price)}  {NomeCorto(sopra.Label)}  {SegnatoPrezzo(sopra.Price - prezzo)}",
+                    PanelGrigio));
+            }
+            if (sotto is not null)
+            {
+                righe.Add(new RigaPannello(
+                    $"   sotto  {Prezzo(sotto.Price)}  {NomeCorto(sotto.Label)}  {SegnatoPrezzo(sotto.Price - prezzo)}",
+                    PanelGrigio));
+            }
+            return righe;
+        }
+
+        var livello = gioco.Price;
+        var dove = prezzo >= livello ? "sopra" : "sotto";
+
+        // --- da che lato ci e' arrivato ------------------------------------------------------
+        // Si torna indietro finche' una barra non chiude OLTRE una fascia di tolleranza: una
+        // chiusura dentro la fascia non dice da che parte si veniva, dice solo che si era li'.
+        var tick = InstrumentInfo?.TickSize ?? 0.25m;
+        var soglia = Math.Max(tick * 4, InPlayRadius / 4m);
+        var arrivo = string.Empty;
+        for (var b = ultimo; b >= Math.Max(0, ultimo - 240); b--)
+        {
+            var c = GetCandle(b);
+            if (c.Close > livello + soglia)
+            {
+                arrivo = "SOPRA";
+                break;
+            }
+            if (c.Close < livello - soglia)
+            {
+                arrivo = "SOTTO";
+                break;
+            }
+        }
+
+        righe.Add(new RigaPannello($"IN GIOCO   {NomeCorto(gioco.Label)}   {Prezzo(livello)}",
+                                   ParseColor(gioco.Color)));
+        righe.Add(new RigaPannello(
+            arrivo.Length > 0
+                ? $"           {SegnatoPrezzo(prezzo - livello)} {dove}   arrivato da {arrivo}"
+                : $"           {SegnatoPrezzo(prezzo - livello)} {dove}   lato di arrivo non deciso",
+            arrivo.Length > 0 ? PanelBianco : PanelAmbra));
+
+        // --- cosa e' stato scambiato A QUEL PREZZO -------------------------------------------
+        var da = Math.Max(0, ultimo - PanelLookback + 1);
+        decimal vol = 0m;
+        decimal delta = 0m;
+        var tocchi = 0;
+        var respinti = 0;
+        var passati = 0;
+        var fascia = tick * 2;
+
+        for (var b = da; b <= ultimo; b++)
+        {
+            var c = GetCandle(b);
+            for (var pz = livello - fascia; pz <= livello + fascia; pz += tick)
+            {
+                var info = c.GetPriceVolumeInfo(pz);
+                if (info is null)
+                {
+                    continue;
+                }
+                vol += info.Volume;
+                delta += info.Ask - info.Bid;
+            }
+
+            if (c.Low - fascia <= livello && livello <= c.High + fascia)
+            {
+                tocchi++;
+                if (b > 0)
+                {
+                    var lato = GetCandle(b - 1).Close >= livello;
+                    if ((c.Close >= livello) == lato)
+                    {
+                        respinti++;
+                    }
+                    else
+                    {
+                        passati++;
+                    }
+                }
+            }
+        }
+
+        righe.Add(new RigaPannello($"A QUEL PREZZO, ultime {PanelLookback} barre", PanelGrigio));
+        righe.Add(new RigaPannello($"           scambiati {Lotti(vol)}   d {Segnato(delta)}",
+            delta > 0 ? PanelVerde : delta < 0 ? PanelRosso : PanelGrigio));
+        righe.Add(new RigaPannello(
+            $"           {tocchi} tocchi   {respinti} respinti   {passati} passati", PanelGrigio));
+
+        // --- la barra in corso ---------------------------------------------------------------
+        var rng = viva.High - viva.Low;
+        var pos = rng > 0 ? (viva.Close - viva.Low) / rng : 0m;
+        righe.Add(new RigaPannello(
+            $"ADESSO     barra {OraLocale(viva.Time):HH:mm}   v {Lotti(viva.Volume)}"
+            + $"   d {Segnato(viva.Delta)}   pos {pos:0.00}",
+            viva.Delta > 0 ? PanelVerde : viva.Delta < 0 ? PanelRosso : PanelGrigio));
+
+        return righe;
     }
 
     // ---------------------------------------------------------------- endpoints

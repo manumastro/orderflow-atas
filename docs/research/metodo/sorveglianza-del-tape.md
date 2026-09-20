@@ -1,5 +1,16 @@
 # Sorveglianza Del Tape: Dai Livelli Alla Lettura Sul Chart
 
+> **FASE CHIUSA, 20 settembre 2026.** Questo documento descrive la sorveglianza a **condizioni
+> armate** — `scenari.py`, `sveglia_tape.py`, `sveglia_movimento.py`, `/accendi`, `/spegni` — che
+> **non e' piu' l'impianto attivo**. Al suo posto c'e'
+> [`il-contesto-vivo.md`](il-contesto-vivo.md): un processo solo, che non giudica e non avvisa,
+> e tiene aggiornati i livelli vivi e il pannello.
+>
+> Resta qui come evidenza, e per **le sette prove che una condizione deve passare prima di essere
+> armata**: se un giorno si riarma qualcosa, quelle valgono ancora. Non si estende e non si riapre
+> senza richiesta esplicita.
+
+
 Procedura standard di studio per una seduta. Chiude il cerchio fra le tre cose che finora stavano
 separate: l'analisi che deriva i livelli, il chart che li disegna, e il tape che li mette alla
 prova minuto per minuto.

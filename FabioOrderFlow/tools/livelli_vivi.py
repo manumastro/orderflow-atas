@@ -179,9 +179,18 @@ def risolvi(definizione: dict, base: str, chart: str, adesso: dt.datetime, cache
         lotti, pct, d = peso(m, prezzo, tipo)
         misure = {"prezzo": prezzo, "pct": f"{pct:.1f}%", "lotti": numero(lotti), "delta": f"{d:+,.0f}".replace(",", ".")}
 
+    # UN LIVELLO VIVO SI DEVE RICONOSCERE SUL CHART. Un POC che si sposta a ogni barra e una
+    # mensola scritta stamattina si disegnano identici, e chi guarda non puo' sapere quale delle
+    # due sta leggendo: il primo e' una misura di adesso, il secondo e' un fatto che potrebbe
+    # essere invecchiato. La tilde in coda al nome e' il marcatore, e il pannello la spiega.
+    etichetta = modello.format(**misure)
+    if tipo != "fisso":
+        nome, sep, resto = etichetta.partition(" · ")
+        etichetta = f"{nome} ~{sep}{resto}"
+
     livello = {
         "price": round(prezzo * 4) / 4,
-        "label": modello.format(**misure),
+        "label": etichetta,
         "color": definizione.get("color", "#7A8FA6"),
         "style": definizione.get("style", "solid"),
         "width": definizione.get("width", 1),

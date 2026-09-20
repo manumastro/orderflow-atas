@@ -335,24 +335,48 @@ Procedura in
 **La speed of tape non esiste nel bridge.** Il proxy e' il volume per barra M1 contro la
 distribuzione recente. **Va dichiarato come proxy ogni volta che si usa.**
 
-Durante una seduta gli scenari attesi si scrivono **prima**, in
-`docs/research/giornate/scenari-AAAA-MM-GG.json`. `FabioOrderFlow/tools/scenari.py` e' solo il motore
-che li valuta. **Le condizioni non vanno messe nel programma**: sono un file che si riscrive ogni
-volta. `sveglia_tape.py` copre in parallelo cio' che non era previsto, e `annota.py` porta sul chart
-e nel diario la lettura ragionata.
+## Lo Scope: L'Agente Costruisce Il Contesto, Non Opera (20 Settembre 2026)
 
-**I sorveglianti sono tre, e il terzo non guarda i livelli.** `scenari.py` risponde a *e' successo
-quello che avevamo previsto?*, `sveglia_tape.py` a *e' successo qualcosa su un livello che conta?*,
-`sveglia_movimento.py` a ***si e' mosso, dovunque fosse?*** — legge la barra **in formazione** e
-grida ogni `--strappo` punti di escursione dall'estremo. Serve perche' i primi due **fra un livello
-e l'altro non parlano**: il 17 settembre quel silenzio e' durato quattordici minuti con uno short
-aperto dentro.
+> *"non voglio l'agente che fa le operazioni ma che abbia e fornisca e aggiorna tutto il contesto
+> necessario, questo e' lo scope e questo e' fondamentale"*
 
-**Per riaccenderli c'e' `/accendi`**, che chiede le righe a `comandi_sorveglianti.py` invece di
-scriverle a memoria. **Le soglie non si inventano e `--from` non si lascia indietro.** **Per
-spegnerli c'e' `/spegni`**, che fa `TaskStop`, uccide gli orfani e **verifica**. I tre si accendono
-come `Monitor`, non come comando in background. **Si riarmano al cambio di sessione.** Riavviando a
-seduta in corso serve anche `--storia`, o lo strumento riparte cieco.
+**La sorveglianza a condizioni armate e' una fase chiusa.** `scenari.py`, `sveglia_tape.py`,
+`sveglia_movimento.py` e i comandi `/accendi` e `/spegni` restano come evidenza e **non si
+riaprono senza richiesta esplicita**. Il motivo sta in
+[`il-contesto-vivo.md`](docs/research/metodo/il-contesto-vivo.md): una condizione armata e' una
+previsione travestita da misura, e taceva proprio quando il mercato faceva qualcosa di non previsto.
+
+Al loro posto c'e' **un processo solo**, che non giudica e non avvisa:
+
+```bash
+python3 FabioOrderFlow/tools/livelli_vivi.py \
+        docs/research/giornate/livelli-vivi-STRUMENTO-AAAA-MM-GG.json --chart NQZ6 --ogni 30
+```
+
+Tiene aggiornati **i livelli vivi**, rileggendo il file delle regole a ogni giro: correggere una
+definizione non richiede un riavvio. Gira in background, non come `Monitor`.
+
+**Il pannello non ha un comando: e' l'indicatore.** Si ridisegna a ogni tick e mostra **una cosa
+sola** — il livello **in gioco**, da che lato il prezzo ci e' arrivato, cosa e' stato scambiato
+**a quel prezzo** nelle ultime barre, e quante volte ha retto. Il lato di arrivo non e' un
+dettaglio: e' cio' che separa un rifiuto del bordo da una rottura dello stesso bordo, che
+producono numeri identici.
+
+**La divisione del lavoro, ed e' la regola:**
+
+| | chi |
+|---|---|
+| livelli **vivi** — POC, VAH, VAL, estremi, bordi dei nodi | il programma, da solo |
+| livelli **statici** — mensole, nodi, prezzi del COT, rotture | **l'agente**, che si sveglia a intervalli e interviene solo se serve |
+| la **lettura** — direzione, ingresso, stop, bersaglio | l'agente, **su richiesta** |
+
+**Un livello vivo porta `~` in coda al nome.** Senza marcatore un POC che si sposta a ogni barra e
+una mensola scritta stamattina si disegnano identici, e chi guarda non sa quale delle due sta
+leggendo.
+
+**Il pannello dichiara la propria eta', e se un giro fallisce lo scrive.** Un pannello fermo e'
+indistinguibile da uno aggiornato: e' il modo in cui uno strumento di contesto danneggia invece di
+aiutare.
 
 **I livelli, i bordi del valore e la finestra su cui si misurano si rifanno a ogni lettura che li
 usa**, in qualunque fase della giornata. Procedura obbligatoria in

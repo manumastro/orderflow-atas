@@ -308,3 +308,32 @@
             italiana diversa dal solito, cioe' proprio quando sommare una costante sbaglia.
             Su Windows zoneinfo non trova i fusi senza il pacchetto tzdata: installato. Se manca,
             ora.py resta su UTC e lo dichiara invece di spacciarlo per ora italiana.
+
+2026-09-20  CAMBIO DI SCOPE, DECISO DALL'UTENTE. "non voglio l'agente che fa le operazioni ma che
+            abbia e fornisca e aggiorna tutto il contesto necessario". La sorveglianza a condizioni
+            armate (scenari.py, sveglia_tape.py, sveglia_movimento.py, /accendi, /spegni) e' una
+            FASE CHIUSA: una condizione armata e' una previsione travestita da misura, e taceva
+            proprio quando il mercato faceva qualcosa di non previsto. Documento nuovo:
+            docs/research/metodo/il-contesto-vivo.md.
+            Al suo posto due pezzi, e la divisione e' la regola:
+              livelli VIVI    livelli_vivi.py --ogni 30, programmatico, non giudica
+              livelli FISSI   l'agente, che si sveglia a intervalli e interviene solo se serve
+              pannello        DENTRO L'INDICATORE, ridisegnato a ogni tick
+            Il pannello era nato in Python; l'utente ha cambiato idea a ragione: un demone che
+            rideposita ogni pochi secondi mostra la barra in formazione com'era due secondi fa, ed
+            e' proprio quella che si guarda quando si decide. L'indicatore ha la footprint a ogni
+            tick e non dipende da un processo acceso.
+            CONTENUTO DEL PANNELLO: una cosa sola, il livello IN GIOCO entro In-play radius punti.
+            Nome, distanza, LATO DI ARRIVO, footprint sommata a quel prezzo sulle ultime Lookback
+            barre, e tocchi/respinti/passati. Il lato di arrivo non e' un ornamento: un rifiuto del
+            bordo e una rottura dello stesso bordo producono numeri identici, li separa solo da che
+            parte arriva il prezzo. Niente finestre 15/30/60, niente riassunti: erano i dati che
+            costringevano a cercare.
+            Un livello vivo porta "~" in coda al nome, perche' sul chart un POC che si muove a ogni
+            barra e una mensola di stamattina si disegnano identici.
+            GUASTO D'ORARIO TROVATO PRIMA DI MOSTRARLO: IndicatorCandle.Time ha Kind Unspecified ma
+            e' UTC (lo tratta cosi' gia' Iso()). ToLocalTime() su un Unspecified non fa niente, e il
+            pannello avrebbe scritto l'ora UTC come fosse quella di casa: due ore di sfasamento che
+            sembrano un orario giusto. Helper OraLocale(), che dichiara il Kind prima di convertire.
+            contesto_vivo.py, scritto e poi rimosso nella stessa sessione: la meta' pannello e'
+            superata dall'indicatore e la meta' livelli duplicava livelli_vivi.py --ogni.

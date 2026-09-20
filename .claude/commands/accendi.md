@@ -1,43 +1,57 @@
 ---
-description: Riaccende tutti i sorveglianti, tarati sulla sessione in corso
+description: Accende il contesto vivo sul chart: livelli dinamici e pannello, sempre aggiornati
 ---
 
-**Riaccendi la sorveglianza, adesso.** Non chiedere conferma: l'utente l'ha gia' data scrivendo
+**Accendi il contesto vivo, adesso, senza chiedere conferma:** l'utente l'ha gia' data scrivendo
 il comando.
 
-1. **Chiedi allo strumento i comandi giusti**, invece di scriverli a memoria:
+> **Cosa NON fa piu' questo comando.** Fino al 19 settembre 2026 accendeva i tre sorveglianti a
+> condizioni armate. Quella e' una **fase chiusa**: vedi
+> [`il-contesto-vivo.md`](../../docs/research/metodo/il-contesto-vivo.md). Non far ripartire
+> `scenari.py`, `sveglia_tape.py` o `sveglia_movimento.py`.
+
+Nell'ordine:
+
+1. **Verifica che il bridge risponda** e prendi lo strumento del chart:
 
    ```bash
-   python3 FabioOrderFlow/tools/comandi_sorveglianti.py --chart NQZ6
+   python3 FabioOrderFlow/tools/bridge.py health
    ```
 
-   Stampa le righe gia' tarate sulla sessione in corso, con `--from` all'ora attuale, e dice **chi
-   sta gia' girando**. Le soglie non si inventano: `--strappo 8` e' un movimento a Londra e rumore
-   su New York, dove il libro e' sei volte piu' spesso.
+   Se non risponde, fermati e dillo: un contesto senza dati non e' un contesto.
 
-2. **Se dice che qualcosa gira gia', fermati.** Accendere sopra a un sorvegliante vivo fa arrivare
-   gli avvisi doppi e non si sa piu' quale dei due dica la verita' su quale barra. Prima `/spegni`,
-   poi si riaccende.
+2. **Controlla che non ne giri gia' uno.** Due processi sullo stesso chart si sovrascrivono il
+   pannello a vicenda e il risultato lampeggia. Se ce n'e' uno vivo in questa sessione, usalo; se
+   e' orfano, spegnilo con `/spegni` prima di riaccendere.
 
-3. **Apri un `Monitor` per ciascuna delle prime tre righe** — scenari, sveglia del tape, sveglia
-   del movimento — con `timeout_ms: 1800000`. **Non comandi in background**: un comando in
-   background scrive su un file e non sveglia l'agente.
+3. **Scegli il file delle regole**, che e' quello di **oggi** per lo strumento in uso:
 
-   I filtri `grep`/`awk` sono quelli documentati in
-   [`sorveglianza-del-tape.md`](../../docs/research/metodo/sorveglianza-del-tape.md), sezione
-   *"Come Si Tengono Accesi"*. Nel filtro della sveglia del tape **deve esserci `PRESIDIO`**, non
-   solo `PRESIDIO FINE`: il 17 settembre quella omissione ha reso l'agente cieco esattamente
-   mentre il prezzo stava sul livello.
+   ```text
+   docs/research/giornate/livelli-vivi-STRUMENTO-AAAA-MM-GG.json
+   ```
 
-4. **Il quarto, `permesso_di_fatto.py`, solo se lo strumento lo stampa** — cioe' dopo le 14:30Z,
-   quando l'IVB di oggi e' chiusa. Prima non e' calcolabile, e inventarne i bordi produce un
-   permesso che sembra misurato e non lo e'. Se va acceso, **misura i bordi dell'IVB
-   13:30-14:30Z** dal bridge e sostituiscili a `--alto` e `--basso`.
+   Se per oggi non esiste, **non riusare quello di ieri**: i livelli fissi che contiene sono di un
+   altro giorno e si disegnano identici a quelli di adesso. Dillo, e scrivine uno.
 
-5. **Aggiorna il diario.** Nel file di oggi in `docs/research/giornate/`, aggiungi **in fondo** una
-   nuova sezione *"Dove eravamo"* con l'ora di riaccensione, la taratura usata e lo stato del
-   mercato. **In fondo e non in cima:** `giro_orizzonte.py` prende l'**ultima** sezione che
-   combacia, quindi una nuova scritta in cima non verrebbe mai letta.
+4. **Avvia il processo in background** — non come `Monitor`: non deve interrompere niente, deve
+   solo esserci.
 
-6. **Riporta in tre righe**: quali sorveglianti hai acceso, con quale taratura, e cosa e'
-   successo sul mercato mentre erano spenti — quello e' il buco che chi opera non ha visto.
+   ```bash
+   python3 FabioOrderFlow/tools/livelli_vivi.py \
+           docs/research/giornate/livelli-vivi-STRUMENTO-AAAA-MM-GG.json --chart STRUMENTO --ogni 30
+   ```
+
+5. **Verifica che sia davvero sul chart**, invece di fidarti dell'avvio:
+
+   ```bash
+   python3 FabioOrderFlow/tools/bridge.py watch --chart STRUMENTO
+   python3 FabioOrderFlow/tools/bridge.py levels --chart STRUMENTO
+   ```
+
+   I livelli devono avere un conteggio. Se e' zero, il processo e' partito e non sta scrivendo:
+   e' il guasto che non grida, perche' sul chart resta quello di prima.
+
+   **Il pannello non si accende e non si verifica cosi': e' l'indicatore.** Se manca, manca
+   l'indicatore sul chart, oppure `Show watch panel` e' spento nelle sue impostazioni.
+
+6. **Riferisci in una riga**: quanti livelli ci sono e l'ora di mercato **in italiano**.

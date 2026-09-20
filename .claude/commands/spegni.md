@@ -1,36 +1,41 @@
 ---
-description: Spegne tutti i sorveglianti del tape e lo verifica
+description: Spegne il contesto vivo e ogni residuo della vecchia sorveglianza, e lo verifica
 ---
 
-**Spegni tutta la sorveglianza, adesso, e dimostra che e' spenta.**
+**Spegni tutto, adesso, e dimostra che e' spento.** Nessuna conferma: l'utente l'ha gia' data
+scrivendo il comando.
 
-Esegui questi passi **nell'ordine**, senza chiedere conferma: l'utente l'ha gia' data scrivendo
-il comando.
+1. **Ferma ogni task in esecuzione.** Chiama `TaskStop` su **ognuno** dei processi in background
+   ancora vivi in questa sessione — `livelli_vivi.py --ogni` in primo luogo, e qualunque residuo dei
+   sorveglianti della fase chiusa (`scenari.py`, `sveglia_tape.py`, `sveglia_movimento.py`,
+   `permesso_di_fatto.py`). Se non sei sicuro di quali siano attivi, guarda i `task-id` delle
+   notifiche recenti: **uno dimenticato continua a scrivere sul chart**.
 
-1. **Ferma ogni task in esecuzione.** Chiama `TaskStop` su **ognuno** dei monitor e dei comandi in
-   background ancora vivi in questa sessione — scenari, sveglia del tape, sveglia del movimento,
-   permesso di fatto, e qualunque altro. Se non sei sicuro di quali siano attivi, guarda i
-   `task-id` delle notifiche recenti: **uno dimenticato continua a suonare**.
-
-2. **Uccidi gli orfani.** Poi lancia:
+2. **Uccidi gli orfani.** Un task puo' morire lasciando vivo il processo python che alimentava, e
+   un `livelli_vivi.py` orfano continua a riscrivere i livelli mentre l'agente crede di averlo
+   spento — cioe' il chart si muove e nessuno sa chi lo muove.
 
    ```bash
    bash FabioOrderFlow/tools/spegni_sorveglianti.sh
    ```
 
-   Un monitor puo' morire lasciando vivo il processo python che alimentava. Uno `sveglia_tape.py`
-   orfano continua a interrogare il bridge e a far suonare notifiche che nessuno legge, e al
-   riarmo successivo gli avvisi arrivano doppi. Lo script stampa cosa trova, lo uccide e
-   **ricontrolla**: se esce con 1, qualcosa e' ancora vivo e va detto, non nascosto.
+3. **Verifica, non dedurre.** Controlla che non resti nessun processo:
 
-3. **Aggiorna il diario.** Nel file di oggi in `docs/research/giornate/`, riscrivi la sezione
-   **"Dove eravamo"** con lo stato al momento dello spegnimento: prezzo, cosa stava facendo il
-   mercato, cosa era scattato, ed esplicitamente che **i sorveglianti sono spenti e da che ora**.
-   Senza questa riga, il prossimo giro d'orizzonte dira' che erano accesi e nessuno se ne
-   accorgera'.
+   ```bash
+   ps aux | grep -E "livelli_vivi|sveglia_|scenari\.py" | grep -v grep
+   ```
 
-4. **Riporta in tre righe**: quali task hai fermato, cosa ha risposto lo script, e lo stato del
-   mercato all'ultimo dato. **Se qualcosa non si e' spento, quella e' la prima riga**, non
-   l'ultima.
+   Nessuna riga = spento. Se ne resta una, **dillo** invece di dichiarare il lavoro finito.
 
-**Non riaccendere niente** e non proporre di farlo. Se l'utente vuole riarmare, lo dira'.
+4. **Decidi cosa lasciare sul chart, e dichiaralo.** Spegnere il processo **non cancella** livelli
+   e pannello: restano l'ultima fotografia, e da quel momento **invecchiano in silenzio** — un
+   livello vivo fermo si disegna esattamente come uno aggiornato.
+
+   Se la sessione e' finita, puliscili:
+
+   ```bash
+   python3 FabioOrderFlow/tools/bridge.py levels --chart STRUMENTO --clear
+   python3 FabioOrderFlow/tools/bridge.py watch  --chart STRUMENTO --clear
+   ```
+
+   Se invece restano apposta, **scrivilo nella risposta**, con l'ora dell'ultimo aggiornamento.
