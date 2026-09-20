@@ -38,11 +38,16 @@ in quel percorso, non che lo script sia sbagliato.
 
 ## Cosa Va Rifatto A Mano, Perche' Non Puo' Viaggiare
 
-- **La memoria dell'agente.** Si copia la cartella `memory/` da
-  `~/.claude/projects/<vecchio-percorso>/memory/` a
-  `~/.claude/projects/<nuovo-percorso>/memory/`. Il nome della cartella e' derivato dal percorso
-  del progetto, quindi sulla macchina nuova e' diverso: si guarda quale esiste dopo aver aperto
-  l'agente una volta nel repo.
+- **La memoria dell'agente.** Non si copia a mano: il contenuto e' versionato in
+  `docs/research/memoria-di-orientamento/` e si installa con un comando, che trova da solo la
+  cartella giusta sulla macchina in uso.
+
+  ```bash
+  python3 FabioOrderFlow/tools/semina_memoria.py
+  ```
+
+  Va lanciato **dopo** aver aperto l'agente una volta nel repo, cosi' la cartella di progetto
+  esiste gia' e non va indovinata.
 - **`.mcp.json`.** Punta all'installazione locale di `playwright-mcp`. Va reinstallato e il
   percorso riscritto: non si puo' sapere in anticipo dove finira' `npm` sulla macchina nuova.
 - **I file di stato locali**, tutti nella home e tutti rigenerabili: `~/.fabio-data-bridge.json`
@@ -66,6 +71,12 @@ in quel percorso, non che lo script sia sbagliato.
    sistemato, perche' quella notifica e' l'unica che si vede **senza guardare**.
 4. **Il bridge.** `python3 FabioOrderFlow/tools/bridge.py health --chart NQZ6`. Su Windows il
    comando potrebbe essere `python` invece di `python3`.
+5. **Che il giro d'orizzonte esca intero**, tutte e nove le sezioni. Su Windows la console e'
+   `cp1252` e il primo carattere di cornice faceva morire `giro_orizzonte.py` con
+   `UnicodeEncodeError`: all'agente arrivava un traceback invece del contesto — **e una risposta
+   esce lo stesso, costruita a memoria, senza che si veda**. Difeso in due punti (il programma
+   riconfigura il proprio stdout, l'hook esporta `PYTHONUTF8=1`), ma e' il tipo di guasto che non
+   grida: si controlla guardando che le sezioni ci siano davvero.
 
 ## Perche' Il Repo Si E' Spostato
 

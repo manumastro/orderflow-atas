@@ -228,3 +228,15 @@
             cui nascono le regole - e' ora in docs/research/come-lavora-l-utente.md, linkato
             dall'obbligo di lettura. In memoria resta un solo puntatore che dice di non tenerci
             contesto: non viaggia fra macchine e non si accorge quando diverge dal repo.
+2026-09-20  DUE GUASTI TROVATI DALL'AGENTE SU WINDOWS, entrambi silenziosi. (1) giro_orizzonte.py
+            moriva sul primo carattere di cornice: console cp1252, UnicodeEncodeError, e all'agente
+            arrivava un traceback invece del contesto - ma la risposta usciva lo stesso, costruita
+            a memoria, senza che si vedesse. Difeso in due punti: il programma riconfigura il
+            proprio stdout (serve perche' CLAUDE.md dice di lanciarlo a mano quando il blocco
+            manca) e l'hook esporta PYTHONUTF8. (2) La memoria di orientamento scritta ieri sul Mac
+            non poteva arrivare, e il repo conteneva un'istruzione ORMAI SBAGLIATA che diceva di
+            tenerla vuota - quindi l'agente su Windows ha fatto la cosa giusta rispetto a
+            istruzioni vecchie. Corretto: il contenuto e' versionato in
+            docs/research/memoria-di-orientamento/ e si installa con tools/semina_memoria.py, che
+            trova da solo la cartella di memoria della macchina. Resta fermo che in memoria va solo
+            l'orientamento, non le regole.

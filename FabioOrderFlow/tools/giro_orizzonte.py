@@ -29,6 +29,17 @@ import subprocess
 import sys
 from pathlib import Path
 
+# Su Windows lo stdout di una console non e' UTF-8 (cp1252 di default), e il primo carattere di
+# cornice — U+2500 — fa morire il programma con UnicodeEncodeError. Il danno non e' il crash: e'
+# che l'hook consegna all'agente un traceback al posto del contesto, e **una risposta esce lo
+# stesso**, costruita a memoria, senza che nessuno veda che il giro non e' mai arrivato.
+#
+# Si difende qui e non solo nell'hook perche' CLAUDE.md dice di lanciare questo comando a mano
+# quando il blocco manca: un programma che funziona solo se chiamato dal suo hook non e' difeso.
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
 HERE = Path(__file__).resolve().parent
 BRIDGE = HERE / "bridge.py"
 GIORNATE = HERE.parent.parent / "docs" / "research" / "giornate"

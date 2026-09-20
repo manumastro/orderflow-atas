@@ -25,6 +25,13 @@ cd "$CLAUDE_PROJECT_DIR" || exit 0
 # registrato, giro_orizzonte.py lo dichiara e chiede quale.
 
 # La porta la annuncia il bridge nel file di discovery; 8787 e' solo il ripiego.
+# Su Windows la console e' cp1252 e il primo carattere di cornice fa morire Python con
+# UnicodeEncodeError: all'agente arriva un traceback invece del contesto, e la risposta esce lo
+# stesso costruita a memoria. giro_orizzonte.py si difende anche da solo, ma questo copre ogni
+# altro script python lanciato da qui.
+export PYTHONUTF8=1
+export PYTHONIOENCODING=utf-8
+
 PORTA=$(python3 -c "import json,os;print(json.load(open(os.path.expanduser('~/.fabio-data-bridge.json')))['port'])" 2>/dev/null || echo 8787)
 
 # Se il bridge non risponde subito, non ha senso aspettare: si dice e si passa oltre.

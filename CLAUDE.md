@@ -398,6 +398,13 @@ non si riavvia ATAS, sul chart resta la versione precedente — **e non e' disti
 un pull che non ha funzionato.** Non porta nemmeno la **memoria dell'agente**, che vive in
 `~/.claude/projects/<percorso>/memory/`, fuori dal repo.
 
+**La memoria di orientamento si installa, non si scrive a mano.** Il contenuto e' versionato in
+`docs/research/memoria-di-orientamento/` e si deposita con
+`python3 FabioOrderFlow/tools/semina_memoria.py`, che trova da solo la cartella di memoria della
+macchina in uso. In memoria va **solo l'orientamento** — dove siamo, come ci siamo arrivati: le
+regole stanno qui e nei documenti, e una memoria che le duplica prima o poi diverge senza
+accorgersene. E' gia' successo: due voci su undici dicevano il contrario di questo file.
+
 Su una macchina nuova, la sequenza completa e cosa va rifatto a mano stanno in
 [`portare-il-repo-su-un-altra-macchina.md`](docs/research/portare-il-repo-su-un-altra-macchina.md).
 

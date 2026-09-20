@@ -1,0 +1,3 @@
+- [Dove siamo](dove-siamo.md) — lo stato del lavoro a settembre 2026: NQ e solo NQ, lettura discrezionale dal vivo, 6 trascrizioni su 20, il trasloco su Windows in corso
+- [La storia del progetto](la-storia-del-progetto.md) — le fasi da luglio a settembre e perche' ciascuna e' finita: serve a non riaprire una strada gia' chiusa
+- [Il contesto sta nel repo](il-contesto-sta-nel-repo.md) — la divisione: qui l'orientamento, nel repo le regole; e perche' una memoria che diverge non se ne accorge
