@@ -181,6 +181,12 @@ public sealed class DataBridge : Indicator
     [Range(0, 400)]
     public int WatchMargin { get; set; } = 12;
 
+    [Display(Name = "Price axis padding", GroupName = "Levels",
+        Description = "Pixel in piu' oltre la larghezza misurata della scala dei prezzi. " +
+                      "Alzalo se etichette o pannello finiscono ancora sopra i numeri dell'asse.")]
+    [Range(0, 200)]
+    public int PriceAxisPadding { get; set; } = 10;
+
     protected override void OnCalculate(int bar, decimal value)
     {
     }
@@ -897,27 +903,47 @@ public sealed class DataBridge : Indicator
     /// della scala. Usato sia dai livelli sia dal pannello: era duplicato e i due potevano
     /// divergere - il pannello lo aveva saltato ed e' finito dietro la sidebar (19 settembre).
     /// </summary>
-    private int DataAreaRight(Rectangle area)
+    /// <summary>
+    /// Il bordo destro dell'area dei dati: dove finisce il disegno e comincia la scala dei prezzi.
+    /// Serve a righe, etichette e pannello, e deve avere **due** proprieta' insieme, che il
+    /// 20 settembre 2026 sono state sbagliate una per volta:
+    ///
+    ///   fisso          ancorarlo all'ultima barra visibile fa scorrere righe e pannello ogni
+    ///                  volta che si trascina il grafico, e il pannello lascia il suo angolo.
+    ///   dentro i dati  `ChartArea` e `ChartContainer.Region` arrivano **oltre** l'asse dei
+    ///                  prezzi: ancorarsi al loro bordo mette le etichette sopra i numeri.
+    ///
+    /// L'API di ATAS X non espone la larghezza dell'asse da nessuna parte - verificato con
+    /// reflection su C:\ATASX: ne' IChart, ne' IChartContainer, ne' IIndicatorContainer. Si
+    /// misura quindi il testo del prezzo col font dell'asse, che e' esattamente cio' che l'asse
+    /// disegna. Dipende dall'ordine di grandezza del prezzo, non da quante barre si vedono:
+    /// resta fermo mentre si trascina, che e' la proprieta' che serve.
+    /// </summary>
+    private int DataAreaRight(RenderContext context, Rectangle area)
     {
-        var dataRight = area.Right;
         try
         {
-            var container = ChartInfo?.PriceChartContainer;
-            if (container is not null)
+            if (ChartInfo is { HidePriceAxis: false } chart)
             {
-                var lastBarX = ChartInfo!.GetXByBar(container.LastVisibleBarNumber, false);
-                if (lastBarX > area.Left)
+                // Il massimo visibile e' il prezzo piu' largo che l'asse dovra' scrivere.
+                var widest = chart.PriceChartContainer?.High ?? 0m;
+                var text = widest.ToString(
+                    string.IsNullOrWhiteSpace(chart.StringFormat) ? "0.##" : chart.StringFormat,
+                    CultureInfo.InvariantCulture);
+                var axis = context.MeasureString(text, chart.PriceAxisFont).Width + PriceAxisPadding;
+                var right = area.Right - axis;
+                if (right > area.Left)
                 {
-                    dataRight = Math.Min(dataRight, lastBarX);
+                    return right;
                 }
             }
         }
         catch
         {
-            // Se il container non e' pronto si resta sul bordo dell'area: peggio l'etichetta
-            // spostata che niente disegnato.
+            // Se il font o il container non sono pronti si resta sul bordo dell'area: peggio
+            // l'etichetta spostata che niente disegnato.
         }
-        return dataRight;
+        return area.Right;
     }
 
     /// <summary>
@@ -956,7 +982,7 @@ public sealed class DataBridge : Indicator
         // l'etichetta a area.Right la fa finire sotto i numeri dell'asse. L'ultima barra
         // visibile e' dentro l'area dei dati per costruzione, quindi la sua X e' un bordo
         // destro sicuro qualunque sia la larghezza dell'asse.
-        var dataRight = DataAreaRight(area);
+        var dataRight = DataAreaRight(context, area);
 
         var mouse = MouseLocationInfo is { IsMouseLeave: false } info ? info.LastPosition : (Point?)null;
         (string Text, Color Color, Point At)? tooltip = null;
@@ -1035,7 +1061,7 @@ public sealed class DataBridge : Indicator
         }
 
         var area = ChartArea;
-        var dataRight = DataAreaRight(area);
+        var dataRight = DataAreaRight(context, area);
         var font = new RenderFont("Arial", WatchFontSize);
 
         var widest = 0;

@@ -276,3 +276,19 @@
             bridge.
             REGOLA: su Windows nessun open() di testo senza encoding esplicito. Il default non e'
             UTF-8 e non lo diventa, e il modo in cui fallisce e' peggiore di un errore.
+
+2026-09-20  IL BORDO DESTRO DEL DISEGNO, SBAGLIATO IN DUE MODI DIVERSI. Il pannello scivolava
+            trascinando il grafico e le righe partivano dall'ultima candela all'indietro, perche'
+            DataAreaRight ancorava il bordo alla X dell'ULTIMA BARRA VISIBILE: si sposta a ogni
+            pan. Primo tentativo con ChartContainer.Region: sbagliato al contrario, Region arriva
+            OLTRE l'asse dei prezzi e le etichette finivano sopra i numeri.
+            L'API di ATAS X non espone la larghezza dell'asse da nessuna parte - verificato con
+            reflection su C:\ATASX: ne' IChart, ne' IChartContainer, ne' IIndicatorContainer.
+            Si misura quindi il testo del prezzo piu' alto visibile col font dell'asse
+            (ChartInfo.PriceAxisFont, formato ChartInfo.StringFormat): dipende dall'ordine di
+            grandezza del prezzo, non dalle barre, quindi resta fermo mentre si trascina.
+            Aggiunta l'impostazione "Price axis padding" (gruppo Levels, default 10 px) per
+            correggere a occhio senza ricompilare. Verificato dall'utente sul chart: righe corte
+            al bordo destro, pannello fisso in alto a destra, niente sopra l'asse.
+            REGOLA: ChartArea e ChartContainer.Region comprendono l'asse dei prezzi. Chi disegna
+            vicino al bordo destro passa da DataAreaRight, non da area.Right.
