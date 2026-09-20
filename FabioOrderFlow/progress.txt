@@ -692,3 +692,25 @@ da un motore che ha smesso di funzionare - mentre il motore stava risolvendo
 dodici livelli a ogni barra. E' la stessa famiglia del livello vivo fermo: non
 il guasto, ma il guasto che si presenta come assenza.
 
+
+--- 20 settembre 2026 — il pannello si alleggerisce --------------------------
+
+Richiesta dell'utente: "regole e non sul chart non le vedo troppo utili, le
+toglierei". Tolti dal pannello il conteggio delle regole, la legenda dei
+marcatori e l'elenco di cio' che non e' stato disegnato. La ragione regge:
+nessuna delle tre serve a DECIDERE mentre il prezzo si muove, e un pannello che
+elenca tutto costringe a cercare proprio nel momento peggiore.
+
+NON SONO SPARITE, SI SONO SPOSTATE. Il giro d'orizzonte ha una sezione 6ter
+nuova che stampa livelli disegnati, regole totali, ora del ricalcolo e l'elenco
+completo degli skipped. Cosi' l'informazione sta in mano all'agente invece che
+davanti agli occhi di chi opera. Toglierla dallo schermo e' leggibilita';
+perderla sarebbe stata un'altra cosa, e i motivi degli skipped sono spesso IL
+fatto - due livelli a meno di otto punti vogliono dire che due letture
+indipendenti indicano lo stesso posto.
+
+UNA RIGA E' RIMASTA, e si vede solo quando c'e' da vederla:
+  LIVELLI FERMI DA 4 BARRE — ultimo ricalcolo 15:55
+In condizioni normali non stampa niente. Non si toglie per fare spazio: un
+pannello fermo e' indistinguibile da uno aggiornato, ed e' il guasto del livello
+vivo che tutto questo impianto e' nato per chiudere.

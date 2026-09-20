@@ -231,28 +231,38 @@ niente. Meglio dire che il controllo e' passato a mano, che vederlo tornare indi
 
 ---
 
-## Cosa Dice Il Pannello
+## Cosa Dice Il Pannello, E Cosa Dice Il Giro
+
+**Il pannello non elenca piu' le regole.** Fino al 20 settembre 2026 stampava quante ne erano
+state risolte, la legenda dei marcatori e l'elenco di quelle che non avevano prodotto una riga.
+Tolto su richiesta dell'utente: sul chart era ingombro e non serviva a decidere.
+
+Quell'informazione **non e' andata persa**, e' cambiata di posto. Sta su `/rules`, la stampa
+`bridge.py rules`, e il giro d'orizzonte la mette alla sezione **6ter**:
 
 ```text
-REGOLE     7 livelli da 15 regole, barra 15:00
-           ~ si muove    = misurato, fermo    * dichiarato a mano
-NON SUL CHART  2 regole, e non sono un guasto:
-           - POC cash: finestra ancora vuota
-           - POC Europa 29.198,00: a 3,00 punti da «POC cash», che e' dichiarato prima (stacco minimo 8)
+6ter. I LIVELLI SUL CHART, E COSA NON C'E'
+  11 livelli disegnati da 15 regole, ricalcolati alla barra 15:20Z
+  5 regole non hanno prodotto una riga, e non sono un guasto:
+    - VAH cash: invalidazione a 4 punti, sotto i 10 richiesti
+    - max cash 29.379,00: a 4,00 punti da «VAH cash», che e' dichiarato prima (stacco minimo 8)
 ```
 
-L'eta' si dichiara **anche adesso che il motore non puo' morire da solo**: un'eccezione dentro il
-ricalcolo produrrebbe lo stesso inganno, in silenzio. Se il ricalcolo resta indietro di piu' di
-una barra, la riga diventa ambra e lo scrive.
+**Sono contesto, non diagnostica**, e la riga lo dice. *"POC cash: finestra ancora vuota"* vuol
+dire che la cash non e' aperta. E il caso piu' frequente — due livelli a meno di otto punti — e'
+proprio il fatto che conta: **due letture indipendenti indicano lo stesso posto**. Il motivo
+nomina chi ha vinto, non solo il prezzo: scritto *"coincide con 29.172,00"*, come era fino al
+20 settembre, obbligava a cercarsi a mano quale livello fosse quel prezzo.
 
-Le regole che non hanno prodotto un livello sono **contesto, non diagnostica**: *"POC cash:
-finestra ancora vuota"* dice che la cash non e' aperta. Senza quella riga si nota soltanto che una
-riga attesa non c'e' — e per questo la testata dice *"e non sono un guasto"*.
+**Sul pannello e' rimasta una riga sola, e appare solo se serve:**
 
-**Il motivo nomina chi ha vinto, non solo il prezzo.** Il caso piu' frequente e' due livelli a
-meno di otto punti, e li' il fatto che conta e' proprio quello: due letture indipendenti che
-indicano lo stesso posto. Scritto *"coincide con 29.172,00"*, come era fino al 20 settembre,
-obbligava a cercarsi a mano quale livello fosse quel prezzo.
+```text
+LIVELLI FERMI DA 4 BARRE — ultimo ricalcolo 15:55
+```
+
+Non si toglie per fare spazio. Un pannello fermo e' indistinguibile da uno aggiornato — e' il
+guasto del livello vivo — e il motore, pur non potendo morire da solo, produrrebbe lo stesso
+inganno se un'eccezione entrasse nel ricalcolo.
 
 ---
 

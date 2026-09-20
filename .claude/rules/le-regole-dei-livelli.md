@@ -27,9 +27,10 @@ python3 FabioOrderFlow/tools/bridge.py rules --chart NQZ6 --file <questo file>
   regola centrale; **non ha lo stacco minimo** dell'invalidazione, perche' il break even e' vicino
   apposta. Quando manca, il pannello scrive `pareggio NON DICHIARATO`: e' un promemoria, non un
   guasto.
-- **Leggi sempre cosa il deposito dice di non aver disegnato** (`skipped`, e il blocco
-  `NON SUL CHART` del pannello): e' contesto, non diagnostica. Il caso piu' frequente e' due
-  livelli a meno di otto punti, e li' il fatto che conta e' proprio quello — due letture diverse
+- **Leggi sempre cosa il deposito dice di non aver disegnato** (`skipped`, e la sezione 6ter del
+  giro): e' contesto, non diagnostica. **Il pannello non lo mostra piu'** — era ingombro sul
+  chart — quindi se non lo leggi da li' non lo vede nessuno. Il caso piu' frequente e' due livelli
+  a meno di otto punti, e li' il fatto che conta e' proprio quello: due letture indipendenti
   indicano lo stesso posto.
 - **Non lanciare `livelli_vivi.py`**: e' ritirato, deposita su `/levels`, e un POST li' spegne le
   regole.

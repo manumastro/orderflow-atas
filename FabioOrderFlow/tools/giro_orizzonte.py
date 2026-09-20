@@ -327,6 +327,28 @@ def main() -> int:
             print(f"  BIG TRADE  {b['quanti']} da {b['soglia']}+ lotti nelle ultime "
                   f"{b['finestraBarre']} barre, netto {netto}")
 
+    # 6ter ----------------------------------------------------------------- i livelli
+    # QUESTA SEZIONE ESISTE PERCHE' IL PANNELLO NON LO DICE PIU'. Il 20 settembre 2026 il blocco
+    # "REGOLE" e quello "NON SUL CHART" sono usciti dal pannello: sul grafico erano ingombro e
+    # non servivano a decidere. Servono pero' a chi legge il contesto, e allora si spostano qui
+    # invece di sparire - toglierli dallo schermo e' una scelta di leggibilita', perderli no.
+    titolo("6ter", "I LIVELLI SUL CHART, E COSA NON C'E'")
+    rl = bridge("rules")
+    if not rl:
+        print("  il bridge non risponde su /rules")
+    else:
+        print(f"  {rl.get('levels')} livelli disegnati da {rl.get('count')} regole, "
+              f"ricalcolati alla barra {rl.get('resolvedAtMarketTime', '?')[11:16]}Z")
+        saltate = rl.get("skipped") or []
+        if not saltate:
+            print("  ogni regola ha prodotto il suo livello")
+        else:
+            # Non e' diagnostica: due livelli a meno di otto punti vogliono dire che due letture
+            # indipendenti indicano lo stesso posto, ed e' il fatto che conta.
+            print(f"  {len(saltate)} regole non hanno prodotto una riga, e non sono un guasto:")
+            for motivo in saltate:
+                print(f"    - {motivo}")
+
     # 7 ------------------------------------------------------------------- il tape
     titolo(7, "IL TAPE RECENTE")
     # la finestra e' la seduta globex in corso: dalle 22:00 CEST di ieri, cioe' 20:00Z.

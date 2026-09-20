@@ -1615,44 +1615,31 @@ public sealed partial class DataBridge : Indicator
                 : bigFinestra == 0 ? PanelAmbra
                 : bigNetto > 0 ? PanelVerde : bigNetto < 0 ? PanelRosso : PanelGrigio));
 
-        // --- CHI TIENE I LIVELLI, E DA QUANDO -----------------------------------------------
-        // Un pannello fermo e' indistinguibile da uno aggiornato, e i livelli non avevano
-        // nessuna difesa: quando il processo esterno moriva, le righe restavano sul chart con
-        // la tilde che prometteva un aggiornamento che non arrivava piu'. Adesso il motore e'
-        // qui dentro e non puo' morire da solo — ma l'eta' si dichiara lo stesso, perche' una
-        // eccezione dentro il ricalcolo produrrebbe esattamente lo stesso inganno in silenzio.
+        // --- L'ALLARME SULL'ETA', E SOLO QUELLO ---------------------------------------------
+        // Qui stavano tre cose: quante regole, la legenda dei marcatori, e l'elenco di cio' che
+        // non era stato disegnato. Tolte il 20 settembre 2026 su richiesta dell'utente: sul chart
+        // erano ingombro, e nessuna delle tre serve a decidere. Vivono dove servono davvero —
+        // `/rules`, `bridge.py rules` e la sezione 6bis del giro d'orizzonte — cioe' in mano
+        // all'agente, non davanti agli occhi di chi opera.
+        //
+        // QUESTA RIGA INVECE RESTA, e si vede solo quando c'e' da vederla. Un pannello fermo e'
+        // indistinguibile da uno aggiornato: era il guasto del livello vivo, e non si ripropone
+        // per fare spazio. Il motore adesso non puo' morire da solo, ma un'eccezione dentro il
+        // ricalcolo produrrebbe lo stesso inganno in silenzio. In condizioni normali non stampa
+        // niente.
         if (_rules.Length > 0)
         {
             var vecchie = _regoleAllaBarra >= 0 && ultimo - _regoleAllaBarra > 1;
-            righe.Add(new RigaPannello(
-                _regoleAllaBarra < 0
-                    ? $"REGOLE     {_rules.Length} regole, nessun ricalcolo ancora"
-                    : $"REGOLE     {livelli.Length} livelli da {_rules.Length} regole, "
-                      + $"barra {OraLocale(_regoleAllOra):HH:mm}"
-                      + (vecchie ? $"  FERME DA {ultimo - _regoleAllaBarra} BARRE" : string.Empty),
-                vecchie || _regoleAllaBarra < 0 ? PanelAmbra : PanelGrigio));
-            righe.Add(new RigaPannello(
-                "           ~ si muove    = misurato, fermo    * dichiarato a mano", PanelGrigio));
-
-            // Le regole che non hanno prodotto una riga sul chart. Non e' diagnostica, e il
-            // titolo lo deve dire: "non disegnato" da solo sembrava un guasto, mentre nel caso
-            // piu' frequente - due livelli a meno di otto punti - e' il fatto che conta, perche'
-            // vuol dire che due letture diverse indicano lo stesso posto.
-            if (_regoleSaltate.Length > 0)
+            if (vecchie)
             {
                 righe.Add(new RigaPannello(
-                    $"NON SUL CHART  {_regoleSaltate.Length} regole, e non sono un guasto:",
-                    PanelGrigio));
-                foreach (var motivo in _regoleSaltate.Take(4))
-                {
-                    righe.Add(new RigaPannello($"           - {motivo}", PanelGrigio));
-                }
-                if (_regoleSaltate.Length > 4)
-                {
-                    righe.Add(new RigaPannello(
-                        $"           - e altre {_regoleSaltate.Length - 4}, tutte su /rules",
-                        PanelGrigio));
-                }
+                    $"LIVELLI FERMI DA {ultimo - _regoleAllaBarra} BARRE — ultimo ricalcolo "
+                    + $"{OraLocale(_regoleAllOra):HH:mm}", PanelAmbra));
+            }
+            else if (_regoleAllaBarra < 0)
+            {
+                righe.Add(new RigaPannello(
+                    $"{_rules.Length} regole depositate, nessun ricalcolo ancora", PanelAmbra));
             }
         }
 

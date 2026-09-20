@@ -79,10 +79,6 @@ REGIME     CHOPPY
            size ridotta, si rubano 1.000-2.000, due stop e si chiude
 VELOCITA'  morta — 718 lotti, 29° percentile su 60 barre  (PROXY, non la speed of tape)
            6 big trade da 60+ lotti in 10 barre, netto -6
-REGOLE     11 livelli da 15 regole, barra 15:59
-           ~ si muove    = misurato, fermo    * dichiarato a mano
-NON SUL CHART  4 regole, e non sono un guasto:
-           - POC Europa 29.198,00: a 3,00 punti da «POC cash», che e' dichiarato prima (stacco minimo 8)
 VALORE     DENTRO cash  29.168,00-29.289,00  POC 29.195,00
            sopra il POC
 IN GIOCO   VAH cash in sviluppo ~   29.289,00
@@ -162,6 +158,33 @@ rifarla a mano a ogni messaggio:
 ```bash
 python3 FabioOrderFlow/tools/bridge.py regime --chart NQZ6
 ```
+
+### 0bis. Cosa Il Pannello NON Dice Piu', E Dove E' Finito
+
+**Il 20 settembre 2026 sono usciti dal pannello il conteggio delle regole, la legenda dei
+marcatori e l'elenco di cio' che non e' stato disegnato.** Decisione dell'utente, e la ragione
+regge: sul chart erano ingombro, e **nessuna delle tre serve a decidere** mentre il prezzo si
+muove. Un pannello che elenca tutto costringe a cercare, e si cerca male proprio in quel momento.
+
+**Non sono spariti: si sono spostati dove servono davvero.** Vivono su `/rules`, li stampa
+`bridge.py rules`, e il giro d'orizzonte li mette alla **sezione 6ter** — cioe' in mano
+all'agente, non davanti agli occhi di chi opera. Toglierli dallo schermo e' una scelta di
+leggibilita'; perderli sarebbe stato un'altra cosa.
+
+**Una riga di quel blocco e' rimasta, e si vede solo quando c'e' da vederla:**
+
+```text
+LIVELLI FERMI DA 4 BARRE — ultimo ricalcolo 15:55
+```
+
+In condizioni normali non stampa niente. **Non si toglie per fare spazio**, perche' un pannello
+fermo e' indistinguibile da uno aggiornato, ed e' esattamente il guasto del livello vivo che
+questo impianto e' nato per chiudere. Il motore adesso non puo' morire da solo, ma un'eccezione
+dentro il ricalcolo produrrebbe lo stesso inganno in silenzio.
+
+I tre marcatori restano sulle etichette dei livelli — `~` si muove, `=` misurato e fermo, `*`
+dichiarato a mano — e la legenda sta in
+[`i-livelli-li-calcola-l-indicatore.md`](i-livelli-li-calcola-l-indicatore.md).
 
 ### 1. `VALORE` — dentro o fuori, e di quale
 
