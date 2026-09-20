@@ -78,7 +78,7 @@ def candele(args) -> list[dict]:
         cmd += ["--chart", args.chart]
     subprocess.run(cmd, check=True, timeout=45,
                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    return json.load(open(args.cache))["candles"]
+    return json.load(open(args.cache, encoding="utf-8"))["candles"]
 
 
 def riassunto(barre: list[dict], minuti: int) -> tuple[int, int]:

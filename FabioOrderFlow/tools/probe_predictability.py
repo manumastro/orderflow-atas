@@ -49,7 +49,7 @@ def value_area(volume_by_price: dict[float, int], percent: float = 70.0):
 
 def session_levels(path: str):
     volume: dict[float, int] = {}
-    for bar in json.load(open(path))["candles"]:
+    for bar in json.load(open(path, encoding="utf-8"))["candles"]:
         for level in bar.get("levels", []):
             volume[level["price"]] = volume.get(level["price"], 0) + level["volume"]
     return value_area(volume)
@@ -68,8 +68,8 @@ def barrier(tape, times, start, price, points):
 
 
 def observe(candles_path, tape_path, previous_path, window, points, big_size):
-    bars = json.load(open(candles_path))["candles"]
-    raw = json.load(open(tape_path))
+    bars = json.load(open(candles_path, encoding="utf-8"))["candles"]
+    raw = json.load(open(tape_path, encoding="utf-8"))
     tape = [(parse(t[0]), t[1], t[2], t[3], t[4]) for t in raw["trades"]]
     times = [t[0] for t in tape]
     if not tape:
@@ -178,7 +178,7 @@ def main() -> None:
         rows += observe(candles, tape, days[k - 1][0] if k else None, window, args.barrier, args.big_trade)
 
     if args.out:
-        with open(args.out, "w") as fh:
+        with open(args.out, "w", encoding="utf-8") as fh:
             for row in rows:
                 fh.write(json.dumps(row) + "\n")
 

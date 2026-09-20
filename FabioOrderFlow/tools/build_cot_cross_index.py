@@ -45,7 +45,7 @@ def load(raw_dir):
         if not path.exists():
             print(f"manca {path}", file=sys.stderr)
             continue
-        payload = json.loads(path.read_text())
+        payload = json.loads(path.read_text(encoding="utf-8"))
         rows = {}
         for bucket, key in (("net", "net"), ("long", "long"), ("short", "short")):
             for row in payload[bucket]:
@@ -202,7 +202,7 @@ def main():
 
     fields = ["date", "market", "nc_long", "nc_short", "nc_net",
               "d_long", "d_short", "d_net", "skew_ratio", "close"]
-    with out_csv.open("w", newline="") as fh:
+    with out_csv.open("w", newline="", encoding="utf-8") as fh:
         writer = csv.DictWriter(fh, fieldnames=fields, extrasaction="ignore")
         writer.writeheader()
         writer.writerows(table)

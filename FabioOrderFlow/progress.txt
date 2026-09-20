@@ -262,3 +262,17 @@
             client riporta come CONNECTION_CLOSED, identico a un server che muore).
             Verificati: giro d'orizzonte intero con le nove sezioni anche lanciato a mano,
             bridge health OK su NQZ6, memoria di orientamento installata (4 file).
+
+2026-09-20  TERZO GUASTO SILENZIOSO DI CODIFICA, questa volta sulle ETICHETTE DEL CHART. Dopo il
+            riavvio di ATAS i livelli mostravano "Â·" al posto di "·": non un errore, un carattere
+            sbagliato su ogni etichetta. Il file sorgente era UTF-8 corretto e json.dumps escapa in
+            ASCII, quindi il guasto era in LETTURA: Path.read_text() e open() senza encoding usano
+            il locale, che su Windows e' cp1252, e i due byte di "·" diventano due caratteri. Stessa
+            famiglia del bug di giro_orizzonte.py, ma in un punto dove non si schianta: si vede solo
+            guardando il chart, e sembra un problema di font.
+            Aggiunto encoding="utf-8" a tutte le letture e scritture di testo in FabioOrderFlow/
+            tools/ (17 file toccati fra read_text, write_text e open). Verificato ridepositando
+            livelli-vivi-NQZ6-2026-09-14.json: 9 livelli sul chart, zero mojibake al ritorno dal
+            bridge.
+            REGOLA: su Windows nessun open() di testo senza encoding esplicito. Il default non e'
+            UTF-8 e non lo diventa, e il modo in cui fallisce e' peggiore di un errore.

@@ -105,14 +105,14 @@ def main() -> None:
     if (args.range is None) == (args.minutes is None):
         raise SystemExit("serve --range oppure --minutes, non entrambi")
 
-    raw = json.load(open(args.tape))
+    raw = json.load(open(args.tape, encoding="utf-8"))
     if not raw.get("compact"):
         raise SystemExit("il tape va scaricato con --compact")
     trades = [(parse(t[0]), t[1], t[2], t[3], t[4]) for t in raw["trades"]]
     bars = build(trades, args.range, args.minutes)
     json.dump({"schema": "fof-bars-from-tape-v1", "count": len(bars),
                "source": args.tape, "range": args.range, "minutes": args.minutes,
-               "candles": bars}, open(args.out, "w"))
+               "candles": bars}, open(args.out, "w", encoding="utf-8"))
     print(f"{len(bars)} barre -> {args.out}")
 
 

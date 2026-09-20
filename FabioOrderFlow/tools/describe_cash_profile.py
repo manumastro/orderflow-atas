@@ -57,7 +57,7 @@ def main():
           f"{'high':>9s}{'low':>9s}{'open':>9s}{'close':>9s}")
     previous = None
     for path in sorted(sys.argv[1:]):
-        payload = json.loads(Path(path).read_text())
+        payload = json.loads(Path(path).read_text(encoding="utf-8"))
         candles = payload["candles"]
         if not candles:
             continue

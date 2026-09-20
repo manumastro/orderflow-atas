@@ -256,7 +256,7 @@ def giro(base: str, args) -> list[dict]:
     print(f"chart {salute['chart']} {salute['instrument']} {salute['timeFrame']} — ora di mercato {bridge.iso(adesso)}")
 
     # si rilegge a ogni giro: correggere una definizione non deve richiedere un riavvio
-    definizioni = json.loads(Path(args.definizione).read_text())
+    definizioni = json.loads(Path(args.definizione).read_text(encoding="utf-8"))
     cache: dict = {}
     livelli = []
     for d in definizioni:
@@ -269,7 +269,7 @@ def giro(base: str, args) -> list[dict]:
         print(f"  {l['price']:>10,.2f}  {l['label']}")
 
     if args.out:
-        Path(args.out).write_text(json.dumps(livelli, indent=2, ensure_ascii=False) + "\n")
+        Path(args.out).write_text(json.dumps(livelli, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
         print(f"scritto {args.out}")
 
     if args.prova:

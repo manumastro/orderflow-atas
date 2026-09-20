@@ -569,8 +569,8 @@ def main() -> None:
     ABSORPTION = args.absorption
     PACE_RANGE = tuple(float(x) for x in args.pace.split(",")) if args.pace else None
 
-    bars = json.load(open(args.candles))["candles"]
-    raw = json.load(open(args.tape))
+    bars = json.load(open(args.candles, encoding="utf-8"))["candles"]
+    raw = json.load(open(args.tape, encoding="utf-8"))
     if not raw.get("compact"):
         raise SystemExit("il tape va scaricato con --compact")
     tape = [(parse(t[0]), t[1], t[2], t[3], t[4]) for t in raw["trades"]]
@@ -581,7 +581,7 @@ def main() -> None:
 
     levels = []
     for path in args.levels_from:
-        previous = json.load(open(path))["candles"]
+        previous = json.load(open(path, encoding="utf-8"))["candles"]
         volume: dict[float, int] = {}
         for bar in previous:
             for level in bar.get("levels", []):

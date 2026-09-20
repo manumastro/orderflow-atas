@@ -28,7 +28,7 @@ def avvisa(riga: str, titolo: str = "tape", suono: str = "Submarine") -> None:
     sarebbe peggio di un avviso mancato."""
     ora = dt.datetime.now().strftime("%H:%M:%S")
     try:
-        with LOG.open("a") as f:
+        with LOG.open("a", encoding="utf-8") as f:
             f.write(f"{ora}  {riga}\n")
     except Exception:
         pass

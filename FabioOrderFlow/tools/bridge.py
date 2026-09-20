@@ -71,7 +71,7 @@ def discover(explicit: str | None) -> str:
         return explicit.rstrip("/")
 
     try:
-        with open(DISCOVERY) as handle:
+        with open(DISCOVERY, encoding="utf-8") as handle:
             port = json.load(handle)["port"]
         if probe(port):
             return f"http://127.0.0.1:{port}"
@@ -298,7 +298,7 @@ def main() -> None:
             payload = send(args.base, "/watch", "DELETE", {"chart": args.chart})
         elif args.set or args.file:
             if args.file:
-                body = json.load(sys.stdin) if args.file == "-" else json.load(open(args.file))
+                body = json.load(sys.stdin) if args.file == "-" else json.load(open(args.file, encoding="utf-8"))
             else:
                 body = [parse_watch_line(x) for x in args.set]
             payload = send(args.base, "/watch", "POST", {"chart": args.chart}, body)
@@ -311,7 +311,7 @@ def main() -> None:
             if args.file:
                 # `-` legge da stdin, cosi' un altro processo puo' spingere una lista
                 # costruita al volo senza passare da un file temporaneo.
-                body = json.load(sys.stdin) if args.file == "-" else json.load(open(args.file))
+                body = json.load(sys.stdin) if args.file == "-" else json.load(open(args.file, encoding="utf-8"))
             else:
                 body = [parse_level(x) for x in args.set]
             payload = send(args.base, "/levels", "POST", {"chart": args.chart}, body)
@@ -367,7 +367,7 @@ def main() -> None:
 
     text = json.dumps(payload, indent=2)
     if args.out:
-        with open(args.out, "w") as handle:
+        with open(args.out, "w", encoding="utf-8") as handle:
             handle.write(text)
         size = len(text)
         print(f"scritto {args.out} ({size:,} byte)")

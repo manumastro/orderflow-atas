@@ -157,7 +157,7 @@ def main() -> int:
     if not oggi.exists():
         print(f"  {oggi.name} non esiste: la giornata non e' stata aperta")
     else:
-        t = oggi.read_text()
+        t = oggi.read_text(encoding="utf-8")
         m = re.search(r"^\*\*Stato\*\*.*$|^Stato:.*$", t, re.M)
         if m:
             print(f"  {m.group(0)}")
@@ -182,7 +182,7 @@ def main() -> int:
     titolo(4, f"IL FRAMING DELLA SEDUTA PRECEDENTE (sezione 1 del file) — "
               f"{prec[-1].name if prec else 'assente'}")
     if prec:
-        t = prec[-1].read_text()
+        t = prec[-1].read_text(encoding="utf-8")
         chiavi = ("value area", "poc", "val ", "vah ", "minimo", "massimo", "chiusura", "delta")
         visto = 0
         for r in t.splitlines():
@@ -205,7 +205,7 @@ def main() -> int:
     q, fonte = "", ""
     for f in [oggi] + ([prec[-1]] if prec else []):
         if f and f.exists():
-            m = re.search(r"<!-- QUADRO -->(.*?)<!-- /QUADRO -->", f.read_text(), re.S)
+            m = re.search(r"<!-- QUADRO -->(.*?)<!-- /QUADRO -->", f.read_text(encoding="utf-8"), re.S)
             if m and m.group(1).strip():
                 q, fonte = m.group(1).strip(), f.name
                 break
@@ -226,7 +226,7 @@ def main() -> int:
     if not ann.exists():
         print("  nessuna annotazione")
     else:
-        v = json.load(ann.open())
+        v = json.load(ann.open(encoding="utf-8"))
         v = v if isinstance(v, list) else v.get("annotazioni", [])
         if not v:
             print("  nessuna annotazione")
@@ -241,7 +241,7 @@ def main() -> int:
     if not sc.exists():
         print("  nessuno scenario per oggi")
     else:
-        for s in json.load(sc.open()):
+        for s in json.load(sc.open(encoding="utf-8")):
             print(f"  {s.get('prezzo'):>10}  {s['sigla']:<26} [{s.get('verso','-')}]")
 
     # 7 ------------------------------------------------------------------- il tape

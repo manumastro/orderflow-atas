@@ -28,7 +28,7 @@ from collections import defaultdict
 
 
 def load(path: str):
-    data = json.load(open(path))
+    data = json.load(open(path, encoding="utf-8"))
     return data.get("instrument", path), data["candles"]
 
 
@@ -170,7 +170,7 @@ def main() -> None:
         payload["sessions"] = to_sessions(merged, tuple(args.cash.split("-")))
     else:
         payload["candles"] = merged
-    json.dump(payload, open(args.out, "w"))
+    json.dump(payload, open(args.out, "w", encoding="utf-8"))
 
     for r in payload["rolls"]:
         print(f"roll {r['from']} -> {r['to']} il {r['date']}: spread {r['spread']:+.2f} punti "

@@ -68,7 +68,7 @@ def percorsi(giorno: str) -> tuple[Path, Path]:
 
 
 def leggi(p: Path) -> list:
-    return json.loads(p.read_text()) if p.exists() else []
+    return json.loads(p.read_text(encoding="utf-8")) if p.exists() else []
 
 
 def spingi(livelli: list, chart: str | None) -> None:
@@ -115,7 +115,7 @@ def voci_attese(giorno: str, annotazioni: list, strutturali: list, tol: float = 
     if not f.exists():
         return []
     try:
-        scenari = json.loads(f.read_text())
+        scenari = json.loads(f.read_text(encoding="utf-8"))
     except Exception:
         return []
     fatti = {a.get("scenario") for a in annotazioni if a.get("scenario")}
@@ -255,7 +255,7 @@ def main() -> None:
             print(f"superata: {vecchia['ora']} {vecchia['testo']}")
 
     if not args.ricomponi:
-        p_ann.write_text(json.dumps(annotazioni, ensure_ascii=False, indent=2) + "\n")
+        p_ann.write_text(json.dumps(annotazioni, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     vive = attive(annotazioni)
     attesi = voci_attese(args.giorno, annotazioni, strutturali) if args.con_attesi else []
     # `vive[-0:]` e' TUTTA la lista, non nessuna: con --max 0 il chart si sarebbe riempito

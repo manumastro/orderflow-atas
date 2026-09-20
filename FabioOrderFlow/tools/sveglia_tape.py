@@ -105,7 +105,7 @@ def candele(args) -> list[dict]:
         cmd += ["--chart", args.chart]
     subprocess.run(cmd, check=True, timeout=90,
                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    return json.load(open(args.cache))["candles"]
+    return json.load(open(args.cache, encoding="utf-8"))["candles"]
 
 
 def percentili(barre):
@@ -324,7 +324,7 @@ def main() -> None:
             return bool(l["chiave"])
         return (l.get("width") or 1) >= 2
 
-    tutti = json.load(open(args.livelli))
+    tutti = json.load(open(args.livelli, encoding="utf-8"))
     livelli = sorted(((float(l["price"]), (l.get("label") or "").split(" ·")[0], chiave(l))
                       for l in tutti), key=lambda x: -x[0])
     chiavi = [(p, n) for p, n, k in livelli if k]

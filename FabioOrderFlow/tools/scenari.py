@@ -104,7 +104,7 @@ def candele(args) -> list[dict]:
         cmd += ["--chart", args.chart]
     subprocess.run(cmd, check=True, timeout=90,
                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    return json.load(open(args.cache))["candles"]
+    return json.load(open(args.cache, encoding="utf-8"))["candles"]
 
 
 def minuti(b) -> int:
@@ -286,7 +286,7 @@ def gia_scattati(giorno: str) -> set[tuple[str, str]]:
         return set()
     try:
         return {(a["scenario"], a.get("condizione", ""))
-                for a in json.loads(f.read_text()) if a.get("scenario")}
+                for a in json.loads(f.read_text(encoding="utf-8")) if a.get("scenario")}
     except Exception:
         return set()
 
@@ -391,7 +391,7 @@ def main() -> None:
         salvataggio non deve fermare la sorveglianza: si tiene la versione precedente.
         """
         try:
-            nuovi = json.loads(f.read_text())
+            nuovi = json.loads(f.read_text(encoding="utf-8"))
         except Exception as e:
             print(f"[scenari illeggibili, tengo i precedenti: {type(e).__name__}]", flush=True)
             return vecchi
@@ -423,7 +423,7 @@ def main() -> None:
         # nel ramo destro non viene mai raggiunto finche' il sinistro e' falso. E' cosi' che
         # `p75delta` e' passato inosservato il 16 settembre.
         brutti = 0
-        for s in json.loads((GIORNATE / f"scenari-{args.giorno}.json").read_text()):
+        for s in json.loads((GIORNATE / f"scenari-{args.giorno}.json").read_text(encoding="utf-8")):
             ign = nomi_ignoti(s["quando"])
             if ign:
                 print(f"ROTTO  {s['nome']}: {', '.join(sorted(ign))}"); brutti += 1

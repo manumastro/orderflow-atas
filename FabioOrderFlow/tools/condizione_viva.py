@@ -132,7 +132,7 @@ def main() -> None:
 
     def un_giro() -> list[dict]:
         # si rilegge a ogni giro: correggere una soglia non deve richiedere un riavvio
-        definizioni = json.loads(Path(args.definizione).read_text())
+        definizioni = json.loads(Path(args.definizione).read_text(encoding="utf-8"))
         righe = giro(base, args.chart, definizioni)
         for r in righe[1:]:
             print(f"  {r['text']}")
