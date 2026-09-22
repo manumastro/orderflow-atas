@@ -35,6 +35,7 @@ Il listener e' legato a `127.0.0.1` e non e' raggiungibile dalla rete. Espone da
 | `/levels` | `chart` | `GET` restituisce i livelli del chart, `POST`/`PUT` li sostituisce, `DELETE` li cancella. **Un POST qui spegne le regole**: il controllo passa a mano |
 | `/rules` | `chart` | `GET` restituisce le regole e cosa non hanno prodotto, `POST`/`PUT` le sostituisce e ricalcola subito, `DELETE` le cancella insieme ai livelli che producevano |
 | `/panel` | `chart` | `GET`, sola lettura: **il pannello gia' composto**, riga per riga, come sta sul chart. Ogni riga ha `text`, `color` e `peso` (`veto`, `attenzione`, `a favore`, `contro`, `forte`, `normale`) |
+| `/muri` | `chart` | `GET`, sola lettura: **i muri che l'indicatore trova da solo**, senza regole depositate. Ogni muro esce con le quattro prove superate — sforzo, pareggio, ritorni, asimmetria — e quando non ce n'e' nessuno, `motivo` dice quale prova e' fallita |
 | `/regime` | `chart` | `GET`, sola lettura: il **regime**, il **proxy** della velocita' e i **big trades**, come li misura l'indicatore a ogni barra. Ogni numero esce con la soglia che lo classifica accanto — una classificazione senza la sua regola non si contesta |
 
 ### Livelli

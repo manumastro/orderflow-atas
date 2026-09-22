@@ -254,6 +254,8 @@ public sealed partial class DataBridge : Indicator
         // OnInitialize le barre non ci sono ancora, e la richiesta storica avrebbe bisogno di
         // un istante di mercato che nessuno sa ancora qual e'. Alla prima barra utile invece
         // l'orologio del chart esiste - ed e' quello del replay, non quello di casa.
+        AggiornaIMuri();
+
         var quando = GetCandle(bar)?.Time;
         if (quando is not null)
         {
@@ -562,6 +564,7 @@ public sealed partial class DataBridge : Indicator
                 "/levels" => await LevelsAsync(context).ConfigureAwait(false),
                 "/rules" => await RulesAsync(context).ConfigureAwait(false),
                 "/regime" => Regime(),
+            "/muri" => Muri(),
                 "/panel" => Pannello(),
                 "/watch" => await WatchAsync(context).ConfigureAwait(false),
             "/charts" => throw new BridgeException(500, "handled by the hub"),
@@ -1174,20 +1177,32 @@ public sealed partial class DataBridge : Indicator
             }
         }
 
+        var area = ChartArea;
+        var dataRightMuri = DataAreaRight(context, area);
+
+        // Stessa regola del pannello: un guasto nei muri non puo' portarsi via i livelli.
+        try
+        {
+            DisegnaIMuri(context, area, dataRightMuri);
+        }
+        catch (Exception errore)
+        {
+            this.LogError("muri non disegnati", errore);
+        }
+
         var levels = _levels;
         if (!ShowLevels || levels.Length == 0)
         {
             return;
         }
 
-        var area = ChartArea;
         var font = new RenderFont("Arial", LevelFontSize);
 
         // ChartArea arriva fino al bordo del pannello, scala dei prezzi compresa: ancorare
         // l'etichetta a area.Right la fa finire sotto i numeri dell'asse. L'ultima barra
         // visibile e' dentro l'area dei dati per costruzione, quindi la sua X e' un bordo
         // destro sicuro qualunque sia la larghezza dell'asse.
-        var dataRight = DataAreaRight(context, area);
+        var dataRight = dataRightMuri;
 
         DisegnaBandaValore(context, area, levels);
 

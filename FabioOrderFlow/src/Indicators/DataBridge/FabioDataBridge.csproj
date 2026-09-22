@@ -7,5 +7,6 @@
     <Compile Include="..\..\Observation\DataBridge.cs" Link="DataBridge.cs" />
     <Compile Include="..\..\Observation\RegoleDeiLivelli.cs" Link="RegoleDeiLivelli.cs" />
     <Compile Include="..\..\Observation\IlRegimeELaVelocita.cs" Link="IlRegimeELaVelocita.cs" />
+    <Compile Include="..\..\Observation\IMuriDelLibro.cs" Link="IMuriDelLibro.cs" />
   </ItemGroup>
 </Project>

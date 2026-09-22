@@ -754,3 +754,12 @@ DICHIARA su chi lo porta; il colore resta come ripiego e al massimo dice
             (1,5), mentre 30.767 della mattina fa 12 minimi contro 2 massimi (6,0).
             `assorbimento` resta ma restituisce sempre un prezzo: non sa dire "non c'e'".
 
+2026-09-22  I muri li disegna l'indicatore, non li depositiamo noi.
+            Nuovo file IMuriDelLibro.cs: finestra scorrevole di 360 barre, le quattro
+            prove con le soglie nel gruppo "Muri" dell'istanza, righe piene da bordo a
+            bordo con i numeri scritti sopra, endpoint /muri. Il disegno e' dentro un
+            try/catch come il pannello: un guasto nei muri non porta via i livelli.
+            Tolte dal file della giornata le quattro regole muro: erano il modo vecchio.
+            Primo giro vero: sotto 30.770 (8 ritorni contro 3, 5,4x, delta 0,07),
+            sopra 30.772 e 30.780 (15 ritorni contro 3, asimmetria 5,0).
+

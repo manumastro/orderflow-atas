@@ -87,7 +87,32 @@ livelli contano, dato il metodo e il contesto**, e **a cosa serve arrivarci** �
 | `muro_sotto` / `muro_sopra` | il prezzo che ha **respinto** da sotto o da sopra, con quattro prove |
 | `fisso` | il prezzo sta nel file. **L'eccezione.** |
 
-### Il Muro, E Perche' Non Basta `assorbimento`
+### I Muri Non Si Depositano: Li Trova L'Indicatore
+
+**Dal 22 settembre 2026 i muri non sono piu' una regola da scrivere nel file.** Il calcolo gira
+dentro l'indicatore a ogni barra, su una finestra scorrevole (`Window (bars)`, default 360 = sei
+ore su M1), e disegna le righe da solo — verde sotto, rosso sopra, per tutta la larghezza del
+chart, con **i numeri che hanno superato le prove scritti sulla riga**:
+
+```text
+MURO SOTTO 30.770,00 · 8 ritorni contro 3 (asimmetria 2,7) · 1.415 lotti, 5,4x il mediano
+                     · delta pari (0,07) · qui il ribasso ha trovato un compratore fermo
+```
+
+**Perche' non e' una regola.** Un livello di regola e' una scelta dell'analisi — *guardo il POC
+della notte* — e vive quanto la finestra che gli si dichiara. Un muro non e' una scelta: e' un
+fatto che o c'e' o non c'e', e **cambia ogni pochi minuti**. Depositarlo vorrebbe dire scrivere a
+mano una finestra e aspettare che qualcuno la riscriva, cioe' il difetto del livello fermo che
+tutto questo lavoro esiste per togliere.
+
+Si legge anche da fuori, gia' composto, su **`/muri`**. Le impostazioni stanno nel gruppo
+**Muri** dell'istanza: le quattro soglie sono lì, una per prova.
+
+I tipi `muro_sotto` e `muro_sopra` **restano** fra le regole, e servono a una cosa sola che il
+calcolo automatico non sa fare: cercare un muro dentro una **finestra dichiarata** — la notte, la
+mattina europea — invece che nelle ultime N barre.
+
+### Le Quattro Prove, E Perche' Non Basta `assorbimento`
 
 `assorbimento` ordina i candidati e **restituisce sempre il primo**: marca qualcosa anche quando
 non c'e' niente da marcare. Un muro inventato fa tenere una posizione contro un prezzo che non
