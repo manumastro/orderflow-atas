@@ -53,8 +53,23 @@ public sealed partial class DataBridge
         Description = "Disegna i muri che l'indicatore trova da solo, senza regole depositate.")]
     public bool MostraMuri { get; set; } = true;
 
-    [Display(Name = "Window (bars)", GroupName = "Muri",
-        Description = "Quante barre chiuse guarda il calcolo. 360 = sei ore su M1.")]
+    [Display(Name = "Window from session open", GroupName = "Muri",
+        Description = "Dopo l'apertura misura solo la cassa; prima, solo la notte e la mattina.")]
+    public bool MuriDallApertura { get; set; } = true;
+
+    [Display(Name = "Session open (UTC)", GroupName = "Muri")]
+    public string MuriApertura { get; set; } = "13:30Z";
+
+    [Display(Name = "Session close (UTC)", GroupName = "Muri")]
+    public string MuriChiusura { get; set; } = "20:00Z";
+
+    [Display(Name = "Min lots in window", GroupName = "Muri",
+        Description = "Sotto questo volume il tratto e' troppo giovane: nessun muro, e lo dice.")]
+    [Range(0, 1000000)]
+    public decimal MuriLottiMinimi { get; set; } = 15000m;
+
+    [Display(Name = "Window (bars, if not from open)", GroupName = "Muri",
+        Description = "Usata solo con 'Window from session open' spento. 360 = sei ore su M1.")]
     [Range(30, 3000)]
     public int MuriFinestra { get; set; } = 360;
 
@@ -112,6 +127,9 @@ public sealed partial class DataBridge
     private Muro[] _muri = Array.Empty<Muro>();
     private string? _muriMotivo;
     private int _muriBarra = -1;
+    private DateTime? _muriDa;
+    private int _muriBarre;
+    private decimal _muriLotti;
 
     private static readonly Color MuroVerde = Color.FromArgb(255, 102, 187, 106);
     private static readonly Color MuroRosso = Color.FromArgb(255, 239, 83, 80);
@@ -132,8 +150,29 @@ public sealed partial class DataBridge
         }
 
         _muriBarra = ultimo;
-        var primo = Math.Max(0, ultimo - MuriFinestra + 1);
         var grana = Math.Max(0.25m, MuriGrana);
+
+        // IL TRATTO, NON LE ULTIME N BARRE. Una finestra scorrevole trascina dentro la mattina
+        // europea per ore dopo l'apertura, e i muri restano fermi dove il prezzo non e' piu':
+        // il 22 settembre, mezz'ora dopo l'apertura, erano ancora a 165 punti dal prezzo, cioe'
+        // inutili proprio nel momento in cui servivano. Dopo l'apertura si guarda **solo la
+        // cassa**; prima dell'apertura, **solo cio' che viene prima** — dalla chiusura precedente.
+        var primo = Math.Max(0, ultimo - MuriFinestra + 1);
+        _muriDa = null;
+        if (MuriDallApertura && GetCandle(ultimo) is { } ultimaBarra)
+        {
+            var apertura = Momento(MuriApertura, ultimaBarra.Time);
+            var inizio = ultimaBarra.Time >= apertura
+                ? apertura
+                : Momento(MuriChiusura, ultimaBarra.Time).AddDays(-1);
+
+            _muriDa = inizio;
+            primo = ultimo;
+            while (primo > 0 && GetCandle(primo - 1) is { } precedente && precedente.Time >= inizio)
+            {
+                primo--;
+            }
+        }
 
         var volume = new Dictionary<decimal, decimal>();
         var delta = new Dictionary<decimal, decimal>();
@@ -161,10 +200,23 @@ public sealed partial class DataBridge
             }
         }
 
+        _muriBarre = ultimo - primo + 1;
+        _muriLotti = volume.Values.Sum();
+
         if (volume.Count == 0)
         {
             _muri = Array.Empty<Muro>();
             _muriMotivo = "finestra senza volume";
+            return;
+        }
+
+        // Nei primi minuti del tratto tutto il volume sta su pochi prezzi, e il "piu' scambiato"
+        // lo e' perche' non c'e' altro. Non e' una misura prematura: e' una misura falsa.
+        if (_muriLotti < MuriLottiMinimi)
+        {
+            _muri = Array.Empty<Muro>();
+            _muriMotivo = $"ancora presto: {Lotti(_muriLotti)} lotti nel tratto "
+                          + $"su {Lotti(MuriLottiMinimi)} richiesti";
             return;
         }
 
@@ -241,7 +293,9 @@ public sealed partial class DataBridge
                 + $"(ne servono {MuriSforzo.ToString("0.0", Italiano)}), "
                 + $"pareggio {pareggio.ToString("0.00", Italiano)} "
                 + $"(max {MuriPareggio.ToString("0.00", Italiano)}), "
-                + $"{b} minimi contro {a} massimi";
+                + $"{b} minimi contro {a} massimi "
+                + $"(ne servono {MuriRespinte} dal lato giusto e "
+                + $"asimmetria {MuriAsimmetria.ToString("0.0", Italiano)})";
         }
         else
         {
@@ -329,7 +383,14 @@ public sealed partial class DataBridge
             schema = "fof-data-bridge-v1",
             instrument = InstrumentInfo?.Instrument,
             barra = _muriBarra,
-            finestra = MuriFinestra,
+            tratto = _muriDa is null
+                ? $"ultime {MuriFinestra} barre"
+                : (_muriDa.Value.TimeOfDay == Momento(MuriApertura, _muriDa.Value).TimeOfDay
+                    ? "dalla apertura di cassa"
+                    : "dalla chiusura precedente"),
+            da = _muriDa,
+            barre = _muriBarre,
+            lotti = _muriLotti,
             soglie = new
             {
                 sforzo = MuriSforzo,

@@ -90,8 +90,16 @@ livelli contano, dato il metodo e il contesto**, e **a cosa serve arrivarci** �
 ### I Muri Non Si Depositano: Li Trova L'Indicatore
 
 **Dal 22 settembre 2026 i muri non sono piu' una regola da scrivere nel file.** Il calcolo gira
-dentro l'indicatore a ogni barra, su una finestra scorrevole (`Window (bars)`, default 360 = sei
-ore su M1), e disegna le righe da solo: verde sotto, rosso sopra.
+dentro l'indicatore a ogni barra **sul tratto di seduta in corso** — dopo le 13:30Z solo la
+cassa, prima solo cio' che viene prima, dalla chiusura precedente — e disegna le righe da solo: verde sotto, rosso sopra.
+
+**Il tratto, non le ultime N barre.** La prima versione usava una finestra scorrevole di 360
+barre e si e' rotta il giorno stesso: **mezz'ora dopo l'apertura i muri erano ancora quelli della
+mattina europea, 165 punti sotto il prezzo** — cioe' inutili proprio nel momento in cui servivano.
+Una finestra scorrevole trascina dentro un regime che non c'e' piu'. Il tratto no: alle 13:30Z
+riparte da zero, e i muri che compaiono sono quelli che la cassa ha costruito. Sotto
+`Min lots in window` (15.000) non si disegna niente e si dice *"ancora presto"*, perche' nei primi
+minuti tutto il volume sta su pochi prezzi e il piu' scambiato lo e' solo perche' non c'e' altro.
 
 **La riga parte dalla barra di adesso e va a destra**, non per tutto l'asse. Il muro e' misurato
 su una finestra che **finisce adesso**: tirarlo indietro sulla seduta intera lo farebbe passare

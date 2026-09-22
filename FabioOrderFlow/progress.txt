@@ -771,3 +771,12 @@ DICHIARA su chi lo porta; il colore resta come ripiego e al massimo dice
             per i livelli. Il tooltip e' stato estratto in DisegnaTooltip e adesso lo
             condividono muri e livelli, cosi' ne compare uno solo alla volta.
 
+2026-09-22  I muri guardano il tratto di seduta, non le ultime N barre.
+            La finestra scorrevole si e' rotta il giorno stesso: mezz'ora dopo
+            l'apertura i muri erano ancora quelli europei, 165 punti sotto il prezzo.
+            Adesso dopo le 13:30Z si guarda solo la cassa, prima solo cio' che viene
+            prima. Aggiunto Min lots in window (15.000): sotto, nessun muro e lo dice.
+            Primo esito onesto: 35 minuti di cassa, 69.959 lotti, NESSUN MURO.
+            Il piu' scambiato (30.921) passa sforzo 5,6x e pareggio 0,10 ma ha zero
+            minimi e zero massimi: e' il centro, non un bordo.
+
