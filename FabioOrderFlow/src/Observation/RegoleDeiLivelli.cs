@@ -50,7 +50,7 @@ public sealed partial class DataBridge
     private static readonly HashSet<string> TipiMisurati = new(StringComparer.OrdinalIgnoreCase)
     {
         "poc", "vah", "val", "massimo", "minimo", "nodo_top", "nodo_base", "mensola", "tetto",
-        "aggressione", "assorbimento",
+        "aggressione", "assorbimento", "muro_sotto", "muro_sopra",
     };
 
     /// <summary>
@@ -103,7 +103,7 @@ public sealed partial class DataBridge
         /// <summary>Il nome con cui la regola viene citata da un bersaglio o da una invalidazione.</summary>
         public string? Nome { get; init; }
 
-        /// <summary>poc | vah | val | massimo | minimo | nodo_top | nodo_base | mensola | aggressione | assorbimento | fisso</summary>
+        /// <summary>poc | vah | val | massimo | minimo | nodo_top | nodo_base | mensola | aggressione | assorbimento | muro_sotto | muro_sopra | fisso</summary>
         public string? Tipo { get; init; }
 
         public BridgeWindow? Finestra { get; init; }
@@ -148,6 +148,42 @@ public sealed partial class DataBridge
         /// <summary>Per <c>mensola</c>: appoggi minimi perche' sia una mensola e non un minimo.</summary>
         [JsonPropertyName("appoggi_minimi")]
         public int AppoggiMinimi { get; init; } = 3;
+
+        /// <summary>
+        /// Muro, prova 1 — LO SFORZO. Quante volte il volume a quel prezzo deve battere quello
+        /// del prezzo mediano della finestra. Sotto 2 si marca il traffico normale.
+        /// </summary>
+        [JsonPropertyName("sforzo_minimo")]
+        public decimal SforzoMinimo { get; init; } = 3m;
+
+        /// <summary>
+        /// Muro, prova 2 — IL PAREGGIO. <c>|delta| / volume</c> massimo ammesso. Un muro e'
+        /// tanto scambiato e senza vincitore: se il delta pesa, li' qualcuno ha vinto, e non
+        /// e' un muro ma una aggressione.
+        /// </summary>
+        [JsonPropertyName("pareggio_massimo")]
+        public decimal PareggioMassimo { get; init; } = 0.15m;
+
+        /// <summary>
+        /// Muro, prova 3 — LA TENUTA. Quante barre devono aver girato **su** quel prezzo: il
+        /// minimo di barra per <c>muro_sotto</c>, il massimo per <c>muro_sopra</c>.
+        /// **E' la prova che separa un muro dal POC**, che e' anche lui molto scambiato e in
+        /// pareggio ma sta in mezzo al range: il prezzo ci passa sopra invece di tornare
+        /// indietro.
+        /// </summary>
+        [JsonPropertyName("respinte_minime")]
+        public int RespinteMinime { get; init; } = 3;
+
+        /// <summary>
+        /// Muro, prova 4 — L'ASIMMETRIA. Quante volte i ritorni dal lato giusto devono battere
+        /// quelli dal lato sbagliato: minimi contro massimi per <c>muro_sotto</c>.
+        /// **Senza questa, il muro esce sul POC.** Provata dal vivo il 22 settembre: al POC
+        /// europeo 30.776 il prezzo girava 11 volte da sotto e 7 da sopra — asimmetria 1,6,
+        /// cioe' nessun lato. A 30.767, 12 contro 2: asimmetria 6,0, e quello e' un muro.
+        /// Un prezzo che respinge in tutte e due le direzioni non e' un muro, e' un centro.
+        /// </summary>
+        [JsonPropertyName("asimmetria_minima")]
+        public decimal AsimmetriaMinima { get; init; } = 2m;
 
         public BridgeCondition[]? Condizioni { get; init; }
 
@@ -586,10 +622,12 @@ public sealed partial class DataBridge
                 return null;
             }
 
-            var trovato = Trova(tipo, regola, profilo, out var appoggi);
+            var trovato = Trova(tipo, regola, profilo, out var appoggi, out var motivo);
             if (trovato is null)
             {
-                saltate.Add($"{nome}: «{tipo}» non trovato nella finestra");
+                // Un tipo che sa dire PERCHE' non ha trovato lo dice: "non trovato" su un muro
+                // non distingue "non c'e'" da "e' presto", e sono due cose diverse.
+                saltate.Add($"{nome}: {motivo ?? $"«{tipo}» non trovato nella finestra"}");
                 return null;
             }
 
@@ -657,9 +695,11 @@ public sealed partial class DataBridge
     }
 
     /// <summary>Il prezzo che il tipo indica dentro il profilo.</summary>
-    private decimal? Trova(string tipo, BridgeRule regola, ProfiloFinestra p, out int appoggi)
+    private decimal? Trova(string tipo, BridgeRule regola, ProfiloFinestra p, out int appoggi,
+                           out string? motivo)
     {
         appoggi = 0;
+        motivo = null;
         switch (tipo)
         {
             case "poc": return p.Poc;
@@ -725,6 +765,74 @@ public sealed partial class DataBridge
                     .OrderBy(kv => Math.Abs(p.Delta.GetValueOrDefault(kv.Key)) / Math.Max(kv.Value, 1m))
                     .ThenByDescending(kv => kv.Value)
                     .First().Key;
+            }
+
+            // IL MURO. Non e' un tipo in piu' accanto ad "assorbimento": e' l'assorbimento con
+            // una prova che PUO' FALLIRE. `assorbimento` ordina i candidati e restituisce sempre
+            // il primo, cioe' marca qualcosa anche quando non c'e' niente da marcare — e un muro
+            // inventato fa tenere una posizione contro un prezzo che non difende nessuno.
+            //
+            // Tre prove, tutte e tre, ognuna col suo numero dichiarato:
+            //
+            //   1. SFORZO    il volume li' batte di N volte quello del prezzo mediano
+            //   2. PAREGGIO  |delta| / volume sotto soglia: tanti contratti, nessun vincitore
+            //   3. TENUTA      quel prezzo e' stato il minimo (o il massimo) di almeno N barre
+            //   4. ASIMMETRIA  e lo e' stato molto piu' spesso da un lato che dall'altro
+            //
+            // Le ultime due sono quelle che contano, perche' senza di loro il muro coincide col
+            // POC: anche il POC e' molto scambiato e in pareggio. La differenza e' che al POC il
+            // prezzo **passa sopra**, al muro **torna indietro** — e torna indietro da UN lato.
+            // Un prezzo che respinge in tutte e due le direzioni non e' un muro, e' un centro.
+            case "muro_sotto":
+            case "muro_sopra":
+            {
+                var sotto = tipo == "muro_sotto";
+                var giri = sotto ? p.AppoggiBassi : p.AppoggiAlti;
+                var contrari = sotto ? p.AppoggiAlti : p.AppoggiBassi;
+                if (p.Prezzi.Count == 0)
+                {
+                    motivo = "finestra senza volume";
+                    return null;
+                }
+
+                var volumi = p.Prezzi.Values.OrderBy(v => v).ToList();
+                var mediana = volumi[volumi.Count / 2];
+                var richiesto = mediana * regola.SforzoMinimo;
+
+                (decimal Prezzo, decimal Sforzo, decimal Pareggio, int Giri, decimal Asim)? migliore = null;
+                foreach (var (prezzo, volume) in p.Prezzi.OrderByDescending(kv => kv.Value))
+                {
+                    var sforzo = mediana > 0 ? volume / mediana : 0m;
+                    var pareggio = Math.Abs(p.Delta.GetValueOrDefault(prezzo)) / Math.Max(volume, 1m);
+                    var ritorni = giri.GetValueOrDefault(prezzo);
+                    var opposti = contrari.GetValueOrDefault(prezzo);
+                    // Senza ritorni contrari l'asimmetria e' piena: non c'e' niente da dividere.
+                    var asimmetria = opposti > 0 ? (decimal)ritorni / opposti : ritorni;
+
+                    if (volume >= richiesto && pareggio <= regola.PareggioMassimo
+                        && ritorni >= regola.RespinteMinime
+                        && asimmetria >= regola.AsimmetriaMinima)
+                    {
+                        appoggi = ritorni;
+                        return prezzo;
+                    }
+
+                    // Il primo della lista e' il piu' scambiato: e' il candidato di cui vale la
+                    // pena dire **perche'** non passa.
+                    migliore ??= (prezzo, sforzo, pareggio, ritorni, asimmetria);
+                }
+
+                motivo = migliore is null
+                    ? "nessun muro nella finestra"
+                    : $"nessun muro: il piu' scambiato e' {Prezzo(migliore.Value.Prezzo)}, "
+                      + $"sforzo {migliore.Value.Sforzo.ToString("0.0", Italiano)}x "
+                      + $"(ne servono {regola.SforzoMinimo.ToString("0.0", Italiano)}), "
+                      + $"pareggio {migliore.Value.Pareggio.ToString("0.00", Italiano)} "
+                      + $"(max {regola.PareggioMassimo.ToString("0.00", Italiano)}), "
+                      + $"{migliore.Value.Giri} ritorni (ne servono {regola.RespinteMinime}), "
+                      + $"asimmetria {migliore.Value.Asim.ToString("0.0", Italiano)} "
+                      + $"(ne serve {regola.AsimmetriaMinima.ToString("0.0", Italiano)})";
+                return null;
             }
 
             default: return null;

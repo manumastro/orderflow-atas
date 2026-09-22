@@ -84,7 +84,41 @@ livelli contano, dato il metodo e il contesto**, e **a cosa serve arrivarci** �
 | `tetto` | il prezzo che ha fatto da **massimo** di barra piu' volte |
 | `aggressione` | il prezzo col delta piu' grande in valore assoluto |
 | `assorbimento` | molto scambiato, delta quasi nullo: sforzo alto, risultato nullo |
+| `muro_sotto` / `muro_sopra` | il prezzo che ha **respinto** da sotto o da sopra, con quattro prove |
 | `fisso` | il prezzo sta nel file. **L'eccezione.** |
+
+### Il Muro, E Perche' Non Basta `assorbimento`
+
+`assorbimento` ordina i candidati e **restituisce sempre il primo**: marca qualcosa anche quando
+non c'e' niente da marcare. Un muro inventato fa tenere una posizione contro un prezzo che non
+difende nessuno, ed e' peggio di nessun muro.
+
+`muro_sotto` e `muro_sopra` sono lo stesso conto con **una prova che puo' fallire** — quattro, in
+realta', e ognuna esce col suo numero accanto:
+
+| | prova | default | cosa esclude |
+|---|---|---|---|
+| 1 | **sforzo**: volume li' / volume del prezzo mediano | `sforzo_minimo` 3 | il traffico normale |
+| 2 | **pareggio**: `abs(delta) / volume` | `pareggio_massimo` 0,15 | dove qualcuno ha vinto: e' aggressione |
+| 3 | **tenuta**: barre che hanno girato su quel prezzo | `respinte_minime` 3 | il prezzo di passaggio |
+| 4 | **asimmetria**: ritorni dal lato giusto / dal lato opposto | `asimmetria_minima` 2 | **il POC** |
+
+**La quarta e' quella che tiene in piedi tutto**, e senza di lei il muro esce sul POC. Provata dal
+vivo il 22 settembre 2026, finestra della notte: il prezzo piu' scambiato era il POC **30.880**, e
+passava le prime tre prove — sforzo 3,0x, pareggio 0,13, 12 ritorni. **Asimmetria 1,5**: girava
+dodici volte da sotto e otto da sopra. Un prezzo che respinge in tutte e due le direzioni **non e'
+un muro, e' un centro**. Stessa mattina, a 30.767: dodici minimi e due massimi, asimmetria 6,0.
+
+Quando nessun prezzo passa, la regola **non disegna niente e dice perche'**, col numero mancante:
+
+```text
+muro notte sotto: nessun muro: il piu' scambiato e' 30.880,00, sforzo 3,0x (ne servono 3,0),
+pareggio 0,13 (max 0,15), 12 ritorni (ne servono 3), asimmetria 1,5 (ne serve 2,0)
+```
+
+**Un muro si vede cosi' sul grafico, senza indicatore:** tanto volume su una riga del footprint,
+delta quasi nullo su quella riga — e le barre che la toccano ci **girano sopra** invece di
+attraversarla, sempre dallo stesso lato.
 
 `aggressione` e `assorbimento` non sono due tipi qualunque: sono **i due soli livelli che il live
 dice di marcare**, entrambi da ordini eseguiti. *"It's not necessary to mark intermediate level

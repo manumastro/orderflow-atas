@@ -241,5 +241,69 @@
     "style": "dash",
     "width": 1,
     "chiave": false
+  },
+  {
+    "nome": "muro sotto",
+    "tipo": "muro_sotto",
+    "finestra": {
+      "da": "07:00Z"
+    },
+    "label": "MURO SOTTO {lotti} · {tocchi} ritorni: qui il ribasso ha trovato qualcuno",
+    "color": "#66BB6A",
+    "style": "solid",
+    "width": 2,
+    "chiave": true,
+    "sforzo_minimo": 3,
+    "pareggio_massimo": 0.15,
+    "respinte_minime": 3
+  },
+  {
+    "nome": "muro sopra",
+    "tipo": "muro_sopra",
+    "finestra": {
+      "da": "07:00Z"
+    },
+    "label": "MURO SOPRA {lotti} · {tocchi} ritorni: qui il rialzo ha trovato qualcuno",
+    "color": "#EF5350",
+    "style": "solid",
+    "width": 2,
+    "chiave": true,
+    "sforzo_minimo": 3,
+    "pareggio_massimo": 0.15,
+    "respinte_minime": 3
+  },
+  {
+    "finestra": {
+      "da": "22:00Z",
+      "a": "07:00Z"
+    },
+    "style": "solid",
+    "width": 2,
+    "chiave": true,
+    "sforzo_minimo": 3,
+    "pareggio_massimo": 0.15,
+    "respinte_minime": 3,
+    "asimmetria_minima": 2,
+    "nome": "muro notte sotto",
+    "tipo": "muro_sotto",
+    "color": "#2E7D32",
+    "label": "MURO NOTTE SOTTO {lotti} · {tocchi} ritorni"
+  },
+  {
+    "finestra": {
+      "da": "22:00Z",
+      "a": "07:00Z"
+    },
+    "style": "solid",
+    "width": 2,
+    "chiave": true,
+    "sforzo_minimo": 3,
+    "pareggio_massimo": 0.15,
+    "respinte_minime": 3,
+    "asimmetria_minima": 2,
+    "nome": "muro notte sopra",
+    "tipo": "muro_sopra",
+    "color": "#C62828",
+    "label": "MURO NOTTE SOPRA {lotti} · {tocchi} ritorni"
   }
 ]

@@ -744,3 +744,13 @@ SHORT" e' uscito marcato come veto. Un allarme falso su una riga che descrive il
 setup e' peggio di nessun allarme, perche' sposta la lettura. Adesso il peso si
 DICHIARA su chi lo porta; il colore resta come ripiego e al massimo dice
 "contro".
+
+2026-09-22  Il muro diventa una misura che puo' dire di no.
+            Nuovi tipi di regola muro_sotto e muro_sopra: sforzo, pareggio, tenuta e
+            asimmetria, ognuno con la sua soglia dichiarata. Quando nessun prezzo passa,
+            la regola non disegna e stampa quale prova e' fallita e di quanto.
+            L'asimmetria e' la prova che serviva: senza, il muro esce sul POC. Verificato
+            dal vivo — POC notte 30.880 passa le prime tre prove e fallisce l'asimmetria
+            (1,5), mentre 30.767 della mattina fa 12 minimi contro 2 massimi (6,0).
+            `assorbimento` resta ma restituisce sempre un prezzo: non sa dire "non c'e'".
+
