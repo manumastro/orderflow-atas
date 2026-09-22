@@ -252,18 +252,27 @@ public sealed partial class DataBridge
     // ------------------------------------------------------------------ il disegno
 
     /// <summary>
-    /// Una riga per muro, da un bordo all'altro, con accanto il perche'. L'etichetta non dice
-    /// solo il nome: dice <b>i numeri che hanno superato le prove</b>, perche' una riga che
-    /// afferma senza mostrare la misura e' indistinguibile da una disegnata a caso.
+    /// Una riga per muro, <b>dalla barra di adesso in avanti</b>, non per tutto l'asse.
+    ///
+    /// <para>Il muro e' misurato su una finestra che <b>finisce adesso</b>: tirare la riga
+    /// indietro su tutta la seduta la farebbe passare sopra ore in cui quel prezzo non aveva
+    /// ancora respinto niente. Una riga disegnata dove la misura non vale e' una affermazione
+    /// falsa, e a occhio non si distingue da una vera.</para>
+    ///
+    /// <para>Sulla riga c'e' <b>solo il nome e il prezzo</b>. I numeri che l'hanno fatta nascere
+    /// stanno nel tooltip, come per i livelli delle regole: tre muri con la spiegazione intera
+    /// scritta addosso coprono le candele proprio nella zona dove il prezzo sta lavorando.</para>
     /// </summary>
-    private void DisegnaIMuri(RenderContext context, Rectangle area, int dataRight)
+    private (string Text, Color Color, Point At)? DisegnaIMuri(
+        RenderContext context, Rectangle area, int lineLeft, int dataRight, Point? mouse)
     {
         if (!MostraMuri || _muri.Length == 0 || ChartInfo is null)
         {
-            return;
+            return null;
         }
 
         var font = new RenderFont("Arial", MuriFontSize);
+        (string Text, Color Color, Point At)? tooltip = null;
 
         foreach (var muro in _muri)
         {
@@ -274,29 +283,40 @@ public sealed partial class DataBridge
             }
 
             var colore = muro.Sotto ? MuroVerde : MuroRosso;
-
-            // Il muro attraversa tutto: e' una misura sulla finestra intera, non un riferimento
-            // vicino al prezzo come i livelli delle regole, e una riga corta direbbe il contrario.
-            context.DrawLine(new RenderPen(colore, 2), area.Left, y, dataRight, y);
+            var sinistra = Math.Clamp(lineLeft, area.Left, dataRight);
+            context.DrawLine(new RenderPen(colore, 2), sinistra, y, dataRight, y);
 
             var verso = muro.Sotto ? "MURO SOTTO" : "MURO SOPRA";
             var difesa = muro.Sotto ? "il ribasso" : "il rialzo";
             var chi = muro.Sotto ? "un compratore fermo" : "un venditore fermo";
-            var testo =
-                $"{verso} {Prezzo(muro.Prezzo)} · "
+            var breve = $"{verso} {Prezzo(muro.Prezzo)}";
+            var intero =
+                $"{breve} · "
                 + $"{muro.Ritorni} ritorni contro {muro.Contrari} "
                 + $"(asimmetria {muro.Asimmetria.ToString("0.0", Italiano)}) · "
                 + $"{Lotti(muro.Volume)} lotti, {muro.Sforzo.ToString("0.0", Italiano)}x il mediano · "
                 + $"delta pari ({muro.Pareggio.ToString("0.00", Italiano)}) · "
                 + $"qui {difesa} ha trovato {chi}";
 
-            var size = context.MeasureString(testo, font);
-            var x = area.Left + 6;
+            var size = context.MeasureString(breve, font);
+            var x = Math.Max(area.Left + 6, sinistra + 6);
             // Fondo pieno: sopra un footprint denso il testo nudo non si legge.
-            context.FillRectangle(Color.FromArgb(205, 0, 0, 0),
-                new Rectangle(x - 3, y - size.Height - 2, size.Width + 6, size.Height + 2));
-            context.DrawString(testo, font, colore, x, y - size.Height - 1);
+            var riquadro = new Rectangle(x - 3, y - size.Height - 2, size.Width + 6, size.Height + 2);
+            context.FillRectangle(Color.FromArgb(205, 0, 0, 0), riquadro);
+            context.DrawString(breve, font, colore, x, y - size.Height - 1);
+
+            // Il perche' si legge passando sopra, non prima: e' la stessa convenzione dei livelli.
+            if (mouse is { } m)
+            {
+                var banda = new Rectangle(sinistra, y - 4, Math.Max(1, dataRight - sinistra), 8);
+                if (riquadro.Contains(m) || banda.Contains(m))
+                {
+                    tooltip = (intero, colore, m);
+                }
+            }
         }
+
+        return tooltip;
     }
 
     // ------------------------------------------------------------------ l'endpoint

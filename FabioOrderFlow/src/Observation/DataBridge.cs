@@ -1178,12 +1178,26 @@ public sealed partial class DataBridge : Indicator
         }
 
         var area = ChartArea;
-        var dataRightMuri = DataAreaRight(context, area);
+        var dataRight = DataAreaRight(context, area);
+        var mouse = MouseLocationInfo is { IsMouseLeave: false } info ? info.LastPosition : (Point?)null;
+        (string Text, Color Color, Point At)? tooltip = null;
+
+        // Da dove parte un muro: dalla barra di adesso. E' misurato su una finestra che finisce
+        // qui, e tirarlo indietro lo farebbe passare sopra ore in cui quella misura non valeva.
+        var muriLeft = area.Left;
+        try
+        {
+            muriLeft = ChartInfo.GetXByBar(Math.Max(0, CurrentBar - 1), false);
+        }
+        catch (Exception)
+        {
+            // Senza la X della barra il muro parte da sinistra: meno preciso, mai assente.
+        }
 
         // Stessa regola del pannello: un guasto nei muri non puo' portarsi via i livelli.
         try
         {
-            DisegnaIMuri(context, area, dataRightMuri);
+            tooltip = DisegnaIMuri(context, area, muriLeft, dataRight, mouse);
         }
         catch (Exception errore)
         {
@@ -1193,6 +1207,7 @@ public sealed partial class DataBridge : Indicator
         var levels = _levels;
         if (!ShowLevels || levels.Length == 0)
         {
+            DisegnaTooltip(context, tooltip, dataRight, new RenderFont("Arial", LevelFontSize));
             return;
         }
 
@@ -1202,12 +1217,7 @@ public sealed partial class DataBridge : Indicator
         // l'etichetta a area.Right la fa finire sotto i numeri dell'asse. L'ultima barra
         // visibile e' dentro l'area dei dati per costruzione, quindi la sua X e' un bordo
         // destro sicuro qualunque sia la larghezza dell'asse.
-        var dataRight = dataRightMuri;
-
         DisegnaBandaValore(context, area, levels);
-
-        var mouse = MouseLocationInfo is { IsMouseLeave: false } info ? info.LastPosition : (Point?)null;
-        (string Text, Color Color, Point At)? tooltip = null;
 
         foreach (var level in levels)
         {
@@ -1262,16 +1272,26 @@ public sealed partial class DataBridge : Indicator
             }
         }
 
-        if (tooltip is { } t)
+        DisegnaTooltip(context, tooltip, dataRight, font);
+    }
+
+    /// <summary>Il riquadro sotto il mouse. Uno solo: l'ultimo che lo ha reclamato.</summary>
+    private static void DisegnaTooltip(
+        RenderContext context, (string Text, Color Color, Point At)? tooltip,
+        int dataRight, RenderFont font)
+    {
+        if (tooltip is not { } t)
         {
-            var size = context.MeasureString(t.Text, font);
-            const int pad = 6;
-            var boxX = Math.Min(t.At.X + 14, dataRight - size.Width - pad * 2);
-            var boxY = t.At.Y - size.Height - pad * 2 - 4;
-            context.FillRectangle(Color.FromArgb(235, 15, 15, 15),
-                new Rectangle(boxX, boxY, size.Width + pad * 2, size.Height + pad * 2));
-            context.DrawString(t.Text, font, t.Color, boxX + pad, boxY + pad);
+            return;
         }
+
+        var size = context.MeasureString(t.Text, font);
+        const int pad = 6;
+        var boxX = Math.Min(t.At.X + 14, dataRight - size.Width - pad * 2);
+        var boxY = t.At.Y - size.Height - pad * 2 - 4;
+        context.FillRectangle(Color.FromArgb(235, 15, 15, 15),
+            new Rectangle(boxX, boxY, size.Width + pad * 2, size.Height + pad * 2));
+        context.DrawString(t.Text, font, t.Color, boxX + pad, boxY + pad);
     }
 
     /// <summary>

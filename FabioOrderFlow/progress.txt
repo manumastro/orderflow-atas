@@ -763,3 +763,11 @@ DICHIARA su chi lo porta; il colore resta come ripiego e al massimo dice
             Primo giro vero: sotto 30.770 (8 ritorni contro 3, 5,4x, delta 0,07),
             sopra 30.772 e 30.780 (15 ritorni contro 3, asimmetria 5,0).
 
+2026-09-22  I muri partono da adesso e si spiegano al passaggio del mouse.
+            La riga va dalla barra corrente al bordo destro invece di attraversare
+            tutto: il muro e' misurato su una finestra che finisce adesso, e tirarla
+            indietro la farebbe passare sopra ore in cui la misura non valeva.
+            Sulla riga resta nome e prezzo; le quattro misure stanno nel tooltip, come
+            per i livelli. Il tooltip e' stato estratto in DisegnaTooltip e adesso lo
+            condividono muri e livelli, cosi' ne compare uno solo alla volta.
+

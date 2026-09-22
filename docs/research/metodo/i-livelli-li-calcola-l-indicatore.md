@@ -91,12 +91,22 @@ livelli contano, dato il metodo e il contesto**, e **a cosa serve arrivarci** �
 
 **Dal 22 settembre 2026 i muri non sono piu' una regola da scrivere nel file.** Il calcolo gira
 dentro l'indicatore a ogni barra, su una finestra scorrevole (`Window (bars)`, default 360 = sei
-ore su M1), e disegna le righe da solo — verde sotto, rosso sopra, per tutta la larghezza del
-chart, con **i numeri che hanno superato le prove scritti sulla riga**:
+ore su M1), e disegna le righe da solo: verde sotto, rosso sopra.
+
+**La riga parte dalla barra di adesso e va a destra**, non per tutto l'asse. Il muro e' misurato
+su una finestra che **finisce adesso**: tirarlo indietro sulla seduta intera lo farebbe passare
+sopra ore in cui quel prezzo non aveva ancora respinto niente, e **una riga disegnata dove la
+misura non vale non si distingue a occhio da una vera**.
+
+Sulla riga c'e' **solo il nome e il prezzo**; i numeri che l'hanno fatta nascere compaiono
+**passando sopra col mouse**, come per i livelli delle regole. Tre muri con la spiegazione intera
+scritta addosso coprirebbero le candele esattamente dove il prezzo sta lavorando.
 
 ```text
-MURO SOTTO 30.770,00 · 8 ritorni contro 3 (asimmetria 2,7) · 1.415 lotti, 5,4x il mediano
-                     · delta pari (0,07) · qui il ribasso ha trovato un compratore fermo
+sulla riga    MURO SOTTO 30.770,00
+sul mouse     MURO SOTTO 30.770,00 · 8 ritorni contro 3 (asimmetria 2,7)
+              · 1.436 lotti, 5,5x il mediano · delta pari (0,07)
+              · qui il ribasso ha trovato un compratore fermo
 ```
 
 **Perche' non e' una regola.** Un livello di regola e' una scelta dell'analisi — *guardo il POC
