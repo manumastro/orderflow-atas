@@ -255,6 +255,7 @@ public sealed partial class DataBridge : Indicator
         // un istante di mercato che nessuno sa ancora qual e'. Alla prima barra utile invece
         // l'orologio del chart esiste - ed e' quello del replay, non quello di casa.
         AggiornaIMuri();
+        AggiornaINodi();
 
         var quando = GetCandle(bar)?.Time;
         if (quando is not null)
@@ -574,6 +575,7 @@ public sealed partial class DataBridge : Indicator
                 "/regime" => Regime(),
             "/scala" => ScalaInJson(),
             "/muri" => Muri(),
+            "/nodi" => Nodi(),
                 "/panel" => Pannello(),
                 "/watch" => await WatchAsync(context).ConfigureAwait(false),
             "/charts" => throw new BridgeException(500, "handled by the hub"),
@@ -1206,7 +1208,16 @@ public sealed partial class DataBridge : Indicator
         // Stessa regola del pannello: un guasto nei muri non puo' portarsi via i livelli.
         try
         {
-            tooltip = DisegnaIMuri(context, area, muriLeft, dataRight, mouse);
+            tooltip = DisegnaINodi(context, area, muriLeft, dataRight, mouse);
+        }
+        catch (Exception errore)
+        {
+            this.LogError("nodi non disegnati", errore);
+        }
+
+        try
+        {
+            tooltip = DisegnaIMuri(context, area, muriLeft, dataRight, mouse) ?? tooltip;
         }
         catch (Exception errore)
         {

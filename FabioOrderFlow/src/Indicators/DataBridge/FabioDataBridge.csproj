@@ -10,5 +10,6 @@
     <Compile Include="..\..\Observation\IMuriDelLibro.cs" Link="IMuriDelLibro.cs" />
     <Compile Include="..\..\Observation\LaMisuraSuOgniLivello.cs" Link="LaMisuraSuOgniLivello.cs" />
     <Compile Include="..\..\Observation\LaScalaDelloStrumento.cs" Link="LaScalaDelloStrumento.cs" />
+    <Compile Include="..\..\Observation\INodiEIVuoti.cs" Link="INodiEIVuoti.cs" />
   </ItemGroup>
 </Project>

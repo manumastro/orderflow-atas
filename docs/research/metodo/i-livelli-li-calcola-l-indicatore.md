@@ -463,3 +463,27 @@ strumento: sono campi della regola, non soglie dell'indicatore. Per l'oro:
 
 **E' uno strumento di studio.** Lo strumento operativo resta il NQ (CLAUDE.md, seconda decisione).
 Il file dell'oro non ha scenari.
+
+---
+
+## Nodi E Vuoti Di Piu' Giorni: I Bersagli
+
+**Dal 23 settembre 2026 l'indicatore disegna da solo i nodi e i vuoti del profilo degli ultimi
+cinque giorni**, i piu' vicini sopra e sotto il prezzo (`INodiEIVuoti.cs`, endpoint `/nodi`).
+Quella mattina il prezzo era uscito sotto il valore del giorno prima, e il chart non aveva niente
+sotto: il bersaglio vero stava **due giorni indietro**, POC della cassa del 21 ed Europa del 22 a
+30.775-30.783. Il primo giro del calcolo l'ha trovato da solo: **NODO 30.782,5, 5,9 volte la fascia
+mediana**.
+
+- **nodo**: una fascia (5 punti NQ, scalati sullo strumento) che e' un massimo locale del volume e
+  pesa almeno 1,5 volte la mediana. E' dove il mercato ha costruito valore: un bersaglio, e un posto
+  dove il prezzo si ferma. Riga tratteggiata azzurra.
+- **vuoto**: almeno tre fasce di fila sotto 0,25 volte la mediana. Il prezzo ci e' solo passato, e se
+  ci rientra lo attraversa in fretta. Fascia velata grigia.
+
+Si tengono **tre nodi per lato** e i vuoti che stanno fra il prezzo e l'ultimo nodo. Come i muri,
+partono dalla barra di adesso e si spiegano al passaggio del mouse.
+
+**Un vuoto di una seduta non e' per forza un vuoto di cinque.** Il 23 il corridoio 30.760-30.880 era
+vuoto nella cassa del 22 (0,1-1% per fascia), ma sui cinque giorni non lo e': la notte e l'Europa del
+22 ci avevano scambiato. Il calcolo lo dice, e ha ragione lui.
