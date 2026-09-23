@@ -200,6 +200,19 @@ public sealed partial class DataBridge
         public string? Da { get; init; }
 
         public string? A { get; init; }
+
+        /// <summary>
+        /// <c>0</c> la seduta di oggi; <c>-1</c> la seduta precedente <b>che ha barre in quella
+        /// finestra</b>, cosi' il lunedi' la cassa di ieri e' quella di venerdi' e non una domenica
+        /// vuota. Serve una fine dichiarata: una finestra passata senza fine non esiste.
+        ///
+        /// <para>E' la risposta al buco del 23 settembre: il VAH della cassa del giorno prima era
+        /// il livello piu' importante della mattina — testato e tenuto alle 04:16 — e il chart
+        /// non poteva disegnarlo, perche' le regole di cassa guardano solo la cassa di oggi e una
+        /// data assoluta invecchia in una notte (e' gia' successo due volte).</para>
+        /// </summary>
+        [JsonPropertyName("seduta")]
+        public int Seduta { get; init; }
     }
 
     /// <summary>
@@ -533,15 +546,28 @@ public sealed partial class DataBridge
         var tenuti = new List<BridgeLevel>();
         foreach (var livello in risolti)
         {
-            var vicino = tenuti.FirstOrDefault(t => Math.Abs(t.Price - livello.Price) < StaccoMinimoFraLivelli);
-            if (vicino is not null)
+            var indice = tenuti.FindIndex(t => Math.Abs(t.Price - livello.Price) < StaccoMinimoFraLivelli);
+            if (indice >= 0)
             {
+                var vicino = tenuti[indice];
+                // NON SI BUTTA, SI UNISCE. Fino al 23 settembre il livello vicino spariva dal
+                // chart, e quella mattina era sparito proprio il VAL notte, il bordo su cui si
+                // stava lavorando, dietro un «min Europa» allo stesso prezzo. Una riga sola
+                // resta — due etichette sovrapposte non si leggono — ma porta tutti i nomi.
+                var etichetta = vicino.Label ?? vicino.Nome ?? string.Empty;
+                var parti = etichetta.Split(" · ", 2);
+                tenuti[indice] = vicino with
+                {
+                    Label = $"{parti[0]} + {livello.Nome} {Prezzo(livello.Price)}"
+                            + (parti.Length > 1 ? $" · {parti[1]}" : string.Empty),
+                };
+
                 // Il motivo deve dire CHI ha vinto e di quanto: "coincide con 29.172" obbligava
                 // chi legge il pannello a cercarsi a mano quale livello fosse quel prezzo.
                 saltate.Add(
-                    $"{livello.Nome} {Prezzo(livello.Price)}: a "
-                    + $"{Prezzo(Math.Abs(vicino.Price - livello.Price))} punti da «{vicino.Nome}», "
-                    + $"che e' dichiarato prima (stacco minimo {StaccoMinimoFraLivelli})");
+                    $"{livello.Nome} {Prezzo(livello.Price)}: unito a «{vicino.Nome}», a "
+                    + $"{Prezzo(Math.Abs(vicino.Price - livello.Price))} punti "
+                    + $"(stacco minimo {StaccoMinimoFraLivelli})");
                 continue;
             }
 
@@ -602,11 +628,51 @@ public sealed partial class DataBridge
                 da = da.AddDays(-1);
             }
 
-            var chiave = $"{da:O}|{a:O}|{regola.Passo}|{regola.Grana}";
-            if (!cache.TryGetValue(chiave, out var profilo))
+            ProfiloFinestra? profilo;
+            if (regola.Finestra.Seduta < 0)
             {
-                profilo = Profilo(da, a, regola.Passo, regola.Grana);
-                cache[chiave] = profilo;
+                if (a is null)
+                {
+                    saltate.Add($"{nome}: una seduta passata ha bisogno di una fine («a»)");
+                    return null;
+                }
+
+                // Si torna indietro di un giorno alla volta finche' non si trova una seduta con
+                // barre, e lo si fa |seduta| volte: weekend e festivi si saltano da soli.
+                profilo = null;
+                var trovate = 0;
+                for (var passo = 1; passo <= 10 && trovate < -regola.Finestra.Seduta; passo++)
+                {
+                    var daP = da.AddDays(-passo);
+                    var aP = a.Value.AddDays(-passo);
+                    var chiaveP = $"{daP:O}|{aP:O}|{regola.Passo}|{regola.Grana}";
+                    if (!cache.TryGetValue(chiaveP, out var p))
+                    {
+                        p = Profilo(daP, aP, regola.Passo, regola.Grana);
+                        cache[chiaveP] = p;
+                    }
+
+                    if (p is not null)
+                    {
+                        trovate++;
+                        profilo = p;
+                    }
+                }
+
+                if (profilo is null)
+                {
+                    saltate.Add($"{nome}: nessuna seduta precedente con barre in memoria");
+                    return null;
+                }
+            }
+            else
+            {
+                var chiave = $"{da:O}|{a:O}|{regola.Passo}|{regola.Grana}";
+                if (!cache.TryGetValue(chiave, out profilo))
+                {
+                    profilo = Profilo(da, a, regola.Passo, regola.Grana);
+                    cache[chiave] = profilo;
+                }
             }
 
             if (profilo is null)

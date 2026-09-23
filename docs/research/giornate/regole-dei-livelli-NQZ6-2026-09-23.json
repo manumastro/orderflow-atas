@@ -246,5 +246,61 @@
     "style": "dash",
     "width": 1,
     "chiave": false
+  },
+  {
+    "color": "#B39DDB",
+    "width": 2,
+    "chiave": true,
+    "nome": "POC cash ieri",
+    "tipo": "poc",
+    "finestra": {
+      "da": "13:30Z",
+      "a": "20:00Z",
+      "seduta": -1
+    },
+    "style": "solid",
+    "label": "POC CASH IERI {pct} · il valore di ieri: se la mattina ci torna, e' il bersaglio"
+  },
+  {
+    "color": "#B39DDB",
+    "width": 2,
+    "chiave": true,
+    "nome": "VAH cash ieri",
+    "tipo": "vah",
+    "finestra": {
+      "da": "13:30Z",
+      "a": "20:00Z",
+      "seduta": -1
+    },
+    "style": "dash",
+    "label": "VAH cash ieri · il bordo alto del valore di ieri: sotto, la notte ha perso"
+  },
+  {
+    "color": "#B39DDB",
+    "width": 2,
+    "chiave": true,
+    "nome": "VAL cash ieri",
+    "tipo": "val",
+    "finestra": {
+      "da": "13:30Z",
+      "a": "20:00Z",
+      "seduta": -1
+    },
+    "style": "dash",
+    "label": "VAL cash ieri · sotto, si esce anche dal valore di ieri"
+  },
+  {
+    "color": "#B39DDB",
+    "width": 1,
+    "chiave": true,
+    "nome": "max cash ieri",
+    "tipo": "massimo",
+    "finestra": {
+      "da": "13:30Z",
+      "a": "20:00Z",
+      "seduta": -1
+    },
+    "style": "dot",
+    "label": "Max cash ieri · il massimo storico della cassa di ieri"
   }
 ]

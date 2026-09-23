@@ -209,6 +209,21 @@ Un orario nudo si appoggia al **giorno di mercato** — in replay quello del rep
 l'orologio del muro. Se la fine cade prima dell'inizio, la finestra **attraversa la mezzanotte**
 e l'inizio si sposta al giorno prima: e' il caso normale della notte, `22:00Z -> 07:00Z`.
 
+```json
+"finestra": {"da": "13:30Z", "a": "20:00Z", "seduta": -1}      la cassa della seduta precedente
+```
+
+**`seduta: -1` e' la seduta precedente che ha barre in quella finestra**, quindi il lunedi' e'
+venerdi' e non una domenica vuota. Serve una fine dichiarata. Nasce il 23 settembre 2026: il VAH
+della cassa del giorno prima era il livello piu' importante della mattina — testato e tenuto alle
+04:16 — e il chart non poteva disegnarlo. Le regole di cassa guardano solo la cassa di oggi, e una
+data assoluta invecchia in una notte, come era gia' successo due volte con la finestra d'Asia.
+
+**Due livelli piu' vicini dello stacco minimo non si perdono piu': si uniscono.** Resta la riga del
+primo dichiarato, e la sua etichetta porta anche l'altro nome col suo prezzo — *"MIN EUROPA + VAL
+notte 31.015,00"*. Prima il secondo spariva, e quella stessa mattina era sparito proprio il VAL
+notte, il bordo su cui si stava lavorando.
+
 ---
 
 ## L'Etichetta Dice Il Peso
