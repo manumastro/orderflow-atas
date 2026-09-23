@@ -55,7 +55,7 @@ public sealed partial class DataBridge
     [Range(1, 6)]
     public int NodiPerLato { get; set; } = 3;
 
-    private readonly record struct Nodo(decimal Prezzo, decimal Volume, decimal Peso);
+    private readonly record struct Nodo(decimal Prezzo, decimal Volume, decimal Peso, string Giorni);
 
     private readonly record struct Vuoto(decimal Basso, decimal Alto, decimal Peso);
 
@@ -81,6 +81,7 @@ public sealed partial class DataBridge
         var fascia = InPunti(NodiFascia);
         var inizio = GetCandle(ultimo).Time.AddDays(-NodiGiorni);
         var volume = new SortedDictionary<decimal, decimal>();
+        var perGiorno = new Dictionary<decimal, Dictionary<DateTime, decimal>>();
 
         var primo = ultimo;
         for (var bar = ultimo; bar >= 0; bar--)
@@ -96,6 +97,9 @@ public sealed partial class DataBridge
             {
                 var k = Math.Floor(l.Price / fascia) * fascia;
                 volume[k] = volume.GetValueOrDefault(k) + l.Volume;
+                if (!perGiorno.TryGetValue(k, out var g)) { g = new Dictionary<DateTime, decimal>(); perGiorno[k] = g; }
+                var giorno = GiornoDiMercato(c.Time);
+                g[giorno] = g.GetValueOrDefault(giorno) + l.Volume;
             }
         }
 
@@ -149,7 +153,8 @@ public sealed partial class DataBridge
                 var centro = prezzi[migliore] + fascia / 2m;
                 if (nodi.Count == 0 || Math.Abs(nodi[^1].Prezzo - centro) > fascia * 2)
                 {
-                    nodi.Add(new Nodo(centro, v[migliore], v[migliore] / mediana));
+                    nodi.Add(new Nodo(centro, v[migliore], v[migliore] / mediana,
+                        ChiLHaCostruito(perGiorno, prezzi, da, a)));
                 }
             }
         }
@@ -228,27 +233,60 @@ public sealed partial class DataBridge
                 continue;
             }
 
-            context.DrawLine(new RenderPen(Color.FromArgb(200, NodoColore), 1, DashOf("dash")),
+            context.DrawLine(new RenderPen(Color.FromArgb(200, ColoreStorico), 1, DashOf("dash")),
                 sinistra, y, dataRight, y);
-            var breve = $"NODO {Prezzo(n.Prezzo)}";
+            var breve = $"VALORE {n.Giorni} {Prezzo(n.Prezzo)}";
             var size = context.MeasureString(breve, font);
             var x = sinistra + 6;
             var riquadro = new Rectangle(x - 3, y - size.Height - 2, size.Width + 6, size.Height + 2);
             context.FillRectangle(Color.FromArgb(190, 0, 0, 0), riquadro);
-            context.DrawString(breve, font, NodoColore, x, y - size.Height - 1);
+            context.DrawString(breve, font, ColoreStorico, x, y - size.Height - 1);
             if (mouse is { } m)
             {
                 var banda = new Rectangle(sinistra, y - 4, Math.Max(1, dataRight - sinistra), 8);
                 if (riquadro.Contains(m) || banda.Contains(m))
                 {
-                    tooltip = ($"{breve} · {giorni}, {Lotti(n.Volume)} lotti nella fascia, "
-                               + $"{n.Peso.ToString("0.0", Italiano)}x la mediana · qui il mercato ha costruito valore: "
-                               + "e' un bersaglio, e dove il prezzo si ferma", NodoColore, m);
+                    tooltip = ($"{breve} · valore costruito il {n.Giorni}: {Lotti(n.Volume)} lotti nella fascia, "
+                               + $"{n.Peso.ToString("0.0", Italiano)}x la mediana dei {giorni} · e' un bersaglio, "
+                               + "e il posto dove il prezzo si ferma", ColoreStorico, m);
                 }
             }
         }
 
         return tooltip;
+    }
+
+    /// <summary>
+    /// Il giorno di mercato di una barra: dalle 22:00Z la notte appartiene alla seduta dopo, come la
+    /// conta il CME. Un valore costruito alle 23:00Z di lunedi' e' valore di martedi'.
+    /// </summary>
+    private static DateTime GiornoDiMercato(DateTime t) => t.Hour >= 22 ? t.Date.AddDays(1) : t.Date;
+
+    /// <summary>
+    /// Chi ha costruito quel valore: il giorno che ci ha messo piu' volume, o i due giorni se nessuno
+    /// supera il 60%. E' il nome del livello, perche' "nodo" non dice niente a chi guarda.
+    /// </summary>
+    private static string ChiLHaCostruito(
+        Dictionary<decimal, Dictionary<DateTime, decimal>> perGiorno, List<decimal> prezzi, int da, int a)
+    {
+        var somma = new Dictionary<DateTime, decimal>();
+        for (var i = da; i <= a; i++)
+        {
+            if (!perGiorno.TryGetValue(prezzi[i], out var g)) { continue; }
+            foreach (var (giorno, vol) in g) { somma[giorno] = somma.GetValueOrDefault(giorno) + vol; }
+        }
+
+        if (somma.Count == 0) { return "?"; }
+        var ordinati = somma.OrderByDescending(kv => kv.Value).ToList();
+        var totale = ordinati.Sum(kv => kv.Value);
+        var primo = ordinati[0];
+        if (ordinati.Count == 1 || primo.Value / totale >= 0.6m)
+        {
+            return primo.Key.ToString("dd/MM");
+        }
+
+        var coppia = new[] { primo.Key, ordinati[1].Key }.OrderBy(d => d).ToArray();
+        return $"{coppia[0]:dd}-{coppia[1]:dd/MM}";
     }
 
     private object Nodi()
@@ -262,8 +300,8 @@ public sealed partial class DataBridge
             giorni = NodiGiorni,
             fascia = InPunti(NodiFascia),
             mediana = _nodiMediana,
-            nodi = _nodi.OrderByDescending(n => n.Prezzo)
-                .Select(n => new { prezzo = n.Prezzo, lotti = n.Volume, peso = Math.Round(n.Peso, 2) }).ToArray(),
+            valori = _nodi.OrderByDescending(n => n.Prezzo)
+                .Select(n => new { prezzo = n.Prezzo, costruito = n.Giorni, lotti = n.Volume, peso = Math.Round(n.Peso, 2) }).ToArray(),
             vuoti = _vuoti.OrderByDescending(g => g.Alto)
                 .Select(g => new { da = g.Basso, a = g.Alto, peso = Math.Round(g.Peso, 3) }).ToArray(),
         };

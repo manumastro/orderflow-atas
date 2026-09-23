@@ -466,18 +466,18 @@ Il file dell'oro non ha scenari.
 
 ---
 
-## Nodi E Vuoti Di Piu' Giorni: I Bersagli
+## Il Valore Dei Giorni Passati E I Vuoti: I Bersagli
 
 **Dal 23 settembre 2026 l'indicatore disegna da solo i nodi e i vuoti del profilo degli ultimi
 cinque giorni**, i piu' vicini sopra e sotto il prezzo (`INodiEIVuoti.cs`, endpoint `/nodi`).
 Quella mattina il prezzo era uscito sotto il valore del giorno prima, e il chart non aveva niente
 sotto: il bersaglio vero stava **due giorni indietro**, POC della cassa del 21 ed Europa del 22 a
-30.775-30.783. Il primo giro del calcolo l'ha trovato da solo: **NODO 30.782,5, 5,9 volte la fascia
+30.775-30.783. Il primo giro del calcolo l'ha trovato da solo: **VALORE 21-22/09 30.782,5, 5,9 volte la fascia
 mediana**.
 
-- **nodo**: una fascia (5 punti NQ, scalati sullo strumento) che e' un massimo locale del volume e
+- **valore** (sul chart *"VALORE 21-22/09"*, cioe' **chi l'ha costruito**): una fascia (5 punti NQ, scalati sullo strumento) che e' un massimo locale del volume e
   pesa almeno 1,5 volte la mediana. E' dove il mercato ha costruito valore: un bersaglio, e un posto
-  dove il prezzo si ferma. Riga tratteggiata azzurra.
+  dove il prezzo si ferma. Riga tratteggiata grigio chiaro. Il nome e' il giorno di mercato che ci ha messo piu' volume, o i due giorni se nessuno supera il 60%.
 - **vuoto**: almeno tre fasce di fila sotto 0,25 volte la mediana. Il prezzo ci e' solo passato, e se
   ci rientra lo attraversa in fretta. Fascia velata grigia.
 
@@ -487,3 +487,25 @@ partono dalla barra di adesso e si spiegano al passaggio del mouse.
 **Un vuoto di una seduta non e' per forza un vuoto di cinque.** Il 23 il corridoio 30.760-30.880 era
 vuoto nella cassa del 22 (0,1-1% per fascia), ma sui cinque giorni non lo e': la notte e l'Europa del
 22 ci avevano scambiato. Il calcolo lo dice, e ha ragione lui.
+
+---
+
+## I Colori: La Seduta, E Lo Stile: Il Ruolo
+
+**Due regole fisse, dal 23 settembre 2026**, invece di un colore scritto riga per riga nel file (che
+aveva messo cassa, notte ed Europa in tre azzurri quasi uguali):
+
+| seduta | colore | | ruolo | stile |
+|---|---|---|---|---|
+| cassa di oggi | azzurro `#4FC3F7` | | POC | pieno, spesso 3 |
+| cassa di ieri | arancio `#FFA726` | | VAH / VAL | tratteggio, 2 |
+| notte | viola `#9575CD` | | massimo / minimo | punti, 1 |
+| Europa | lime `#D4E157` | | zona pesante, mensola, altri | tratto e punto, 1 |
+| COT | oro `#FFD54F` | | | |
+| valore dei giorni passati, vuoti | grigio chiaro | | | |
+| muro sotto / sopra | verde / rosso | | | |
+
+La seduta si legge dal **nome** della regola (`cash`, `cash ieri`, `notte`, `Europa`, `COT`); il colore
+del file vale solo per i livelli fuori da queste famiglie. Anche la banda del valore prende il colore
+della sua seduta. Sul chart, in basso a sinistra, c'e' la legenda. Si spegne da *Levels ->
+Colors by session*.

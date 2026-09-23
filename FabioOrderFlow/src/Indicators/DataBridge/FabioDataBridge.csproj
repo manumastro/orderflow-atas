@@ -11,5 +11,6 @@
     <Compile Include="..\..\Observation\LaMisuraSuOgniLivello.cs" Link="LaMisuraSuOgniLivello.cs" />
     <Compile Include="..\..\Observation\LaScalaDelloStrumento.cs" Link="LaScalaDelloStrumento.cs" />
     <Compile Include="..\..\Observation\INodiEIVuoti.cs" Link="INodiEIVuoti.cs" />
+    <Compile Include="..\..\Observation\IColoriDeiLivelli.cs" Link="IColoriDeiLivelli.cs" />
   </ItemGroup>
 </Project>

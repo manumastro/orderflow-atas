@@ -1243,6 +1243,7 @@ public sealed partial class DataBridge : Indicator
         try
         {
             DisegnaLeMisure(context, area, levels);
+            DisegnaLegenda(context, area);
         }
         catch (Exception errore)
         {
@@ -1470,7 +1471,7 @@ public sealed partial class DataBridge : Indicator
             {
                 continue;
             }
-            context.FillRectangle(Color.FromArgb(ValueBandOpacity, 79, 195, 247),
+            context.FillRectangle(Color.FromArgb(ValueBandOpacity, ColoreBanda(a.Nome)),
                 new Rectangle(area.Left, top, dataRight - area.Left, bottom - top));
         }
     }

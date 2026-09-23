@@ -743,13 +743,14 @@ public sealed partial class DataBridge
                 .Trim();
         }
 
+        var aspetto = Aspetto(regola, tipo);
         return new BridgeLevel
         {
             Price = prezzo,
             Label = etichetta,
-            Color = regola.Color ?? "#7A8FA6",
-            Style = regola.Style ?? "solid",
-            Width = regola.Width,
+            Color = aspetto.Colore,
+            Style = aspetto.Stile,
+            Width = aspetto.Spessore,
             Note = regola.Note,
             Role = tipo,
             Area = area,

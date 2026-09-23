@@ -122,7 +122,7 @@
       "da": "07:00Z",
       "a": "13:30Z"
     },
-    "label": "Top nodo pesante {pct} d{delta} · dove i compratori europei sono entrati, e sono sopra",
+    "label": "Zona pesante Europa, bordo alto {pct} d{delta} · dove i compratori europei sono entrati, e sono sopra",
     "color": "#7A8FA6",
     "style": "solid",
     "width": 2,
