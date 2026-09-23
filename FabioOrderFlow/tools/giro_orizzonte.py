@@ -135,8 +135,19 @@ def main() -> int:
         if len(registrati) == 1:
             CHART[:] = ["--chart", registrati[0]["instrument"]]
         elif len(registrati) > 1:
-            print(f"  {len(registrati)} chart registrati: serve --chart fra "
-                  f"{', '.join(x['instrument'] for x in registrati)}")
+            # Con piu' chart aperti il giro guarda NQ, che e' lo strumento del metodo
+            # (CLAUDE.md, seconda decisione), e lo dice. Il 23 settembre l'apertura dell'oro
+            # accanto al NQ ha lasciato il giro cieco: rifiutava di scegliere e non stampava
+            # niente, cioe' esattamente il "bridge irraggiungibile" che non era.
+            nq = [x for x in registrati if str(x.get("instrument", "")).upper().startswith("NQ")]
+            altri = ', '.join(x['instrument'] for x in registrati if x not in nq[:1])
+            if nq:
+                CHART[:] = ["--chart", nq[0]["instrument"]]
+                print(f"  {len(registrati)} chart registrati: il giro guarda {nq[0]['instrument']}; "
+                      f"aperti anche: {altri}")
+            else:
+                print(f"  {len(registrati)} chart registrati: serve --chart fra "
+                      f"{', '.join(x['instrument'] for x in registrati)}")
 
     h = bridge("health")
     g = a.giorno
