@@ -787,3 +787,9 @@ DICHIARA su chi lo porta; il colore resta come ripiego e al massimo dice
             Lo stacco minimo non butta piu' il livello vicino: lo aggiunge all'etichetta del
             primo. Quella mattina il VAL notte era sparito dietro il min Europa.
 
+2026-09-23  Le misure al livello escono dal pannello e vanno su ogni livello, a sinistra.
+            LaMisuraSuOgniLivello.cs: barretta acquisti/vendite, lotti, delta, tocchi,
+            tiene/passa, big trades, sul tratto di seduta. Primo giro sulle ultime 10 barre:
+            7 livelli su 9 a zero, finestra sbagliata. Sul tratto: POC Europa 2.128 lotti,
+            124 tocchi, tiene 67 passa 57. Campo alLivello su /panel.
+

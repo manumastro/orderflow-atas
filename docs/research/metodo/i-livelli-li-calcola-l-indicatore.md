@@ -396,3 +396,31 @@ faceva qualcosa di non previsto.
 
 **Dopo un `deploy.sh` ATAS X ricarica l'indicatore da solo**: non serve riavviarlo, e la
 posizione del replay non si perde. (Il vecchio ATAS 8 invece lo richiedeva.)
+
+---
+
+## Su Ogni Livello, A Sinistra: Cosa Ci E' Successo
+
+**Dal 23 settembre 2026 sforzo, delta, esito e big trades non stanno piu' nel pannello, e non
+riguardano piu' un livello solo.** Ogni livello porta a sinistra, sulla sua riga, un'etichetta:
+
+```text
+[▮▮▮▮▯▯] 2.128 lotti  Δ +168   124 tocchi · tiene 67 · passa 57   big —
+```
+
+- **la barretta** e' la quota di acquisti aggressivi (verde) contro vendite aggressive (rosso) a quel
+  prezzo: si legge prima dei numeri;
+- **lotti e Δ** sono quelli scambiati nella fascia di due tick attorno al livello;
+- **tocchi, tiene, passa**: quante barre ci sono arrivate, quante sono tornate dal lato da cui
+  venivano, quante l'hanno attraversato;
+- **big**: gli ordini da 60+ lotti a quel prezzo. **Se il registro del tape non copre il tratto, non
+  si scrive niente**, perche' *"big —"* direbbe zero e zero non e' *"non lo so"*.
+
+**La finestra e' il tratto di seduta in corso**, la stessa dei muri: dopo l'apertura la cassa, prima
+tutto cio' che viene dalla chiusura precedente. Il primo giro usava le ultime dieci barre del
+pannello, e su nove livelli sette dicevano *"0 lotti, 0 tocchi"*: non erano muti perche' non
+contavano, erano muti perche' la finestra era sbagliata.
+
+Il pannello tiene il livello in gioco (nome, distanza, lato di arrivo) e le condizioni dello
+scenario, che restano misurate sulle ultime dieci barre. Le stesse misure si leggono dal bridge nel
+campo `alLivello` di `/panel`.

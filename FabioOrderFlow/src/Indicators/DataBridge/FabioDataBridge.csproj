@@ -8,5 +8,6 @@
     <Compile Include="..\..\Observation\RegoleDeiLivelli.cs" Link="RegoleDeiLivelli.cs" />
     <Compile Include="..\..\Observation\IlRegimeELaVelocita.cs" Link="IlRegimeELaVelocita.cs" />
     <Compile Include="..\..\Observation\IMuriDelLibro.cs" Link="IMuriDelLibro.cs" />
+    <Compile Include="..\..\Observation\LaMisuraSuOgniLivello.cs" Link="LaMisuraSuOgniLivello.cs" />
   </ItemGroup>
 </Project>

@@ -1219,6 +1219,16 @@ public sealed partial class DataBridge : Indicator
         // destro sicuro qualunque sia la larghezza dell'asse.
         DisegnaBandaValore(context, area, levels);
 
+        // Le misure a sinistra non possono portarsi via i livelli: stessa regola del pannello.
+        try
+        {
+            DisegnaLeMisure(context, area, levels);
+        }
+        catch (Exception errore)
+        {
+            this.LogError("misure dei livelli non disegnate", errore);
+        }
+
         foreach (var level in levels)
         {
             var y = ChartInfo.GetYByPrice(level.Price, false);
@@ -1633,6 +1643,8 @@ public sealed partial class DataBridge : Indicator
             // La barra in formazione E' inclusa nel pannello, e va detto: i suoi numeri cambiano
             // fra una lettura e la successiva senza che il mercato abbia fatto niente di nuovo.
             barraInFormazione = true,
+            // Le misure che sul chart stanno a sinistra di ogni livello, non nel pannello.
+            alLivello = MisureInJson(),
             count = righe.Count,
             lines = righe.Select(r => new
             {
@@ -1847,38 +1859,11 @@ public sealed partial class DataBridge : Indicator
             arrivo.Length > 0 ? PanelBianco : PanelAmbra));
 
         // --- cosa e' stato scambiato A QUEL PREZZO --------------------------------------------
-        var da = Math.Max(0, ultimo - PanelLookback + 1);
-        decimal vol = 0m;
-        decimal delta = 0m;
-        var tocchi = 0;
-        var respinti = 0;
-        var passati = 0;
-        var fascia = tick * 2;
-
-        for (var bar = da; bar <= ultimo; bar++)
-        {
-            var c = GetCandle(bar);
-            for (var pz = livello - fascia; pz <= livello + fascia; pz += tick)
-            {
-                var info = c.GetPriceVolumeInfo(pz);
-                if (info is null)
-                {
-                    continue;
-                }
-                vol += info.Volume;
-                delta += info.Ask - info.Bid;
-            }
-
-            if (c.Low - fascia <= livello && livello <= c.High + fascia)
-            {
-                tocchi++;
-                if (bar > 0)
-                {
-                    var lato = GetCandle(bar - 1).Close >= livello;
-                    if ((c.Close >= livello) == lato) { respinti++; } else { passati++; }
-                }
-            }
-        }
+        // Dal 23 settembre la misura non si scrive piu' qui: sta a sinistra, sulla riga di OGNI
+        // livello (LaMisuraSuOgniLivello.cs). Il pannello la usa ancora per spuntare le condizioni.
+        var alLivello = MisuraAlLivello(livello, ultimo - PanelLookback + 1, ultimo, tapeA);
+        var vol = alLivello.Volume;
+        var delta = alLivello.Delta;
 
         // --- sforzo e risultato, che e' la coppia con cui si legge l'assorbimento -------------
         // I numeri nudi non dicono niente: 3.482 lotti sono tanti o pochi a seconda di cosa hanno
@@ -1891,35 +1876,6 @@ public sealed partial class DataBridge : Indicator
         // seduta mentre erano i soli lotti scambiati dentro una fascia di due tick, in dieci
         // barre. Due numeri con lo stesso nome e significati diversi e' il modo piu' rapido di
         // leggere il chart al contrario.
-        var chi = delta > 0 ? "compratori aggressivi" : delta < 0 ? "venditori aggressivi" : "pari";
-        righe.Add(new RigaPannello(
-            $"AL LIVELLO {Prezzo(livello)} +/-{Prezzo(fascia)}, ultime {PanelLookback} barre",
-            PanelGrigio));
-        righe.Add(new RigaPannello(
-            $"  sforzo   {Lotti(vol)} lotti scambiati a questo prezzo",
-            PanelGrigio));
-        righe.Add(new RigaPannello(
-            $"  delta    {Segnato(delta)}{Quota(delta, vol)}  {chi}",
-            delta > 0 ? PanelVerde : delta < 0 ? PanelRosso : PanelGrigio));
-        righe.Add(new RigaPannello(
-            $"  esito    toccato {tocchi}x, respinto {respinti}x, passato {passati}x",
-            PanelGrigio));
-
-        // I BIG TRADES SONO LA META' MANCANTE DELLO SFORZO. Mille lotti in ordini da due non
-        // sono un muro; mille lotti in sei ordini da centosessanta lo sono, e il live guarda
-        // sempre la seconda cosa: "look how many absorption contract you have here on this
-        // horizontal level: 70, 75, 141, 33" [6 · 1:01:24]. Il volume da solo non lo distingue.
-        var (bigQui, bigQuiNetto, bigQuiTot, copreQui) = BigTradesAlLivello(
-            livello, fascia, GetCandle(da)?.Time ?? DateTime.MinValue, tapeA);
-        righe.Add(new RigaPannello(
-            !copreQui
-                ? $"  big      il registro copre solo da {EtaDelTape()}: non si puo' dire"
-                : bigQui == 0
-                    ? $"  big      nessun ordine da {SogliaBigTrade}+ lotti a questo prezzo"
-                    : $"  big      {bigQui} ordini da {SogliaBigTrade}+ lotti, {Lotti(bigQuiTot)} lotti, "
-                      + $"netto {Segnato(bigQuiNetto)}",
-            !copreQui || bigQui == 0 ? PanelAmbra
-                : bigQuiNetto > 0 ? PanelVerde : bigQuiNetto < 0 ? PanelRosso : PanelGrigio));
 
         // --- lo stesso conto su finestre piu' larghe -----------------------------------------
         // Serve a dare una scala. Un delta di +120 al livello non si giudica da solo: se la
