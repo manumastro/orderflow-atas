@@ -424,3 +424,36 @@ contavano, erano muti perche' la finestra era sbagliata.
 Il pannello tiene il livello in gioco (nome, distanza, lato di arrivo) e le condizioni dello
 scenario, che restano misurate sulle ultime dieci barre. Le stesse misure si leggono dal bridge nel
 campo `alLivello` di `/panel`.
+
+---
+
+## Su Un Altro Strumento: La Scala
+
+**Le soglie in punti sono tarate sul NQ**: stacco fra livelli 8, raggio del livello in gioco 12,
+stacco dell'invalidazione 10, distanza fra muri 8, big trade 60 lotti. Sull'oro la cassa fa 48 punti
+di range contro i 290 del NQ: con le soglie del NQ due livelli d'oro a cinque punti — lontani —
+diventavano lo stesso livello, e 60 lotti d'oro sono un evento raro.
+
+Dal 23 settembre 2026 l'indicatore **misura la scala dello strumento** (`LaScalaDelloStrumento.cs`)
+e ci moltiplica le soglie:
+
+| | NQ | oro (GCZ6, misurato) |
+|---|---|---|
+| scala dei punti = range mediano di cassa / 290 | **1**, fissa | 0,166 |
+| scala dei lotti = volume mediano di cassa / 346.567 | **1**, fissa | 0,150 |
+| stacco fra livelli | 8 | 1,3 |
+| raggio del livello in gioco | 12 | 2,0 |
+| stacco dell'invalidazione | 10 | 1,7 |
+| big trade | 60 lotti | 9 lotti |
+
+Sul NQ la scala e' 1 **fissa**: e' lo strumento del metodo e le sue soglie non devono muoversi da
+sole. Sugli altri si misura sulle ultime sei casse in memoria (13:30Z-20:00Z); i due riferimenti
+sono le mediane del NQ sulle sedute 15-22 settembre. Si forza dalle proprieta' dell'istanza,
+gruppo **Instrument**, e si legge su **`/scala`**.
+
+**Nel file delle regole grana, passo, tolleranza e `minimo_lotti` si scrivono a mano** per lo
+strumento: sono campi della regola, non soglie dell'indicatore. Per l'oro:
+`regole-dei-livelli-GCZ6-2026-09-23.json`, grana 0,5, passo 5, `minimo_lotti` 2.500.
+
+**E' uno strumento di studio.** Lo strumento operativo resta il NQ (CLAUDE.md, seconda decisione).
+Il file dell'oro non ha scenari.

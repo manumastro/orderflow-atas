@@ -564,6 +564,7 @@ public sealed partial class DataBridge : Indicator
                 "/levels" => await LevelsAsync(context).ConfigureAwait(false),
                 "/rules" => await RulesAsync(context).ConfigureAwait(false),
                 "/regime" => Regime(),
+            "/scala" => ScalaInJson(),
             "/muri" => Muri(),
                 "/panel" => Pannello(),
                 "/watch" => await WatchAsync(context).ConfigureAwait(false),
@@ -1726,7 +1727,7 @@ public sealed partial class DataBridge : Indicator
         righe.Add(new RigaPannello(
             !copreFinestra
                 ? $"           big trade: il registro copre solo da {EtaDelTape()}. Non e' zero, e' non lo so"
-                : $"           {bigFinestra} big trade da {SogliaBigTrade}+ lotti in {PanelLookback} barre, "
+                : $"           {bigFinestra} big trade da {SogliaBig}+ lotti in {PanelLookback} barre, "
                   + $"netto {Segnato(bigNetto)}",
             !copreFinestra ? PanelAmbra
                 : bigFinestra == 0 ? PanelAmbra
@@ -1800,7 +1801,7 @@ public sealed partial class DataBridge : Indicator
             // A parita' di distanza vince quello che conta per la strategia: un bordo di contesto
             // non deve rubare il posto al livello su cui si decide.
             var peso = l.Key ? d : d + 0.01m;
-            if (d <= InPlayRadius && peso < minDist)
+            if (d <= InPunti(InPlayRadius) && peso < minDist)
             {
                 minDist = peso;
                 gioco = l;
@@ -1840,7 +1841,7 @@ public sealed partial class DataBridge : Indicator
         var dove = prezzo >= livello ? "sopra" : "sotto";
 
         var tick = InstrumentInfo?.TickSize ?? 0.25m;
-        var soglia = Math.Max(tick * 4, InPlayRadius / 4m);
+        var soglia = Math.Max(tick * 4, InPunti(InPlayRadius) / 4m);
         var arrivo = string.Empty;
         for (var bar = ultimo; bar >= Math.Max(0, ultimo - 240); bar--)
         {

@@ -150,7 +150,7 @@ public sealed partial class DataBridge
         }
 
         _muriBarra = ultimo;
-        var grana = Math.Max(0.25m, MuriGrana);
+        var grana = InPunti(MuriGrana);
 
         // IL TRATTO, NON LE ULTIME N BARRE. Una finestra scorrevole trascina dentro la mattina
         // europea per ore dopo l'apertura, e i muri restano fermi dove il prezzo non e' piu':
@@ -261,7 +261,7 @@ public sealed partial class DataBridge
 
                 // Due prezzi a un tick di distanza sono lo stesso muro visto due volte: si tiene
                 // il piu' scambiato, che e' il primo perche' la lista e' ordinata.
-                if (tenuti.Any(m => Math.Abs(m.Prezzo - prezzo) < MuriStacco))
+                if (tenuti.Any(m => Math.Abs(m.Prezzo - prezzo) < InPunti(MuriStacco)))
                 {
                     continue;
                 }

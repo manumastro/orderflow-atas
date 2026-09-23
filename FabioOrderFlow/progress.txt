@@ -793,3 +793,13 @@ DICHIARA su chi lo porta; il colore resta come ripiego e al massimo dice
             7 livelli su 9 a zero, finestra sbagliata. Sul tratto: POC Europa 2.128 lotti,
             124 tocchi, tiene 67 passa 57. Campo alLivello su /panel.
 
+2026-09-23  L'indicatore funziona anche sull'oro, per studio.
+            LaScalaDelloStrumento.cs: scala dei punti e dei lotti misurate sulle casse in memoria
+            (NQ fissa a 1). GCZ6: 0,166 e 0,150 -> stacco 1,3, raggio 2,0, big trade 9 lotti.
+            Regole oro senza scenari, grana 0,5, passo 5. Endpoint /scala. NQ invariato,
+            verificato: tutte le soglie identiche a prima.
+            Il giro con due chart aperti guarda NQ invece di non guardare niente.
+            Nota: al deploy il hub e' ripartito sulla 8788 (la 8787 ancora occupata dalla vecchia
+            istanza) e il file di discovery e' stato cancellato dalla vecchia dopo che la nuova
+            l'aveva scritto. bridge.py scansiona 8787-8796 e non se ne accorge; un curl sulla 8787 si'.
+

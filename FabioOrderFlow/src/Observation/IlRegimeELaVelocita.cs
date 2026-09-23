@@ -363,7 +363,7 @@ public sealed partial class DataBridge
             }
         }
 
-        if (trade.Volume < SogliaBigTrade)
+        if (trade.Volume < SogliaBig)
         {
             // Puo' esserci gia' stato sopra soglia e poi... no: un cumulative trade solo cresce.
             // Se e' sotto soglia adesso, sotto soglia era anche prima, e non c'e' niente da
@@ -513,7 +513,7 @@ public sealed partial class DataBridge
         {
             var inizio = fine.AddMinutes(-MinutiDiTape);
             var richiesta = new CumulativeTradesRequest(
-                inizio, fine, CumulativeTradesMode.Filter, SogliaBigTrade, 0);
+                inizio, fine, CumulativeTradesMode.Filter, SogliaBig, 0);
             var trades = await RequestCumulativeAsync(richiesta, CancellationToken.None)
                 .ConfigureAwait(false);
 
@@ -521,7 +521,7 @@ public sealed partial class DataBridge
             {
                 foreach (var t in trades)
                 {
-                    if (t.Volume < SogliaBigTrade || t.Time < inizio || t.Time > fine)
+                    if (t.Volume < SogliaBig || t.Time < inizio || t.Time > fine)
                     {
                         continue;
                     }
@@ -657,7 +657,7 @@ public sealed partial class DataBridge
         }
         else if (velocitaOk && percentile <= PercentileMorto && quantiBig == 0)
         {
-            veti.Add($"nessun big trade da {SogliaBigTrade} lotti in {PanelLookback} barre e velocita' "
+            veti.Add($"nessun big trade da {SogliaBig} lotti in {PanelLookback} barre e velocita' "
                      + $"al {percentile}° percentile: libro sottile, e non e' un posto dove entrare");
         }
 
@@ -775,7 +775,7 @@ public sealed partial class DataBridge
                 tapeHaParlato = _tapeHaParlato,
                 copreTuttaLaFinestra = copreBig,
                 registroDaUtc = _tapeDa is null ? null : Iso(_tapeDa.Value),
-                soglia = SogliaBigTrade,
+                soglia = SogliaBig,
                 finestraBarre = PanelLookback,
                 quanti = quantiBig,
                 netto = nettoBig,

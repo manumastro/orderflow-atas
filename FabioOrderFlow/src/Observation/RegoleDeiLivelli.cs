@@ -495,7 +495,7 @@ public sealed partial class DataBridge
                 // UNA INVALIDAZIONE TROPPO VICINA NON E' UNA INVALIDAZIONE. Uno stop a un tick
                 // dall'ingresso lo prende il rumore, non il mercato, e sul pannello quel numero
                 // e' peggio di un campo vuoto perche' sembra una misura.
-                var stacco = sc.StaccoMinimo ?? StaccoInvalidazione;
+                var stacco = sc.StaccoMinimo ?? InPunti(StaccoInvalidazione);
                 if (Math.Abs(inv - livello.Price) >= stacco)
                 {
                     invalida = inv;
@@ -546,7 +546,7 @@ public sealed partial class DataBridge
         var tenuti = new List<BridgeLevel>();
         foreach (var livello in risolti)
         {
-            var indice = tenuti.FindIndex(t => Math.Abs(t.Price - livello.Price) < StaccoMinimoFraLivelli);
+            var indice = tenuti.FindIndex(t => Math.Abs(t.Price - livello.Price) < InPunti(StaccoMinimoFraLivelli));
             if (indice >= 0)
             {
                 var vicino = tenuti[indice];
@@ -567,7 +567,7 @@ public sealed partial class DataBridge
                 saltate.Add(
                     $"{livello.Nome} {Prezzo(livello.Price)}: unito a «{vicino.Nome}», a "
                     + $"{Prezzo(Math.Abs(vicino.Price - livello.Price))} punti "
-                    + $"(stacco minimo {StaccoMinimoFraLivelli})");
+                    + $"(stacco minimo {Prezzo(InPunti(StaccoMinimoFraLivelli))})");
                 continue;
             }
 
