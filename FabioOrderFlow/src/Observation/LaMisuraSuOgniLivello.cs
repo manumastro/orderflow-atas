@@ -57,10 +57,10 @@ public sealed partial class DataBridge
     private int InizioDelTratto(int ultimo)
     {
         var ultimaBarra = GetCandle(ultimo);
-        var apertura = Momento(MuriApertura, ultimaBarra.Time);
+        var apertura = Momento(Apertura, ultimaBarra.Time);
         var inizio = ultimaBarra.Time >= apertura
             ? apertura
-            : Momento(MuriChiusura, ultimaBarra.Time).AddDays(-1);
+            : Momento(Chiusura, ultimaBarra.Time).AddDays(-1);
         var primo = ultimo;
         while (primo > 0 && GetCandle(primo - 1) is { } precedente && precedente.Time >= inizio)
         {

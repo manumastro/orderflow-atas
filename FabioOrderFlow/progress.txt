@@ -803,3 +803,10 @@ DICHIARA su chi lo porta; il colore resta come ripiego e al massimo dice
             istanza) e il file di discovery e' stato cancellato dalla vecchia dopo che la nuova
             l'aveva scritto. bridge.py scansiona 8787-8796 e non se ne accorge; un curl sulla 8787 si'.
 
+2026-09-23  Anche il crude, per studio. CLZ6: cassa 13:00Z-18:30Z (pit NYMEX), scala 0,007 punti
+            e 0,079 lotti -> stacco 0,06, big trade 5 lotti. Regole senza scenari, grana 0,01.
+            Nota: CLZ6 e' il dicembre; il front month dovrebbe essere CLX6 (novembre), e i volumi
+            di cassa di Z6 (20-36 mila lotti) sono coerenti con un contratto secondo.
+            Discovery: la vecchia istanza non cancella piu' il file della nuova. L'hook del giro,
+            senza file, sonda 8787-8796 invece di cadere sulla 8787.
+

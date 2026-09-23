@@ -32,7 +32,15 @@ cd "$CLAUDE_PROJECT_DIR" || exit 0
 export PYTHONUTF8=1
 export PYTHONIOENCODING=utf-8
 
-PORTA=$(python3 -c "import json,os;print(json.load(open(os.path.expanduser('~/.fabio-data-bridge.json')))['port'])" 2>/dev/null || echo 8787)
+PORTA=$(python3 -c "import json,os;print(json.load(open(os.path.expanduser('~/.fabio-data-bridge.json')))['port'])" 2>/dev/null)
+# Senza file di discovery si sondano le porte del bridge, come fa bridge.py: il 23 settembre il
+# file era sparito e il ripiego fisso sulla 8787 dichiarava irraggiungibile un bridge acceso sulla 8788.
+if [ -z "$PORTA" ]; then
+  for p in 8787 8788 8789 8790 8791 8792 8793 8794 8795 8796; do
+    if curl -s -m 1 "http://127.0.0.1:$p/health" >/dev/null 2>&1; then PORTA=$p; break; fi
+  done
+fi
+PORTA=${PORTA:-8787}
 
 # Se il bridge non risponde subito, non ha senso aspettare: si dice e si passa oltre.
 # Si interroga /charts, che e' servito dall'hub e resta valido con qualunque numero di chart:

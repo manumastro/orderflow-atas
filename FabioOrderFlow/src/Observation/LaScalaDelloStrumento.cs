@@ -18,7 +18,7 @@ namespace FabioOrderFlow.Observation;
 ///
 /// <para><b>Come si misura, dichiarato.</b> Sul NQ la scala e' 1, fissa: e' lo strumento del metodo
 /// e le sue soglie non devono muoversi da sole. Su ogni altro strumento si misura sulle sedute di
-/// cassa in memoria (13:30Z-20:00Z, fino a sei):</para>
+/// cassa in memoria (la cassa dello strumento, fino a sei):</para>
 /// <list type="bullet">
 /// <item><b>scala dei punti</b> = mediana del range di cassa / <c>290</c>, la mediana del NQ sulle
 /// sedute 15-22 settembre 2026;</item>
@@ -59,6 +59,29 @@ public sealed partial class DataBridge
             return s.StartsWith("NQ", StringComparison.Ordinal) || s.StartsWith("MNQ", StringComparison.Ordinal);
         }
     }
+
+    private bool EIlCrude
+    {
+        get
+        {
+            var s = (InstrumentInfo?.Instrument ?? string.Empty).ToUpperInvariant();
+            return s.StartsWith("CL", StringComparison.Ordinal) || s.StartsWith("MCL", StringComparison.Ordinal);
+        }
+    }
+
+    /// <summary>
+    /// L'apertura della cassa per questo strumento. Sul crude il pit NYMEX apre alle 13:00Z e
+    /// chiude alle 18:30Z; su NQ e oro la cassa e' 13:30Z-20:00Z (per l'oro scelta sul volume il 18
+    /// settembre). Un valore scritto nelle proprieta' vince, **salvo il default del NQ su un chart di
+    /// crude**: e' quasi sempre il template ereditato, non una scelta.
+    /// </summary>
+    private string Apertura => EIlCrude && (string.IsNullOrWhiteSpace(MuriApertura) || MuriApertura == "13:30Z")
+        ? "13:00Z"
+        : string.IsNullOrWhiteSpace(MuriApertura) ? "13:30Z" : MuriApertura;
+
+    private string Chiusura => EIlCrude && (string.IsNullOrWhiteSpace(MuriChiusura) || MuriChiusura == "20:00Z")
+        ? "18:30Z"
+        : string.IsNullOrWhiteSpace(MuriChiusura) ? "20:00Z" : MuriChiusura;
 
     /// <summary>Moltiplicatore dei punti: 1 sul NQ.</summary>
     private decimal Scala
@@ -123,7 +146,7 @@ public sealed partial class DataBridge
             }
 
             var ora = c.Time.TimeOfDay;
-            if (giorno == oggi || ora < new TimeSpan(13, 30, 0) || ora >= new TimeSpan(20, 0, 0))
+            if (giorno == oggi || ora < Momento(Apertura, giorno).TimeOfDay || ora >= Momento(Chiusura, giorno).TimeOfDay)
             {
                 continue;
             }
@@ -155,6 +178,7 @@ public sealed partial class DataBridge
     private object ScalaInJson() => new
     {
         strumento = InstrumentInfo?.Instrument,
+        cassa = $"{Apertura}-{Chiusura}",
         punti = Math.Round(Scala, 3),
         lotti = Math.Round(ScalaDeiLotti, 3),
         forzata = ScalaPunti > 0 || ScalaLotti > 0,

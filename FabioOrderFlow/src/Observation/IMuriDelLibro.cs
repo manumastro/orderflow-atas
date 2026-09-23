@@ -161,10 +161,10 @@ public sealed partial class DataBridge
         _muriDa = null;
         if (MuriDallApertura && GetCandle(ultimo) is { } ultimaBarra)
         {
-            var apertura = Momento(MuriApertura, ultimaBarra.Time);
+            var apertura = Momento(Apertura, ultimaBarra.Time);
             var inizio = ultimaBarra.Time >= apertura
                 ? apertura
-                : Momento(MuriChiusura, ultimaBarra.Time).AddDays(-1);
+                : Momento(Chiusura, ultimaBarra.Time).AddDays(-1);
 
             _muriDa = inizio;
             primo = ultimo;
@@ -385,7 +385,7 @@ public sealed partial class DataBridge
             barra = _muriBarra,
             tratto = _muriDa is null
                 ? $"ultime {MuriFinestra} barre"
-                : (_muriDa.Value.TimeOfDay == Momento(MuriApertura, _muriDa.Value).TimeOfDay
+                : (_muriDa.Value.TimeOfDay == Momento(Apertura, _muriDa.Value).TimeOfDay
                     ? "dalla apertura di cassa"
                     : "dalla chiusura precedente"),
             da = _muriDa,

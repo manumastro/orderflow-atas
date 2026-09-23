@@ -417,7 +417,15 @@ public sealed partial class DataBridge : Indicator
     {
         try
         {
-            File.Delete(DiscoveryPath());
+            // Si cancella solo il PROPRIO file. Al deploy la vecchia istanza si ferma dopo che la
+            // nuova ha gia' scritto la sua porta: il 23 settembre l'ha cancellata, e l'hook e' tornato
+            // alla 8787 mentre il bridge era sulla 8788.
+            var percorso = DiscoveryPath();
+            if (File.Exists(percorso)
+                && File.ReadAllText(percorso).Contains($"\"port\":{_hubPort},", StringComparison.Ordinal))
+            {
+                File.Delete(percorso);
+            }
         }
         catch (Exception)
         {
@@ -1572,7 +1580,7 @@ public sealed partial class DataBridge : Indicator
         DateTime apertura;
         try
         {
-            apertura = Momento(AperturaCash, GetCandle(ultimo).Time);
+            apertura = Momento(Apertura, GetCandle(ultimo).Time);
         }
         catch (FormatException)
         {
@@ -1899,7 +1907,7 @@ public sealed partial class DataBridge : Indicator
         {
             var (dCash, vCash) = DeltaDiBarre(apertura, ultimo);
             righe.Add(new RigaPannello(
-                $"  da {AperturaCash} {Segnato(dCash)}{Quota(dCash, vCash)}  su {Lotti(vCash)} lotti",
+                $"  da {Apertura} {Segnato(dCash)}{Quota(dCash, vCash)}  su {Lotti(vCash)} lotti",
                 dCash > 0 ? PanelVerde : dCash < 0 ? PanelRosso : PanelGrigio));
         }
 

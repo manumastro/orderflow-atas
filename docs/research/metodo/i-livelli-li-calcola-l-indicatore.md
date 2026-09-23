@@ -437,14 +437,20 @@ diventavano lo stesso livello, e 60 lotti d'oro sono un evento raro.
 Dal 23 settembre 2026 l'indicatore **misura la scala dello strumento** (`LaScalaDelloStrumento.cs`)
 e ci moltiplica le soglie:
 
-| | NQ | oro (GCZ6, misurato) |
+| | NQ | oro (GCZ6) | crude (CLZ6) |
 |---|---|---|
-| scala dei punti = range mediano di cassa / 290 | **1**, fissa | 0,166 |
-| scala dei lotti = volume mediano di cassa / 346.567 | **1**, fissa | 0,150 |
-| stacco fra livelli | 8 | 1,3 |
-| raggio del livello in gioco | 12 | 2,0 |
-| stacco dell'invalidazione | 10 | 1,7 |
-| big trade | 60 lotti | 9 lotti |
+| scala dei punti = range mediano di cassa / 290 | **1**, fissa | 0,166 | 0,007 |
+| scala dei lotti = volume mediano di cassa / 346.567 | **1**, fissa | 0,150 | 0,079 |
+| stacco fra livelli | 8 | 1,3 | 0,06 |
+| raggio del livello in gioco | 12 | 2,0 | 0,09 |
+| stacco dell'invalidazione | 10 | 1,7 | 0,07 |
+| big trade | 60 lotti | 9 lotti | 5 lotti |
+
+**La cassa cambia con lo strumento.** Su NQ e oro e' 13:30Z-20:00Z; sul crude e' il pit NYMEX,
+**13:00Z-18:30Z**. Vale per la scala, per il tratto dei muri e delle etichette e per il delta
+"da apertura" del pannello; le regole del crude la dichiarano nelle loro finestre. Un `13:30Z`
+scritto nelle proprieta' di un chart di crude si tratta come il template ereditato, non come
+una scelta, e si usa 13:00Z.
 
 Sul NQ la scala e' 1 **fissa**: e' lo strumento del metodo e le sue soglie non devono muoversi da
 sole. Sugli altri si misura sulle ultime sei casse in memoria (13:30Z-20:00Z); i due riferimenti
