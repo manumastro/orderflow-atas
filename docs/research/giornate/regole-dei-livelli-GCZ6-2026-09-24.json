@@ -1,0 +1,330 @@
+[
+  {
+    "nome": "POC cash",
+    "tipo": "poc",
+    "finestra": {
+      "da": "13:30Z",
+      "a": "20:00Z"
+    },
+    "label": "POC CASH {pct} · bersaglio del mean reverting dentro la seduta",
+    "color": "#4FC3F7",
+    "style": "solid",
+    "width": 3,
+    "minimo_lotti": 2500,
+    "chiave": true,
+    "grana": 0.5,
+    "passo": 5,
+    "tolleranza": 0.5
+  },
+  {
+    "nome": "VAL cash",
+    "tipo": "val",
+    "finestra": {
+      "da": "13:30Z",
+      "a": "20:00Z"
+    },
+    "label": "VAL cash in sviluppo · da qui si fade verso il POC",
+    "color": "#4FC3F7",
+    "style": "dot",
+    "width": 1,
+    "minimo_lotti": 2500,
+    "chiave": true,
+    "grana": 0.5,
+    "passo": 5,
+    "tolleranza": 0.5
+  },
+  {
+    "nome": "VAH cash",
+    "tipo": "vah",
+    "finestra": {
+      "da": "13:30Z",
+      "a": "20:00Z"
+    },
+    "label": "VAH cash in sviluppo · da qui si fade verso il POC",
+    "color": "#4FC3F7",
+    "style": "dot",
+    "width": 1,
+    "minimo_lotti": 2500,
+    "chiave": true,
+    "grana": 0.5,
+    "passo": 5,
+    "tolleranza": 0.5
+  },
+  {
+    "nome": "min cash",
+    "tipo": "minimo",
+    "finestra": {
+      "da": "13:30Z",
+      "a": "20:00Z"
+    },
+    "label": "Min cash · sotto, la seduta continua nel verso della notte",
+    "color": "#4FC3F7",
+    "style": "dash",
+    "width": 1,
+    "chiave": true,
+    "grana": 0.5,
+    "passo": 5,
+    "tolleranza": 0.5
+  },
+  {
+    "nome": "max cash",
+    "tipo": "massimo",
+    "finestra": {
+      "da": "13:30Z",
+      "a": "20:00Z"
+    },
+    "label": "Max cash · sopra, l'apertura e' stata rifiutata",
+    "color": "#4FC3F7",
+    "style": "dash",
+    "width": 1,
+    "chiave": true,
+    "grana": 0.5,
+    "passo": 5,
+    "tolleranza": 0.5
+  },
+  {
+    "nome": "top nodo Europa",
+    "tipo": "nodo_top",
+    "finestra": {
+      "da": "07:00Z",
+      "a": "13:30Z"
+    },
+    "label": "Zona pesante Europa, bordo alto {pct} d{delta} · dove i compratori europei sono entrati, e sono sopra",
+    "color": "#7A8FA6",
+    "style": "solid",
+    "width": 2,
+    "chiave": false,
+    "grana": 0.5,
+    "passo": 5,
+    "tolleranza": 0.5
+  },
+  {
+    "nome": "POC Europa",
+    "tipo": "poc",
+    "finestra": {
+      "da": "07:00Z",
+      "a": "13:30Z"
+    },
+    "label": "POC EUROPA {pct} · prezzo piu' scambiato della gamba che ha portato qui",
+    "color": "#7A8FA6",
+    "style": "solid",
+    "width": 2,
+    "chiave": true,
+    "grana": 0.5,
+    "passo": 5,
+    "tolleranza": 0.5
+  },
+  {
+    "nome": "VAL Europa",
+    "tipo": "val",
+    "finestra": {
+      "da": "07:00Z",
+      "a": "13:30Z"
+    },
+    "label": "VAL Europa · sotto qui il prezzo e' fuori dal valore della mattina",
+    "color": "#7A8FA6",
+    "style": "dot",
+    "width": 1,
+    "chiave": false,
+    "grana": 0.5,
+    "passo": 5,
+    "tolleranza": 0.5
+  },
+  {
+    "nome": "mensola europea",
+    "tipo": "mensola",
+    "finestra": {
+      "da": "12:30Z"
+    },
+    "grana": 0.5,
+    "appoggi_minimi": 3,
+    "label": "MENSOLA {tocchi} minimi · sotto, si perde l'ultimo appoggio prima del min notte",
+    "color": "#C77B5A",
+    "style": "dash",
+    "width": 2,
+    "note": "la trova il motore contando i minimi su griglia da 1 punto. A mano era scritta 29.142: quello e' un minimo singolo piu' profondo, l'appoggio vero sta dove i minimi si ripetono.",
+    "chiave": false,
+    "passo": 5,
+    "tolleranza": 0.5
+  },
+  {
+    "nome": "VAH Europa",
+    "tipo": "vah",
+    "finestra": {
+      "da": "07:00Z",
+      "a": "13:30Z"
+    },
+    "label": "VAH Europa · sopra qui si esce dal valore in cui il prezzo ha passato la mattina",
+    "color": "#7A8FA6",
+    "style": "dot",
+    "width": 1,
+    "chiave": false,
+    "grana": 0.5,
+    "passo": 5,
+    "tolleranza": 0.5
+  },
+  {
+    "nome": "min Europa",
+    "tipo": "minimo",
+    "finestra": {
+      "da": "07:00Z",
+      "a": "13:30Z"
+    },
+    "label": "MIN EUROPA · sotto, la mattina rientra nel valore della notte",
+    "color": "#6B7A99",
+    "style": "solid",
+    "width": 2,
+    "chiave": true,
+    "grana": 0.5,
+    "passo": 5,
+    "tolleranza": 0.5
+  },
+  {
+    "nome": "POC notte",
+    "tipo": "poc",
+    "finestra": {
+      "da": "22:00Z",
+      "a": "07:00Z"
+    },
+    "label": "POC NOTTE {pct} · il cuore del volume della notte: bersaglio di un rientro",
+    "color": "#6B7A99",
+    "style": "solid",
+    "width": 2,
+    "chiave": true,
+    "grana": 0.5,
+    "passo": 5,
+    "tolleranza": 0.5
+  },
+  {
+    "nome": "VAH notte",
+    "tipo": "vah",
+    "finestra": {
+      "da": "22:00Z",
+      "a": "07:00Z"
+    },
+    "label": "VAH notte · il bordo alto del valore della notte",
+    "color": "#6B7A99",
+    "style": "dot",
+    "width": 1,
+    "chiave": false,
+    "grana": 0.5,
+    "passo": 5,
+    "tolleranza": 0.5
+  },
+  {
+    "nome": "VAL notte",
+    "tipo": "val",
+    "finestra": {
+      "da": "22:00Z",
+      "a": "07:00Z"
+    },
+    "label": "VAL notte · il bordo basso del valore della notte",
+    "color": "#6B7A99",
+    "style": "dot",
+    "width": 1,
+    "chiave": false,
+    "grana": 0.5,
+    "passo": 5,
+    "tolleranza": 0.5
+  },
+  {
+    "nome": "max notte",
+    "tipo": "massimo",
+    "finestra": {
+      "da": "22:00Z",
+      "a": "07:00Z"
+    },
+    "label": "Max notte · sopra, la notte non ha piu' un tetto",
+    "color": "#6B7A99",
+    "style": "dash",
+    "width": 1,
+    "chiave": false,
+    "grana": 0.5,
+    "passo": 5,
+    "tolleranza": 0.5
+  },
+  {
+    "color": "#B39DDB",
+    "width": 2,
+    "chiave": true,
+    "nome": "POC cash ieri",
+    "tipo": "poc",
+    "finestra": {
+      "da": "13:30Z",
+      "a": "20:00Z",
+      "seduta": -1
+    },
+    "style": "solid",
+    "label": "POC CASH IERI {pct} · il valore di ieri: se la mattina ci torna, e' il bersaglio",
+    "grana": 0.5,
+    "passo": 5,
+    "tolleranza": 0.5
+  },
+  {
+    "color": "#B39DDB",
+    "width": 2,
+    "chiave": true,
+    "nome": "VAH cash ieri",
+    "tipo": "vah",
+    "finestra": {
+      "da": "13:30Z",
+      "a": "20:00Z",
+      "seduta": -1
+    },
+    "style": "dash",
+    "label": "VAH cash ieri · il bordo alto del valore di ieri: sotto, la notte ha perso",
+    "grana": 0.5,
+    "passo": 5,
+    "tolleranza": 0.5
+  },
+  {
+    "color": "#B39DDB",
+    "width": 2,
+    "chiave": true,
+    "nome": "VAL cash ieri",
+    "tipo": "val",
+    "finestra": {
+      "da": "13:30Z",
+      "a": "20:00Z",
+      "seduta": -1
+    },
+    "style": "dash",
+    "label": "VAL cash ieri · sotto, si esce anche dal valore di ieri",
+    "grana": 0.5,
+    "passo": 5,
+    "tolleranza": 0.5
+  },
+  {
+    "color": "#B39DDB",
+    "width": 1,
+    "chiave": true,
+    "nome": "max cash ieri",
+    "tipo": "massimo",
+    "finestra": {
+      "da": "13:30Z",
+      "a": "20:00Z",
+      "seduta": -1
+    },
+    "style": "dot",
+    "label": "Max cash ieri · il massimo storico della cassa di ieri",
+    "grana": 0.5,
+    "passo": 5,
+    "tolleranza": 0.5
+  },
+  {
+    "nome": "VAH del COT",
+    "tipo": "vah",
+    "finestra": {
+      "da": "2026-09-15T13:30:00Z",
+      "a": "2026-09-15T20:00:00Z"
+    },
+    "grana": 0.5,
+    "passo": 5,
+    "label": "VAH 15 SET (COT) · la cassa del giorno del report chiuse qui; il giorno dopo il crollo",
+    "color": "#FFD54F",
+    "style": "dash",
+    "width": 2,
+    "chiave": true,
+    "note": "finestra assoluta apposta: e' il giorno del report COT del 15 settembre. Si cambia col prossimo report."
+  }
+]

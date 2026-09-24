@@ -286,7 +286,10 @@ public sealed partial class DataBridge
         }
 
         var coppia = new[] { primo.Key, ordinati[1].Key }.OrderBy(d => d).ToArray();
-        return $"{coppia[0]:dd}-{coppia[1]:dd/MM}";
+        // "21-23" si legge come un intervallo che comprende il 22: se i giorni non sono
+        // consecutivi si scrive "21+23".
+        var segno = (coppia[1] - coppia[0]).TotalDays <= 1 ? "-" : "+";
+        return $"{coppia[0]:dd}{segno}{coppia[1]:dd/MM}";
     }
 
     private object Nodi()
