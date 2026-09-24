@@ -149,6 +149,16 @@ def main() -> int:
                 print(f"  {len(registrati)} chart registrati: serve --chart fra "
                       f"{', '.join(x['instrument'] for x in registrati)}")
 
+    # 0 ------------------------------------------------ dal piu' lontano al piu' vicino
+    # Una persona guarda prima le settimane, poi le sedute, poi dove sta il prezzo rispetto a
+    # tutto questo e quali eventi lo hanno mosso; solo dopo scende alla notte e al tape. Il giro
+    # lo faceva al contrario: partiva da ieri. Vedi metodo/il-giro-d-orizzonte.md, "La scala".
+    try:
+        import scala_dei_tempi
+        scala_dei_tempi.stampa(CHART[1] if len(CHART) > 1 else "NQZ6", budget=8.0)
+    except Exception as errore:
+        print("  sezione 0 non disponibile: " + type(errore).__name__)
+
     h = bridge("health")
     g = a.giorno
     if not g:

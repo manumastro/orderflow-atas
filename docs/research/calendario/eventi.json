@@ -1,0 +1,14 @@
+[
+  {"data": "2026-09-16", "ora": "20:00", "evento": "FOMC: rialzo di 25 pb, il primo in tre anni (Warsh apre ad altri)", "peso": "alto", "esito": "oro a 4.273 in giornata; mercato prezza al 90% un altro rialzo a dicembre"},
+  {"data": "2026-09-21", "ora": "", "evento": "USA-Cina: accordo sui 'AI Dialogues' dopo 12 ore di trattativa; petrolio -4,5% su trattativa Iran", "peso": "alto", "esito": "NQ +558 in cassa, Nasdaq-100 primo record da giugno"},
+  {"data": "2026-09-22", "ora": "16:00", "evento": "Trump all'Assemblea ONU (Iran, Gaza)", "peso": "alto", "esito": "NQ massimo storico 31.065,5 in giornata, poi chiude a 31.023"},
+  {"data": "2026-09-23", "ora": "15:45", "evento": "PMI manifatturiero USA flash: 57 contro 53,5", "peso": "alto", "esito": "NQ da 31.013 a 30.642,75 in un'ora; 5 anni Treasury al 5%, prima volta dal 2007"},
+  {"data": "2026-09-23", "ora": "16:30", "evento": "Scorte petrolio EIA (attese -0,7 mln)", "peso": "medio", "esito": ""},
+  {"data": "2026-09-24", "ora": "14:30", "evento": "Richieste di sussidio di disoccupazione USA", "peso": "medio", "esito": ""},
+  {"data": "2026-09-24", "ora": "16:00", "evento": "Vendite di case nuove USA", "peso": "medio", "esito": ""},
+  {"data": "2026-09-24", "ora": "", "evento": "Vertice Trump-Xi alla Casa Bianca (commercio, AI, terre rare, Iran, Taiwan)", "peso": "alto", "esito": ""},
+  {"data": "2026-09-25", "ora": "14:30", "evento": "Ordini di beni durevoli USA", "peso": "medio", "esito": ""},
+  {"data": "2026-09-25", "ora": "16:00", "evento": "Fiducia consumatori Michigan (finale)", "peso": "basso", "esito": ""},
+  {"data": "2026-09-25", "ora": "21:30", "evento": "COT (posizioni di martedi' 22)", "peso": "contesto", "esito": ""},
+  {"data": "2026-09-30", "ora": "14:30", "evento": "PIL USA, terza stima", "peso": "medio", "esito": ""}
+]
