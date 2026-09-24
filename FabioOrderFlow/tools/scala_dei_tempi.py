@@ -176,7 +176,7 @@ def stampa(chart: str, budget: float) -> None:
     oggi_m = misura(chart, oggi, cassa, grana) or {}
     prezzo = (oggi_m.get("giorno") or {}).get("C")
 
-    print(f"\n{'─' * 78}\n0. DAL PIU' LONTANO AL PIU' VICINO — {strumento} (cassa {cassa_txt}, fasce da {fmt(grana)})\n{'─' * 78}")
+    print(f"\n{'-' * 60}\n0. DAL PIU' LONTANO AL PIU' VICINO — {strumento} (cassa {cassa_txt}, fasce da {fmt(grana)})\n{'-' * 60}")
     if mancanti:
         print(f"  la storia e' in costruzione: mancano {mancanti} sedute, arrivano ai prossimi giri")
 
@@ -206,7 +206,8 @@ def stampa(chart: str, budget: float) -> None:
         lo = min(x["giorno"]["L"] for x in lst)
         nota = ""
         if vol < 0.2 * vmax:
-            nota = "   <- poco volume: quotazione, non valore"
+            print(f"    {lun[8:10]}/{lun[5:7]}  poco volume ({lotti(vol)}): quotazione, non valore")
+            continue
         elif prec:
             nota = f"   valore {'SU' if v[0] > prec[0] else 'GIU'} di {fmt(abs(v[0] - prec[0]))}"
         corrente = " in corso" if lun == max(settimane) else ""
@@ -235,7 +236,7 @@ def stampa(chart: str, budget: float) -> None:
                      f"POC {fmt(v[0])}  valore {fmt(v[1])}-{fmt(v[2])}  delta {('%+d' % c['D'])}  "
                      f"chiude {chiude} il valore  {mig}")
         prec = v
-    for r in righe[-6:]:
+    for r in righe[-5:]:
         print(r)
 
     # --- dove sta il prezzo ------------------------------------------------------------------
@@ -263,18 +264,64 @@ def stampa(chart: str, budget: float) -> None:
             v = valore({float(a): b for a, b in ieri[-1]["cassa"]["hist"].items()})
             print(f"    rispetto al valore della cassa di ieri ({fmt(v[1])}-{fmt(v[2])}): {dove(prezzo, v[1], v[2])}")
 
+    # --- la struttura oraria ---------------------------------------------------------------
+    # Quello che una persona guarda sull'H1: i massimi e minimi di swing delle ultime tre
+    # giornate (un'ora piu' alta, o piu' bassa, delle due prima e delle due dopo) e l'andamento
+    # delle ultime ore. Sono i livelli di struttura, diversi da quelli di volume.
+    fine = adesso[:16] + ":00Z" if len(adesso) >= 16 else adesso
+    inizio_h = (dt.datetime.fromisoformat(adesso.replace("Z", "+00:00")) - dt.timedelta(hours=72))
+    rh = chiedi(f"/candles?chart={chart}&from={inizio_h.strftime('%Y-%m-%dT%H:%M:%SZ')}&to={fine}", timeout=30)
+    cs = (rh or {}).get("candles") or []
+    ore: dict[str, dict] = {}
+    for c in cs:
+        k = c["time"][:13]
+        o = ore.get(k)
+        if o is None:
+            ore[k] = dict(O=c["open"], H=c["high"], L=c["low"], C=c["close"], D=c["delta"], V=c["volume"])
+        else:
+            o["H"] = max(o["H"], c["high"]); o["L"] = min(o["L"], c["low"])
+            o["C"] = c["close"]; o["D"] += c["delta"]; o["V"] += c["volume"]
+    chiavi = sorted(ore)
+    if len(chiavi) >= 5 and prezzo is not None:
+        alti, bassi = [], []
+        for i in range(2, len(chiavi) - 2):
+            h = ore[chiavi[i]]
+            vicine = [ore[chiavi[j]] for j in (i - 2, i - 1, i + 1, i + 2)]
+            if all(h["H"] > x["H"] for x in vicine):
+                alti.append((h["H"], chiavi[i]))
+            if all(h["L"] < x["L"] for x in vicine):
+                bassi.append((h["L"], chiavi[i]))
+        livelli = [(p, "massimo", k) for p, k in alti] + [(p, "minimo", k) for p, k in bassi]
+        sopra = sorted([x for x in livelli if x[0] > prezzo])[:4]
+        sotto = sorted([x for x in livelli if x[0] <= prezzo], reverse=True)[:4]
+        quando = lambda k: f"{k[8:10]}/{k[5:7]} {int(k[11:13]) + 2:02d}h"
+        print("  LA STRUTTURA ORARIA (H1, ultime 72 ore)")
+        for p, tipo, k in reversed(sopra):
+            print(f"    sopra  {fmt(p)}  {tipo} di swing H1 delle {quando(k)}")
+        for p, tipo, k in sotto:
+            print(f"    sotto  {fmt(p)}  {tipo} di swing H1 delle {quando(k)}")
+        ultime = chiavi[-6:]
+        seq = "  ".join(f"{int(k[11:13]) + 2:02d}h {fmt(ore[k]['C'])}({ore[k]['D']:+d})" for k in ultime)
+        print(f"    ultime ore (chiusura, delta): {seq}")
+        hh = [ore[k]["H"] for k in chiavi[-6:]]
+        ll = [ore[k]["L"] for k in chiavi[-6:]]
+        forma = ("massimi e minimi crescenti" if hh[-1] > hh[0] and ll[-1] > ll[0]
+                 else "massimi e minimi decrescenti" if hh[-1] < hh[0] and ll[-1] < ll[0]
+                 else "senza direzione")
+        print(f"    le ultime sei ore: {forma}")
+
     # --- gli eventi --------------------------------------------------------------------------
     try:
         eventi = json.load(open(EVENTI, encoding="utf-8"))
     except Exception:
         eventi = []
     g = dt.date.fromisoformat(oggi)
-    passati = [e for e in eventi if (g - dt.timedelta(days=4)).isoformat() <= e["data"] < oggi]
+    passati = [e for e in eventi if (g - dt.timedelta(days=2)).isoformat() <= e["data"] < oggi]
     prossimi = [e for e in eventi if oggi <= e["data"] <= (g + dt.timedelta(days=2)).isoformat()]
     print("  GLI EVENTI (docs/research/calendario/eventi.json)")
     for e in passati:
-        print(f"    {e['data'][8:10]}/{e['data'][5:7]} {e.get('ora', ''):>5}  {e['evento']}"
-              f"{'  -> ' + e['esito'] if e.get('esito') else ''}")
+        print((f"    {e['data'][8:10]}/{e['data'][5:7]} {e.get('ora', ''):>5}  {e['evento']}"
+               f"{'  -> ' + e['esito'] if e.get('esito') else ''}")[:150])
     for e in prossimi:
         segno = ">>" if e["data"] == oggi else "  "
         print(f"  {segno}{e['data'][8:10]}/{e['data'][5:7]} {e.get('ora', ''):>5}  {e['evento']}"

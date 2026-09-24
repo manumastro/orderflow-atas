@@ -48,7 +48,8 @@ vedono solo guardando prima il quadro largo.
 | le settimane | range, chiusura, POC e valore di ciascuna; se il valore sale o scende; le settimane con poco volume sono **quotazione, non valore** (il rollover) | bridge, tutte le ore |
 | le sedute di cassa | apertura -> chiusura, POC, valore, delta; **chiude sopra/dentro/sotto il proprio valore**; valore **SU/GIU** rispetto al giorno prima, e **staccato** se le due aree non si toccano | bridge, finestra di cassa dello strumento |
 | dove sta il prezzo | posizione nel range di venti sedute, distanza dal massimo, rispetto al valore della settimana scorsa e della cassa di ieri | bridge |
-| gli eventi | gli ultimi quattro giorni con l'**esito** sul mercato, e i prossimi due con ora e peso | `docs/research/calendario/eventi.json` |
+| la struttura oraria | i massimi e minimi di **swing H1** delle ultime 72 ore (un'ora piu' alta, o piu' bassa, delle due prima e delle due dopo), i quattro piu' vicini sopra e sotto; chiusura e delta delle ultime sei ore, e se fanno massimi e minimi crescenti o decrescenti | bridge |
+| gli eventi | gli ultimi due giorni con l'**esito** sul mercato, e i prossimi due con ora e peso | `docs/research/calendario/eventi.json` |
 
 Lo calcola `FabioOrderFlow/tools/scala_dei_tempi.py`. Le sedute chiuse si misurano una volta sola e
 restano in una cache per strumento (`~/.fabio-scala-dei-tempi-<STRUMENTO>.json`); la prima volta
@@ -58,6 +59,11 @@ la cache si riempie a rate e il giro lo dice.
 eventi dei prossimi giorni con ora italiana e peso (`alto`, `medio`, `basso`, `contesto`), e a
 giornata chiusa si scrive l'**esito** di quelli passati — cosa ha fatto il mercato, con i numeri.
 Un evento senza esito e' una previsione; con l'esito diventa memoria di come il mercato reagisce.
+
+**Il giro deve stare sotto i 10 KB**, oltre i quali arriva all'agente tagliato e salvato a parte:
+il 24 settembre e' successo, e per un messaggio l'agente ha visto solo l'inizio. Per questo la
+vecchia sezione 4 (le tabelle del file di ieri) e' stata tolta — la sezione 0 misura le stesse
+sedute dal bridge — e le regole con la finestra ancora vuota si contano invece di elencarle.
 
 **E la risposta segue lo stesso ordine.** Si ragiona dal piu' lontano al piu' vicino anche quando si
 scrive poco: una lettura dal vivo che parte dalle ultime barre senza sapere dove sta la settimana e'

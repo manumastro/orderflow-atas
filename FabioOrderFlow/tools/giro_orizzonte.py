@@ -64,7 +64,7 @@ def bridge(*args) -> dict | None:
 
 
 def titolo(n: int, testo: str) -> None:
-    print(f"\n{'─' * 78}\n{n}. {testo}\n{'─' * 78}")
+    print(f"\n{'-' * 60}\n{n}. {testo}\n{'-' * 60}")
 
 
 def ora_piu_avanti(testo: str, adesso_utc: str) -> str | None:
@@ -247,9 +247,10 @@ def main() -> int:
     prec = sorted(x for x in GIORNATE.glob(f"{prefisso or '2'}*.md") if x.stem < g)
     # "ieri" e' il file precedente esistente, non necessariamente il giorno prima: dopo un weekend
     # o una pausa puo' essere di tre giorni fa, e il nome stampato lo dice.
-    titolo(4, f"IL FRAMING DELLA SEDUTA PRECEDENTE (sezione 1 del file) — "
-              f"{prec[-1].name if prec else 'assente'}")
-    if prec:
+    # La sezione 4 (le tabelle del file di ieri) e' stata assorbita dalla sezione 0, che misura le
+    # sedute dal bridge invece di rileggerle da un file: due copie dello stesso numero divergono, e
+    # il giro stava superando i 10 KB oltre i quali arriva tagliato.
+    if False:
         t = prec[-1].read_text(encoding="utf-8")
         chiavi = ("value area", "poc", "val ", "vah ", "minimo", "massimo", "chiusura", "delta")
         visto = 0
@@ -280,7 +281,7 @@ def main() -> int:
     if q:
         if fonte != oggi.name:
             print(f"  ATTENZIONE: nessun quadro per oggi, questo viene da {fonte} ed e' vecchio")
-        for r in q.splitlines()[:26]:
+        for r in q.splitlines()[:12]:
             print(f"  {r}")
     else:
         print("  NESSUN QUADRO. Il framing e il COT non sono stati fatti, o non sono stati")
@@ -350,8 +351,11 @@ def main() -> int:
         else:
             # Non e' diagnostica: due livelli a meno di otto punti vogliono dire che due letture
             # indipendenti indicano lo stesso posto, ed e' il fatto che conta.
-            print(f"  {len(saltate)} regole non hanno prodotto una riga, e non sono un guasto:")
-            for motivo in saltate:
+            vuote = [m for m in saltate if "finestra ancora vuota" in m]
+            altre = [m for m in saltate if m not in vuote]
+            if vuote:
+                print(f"  {len(vuote)} regole con la finestra ancora vuota (nascono all'ora loro)")
+            for motivo in altre:
                 print(f"    - {motivo}")
 
     # 7 ------------------------------------------------------------------- il tape
@@ -409,7 +413,7 @@ def main() -> int:
         poc = max(b, key=b.get)
         for k in sorted(b, reverse=True):
             q = b[k] / tot * 100
-            if q < 1.0:
+            if q < 2.0:
                 continue
             m = " POC" if k == poc else ""
             et = f"{k:g}-{k+passo:g}"
