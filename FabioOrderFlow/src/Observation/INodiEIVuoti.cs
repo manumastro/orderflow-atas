@@ -225,7 +225,9 @@ public sealed partial class DataBridge
             }
         }
 
-        foreach (var n in _nodi)
+        // I VALORE DEI GIORNI PASSATI NON SI DISEGNANO PIU' (25 settembre 2026, richiesta
+        // dell'utente: sul chart erano ingombro). Restano calcolati: /nodi e il giro li leggono.
+        foreach (var n in Array.Empty<Nodo>())
         {
             var y = ChartInfo.GetYByPrice(n.Prezzo, false);
             if (y < area.Top || y > area.Bottom)

@@ -824,3 +824,4 @@ DICHIARA su chi lo porta; il colore resta come ripiego e al massimo dice
             calendario docs/research/calendario/eventi.json con l'esito. Cache per strumento; il
             giro intero resta sotto i 4 secondi.
 
+2026-09-25  Chart alleggerito su richiesta dell'utente: aree di valore solo come banda (niente righe ne' scritte per VAL/VAH/POC), VALORE multi-giorno non disegnati, a sinistra solo il delta. Pannello sul chart ridotto a VALORE, CVD del tratto contro prezzo (al posto delle 30 barre fisse, da Fabio [3 · 10:13]) e barra aperta sempre; il resto in /panel analisi e nel giro 6bis. Documento: il-contesto-vivo.md.

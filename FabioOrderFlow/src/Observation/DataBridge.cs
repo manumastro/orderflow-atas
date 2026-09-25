@@ -212,12 +212,6 @@ public sealed partial class DataBridge : Indicator
     [Range(2, 500)]
     public int PanelLookback { get; set; } = 10;
 
-    [Display(Name = "Lookback largo", GroupName = "Watch",
-        Description = "La seconda finestra del delta, in barre. Serve a dare una scala al delta " +
-                      "misurato al livello: lo stesso conto su tutte le barre, non solo li'.")]
-    [Range(5, 1000)]
-    public int PanelLookbackLargo { get; set; } = 30;
-
     [Display(Name = "Apertura cash (UTC)", GroupName = "Watch",
         Description = "L'ora UTC da cui il pannello somma il delta di seduta. Su NQ e' 13:30Z " +
                       "(15:30 italiane in ora legale). Non tocca i livelli: solo il pannello.")]
@@ -1250,8 +1244,20 @@ public sealed partial class DataBridge : Indicator
             this.LogError("misure dei livelli non disegnate", errore);
         }
 
+        // LE AREE DI VALORE SI VEDONO SOLO COME BANDA (25 settembre 2026, richiesta dell'utente):
+        // VAL, VAH e POC di un'area completa non hanno ne' riga ne' scritta a destra. Il prezzo
+        // resta nei livelli, per il pannello, per /levels e per il giro.
+        var aree = ShowValueBand
+            ? AreeDiValore(levels).Select(a => a.Nome).ToHashSet(StringComparer.OrdinalIgnoreCase)
+            : new HashSet<string>();
         foreach (var level in levels)
         {
+            if (level.Role is "val" or "vah" or "poc"
+                && aree.Contains(string.IsNullOrWhiteSpace(level.Area) ? "valore" : level.Area!))
+            {
+                continue;
+            }
+
             var y = ChartInfo.GetYByPrice(level.Price, false);
             if (y < area.Top || y > area.Bottom)
             {
@@ -1363,7 +1369,7 @@ public sealed partial class DataBridge : Indicator
             return;
         }
 
-        var righe = ComponiPannello();
+        var righe = ComponiPannello(completo: false);
         foreach (var l in _watch)
         {
             righe.Add(new RigaPannello(l.Text ?? string.Empty, ParseColor(l.Color)));
@@ -1649,13 +1655,14 @@ public sealed partial class DataBridge : Indicator
             throw new BridgeException(409, "il chart non ha ancora un contesto di disegno");
         }
 
-        var righe = ComponiPannello();
+        var righe = ComponiPannello(completo: false);
         foreach (var l in _watch)
         {
             righe.Add(new RigaPannello(l.Text ?? string.Empty, ParseColor(l.Color)));
         }
 
         var ultimo = CurrentBar - 1;
+        var analisi = ComponiPannello(completo: true);
         return new
         {
             schema = Schema,
@@ -1666,6 +1673,11 @@ public sealed partial class DataBridge : Indicator
             barraInFormazione = true,
             // Le misure che sul chart stanno a sinistra di ogni livello, non nel pannello.
             alLivello = MisureInJson(),
+            // IL PANNELLO COMPLETO, CHE SUL CHART NON C'E' PIU'. Dal 25 settembre 2026 il chart
+            // mostra solo dove si sta, il CVD del tratto e la barra aperta (richiesta dell'utente).
+            // Regime, velocita', livello in gioco, condizioni e veti restano misurati qui, perche'
+            // il giro li stampa e l'agente ne ha bisogno (CLAUDE.md, obbligo 4).
+            analisi = analisi.Select(r => new { text = r.Testo, peso = r.Peso }),
             count = righe.Count,
             lines = righe.Select(r => new
             {
@@ -1686,7 +1698,105 @@ public sealed partial class DataBridge : Indicator
         };
     }
 
-    private List<RigaPannello> ComponiPannello()
+    // Quanto vicino all'estremo del proprio range deve stare il CVD, o il prezzo, per dire che
+    // ha fatto il minimo o il massimo del tratto. E' una convenzione di lettura, non una regola.
+    private const decimal CvdEstremo = 0.15m;
+    private const decimal CvdLontano = 0.35m;
+
+    /// <summary>
+    /// Il delta cumulato del tratto di seduta, e dove sta rispetto al prezzo.
+    ///
+    /// <para><b>Non trenta barre fisse.</b> Fabio non legge il delta su una finestra di minuti: legge
+    /// il CVD, "the proxy of the pressure", contro il prezzo. "You see all these sellers ... they
+    /// are pushing. They are making a lower low. What do you see from price? There is a follow up
+    /// or there is an absorption?" [3 · 10:13]. E ancora: "they are already above the top with
+    /// the CVD ... they broke from the CVD point of view" [2 · 1:45:25]. La domanda e' se il CVD
+    /// e il prezzo fanno l'estremo insieme (segue) o se il CVD lo fa da solo (assorbimento).</para>
+    ///
+    /// <para>Il tratto e' lo stesso delle misure a sinistra (<see cref="InizioDelTratto"/>): dopo
+    /// l'apertura la cassa, prima tutto cio' che viene dalla chiusura precedente. Il confronto
+    /// usa la posizione di ciascuno nel proprio range del tratto: e' un'osservazione, e il testo
+    /// finisce col punto di domanda perche' non e' un permesso.</para>
+    /// </summary>
+    private List<RigaPannello> RigheDelCvd(int ultimo)
+    {
+        var righe = new List<RigaPannello>();
+        var da = InizioDelTratto(ultimo);
+        if (da > ultimo)
+        {
+            return righe;
+        }
+
+        decimal cvd = 0m, cvdMin = 0m, cvdMax = 0m, volume = 0m;
+        var alto = decimal.MinValue;
+        var basso = decimal.MaxValue;
+        for (var bar = da; bar <= ultimo; bar++)
+        {
+            var c = GetCandle(bar);
+            cvd += c.Delta;
+            volume += c.Volume;
+            cvdMin = Math.Min(cvdMin, cvd);
+            cvdMax = Math.Max(cvdMax, cvd);
+            alto = Math.Max(alto, c.High);
+            basso = Math.Min(basso, c.Low);
+        }
+
+        var ultima = GetCandle(ultimo);
+        var dove = ultima.Time >= Momento(Apertura, ultima.Time)
+            ? $"dall'apertura {OraLocale(GetCandle(da).Time):HH:mm}"
+            : "dalla chiusura di ieri";
+        righe.Add(new RigaPannello($"SU TUTTE LE BARRE  CVD {dove}", PanelGrigio));
+        righe.Add(new RigaPannello(
+            $"  {Segnato(cvd)}{Quota(cvd, volume)}  su {Lotti(volume)} lotti",
+            cvd > 0 ? PanelVerde : cvd < 0 ? PanelRosso : PanelGrigio));
+
+        var rangeCvd = cvdMax - cvdMin;
+        var rangePrezzo = alto - basso;
+        if (rangeCvd <= 0 || rangePrezzo <= 0)
+        {
+            return righe;
+        }
+        var posCvd = (cvd - cvdMin) / rangeCvd;
+        var posPrezzo = (ultima.Close - basso) / rangePrezzo;
+        var (lettura, colore) =
+            posCvd <= CvdEstremo && posPrezzo >= CvdLontano
+                ? ("i venditori spingono, il prezzo non fa il minimo: assorbimento?", PanelVerde)
+            : posCvd >= 1 - CvdEstremo && posPrezzo <= 1 - CvdLontano
+                ? ("i compratori spingono, il prezzo non fa il massimo: assorbimento?", PanelRosso)
+            : posCvd <= CvdEstremo && posPrezzo <= CvdEstremo
+                ? ("CVD e prezzo insieme sul minimo: i venditori sono seguiti", PanelRosso)
+            : posCvd >= 1 - CvdEstremo && posPrezzo >= 1 - CvdEstremo
+                ? ("CVD e prezzo insieme sul massimo: i compratori sono seguiti", PanelVerde)
+            : (string.Empty, PanelGrigio);
+        righe.Add(new RigaPannello(
+            $"  CVD al {posCvd * 100m:0}% del suo range, prezzo al {posPrezzo * 100m:0}%", PanelGrigio));
+        if (lettura.Length > 0)
+        {
+            righe.Add(new RigaPannello($"  {lettura}", colore));
+        }
+        return righe;
+    }
+
+    /// <summary>
+    /// La barra in formazione, sempre, e va detto che lo e': i suoi numeri cambiano fino alla
+    /// chiusura. Fino al 25 settembre 2026 si vedeva solo quando un livello era in gioco.
+    /// </summary>
+    private List<RigaPannello> RigheDellaBarraAperta(IndicatorCandle viva)
+    {
+        var rng = viva.High - viva.Low;
+        var pos = rng > 0 ? (viva.Close - viva.Low) / rng : 0m;
+        return new List<RigaPannello>
+        {
+            new($"BARRA APERTA {OraLocale(viva.Time):HH:mm}, cambia ancora", PanelGrigio),
+            new($"  {Lotti(viva.Volume)} lotti   delta {Segnato(viva.Delta)}{Quota(viva.Delta, viva.Volume)}"
+                + $"   chiude nel {pos * 100m:0}% alto del suo range",
+                viva.Delta > 0 ? PanelVerde : viva.Delta < 0 ? PanelRosso : PanelGrigio),
+        };
+    }
+
+    /// <param name="completo">Falso per il chart: solo dove si sta, il CVD del tratto e la barra
+    /// aperta. Vero per /panel <c>analisi</c>, che e' il pannello intero per l'agente.</param>
+    private List<RigaPannello> ComponiPannello(bool completo)
     {
         var righe = new List<RigaPannello>();
         var ultimo = CurrentBar - 1;
@@ -1710,6 +1820,11 @@ public sealed partial class DataBridge : Indicator
         // ferma. Un regime fermo e' lo stesso difetto del livello vivo fermo, su una parola
         // invece che su un prezzo.
         var regime = LeggiIlRegime(ultimo);
+        var (percentile, volumeBarra, velocitaOk) = VelocitaProxy(ultimo);
+        var (tapeDa, tapeA) = FinestraDelTape(ultimo);
+        var (bigFinestra, bigNetto, copreFinestra) = BigTradesNellaFinestra(tapeDa, tapeA);
+        if (completo)
+        {
         righe.Add(new RigaPannello(
             $"REGIME     {regime.Nome}",
             regime.Nome switch
@@ -1730,9 +1845,6 @@ public sealed partial class DataBridge : Indicator
         // quel dato: qui c'e' il volume della barra contro la distribuzione recente, che e' un
         // altro numero. Mille lotti in dieci secondi e mille in sessanta hanno lo stesso volume
         // e velocita' opposte. Chi legge deve saperlo ogni volta, non una volta.
-        var (percentile, volumeBarra, velocitaOk) = VelocitaProxy(ultimo);
-        var (tapeDa, tapeA) = FinestraDelTape(ultimo);
-        var (bigFinestra, bigNetto, copreFinestra) = BigTradesNellaFinestra(tapeDa, tapeA);
         var quantoVeloce = !velocitaOk ? "non misurabile"
             : percentile >= PercentileAlto ? "alta"
             : percentile <= PercentileMorto ? "morta"
@@ -1752,6 +1864,7 @@ public sealed partial class DataBridge : Indicator
             !copreFinestra ? PanelAmbra
                 : bigFinestra == 0 ? PanelAmbra
                 : bigNetto > 0 ? PanelVerde : bigNetto < 0 ? PanelRosso : PanelGrigio));
+        }
 
         // --- L'ALLARME SULL'ETA', E SOLO QUELLO ---------------------------------------------
         // Qui stavano tre cose: quante regole, la legenda dei marcatori, e l'elenco di cio' che
@@ -1812,6 +1925,13 @@ public sealed partial class DataBridge : Indicator
             }
         }
 
+        if (!completo)
+        {
+            righe.AddRange(RigheDelCvd(ultimo));
+            righe.AddRange(RigheDellaBarraAperta(viva));
+            return righe;
+        }
+
         // --- il livello in gioco -------------------------------------------------------------
         BridgeLevel? gioco = null;
         var minDist = decimal.MaxValue;
@@ -1854,6 +1974,8 @@ public sealed partial class DataBridge : Indicator
             {
                 righe.Add(new RigaPannello($"   ! {v}", PanelRosso, "veto"));
             }
+            righe.AddRange(RigheDelCvd(ultimo));
+            righe.AddRange(RigheDellaBarraAperta(viva));
             return righe;
         }
 
@@ -1898,30 +2020,8 @@ public sealed partial class DataBridge : Indicator
         // barre. Due numeri con lo stesso nome e significati diversi e' il modo piu' rapido di
         // leggere il chart al contrario.
 
-        // --- lo stesso conto su finestre piu' larghe -----------------------------------------
-        // Serve a dare una scala. Un delta di +120 al livello non si giudica da solo: se la
-        // seduta sta a +2.300 e' un rivolo nella stessa direzione, se la seduta sta a -1.500 e'
-        // una divergenza, ed e' la misura che il 16 settembre ha smentito un permesso LONG tenuto
-        // in piedi per ottantaquattro minuti da un gate orario
-        // (docs/research/metodo/il-permesso-si-misura-non-si-aspetta.md).
-        //
-        // Qui il delta e' quello delle barre INTERE, non della fascia al livello: e' una
-        // popolazione diversa e la testata lo dice, altrimenti si finisce per confrontare due
-        // numeri che non sono confrontabili.
-        var (dLargo, vLargo) = DeltaDiBarre(Math.Max(0, ultimo - PanelLookbackLargo + 1), ultimo);
-        righe.Add(new RigaPannello("SU TUTTE LE BARRE, non solo al livello:", PanelGrigio));
-        righe.Add(new RigaPannello(
-            $"  {PanelLookbackLargo} barre {Segnato(dLargo)}{Quota(dLargo, vLargo)}  su {Lotti(vLargo)} lotti",
-            dLargo > 0 ? PanelVerde : dLargo < 0 ? PanelRosso : PanelGrigio));
-
-        var apertura = BarraDellApertura(ultimo);
-        if (apertura >= 0 && apertura < ultimo)
-        {
-            var (dCash, vCash) = DeltaDiBarre(apertura, ultimo);
-            righe.Add(new RigaPannello(
-                $"  da {Apertura} {Segnato(dCash)}{Quota(dCash, vCash)}  su {Lotti(vCash)} lotti",
-                dCash > 0 ? PanelVerde : dCash < 0 ? PanelRosso : PanelGrigio));
-        }
+        // --- il CVD del tratto, lo stesso che sta sul chart (vedi RigheDelCvd) ------------
+        righe.AddRange(RigheDelCvd(ultimo));
 
         // --- lo scenario, e poi le condizioni che gli servono ---------------------------------
         // Le condizioni le SPUNTA la macchina, non le inventa e non le fa scattare. Lo scenario
@@ -1975,8 +2075,6 @@ public sealed partial class DataBridge : Indicator
             righe.AddRange(righeCond);
         }
 
-        var rng = viva.High - viva.Low;
-        var pos = rng > 0 ? (viva.Close - viva.Low) / rng : 0m;
         // --- I VETI, E STANNO IN FONDO PERCHE' ANNULLANO CIO' CHE STA SOPRA -----------------
         // Non sono il complemento dei prerequisiti. I prerequisiti si contano - "2 di 3" - e
         // servono TUTTI; i veti no: ne basta UNO e il setup non si prende, quante che siano le
@@ -1997,15 +2095,7 @@ public sealed partial class DataBridge : Indicator
             }
         }
 
-        // La barra in formazione, e va detto che lo e': i suoi numeri cambiano fino alla
-        // chiusura, e "pos 0.95" era il solo dato del pannello che nessuno sapeva leggere senza
-        // che glielo avessero spiegato una volta.
-        righe.Add(new RigaPannello(
-            $"BARRA APERTA {OraLocale(viva.Time):HH:mm}, cambia ancora", PanelGrigio));
-        righe.Add(new RigaPannello(
-            $"  {Lotti(viva.Volume)} lotti   delta {Segnato(viva.Delta)}{Quota(viva.Delta, viva.Volume)}"
-            + $"   chiude nel {pos * 100m:0}% alto del suo range",
-            viva.Delta > 0 ? PanelVerde : viva.Delta < 0 ? PanelRosso : PanelGrigio));
+        righe.AddRange(RigheDellaBarraAperta(viva));
 
         return righe;
     }

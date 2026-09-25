@@ -332,6 +332,16 @@ def main() -> int:
             marca = {"veto": "!!", "attenzione": " *"}.get(riga.get("peso"), "  ")
             print(f"  {marca} {riga.get('text', '')}")
         print("     (la barra in formazione e' inclusa: i suoi numeri cambiano da soli)")
+        # Dal 25 settembre 2026 il chart mostra solo dove si sta, il CVD e la barra aperta.
+        # Regime, velocita', livello in gioco e veti restano misurati dall'indicatore in
+        # `analisi`: sul chart non ci sono, ma l'agente li deve dichiarare (CLAUDE.md, obbligo 4).
+        visti = {r.get("text") for r in pn.get("lines", [])}
+        extra = [r for r in pn.get("analisi", []) if r.get("text") not in visti]
+        if extra:
+            print("  -- NON SUL CHART, per l'agente: regime, velocita', in gioco, veti --")
+            for riga in extra:
+                marca = {"veto": "!!", "attenzione": " *"}.get(riga.get("peso"), "  ")
+                print(f"  {marca} {riga.get('text', '')}")
 
     # 6ter ----------------------------------------------------------------- i livelli
     # QUESTA SEZIONE ESISTE PERCHE' IL PANNELLO NON LO DICE PIU'. Il 20 settembre 2026 il blocco

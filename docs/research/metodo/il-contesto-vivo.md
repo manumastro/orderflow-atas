@@ -67,6 +67,40 @@ fermo a mentire**.
 
 ## Cosa C'e' Nel Pannello: Il Valore, Il Livello, Cosa Serve
 
+**Dal 25 settembre 2026 il chart mostra solo tre blocchi**, per decisione dell'utente: dove si
+sta, il CVD del tratto e la barra aperta, **sempre**, anche quando non c'e' niente in gioco.
+
+```text
+15:31   NQZ6   30.809,75
+VALORE     DENTRO notte  30.697,00-30.814,00  POC 30.806,00
+          sopra il POC
+SU TUTTE LE BARRE  CVD dall'apertura 15:30
+  -6 (-0.1%)  su 11.230 lotti
+  CVD al 92% del suo range, prezzo al 76%
+BARRA APERTA 15:31, cambia ancora
+  1.110 lotti   delta +66 (+5.9%)   chiude nel 62% alto del suo range
+```
+
+- **`SU TUTTE LE BARRE` non e' piu' una finestra di trenta barre.** Era un numero scelto da noi.
+  Fabio legge il **CVD** (il delta cumulato), *"the proxy of the pressure"*, contro il prezzo: *"they
+  are making a lower low. What do you see from price? There is a follow up or there is an
+  absorption?"* `[3 · 10:13]`, e *"they are already above the top with the CVD"* `[2 · 1:45:25]`.
+  Si somma quindi sul tratto di seduta: dopo l'apertura la cassa, prima tutto cio' che viene dalla
+  chiusura di ieri. E' la stessa finestra delle misure a sinistra dei livelli.
+- **La riga di confronto** mette il CVD e il prezzo ciascuno nel proprio range del tratto. Se il CVD
+  sta nel 15% estremo e il prezzo e' ad almeno il 35% dall'estremo, stampa *assorbimento?*. Se
+  stanno tutti e due nel 15% estremo, stampa *seguiti*. Le soglie 15% e 35% sono una convenzione
+  nostra, e la domanda resta un'osservazione, non un permesso.
+- **Il resto non e' sparito.** Regime, velocita', livello in gioco, condizioni e veti sono sempre
+  misurati dall'indicatore. Escono su `/panel` nel campo `analisi`, e il giro li stampa alla 6bis
+  sotto *NON SUL CHART*. L'obbligo 4 (dichiarare modello e regime) resta in piedi.
+- **Sul chart, sempre dal 25 settembre:**
+  - VAL, VAH e POC di un'area completa sono solo la **banda colorata**, senza riga ne' scritta;
+  - i VALORE dei giorni passati non si disegnano;
+  - a sinistra dei livelli resta solo il **delta**.
+
+Il pannello completo, com'era fino al 24 e com'e' oggi in `analisi`:
+
 **Non e' un riassunto della seduta.** Un pannello che elenca tutto costringe a cercare, e si cerca
 male proprio quando il prezzo si muove. Si legge dall'alto: **dove si sta** (il valore), **cosa si
 sta testando** (il livello in gioco), **cosa e' passato li'**, **quanto vale in scala** (le

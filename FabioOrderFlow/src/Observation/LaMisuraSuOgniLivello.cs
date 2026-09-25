@@ -187,38 +187,23 @@ public sealed partial class DataBridge
                 continue;
             }
 
-            var pezzi = new List<(string Testo, Color Colore)>();
+            // SOLO IL DELTA (25 settembre 2026, richiesta dell'utente: lotti, tocchi, big e barra
+            // erano troppo invadenti). Le altre misure restano in /panel alLivello per l'agente.
+            // Un livello mai toccato nel tratto non scrive niente.
             if (m.Volume <= 0)
             {
-                pezzi.Add(("mai toccato in questo tratto", grigio));
+                continue;
             }
-            else
+            var pezzi = new List<(string Testo, Color Colore)>
             {
-                pezzi.Add(($"{Lotti(m.Volume)} lotti", grigio));
-                pezzi.Add(($"  Δ {Segnato(m.Delta)}", m.Delta > 0 ? verde : m.Delta < 0 ? rosso : grigio));
-            }
-
-            if (m.Tocchi > 0)
-            {
-                pezzi.Add(($"   {m.Tocchi} tocchi", grigio));
-                pezzi.Add(($" · tiene {m.Respinti}", m.Respinti > m.Passati ? verde : grigio));
-                pezzi.Add(($" · passa {m.Passati}", m.Passati > m.Respinti ? ambra : grigio));
-            }
-
-            // Il registro dei big trades copre solo gli ultimi novanta minuti. Se non copre il
-            // tratto non si scrive niente: "big —" direbbe zero, e zero non e' "non lo so".
-            if (m.Copre && m.Volume > 0)
-            {
-                pezzi.Add(m.Big == 0
-                    ? ("   big —", grigio)
-                    : ($"   big {m.Big} {Segnato(m.BigNetto)}", m.BigNetto > 0 ? verde : m.BigNetto < 0 ? rosso : grigio));
-            }
+                ($"Δ {Segnato(m.Delta)}", m.Delta > 0 ? verde : m.Delta < 0 ? rosso : grigio),
+            };
 
             var alto = context.MeasureString("Hg", font).Height;
             var larghezzaTesto = pezzi.Sum(p => context.MeasureString(p.Testo, font).Width);
             var x = area.Left + 6;
             var top = y - alto - 3;
-            var conBarra = m.Volume > 0;
+            var conBarra = false;
             var larghezza = (conBarra ? larghezzaBarra + 6 : 0) + larghezzaTesto + 10;
 
             context.FillRectangle(Color.FromArgb(200, 12, 12, 16),

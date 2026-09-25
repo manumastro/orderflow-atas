@@ -104,7 +104,7 @@ public sealed partial class DataBridge
             voci.Add((Palette[s].Nome, ParseColor(Palette[s].Hex)));
         }
 
-        voci.Add(("valore 5 gg / vuoti", ColoreStorico));
+        voci.Add(("vuoti 5 gg", ColoreStorico));
         voci.Add(("muro sotto", MuroVerde));
         voci.Add(("muro sopra", MuroRosso));
 
@@ -126,7 +126,7 @@ public sealed partial class DataBridge
             x += context.MeasureString(testo, font).Width + 12;
         }
 
-        var ruoli = "POC pieno · VAH/VAL tratteggio · max/min punti";
+        var ruoli = "valore = banda colorata · max/min punti · altri tratto-punto";
         context.DrawString(ruoli, font, Color.FromArgb(200, 170, 170, 170), area.Left + 8, y - alto - 4);
     }
 }
