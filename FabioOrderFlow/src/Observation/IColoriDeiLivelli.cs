@@ -42,7 +42,7 @@ public sealed partial class DataBridge
         [Seduta.Oggi] = ("#4FC3F7", "cassa oggi"),
         [Seduta.Ieri] = ("#FFA726", "cassa ieri"),
         [Seduta.Notte] = ("#9575CD", "notte"),
-        [Seduta.Europa] = ("#D4E157", "Europa"),
+        [Seduta.Europa] = ("#D4E157", "London"),
         [Seduta.Cot] = ("#FFD54F", "COT"),
     };
 
@@ -98,15 +98,19 @@ public sealed partial class DataBridge
         }
 
         var font = new RenderFont("Arial", Math.Max(7, LevelFontSize - 2));
-        var voci = new List<(string Testo, Color Colore)>();
-        foreach (var s in new[] { Seduta.Oggi, Seduta.Ieri, Seduta.Notte, Seduta.Europa, Seduta.Cot })
+        // Dal 25 settembre 2026 sul chart ci sono solo le zone: la legenda dice quali.
+        var voci = new List<(string Testo, Color Colore)>
         {
-            voci.Add((Palette[s].Nome, ParseColor(Palette[s].Hex)));
+            ("VA NY oggi", ParseColor(Palette[Seduta.Oggi].Hex)),
+            ("VA NY ieri", ParseColor(Palette[Seduta.Ieri].Hex)),
+            ("VA London (prima di NY)", ParseColor(Palette[Seduta.Europa].Hex)),
+            ("vuoti 5 gg", ColoreStorico),
+        };
+        if (RigheSulChart)
+        {
+            voci.Add(("muro sotto", MuroVerde));
+            voci.Add(("muro sopra", MuroRosso));
         }
-
-        voci.Add(("vuoti 5 gg", ColoreStorico));
-        voci.Add(("muro sotto", MuroVerde));
-        voci.Add(("muro sopra", MuroRosso));
 
         var alto = context.MeasureString("Hg", font).Height;
         var x = area.Left + 8;
@@ -126,7 +130,5 @@ public sealed partial class DataBridge
             x += context.MeasureString(testo, font).Width + 12;
         }
 
-        var ruoli = "valore = banda colorata · max/min punti · altri tratto-punto";
-        context.DrawString(ruoli, font, Color.FromArgb(200, 170, 170, 170), area.Left + 8, y - alto - 4);
     }
 }

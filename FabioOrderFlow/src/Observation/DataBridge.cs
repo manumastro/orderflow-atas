@@ -143,6 +143,13 @@ public sealed partial class DataBridge : Indicator
     [Display(Name = "Show levels", GroupName = "Levels", Description = "Disegna i livelli depositati su /levels.")]
     public bool ShowLevels { get; set; } = true;
 
+    // UN NOME NUOVO APPOSTA: ATAS salva le impostazioni del chart, e cambiare il default di
+    // ShowLevels non avrebbe toccato un chart gia' aperto. Dal 25 settembre 2026 sul chart ci
+    // sono solo le zone (richiesta dell'utente): le righe dei livelli e dei muri si riaccendono qui.
+    [Display(Name = "Draw level lines", GroupName = "Levels",
+        Description = "Righe ed etichette dei livelli depositati e dei muri. Spento: solo le zone.")]
+    public bool RigheSulChart { get; set; }
+
     [Display(Name = "Label on the right", GroupName = "Levels", Description = "Etichetta a destra invece che a sinistra.")]
     public bool LabelOnRight { get; set; } = true;
 
@@ -1211,15 +1218,30 @@ public sealed partial class DataBridge : Indicator
 
         try
         {
-            tooltip = DisegnaIMuri(context, area, muriLeft, dataRight, mouse) ?? tooltip;
+            if (RigheSulChart)
+            {
+                tooltip = DisegnaIMuri(context, area, muriLeft, dataRight, mouse) ?? tooltip;
+            }
         }
         catch (Exception errore)
         {
             this.LogError("muri non disegnati", errore);
         }
 
+        // LE ZONE DEL VALORE: NY ieri, NY oggi, e la London prima di New York. Non dipendono
+        // dalle regole, e un guasto qui non puo' portarsi via il resto.
+        try
+        {
+            DisegnaLeZone(context, area, dataRight);
+            DisegnaLegenda(context, area);
+        }
+        catch (Exception errore)
+        {
+            this.LogError("zone del valore non disegnate", errore);
+        }
+
         var levels = _levels;
-        if (!ShowLevels || levels.Length == 0)
+        if (!ShowLevels || !RigheSulChart || levels.Length == 0)
         {
             DisegnaTooltip(context, tooltip, dataRight, new RenderFont("Arial", LevelFontSize));
             return;
@@ -1231,13 +1253,10 @@ public sealed partial class DataBridge : Indicator
         // l'etichetta a area.Right la fa finire sotto i numeri dell'asse. L'ultima barra
         // visibile e' dentro l'area dei dati per costruzione, quindi la sua X e' un bordo
         // destro sicuro qualunque sia la larghezza dell'asse.
-        DisegnaBandaValore(context, area, levels);
-
         // Le misure a sinistra non possono portarsi via i livelli: stessa regola del pannello.
         try
         {
             DisegnaLeMisure(context, area, levels);
-            DisegnaLegenda(context, area);
         }
         catch (Exception errore)
         {
@@ -1483,9 +1502,13 @@ public sealed partial class DataBridge : Indicator
     }
 
     /// <summary>L'area di valore che contiene il prezzo, o quella piu' vicina se e' fuori.</summary>
-    private (AreaValore? Area, bool Dentro) ValoreCorrente(BridgeLevel[] livelli, decimal prezzo)
+    private (AreaValore? Area, bool Dentro) ValoreCorrente(decimal prezzo)
     {
-        var aree = AreeDiValore(livelli);
+        // Dal 25 settembre 2026 le aree sono le zone disegnate (LeZoneDelValore.cs), non i
+        // livelli delle regole: il pannello deve parlare delle stesse bande che si vedono.
+        var aree = LeZone()
+            .Select(z => new AreaValore { Nome = z.Nome, Val = z.Val, Vah = z.Vah, Poc = z.Poc, Chiave = z.Oggi })
+            .ToList();
         if (aree.Count == 0)
         {
             return (null, false);
@@ -1907,7 +1930,7 @@ public sealed partial class DataBridge : Indicator
         // --- il valore in cui si sta ---------------------------------------------------------
         // Prima riga dopo il prezzo, e non e' un ornamento: dentro o fuori dal valore sceglie il
         // modello. Dentro si fa mean reverting sui bordi verso il POC; fuori quel permesso non c'e'.
-        var (zona, dentro) = ValoreCorrente(livelli, prezzo);
+        var (zona, dentro) = ValoreCorrente(prezzo);
         if (zona is not null)
         {
             var dovePoc = zona.Poc is null ? string.Empty
@@ -1922,6 +1945,16 @@ public sealed partial class DataBridge : Indicator
             if (dentro && dovePoc.Length > 0)
             {
                 righe.Add(new RigaPannello($"          {dovePoc.Trim()}", PanelGrigio));
+            }
+
+            // Le altre zone sul chart, una riga ciascuna: "dove ci troviamo" e' rispetto a
+            // tutte le bande che si vedono, non solo a quella principale.
+            foreach (var z in LeZone().Where(z => z.Nome != zona.Nome))
+            {
+                var qui = prezzo < z.Val ? "SOTTO" : prezzo > z.Vah ? "SOPRA" : "DENTRO";
+                righe.Add(new RigaPannello(
+                    $"           {qui} {z.Nome}  {Prezzo(z.Val)}-{Prezzo(z.Vah)}  POC {Prezzo(z.Poc)}",
+                    qui == "DENTRO" ? PanelAzzurro : PanelGrigio));
             }
         }
 

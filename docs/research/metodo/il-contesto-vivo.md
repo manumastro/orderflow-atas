@@ -94,10 +94,17 @@ BARRA APERTA 15:31, cambia ancora
 - **Il resto non e' sparito.** Regime, velocita', livello in gioco, condizioni e veti sono sempre
   misurati dall'indicatore. Escono su `/panel` nel campo `analisi`, e il giro li stampa alla 6bis
   sotto *NON SUL CHART*. L'obbligo 4 (dichiarare modello e regime) resta in piedi.
-- **Sul chart, sempre dal 25 settembre:**
-  - VAL, VAH e POC di un'area completa sono solo la **banda colorata**, senza riga ne' scritta;
-  - i VALORE dei giorni passati non si disegnano;
-  - a sinistra dei livelli resta solo il **delta**.
+- **Sul chart ci sono solo le zone** (25 settembre 2026, seconda richiesta dello stesso giorno):
+  - **VA NY ieri**, **VA NY oggi**, e **VA London** solo prima dell'apertura di New York. I nomi
+    sono quelli del live: Fabio dice *London session* e *New York session* (`fabio_3.txt`, 22:12 e
+    23:00), mai Europa, Asia o overnight.
+  - Le zone le calcola l'indicatore (`LeZoneDelValore.cs`), non le regole. Il motore delle regole
+    unisce i livelli a meno di otto punti, e quel giorno aveva assorbito VAH e POC di ieri in quelli
+    della notte: la VA di ieri non aveva piu' una banda.
+  - **Niente righe**: ne' dei livelli depositati ne' dei muri. Si riaccendono con *Draw level
+    lines*. I livelli restano calcolati, su `/levels` e nel giro.
+  - A sinistra c'e' solo il **delta** del tratto, su VAH, POC e VAL di ogni zona.
+  - La riga VALORE del pannello dice dove sta il prezzo rispetto a **ogni** zona.
 
 Il pannello completo, com'era fino al 24 e com'e' oggi in `analisi`:
 
