@@ -147,6 +147,19 @@ public sealed partial class DataBridge
             context.FillRectangle(Color.FromArgb(ValueBandOpacity, z.Colore),
                 new Rectangle(area.Left, top, dataRight - area.Left, bottom - top));
 
+            // IL POC, l'unica riga che resta: il bersaglio del mean reverting dentro la zona.
+            // Pieno, del colore della zona, con il nome accanto e niente a destra.
+            var yPoc = ChartInfo.GetYByPrice(z.Poc, false);
+            if (yPoc >= area.Top && yPoc <= area.Bottom)
+            {
+                context.DrawLine(new RenderPen(Color.FromArgb(220, z.Colore), 2), area.Left, yPoc, dataRight, yPoc);
+                var etichetta = $"POC {z.Nome} {Prezzo(z.Poc)}";
+                var s = context.MeasureString(etichetta, font);
+                context.FillRectangle(Color.FromArgb(190, 0, 0, 0),
+                    new Rectangle(area.Left + 67, yPoc - s.Height - 2, s.Width + 6, s.Height + 2));
+                context.DrawString(etichetta, font, z.Colore, area.Left + 70, yPoc - s.Height - 1);
+            }
+
             // Il nome della zona, dentro la banda in alto a sinistra: senza, due bande vicine
             // non si distinguono ed era proprio la lamentela.
             var nome = $"VA {z.Nome}";
