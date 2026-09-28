@@ -439,6 +439,31 @@ ogni barra, un massimo della notte ormai definitivo e una mensola scritta stamat
 identici, e chi guarda non sa quale delle tre sta leggendo. Dettaglio in
 [`i-livelli-li-calcola-l-indicatore.md`](i-livelli-li-calcola-l-indicatore.md).
 
+### Quali Zone, Dal 28 Settembre 2026
+
+Le zone sul chart sono quelle della cornice di Fabio: **le sedute di cassa dei due giorni prima**
+(*"below the cash session of the previous two days"*, `fabio_4.txt` 11:57). Il valore della
+settimana non e' un riferimento del live ed e' stato tolto anche dal giro.
+
+| zona | colore | quando c'e' |
+|---|---|---|
+| `NY <giorno>` di ieri | arancio | sempre |
+| `NY <giorno>` di due giorni fa | rosa | sempre |
+| `NY <giorno> (framing)` | viola | solo col prezzo fuori dal valore delle ultime due sedute |
+| `NY oggi` | azzurro | dall'apertura di New York |
+| `London` | lime | dalle 07:00Z all'apertura di New York |
+
+**La zona del framing e' dinamica.** Se l'ultima barra chiusa sta fuori dal valore delle ultime due
+sedute, l'indicatore torna indietro (fino a dieci sedute) alla prima il cui valore contiene il
+prezzo; se nessuna lo contiene, prende la piu' recente col valore oltre il prezzo, dalla parte in
+cui e' uscito. Il 28 settembre, col prezzo sotto giovedi' 24 e venerdi' 25, e' il valore di lunedi'
+21. Il giro stampa lo stesso conto nella sezione 0, alla riga "il framing torna al".
+
+**La grana non e' la stessa, e va saputo.** L'indicatore cerca POC e bordi su prezzi da 1 punto, il
+giro su fasce da 5. Quasi sempre la differenza e' di pochi punti; in una giornata di trend, con la
+distribuzione piatta, no. Lunedi' 21: grana 1 VAL **30.514**, VAH 30.862, POC 30.783; grana 5 VAL
+**30.485**, VAH 30.825, POC 30.675. Nessuna delle due e' sbagliata: risolverla e' una decisione aperta.
+
 ### Le Manopole
 
 Sull'istanza dell'indicatore:

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """La scala dei tempi: dal piu' lontano al piu' vicino, come la guarderebbe una persona.
 
-Prima le settimane, poi le sedute, poi dove sta il prezzo rispetto a tutto questo, poi gli eventi.
+Prima le sedute di cassa, poi dove sta il prezzo rispetto a tutto questo, poi gli eventi.
 Solo dopo il giro scende alla notte, all'Europa e al tape. Il 23 settembre il bersaglio vero del
 ribasso stava due giorni indietro, e il 24 la notte era uscita sotto un valore che coincideva per
 due sedute: sono cose che si vedono solo guardando prima il quadro largo.
@@ -183,38 +183,11 @@ def stampa(chart: str, budget: float) -> None:
     sedute = sorted(k for k, v in cache.items() if not k.startswith("_") and v and not v.get("vuoto"))
     tutte = [(k, cache[k]) for k in sedute] + ([(oggi, oggi_m)] if oggi_m else [])
 
-    # --- le settimane ------------------------------------------------------------------------
-    settimane: dict[str, list] = {}
-    for k, v in tutte:
-        d = dt.date.fromisoformat(k)
-        lun = (d - dt.timedelta(days=d.weekday())).isoformat()
-        settimane.setdefault(lun, []).append((k, v))
-    vmax = max((sum(x["giorno"]["V"] for _, x in lst if "giorno" in x) for lst in settimane.values()), default=1)
-    print("  LE SETTIMANE (tutte le ore, notti comprese)")
-    prec = None
-    for lun in sorted(settimane)[-4:]:
-        lst = [x for _, x in settimane[lun] if "giorno" in x]
-        if not lst:
-            continue
-        hist: dict[float, float] = {}
-        for x in lst:
-            for kk, vv in x["giorno"]["hist"].items():
-                hist[float(kk)] = hist.get(float(kk), 0) + vv
-        vol = sum(x["giorno"]["V"] for x in lst)
-        v = valore(hist)
-        hi = max(x["giorno"]["H"] for x in lst)
-        lo = min(x["giorno"]["L"] for x in lst)
-        nota = ""
-        if vol < 0.2 * vmax:
-            print(f"    {lun[8:10]}/{lun[5:7]}  poco volume ({lotti(vol)}): quotazione, non valore")
-            continue
-        elif prec:
-            nota = f"   valore {'SU' if v[0] > prec[0] else 'GIU'} di {fmt(abs(v[0] - prec[0]))}"
-        corrente = " in corso" if lun == max(settimane) else ""
-        print(f"    {lun[8:10]}/{lun[5:7]}  {fmt(lo)} - {fmt(hi)}  C {fmt(lst[-1]['giorno']['C'])}  "
-              f"POC {fmt(v[0])}  valore {fmt(v[1])}-{fmt(v[2])}  {lotti(vol)}{corrente}{nota}")
-        if vol >= 0.2 * vmax:
-            prec = v
+    # --- le settimane: tolte il 28 settembre 2026 --------------------------------------------
+    # Il valore della settimana non e' un riferimento del live. La cornice di Fabio sono le sedute
+    # di cassa dei giorni prima ("below the cash session of the previous two days",
+    # fabio_4.txt 11:57) e il composito di 90 giorni (14:18). Il 28 settembre il VAL della
+    # settimana, 30.650, era stato dato come "il livello che decide": non veniva dal metodo.
 
     # --- le sedute di cassa --------------------------------------------------------------------
     print("  LE SEDUTE DI CASSA")
@@ -249,20 +222,36 @@ def stampa(chart: str, budget: float) -> None:
             pct = 100 * (prezzo - lo) / (hi - lo) if hi > lo else 50
             print(f"    nel range delle ultime {len(ultime)} sedute {fmt(lo)} - {fmt(hi)}: al {pct:.0f}%"
                   f"  (dal massimo {fmt(hi - prezzo)} punti)")
-        sett = sorted(settimane)
-        if len(sett) >= 2:
-            lst = [x for _, x in settimane[sett[-2]] if "giorno" in x]
-            hist: dict[float, float] = {}
-            for x in lst:
-                for kk, vv in x["giorno"]["hist"].items():
-                    hist[float(kk)] = hist.get(float(kk), 0) + vv
-            v = valore(hist)
-            if v:
-                print(f"    rispetto al valore della settimana scorsa ({fmt(v[1])}-{fmt(v[2])}): {dove(prezzo, v[1], v[2])}")
         ieri = [x for k, x in tutte if k != oggi and x.get("cassa")]
         if ieri:
             v = valore({float(a): b for a, b in ieri[-1]["cassa"]["hist"].items()})
             print(f"    rispetto al valore della cassa di ieri ({fmt(v[1])}-{fmt(v[2])}): {dove(prezzo, v[1], v[2])}")
+        # IL PROFILE FRAMING, lo stesso conto delle zone sul chart (LeZoneDelValore.cs): se il
+        # prezzo e' fuori dal valore delle ultime due sedute, si torna indietro fino alla prima
+        # seduta il cui valore lo contiene; se nessuna lo contiene, la piu' recente col valore
+        # oltre il prezzo, dalla parte in cui e' uscito.
+        vs = [(k, valore({float(a): b for a, b in x["cassa"]["hist"].items()})) for k, x in tutte
+              if k != oggi and x.get("cassa")]
+        if len(vs) >= 2:
+            due = vs[-2:]
+            lo2 = min(v[1] for _, v in due)
+            hi2 = max(v[2] for _, v in due)
+            if lo2 <= prezzo <= hi2:
+                print(f"    dentro il valore delle ultime due sedute ({fmt(lo2)}-{fmt(hi2)}): niente framing piu' indietro")
+            else:
+                sotto = prezzo < lo2
+                prima = vs[:-2][::-1][:10]
+                trovata = next(((k, v) for k, v in prima if v[1] <= prezzo <= v[2]), None) or next(
+                    ((k, v) for k, v in prima if (v[2] < prezzo if sotto else v[1] > prezzo)), None)
+                lato = "sotto" if sotto else "sopra"
+                if trovata:
+                    k, v = trovata
+                    d = dt.date.fromisoformat(k)
+                    print(f"    {lato} il valore delle ultime due sedute ({fmt(lo2)}-{fmt(hi2)}): il framing torna al "
+                          f"{giorni_it[d.weekday()]} {k[8:10]}, valore {fmt(v[1])}-{fmt(v[2])} POC {fmt(v[0])}, "
+                          f"{dove(prezzo, v[1], v[2])}")
+                else:
+                    print(f"    {lato} il valore delle ultime due sedute ({fmt(lo2)}-{fmt(hi2)}): nessuna seduta piu' indietro lo contiene")
 
     # --- la struttura oraria ---------------------------------------------------------------
     # Quello che una persona guarda sull'H1: i massimi e minimi di swing delle ultime tre

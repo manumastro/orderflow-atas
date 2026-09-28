@@ -11,8 +11,9 @@ using Utils.Common.Logging;
 namespace FabioOrderFlow.Observation;
 
 /// <summary>
-/// Le zone del valore: la value area di New York di ieri, quella di New York di oggi, e la
-/// London finche' New York non apre. Sul chart ci sono solo queste, come bande colorate.
+/// Le zone del valore: le value area delle ultime due sedute di New York, quella di una seduta
+/// piu' indietro quando il profile framing la chiama, quella di New York di oggi, e la London
+/// finche' New York non apre. Sul chart ci sono solo queste, come bande colorate.
 ///
 /// <para><b>Perche' le calcola l'indicatore e non le regole.</b> Fino al 25 settembre 2026 la banda si
 /// ricomponeva dai livelli VAL/VAH/POC depositati dalle regole, e il motore unisce i livelli a meno
@@ -29,6 +30,10 @@ public sealed partial class DataBridge
     [Display(Name = "London da (UTC)", GroupName = "Levels",
         Description = "Da quando si misura la value area della London. Si vede solo prima di New York.")]
     public string LondonDa { get; set; } = "07:00Z";
+
+    private static readonly string[] GiorniBrevi = { "dom", "lun", "mar", "mer", "gio", "ven", "sab" };
+
+    private static string NomeDelGiorno(DateTime g) => $"{GiorniBrevi[(int)g.DayOfWeek]} {g.Day}";
 
     private sealed record Zona(string Nome, decimal Val, decimal Vah, decimal Poc, Color Colore, bool Oggi);
 
@@ -56,15 +61,52 @@ public sealed partial class DataBridge
             var grana = InPunti(1m);
             var passo = InPunti(5m);
 
-            // NEW YORK IERI: la cassa precedente con barre, saltando weekend e festivi.
-            for (var indietro = 1; indietro <= 10; indietro++)
+            // LE SEDUTE DI CASSA PRECEDENTI, dalla piu' recente, saltando weekend e festivi.
+            var sedute = new List<(DateTime Giorno, ProfiloFinestra P)>();
+            for (var indietro = 1; indietro <= 20 && sedute.Count < 12; indietro++)
             {
                 var g = giorno.AddDays(-indietro);
                 var p = Profilo(Momento(Apertura, g), Momento(Chiusura, g), passo, grana);
                 if (p is not null)
                 {
-                    zone.Add(new Zona("NY ieri", p.Val, p.Vah, p.Poc, ParseColor(Palette[Seduta.Ieri].Hex), false));
-                    break;
+                    sedute.Add((g, p));
+                }
+            }
+
+            // LE ULTIME DUE, sempre: "below the cash session of the previous two days"
+            // (fabio_4.txt 11:57) e' la cornice su cui Fabio decide se un long ha senso.
+            for (var i = 0; i < Math.Min(2, sedute.Count); i++)
+            {
+                var (g, p) = sedute[i];
+                var colore = ParseColor(Palette[i == 0 ? Seduta.Ieri : Seduta.DueGiorni].Hex);
+                zone.Add(new Zona($"NY {NomeDelGiorno(g)}", p.Val, p.Vah, p.Poc, colore, false));
+            }
+
+            // IL FRAMING, dinamico. Se il prezzo e' fuori dal valore delle ultime due sedute, si
+            // torna indietro fino alla prima seduta il cui valore lo contiene: e' li' che il
+            // profile framing trova il prossimo riferimento (il 28 settembre 2026, sotto giovedi'
+            // e venerdi', il valore di lunedi' 21 e il suo VAL 30.485). Se nessuna lo contiene,
+            // la piu' recente col valore oltre il prezzo, dalla parte in cui e' uscito.
+            if (sedute.Count > 2)
+            {
+                // L'ultima barra CHIUSA: con quella in formazione la zona comparirebbe e sparirebbe
+                // a ogni tick intorno al bordo.
+                var prezzo = GetCandle(ultimo - 1).Close;
+                var basso = sedute.Take(2).Min(x => x.P.Val);
+                var alto = sedute.Take(2).Max(x => x.P.Vah);
+                if (prezzo < basso || prezzo > alto)
+                {
+                    var prima = sedute.Skip(2).ToList();
+                    var trovata = prima.FirstOrDefault(x => x.P.Val <= prezzo && prezzo <= x.P.Vah);
+                    if (trovata.P is null)
+                    {
+                        trovata = prima.FirstOrDefault(x => prezzo < basso ? x.P.Vah < prezzo : x.P.Val > prezzo);
+                    }
+                    if (trovata.P is not null)
+                    {
+                        zone.Add(new Zona($"NY {NomeDelGiorno(trovata.Giorno)} (framing)", trovata.P.Val, trovata.P.Vah,
+                            trovata.P.Poc, ParseColor(Palette[Seduta.Framing].Hex), false));
+                    }
                 }
             }
 

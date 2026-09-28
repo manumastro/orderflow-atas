@@ -1228,7 +1228,7 @@ public sealed partial class DataBridge : Indicator
             this.LogError("muri non disegnati", errore);
         }
 
-        // LE ZONE DEL VALORE: NY ieri, NY oggi, e la London prima di New York. Non dipendono
+        // LE ZONE DEL VALORE: le ultime due sedute NY, il framing, NY oggi, la London prima di NY. Non dipendono
         // dalle regole, e un guasto qui non puo' portarsi via il resto.
         try
         {

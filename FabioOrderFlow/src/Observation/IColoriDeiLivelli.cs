@@ -35,12 +35,14 @@ public sealed partial class DataBridge
     [Display(Name = "Show legend", GroupName = "Levels")]
     public bool ShowLegend { get; set; } = true;
 
-    private enum Seduta { Oggi, Ieri, Notte, Europa, Cot, Altro }
+    private enum Seduta { Oggi, Ieri, DueGiorni, Framing, Notte, Europa, Cot, Altro }
 
     private static readonly Dictionary<Seduta, (string Hex, string Nome)> Palette = new()
     {
         [Seduta.Oggi] = ("#4FC3F7", "cassa oggi"),
         [Seduta.Ieri] = ("#FFA726", "cassa ieri"),
+        [Seduta.DueGiorni] = ("#F48FB1", "cassa di due giorni fa"),
+        [Seduta.Framing] = ("#BA68C8", "framing"),
         [Seduta.Notte] = ("#9575CD", "notte"),
         [Seduta.Europa] = ("#D4E157", "London"),
         [Seduta.Cot] = ("#FFD54F", "COT"),
@@ -103,6 +105,8 @@ public sealed partial class DataBridge
         {
             ("VA NY oggi", ParseColor(Palette[Seduta.Oggi].Hex)),
             ("VA NY ieri", ParseColor(Palette[Seduta.Ieri].Hex)),
+            ("VA NY due giorni fa", ParseColor(Palette[Seduta.DueGiorni].Hex)),
+            ("VA framing (piu' indietro, se il prezzo e' fuori)", ParseColor(Palette[Seduta.Framing].Hex)),
             ("VA London (prima di NY)", ParseColor(Palette[Seduta.Europa].Hex)),
             ("vuoti 5 gg", ColoreStorico),
         };
