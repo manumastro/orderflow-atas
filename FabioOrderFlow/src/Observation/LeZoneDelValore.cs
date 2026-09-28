@@ -184,14 +184,13 @@ public sealed partial class DataBridge
         // LE SEDUTE CHIUSE: solo scritte a destra, con una lineetta sotto che parte dal bordo
         // destro e segna il prezzo. Dal 28 settembre 2026, per richiesta dell'utente: le righe
         // orizzontali intere di tre sedute, piu' la banda di oggi, riempivano il chart.
-        var chiuse = LeZone().Where(z => !z.Oggi)
-            .SelectMany(z => new[] { (z.Vah, "VAH", z), (z.Poc, "POC", z), (z.Val, "VAL", z) })
-            .Select(x => (Y: ChartInfo.GetYByPrice(x.Item1, false), Testo: $"{x.z.Sigla} {x.Item2} CASH", x.z.Colore))
-            .Where(x => x.Y >= area.Top + alto && x.Y <= area.Bottom)
-            .OrderBy(x => x.Y)
+        var livelli = LeZone().Where(z => !z.Oggi)
+            .SelectMany(z => new[] { (P: z.Vah, S: "VAH", Z: z), (P: z.Poc, S: "POC", Z: z), (P: z.Val, S: "VAL", Z: z) })
+            .Select(x => (x.P, Y: ChartInfo.GetYByPrice(x.P, false), Testo: $"{x.Z.Sigla} {x.S} CASH", x.Z.Colore))
             .ToList();
+        var chiuse = livelli.Where(x => x.Y >= area.Top + alto && x.Y <= area.Bottom).OrderBy(x => x.Y).ToList();
         var ultimoAlto = int.MinValue;
-        foreach (var (y, testo, colore) in chiuse)
+        foreach (var (_, y, testo, colore) in chiuse)
         {
             var sz = context.MeasureString(testo, font);
             // La scritta sta sopra la sua lineetta; se tocca quella prima scende, la lineetta no.
@@ -201,6 +200,33 @@ public sealed partial class DataBridge
             context.FillRectangle(Color.FromArgb(170, 0, 0, 0), new Rectangle(x - 2, yTesto, sz.Width + 6, sz.Height));
             context.DrawString(testo, font, colore, x, yTesto);
             context.DrawLine(new RenderPen(Color.FromArgb(230, colore), 2), x - 2, y, dataRight, y);
+        }
+
+        // FUORI SCHERMO NON VUOL DIRE SPARITO. Il 28 settembre 2026 venerdi' stava 200 punti sopra
+        // il prezzo e, zoomato sulla mattina, non si vedeva: "non vedo quello di venerdi". Le
+        // scritte si agganciano al bordo, con la freccia e la distanza dal prezzo.
+        var prezzoOra = GetCandle(CurrentBar - 1).Close;
+        var sopra = livelli.Where(x => x.Y < area.Top + alto).OrderBy(x => x.P).ToList();
+        var sotto = livelli.Where(x => x.Y > area.Bottom).OrderByDescending(x => x.P).ToList();
+        var yBordo = area.Top + 2;
+        foreach (var (p, _, testo, colore) in sopra)
+        {
+            var t = $"▲ {testo} {Prezzo(p)} (+{Prezzo(p - prezzoOra)})";
+            var sz = context.MeasureString(t, font);
+            var x = dataRight - sz.Width - 6;
+            context.FillRectangle(Color.FromArgb(170, 0, 0, 0), new Rectangle(x - 2, yBordo, sz.Width + 6, sz.Height));
+            context.DrawString(t, font, colore, x, yBordo);
+            yBordo += sz.Height + 1;
+        }
+        yBordo = area.Bottom - 2;
+        foreach (var (p, _, testo, colore) in sotto)
+        {
+            var t = $"▼ {testo} {Prezzo(p)} (-{Prezzo(prezzoOra - p)})";
+            var sz = context.MeasureString(t, font);
+            yBordo -= sz.Height + 1;
+            var x = dataRight - sz.Width - 6;
+            context.FillRectangle(Color.FromArgb(170, 0, 0, 0), new Rectangle(x - 2, yBordo, sz.Width + 6, sz.Height));
+            context.DrawString(t, font, colore, x, yBordo);
         }
 
         // LA ZONA IN FORMAZIONE, NY oggi o London: banda, POC pieno col nome, delta ai bordi.

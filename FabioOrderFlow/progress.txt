@@ -831,3 +831,4 @@ DICHIARA su chi lo porta; il colore resta come ripiego e al massimo dice
 2026-09-28  zone di ieri, due giorni fa e framing disegnate come linee (VAH/VAL/POC), bande solo per NY oggi e London; giro sceglie il chart M1 per id quando ci sono due NQZ6 (Daily + M1). VAL lun 21 dell utente 30.363 = profilo 24h del Daily ATAS (30.361,25), cassa 30.514
 2026-09-28  giro sulla grana di 1 punto come indicatore e ATAS (lun 21 VAL 30.513, POC 30.783); scelta dell utente: sola cassa NY, non 24h
 2026-09-28  sedute chiuse sul chart come scritte a destra (PD VAL CASH, GIOVEDI POC CASH) con lineetta sul prezzo; banda solo per la zona in formazione (NY oggi o London)
+2026-09-28  livelli delle sedute chiuse fuori schermo agganciati al bordo con freccia e distanza (venerdi non si vedeva, 200 punti sopra)
