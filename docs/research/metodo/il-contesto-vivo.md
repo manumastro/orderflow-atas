@@ -447,9 +447,9 @@ settimana non e' un riferimento del live ed e' stato tolto anche dal giro.
 
 | zona | colore | quando c'e' |
 |---|---|---|
-| `NY <giorno>` di ieri | arancio | sempre |
-| `NY <giorno>` di due giorni fa | rosa | sempre |
-| `NY <giorno> (framing)` | viola | solo col prezzo fuori dal valore delle ultime due sedute |
+| `PD CASH`, ieri | arancio | sempre |
+| `<GIORNO> CASH`, due giorni fa | rosa | sempre |
+| `<GIORNO> CASH (framing)` | viola | solo col prezzo fuori dal valore delle ultime due sedute |
 | `NY oggi` | azzurro | dall'apertura di New York |
 | `London` | lime | dalle 07:00Z all'apertura di New York |
 
@@ -459,8 +459,13 @@ prezzo; se nessuna lo contiene, prende la piu' recente col valore oltre il prezz
 cui e' uscito. Il 28 settembre, col prezzo sotto giovedi' 24 e venerdi' 25, e' il valore di lunedi'
 21. Il giro stampa lo stesso conto nella sezione 0, alla riga "il framing torna al".
 
-**Le linee e le bande.** Le sedute chiuse (ieri, due giorni fa, framing) si disegnano come linee,
-VAH, VAL e POC col loro nome; restano bande solo `NY oggi` e `London`, che si stanno formando.
+**Scritte a destra per le sedute chiuse, banda per quella in formazione.** Ieri, due giorni fa e
+il framing non hanno righe intere: solo una scritta sul bordo destro, `PD VAL CASH`, `GIOVEDI POC
+CASH`, `LUNEDI VAH CASH`, con sotto una lineetta che parte da destra e segna il prezzo (PD e'
+*previous day*). Se due scritte si toccano, quella piu' in basso scende; la lineetta resta sul
+prezzo. La zona in formazione, `NY oggi` dopo l'apertura e `London` prima, resta banda col POC pieno
+e il delta ai bordi. Nel pannello le sedute chiuse si chiamano allo stesso modo (`PD CASH`,
+`GIOVEDI CASH`).
 
 **Cassa, non 24 ore, e grana di 1 punto.** Le zone misurano la sola cassa di New York, come vuole
 Fabio (*"keep the cash session"*, `fabio_4.txt` 14:18). Il profilo della barra Daily di ATAS

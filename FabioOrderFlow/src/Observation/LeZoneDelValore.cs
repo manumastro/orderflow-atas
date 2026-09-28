@@ -31,11 +31,14 @@ public sealed partial class DataBridge
         Description = "Da quando si misura la value area della London. Si vede solo prima di New York.")]
     public string LondonDa { get; set; } = "07:00Z";
 
-    private static readonly string[] GiorniBrevi = { "dom", "lun", "mar", "mer", "gio", "ven", "sab" };
+    private static readonly string[] Giorni =
+        { "DOMENICA", "LUNEDI", "MARTEDI", "MERCOLEDI", "GIOVEDI", "VENERDI", "SABATO" };
 
-    private static string NomeDelGiorno(DateTime g) => $"{GiorniBrevi[(int)g.DayOfWeek]} {g.Day}";
-
-    private sealed record Zona(string Nome, decimal Val, decimal Vah, decimal Poc, Color Colore, bool Oggi);
+    /// <summary>
+    /// Una zona del valore. <see cref="Sigla"/> e' il prefisso delle scritte a destra
+    /// ("PD", "GIOVEDI"): "PD VAL CASH" si legge in un colpo d'occhio, "VAL NY ven 25 30.802" no.
+    /// </summary>
+    private sealed record Zona(string Nome, string Sigla, decimal Val, decimal Vah, decimal Poc, Color Colore, bool Oggi);
 
     private Zona[] _zone = Array.Empty<Zona>();
     private int _zoneAllaBarra = -1;
@@ -79,7 +82,9 @@ public sealed partial class DataBridge
             {
                 var (g, p) = sedute[i];
                 var colore = ParseColor(Palette[i == 0 ? Seduta.Ieri : Seduta.DueGiorni].Hex);
-                zone.Add(new Zona($"NY {NomeDelGiorno(g)}", p.Val, p.Vah, p.Poc, colore, false));
+                // PD, previous day, per ieri; il nome del giorno per quello prima.
+                var sigla = i == 0 ? "PD" : Giorni[(int)g.DayOfWeek];
+                zone.Add(new Zona($"{sigla} CASH", sigla, p.Val, p.Vah, p.Poc, colore, false));
             }
 
             // IL FRAMING, dinamico. Se il prezzo e' fuori dal valore delle ultime due sedute, si
@@ -104,7 +109,8 @@ public sealed partial class DataBridge
                     }
                     if (trovata.P is not null)
                     {
-                        zone.Add(new Zona($"NY {NomeDelGiorno(trovata.Giorno)} (framing)", trovata.P.Val, trovata.P.Vah,
+                        var sigla = Giorni[(int)trovata.Giorno.DayOfWeek];
+                        zone.Add(new Zona($"{sigla} CASH (framing)", sigla, trovata.P.Val, trovata.P.Vah,
                             trovata.P.Poc, ParseColor(Palette[Seduta.Framing].Hex), false));
                     }
                 }
@@ -115,7 +121,7 @@ public sealed partial class DataBridge
                 var p = Profilo(apertura, Momento(Chiusura, giorno), passo, grana);
                 if (p is not null)
                 {
-                    zone.Add(new Zona("NY oggi", p.Val, p.Vah, p.Poc, ParseColor(Palette[Seduta.Oggi].Hex), true));
+                    zone.Add(new Zona("NY oggi", "NY", p.Val, p.Vah, p.Poc, ParseColor(Palette[Seduta.Oggi].Hex), true));
                 }
             }
             else
@@ -124,7 +130,7 @@ public sealed partial class DataBridge
                 var p = adesso >= da ? Profilo(da, apertura, passo, grana) : null;
                 if (p is not null)
                 {
-                    zone.Add(new Zona("London", p.Val, p.Vah, p.Poc, ParseColor(Palette[Seduta.Europa].Hex), true));
+                    zone.Add(new Zona("London", "LONDON", p.Val, p.Vah, p.Poc, ParseColor(Palette[Seduta.Europa].Hex), true));
                 }
             }
         }
@@ -159,8 +165,8 @@ public sealed partial class DataBridge
     }
 
     /// <summary>
-    /// La banda di ogni zona, col suo nome dentro a sinistra, e il delta ai bordi e al POC.
-    /// Niente righe e niente scritte a destra.
+    /// Le sedute chiuse come scritte a destra con una lineetta; la zona in formazione come banda,
+    /// col suo nome dentro a sinistra, il POC pieno e il delta ai bordi.
     /// </summary>
     private void DisegnaLeZone(RenderContext context, Rectangle area, int dataRight)
     {
@@ -175,7 +181,30 @@ public sealed partial class DataBridge
         var rosso = Color.FromArgb(255, 239, 83, 80);
         var grigio = Color.FromArgb(255, 170, 170, 170);
 
-        foreach (var z in LeZone())
+        // LE SEDUTE CHIUSE: solo scritte a destra, con una lineetta sotto che parte dal bordo
+        // destro e segna il prezzo. Dal 28 settembre 2026, per richiesta dell'utente: le righe
+        // orizzontali intere di tre sedute, piu' la banda di oggi, riempivano il chart.
+        var chiuse = LeZone().Where(z => !z.Oggi)
+            .SelectMany(z => new[] { (z.Vah, "VAH", z), (z.Poc, "POC", z), (z.Val, "VAL", z) })
+            .Select(x => (Y: ChartInfo.GetYByPrice(x.Item1, false), Testo: $"{x.z.Sigla} {x.Item2} CASH", x.z.Colore))
+            .Where(x => x.Y >= area.Top + alto && x.Y <= area.Bottom)
+            .OrderBy(x => x.Y)
+            .ToList();
+        var ultimoAlto = int.MinValue;
+        foreach (var (y, testo, colore) in chiuse)
+        {
+            var sz = context.MeasureString(testo, font);
+            // La scritta sta sopra la sua lineetta; se tocca quella prima scende, la lineetta no.
+            var yTesto = Math.Max(y - sz.Height - 1, ultimoAlto + 1);
+            ultimoAlto = yTesto + sz.Height;
+            var x = dataRight - sz.Width - 6;
+            context.FillRectangle(Color.FromArgb(170, 0, 0, 0), new Rectangle(x - 2, yTesto, sz.Width + 6, sz.Height));
+            context.DrawString(testo, font, colore, x, yTesto);
+            context.DrawLine(new RenderPen(Color.FromArgb(230, colore), 2), x - 2, y, dataRight, y);
+        }
+
+        // LA ZONA IN FORMAZIONE, NY oggi o London: banda, POC pieno col nome, delta ai bordi.
+        foreach (var z in LeZone().Where(z => z.Oggi))
         {
             var yAlto = ChartInfo.GetYByPrice(z.Vah, false);
             var yBasso = ChartInfo.GetYByPrice(z.Val, false);
@@ -186,32 +215,8 @@ public sealed partial class DataBridge
                 continue;
             }
 
-            // LE SEDUTE CHIUSE SONO LINEE, quelle che si stanno formando sono bande. Dal 28
-            // settembre 2026, per richiesta dell'utente: ieri, due giorni fa e il framing
-            // disegnano VAH e VAL come righe col loro nome; NY oggi e London restano bande.
-            if (!z.Oggi)
-            {
-                var penna = new RenderPen(Color.FromArgb(220, z.Colore), 1);
-                foreach (var (bordo, sigla) in new[] { (z.Vah, "VAH"), (z.Val, "VAL") })
-                {
-                    var y = ChartInfo.GetYByPrice(bordo, false);
-                    if (y < area.Top || y > area.Bottom)
-                    {
-                        continue;
-                    }
-                    context.DrawLine(penna, area.Left, y, dataRight, y);
-                    var testo = $"{sigla} {z.Nome} {Prezzo(bordo)}";
-                    var sz = context.MeasureString(testo, font);
-                    context.FillRectangle(Color.FromArgb(190, 0, 0, 0),
-                        new Rectangle(area.Left + 67, y - sz.Height - 2, sz.Width + 6, sz.Height + 2));
-                    context.DrawString(testo, font, z.Colore, area.Left + 70, y - sz.Height - 1);
-                }
-            }
-            else
-            {
-                context.FillRectangle(Color.FromArgb(ValueBandOpacity, z.Colore),
-                    new Rectangle(area.Left, top, dataRight - area.Left, bottom - top));
-            }
+            context.FillRectangle(Color.FromArgb(ValueBandOpacity, z.Colore),
+                new Rectangle(area.Left, top, dataRight - area.Left, bottom - top));
 
             // IL POC, l'unica riga che resta: il bersaglio del mean reverting dentro la zona.
             // Pieno, del colore della zona, con il nome accanto e niente a destra.
@@ -230,7 +235,7 @@ public sealed partial class DataBridge
             // non si distinguono ed era proprio la lamentela.
             var nome = $"VA {z.Nome}";
             var xNome = area.Left + 70;
-            if (z.Oggi && bottom - top > alto)
+            if (bottom - top > alto)
             {
                 context.DrawString(nome, font, z.Colore, xNome, top + 1);
             }

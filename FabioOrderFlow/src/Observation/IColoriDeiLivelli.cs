@@ -104,9 +104,9 @@ public sealed partial class DataBridge
         var voci = new List<(string Testo, Color Colore)>
         {
             ("VA NY oggi", ParseColor(Palette[Seduta.Oggi].Hex)),
-            ("VA NY ieri", ParseColor(Palette[Seduta.Ieri].Hex)),
-            ("VA NY due giorni fa", ParseColor(Palette[Seduta.DueGiorni].Hex)),
-            ("VA framing (piu' indietro, se il prezzo e' fuori)", ParseColor(Palette[Seduta.Framing].Hex)),
+            ("PD CASH, ieri", ParseColor(Palette[Seduta.Ieri].Hex)),
+            ("<GIORNO> CASH, due giorni fa", ParseColor(Palette[Seduta.DueGiorni].Hex)),
+            ("<GIORNO> CASH, framing", ParseColor(Palette[Seduta.Framing].Hex)),
             ("VA London (prima di NY)", ParseColor(Palette[Seduta.Europa].Hex)),
             ("vuoti 5 gg", ColoreStorico),
         };
