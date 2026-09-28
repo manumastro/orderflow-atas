@@ -459,10 +459,14 @@ prezzo; se nessuna lo contiene, prende la piu' recente col valore oltre il prezz
 cui e' uscito. Il 28 settembre, col prezzo sotto giovedi' 24 e venerdi' 25, e' il valore di lunedi'
 21. Il giro stampa lo stesso conto nella sezione 0, alla riga "il framing torna al".
 
-**La grana non e' la stessa, e va saputo.** L'indicatore cerca POC e bordi su prezzi da 1 punto, il
-giro su fasce da 5. Quasi sempre la differenza e' di pochi punti; in una giornata di trend, con la
-distribuzione piatta, no. Lunedi' 21: grana 1 VAL **30.514**, VAH 30.862, POC 30.783; grana 5 VAL
-**30.485**, VAH 30.825, POC 30.675. Nessuna delle due e' sbagliata: risolverla e' una decisione aperta.
+**Le linee e le bande.** Le sedute chiuse (ieri, due giorni fa, framing) si disegnano come linee,
+VAH, VAL e POC col loro nome; restano bande solo `NY oggi` e `London`, che si stanno formando.
+
+**Cassa, non 24 ore, e grana di 1 punto.** Le zone misurano la sola cassa di New York, come vuole
+Fabio (*"keep the cash session"*, `fabio_4.txt` 14:18). Il profilo della barra Daily di ATAS
+comprende anche la notte: lunedi' 21 da' VAL **30.361**, contro **30.513** della cassa. Giro e
+indicatore cercano POC e bordi su prezzi da 1 punto, come ATAS; fino al 28 settembre 2026 il giro
+usava fasce da 5, e in una trend day col volume piatto il VAL scendeva a 30.485 e il POC a 30.675.
 
 ### Le Manopole
 

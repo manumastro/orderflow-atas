@@ -72,7 +72,7 @@ def valore(hist: dict[float, float]) -> tuple[float, float, float] | None:
     while s / tot < 0.70 and (i > 0 or j < len(ps) - 1):
         gi = hist[ps[i - 1]] if i > 0 else -1
         gj = hist[ps[j + 1]] if j < len(ps) - 1 else -1
-        if gj > gi:
+        if gj >= gi:  # a parita' si sale, come l'indicatore
             j += 1
             s += gj
         else:
@@ -171,7 +171,10 @@ def stampa(chart: str, budget: float) -> None:
     cassa_txt = scala.get("cassa") or "13:30Z-20:00Z"
     cassa = tuple(x.strip("Z") for x in cassa_txt.split("-"))
     s = float(scala.get("punti") or 1)
-    grana = max(0.01, round(5 * s, 2)) if s < 1 else 5.0
+    # La grana di POC e bordi e' 1 punto, come l'indicatore (LeZoneDelValore.cs) e come il
+    # profilo di ATAS: fino al 28 settembre 2026 era 5, e il VAL di lunedi' 21 usciva 30.485
+    # nel giro e 30.514 sul chart. Una trend day col volume piatto amplifica la differenza.
+    grana = max(0.01, round(1 * s, 2)) if s < 1 else 1.0
     cache, mancanti = riempi(chart, strumento, oggi, cassa, grana, budget)
     oggi_m = misura(chart, oggi, cassa, grana) or {}
     prezzo = (oggi_m.get("giorno") or {}).get("C")
