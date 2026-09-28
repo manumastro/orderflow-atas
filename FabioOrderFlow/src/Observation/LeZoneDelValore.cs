@@ -186,8 +186,32 @@ public sealed partial class DataBridge
                 continue;
             }
 
-            context.FillRectangle(Color.FromArgb(ValueBandOpacity, z.Colore),
-                new Rectangle(area.Left, top, dataRight - area.Left, bottom - top));
+            // LE SEDUTE CHIUSE SONO LINEE, quelle che si stanno formando sono bande. Dal 28
+            // settembre 2026, per richiesta dell'utente: ieri, due giorni fa e il framing
+            // disegnano VAH e VAL come righe col loro nome; NY oggi e London restano bande.
+            if (!z.Oggi)
+            {
+                var penna = new RenderPen(Color.FromArgb(220, z.Colore), 1);
+                foreach (var (bordo, sigla) in new[] { (z.Vah, "VAH"), (z.Val, "VAL") })
+                {
+                    var y = ChartInfo.GetYByPrice(bordo, false);
+                    if (y < area.Top || y > area.Bottom)
+                    {
+                        continue;
+                    }
+                    context.DrawLine(penna, area.Left, y, dataRight, y);
+                    var testo = $"{sigla} {z.Nome} {Prezzo(bordo)}";
+                    var sz = context.MeasureString(testo, font);
+                    context.FillRectangle(Color.FromArgb(190, 0, 0, 0),
+                        new Rectangle(area.Left + 67, y - sz.Height - 2, sz.Width + 6, sz.Height + 2));
+                    context.DrawString(testo, font, z.Colore, area.Left + 70, y - sz.Height - 1);
+                }
+            }
+            else
+            {
+                context.FillRectangle(Color.FromArgb(ValueBandOpacity, z.Colore),
+                    new Rectangle(area.Left, top, dataRight - area.Left, bottom - top));
+            }
 
             // IL POC, l'unica riga che resta: il bersaglio del mean reverting dentro la zona.
             // Pieno, del colore della zona, con il nome accanto e niente a destra.
@@ -206,7 +230,7 @@ public sealed partial class DataBridge
             // non si distinguono ed era proprio la lamentela.
             var nome = $"VA {z.Nome}";
             var xNome = area.Left + 70;
-            if (bottom - top > alto)
+            if (z.Oggi && bottom - top > alto)
             {
                 context.DrawString(nome, font, z.Colore, xNome, top + 1);
             }

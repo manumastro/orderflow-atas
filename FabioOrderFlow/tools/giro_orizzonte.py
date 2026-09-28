@@ -140,10 +140,16 @@ def main() -> int:
             # accanto al NQ ha lasciato il giro cieco: rifiutava di scegliere e non stampava
             # niente, cioe' esattamente il "bridge irraggiungibile" che non era.
             nq = [x for x in registrati if str(x.get("instrument", "")).upper().startswith("NQ")]
+            # Due chart dello stesso contratto (il 28 settembre 2026: un Daily per guardare e
+            # l'M1): il nome non basta, si passa l'id, e vince l'M1 perche' il tape e le sedute
+            # si misurano sui minuti. L'id cambia a ogni ricarica: si rilegge ogni giro.
+            nq.sort(key=lambda x: x.get("timeFrame") != "M1")
             altri = ', '.join(x['instrument'] for x in registrati if x not in nq[:1])
             if nq:
-                CHART[:] = ["--chart", nq[0]["instrument"]]
-                print(f"  {len(registrati)} chart registrati: il giro guarda {nq[0]['instrument']}; "
+                doppio = sum(1 for x in nq if x["instrument"] == nq[0]["instrument"]) > 1
+                CHART[:] = ["--chart", nq[0]["id"] if doppio else nq[0]["instrument"]]
+                print(f"  {len(registrati)} chart registrati: il giro guarda {nq[0]['instrument']} "
+                      f"{nq[0].get('timeFrame', '')}; "
                       f"aperti anche: {altri}")
             else:
                 print(f"  {len(registrati)} chart registrati: serve --chart fra "
