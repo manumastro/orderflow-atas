@@ -88,20 +88,48 @@
     "ora": "16:00",
     "evento": "JOLTS e fiducia Conference Board",
     "peso": "medio",
-    "esito": ""
+    "esito": "esito del dato non annotato; cassa 30.504-30.725, valore 30.557-30.650, chiusura 30.617 delta +1378 (giornata di equilibrio)"
   },
   {
     "data": "2026-09-29",
     "ora": "da definire",
     "evento": "Iran: risposta finale USA attesa via mediatori del Qatar entro martedi' (Araghchi)",
     "peso": "alto",
+    "esito": "Araghchi riceve a Doha il riscontro USA sulla proposta in 7 giorni, lo discute a Teheran il 30; disaccordo sulla sequenza, non sugli elementi (FT: Hormuz libero contro allentamento del blocco)"
+  },
+  {
+    "data": "2026-09-30",
+    "ora": "14:15",
+    "evento": "ADP occupazione",
+    "peso": "medio",
     "esito": ""
   },
   {
     "data": "2026-09-30",
     "ora": "14:30",
-    "evento": "PIL USA, terza stima",
+    "evento": "PIL USA terza stima e PCE core di agosto (atteso +0,3% m/m)",
+    "peso": "alto",
+    "esito": ""
+  },
+  {
+    "data": "2026-09-30",
+    "ora": "15:45",
+    "evento": "Chicago PMI (atteso 51,2, prec. 47,1)",
+    "peso": "basso",
+    "esito": ""
+  },
+  {
+    "data": "2026-09-30",
+    "ora": "16:30",
+    "evento": "Scorte di greggio EIA (API: +1,0 mln)",
     "peso": "medio",
+    "esito": ""
+  },
+  {
+    "data": "2026-09-30",
+    "ora": "da definire",
+    "evento": "Iran: Araghchi discute a Teheran il riscontro USA alla proposta in 7 giorni",
+    "peso": "alto",
     "esito": ""
   },
   {
