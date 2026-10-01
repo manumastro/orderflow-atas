@@ -578,6 +578,7 @@ public sealed partial class DataBridge : Indicator
             "/scala" => ScalaInJson(),
             "/muri" => Muri(),
             "/nodi" => Nodi(),
+            "/disegni" => Disegni(),
                 "/panel" => Pannello(),
                 "/watch" => await WatchAsync(context).ConfigureAwait(false),
             "/charts" => throw new BridgeException(500, "handled by the hub"),

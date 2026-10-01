@@ -14,5 +14,6 @@
     <Compile Include="..\..\Observation\IColoriDeiLivelli.cs" Link="IColoriDeiLivelli.cs" />
     <Compile Include="..\..\Observation\LeZoneDelValore.cs" Link="LeZoneDelValore.cs" />
     <Compile Include="..\..\Observation\GliLvnIncrociati.cs" Link="GliLvnIncrociati.cs" />
+    <Compile Include="..\..\Observation\IDisegniDellUtente.cs" Link="IDisegniDellUtente.cs" />
   </ItemGroup>
 </Project>

@@ -79,6 +79,7 @@ public sealed partial class DataBridge
     private Dictionary<string, Sottile[]> _lvn = new();
     private Incrocio[] _incroci = Array.Empty<Incrocio>();
     private int _lvnBarra = -1;
+    private int _lvnPrimaBarra = -1;
     private string _lvnFonte = string.Empty;
 
     private SortedDictionary<decimal, decimal>? _composito;
@@ -111,6 +112,8 @@ public sealed partial class DataBridge
                 {
                     break;
                 }
+
+                _lvnPrimaBarra = bar;
 
                 foreach (var l in c.GetAllPriceLevels())
                 {
@@ -362,9 +365,10 @@ public sealed partial class DataBridge
     }
 
     /// <summary>
-    /// Sul chart solo le zone sottili della SETTIMANA, come bande con "LVN" a destra. Dal 1 ottobre
-    /// 2026, per richiesta dell'utente: l'incrocio dei tre profili disegnato ("LVN x2", "x3") non si
-    /// leggeva. Le altre due scale e l'incrocio restano calcolati e arrivano all'agente nel pannello.
+    /// Sul chart solo le zone sottili della SETTIMANA, come rettangoli dall'inizio della settimana al
+    /// bordo destro: VERDI sotto il prezzo, VIOLA sopra, con i colori esatti dei rettangoli che
+    /// l'utente disegna a mano (letti da /disegni il 1 ottobre 2026). Le altre due scale e
+    /// l'incrocio restano calcolati e arrivano all'agente nel pannello.
     /// </summary>
     private void DisegnaGliLvn(RenderContext context, Rectangle area, int dataRight)
     {
@@ -373,24 +377,48 @@ public sealed partial class DataBridge
             return;
         }
 
+        var sinistra = area.Left;
+        try
+        {
+            if (_lvnPrimaBarra >= 0)
+            {
+                sinistra = Math.Clamp(ChartInfo.GetXByBar(_lvnPrimaBarra, false), area.Left, dataRight);
+            }
+        }
+        catch (Exception)
+        {
+            // Senza la X della prima barra il rettangolo parte dal bordo sinistro.
+        }
+
+        var prezzo = GetCandle(CurrentBar - 1).Close;
         var font = new RenderFont("Arial", Math.Max(7, LevelFontSize - 1));
         foreach (var z in settimana)
         {
             var (top, bottom) = Verticale(area, z.Basso, z.Alto);
-            if (bottom <= top)
+            if (bottom <= top || dataRight <= sinistra)
             {
                 continue;
             }
 
-            context.FillRectangle(Color.FromArgb(40, LvnColore), new Rectangle(area.Left, top, dataRight - area.Left, bottom - top));
+            // Sotto il prezzo e' un appoggio, sopra un tetto. Se il prezzo ci e' dentro, conta la meta'.
+            var sotto = z.Alto < prezzo || (z.Basso <= prezzo && prezzo >= (z.Basso + z.Alto) / 2);
+            var (bordo, fondo) = sotto ? (LvnVerdeBordo, LvnVerdeFondo) : (LvnViolaBordo, LvnViolaFondo);
+            var r = new Rectangle(sinistra, top, dataRight - sinistra, bottom - top);
+            context.FillRectangle(fondo, r);
+            context.DrawRectangle(new RenderPen(bordo, 2), r);
             const string testo = "LVN";
             var sz = context.MeasureString(testo, font);
-            if (bottom - top >= sz.Height)
+            if (bottom - top >= sz.Height + 2)
             {
-                context.DrawString(testo, font, LvnColore, dataRight - sz.Width - 6, top + 1);
+                context.DrawString(testo, font, bordo, dataRight - sz.Width - 6, top + 2);
             }
         }
     }
+
+    private static readonly Color LvnVerdeBordo = Color.FromArgb(255, 0, 128, 0);
+    private static readonly Color LvnVerdeFondo = Color.FromArgb(40, 0, 128, 0);
+    private static readonly Color LvnViolaBordo = Color.FromArgb(255, 83, 55, 117);
+    private static readonly Color LvnViolaFondo = Color.FromArgb(40, 106, 78, 140);
 
     private static readonly Color LvnColore = Color.FromArgb(255, 240, 98, 146);
 

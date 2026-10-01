@@ -833,3 +833,4 @@ DICHIARA su chi lo porta; il colore resta come ripiego e al massimo dice
 2026-09-28  sedute chiuse sul chart come scritte a destra (PD VAL CASH, GIOVEDI POC CASH) con lineetta sul prezzo; banda solo per la zona in formazione (NY oggi o London)
 2026-09-28  livelli delle sedute chiuse fuori schermo agganciati al bordo con freccia e distanza (venerdi non si vedeva, 200 punti sopra)
 2026-10-01  LVN: zone sottili di composito 90g (continuo aggiustato al rollover, +299,25), settimana e giorno; sul chart solo la settimana (bande LVN), incrocio per l agente. Studio 15-30/09: tratti sottili in 3 profili attraversati 9/10, in 2 profili respinti 18/28. Descrizione, non regola. docs/research/metodo/gli-lvn-incrociati.md
+2026-10-01  LVN settimana come rettangoli verdi (sotto) / viola (sopra) coi colori dei rettangoli dell utente; nuovo /disegni legge i disegni del chart per reflection (GetAllObjects)

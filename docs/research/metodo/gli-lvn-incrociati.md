@@ -36,7 +36,7 @@ fondo di quello della notte.
 
 ## Cosa C'e' Sul Chart, Dal 1 Ottobre 2026
 
-**Solo le zone della settimana**, come bande rosa con `LVN` a destra. La prima versione disegnava
+**Solo le zone della settimana**, come rettangoli dal primo minuto della settimana al bordo destro: **verdi sotto il prezzo, viola sopra** (se il prezzo e' dentro, conta la meta'). I colori sono quelli esatti dei rettangoli che l'utente disegna a mano, letti dal chart con `/disegni` il 1 ottobre 2026: verde 0,128,0, viola 83,55,117 col fondo 106,78,140. La prima versione disegnava
 tre strisce per scala e poi le zone incrociate `LVN x2` / `x3`: per l'utente "non si capisce
 niente". L'incrocio resta calcolato e arriva all'agente nella parte del pannello che non sta sul
 chart (`/panel`, campo `analisi`, righe `LVN INCROCIATI`), che il giro stampa.
@@ -61,3 +61,14 @@ E' coerente con Fabio (il vuoto si ribilancia in fretta) e con il 30.511 dell'ut
 **Perche' non e' una regola:** 13 sedute; i tratti attaccati della stessa zona non sono eventi
 indipendenti; le soglie (20 punti, grane, profondita') sono state scelte una volta e non provate;
 molte "respinte" sono il primo minuto della cassa, dove tutto si muove.
+
+## Leggere I Disegni Dell'Utente
+
+`/disegni?chart=<id>` restituisce tutto cio' che e' disegnato sul chart, per reflection:
+`ChartInfo.DrawingObjectsListInfo` espone solo linee e canali orizzontali, ma il suo campo privato
+`DrawingObjectsCollection` ha `GetAllObjects(Instrument)`, che restituisce anche rettangoli
+(`RectangleObj`: `TrueFirstPrice`, `TrueSecondPrice`, `_firstTime`, `_secondTime`, `Color`,
+`AreaColor`) e profili fissi (`CustomHistogramm`, con `ProfilePeriod`). Il 1 ottobre 2026 c'erano un
+rettangolo viola 30.686-30.698,75, due verdi 30.499-30.511,75 e 30.443,75-30.454,50, una linea
+verde a 30.684 e il profilo `CurrentWeek`. E' un'API interna di ATAS: puo' cambiare con un
+aggiornamento senza avviso.
