@@ -229,67 +229,30 @@ public sealed partial class DataBridge
             context.DrawString(t, font, colore, x, yBordo);
         }
 
-        // LA ZONA IN FORMAZIONE, NY oggi o London: banda, POC pieno col nome, delta ai bordi.
+        // LA ZONA IN FORMAZIONE, NY oggi o London: niente banda (1 ottobre 2026, richiesta
+        // dell'utente), ma VAH, POC e VAL come lineette sul bordo sinistro, specchio delle sedute
+        // chiuse a destra: "LONDON VAL 30.792  Δ-35". Il delta e' quello scambiato al prezzo nel
+        // tratto di seduta.
         foreach (var z in LeZone().Where(z => z.Oggi))
         {
-            var yAlto = ChartInfo.GetYByPrice(z.Vah, false);
-            var yBasso = ChartInfo.GetYByPrice(z.Val, false);
-            var top = Math.Max(area.Top, Math.Min(yAlto, yBasso));
-            var bottom = Math.Min(area.Bottom, Math.Max(yAlto, yBasso));
-            if (bottom <= top)
+            var bordi = new[] { (P: z.Vah, S: "VAH"), (P: z.Poc, S: "POC"), (P: z.Val, S: "VAL") }
+                .Select(x => (x.P, x.S, Y: ChartInfo.GetYByPrice(x.P, false)))
+                .Where(x => x.Y >= area.Top + alto && x.Y <= area.Bottom)
+                .OrderBy(x => x.Y)
+                .ToList();
+            var ultimoBasso = int.MinValue;
+            foreach (var (p, sigla, y) in bordi)
             {
-                continue;
-            }
-
-            context.FillRectangle(Color.FromArgb(ValueBandOpacity, z.Colore),
-                new Rectangle(area.Left, top, dataRight - area.Left, bottom - top));
-
-            // IL POC, l'unica riga che resta: il bersaglio del mean reverting dentro la zona.
-            // Pieno, del colore della zona, con il nome accanto e niente a destra.
-            var yPoc = ChartInfo.GetYByPrice(z.Poc, false);
-            if (yPoc >= area.Top && yPoc <= area.Bottom)
-            {
-                context.DrawLine(new RenderPen(Color.FromArgb(220, z.Colore), 2), area.Left, yPoc, dataRight, yPoc);
-                var etichetta = $"POC {z.Nome} {Prezzo(z.Poc)}";
-                var s = context.MeasureString(etichetta, font);
-                context.FillRectangle(Color.FromArgb(190, 0, 0, 0),
-                    new Rectangle(area.Left + 67, yPoc - s.Height - 2, s.Width + 6, s.Height + 2));
-                context.DrawString(etichetta, font, z.Colore, area.Left + 70, yPoc - s.Height - 1);
-            }
-
-            // Il nome della zona, dentro la banda in alto a sinistra: senza, due bande vicine
-            // non si distinguono ed era proprio la lamentela.
-            var nome = $"VA {z.Nome}";
-            var xNome = area.Left + 70;
-            if (bottom - top > alto)
-            {
-                context.DrawString(nome, font, z.Colore, xNome, top + 1);
-            }
-
-            if (!ShowLevelStats)
-            {
-                continue;
-            }
-
-            // Il delta scambiato a quel prezzo nel tratto di seduta, e nient'altro.
-            foreach (var prezzo in new[] { z.Vah, z.Poc, z.Val })
-            {
-                var y = ChartInfo.GetYByPrice(prezzo, false);
-                if (y < area.Top + alto || y > area.Bottom - 2)
-                {
-                    continue;
-                }
-                if (!_zoneDelta.TryGetValue(prezzo, out var d))
-                {
-                    continue;
-                }
-                var testo = $"Δ {Segnato(d)}";
-                var size = context.MeasureString(testo, font);
-                context.FillRectangle(Color.FromArgb(190, 12, 12, 16),
-                    new Rectangle(area.Left + 2, y - size.Height / 2 - 1, size.Width + 8, size.Height + 2));
-                context.FillRectangle(z.Colore, new Rectangle(area.Left + 2, y - size.Height / 2 - 1, 2, size.Height + 2));
-                context.DrawString(testo, font, d > 0 ? verde : d < 0 ? rosso : grigio,
-                    area.Left + 7, y - size.Height / 2);
+                var delta = ShowLevelStats && _zoneDelta.TryGetValue(p, out var d) ? $"  Δ {Segnato(d)}" : string.Empty;
+                var testo = $"{z.Sigla} {sigla} {Prezzo(p)}{delta}";
+                var sz = context.MeasureString(testo, font);
+                var yTesto = Math.Max(y - sz.Height - 1, ultimoBasso + 1);
+                ultimoBasso = yTesto + sz.Height;
+                var x = area.Left + 4;
+                context.FillRectangle(Color.FromArgb(170, 0, 0, 0), new Rectangle(x - 2, yTesto, sz.Width + 6, sz.Height));
+                context.DrawString(testo, font, z.Colore, x, yTesto);
+                context.DrawLine(new RenderPen(Color.FromArgb(230, z.Colore), sigla == "POC" ? 3 : 2),
+                    area.Left, y, x + sz.Width + 4, y);
             }
         }
     }

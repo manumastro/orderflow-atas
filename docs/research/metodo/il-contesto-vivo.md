@@ -463,8 +463,9 @@ cui e' uscito. Il 28 settembre, col prezzo sotto giovedi' 24 e venerdi' 25, e' i
 il framing non hanno righe intere: solo una scritta sul bordo destro, `PD VAL CASH`, `GIOVEDI POC
 CASH`, `LUNEDI VAH CASH`, con sotto una lineetta che parte da destra e segna il prezzo (PD e'
 *previous day*). Se due scritte si toccano, quella piu' in basso scende; la lineetta resta sul
-prezzo. La zona in formazione, `NY oggi` dopo l'apertura e `London` prima, resta banda col POC pieno
-e il delta ai bordi. Nel pannello le sedute chiuse si chiamano allo stesso modo (`PD CASH`,
+prezzo. La zona in formazione, `NY oggi` dopo l'apertura e `London` prima, dal 1 ottobre 2026 non ha
+piu' banda: VAH, POC e VAL sono lineette sul bordo sinistro con la scritta (`LONDON VAL 30.792  Δ -35`),
+specchio delle sedute chiuse a destra. Nel pannello le sedute chiuse si chiamano allo stesso modo (`PD CASH`,
 `GIOVEDI CASH`).
 
 **Cassa, non 24 ore, e grana di 1 punto.** Le zone misurano la sola cassa di New York, come vuole
