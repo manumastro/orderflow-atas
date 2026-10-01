@@ -837,3 +837,4 @@ DICHIARA su chi lo porta; il colore resta come ripiego e al massimo dice
 2026-10-01  audit LVN: il lunedi SETT = OGGI (incroci contati due volte); ora fino alla prima cassa chiusa della settimana si usa la settimana prima. Senza chart NQ Daily il 90G ricade su NQZ6 M1 (contratto secondario prima del rollover): non e un composito a 90 giorni
 2026-10-01  studio LVN rifatto senza i lunedi doppi e col 90G vero: x3 attraversati 8/8, x2 respinti 19/30, 90G da solo 4 respinte 3 attraversate 1 nessuna (8 zone). Bordo 30.480 del 90G tenuto il 29 e 30/09 senza ingresso
 2026-10-01  value area in formazione (London / NY oggi) senza banda: VAH POC VAL come lineette a sinistra con delta
+2026-10-01  sul chart Daily continuo i rettangoli LVN sono quelli del composito 90 giorni (barre del chart, prezzi grezzi come il profilo ATAS); sull M1 quelli della settimana. Scritte LVN 90G / LVN SETT

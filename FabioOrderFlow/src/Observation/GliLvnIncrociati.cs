@@ -86,8 +86,61 @@ public sealed partial class DataBridge
     private DateTime _compositoGiorno;
     private string _compositoChi = string.Empty;
 
+    /// <summary>Quale scala si disegna su questo chart: la settimana sull'intraday, il composito sul Daily.</summary>
+    private string _lvnSulChart = "SETT";
+
+    private DateTime _lvnQuando = DateTime.MinValue;
+
+    private bool SonoGiornaliero()
+        => string.Equals(Convert.ToString(ChartInfo?.TimeFrame), "Daily", StringComparison.OrdinalIgnoreCase);
+
     private void AggiornaGliLvn()
     {
+        // SUL CHART DAILY si disegna il COMPOSITO, sulle barre di quel chart: le stesse del profilo
+        // che l'utente ci tiene sopra (1 ottobre 2026, "sul composito voglio i rettangoli del lvn del
+        // composito"). Prezzi grezzi del continuo, come quel profilo: non aggiustati al rollover. La
+        // versione aggiustata, che vale per il contratto, la calcola l'istanza intraday e va
+        // all'agente. Una volta al minuto: la barra di oggi cresce e su un Daily non si chiude.
+        if (SonoGiornaliero())
+        {
+            if (!MostraLvn || (DateTime.UtcNow - _lvnQuando).TotalSeconds < 60)
+            {
+                return;
+            }
+
+            _lvnQuando = DateTime.UtcNow;
+            try
+            {
+                var h = new SortedDictionary<decimal, decimal>();
+                var primo = -1;
+                for (int bar = CurrentBar - 1, n = 0; bar >= 0 && n < LvnGiorni; bar--, n++)
+                {
+                    var c = GetCandle(bar);
+                    if (c is null)
+                    {
+                        continue;
+                    }
+
+                    primo = bar;
+                    foreach (var l in c.GetAllPriceLevels())
+                    {
+                        h[l.Price] = h.GetValueOrDefault(l.Price) + l.Volume;
+                    }
+                }
+
+                _lvnPrimaBarra = primo;
+                _lvn = new Dictionary<string, Sottile[]> { ["90G"] = LeZoneSottili(h, LeScale[0]) };
+                _incroci = Array.Empty<Incrocio>();
+                _lvnSulChart = "90G";
+            }
+            catch (Exception errore)
+            {
+                this.LogError("LVN del composito non calcolati", errore);
+            }
+
+            return;
+        }
+
         var ultimo = CurrentBar - 2; // solo barre chiuse
         if (!MostraLvn || ultimo < 1 || ultimo == _lvnBarra)
         {
@@ -390,7 +443,8 @@ public sealed partial class DataBridge
     /// </summary>
     private void DisegnaGliLvn(RenderContext context, Rectangle area, int dataRight)
     {
-        if (!MostraLvn || ChartInfo is null || !_lvn.TryGetValue("SETT", out var settimana))
+        AggiornaGliLvn();
+        if (!MostraLvn || ChartInfo is null || !_lvn.TryGetValue(_lvnSulChart, out var settimana))
         {
             return;
         }
@@ -424,7 +478,7 @@ public sealed partial class DataBridge
             var r = new Rectangle(sinistra, top, dataRight - sinistra, bottom - top);
             context.FillRectangle(fondo, r);
             context.DrawRectangle(new RenderPen(bordo, 2), r);
-            const string testo = "LVN";
+            var testo = _lvnSulChart == "90G" ? "LVN 90G" : "LVN SETT";
             var sz = context.MeasureString(testo, font);
             if (bottom - top >= sz.Height + 2)
             {
