@@ -50,10 +50,21 @@ Per ogni cassa dal 15/09 al 30/09 calcola le zone all'apertura e guarda il primo
 prezzo in ogni tratto dove almeno due profili sono sottili. "Respinta" se torna di 20 punti dalla
 parte da cui e' arrivato; "attraversata" se esce dall'altra.
 
-| tratti | respinti | attraversati |
-|---|---|---|
-| sottili in 3 profili | 1 | **9**, in 0-5 minuti |
-| sottili in 2 profili | **18** | 10 |
+Rifatto il 1 ottobre 2026 dopo l'audit: il lunedi' la settimana e' lo stesso profilo del giorno,
+quindi ora si usa la settimana prima (e cosi' fa l'indicatore fino alla prima cassa chiusa).
+
+| tratti | respinti | attraversati | nessun esito |
+|---|---|---|---|
+| sottili in 3 profili | 0 | **8**, in 0-4 minuti | |
+| sottili in 2 profili | **19** | 11 | |
+| zone del solo composito 90G, intere | 4 | 3 | 1 |
+
+**Il composito da solo, caso per caso.** Il vuoto 30.070-30.480 (aggiustato al rollover):
+attraversato dal basso il 21/09 in 51 minuti (la salita da 30.222 a 30.784); il 28/09 il prezzo ci
+entra dall'alto alle 14:42Z, scende fino a 30.357 - 120 punti dentro, non sul bordo - e torna su; il
+29/09 e il 30/09 i minimi si fermano a 30.504,5 e 30.512, sopra il bordo, senza entrarci: sono i
+tocchi che l'utente ha visto come "rispettati". Lo studio conta solo gli ingressi, e quei due non lo
+sono.
 
 **Il cuore di un vuoto comune ai tre profili si attraversa; i suoi bordi respingono piu' spesso.**
 E' coerente con Fabio (il vuoto si ribilancia in fretta) e con il 30.511 dell'utente (un bordo).
