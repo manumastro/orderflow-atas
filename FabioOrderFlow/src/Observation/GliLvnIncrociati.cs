@@ -102,6 +102,17 @@ public sealed partial class DataBridge
             var lunedi = giorno.AddDays(-(((int)giorno.DayOfWeek + 6) % 7));
             var inizioSettimana = lunedi.AddDays(-1).AddHours(22);
             var inizioGiorno = giorno.AddDays(-1).AddHours(22);
+            var fineSettimana = DateTime.MaxValue;
+
+            // LA SETTIMANA VALE DOPO LA PRIMA CASSA CHIUSA. Il lunedi', prima delle 20:00Z, il profilo
+            // della settimana e' lo stesso del giorno: incrociarli contava due volte lo stesso dato
+            // (audit del 1 ottobre 2026, osservazione dell'utente). Fino ad allora si usa la
+            // settimana prima, intera.
+            if (adesso < Momento(Chiusura, lunedi))
+            {
+                fineSettimana = inizioSettimana;
+                inizioSettimana = inizioSettimana.AddDays(-7);
+            }
 
             var settimana = new SortedDictionary<decimal, decimal>();
             var oggi = new SortedDictionary<decimal, decimal>();
@@ -113,11 +124,18 @@ public sealed partial class DataBridge
                     break;
                 }
 
-                _lvnPrimaBarra = bar;
+                if (c.Time < fineSettimana)
+                {
+                    _lvnPrimaBarra = bar;
+                }
 
                 foreach (var l in c.GetAllPriceLevels())
                 {
-                    settimana[l.Price] = settimana.GetValueOrDefault(l.Price) + l.Volume;
+                    if (c.Time < fineSettimana)
+                    {
+                        settimana[l.Price] = settimana.GetValueOrDefault(l.Price) + l.Volume;
+                    }
+
                     if (c.Time >= inizioGiorno)
                     {
                         oggi[l.Price] = oggi.GetValueOrDefault(l.Price) + l.Volume;

@@ -18,6 +18,8 @@ import json,urllib.request,os,math,datetime as dt
 P=json.load(open(os.path.expanduser('~/.fabio-data-bridge.json')))['port']
 g=lambda p: json.load(urllib.request.urlopen(f"http://127.0.0.1:{P}{p}",timeout=180))
 ids={(c['instrument'],c['timeFrame']):c['id'] for c in g('/charts')['charts']}
+if ('NQ','Daily') not in ids:
+    raise SystemExit("serve il chart NQ Daily continuo col bridge: il composito a 90 giorni viene da li'")
 G=5.0
 ROLL='2026-09-14'; OFF=299.25    # spread NQZ6-NQU6 all'11/09, ultimo giorno prima del cambio
 def mday(t):
@@ -58,8 +60,8 @@ def sottili(h,G,liscia,span,prof,minlen):
             a=None
     return out
 SCALE={'90G':(10,3,300,0.6,30),'SETT':(5,2,100,0.5,15),'OGGI':(5,1,60,0.5,15)}
-def tutte(oggi,settda,giornoda,fino):
-    hs={'90G':composito(oggi),'SETT':da_m1(settda,fino),'OGGI':da_m1(giornoda,fino)}
+def tutte(oggi,settda,giornoda,fino,settfino=None):
+    hs={'90G':composito(oggi),'SETT':da_m1(settda,settfino or fino),'OGGI':da_m1(giornoda,fino)}
     return {n:sottili(hs[n],*SCALE[n]) for n in hs}
 
 def incroci(z):
@@ -74,13 +76,18 @@ giorni=[d for d in sorted({mday(x['time']) for x in m1}) if d>='2026-09-15' and 
 ris=[]
 for d in giorni:
     D=dt.date.fromisoformat(d); lun=D-dt.timedelta(days=D.weekday())
+    # Il lunedi' la settimana e' lo stesso profilo del giorno: si usa la settimana prima (audit 01/10/2026).
+    lun_fine = None
+    if D.weekday()==0:
+        lun_fine = f"{(lun-dt.timedelta(days=1)).isoformat()}T22:00:00Z"; lun = lun-dt.timedelta(days=7)
     apre=f"{d}T13:30:00Z"; chiude=f"{d}T20:00:00Z"
-    z=tutte(d, f"{(lun-dt.timedelta(days=1)).isoformat()}T22:00:00Z", f"{(D-dt.timedelta(days=1)).isoformat()}T22:00:00Z", apre)
+    z=tutte(d, f"{(lun-dt.timedelta(days=1)).isoformat()}T22:00:00Z", f"{(D-dt.timedelta(days=1)).isoformat()}T22:00:00Z", apre, lun_fine)
     inc=incroci(z)
     cs=[x for x in m1 if apre<=x['time']<chiude]
     if not cs: continue
     p0=cs[0]['open']
-    for a,c,chi in inc:
+    # In piu' le zone del solo composito, intere: l'audit dei 90 giorni da soli.
+    for a,c,chi in inc+[(a,c,['90G-solo']) for a,c in z['90G']]:
         if c<p0-400 or a>p0+400: continue
         # primo ingresso nella zona
         dentro=None
@@ -100,4 +107,4 @@ for d in giorni:
         ris.append((d,a,c,'+'.join(chi),'dall\'alto' if da_sopra else 'dal basso',cs[dentro]['time'][11:16],esito,dur))
 for r in ris: print('%s  %.0f-%.0f  x%-14s %-9s %s  %-12s %s min'%(r[0],r[1],r[2],r[3],r[4],r[5],r[6],r[7]))
 import collections
-print(collections.Counter((len(r[3].split('+')),r[6]) for r in ris))
+print(collections.Counter(('90G da solo' if r[3]=='90G-solo' else len(r[3].split('+')),r[6]) for r in ris))
