@@ -473,6 +473,9 @@ comprende anche la notte: lunedi' 21 da' VAL **30.361**, contro **30.513** della
 indicatore cercano POC e bordi su prezzi da 1 punto, come ATAS; fino al 28 settembre 2026 il giro
 usava fasce da 5, e in una trend day col volume piatto il VAL scendeva a 30.485 e il POC a 30.675.
 
+**Gli LVN della settimana** sono bande rosa con `LVN` a destra: come si calcolano, l'incrocio
+con il composito e il giorno, e lo studio, in [`gli-lvn-incrociati.md`](gli-lvn-incrociati.md).
+
 ### Le Manopole
 
 Sull'istanza dell'indicatore:

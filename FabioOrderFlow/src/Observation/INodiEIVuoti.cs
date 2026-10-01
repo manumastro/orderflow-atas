@@ -203,7 +203,9 @@ public sealed partial class DataBridge
         (string Text, Color Color, Point At)? tooltip = null;
         var giorni = $"{NodiGiorni} giorni";
 
-        foreach (var g in _vuoti)
+        // Dal 1 ottobre 2026 i vuoti a 5 giorni lasciano il posto agli LVN incrociati
+        // (GliLvnIncrociati.cs): dicono la stessa cosa su una scala sola. Restano calcolati per /nodi.
+        foreach (var g in MostraLvn ? Array.Empty<Vuoto>() : _vuoti)
         {
             var yAlto = ChartInfo.GetYByPrice(g.Alto, false);
             var yBasso = ChartInfo.GetYByPrice(g.Basso, false);

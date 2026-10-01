@@ -196,10 +196,10 @@ public sealed partial class DataBridge
             // La scritta sta sopra la sua lineetta; se tocca quella prima scende, la lineetta no.
             var yTesto = Math.Max(y - sz.Height - 1, ultimoAlto + 1);
             ultimoAlto = yTesto + sz.Height;
-            var x = dataRight - sz.Width - 6;
+            var x = dataRight - MargineLvn - sz.Width - 6;
             context.FillRectangle(Color.FromArgb(170, 0, 0, 0), new Rectangle(x - 2, yTesto, sz.Width + 6, sz.Height));
             context.DrawString(testo, font, colore, x, yTesto);
-            context.DrawLine(new RenderPen(Color.FromArgb(230, colore), 2), x - 2, y, dataRight, y);
+            context.DrawLine(new RenderPen(Color.FromArgb(230, colore), 2), x - 2, y, dataRight - MargineLvn, y);
         }
 
         // FUORI SCHERMO NON VUOL DIRE SPARITO. Il 28 settembre 2026 venerdi' stava 200 punti sopra
@@ -213,7 +213,7 @@ public sealed partial class DataBridge
         {
             var t = $"▲ {testo} {Prezzo(p)} (+{Prezzo(p - prezzoOra)})";
             var sz = context.MeasureString(t, font);
-            var x = dataRight - sz.Width - 6;
+            var x = dataRight - MargineLvn - sz.Width - 6;
             context.FillRectangle(Color.FromArgb(170, 0, 0, 0), new Rectangle(x - 2, yBordo, sz.Width + 6, sz.Height));
             context.DrawString(t, font, colore, x, yBordo);
             yBordo += sz.Height + 1;
@@ -224,7 +224,7 @@ public sealed partial class DataBridge
             var t = $"▼ {testo} {Prezzo(p)} (-{Prezzo(prezzoOra - p)})";
             var sz = context.MeasureString(t, font);
             yBordo -= sz.Height + 1;
-            var x = dataRight - sz.Width - 6;
+            var x = dataRight - MargineLvn - sz.Width - 6;
             context.FillRectangle(Color.FromArgb(170, 0, 0, 0), new Rectangle(x - 2, yBordo, sz.Width + 6, sz.Height));
             context.DrawString(t, font, colore, x, yBordo);
         }

@@ -108,7 +108,7 @@ public sealed partial class DataBridge
             ("<GIORNO> CASH, due giorni fa", ParseColor(Palette[Seduta.DueGiorni].Hex)),
             ("<GIORNO> CASH, framing", ParseColor(Palette[Seduta.Framing].Hex)),
             ("VA London (prima di NY)", ParseColor(Palette[Seduta.Europa].Hex)),
-            ("vuoti 5 gg", ColoreStorico),
+            ("LVN della settimana", Color.FromArgb(255, 240, 98, 146)),
         };
         if (RigheSulChart)
         {

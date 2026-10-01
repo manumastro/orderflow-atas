@@ -257,6 +257,7 @@ public sealed partial class DataBridge : Indicator
         // l'orologio del chart esiste - ed e' quello del replay, non quello di casa.
         AggiornaIMuri();
         AggiornaINodi();
+        AggiornaGliLvn();
 
         var quando = GetCandle(bar)?.Time;
         if (quando is not null)
@@ -1233,6 +1234,7 @@ public sealed partial class DataBridge : Indicator
         try
         {
             DisegnaLeZone(context, area, dataRight);
+            DisegnaGliLvn(context, area, dataRight);
             DisegnaLegenda(context, area);
         }
         catch (Exception errore)
@@ -1964,6 +1966,9 @@ public sealed partial class DataBridge : Indicator
             righe.AddRange(RigheDellaBarraAperta(viva));
             return righe;
         }
+
+        // --- gli LVN incrociati: solo per l'agente, sul chart sono le strisce a destra --------
+        righe.AddRange(RigheDegliLvn(prezzo));
 
         // --- il livello in gioco -------------------------------------------------------------
         BridgeLevel? gioco = null;
