@@ -315,9 +315,12 @@ public sealed partial class DataBridge
     /// cambia da sola fra un tick e il successivo, e il chart mostrerebbe un livello che balla
     /// senza che il mercato abbia fatto niente.</para>
     /// </summary>
-    private ProfiloFinestra? Profilo(DateTime da, DateTime? a, decimal passo, decimal grana)
+    private ProfiloFinestra? Profilo(DateTime da, DateTime? a, decimal passo, decimal grana, bool conLaBarraAperta = false)
     {
-        var ultimo = CurrentBar - 2; // la barra in formazione e' CurrentBar - 1: esclusa sempre
+        // La barra in formazione e' CurrentBar - 1: esclusa, tranne che per disegnare la gaussiana
+        // della seduta in corso sul chart della settimana, dove una barra M30 ferma per mezz'ora
+        // nasconderebbe proprio la parte di oggi che si sta formando. I livelli non la usano mai.
+        var ultimo = conLaBarraAperta ? CurrentBar - 1 : CurrentBar - 2;
         if (ultimo < 0)
         {
             return null;

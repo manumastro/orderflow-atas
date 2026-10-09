@@ -140,6 +140,10 @@ Nessun processo esterno: **i livelli li calcola l'indicatore** a ogni barra, dal
 l'analisi deposita una volta, e il **pannello** si ridisegna a ogni tick. Nessuno dei due giudica,
 avvisa o arma niente. La lettura si chiede.
 
+[**`il-workspace-a-tab.md`**](il-workspace-a-tab.md) — **il workspace dal 9 ottobre 2026**:
+quattro tab, una responsabilita' ciascuna (composito 90G, settimana M30, seduta M1, range 40), e
+un indicatore solo che sceglie cosa disegnare dal timeframe.
+
 [**`i-livelli-li-calcola-l-indicatore.md`**](i-livelli-li-calcola-l-indicatore.md) — **il
 documento che dice chi calcola cosa**: i due assi del vocabolario (misurato / dichiarato, finestra
 aperta / chiusa), i tre marcatori `~` `=` `*`, i tipi di regola compresi `mensola`, `tetto`,

@@ -15,5 +15,8 @@
     <Compile Include="..\..\Observation\LeZoneDelValore.cs" Link="LeZoneDelValore.cs" />
     <Compile Include="..\..\Observation\GliLvnIncrociati.cs" Link="GliLvnIncrociati.cs" />
     <Compile Include="..\..\Observation\IDisegniDellUtente.cs" Link="IDisegniDellUtente.cs" />
+    <Compile Include="..\..\Observation\IlRuoloDelChart.cs" Link="IlRuoloDelChart.cs" />
+    <Compile Include="..\..\Observation\IlComposito.cs" Link="IlComposito.cs" />
+    <Compile Include="..\..\Observation\LaSettimana.cs" Link="LaSettimana.cs" />
   </ItemGroup>
 </Project>

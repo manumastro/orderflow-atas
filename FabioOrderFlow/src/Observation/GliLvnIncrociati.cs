@@ -45,7 +45,9 @@ public sealed partial class DataBridge
 {
     [Display(Name = "Show crossed LVN", GroupName = "LVN",
         Description = "Bande sul chart dove almeno due profili su tre (composito 90 giorni, settimana, giorno) sono sottili.")]
-    public bool MostraLvn { get; set; } = true;
+    // SPENTO DAL 9 OTTOBRE 2026, richiesta dell'utente: "i lvn per ora li voglio togliere, voglio
+    // studiarli meglio dopo". Il calcolo resta, si riaccende qui; lo studio e' in gli-lvn-incrociati.md.
+    public bool MostraLvn { get; set; }
 
     [Display(Name = "Composite days", GroupName = "LVN",
         Description = "Quanti giorni del chart Daily continuo entrano nel composito. Fabio: 90.")]

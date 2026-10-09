@@ -32,7 +32,9 @@ public sealed partial class DataBridge
 {
     [Display(Name = "Show nodes and gaps", GroupName = "Nodi",
         Description = "Nodi di volume e vuoti del profilo di piu' giorni, i piu' vicini sopra e sotto il prezzo.")]
-    public bool MostraNodi { get; set; } = true;
+    // SPENTO DAL 9 OTTOBRE 2026, insieme agli LVN: i vuoti del profilo di cinque giorni sono la stessa
+    // famiglia di zone sottili, e l'utente vuole il chart pulito finche' non le ha studiate.
+    public bool MostraNodi { get; set; }
 
     [Display(Name = "Days", GroupName = "Nodi")]
     [Range(1, 20)]

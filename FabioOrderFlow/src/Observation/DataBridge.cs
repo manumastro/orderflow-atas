@@ -251,6 +251,14 @@ public sealed partial class DataBridge : Indicator
 
         _ultimaBarraVista = bar;
 
+        // IL RUOLO DEL CHART (9 ottobre 2026): tape, muri, nodi e regole li misura solo la seduta.
+        // Il composito e la settimana si calcolano quando si disegnano; ripetere qui il lavoro
+        // dell'M1 su ogni tab vorrebbe dire tre semine del tape e tre motori delle regole.
+        if (!SonoLaSeduta)
+        {
+            return;
+        }
+
         // LA SEMINA DEL TAPE STA QUI E NON IN OnInitialize, per una ragione sola: in
         // OnInitialize le barre non ci sono ancora, e la richiesta storica avrebbe bisogno di
         // un istante di mercato che nessuno sa ancora qual e'. Alla prima barra utile invece
@@ -487,6 +495,18 @@ public sealed partial class DataBridge : Indicator
         var selector = context.Request.QueryString["chart"];
         var matches = Select(registered, selector);
 
+        // PIU' CHART SULLO STESSO CONTRATTO (workspace a tab, 9 ottobre 2026): M30, M1 e range sono
+        // tutti NQZ6. Chi chiede "NQZ6" vuole la seduta, cioe' l'M1: e' li' che stanno tape, regole
+        // e pannello. Gli altri si raggiungono con l'id.
+        if (matches.Length > 1 && selector is not null)
+        {
+            var sedute = matches.Where(m => m.SonoLaSeduta).ToArray();
+            if (sedute.Length == 1)
+            {
+                matches = sedute;
+            }
+        }
+
         if (matches.Length == 1)
         {
             await matches[0].HandleAsync(context, path, cancellation).ConfigureAwait(false);
@@ -579,6 +599,7 @@ public sealed partial class DataBridge : Indicator
             "/muri" => Muri(),
             "/nodi" => Nodi(),
             "/disegni" => Disegni(),
+            "/ruolo" => RuoloInJson(),
                 "/panel" => Pannello(),
                 "/watch" => await WatchAsync(context).ConfigureAwait(false),
             "/charts" => throw new BridgeException(500, "handled by the hub"),
@@ -1162,6 +1183,31 @@ public sealed partial class DataBridge : Indicator
             return;
         }
 
+        // OGNI TAB HA UNA RESPONSABILITA' (9 ottobre 2026): il Daily disegna il composito, il chart
+        // della settimana le gaussiane delle sedute, e nient'altro. Vedi IlRuoloDelChart.cs.
+        var ruolo = RuoloEffettivo;
+        if (ruolo is RuoloDelChart.Composito or RuoloDelChart.Settimana)
+        {
+            try
+            {
+                var areaDelRuolo = ChartArea;
+                if (ruolo == RuoloDelChart.Composito)
+                {
+                    DisegnaIlComposito(context, areaDelRuolo, DataAreaRight(context, areaDelRuolo));
+                }
+                else
+                {
+                    DisegnaLaSettimana(context, areaDelRuolo);
+                }
+            }
+            catch (Exception errore)
+            {
+                this.LogError($"ruolo {ruolo} non disegnato", errore);
+            }
+
+            return;
+        }
+
         // IL PANNELLO NON PUO' PORTARSI VIA I LIVELLI, e questa non e' prudenza generica: e'
         // successo. Una lettura fuori intervallo dentro una misura del pannello ha svuotato il
         // chart per intero, e dal di fuori era indistinguibile da un motore che aveva smesso di
@@ -1236,7 +1282,10 @@ public sealed partial class DataBridge : Indicator
         {
             DisegnaLeZone(context, area, dataRight);
             DisegnaGliLvn(context, area, dataRight);
-            DisegnaLegenda(context, area);
+            if (ruolo == RuoloDelChart.Seduta)
+            {
+                DisegnaLegenda(context, area);
+            }
         }
         catch (Exception errore)
         {
@@ -1386,7 +1435,8 @@ public sealed partial class DataBridge : Indicator
     /// </summary>
     private void RenderWatchPanel(RenderContext context)
     {
-        if (!ShowWatch)
+        // Il pannello sta solo sulla seduta: sul range e' lo stesso tape gia' letto sull'M1.
+        if (!ShowWatch || !SonoLaSeduta)
         {
             return;
         }

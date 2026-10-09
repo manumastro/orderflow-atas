@@ -38,9 +38,13 @@ public sealed partial class DataBridge
     /// Una zona del valore. <see cref="Sigla"/> e' il prefisso delle scritte a destra
     /// ("PD", "GIOVEDI"): "PD VAL CASH" si legge in un colpo d'occhio, "VAL NY ven 25 30.802" no.
     /// </summary>
-    private sealed record Zona(string Nome, string Sigla, decimal Val, decimal Vah, decimal Poc, Color Colore, bool Oggi);
+    private sealed record Zona(string Nome, string Sigla, decimal Val, decimal Vah, decimal Poc, Color Colore, bool Oggi,
+        DateTime? Giorno = null);
 
     private Zona[] _zone = Array.Empty<Zona>();
+
+    /// <summary>Il profilo della zona in formazione, per la gaussiana sul bordo sinistro.</summary>
+    private ProfiloFinestra? _profiloOggi;
     private int _zoneAllaBarra = -1;
 
     /// <summary>Il delta del tratto a ogni bordo e POC delle zone, calcolato con le zone.</summary>
@@ -56,6 +60,7 @@ public sealed partial class DataBridge
         }
 
         var zone = new List<Zona>();
+        ProfiloFinestra? profiloOggi = null;
         try
         {
             var adesso = GetCandle(ultimo).Time;
@@ -84,7 +89,7 @@ public sealed partial class DataBridge
                 var colore = ParseColor(Palette[i == 0 ? Seduta.Ieri : Seduta.DueGiorni].Hex);
                 // PD, previous day, per ieri; il nome del giorno per quello prima.
                 var sigla = i == 0 ? "PD" : Giorni[(int)g.DayOfWeek];
-                zone.Add(new Zona($"{sigla} CASH", sigla, p.Val, p.Vah, p.Poc, colore, false));
+                zone.Add(new Zona($"{sigla} CASH", sigla, p.Val, p.Vah, p.Poc, colore, false, g));
             }
 
             // IL FRAMING, dinamico. Se il prezzo e' fuori dal valore delle ultime due sedute, si
@@ -111,7 +116,7 @@ public sealed partial class DataBridge
                     {
                         var sigla = Giorni[(int)trovata.Giorno.DayOfWeek];
                         zone.Add(new Zona($"{sigla} CASH (framing)", sigla, trovata.P.Val, trovata.P.Vah,
-                            trovata.P.Poc, ParseColor(Palette[Seduta.Framing].Hex), false));
+                            trovata.P.Poc, ParseColor(Palette[Seduta.Framing].Hex), false, trovata.Giorno));
                     }
                 }
             }
@@ -122,6 +127,7 @@ public sealed partial class DataBridge
                 if (p is not null)
                 {
                     zone.Add(new Zona("NY oggi", "NY", p.Val, p.Vah, p.Poc, ParseColor(Palette[Seduta.Oggi].Hex), true));
+                    profiloOggi = p;
                 }
             }
             else
@@ -131,6 +137,7 @@ public sealed partial class DataBridge
                 if (p is not null)
                 {
                     zone.Add(new Zona("London", "LONDON", p.Val, p.Vah, p.Poc, ParseColor(Palette[Seduta.Europa].Hex), true));
+                    profiloOggi = p;
                 }
             }
         }
@@ -159,6 +166,7 @@ public sealed partial class DataBridge
         }
 
         _zone = zone.ToArray();
+        _profiloOggi = profiloOggi;
         _zoneDelta = delta;
         _zoneAllaBarra = ultimo;
         return _zone;
@@ -235,6 +243,27 @@ public sealed partial class DataBridge
         // tratto di seduta.
         foreach (var z in LeZone().Where(z => z.Oggi))
         {
+            // LA GAUSSIANA DELLA SEDUTA IN CORSO, sotto le lineette (9 ottobre 2026): sull'M1 la
+            // responsabilita' e' la seduta di adesso, e "low in the curve" (fabio_1.txt 1:24:28) si
+            // legge sulla forma, non su tre numeri. Fasce da 5 punti, al massimo 140 pixel.
+            if (_profiloOggi is { } po && po.Fasce.Count > 0)
+            {
+                var massimo = po.Fasce.Values.Max();
+                foreach (var (fascia, volume) in po.Fasce)
+                {
+                    var yAlto = ChartInfo.GetYByPrice(fascia + po.Passo, false);
+                    var yBasso = ChartInfo.GetYByPrice(fascia, false);
+                    if (massimo <= 0 || yBasso < area.Top || yAlto > area.Bottom)
+                    {
+                        continue;
+                    }
+
+                    var dentro = fascia + po.Passo > z.Val && fascia <= z.Vah;
+                    context.FillRectangle(Color.FromArgb(dentro ? 70 : 28, z.Colore),
+                        new Rectangle(area.Left, yAlto, Math.Max(1, (int)(volume / massimo * 140)), Math.Max(1, yBasso - yAlto - 1)));
+                }
+            }
+
             var bordi = new[] { (P: z.Vah, S: "VAH"), (P: z.Poc, S: "POC"), (P: z.Val, S: "VAL") }
                 .Select(x => (x.P, x.S, Y: ChartInfo.GetYByPrice(x.P, false)))
                 .Where(x => x.Y >= area.Top + alto && x.Y <= area.Bottom)

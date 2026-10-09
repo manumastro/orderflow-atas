@@ -34,6 +34,13 @@ entrambi i chart (all'11/09: +299,25), e lo applica ai giorni fino al rollover.
 Il 30.511 dell'utente sta sul bordo alto del vuoto a 90 giorni, dentro quello della settimana e sul
 fondo di quello della notte.
 
+## Spenti Dal 9 Ottobre 2026
+
+*"I lvn per ora li voglio togliere, voglio studiarli meglio dopo."* `Show crossed LVN` vale `false`
+di default e nel workspace a tab ([`il-workspace-a-tab.md`](il-workspace-a-tab.md)): niente
+rettangoli, e niente righe `LVN INCROCIATI` nel pannello per l'agente. Il calcolo e lo studio
+restano; quello che segue descrive com'erano accesi.
+
 ## Cosa C'e' Sul Chart, Dal 1 Ottobre 2026
 
 **Solo le zone della settimana**, come rettangoli dal primo minuto della settimana al bordo destro: **verdi sotto il prezzo, viola sopra** (se il prezzo e' dentro, conta la meta'). I colori sono quelli esatti dei rettangoli che l'utente disegna a mano, letti dal chart con `/disegni` il 1 ottobre 2026: verde 0,128,0, viola 83,55,117 col fondo 106,78,140. La prima versione disegnava
