@@ -128,8 +128,10 @@ public sealed partial class DataBridge
         var nomi = new Dictionary<DateTime, (string Sigla, Color Colore)>();
         foreach (var z in LeZone().Where(z => !z.Oggi && z.Giorno is not null))
         {
-            nomi.TryAdd(z.Giorno!.Value.Date,
-                (z.Nome.Contains("framing", StringComparison.Ordinal) ? $"{z.Sigla} framing" : z.Sigla, z.Colore));
+            // Il giorno e' gia' scritto; qui serve il RUOLO della seduta: ieri, due sedute fa, framing.
+            var ruolo = z.Nome.Contains("framing", StringComparison.Ordinal) ? "framing"
+                : z.Sigla == "PD" ? "PD, ieri" : "due sedute fa";
+            nomi.TryAdd(z.Giorno!.Value.Date, (ruolo, z.Colore));
         }
 
         var font = new RenderFont("Arial", Math.Max(7, LevelFontSize - 2));
@@ -227,6 +229,9 @@ public sealed partial class DataBridge
 
             var yTesta = ChartInfo.GetYByPrice(p.Massimo, false) - altoRiga * testa.Count - 4;
             yTesta = Math.Max(area.Top + 2, yTesta);
+            var largoTesta = testa.Max(r => context.MeasureString(r, font).Width);
+            context.FillRectangle(Color.FromArgb(175, 0, 0, 0),
+                new Rectangle(x0, yTesta - 1, largoTesta + 6, altoRiga * testa.Count + 2));
             foreach (var riga in testa)
             {
                 context.DrawString(riga, font, colore, x0 + 2, yTesta);

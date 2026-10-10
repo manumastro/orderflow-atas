@@ -600,6 +600,7 @@ public sealed partial class DataBridge : Indicator
             "/nodi" => Nodi(),
             "/disegni" => Disegni(),
             "/ruolo" => RuoloInJson(),
+            "/ui" => await InterfacciaAsync(query).ConfigureAwait(false),
                 "/panel" => Pannello(),
                 "/watch" => await WatchAsync(context).ConfigureAwait(false),
             "/charts" => throw new BridgeException(500, "handled by the hub"),
@@ -1467,8 +1468,11 @@ public sealed partial class DataBridge : Indicator
         const int lineGap = 3;
         var boxWidth = widest + padding * 2;
         var boxHeight = sizes.Sum(z => z.Height + lineGap) - lineGap + padding * 2;
-        var x = Math.Max(area.Left, dataRight - WatchOffsetRight - boxWidth);
-        var y = area.Top + WatchOffsetTop;
+        // NON SOPRA LE SCRITTE DI DESTRA (10 ottobre 2026, visto sulla foto della tab M1): il pannello
+        // copriva "PD POC CASH" e le scritte agganciate in alto. Si mette a sinistra della colonna
+        // delle scritte, misurata al disegno precedente, e mai sopra quelle agganciate al bordo.
+        var x = Math.Max(area.Left, dataRight - Math.Max(WatchOffsetRight, _colonnaDestra + 16) - boxWidth);
+        var y = Math.Max(area.Top + WatchOffsetTop, _agganciateSopra + 8);
 
         context.FillRectangle(Color.FromArgb(200, 20, 20, 20),
             new Rectangle(x, y, boxWidth, boxHeight));

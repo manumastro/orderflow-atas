@@ -18,5 +18,6 @@
     <Compile Include="..\..\Observation\IlRuoloDelChart.cs" Link="IlRuoloDelChart.cs" />
     <Compile Include="..\..\Observation\IlComposito.cs" Link="IlComposito.cs" />
     <Compile Include="..\..\Observation\LaSettimana.cs" Link="LaSettimana.cs" />
+    <Compile Include="..\..\Observation\LInterfacciaDiAtas.cs" Link="LInterfacciaDiAtas.cs" />
   </ItemGroup>
 </Project>

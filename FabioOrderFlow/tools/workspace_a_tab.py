@@ -101,6 +101,15 @@ def nuovo_logger(chart: dict) -> None:
         chart["TradingLoggerId"] = str(uuid.uuid4())
 
 
+def senza_profilo_fisso(chart: dict) -> None:
+    """Spegne il profilo fisso del template del chart: il pannello blu con VAH/VAL/vPOC e la barra
+    dei lotti. Copriva meta' di ogni tab (foto del 10 ottobre 2026), e su un periodo fisso dal 24
+    aprile non e' ne' il composito di 90 giorni ne' una seduta: i profili li disegna l'indicatore."""
+    fp = chart.get("Template", {}).get("FixedProfile")
+    if isinstance(fp, dict):
+        fp["Visible"] = False
+
+
 def disegni(chart: dict, tieni_tipi: set[str]) -> None:
     chart["DrawingObjectses"] = [
         d for d in chart.get("DrawingObjectses", []) if d["$type"].split(",")[0].split(".")[-1] in tieni_tipi
@@ -111,7 +120,19 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--da", default="Fabio workspace", help="workspace di partenza (non viene toccato)")
     ap.add_argument("--nome", default="Fabio NQ", help="nome del workspace nuovo")
+    ap.add_argument("--ritocca", help="workspace gia' a tab da correggere sul posto (con ATAS chiuso): "
+                                      "spegne il profilo fisso del template in ogni tab")
     a = ap.parse_args()
+
+    if a.ritocca:
+        p = CARTELLA / f"{a.ritocca}.aws"
+        w = json.loads(p.read_text(encoding="utf-8-sig"))
+        for t in w["Windows"][0]["Tabs"]:
+            if t["Layout"]["Parameter"]["Item1"].get("Type") == "chart":
+                senza_profilo_fisso(t["Layout"]["Parameter"]["Item1"]["Parameter"])
+                print(f"  {t['Title']}: profilo fisso del template spento")
+        p.write_bytes(json.dumps(w, indent=2, ensure_ascii=False).replace(chr(10), chr(13) + chr(10)).encode("utf-8"))
+        return 0
 
     sorgente = CARTELLA / f"{a.da}.aws"
     destinazione = CARTELLA / f"{a.nome}.aws"
@@ -146,6 +167,7 @@ def main() -> int:
     tieni(c1, {"DataBridge"})
     imposta(c1, "DataBridge", spenti)
     nuovo_logger(c1)
+    senza_profilo_fisso(c1)
 
     # 2. SETTIMANA: NQZ6 su M30, solo l'indicatore. M30 e non H1: la cassa apre alle :30.
     t2, c2 = copy.deepcopy(minuto)
@@ -156,6 +178,7 @@ def main() -> int:
     tieni(c2, {"DataBridge"})
     imposta(c2, "DataBridge", spenti)
     nuovo_logger(c2)
+    senza_profilo_fisso(c2)
 
     # 3. SEDUTA: l'M1 com'e', senza il profilo settimanale di ATAS (era per gli LVN); i rettangoli
     #    dell'utente restano.
@@ -163,6 +186,7 @@ def main() -> int:
     disegni(c3, {"RectangleObj", "HorizontalLine", "HorizontalChannel", "HorizontalLineObj"})
     imposta(c3, "DataBridge", spenti)
     imposta(c3, "BigTrades", big)
+    senza_profilo_fisso(c3)
 
     # 4. RANGE 40: "in a choppy mood, you can use the 40 range. It's still the same" (fabio_2.txt
     #    1:16:00). Footprint, big trades, delta cumulato e l'indicatore, senza DOM e senza pannello.
@@ -174,6 +198,7 @@ def main() -> int:
     imposta(c4, "DataBridge", spenti)
     imposta(c4, "BigTrades", big)
     nuovo_logger(c4)
+    senza_profilo_fisso(c4)
 
     nuovo = copy.deepcopy(w)
     nuovo["Name"] = a.nome

@@ -124,13 +124,62 @@ public sealed partial class DataBridge
                 && Radice(i.InstrumentInfo?.Instrument) == mia);
         }
 
+        (decimal Scarto, DateTime FinoA) misurato = (0m, DateTime.MinValue);
         try
         {
-            return seduta is null ? (0m, DateTime.MinValue) : seduta.LoScartoDelRollover(this);
+            if (seduta is not null)
+            {
+                misurato = seduta.LoScartoDelRollover(this);
+            }
         }
         catch (Exception)
         {
-            return (0m, DateTime.MinValue);
+            // Si ricade sull'ultimo scarto ricordato.
+        }
+
+        // LO SCARTO SI RICORDA (10 ottobre 2026): l'M1 tiene circa quattro settimane, e un mese dopo il
+        // rollover non ha piu' nessun giorno in comune col continuo prima del cambio. Lo scarto non si
+        // misura piu', ma non e' cambiato: vale quello misurato l'ultima volta, fino al rollover dopo.
+        var ricordi = LeggiGliScarti();
+        if (misurato.Scarto != 0m)
+        {
+            ricordi[mia] = new ScartoRicordato(misurato.Scarto, misurato.FinoA);
+            ScriviGliScarti(ricordi);
+            return misurato;
+        }
+
+        return ricordi.TryGetValue(mia, out var r) ? (r.Scarto, r.FinoA) : misurato;
+    }
+
+    private sealed record ScartoRicordato(decimal Scarto, DateTime FinoA);
+
+    private static readonly string ScartiPath = System.IO.Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".fabio-data-bridge-rollover.json");
+
+    private static Dictionary<string, ScartoRicordato> LeggiGliScarti()
+    {
+        try
+        {
+            return System.IO.File.Exists(ScartiPath)
+                ? System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, ScartoRicordato>>(System.IO.File.ReadAllText(ScartiPath))
+                  ?? new Dictionary<string, ScartoRicordato>()
+                : new Dictionary<string, ScartoRicordato>();
+        }
+        catch (Exception)
+        {
+            return new Dictionary<string, ScartoRicordato>();
+        }
+    }
+
+    private static void ScriviGliScarti(Dictionary<string, ScartoRicordato> scarti)
+    {
+        try
+        {
+            System.IO.File.WriteAllText(ScartiPath, System.Text.Json.JsonSerializer.Serialize(scarti));
+        }
+        catch (Exception)
+        {
+            // Senza file si rimisura la prossima volta: niente di peggio.
         }
     }
 
@@ -272,7 +321,8 @@ public sealed partial class DataBridge
         {
             testa.Add(("aggiustato al rollover: manca l'M1 dello stesso contratto, non si puo' misurare", Color.FromArgb(255, 255, 183, 77)));
         }
-        var yTesto = area.Top + 26;
+        // Sotto le righe che ATAS scrive in alto a sinistra (strumento, O/H/L/C) quando il mouse e' sul chart.
+        var yTesto = area.Top + 96;
         var largo = testa.Max(t => context.MeasureString(t.Testo, font).Width);
         var altoRiga = context.MeasureString("Hg", font).Height + 2;
         context.FillRectangle(Color.FromArgb(190, 12, 12, 16),

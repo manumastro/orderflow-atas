@@ -43,6 +43,12 @@ public sealed partial class DataBridge
 
     private Zona[] _zone = Array.Empty<Zona>();
 
+    /// <summary>Larghezza della colonna delle scritte a destra, e fin dove arrivano quelle agganciate in
+    /// alto: il pannello si mette fuori da tutte e due.</summary>
+    private int _colonnaDestra;
+
+    private int _agganciateSopra;
+
     /// <summary>Il profilo della zona in formazione, per la gaussiana sul bordo sinistro.</summary>
     private ProfiloFinestra? _profiloOggi;
     private int _zoneAllaBarra = -1;
@@ -216,6 +222,12 @@ public sealed partial class DataBridge
         var prezzoOra = GetCandle(CurrentBar - 1).Close;
         var sopra = livelli.Where(x => x.Y < area.Top + alto).OrderBy(x => x.P).ToList();
         var sotto = livelli.Where(x => x.Y > area.Bottom).OrderByDescending(x => x.P).ToList();
+        var colonna = 0;
+        foreach (var (_, _, testo, _) in chiuse)
+        {
+            colonna = Math.Max(colonna, context.MeasureString(testo, font).Width + 8);
+        }
+
         var yBordo = area.Top + 2;
         foreach (var (p, _, testo, colore) in sopra)
         {
@@ -225,17 +237,23 @@ public sealed partial class DataBridge
             context.FillRectangle(Color.FromArgb(170, 0, 0, 0), new Rectangle(x - 2, yBordo, sz.Width + 6, sz.Height));
             context.DrawString(t, font, colore, x, yBordo);
             yBordo += sz.Height + 1;
+            colonna = Math.Max(colonna, sz.Width + 8);
         }
+
+        _agganciateSopra = sopra.Count > 0 ? yBordo : area.Top;
         yBordo = area.Bottom - 2;
         foreach (var (p, _, testo, colore) in sotto)
         {
             var t = $"▼ {testo} {Prezzo(p)} (-{Prezzo(prezzoOra - p)})";
             var sz = context.MeasureString(t, font);
             yBordo -= sz.Height + 1;
+            colonna = Math.Max(colonna, sz.Width + 8);
             var x = dataRight - MargineLvn - sz.Width - 6;
             context.FillRectangle(Color.FromArgb(170, 0, 0, 0), new Rectangle(x - 2, yBordo, sz.Width + 6, sz.Height));
             context.DrawString(t, font, colore, x, yBordo);
         }
+
+        _colonnaDestra = colonna;
 
         // LA ZONA IN FORMAZIONE, NY oggi o London: niente banda (1 ottobre 2026, richiesta
         // dell'utente), ma VAH, POC e VAL come lineette sul bordo sinistro, specchio delle sedute
