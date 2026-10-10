@@ -16,7 +16,7 @@ Il progetto e' passato per due approcci successivi. Entrambi funzionano, ma serv
 
 | DLL | Sorgente | Cosa fa |
 |---|---|---|
-| `FabioDataBridge` | `src/Observation/DataBridge.cs` | Endpoint HTTP locale interrogabile a runtime |
+| `FabioDataBridge` | `src/Observation/*.cs` (partial class `DataBridge`) | Endpoint HTTP locale; calcola e disegna livelli, zone del valore, pannello, regime, composito e sedute secondo il ruolo del chart; legge l'interfaccia di ATAS. L'unica in uso |
 | `FabioPreSessionProfileRecorder` | `src/Observation/PreSessionProfileRecorder.cs` | Profilo della pre-sessione, con overlay di sole linee sul pannello prezzi |
 | `FabioSessionLocationRecorder` | `src/Observation/SessionLocationPriceResponseRecorder.cs` | Raw trade live di una sessione dichiarata, per ricostruzione offline |
 | `FabioHistoricalCumulativeContextRecorder` | `src/Observation/HistoricalCumulativeContextRecorder.cs` | Candle storiche e `CumulativeTrade` degli ultimi sette giorni |
@@ -26,14 +26,18 @@ Nessuna delle cinque applica filtri di dimensione, classificazioni di partecipan
 
 ## Build E Deploy
 
-La solution compila sia su ATAS X (macOS) sia su ATAS classico (Windows): `Indicators/Directory.Build.props` risolve gli assembly dentro il bundle dell'applicazione su macOS e da `Program Files` su Windows. Il target e' `net10.0` senza WPF, requisito di ATAS X.
+Il target e' `net10.0` senza WPF, requisito di ATAS X. `Indicators/Directory.Build.props` cerca gli
+assembly di ATAS in `C:\ATASX` (ATAS X su Windows), poi nel bundle di macOS, poi nel vecchio ATAS 8;
+si forza con `-p:AtasAssemblyDir=...`.
 
 ```bash
 cd FabioOrderFlow/src
 ./deploy.sh
 ```
 
-Il deploy copia le cinque DLL in `~/Library/Application Support/ATAS/Indicators` su macOS, in `%APPDATA%/ATAS/Indicators` su Windows, e rimuove l'obsoleta `FabioOrderFlow.dll`. Dopo il deploy occorre riavviare ATAS perche' carichi le versioni nuove.
+Il deploy copia le cinque DLL in `%APPDATA%\ATAS X\Indicators` e rimuove l'obsoleta
+`FabioOrderFlow.dll`. **ATAS X le ricarica da solo**, senza riavvio; l'id di ogni chart pero'
+cambia. Procedura completa in [`docs/research/build-e-deploy.md`](../docs/research/build-e-deploy.md).
 
 ## Usare Il Bridge
 
@@ -50,13 +54,49 @@ python3 FabioOrderFlow/tools/bridge.py cumulative --from 2026-09-04 --to 2026-09
 
 ## Strumenti
 
+**Il bridge e ATAS**
+
 | Script | Cosa fa |
 |---|---|
-| `tools/bridge.py` | Client del bridge; spezza le finestre oltre il limite di ATAS |
-| `tools/describe_cash_profile.py` | Costruisce POC e area di valore della cash dal footprint scaricato |
-| `tools/replay_model.py` | Riesegue The Prop Firm Model su barre registrate, in modo causale; organizzato come il dossier, una sezione per pagina |
-| `tools/replay_sweep.py` | Esegue il replay su piu' sessioni variando un parametro alla volta, per rendere visibile la sensibilita' |
-| `tools/build_cot_cross_index.py` | Unisce le serie COT estratte da Tradingster e calcola la metrica cross-index |
+| `tools/bridge.py` | Client del bridge, un sottocomando per endpoint; spezza le finestre oltre il limite di ATAS |
+| `tools/foto_atas.py` | Fotografa le tab di ATAS una per una, solo la finestra di ATAS |
+| `tools/workspace_a_tab.py` | Costruisce il workspace a tab; `--mostra` lo legge, `--ritocca` lo corregge ad ATAS chiuso |
+
+Come si usano insieme: [`come-l-agente-vede-e-comanda-atas.md`](../docs/research/metodo/come-l-agente-vede-e-comanda-atas.md).
+
+**Il contesto e la giornata**
+
+| Script | Cosa fa |
+|---|---|
+| `tools/giro_orizzonte.py` | Tutto il contesto prima di un'analisi; lo lancia l'hook a ogni messaggio |
+| `tools/scala_dei_tempi.py` | Le sedute dal piu' lontano al piu' vicino, per il giro |
+| `tools/ora.py` | L'orario italiano con cui si parla a chi opera |
+| `tools/annota.py` | Scrive una lettura sul chart e la registra nel diario della giornata |
+| `tools/riavvolgi_giornata.py` | Riporta il diario della giornata indietro insieme al replay |
+| `tools/semina_memoria.py` | Installa la memoria di orientamento dell'agente dai file del repo |
+| `tools/serve_rifare.py` | Dice se i livelli statici vanno rifatti |
+| `tools/permesso_di_fatto.py` | Il permesso direzionale misurato sull'accettazione |
+| `tools/livelli_vivi.py` | Ricalcola i livelli che si muovono e li rideposita sul chart |
+
+**La sorveglianza** (fase chiusa: non si riaccende senza richiesta esplicita)
+
+| Script | Cosa fa |
+|---|---|
+| `tools/sveglia_tape.py`, `tools/sveglia_movimento.py` | Svegliano l'analisi quando il tape o il prezzo fanno qualcosa |
+| `tools/scenari.py`, `tools/condizione_viva.py` | Valutano scenari e condizioni dichiarati e li mettono sul chart |
+| `tools/avviso.py` | Porta un avviso davanti a chi opera |
+| `tools/comandi_sorveglianti.py`, `tools/spegni_sorveglianti.sh` | Accendono e spengono i sorveglianti |
+
+**Gli studi**
+
+| Script | Cosa fa |
+|---|---|
+| `tools/describe_cash_profile.py` | POC e area di valore della cash dal footprint scaricato |
+| `tools/build_continuous.py` | Serie continua back-adjusted da piu' contratti, footprint incluso |
+| `tools/build_bars.py` | Barre di range o di tempo ricostruite dal tape |
+| `tools/build_cot_cross_index.py` | La vista cross-index COT dai dati di Tradingster |
+| `tools/studio_lvn_incrociati.py` | Lo studio dietro agli LVN incrociati |
+| `tools/replay_model.py`, `tools/replay_sweep.py`, `tools/probe_predictability.py` | Il replay del modello 40R e la predittivita' (fase sistematica chiusa, [`archivio-modello-40r/`](../docs/research/archivio-modello-40r/)) |
 | `tools/archivio-2026-08/` | Parser dei log prodotti dai recorder nella fase di agosto |
 
 ## Vincoli ATAS Verificati
@@ -72,6 +112,8 @@ Scoperti sul campo e rispettati dal codice:
 - `CumulativeTradesRequest.Mode` e' di sola lettura, va passato al costruttore.
 - Le date di rollover richiedono un chart a **contratto continuo**; su un contratto singolo ATAS risponde `Only continuous contracts are supported`.
 - Su ATAS X sono vietati gli editor WPF custom. Nessuna delle cinque estensioni ne usa.
+- I clic e i tasti simulati da fuori non arrivano ad ATAS (UIPI): l'interfaccia si legge e si comanda
+  da dentro, con `/ui` e `/disegni`.
 
 ## Diario
 

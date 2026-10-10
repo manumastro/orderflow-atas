@@ -177,8 +177,8 @@ Alla conclusione, aggiornare `FabioOrderFlow/FabioOrderFlow.md` e aggiungere una
 - `fabio_course/fabio2.txt`
 - `fabio_course/fabio3.txt`
 - `fabio_course/fabio-course-model-map.md`
-- `docs/research/participation-effort-result-observation-contract.md`
-- `docs/research/cumulative-trade-footprint-description-contract.md`
-- `docs/research/cumulative-trade-footprint-description-2026-08-04.md`
-- `docs/research/session-location-and-price-response-description-2026-08-04.md`
+- `docs/research/metodo/contratto-osservativo-partecipazione.md`
+- `docs/research/archivio-2026-08/cumulative-trade-footprint-description-contract.md`
+- `docs/research/archivio-2026-08/cumulative-trade-footprint-description-2026-08-04.md`
+- `docs/research/archivio-2026-08/session-location-and-price-response-description-2026-08-04.md`
 - `docs/atas/guides/md_DataFeedsCore_2Docs_2en_20025__ReceivingProcessingData.md`

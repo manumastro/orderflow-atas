@@ -115,5 +115,5 @@ Il report deve aggiornare `FabioOrderFlow/FabioOrderFlow.md` e aggiungere una ri
 - `fabio_course/fabio2.txt`
 - `fabio_course/fabio3.txt`
 - `fabio_course/fabio-course-model-map.md`
-- `docs/research/participation-effort-result-observation-contract.md`
-- `docs/research/atas-cumulative-trade-capture-validation-2026-08-04.md`
+- `docs/research/metodo/contratto-osservativo-partecipazione.md`
+- `docs/research/archivio-2026-08/atas-cumulative-trade-capture-validation-2026-08-04.md`

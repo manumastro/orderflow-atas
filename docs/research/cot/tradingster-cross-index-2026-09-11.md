@@ -4,7 +4,7 @@ Data: 2026-09-11. Stato: studio descrittivo. Nessuna regola operativa approvata.
 
 ## Scopo
 
-Il live Q1 (`fabio_course/fabio_q1/fabio_live_charting_1_q1.txt`, minuti `26:21`-`38:30`) descrive una lettura del Commitment of Traders fatta a mano su `tradingster.com`, con una metrica di conferma incrociata fra indici americani. Finora quella lettura era documentata solo a parole in `fabio_course/fabio-course-model-map.md`. Questo studio fa due cose:
+Il live Q1 (`fabio_course/fabio_q1/fabio_1.txt`, minuti `26:21`-`38:30`) descrive una lettura del Commitment of Traders fatta a mano su `tradingster.com`, con una metrica di conferma incrociata fra indici americani. Finora quella lettura era documentata solo a parole in `fabio_course/fabio-course-model-map.md`. Questo studio fa due cose:
 
 1. rende la fonte esterna riproducibile, estraendo le serie direttamente dalla UI invece che leggendole a occhio;
 2. verifica in modo descrittivo se la metrica cross-index, resa esplicita, abbia una qualche relazione con il prezzo successivo.

@@ -23,11 +23,11 @@ Tutto quello che c'e' qui sotto discende da un unico passo del primo live, dove 
 e poi dice **da solo** che serve accoppiato al profilo. Non e' una nostra sintesi di due documenti
 separati: e' il modo in cui il corso lo insegna.
 
-    sed -n '1130,1200p' fabio_course/fabio_q1/fabio_live_charting_1_q1.txt
+    sed -n '590,640p' fabio_course/fabio_q1/fabio_1.txt
 
 > *"I only check this when a new release comes out. I'm explaining to you because this one, it's
 > extremely useful when you align it with **the profile framing**."*
-> — righe **1137-1143**
+> — `[1 · 30:58 - 31:15]`
 
 E subito dopo il meccanismo, per esteso:
 
@@ -55,7 +55,7 @@ due.
 
 La formulazione scritta piu' sotto — *"il lato posizionato sta sopra o sotto il cuore del
 volume"* — e' una **nostra derivazione**, utile e misurabile, ma **non e' il passo del corso**.
-Le due vanno tenute distinte: la prima e' tracciabile alle righe 1162-1183, la seconda no.
+Le due vanno tenute distinte: la prima e' tracciabile a `[1 · 31:49 - 32:02]`, la seconda no.
 
 **Cosa ne consegue, e cosa ha prodotto sull'oro.** Il quadro diceva dove sta il prezzo **oggi**
 rispetto al vertice del composito, e non **dove stava l'8 settembre** — la data dei dati COT —
@@ -76,7 +76,7 @@ lo rifiutava.
 cui, l'8 settembre, la seduta ha chiuso mentre il posizionamento veniva misurato. E' il livello che
 Fabio disegna quando dice *"we go back to price"*, e va sul chart come gli altri.
 
-**E manca il cross confirm.** Righe 1187-1197: il COT di uno strumento si conferma incrociando i
+**E manca il cross confirm.** `[1 · 32:22 - 32:49]`: il COT di uno strumento si conferma incrociando i
 correlati. Per gli indici sono S&P, NASDAQ, Dow, Russell — la verifica e' gia' fatta in
 [`../cot/tradingster-cross-index-2026-09-11.md`](../cot/tradingster-cross-index-2026-09-11.md).
 **Per l'oro l'incrocio non e' stato fatto**: argento, e il dollaro.
@@ -140,7 +140,7 @@ anche quello.
 
 > *"When you enter back in the value area and you have aggressive trades and speed of tape, you
 > don't have a wall on the top. So at least to the POC, have a huge probability of arriving."*
-> — `fabio_course/fabio_q1/fabio_live_charting_1_q1.txt`, righe 570-572
+> — `fabio_course/fabio_q1/fabio_1.txt`, `[1 · 1:15:16 - 1:15:30]`
 
 **Ogni area di valore riattraversata regala il proprio POC come magnete.** Sopra e sotto il prezzo
 non c'e' "un bersaglio", c'e' una **scala**: si elencano i POC delle sedute precedenti con la loro

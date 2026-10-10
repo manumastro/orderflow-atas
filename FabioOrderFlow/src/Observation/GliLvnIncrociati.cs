@@ -522,7 +522,7 @@ public sealed partial class DataBridge
     private (int Top, int Bottom) Verticale(Rectangle area, decimal basso, decimal alto)
     {
         var yA = ChartInfo!.GetYByPrice(alto, false);
-        var yB = ChartInfo.GetYByPrice(basso, false);
+        var yB = ChartInfo!.GetYByPrice(basso, false);
         return (Math.Max(area.Top, Math.Min(yA, yB)), Math.Min(area.Bottom, Math.Max(yA, yB)));
     }
 

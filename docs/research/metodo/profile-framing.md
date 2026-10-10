@@ -1,6 +1,6 @@
 # Profile Framing: Cosa Guardare, E In Che Ordine
 
-Fonte: primo live del corso, `fabio_course/fabio_q1/fabio_live_charting_1_q1.txt`.
+Fonte: primo live del corso, `fabio_course/fabio_q1/fabio_1.txt`.
 Stato: **procedura di lettura**. Descrive cosa osservare, non cosa eseguire.
 
 Nel live la sequenza e' dichiarata senza ambiguita': **"the first step is profile framing"**. La

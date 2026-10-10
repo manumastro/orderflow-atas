@@ -484,7 +484,7 @@ def main() -> None:
 
     page02 = parser.add_argument_group("pagina 02 - chart setup")
     page02.add_argument("--va-percent", type=float, default=None,
-                        help=f"percentuale di value area di barra; omessa usa quella di ATAS")
+                        help="percentuale di value area di barra; omessa usa quella di ATAS")
 
     page03 = parser.add_argument_group("pagina 03 - OCO")
     page03.add_argument("--risk", type=float, default=RISK_DOLLARS, help="rischio per operazione in dollari")

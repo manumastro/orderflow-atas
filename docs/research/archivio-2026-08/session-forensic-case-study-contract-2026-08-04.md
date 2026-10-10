@@ -40,7 +40,7 @@ Un risultato non puo' promuovere soglie, probabilita', filtri, segnali o modello
 docs/research/session-forensic-case-study-2026-08-04.md
 ```
 
-Il parser e' `FabioOrderFlow/tools/report_session_forensic_case_study.py`. I CSV/JSON derivati restano locali in `FabioOrderFlow/ledger-snapshots/` e vengono identificati nel report con SHA-256.
+Il parser e' `FabioOrderFlow/tools/archivio-2026-08/report_session_forensic_case_study.py`. I CSV/JSON derivati restano locali in `FabioOrderFlow/ledger-snapshots/` e vengono identificati nel report con SHA-256.
 
 ## Limiti
 

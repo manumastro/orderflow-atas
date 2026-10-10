@@ -284,7 +284,7 @@ def main() -> int:
             TITOLO_PARCHEGGIO, "", APRE, "",
             "**Questi blocchi raccontano minuti che nella sessione in corso non sono ancora**",
             "**successi.** Il replay e' stato riavvolto e il diario e' rimasto avanti: li ha",
-            f"spostati qui `riavvolgi_giornata.py`. Non sono cancellati — sono il registro di un",
+            "spostati qui `riavvolgi_giornata.py`. Non sono cancellati — sono il registro di un",
             "giro che c'e' stato davvero, e servono al confronto di fine sessione. Non tornano",
             "su da soli: rimetterli dentro spaccerebbe il testo di un altro giro per la cronaca",
             "di questo.", "",

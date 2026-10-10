@@ -26,7 +26,6 @@ from __future__ import annotations
 
 import argparse
 import subprocess
-import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -124,8 +123,8 @@ def main() -> int:
     # E dal 18 settembre l'IVB e' un RIFERIMENTO, non un cancello: nel live Q1 il gate orario
     # non esiste, Fabio opera premarket e sull'apertura. Vedi CLAUDE.md, "Le Due Decisioni".
     if sess == "newyork" and (u.hour * 60 + u.minute) >= 14 * 60:
-        print(f"# IVB 13:30-14:00Z chiusa: misura i bordi e sostituisci --alto/--basso.")
-        print(f"# Riferimento, non permesso: il live non ha un gate orario.")
+        print("# IVB 13:30-14:00Z chiusa: misura i bordi e sostituisci --alto/--basso.")
+        print("# Riferimento, non permesso: il live non ha un gate orario.")
         print(f"python3 -u FabioOrderFlow/tools/permesso_di_fatto.py --chart {args.chart} \\")
         print(f"    --from {adesso} --alto <TETTO_IVB> --basso <PAVIMENTO_IVB> --attesa 20")
     else:

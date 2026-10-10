@@ -211,7 +211,7 @@ public sealed partial class DataBridge
                 if (y >= area.Top && y <= area.Bottom)
                 {
                     context.DrawLine(new RenderPen(Color.FromArgb(poc ? 240 : 200, colore), poc ? 2 : 1,
-                        poc ? DashStyle.Solid : DashStyle.Dash), x0, y, x0 + largo, y);
+                        DashOf(poc ? "solid" : "dash")), x0, y, x0 + largo, y);
                 }
             }
 

@@ -42,7 +42,7 @@ rifarli         sottoagente         tape, footprint, profilo -> e' il lavoro di 
 
 - **`serve_rifare.py`** rispondeva `NIENTE` quasi sempre, e `SERVE` con le ragioni quando la mappa
   era scaduta: fuori fascia, attraversato, niente in gioco, sessione, deriva.
-- **`.claude/agents/livelli-statici.md`** era un sottoagente svegliato in background solo su
+- **`livelli-statici.md`** (in `.claude/agents/`, cancellato il 20 settembre 2026) era un sottoagente svegliato in background solo su
   `SERVE`, con le ragioni passate verbatim.
 - **`/sorveglia`** teneva insieme i due, e `/loop 2m /sorveglia` faceva girare il ciclo.
 

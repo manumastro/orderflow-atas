@@ -270,7 +270,7 @@ public sealed partial class DataBridge
             xInizio = Math.Max(area.Left, ChartInfo.GetXByBar(comp.PrimaBarra, true));
             if (xInizio > area.Left)
             {
-                context.DrawLine(new RenderPen(Color.FromArgb(140, arancio), 1, DashStyle.Dot),
+                context.DrawLine(new RenderPen(Color.FromArgb(140, arancio), 1, DashOf("dot")),
                     xInizio, area.Top, xInizio, area.Bottom);
                 context.DrawString($"inizio {comp.Barre}G  {comp.Dal:dd/MM}", font, arancio, xInizio + 4, area.Top + 4);
             }
@@ -295,7 +295,7 @@ public sealed partial class DataBridge
                 continue;
             }
 
-            context.DrawLine(new RenderPen(colore, spessore, tratto ? DashStyle.Dash : DashStyle.Solid), xInizio, y, dataRight, y);
+            context.DrawLine(new RenderPen(colore, spessore, DashOf(tratto ? "dash" : "solid")), xInizio, y, dataRight, y);
             var testo = $"{comp.Barre}G {sigla} {Prezzo(p)}";
             var sz = context.MeasureString(testo, font);
             var x = dataRight - larghezza - sz.Width - 8;
