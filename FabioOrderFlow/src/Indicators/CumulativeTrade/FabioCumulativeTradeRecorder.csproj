@@ -1,9 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <AssemblyName>FabioCumulativeTradeRecorder</AssemblyName>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Include="..\..\Observation\CumulativeTradeObservationRecorder.cs" Link="CumulativeTradeObservationRecorder.cs" />
-  </ItemGroup>
-</Project>

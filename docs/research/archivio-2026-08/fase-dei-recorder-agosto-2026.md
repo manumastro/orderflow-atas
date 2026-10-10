@@ -29,3 +29,5 @@ I vincoli ATAS scoperti qui sul campo valgono ancora e sono rispettati dal bridg
 - ATAS puo' restituire record fuori dalla finestra richiesta, che vanno contati e scartati.
 
 I parser dei log di questa fase sono in `FabioOrderFlow/tools/archivio-2026-08/`.
+
+**Il sorgente dei quattro recorder e' stato tolto il 10 ottobre 2026**: non stavano su nessun chart, e ogni deploy li ricopiava in ATAS. Si recupera dalla storia di git, per esempio `git show ad6f5ec:FabioOrderFlow/src/Observation/PreSessionProfileRecorder.cs`; i percorsi `src/...` citati nei documenti di questa cartella sono quelli di allora.

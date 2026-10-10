@@ -7,7 +7,7 @@ set -euo pipefail
 # "%APPDATA%\ATAS\Indicators". Copiare nella seconda mentre gira il primo NON da'
 # errore: il deploy dice "fatto" e sul chart resta la DLL precedente.
 
-echo "Building the FabioOrderFlow research indicators..."
+echo "Building the Fabio Data Bridge..."
 dotnet build FabioOrderFlow.slnx -c Release
 
 tfm="net10.0"
@@ -20,7 +20,11 @@ else
 fi
 
 mkdir -p "$atas_ind"
-rm -f "$atas_ind/FabioOrderFlow.dll"
+# DLL che non si distribuiscono piu': lo scheletro iniziale e, dal 10 ottobre 2026, i quattro
+# recorder della fase di agosto. Se ATAS le tiene aperte non si cancellano: si riprova al deploy dopo.
+for vecchia in FabioOrderFlow FabioCumulativeTradeRecorder FabioSessionLocationRecorder FabioHistoricalCumulativeContextRecorder FabioPreSessionProfileRecorder; do
+    rm -f "$atas_ind/$vecchia.dll" 2>/dev/null || echo "  $vecchia.dll e' aperta da ATAS: si toglie al prossimo deploy"
+done
 
 copy_indicator() {
     local project="$1"
@@ -28,14 +32,10 @@ copy_indicator() {
     cp -f "Indicators/${project}/bin/Release/${tfm}/${library}.dll" "$atas_ind/${library}.dll"
 }
 
-copy_indicator "CumulativeTrade" "FabioCumulativeTradeRecorder"
-copy_indicator "SessionLocation" "FabioSessionLocationRecorder"
-copy_indicator "HistoricalCumulativeContext" "FabioHistoricalCumulativeContextRecorder"
-copy_indicator "PreSessionProfile" "FabioPreSessionProfileRecorder"
 copy_indicator "DataBridge" "FabioDataBridge"
 
-echo "Five separate DLLs deployed to $atas_ind."
+echo "FabioDataBridge.dll deployed to $atas_ind."
 # ATAS X ricarica l'indicatore da solo dopo la copia, e in replay non perde la posizione:
 # verificato il 20 settembre 2026 ricaricando il motore dei livelli col replay fermo. Il vecchio
 # ATAS 8 invece richiedeva il riavvio, ed e' da li' che veniva l'istruzione precedente.
-echo "ATAS X reloads them on its own. On older ATAS, restart or re-add each DLL."
+echo "ATAS X reloads it on its own. On older ATAS, restart or re-add the DLL."

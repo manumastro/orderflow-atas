@@ -9,7 +9,7 @@ REM   - la cartella: ATAS X carica da "%APPDATA%\ATAS X\Indicators", non da "%AP
 REM   - mancava FabioDataBridge, cioe' il bridge, i livelli e il pannello
 
 echo ============================================================
-echo  FabioOrderFlow - Build and deploy separate research indicators
+echo  FabioOrderFlow - Build and deploy the Fabio Data Bridge
 echo ============================================================
 echo.
 
@@ -28,22 +28,17 @@ if exist "%APPDATA%\ATAS X" (
     set "ATAS_IND=%APPDATA%\ATAS\Indicators"
 )
 if not exist "!ATAS_IND!" mkdir "!ATAS_IND!"
-if exist "!ATAS_IND!\FabioOrderFlow.dll" del /Q "!ATAS_IND!\FabioOrderFlow.dll"
+REM DLL che non si distribuiscono piu': lo scheletro e, dal 10 ottobre 2026, i recorder di agosto.
+for %%V in (FabioOrderFlow FabioCumulativeTradeRecorder FabioSessionLocationRecorder FabioHistoricalCumulativeContextRecorder FabioPreSessionProfileRecorder) do (
+    if exist "!ATAS_IND!\%%V.dll" del /Q "!ATAS_IND!\%%V.dll"
+)
 
-call :copy_indicator "CumulativeTrade" "FabioCumulativeTradeRecorder"
-if %ERRORLEVEL% neq 0 exit /b 1
-call :copy_indicator "SessionLocation" "FabioSessionLocationRecorder"
-if %ERRORLEVEL% neq 0 exit /b 1
-call :copy_indicator "HistoricalCumulativeContext" "FabioHistoricalCumulativeContextRecorder"
-if %ERRORLEVEL% neq 0 exit /b 1
-call :copy_indicator "PreSessionProfile" "FabioPreSessionProfileRecorder"
-if %ERRORLEVEL% neq 0 exit /b 1
 call :copy_indicator "DataBridge" "FabioDataBridge"
 if %ERRORLEVEL% neq 0 exit /b 1
 
 echo.
-echo Five separate DLLs deployed to !ATAS_IND!.
-echo Restart ATAS or add each DLL through Add custom indicator.
+echo FabioDataBridge.dll deployed to !ATAS_IND!.
+echo ATAS X reloads it on its own.
 exit /b 0
 
 :copy_indicator

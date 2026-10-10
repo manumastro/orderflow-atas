@@ -8,21 +8,11 @@ Il progetto e' passato per due approcci successivi. Entrambi funzionano, ma serv
 
 **Il bridge, percorso attuale.** `Fabio Data Bridge` espone i dati della piattaforma su un endpoint HTTP locale. L'analisi chiede le finestre e i filtri che le servono nel momento in cui le servono, mentre ATAS resta aperto. E' il percorso da usare per qualunque studio nuovo. Contratto: [`docs/research/metodo/contratto-data-bridge.md`](../docs/research/metodo/contratto-data-bridge.md).
 
-**I recorder, fase di agosto 2026.** Quattro indicatori che scrivono righe JSON nel log di ATAS, con lo schema deciso prima della cattura. Restano utili per cio' che il bridge non copre: il flusso live continuo e l'overlay disegnato sul chart. I loro contratti e i report prodotti sono in [`docs/research/archivio-2026-08/`](../docs/research/archivio-2026-08/).
+**I recorder, fase di agosto 2026.** Quattro indicatori che scrivevano righe JSON nel log di ATAS, con lo schema deciso prima della cattura. Contratti e report sono in [`docs/research/archivio-2026-08/`](../docs/research/archivio-2026-08/). **Il sorgente dei quattro recorder e' stato tolto il 10 ottobre 2026**: non stavano su nessun chart, e ogni deploy li ricopiava in ATAS. Si recupera dalla storia di git, per esempio `git show ad6f5ec:FabioOrderFlow/src/Observation/PreSessionProfileRecorder.cs`; i percorsi `src/...` citati nei documenti di questa cartella sono quelli di allora.
 
-## Le Cinque Estensioni
+## L'Estensione
 
-`src/FabioOrderFlow.slnx` compila cinque DLL indipendenti, una classe `Indicator` ciascuna. `src/FabioOrderFlow.cs` resta uno scheletro neutro e non viene distribuito.
-
-| DLL | Sorgente | Cosa fa |
-|---|---|---|
-| `FabioDataBridge` | `src/Observation/*.cs` (partial class `DataBridge`) | Endpoint HTTP locale; calcola e disegna livelli, zone del valore, pannello, regime, composito e sedute secondo il ruolo del chart; legge l'interfaccia di ATAS. L'unica in uso |
-| `FabioPreSessionProfileRecorder` | `src/Observation/PreSessionProfileRecorder.cs` | Profilo della pre-sessione, con overlay di sole linee sul pannello prezzi |
-| `FabioSessionLocationRecorder` | `src/Observation/SessionLocationPriceResponseRecorder.cs` | Raw trade live di una sessione dichiarata, per ricostruzione offline |
-| `FabioHistoricalCumulativeContextRecorder` | `src/Observation/HistoricalCumulativeContextRecorder.cs` | Candle storiche e `CumulativeTrade` degli ultimi sette giorni |
-| `FabioCumulativeTradeRecorder` | `src/Observation/CumulativeTradeObservationRecorder.cs` | `CumulativeTrade`, delta di volume e footprint di barra |
-
-Nessuna delle cinque applica filtri di dimensione, classificazioni di partecipante o logica di mercato.
+`src/FabioOrderFlow.slnx` compila una DLL sola, **`FabioDataBridge`**: una `partial class DataBridge` divisa per responsabilita' in `src/Observation/*.cs`, elencati in `src/Indicators/DataBridge/FabioDataBridge.csproj`. Endpoint HTTP locale; calcola e disegna livelli, zone del valore, pannello, regime, composito e sedute secondo il ruolo del chart; legge l'interfaccia di ATAS. Non applica logica di mercato propria: le soglie e le regole stanno nei documenti e nei file che l'analisi deposita.
 
 ## Build E Deploy
 
@@ -35,8 +25,8 @@ cd FabioOrderFlow/src
 ./deploy.sh
 ```
 
-Il deploy copia le cinque DLL in `%APPDATA%\ATAS X\Indicators` e rimuove l'obsoleta
-`FabioOrderFlow.dll`. **ATAS X le ricarica da solo**, senza riavvio; l'id di ogni chart pero'
+Il deploy copia la DLL in `%APPDATA%\ATAS X\Indicators` e rimuove quelle che non si distribuiscono
+piu' (lo scheletro iniziale e i recorder di agosto). **ATAS X le ricarica da solo**, senza riavvio; l'id di ogni chart pero'
 cambia. Procedura completa in [`docs/research/build-e-deploy.md`](../docs/research/build-e-deploy.md).
 
 ## Usare Il Bridge
@@ -111,7 +101,7 @@ Scoperti sul campo e rispettati dal codice:
 - `FixedProfileRequest` su ATAS X espone solo `(period)` e `(period, tradingSession)`: nessun `baseTime`.
 - `CumulativeTradesRequest.Mode` e' di sola lettura, va passato al costruttore.
 - Le date di rollover richiedono un chart a **contratto continuo**; su un contratto singolo ATAS risponde `Only continuous contracts are supported`.
-- Su ATAS X sono vietati gli editor WPF custom. Nessuna delle cinque estensioni ne usa.
+- Su ATAS X sono vietati gli editor WPF custom. Il bridge non ne usa.
 - I clic e i tasti simulati da fuori non arrivano ad ATAS (UIPI): l'interfaccia si legge e si comanda
   da dentro, con `/ui` e `/disegni`.
 

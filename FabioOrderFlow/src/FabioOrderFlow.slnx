@@ -3,16 +3,4 @@
   <Folder Name="/Indicators/DataBridge/">
     <Project Path="Indicators/DataBridge/FabioDataBridge.csproj" />
   </Folder>
-  <Folder Name="/Indicators/CumulativeTrade/">
-    <Project Path="Indicators/CumulativeTrade/FabioCumulativeTradeRecorder.csproj" />
-  </Folder>
-  <Folder Name="/Indicators/HistoricalCumulativeContext/">
-    <Project Path="Indicators/HistoricalCumulativeContext/FabioHistoricalCumulativeContextRecorder.csproj" />
-  </Folder>
-  <Folder Name="/Indicators/PreSessionProfile/">
-    <Project Path="Indicators/PreSessionProfile/FabioPreSessionProfileRecorder.csproj" />
-  </Folder>
-  <Folder Name="/Indicators/SessionLocation/">
-    <Project Path="Indicators/SessionLocation/FabioSessionLocationRecorder.csproj" />
-  </Folder>
 </Solution>
