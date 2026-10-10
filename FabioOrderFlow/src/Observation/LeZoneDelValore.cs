@@ -228,7 +228,8 @@ public sealed partial class DataBridge
             colonna = Math.Max(colonna, context.MeasureString(testo, font).Width + 8);
         }
 
-        var yBordo = area.Top + 2;
+        // Sotto il pulsante di ATAS in alto a destra (vai all'ultima barra), che copriva la fine della prima scritta.
+        var yBordo = area.Top + 24;
         foreach (var (p, _, testo, colore) in sopra)
         {
             var t = $"▲ {testo} {Prezzo(p)} (+{Prezzo(p - prezzoOra)})";
