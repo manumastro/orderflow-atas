@@ -598,7 +598,7 @@ public sealed partial class DataBridge : Indicator
             "/scala" => ScalaInJson(),
             "/muri" => Muri(),
             "/nodi" => Nodi(),
-            "/disegni" => Disegni(),
+            "/disegni" => await DisegniAsync(query).ConfigureAwait(false),
             "/ruolo" => RuoloInJson(),
             "/ui" => await InterfacciaAsync(query).ConfigureAwait(false),
                 "/panel" => Pannello(),

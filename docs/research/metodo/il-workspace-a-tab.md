@@ -97,6 +97,37 @@ quindi scriverci sopra mentre e' aperto non serve: se ne scrive uno nuovo accant
 `%APPDATA%\ATAS X\Workspaces2\`, e si apre da ATAS (Workspace, apri, `Fabio NQ`). Il vecchio resta
 come ritorno.
 
+## Vedere Le Tab Da Script
+
+```bash
+python FabioOrderFlow/tools/foto_atas.py              # tutte le tab
+python FabioOrderFlow/tools/foto_atas.py --tab 3      # solo la seduta
+```
+
+L'agente non puo' cliccare ATAS da fuori: ATAS gira con privilegi diversi, e computer use da
+terminale su Windows non esiste. Lo fa l'indicatore da dentro, con `/ui` (`LInterfacciaDiAtas.cs`):
+seleziona la tab sul thread dell'interfaccia, porta ATAS in primo piano e restituisce dove sta la
+finestra. Lo script fotografa **solo la finestra di ATAS**, e **non salva niente** se in primo
+piano c'e' un'altra finestra; alla fine rimette la tab e la finestra che c'erano prima.
+
+`/ui` serve anche a esplorare: `?filtro=` cerca nei controlli, `?vm=` legge i view model,
+`?descrivi=Tipo` elenca i membri di un tipo caricato e chi lo implementa.
+
+## I Disegni Di ATAS Appartengono Allo Strumento
+
+Il 10 ottobre 2026 le foto mostravano su ogni tab un pannello blu a sinistra, con VAH, VAL, vPOC e la
+barra dei lotti: un profilo "settimana corrente" disegnato a mano su NQZ6, e un profilo fisso dal
+24 aprile sul continuo. **Toglierli dal file del workspace non bastava**: su ATAS i disegni
+appartengono allo strumento, e ATAS li rimette su ogni chart. Si tolgono da dentro:
+
+```bash
+curl "http://127.0.0.1:<porta>/disegni?chart=<id>&togli=CustomHistogramm"
+```
+
+Va fatto **su ogni chart**: ogni chart ne tiene la sua copia. Il profilo fisso del template del chart
+(`Template.FixedProfile`) e' spento anche nel file, con `workspace_a_tab.py --ritocca "Fabio workspace"`
+ad ATAS chiuso.
+
 ## `/ruolo`
 
 `/ruolo?chart=<id|strumento>` restituisce il ruolo del chart e cio' che disegna, in numeri: il

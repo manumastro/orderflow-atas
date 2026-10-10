@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace FabioOrderFlow.Observation;
 
@@ -16,6 +17,44 @@ namespace FabioOrderFlow.Observation;
 /// </summary>
 public sealed partial class DataBridge
 {
+    /// <summary>
+    /// <c>/disegni?togli=Tipo</c> cancella dal chart i disegni di quel tipo (per esempio
+    /// <c>CustomHistogramm</c>). Serve perche' su ATAS i disegni appartengono allo strumento e non
+    /// al chart: toglierli dal file del workspace non basta, ATAS li rimette su ogni chart di NQZ6
+    /// (10 ottobre 2026, il profilo "settimana corrente" a sinistra su tutte le tab). Si cancella
+    /// sul thread dell'interfaccia, con il metodo della collezione dei disegni di ATAS.
+    /// </summary>
+    private async Task<object> DisegniAsync(System.Collections.Specialized.NameValueCollection query)
+    {
+        if (query["togli"] is not { Length: > 0 } tipo)
+        {
+            return Disegni();
+        }
+
+        return await SulThreadDellInterfaccia(() =>
+        {
+            var info = ChartInfo?.DrawingObjectsListInfo ?? throw new BridgeException(500, "DrawingObjectsListInfo non disponibile");
+            var campi = info.GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                .Select(f => f.GetValue(info)).Where(v => v is not null).ToList();
+            var collezione = campi.FirstOrDefault(v => v!.GetType().Name.Contains("DrawingObjectsCollection", StringComparison.Ordinal))
+                             ?? throw new BridgeException(500, "collezione dei disegni non trovata");
+            var tutti = collezione.GetType().GetMethods(BindingFlags.Public | BindingFlags.Instance)
+                .First(m => m.Name == "GetAllObjects" && m.GetParameters().Length == 1);
+            var strumento = campi.FirstOrDefault(v => tutti.GetParameters()[0].ParameterType.IsInstanceOfType(v));
+            var oggetti = ((IEnumerable)tutti.Invoke(collezione, new[] { strumento })!).Cast<object>()
+                .Where(o => o.GetType().Name.Equals(tipo, StringComparison.OrdinalIgnoreCase)).ToList();
+            var cancella = collezione.GetType().GetMethods(BindingFlags.Public | BindingFlags.Instance)
+                .First(m => m.Name == "Delete" && m.GetParameters().Length == 1 && !m.GetParameters()[0].ParameterType.IsGenericType
+                            && m.GetParameters()[0].ParameterType != typeof(object) && !typeof(IEnumerable).IsAssignableFrom(m.GetParameters()[0].ParameterType));
+            foreach (var o in oggetti)
+            {
+                cancella.Invoke(collezione, new[] { o });
+            }
+
+            return (object)new { schema = Schema, chart = ChartDescriptor(), tolti = oggetti.Count, tipo };
+        }).ConfigureAwait(false);
+    }
+
     private object Disegni()
     {
         var info = ChartInfo?.DrawingObjectsListInfo;
