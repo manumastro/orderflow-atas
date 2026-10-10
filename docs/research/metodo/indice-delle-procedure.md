@@ -140,6 +140,10 @@ Nessun processo esterno: **i livelli li calcola l'indicatore** a ogni barra, dal
 l'analisi deposita una volta, e il **pannello** si ridisegna a ogni tick. Nessuno dei due giudica,
 avvisa o arma niente. La lettura si chiede.
 
+[**`come-l-agente-vede-e-comanda-atas.md`**](come-l-agente-vede-e-comanda-atas.md) — **come l'agente legge e comanda
+ATAS**: le quattro strade (dati, interfaccia, file, foto), la tabella "voglio sapere... uso...",
+cosa scrive e cosa si chiede prima, la riservatezza delle foto.
+
 [**`il-workspace-a-tab.md`**](il-workspace-a-tab.md) — **il workspace dal 9 ottobre 2026**:
 quattro tab, una responsabilita' ciascuna (composito 90G, settimana M30, seduta M1, range 40), e
 un indicatore solo che sceglie cosa disegnare dal timeframe.

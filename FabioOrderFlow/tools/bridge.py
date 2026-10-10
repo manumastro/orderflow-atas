@@ -16,6 +16,10 @@ Esempi:
     ./bridge.py candles --levels --out candles.json
     ./bridge.py rules --file docs/research/giornate/regole-dei-livelli-NQZ6-2026-09-14.json
     ./bridge.py cumulative --from 2026-09-04 --to 2026-09-11 --min-volume 50
+    ./bridge.py ruolo --chart <id>                  # cosa disegna quel chart, in numeri
+    ./bridge.py disegni --chart <id>                # i disegni del chart
+    ./bridge.py ui --vm SelectedTab --chart <id>    # la tab selezionata in ATAS
+    ./bridge.py ui --tab 3 --chart <id>             # seleziona la tab SEDUTA M1
 """
 
 from __future__ import annotations
@@ -230,8 +234,29 @@ def main() -> None:
     # `regime` e' di sola lettura e non prende argomenti: il regime, il proxy della velocita'
     # e i big trades, come li misura l'indicatore. Ogni numero esce con la soglia che lo
     # classifica accanto, perche' una classificazione senza la sua regola non si contesta.
-    for name in ("health", "charts", "instrument", "limits", "regime", "panel"):
+    # `ruolo`, `muri`, `nodi` e `scala` sono di sola lettura, come `regime`: cio' che il chart
+    # disegna e misura, in numeri. Vedi docs/research/metodo/come-l-agente-vede-e-comanda-atas.md
+    for name in ("health", "charts", "instrument", "limits", "regime", "panel", "ruolo", "muri", "nodi", "scala"):
         add(name)
+
+    # I DISEGNI del chart (rettangoli, profili, linee). Sono dello strumento e ogni chart ne tiene
+    # una copia: `--togli` cancella quelli di un tipo SOLO dal chart indicato.
+    disegni = add("disegni")
+    disegni.add_argument("--togli", metavar="TIPO", help="cancella dal chart i disegni di questo tipo, "
+                                                         "per esempio CustomHistogramm o RectangleObj")
+
+    # L'INTERFACCIA di ATAS, letta e comandata da dentro il processo: tab, view model, tipi caricati.
+    ui = add("ui")
+    quale = ui.add_mutually_exclusive_group()
+    quale.add_argument("--tab", help="seleziona la tab: numero da 1, o inizio del titolo")
+    quale.add_argument("--vm", metavar="PERCORSO", help="proprieta' del view model principale lungo il "
+                                                        "percorso, per esempio '' o 'SelectedTab' o 'Tabs.2'")
+    quale.add_argument("--descrivi", metavar="TIPO", help="membri di un tipo caricato in ATAS, e chi lo implementa")
+    quale.add_argument("--filtro", help="controlli dell'interfaccia il cui tipo o testo contiene questa parola")
+    quale.add_argument("--ridai", metavar="HWND", help="rimette in primo piano questa finestra")
+    ui.add_argument("--davanti", action="store_true", help="con --tab: porta ATAS in primo piano")
+    ui.add_argument("--profondita", type=int, help="con --filtro: livelli di discesa, default 40")
+    ui.add_argument("--massimo", type=int, help="con --filtro: controlli restituiti, default 300")
 
     session = add("session")
     session.add_argument("--at", help="istante da interrogare, default adesso")
@@ -343,8 +368,16 @@ def main() -> None:
             payload = send(args.base, "/levels", "POST", {"chart": args.chart}, body)
         else:
             payload = get(args.base, "/levels", {"chart": args.chart})
-    elif args.command in ("health", "charts", "instrument", "limits", "regime", "panel"):
+    elif args.command in ("health", "charts", "instrument", "limits", "regime", "panel", "ruolo", "muri", "nodi", "scala"):
         payload = get(args.base, f"/{args.command}", {"chart": args.chart})
+    elif args.command == "disegni":
+        payload = get(args.base, "/disegni", {"chart": args.chart, "togli": args.togli})
+    elif args.command == "ui":
+        payload = get(args.base, "/ui", {
+            "chart": args.chart, "tab": args.tab, "davanti": "1" if args.davanti else None,
+            "vm": args.vm, "descrivi": args.descrivi, "filtro": args.filtro, "ridai": args.ridai,
+            "profondita": args.profondita, "massimo": args.massimo,
+        })
     elif args.command == "session":
         payload = get(args.base, "/session", {"chart": args.chart, "at": iso(parse_time(args.at)) if args.at else None})
     elif args.command == "rollovers":

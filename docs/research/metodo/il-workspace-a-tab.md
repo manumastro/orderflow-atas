@@ -1,7 +1,7 @@
 # Il Workspace A Tab: Una Responsabilita' Per Tab
 
-Dal 9 ottobre 2026 il workspace ATAS X e' **`Fabio NQ`**: quattro tab, ognuna con una cosa sola da
-dire, in ordine dal piu' lontano al piu' vicino. L'indicatore e' lo stesso dappertutto (**Fabio Data
+Dal 9 ottobre 2026 il workspace ATAS X **`Fabio workspace`** ha quattro tab, ognuna con una cosa
+sola da dire, in ordine dal piu' lontano al piu' vicino. L'indicatore e' lo stesso dappertutto (**Fabio Data
 Bridge**) e **sceglie da solo cosa disegnare dal timeframe del chart**.
 
 Stato: **strumento di lettura**. Non contiene regole operative.
@@ -64,6 +64,10 @@ chiaro, il POC in oro; VAH, POC e VAL come righe dalla novantesima barra, che e'
 Le barre Daily contengono **24 ore**: il composito comprende il globex. Si dichiara nel riquadro.
 Il profilo fisso di ATAS che stava sul Daily (dal 24 aprile, cinque mesi e mezzo) e' stato tolto.
 
+**Il POC sulle candele Daily e' delle 24 ore, quello della settimana della sola cassa.** Il 1 ottobre
+2026: 30.820 contro 30.634. L'8 ottobre il minimo, 30.792, tocca il primo e non il secondo: le due
+tab dicono cose diverse ed entrambe giuste. Per il metodo conta la cassa `[1 · 1:14:20]`.
+
 **Settimana.** Per ogni seduta cash, dalla piu' recente fino a `Sessions` (10): la gaussiana sulle
 barre della seduta, fasce da 5 punti, il valore piu' marcato; VAH e VAL tratteggiati e il POC
 pieno; sopra il massimo, giorno, valore, POC e **lo spostamento rispetto alla seduta prima**
@@ -97,7 +101,18 @@ quindi scriverci sopra mentre e' aperto non serve: se ne scrive uno nuovo accant
 `%APPDATA%\ATAS X\Workspaces2\`, e si apre da ATAS (Workspace, apri, `Fabio NQ`). Il vecchio resta
 come ritorno.
 
+**Com'e' andata davvero.** L'utente non ha aperto `Fabio NQ`: le quattro tab sono state applicate
+direttamente a **`Fabio workspace`**, ad ATAS chiuso, con un backup accanto (`Fabio workspace prima
+delle tab.aws`). E' il workspace in uso. Per controllarne il contenuto senza aprirlo:
+
+```bash
+python FabioOrderFlow/tools/workspace_a_tab.py --mostra "Fabio workspace"
+```
+
 ## Vedere Le Tab Da Script
+
+Tutto il modo in cui l'agente legge e comanda ATAS — dati, interfaccia, file, foto, e le regole di
+riservatezza delle foto — sta in [`come-l-agente-vede-e-comanda-atas.md`](come-l-agente-vede-e-comanda-atas.md). Qui il riassunto.
 
 ```bash
 python FabioOrderFlow/tools/foto_atas.py              # tutte le tab

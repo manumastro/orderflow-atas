@@ -71,10 +71,12 @@ public sealed partial class DataBridge
     private static readonly Color VuotoColore = Color.FromArgb(255, 176, 190, 197);
 
     /// <summary>Ricalcolo a ogni barra chiusa: il profilo di giorni cambia poco da un minuto all'altro.</summary>
-    private void AggiornaINodi()
+    /// <param name="sempre">Vero quando li chiede /nodi: si calcolano anche se sul chart sono spenti,
+    /// perche' l'agente deve poterli leggere (10 ottobre 2026).</param>
+    private void AggiornaINodi(bool sempre = false)
     {
         var ultimo = CurrentBar - 2;
-        if (!MostraNodi || ultimo < 1 || ultimo == _nodiBarra)
+        if ((!MostraNodi && !sempre) || ultimo < 1 || ultimo == _nodiBarra)
         {
             return;
         }
@@ -300,7 +302,7 @@ public sealed partial class DataBridge
 
     private object Nodi()
     {
-        AggiornaINodi();
+        AggiornaINodi(sempre: true);
         return new
         {
             schema = Schema,

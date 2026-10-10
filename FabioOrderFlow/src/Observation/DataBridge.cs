@@ -2246,7 +2246,8 @@ public sealed partial class DataBridge : Indicator
         endpoints = new[]
         {
             "/health", "/charts", "/instrument", "/limits", "/session", "/rollovers",
-            "/profile", "/candles", "/cumulative", "/depth",
+            "/profile", "/candles", "/cumulative", "/depth", "/levels", "/rules", "/regime", "/panel",
+            "/watch", "/muri", "/nodi", "/scala", "/ruolo", "/disegni", "/ui",
         },
     };
 

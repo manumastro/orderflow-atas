@@ -31,6 +31,7 @@ decisione la prenda una persona.
 | **Come si fa** una analisi, procedura per procedura | [`docs/research/metodo/indice-delle-procedure.md`](docs/research/metodo/indice-delle-procedure.md) |
 | **Cosa si guarda prima di rispondere**: il giro d'orizzonte e il quadro | [`docs/research/metodo/il-giro-d-orizzonte.md`](docs/research/metodo/il-giro-d-orizzonte.md) |
 | **Come si risponde dal vivo**: direzione, forma, livelli come porte, termini | [`docs/research/metodo/come-si-risponde-dal-vivo.md`](docs/research/metodo/come-si-risponde-dal-vivo.md) |
+| **Come l'agente legge e comanda ATAS**: dati, interfaccia, file del workspace, foto delle tab | [`docs/research/metodo/come-l-agente-vede-e-comanda-atas.md`](docs/research/metodo/come-l-agente-vede-e-comanda-atas.md) |
 | **Il workspace ATAS**: quattro tab, cosa mostra ciascuna e perche' | [`docs/research/metodo/il-workspace-a-tab.md`](docs/research/metodo/il-workspace-a-tab.md) |
 | **Chi calcola i livelli** e con quale vocabolario | [`docs/research/metodo/i-livelli-li-calcola-l-indicatore.md`](docs/research/metodo/i-livelli-li-calcola-l-indicatore.md) |
 | **Build e deploy**, e cosa un `git pull` non porta | [`docs/research/build-e-deploy.md`](docs/research/build-e-deploy.md) |

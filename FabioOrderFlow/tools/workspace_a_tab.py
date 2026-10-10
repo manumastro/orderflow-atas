@@ -21,14 +21,23 @@ timeframe giusto, e si spengono LVN e nodi (9 ottobre 2026, richiesta dell'utent
 Uso:
     python FabioOrderFlow/tools/workspace_a_tab.py                  # scrive "Fabio NQ.aws"
     python FabioOrderFlow/tools/workspace_a_tab.py --da "Fabio workspace" --nome "Fabio NQ"
+    python FabioOrderFlow/tools/workspace_a_tab.py --mostra "Fabio workspace"     # sola lettura
+    python FabioOrderFlow/tools/workspace_a_tab.py --ritocca "Fabio workspace" --aspetta
+
+--ritocca scrive sul file del workspace aperto, quindi si rifiuta se ATAS e' aperto: ATAS lo
+risalverebbe alla chiusura e la modifica andrebbe persa. Con --aspetta resta in attesa che ATAS si
+chiuda e la applica subito dopo.
 """
 from __future__ import annotations
 
 import argparse
+import collections
 import copy
 import json
 import os
+import subprocess
 import sys
+import time
 import uuid
 from pathlib import Path
 
@@ -116,15 +125,58 @@ def disegni(chart: dict, tieni_tipi: set[str]) -> None:
     ]
 
 
+def atas_aperto() -> bool:
+    """Vero se il processo di ATAS X (OFT.PlatformX.exe) e' in esecuzione."""
+    r = subprocess.run(["tasklist", "/FI", "IMAGENAME eq OFT.PlatformX.exe", "/NH"],
+                       capture_output=True, text=True, check=False)
+    return "oft.platformx.exe" in r.stdout.lower()
+
+
+def mostra(nome: str) -> int:
+    """Cosa c'e' nel workspace salvato: per ogni tab contratto, timeframe, indicatori con le
+    impostazioni che il workspace a tab cambia, profilo fisso e disegni. E' il file su disco, cioe'
+    il workspace com'era all'ultimo salvataggio di ATAS, non lo schermo di adesso."""
+    w = json.loads((CARTELLA / f"{nome}.aws").read_text(encoding="utf-8-sig"))
+    for t in w["Windows"][0]["Tabs"]:
+        item = t["Layout"]["Parameter"]["Item1"]
+        if item.get("Type") != "chart":
+            print(f"{t['Title']}: {item.get('Type')}")
+            continue
+        c = item["Parameter"]
+        pp = c["TimeFrame"]["PeriodParameters"]
+        fp = c.get("Template", {}).get("FixedProfile", {})
+        print(f"{t['Title']}: contratto {c.get('ContractId')}  {pp.get('VisualName')}  "
+              f"{c['TimeFrame'].get('CustomDaysCount')} giorni  profilo fisso "
+              f"{'acceso' if isinstance(fp, dict) and fp.get('Visible') else 'spento'}")
+        for _, ind in indicatori(c):
+            st = json.loads(ind.get("Settings") or "{}")
+            chiavi = {k: st[k] for k in ("Ruolo", "MostraLvn", "MostraNodi", "ShowWatch", "MinVol") if k in st}
+            print(f"    {tipo(ind)}  {chiavi if chiavi else ''}")
+        conta = collections.Counter(d["$type"].split(",")[0].split(".")[-1] for d in c.get("DrawingObjectses", []))
+        print(f"    disegni nel file: {dict(conta) if conta else 'nessuno'}")
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--da", default="Fabio workspace", help="workspace di partenza (non viene toccato)")
     ap.add_argument("--nome", default="Fabio NQ", help="nome del workspace nuovo")
     ap.add_argument("--ritocca", help="workspace gia' a tab da correggere sul posto (con ATAS chiuso): "
                                       "spegne il profilo fisso del template in ogni tab")
+    ap.add_argument("--aspetta", action="store_true", help="con --ritocca: aspetta che ATAS si chiuda")
+    ap.add_argument("--mostra", metavar="NOME", help="stampa cosa c'e' nel workspace salvato, senza toccarlo")
     a = ap.parse_args()
 
+    if a.mostra:
+        return mostra(a.mostra)
+
     if a.ritocca:
+        if atas_aperto() and not a.aspetta:
+            print("ATAS e' aperto: risalverebbe il workspace alla chiusura e la modifica andrebbe persa. "
+                  "Chiudilo, o rilancia con --aspetta.", file=sys.stderr)
+            return 2
+        while atas_aperto():
+            time.sleep(3)
         p = CARTELLA / f"{a.ritocca}.aws"
         w = json.loads(p.read_text(encoding="utf-8-sig"))
         for t in w["Windows"][0]["Tabs"]:

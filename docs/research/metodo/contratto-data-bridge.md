@@ -16,7 +16,14 @@ Le eccezioni sono due, e sono la stessa cosa a due stadi. `/rules` riceve **come
 
 ## Sicurezza
 
-Il listener e' legato a `127.0.0.1` e non e' raggiungibile dalla rete. Espone dati di mercato in sola lettura, con una sola superficie di scrittura: la lista dei livelli dell'istanza, che vive in memoria nell'indicatore. Nessun endpoint modifica lo stato della piattaforma, e nessuno tocca ordini o posizioni.
+Il listener e' legato a `127.0.0.1` e non e' raggiungibile dalla rete. **Nessun endpoint tocca ordini o posizioni.**
+
+Le superfici di scrittura sono due famiglie, e vanno tenute distinte:
+
+- **sull'indicatore**: `/levels`, `/rules`, `/watch` cambiano cio' che l'indicatore disegna sul suo chart. Si ripristinano ridepositando;
+- **sulla piattaforma**, dal 9-10 ottobre 2026: `/ui?tab=` seleziona una tab, `/ui?davanti=1` e `/ui?ridai=` cambiano la finestra in primo piano sullo schermo dell'utente, `/disegni?togli=` **cancella disegni** dal chart, e un disegno cancellato non torna.
+
+Cosa si chiede all'utente prima di usarle sta in [`come-l-agente-vede-e-comanda-atas.md`](come-l-agente-vede-e-comanda-atas.md).
 
 ## Endpoint
 
@@ -37,6 +44,11 @@ Il listener e' legato a `127.0.0.1` e non e' raggiungibile dalla rete. Espone da
 | `/panel` | `chart` | `GET`, sola lettura: **il pannello gia' composto**, riga per riga, come sta sul chart. Ogni riga ha `text`, `color` e `peso` (`veto`, `attenzione`, `a favore`, `contro`, `forte`, `normale`). Il campo `alLivello` porta le misure che sul chart stanno **a sinistra di ogni livello**: lotti, delta, tocchi, tiene/passa e big trades nella fascia di due tick, sul tratto di seduta in corso |
 | `/muri` | `chart` | `GET`, sola lettura: **i muri che l'indicatore trova da solo**, senza regole depositate. Ogni muro esce con le quattro prove superate — sforzo, pareggio, ritorni, asimmetria — e quando non ce n'e' nessuno, `motivo` dice quale prova e' fallita |
 | `/ruolo` | `chart` | `GET`, sola lettura: **il ruolo del chart** (composito, settimana, seduta, esecuzione, scelto dal timeframe) e cio' che disegna, in numeri: il composito di 90 giorni grezzo e aggiustato al rollover, le gaussiane delle sedute, o le zone della seduta. Vedi [`il-workspace-a-tab.md`](il-workspace-a-tab.md) |
+| `/watch` | `chart` | `GET` restituisce le righe depositate sul pannello, `POST`/`PUT` le sostituisce, `DELETE` le cancella. Persistono su file, per strumento |
+| `/nodi` | `chart` | `GET`, sola lettura: i nodi (prezzi costruiti) e i vuoti di cinque giorni, anche quando sul chart sono spenti |
+| `/scala` | `chart` | `GET`, sola lettura: la scala dello strumento (punti e lotti rispetto al NQ) e le soglie che ne derivano, in punti |
+| `/disegni` | `chart`, `togli` | senza `togli`, sola lettura: tutto cio' che espone l'oggetto dei disegni del chart, per reflection, compresi i disegni dell'utente. Con `togli=Tipo` **cancella** dal chart i disegni di quel tipo e dice quanti |
+| `/ui` | `chart`, `tab`, `davanti`, `vm`, `descrivi`, `filtro`, `profondita`, `massimo`, `ridai` | **l'interfaccia di ATAS letta da dentro**: `tab` seleziona una tab (numero da 1 o inizio del titolo) e restituisce le tab e la finestra in pixel; `davanti=1` porta ATAS in primo piano; `vm` legge il view model lungo un percorso; `descrivi` elenca i membri di un tipo caricato; `filtro` cerca nei controlli; `ridai` rimette in primo piano una finestra. Vedi [`come-l-agente-vede-e-comanda-atas.md`](come-l-agente-vede-e-comanda-atas.md) |
 | `/regime` | `chart` | `GET`, sola lettura: il **regime**, il **proxy** della velocita' e i **big trades**, come li misura l'indicatore a ogni barra. Ogni numero esce con la soglia che lo classifica accanto — una classificazione senza la sua regola non si contesta |
 
 ### Livelli
@@ -96,7 +108,13 @@ python3 FabioOrderFlow/tools/bridge.py candles --chart NQZ6 --from 2026-09-11 --
 python3 FabioOrderFlow/tools/bridge.py rollovers --from 2026-06-01 --to 2026-12-31
 python3 FabioOrderFlow/tools/bridge.py profile --period LastDay --out profile.json
 python3 FabioOrderFlow/tools/bridge.py cumulative --from 2026-09-04 --to 2026-09-11 --min-volume 50 --out big.json
+python3 FabioOrderFlow/tools/bridge.py ruolo --chart <id>
+python3 FabioOrderFlow/tools/bridge.py disegni --chart <id>
+python3 FabioOrderFlow/tools/bridge.py ui --chart <id> --vm SelectedTab
 ```
+
+Ogni endpoint ha il suo sottocomando, e `health` elenca gli endpoint che l'indicatore caricato
+espone davvero. La mappa "voglio sapere... uso..." sta in [`come-l-agente-vede-e-comanda-atas.md`](come-l-agente-vede-e-comanda-atas.md).
 
 ## I Vincoli Che Hanno Gia' Prodotto Errori
 
