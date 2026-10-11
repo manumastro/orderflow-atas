@@ -1,0 +1,1552 @@
+[0:00] I made more than 30 million euro for the bank. 90% 
+of institutional traders were going like in one
+[0:07] place to get their trading strategies ideas. The 
+place guys is the social science research network
+[0:14] and I want you guys that you steal this like steal 
+as much as you can because this one was something
+[0:19] that really impressed me when I started. He 
+traded over $15 billion in total volume at
+[0:26] one of Europe's largest banks. Introducing the 
+one and only Matteo [music] Conte. There is an
+[0:31] industry paper called VWOF, the holy grail of day 
+trading [music] systems. The fact that the vast
+[0:38] majority of institutional traders are using this 
+type of algo amplifies these directional moves.   While trading at the banks, Matteo ran over 400 
+plus strategies at one time. And in this episode,
+[0:48] he reveals the exact place that institutions find 
+their edges. And this is in a nutshell the big
+[0:55] difference between retail and institutional 
+trading. What is the pipeline every single
+[1:01] institutional traders follow? Every single trading 
+strategy needs to have these three boxes filled.
+[1:07] So you need to know why you're opening. You need 
+to know where to close. And a third condition is   having like these exact edges and strategies 
+have been used to get consistent prop firm
+[1:18] payouts [music] by moving towards automation. 
+Matteo reveals all of this and so much more in
+[1:23] this special episode of Chart Fanatics. Every 
+single institutional trader that I know at
+[1:29] least once if not every single day they send an 
+execution order to the market. They often use
+[1:36] I guess starting off like where should we begin? 
+What are we covering today? Yeah. So let me start
+[1:42] with um some facts like obviously uh I started 
+trading just like the majority of the people that
+[1:50] are watching is most likely like being 16 17 years 
+old wondering what trading actually is. How do
+[1:58] you trade like an institutional trader? But like 
+online is very hard to find proper information,
+[2:05] especially like fresh information straight 
+out of the trading floor. And um to get
+[2:12] to know what is the actual process, the step 
+that I went through was going to university,
+[2:18] studying 12, 14 hours a day because like it's 
+an extremely competitive type of job. So,
+[2:24] you really need to have top grades just to 
+book yourself an interview with banks or
+[2:31] hedge funds. And if you're lucky enough like I 
+was at the end of my five years of university,
+[2:38] I got a seat on the trading floor. Uh I joined 
+the bank in 2018 getting my own books in 2019
+[2:47] and since there like there's been a process 
+of learning how institutional traders actually
+[2:54] trade and it is very much different from what you 
+usually see online. Um the very first thing that I
+[3:01] want to say is that the first difference between 
+retail and institutional trading is that retail
+[3:13] chase trades. So all retail traders 
+go after trades. On the other end,
+[3:24] institutional traders go after 
+validated trading strategies
+[3:36] trading strategy. And this is in a nutshell the 
+big difference between retail institutional
+[3:47] trading. And this is as well the reason 
+why there is inconsistency between the   profitability of retail traders versus 
+like having institutional traders that
+[3:57] make money basically every single month. We 
+are going through what is the pipeline that
+[4:05] every single institutional traders 
+follow. Mhm. which so pipeline
+[4:16] and this pipeline starts from getting the 
+idea for a trading strategy. And this is
+[4:22] just the beginning of this long journey to end 
+up to actually having um our trading strategies
+[4:30] trading life because once we have the idea, 
+the next step is defining a set of rules.
+[4:39] This set of rules needs to be so specific that you   can feed it to a machine and to feed 
+it a machine it needs to be encoded.
+[4:54] Now I imagine at this point the audience might 
+be thinking oh two things. One is what's the
+[5:00] difference between chasing trades and validated 
+trading strategy? To them that might sound like   the same thing. Yeah. Well, chasing trades, you 
+might see like one of the usually like they point
+[5:11] at one specific setup. They say this is a setup 
+where like this uh can work out well for you,
+[5:17] can make you a lot of money 70% of the times, 
+right? But if you look for validated trading
+[5:24] strategies means that is a strategy that if you 
+apply it systematically every single time is
+[5:32] going to win 70% of the trades. Do you see the 
+difference? So more so rather than the idea of
+[5:39] a trade, it's actually validated with data 
+with actual specifics that you can look at   and go and have not certainty because don't 
+want to give across the wrong impression but
+[5:49] almost it's the closest thing you can probably 
+get to certainty within the markets. Yeah,   you can you can understand what are the 
+probabilities of success and this is the
+[5:58] main difference. It's not just about because 
+like a good strategy can have 70% win rate,
+[6:04] but if you only trades that strategy as a single 
+trade, it doesn't guarantee you that you're going
+[6:11] to be right that that you're going to be on 
+the right side of that trade in that specific
+[6:17] moment. On the end, if you apply that strategy 
+over 100 trades, statistically you will win
+[6:26] 70% of them. And this step of going from a set 
+of well- definfined rules to a piece of code,
+[6:33] it has been for a long time the biggest barrier 
+to entry for retail traders to start trading like
+[6:40] an institutional trader. Lucky for you guys uh 
+in 2023 something u magnificant happened which
+[6:49] was like having Chpt and the other large language 
+models going mstream which completely remove this
+[6:57] massive barrier to entry and now that you have the 
+ideas or you can get the ideas we will get there
+[7:06] where to get the ideas like an institutional 
+trader you will know shortly how to that the
+[7:12] rules that every single training strategy needs 
+to have, you can encode it leveraging the power
+[7:19] of your CHP code or your favorite large language 
+model. And then the next step is to back test.
+[7:32] So here what is back testing? Back 
+testing is taking your set of rules
+[7:38] and replaying history. So every time 
+your entry conditions were satisfied,
+[7:45] you would have like a simulated trade back 
+in time. And obviously you don't back test
+[7:51] it manually like I've seen doing it online 
+every now and then, but you leverage the fact
+[7:56] that you translated it into a piece of code to 
+just replay history. And this one is going to
+[8:02] give you one single equity curve which can be a 
+pricing then rising if the strategy is not good
+[8:11] enough. But as an output what you get out of it 
+is a set of statistics as we were saying that uh
+[8:20] can tell you if you are on the right path. Like 
+for example, if you have a positive net profit,
+[8:28] what is the win rate of your trading strategy 
+over the past let's say five years? Um what is
+[8:34] the average trade win? So how much your strategy 
+is winning every time you place a trade? What is
+[8:42] the draw down of your strategy? So which draw down 
+is the where draw down is the peak to valley of
+[8:51] your communive P&L when you have a rough batch 
+and all of these statistics are necessary to put
+[8:59] you in the map. However, this one is not the 
+last step because then we need to validate.
+[9:11] Can you read it? Yes, of course. Yes. Okay, the 
+validation is another extremely important step
+[9:18] in institutional trading and usually is divided 
+in two phases. One is the split test. Mhm. So
+[9:26] splitting your data between in sample and out 
+of sample. So in sample versus out of sample.
+[9:38] Why is this one important? This one is important 
+because when you work on your set of rules when
+[9:44] you are developing your trading strategy putting 
+code you should always work with in sample data.
+[9:50] So let's say that you have 10 years of data 
+here. You should purely focus like let's say
+[9:57] we split this data in 80% in sample and then you 
+have a remaining 20% out of sample in your in
+[10:09] sample data is where you're going to work on your 
+rules adding removing parameters fine-tuning the
+[10:14] parameters until you find a strategy that looks 
+like it's behaving correctly in sample. Yeah,
+[10:21] let's take a break for a minute there, guys, cuz 
+a quick word from our official platform sponsor,   Ninja Trader. If you've been following along on 
+this channel, you know how much time we spend
+[10:30] breaking down charts and market structure. And 
+Ninja Trader is an awardwinning futures trading
+[10:36] platform built for exactly that. You get advanced 
+charting, depth of market tools, and market replay
+[10:42] so you can work through historical sessions 
+and practice in a fully simulated environment,
+[10:48] all without risking real money. Here's how to get 
+started. If you're new to the platform, use the   link in the description below to download Ninja 
+Trader and explore it in the simulator. You get
+[10:59] two full weeks for free to test everything out. 
+And if you're already trading prop, choose Ninja
+[11:05] Trader as your platform at checkout. It's the 
+best platform for the job. So, go check it out and
+[11:12] let's get back to the episode. And afterwards you 
+feed the same rules like frozen in time to unseen
+[11:20] data. So that if your strategy is still performing 
+good out of sample means that you didn't overfit
+[11:29] it. Mhm. Because overfitting is when you add too 
+many rules or parameters just to make your equity
+[11:36] curve look nice in sample. But as you apply to 
+unseen data, you will see something like this,
+[11:42] like an equity curve that gets destroyed. And this 
+one is going to be the first one. If you have a
+[11:47] good result both in sample and out of sample, 
+it means that you didn't overfeit and there is
+[11:54] a high chance that your strategy will work well 
+with live data as well. And this one is really
+[12:01] to put it a very high level, we uh just to give a 
+little bit of context. And the second step is the
+[12:11] Monte Carlo analysis. Mhm. Monte Carlo analysis is 
+something that like when you look at the internet
+[12:17] looks extremely difficult to understand but uh 
+what is really about is just taking all the traits
+[12:24] of your back test and then either reshuffleling 
+the order of the traits which is what is known
+[12:31] as Monte Carlo reshuffle and basically like in 
+this way you create multiple version of the past
+[12:40] multiple equity parts so that you can understand 
+if your equity curve in your back test was looking
+[12:49] good just because of the sequence of trades or is 
+that because you really have an underlying edge
+[12:56] and the so let's just show let's say that this one 
+was the equity curve of your yeah the original one
+[13:09] and then you start changing the order of trades 
+right But you will always start from the same
+[13:14] point and you will always end up to the end 
+because the traits are always the same. However,
+[13:20] you the path to get there is going to be 
+different and then you repeat this process
+[13:29] basically thousands of times [snorts] and 
+the bigger is the dispersion from the top
+[13:35] equity line to the bottom or the weakest is your 
+edge. Yeah. on the dread like when you see that
+[13:43] reshuffleling the order of the trades you have 
+a very tight distribution around the average it
+[13:53] means that no matter what is the order to which 
+your trades took place you still were going to
+[14:00] have a nice tight distribution of the outcomes 
+you're showing the edge is very strong exactly   regardless of how the trades are shuffled 
+so when we say shuffled to for the audience
+[14:10] in terms of that it's not changing the strategy 
+or anything. It's literally a case of let's say   the original uh data was a thousand trades and 
+of those thousand trades like the average losing
+[14:22] streak let's say was seven and the average 
+winning streak was five but it shows you the   peaks as well. So the peak losing you know number 
+of losing trades in a row was 15 in the original
+[14:32] test and then the most wins in a row was 15 just 
+for example random numbers. But then the the
+[14:39] reshuffle was essentially putting all those trades 
+into a random order and it might be a case where
+[14:44] you know the the peak losing number of trades in 
+a row was now 45. Exactly. And therefore you know
+[14:50] to your point the further that's how when the 
+further away those lines will get. Exactly. uh
+[14:56] which means then the edge is maybe isn't as strong 
+versus let's say if that number was 16 instead of
+[15:01] 15 on on the reshaw or 14 that's when they're 
+going to be closer together. So showing you   that regardless of how that data is redistributed 
+and all those trades are mixed up it's actually
+[15:11] seeing a consistent data. Yeah 100%. And this one 
+like I really like the reshuffle because it's like
+[15:17] something very simple that literally doesn't 
+require a lot of computing power but already
+[15:24] like helps you to visualize like how dependent 
+were you to that order of trades and gives you a
+[15:31] first idea of the distribution of possible draw 
+downs because like this the second uh um common
+[15:38] version of the Monte Carlo is the bootstrapping 
+and resampling. So, which is the classic
+[15:49] spaghetti charts. I'm not saying because 
+I'm Italian, but it's like it is the classic
+[15:54] spaghetti charts, right? Where you have multiple 
+equity lines. And um the difference between the
+[16:05] uh reshuffling and the resampling is that the 
+ending point of the equity curve it is different.
+[16:12] Right? And the reason why is that is because you 
+don't simply just reshuffle the trades but some
+[16:18] of the trades appears twice. So they can appear 
+multiple times. Some others don't appear at all.
+[16:25] And that's how you reproduce multiple version 
+10,000 20,000 simulations of the past. So that's
+[16:33] where it comes back to your validation. So it's 
+not just a trading strategy, an idea is then   validated through these stress tests if you will. 
+Correct. And what is cool as well is that on top
+[16:44] of that doing something like this type of Monte 
+Carlo you do get as an output like a distribution
+[16:53] of outcomes. So like you can understand what 
+is the expected profit of the strategy? What is
+[17:03] the expected return if I run this strategy 20,000 
+times? What is the probability of getting a draw
+[17:13] down larger than $10,000? Mhm. And all of that 
+all these possible scenarios they are given by the
+[17:23] distribution of outcomes of the simulation which 
+can be used as well like during live trading for
+[17:30] example if I know that after 10 trades okay after 
+10 trades I should expect as maximum draw down
+[17:44] $10,000 if If I see that there was only a 5% 
+probability of getting a draw down larger than
+[17:53] $10,000, like that one would be 
+a red flag for me saying, "Okay,   maybe I need to step back and stop the strategy 
+because it's very unlikely that after 10 trades,
+[18:02] I get a larger draw down than $10,000." And 
+all of these are yard sticks that are provided
+[18:09] by this validation phase that you can use to 
+give you awareness while you're trading live.
+[18:17] And once all of these steps are completed, so 
+you checked that you didn't overfeit it with
+[18:26] uh where the simplest version is running like 
+a comparison between insample results versus
+[18:31] out of sample. You did your Monte Carlo to 
+see how strong your edge actually is running
+[18:39] 10,000 20,000 simulation. Only at that point 
+we reach the final phase which is live trading.
+[18:53] And note that with live trading is not 
+that distution trader sits in front of
+[19:00] the monitors waiting for the entry conditions 
+to be satisfied. Just like as we did like we
+[19:07] encoded the strategy. So like the live 
+trading is actually all about automation
+[19:16] where you still leverage your machine to just 
+monitor the data that are fed to it and every
+[19:25] time that your conditions are met opening 
+or closing your position on your behalf.   So at that point like the question might be like 
+so all this work to have your machine trading and
+[19:37] indeed like what is your job right like your 
+job as an institutional trader it is doing
+[19:43] this research to make sure that the strategies 
+that you're trading live they do have a positive
+[19:51] expected returns they do have a positive value 
+they most likely than not they're going to
+[19:56] have a positive P&L at the end of the Okay. And 
+your job is only one monitoring the performance
+[20:10] and two monitoring the risk. So this is what 
+you're doing while you're trading strategy are
+[20:17] trading live. And given the fact that they 
+are automated, you can go back and restart
+[20:23] this process of going from trading strategy idea 
+rules and code back test validation and eventually
+[20:31] having the strategy trading life. Futures traders, 
+it's time to hear about Apex Trader Funding,
+[20:37] the largest futures firm in the industry. 
+They have completely changed the game with
+[20:42] their new evaluations. So far, they've already 
+paid out over $600 million to traders around
+[20:48] the world [music] just like me and you. Now, 
+not only that, Apex actually holds the record
+[20:54] for the largest payout to traders, which is 
+of course with Jadecap, no stranger to chart
+[21:00] fanatics [music] with $2.5 million in a single 
+payout. And the person before that was Trader
+[21:05] Kane with $2 million in payouts. Now, what sets 
+Apex apart? Apex, you can get up to 20 accounts
+[21:13] which no other firm offers. Now, not only that, 
+they have extremely clear rules with their revamp.
+[21:21] There's no MAE rule, no 5:1 risk-to-reward rule, 
+no hidden rules, no gray areas, clearly defined
+[21:28] draw down models. So, you have two options now. 
+end of day draw down and intraday trailing draw
+[21:34] down which means no payout denials, no payout 
+reviews, no discretionary decisions and no
+[21:41] surprises. What sets them apart as well? Traders 
+receive 100% of approved payout requests up to 20
+[21:48] accounts as I mentioned and one day to pass. Now 
+the other thing that I love about Apex, not only
+[21:53] can you get 20 accounts, but there's different 
+account sizes. So they have 20k accounts all the
+[21:58] way to 150k accounts. So you can get 20 of any of 
+the account sizes that you choose. Not only that,
+[22:06] you have various trading platforms from wealth 
+charts to trade of to rhythmic. The choice is
+[22:13] yours. So make sure you use the code CF [music] to 
+get up to 90% off on evaluations right now using
+[22:22] the link in the description below. Trader Apex 
+today. Let's get back to the episode. Look at
+[22:28] this. Like usually the re classic retail traders 
+like just as the idea and trades live with real
+[22:38] money the idea right after on the other end like 
+as an institutional trader you need to follow this
+[22:46] pipeline. Yes. And once you have a strategy that 
+has been validated, that is proven that can make
+[22:54] you money in the future, you finally trade it 
+live. So this as you to your point, like most
+[22:59] people will learn an idea maybe from a YouTube 
+video or just generally from some somewhere. Very
+[23:05] rare nowadays that people are coming up with 
+their own ideas, but that's possible too. And   but straight away from there, they're looking at 
+uh going live most of the time. At most someone
+[23:15] might create a few rules. Someone might you know 
+back test a tiny bit but you know not the level of
+[23:20] detail that is necessary to really have confidence 
+and edge within the markets. In terms of the first
+[23:27] two which I know we're going to focus on like 
+the idea generation and rules but when it comes   to the idea generation and those rules um and 
+then getting encoded. So then the encoding side
+[23:37] of things is where again as you mentioned that 
+language models can you really help with that
+[23:42] for the average retail trader. But in terms 
+of that from that point on a lot of like the
+[23:48] back test side of things is automated. Obviously 
+you're you know giving the inputs to make it all
+[23:54] happen but the back testing and the validation 
+that's all an automated like being done for you   process to give you that data for you to review. 
+Is that correct? Yeah correct. like uh that that's
+[24:04] the big advantage. Like nowadays even the average 
+retail trader has access to so many welldesigned
+[24:12] tools that allow you to run back test and run like 
+simulations. My favorite one I'm not affiliated or
+[24:22] anything like that but my favorite one personally 
+is multi charts because like the programming
+[24:27] language is extremely simple. It's very easy to 
+understand what the code is doing which is key to
+[24:33] understand what you're doing if you want to make 
+money in the market as an institutional trader and
+[24:38] then like the back testing infrastructure is 
+very solid. So you can rely on the back test.
+[24:46] you have the possibility of run um simulations 
+using your back test like classic Monte Carlos and
+[24:57] really like is not a matter that you as a retail 
+trader you don't have the tools it is a matter
+[25:02] of really like having access to this process 
+getting to know which are the steps and the
+[25:09] boxes that you need to check before trading your 
+strategy life and you say that I I love that you
+[25:16] said that it is nowadays is harder that retail 
+traders come up with their ideas. uh because
+[25:23] um today I really want to focus on the first two 
+steps like uh where do the idea comes from as an
+[25:30] institutional trader and I want you guys that you 
+steal this like steal as much as you can because
+[25:36] uh this one was something that um really impressed 
+me when I started that uh so many institutional
+[25:42] traders were going like in one place to get their 
+trading strategies ideas. The place guys is the
+[25:49] social science research network. interest. Okay. 
+Why does this matter? Because 90% of institutional
+[26:00] trading strategies or strategies applied by 
+institutional traders on any single trading
+[26:06] floor are coming from research papers. Mh. And 
+uh the feedbacks that I got like when I started
+[26:14] like this journey of showing like the behind the 
+curtains obviously social trading to the broader
+[26:20] public was that yeah but you cannot use research 
+paper because it's hard to read them or like the
+[26:27] edge is already decayed. Fair enough. But you 
+don't copy the paper. You look at its findings and
+[26:35] you look for the underlying reason. the why that 
+strategy can make you or is supposed to make you
+[26:42] money in the future only triggers the idea that 
+allows you to frame the rules for your trading
+[26:49] strategy and this is very important I will write 
+it down that the goal is you don't copy the paper
+[27:05] but what you do is analyzing the findings
+[27:16] and you look for the why, the reason why
+[27:22] your strategy is supposed to 
+make you money in the future.   Um I brought you four examples that uh I thought 
+was a good like exercise to go from research paper
+[27:36] to an actual testable strategy. Mhm. Uh which we 
+can cover one by one. So let's write it down again
+[27:43] that 90 to 95% of the trading strategies ideas for 
+institutional traders are coming from research.
+[28:00] And in particular like there is two types of 
+research. There is academic research. Mhm. which
+[28:08] is research conducted by university professors 
+or researchers within the academia or industry
+[28:22] which might be hedge fund managers or traders 
+which conduct some specific research around
+[28:29] trading strategies like momentum 
+mean reversion or strategies on gold.   um all of that and they publish them online. 
+Website like the social science research
+[28:42] network is like this giant collection of 
+all this research which is 100% for free
+[28:49] where anyone can just go and their job is to 
+dig and trying to find something interesting.
+[28:57] M again it's not a matter of reading 40 
+pages because just like for the encoding
+[29:04] you can leverage your machine leverage the 
+help of large language models to crack this
+[29:12] uh these uh papers trying to understand okay what 
+is this research about what are the findings why
+[29:19] is it supposed to make money you don't copy the 
+research one to one but it is an extreme important
+[29:27] starting point to define your trading 
+strategies rules. Which are the rules?
+[29:35] Let's move there and then let's have a look 
+at the examples. Every single trading strategy
+[29:43] needs to have three things. Mhm. An entry. So 
+the conditions on why you should open a position,
+[29:54] an exit, why you should close the position after 
+it has been open. Mhm. And position sizing.
+[30:08] Every single trading strategy needs to have needs 
+to have these three boxes filled. So you need to
+[30:15] know why you're opening. You need to know where 
+to close and generally is having a take profit
+[30:22] stop-loss. And a third condition, one that 
+I find very often across trading strategies
+[30:31] is having like an exit linked to time. So, for 
+example, closing a position after 1 hour or at
+[30:39] a specific point in time like 3 p.m. And this one 
+is satisfied if you don't hit your take profit nor
+[30:48] your stop-loss. Okay. And the third component, 
+position sizing, which is something that I feel
+[30:55] like is not discussed enough across uh uh retail 
+traders because it's really like knowing how you
+[31:03] size your trading strategy, your position can 
+make a huge difference in both reducing the
+[31:10] risk of blowing up your account. Yeah. And 
+uh improve the risk adjusted return of your
+[31:16] trading strategy. We will have a look at some very 
+simple examples on that one as well. Tradzella is
+[31:22] the all-in-one platform built to turn you into a 
+profitable trader. And at the center of it is an   AI co-pilot [music] that does the heavy lifting 
+for you. It watches every session. It learns
+[31:32] exactly how you trade and your strengths and 
+your weaknesses, the patterns you keep repeating
+[31:38] without even knowing it. And it tells you in 
+plain language what's working [music] and what   needs to change. The moment you close a trade, 
+your AI captures it automatically. Fully sync to
+[31:47] your broker or prop firm. Zero manual entry. You 
+can replay any trade tick by tick, pip by pip,
+[31:54] to see the full picture. Back test your strategy 
+on years of real data before you ever put up real
+[32:00] money behind it. Your AI co-pilot ties all of 
+it together, surfacing insights you'd never find
+[32:06] on your own and guiding every decision you make 
+going forward. Hundreds of thousands of traders,
+[32:12] one AI powered platform, [music] real lasting 
+results. Now, if you want that AI co-pilot and see
+[32:18] your trading excel, the link for Tradzella is in 
+the description below. Use the code CF20 for 20%
+[32:25] off your yearly subscription or CF10 for 10% off 
+your monthly subscription. If you're a trader, you
+[32:31] have to know about Chart Academy. Chart Academy 
+is the first all-in-one free trading education
+[32:37] platform. That's right, absolutely free. No catch, 
+no upsells, no links to sell you something. All
+[32:43] free. proven world-class traders providing an A to 
+Z masterclass on their strategies, their concepts,
+[32:50] and their processes that make them the best. 
+From futures, options, crypto, stocks, and forex,
+[32:56] everything is covered on chartacademy.com. Whether 
+you want to fix your trading psychology or learn
+[33:01] from a market wizard directly, you can do it all 
+on Chart Academy. Not only that, by just spending
+[33:07] time on Chart Academy and bettering yourself as a 
+trader, you can get points that unlock exclusive
+[33:12] discounts, free trials, and free accounts with 
+your favorite prop firms and trading softwares.
+[33:18] Don't take my word for it. Chart Academy is 
+live. The link is in the description below. Now,   let's get back to the episode. But now that we 
+have all of this, now that we know that the rules
+[33:28] needs to have an entry, exit position sizing, we 
+need to have a reason why our strategy is supposed
+[33:36] to make us money. We can move forward and have a 
+look at the first example. Definitely. Let's do
+[33:41] that. Should we do that? Yeah, sure. So, let's 
+start from the first paper. And the idea here,
+[33:47] I really want to show you how to go from a 
+research paper to an actual tradable strategy.
+[33:54] So let's start from the first paper 
+which is market intraday momentum.
+[34:03] So market intraday
+[34:11] momentum
+[34:17] and this one is a paper from 2018 a paper that you 
+can find on the social science research network
+[34:25] 100% for free and the reason why I wanted to take 
+this one as first example is because at the end of
+[34:32] this example You should be able to understand why 
+one of the most popular retail trading strategies,
+[34:39] the opening range breakout actually worked 
+so well over the past six years. As I said,
+[34:48] like the first thing that we need to know 
+about any single paper is the findings
+[34:59] and the why. why this strategy 
+is working, why they found these
+[35:06] specific findings within the paper. So the 
+findings of this paper is that overnight gap
+[35:21] plus the first 30 minutes of trading from 9:30 to 
+10:00 a.m. It reveals the imbalance between buyers
+[35:32] and sellers and it predicts the performance of 
+the last 30 minutes of the regular trading hour.
+[35:42] What does it mean? It means that if you had a 
+return a positive returns between 4 p.m. to 10,
+[35:50] you should have a positive return even in the 
+last 30 minutes of trading. This is what they
+[35:56] analyzed in the paper. This is the finding 
+of the paper. This is true. And then you need   to ask yourself, okay, but why? The reason 
+why is because after the market is closed,
+[36:08] there is all a new set of information 
+that gets released. Yeah. Like uh news,
+[36:13] earnings, global positioning. 
+Mhm. So news plus earnings
+[36:26] plus global positioning
+[36:32] which creates all of these orders 
+between buyers and sellers and these
+[36:39] orders collides in the first 30 minutes 
+of trading revealing the imbalance. Yeah.
+[36:55] And this imbalance if there is a lot of buyers 
+over sellers the market is not able to digest it
+[37:05] just in the first 30 minutes and this imbalance 
+is carried on in the remaining part of the day
+[37:11] and that's why you have an intraday momentum. 
+Yes. Is it clear? Yeah. Yeah. And uh now that
+[37:18] we know the findings, we know what they did 
+like okay you check what is the performance
+[37:24] in the first 30 minutes if there is more buyers 
+more sellers and that one allows you to predict
+[37:31] the last 30 minutes. You might be tempted to 
+try to develop a strategy taking the entry,
+[37:41] the exit, and the position sizing of 
+the strategy and replicate it. But if
+[37:47] you try to replicate it, you're going to 
+have a very nice equity curve up to 2018
+[37:57] followed by a very poor equity curve because you 
+would be victim of the alpha decay. Yes. However,
+[38:05] we don't copy the paper. But we can take the 
+fact that the imbalance gets revealed a finding
+[38:13] that they have in the first 30 minutes of 
+trading setting up an entry of a classic
+[38:21] opening range breakout. But now we know why it 
+is supposed to work because overnight there is
+[38:26] all the set of informations and not all the 
+players all the market participants are going
+[38:32] to trade until the market is open. Yeah. And 
+we can say that entry condition open a long
+[38:44] if the price
+[38:49] closes above the high of the range between 
+9:30 and 10:00 a.m. Right. If the price
+[38:57] closes above the high of the range, we open 
+a long position. Mhm. Exit. You could say
+[39:05] for the long the same like putting 
+a stop loss at the low of the range.
+[39:14] So would be somewhere down 
+here. Right. So here we have our
+[39:22] stop loss and for the takerit a classic reward to 
+risk ratio either between one or two. Okay,
+[39:39] this needs to stay simple because we need 
+to have the control over what we're doing.
+[39:49] take profit. Let's say we have here the eye of the 
+range. So would be let's say if we take one to one
+[39:56] the TP would be up here. Mhm. And we know that 
+we are going to open a position only if the price
+[40:05] will reach or will close above the high of this 
+specific range. And we can add even an additional
+[40:14] condition like closing the position if we don't 
+hit nor the stop loss nor the take profit let's
+[40:21] say at 3:30 Eastern time. So a very simple set of 
+rules but very well defined. Yeah. That allows us
+[40:31] to translate it into a tradable trading strategy. 
+Last one that is missing is position sizing. Yeah.
+[40:39] What I always suggest during the development phase 
+is to use a fixed amount of contracts of one. Why?
+[40:47] Because makes it simple to develop the strategy. 
+However, this is not what I would suggest to trade
+[40:54] live. Because when you have a fixed amount of 
+contracts like one, if you have a very wide range,
+[41:03] Yeah. So high volatile days like you're going 
+to put at risk something like $30,000. Yeah. On
+[41:09] the end in narrow days you're going only going 
+to put at risk let's say $1,000 and academia
+[41:17] research again with the two very important papers 
+and this is something like it is done so often on
+[41:25] the trading floor is to make your position sizing 
+conditional to the volatility of the instrument.
+[41:32] Yes. The two papers I'm talking about is 
+volatility managed portfolios and the second one
+[41:38] is the impact of volatility targeting. What is the 
+volatility targeting? Volatility targeting is to
+[41:45] have your position sizing where you always put at 
+risk the same amount of money. Let's say $10,000
+[41:54] per trade. Mhm. [clears throat] But the amount of 
+contracts that you're going to trade with is going
+[42:02] to be based on the volatility of the underlying. 
+So like if you have a very wide range. Yeah. So
+[42:09] a highly volatile day, you're going to use a 
+lower number of contracts still risking 10,000.
+[42:17] Yes. Okay. M on that trend like if you have low 
+volatility day with a very narrow range you still
+[42:24] put at risk $10,000 betting or like trading with 
+a higher number of contracts. And in this way, you
+[42:32] don't have that highly volatile days are going to 
+dictate the outcome of your trading strategy, but
+[42:38] overall, they're going to smooth out the outcome 
+of your trading strategy, improving by definition,
+[42:46] the risk adjusted performance of your trading 
+strategy. And this is like something like that is
+[42:51] never discussed across uh retail traders but it's 
+such a small simple change that can highly impact
+[42:59] the performance of your trading strategy. And this 
+one is just one version of the strategy. But given
+[43:04] the fact that right now we're just brainstorming 
+on what is the right strategy that we should test.
+[43:10] We could have a version where we have a short 
+version. So to go short if we break the low of
+[43:16] the range. Yes. However, this one I tell it from 
+the experience is that when you develop a strategy
+[43:24] based on the imbalance between buyers and sellers 
+in the first 30 minutes, that's works better on
+[43:33] long go only strategies because once you start 
+breaking down the level, yeah, you have a lot of
+[43:40] buyers stepping in, removing that imbalance so 
+easily on the trend like on trending case like
+[43:48] it's hard that more buyers steps in and you have 
+this drifting effect making this strategy fairly
+[43:55] effective. Mhm. We didn't copy the paper. It's 
+not that just because the paper saw that uh we if
+[44:02] we have a good performance in the first 30 minutes 
+we're going to be long in the last 30 minutes. But
+[44:09] we took the concept of taking this imbalance gets 
+reveals itself in the first 30 minutes to start
+[44:16] defining properly the rules of a strategy that 
+we can actually translate into a piece of code.
+[44:23] Mhm. And that's like key on this process of going 
+from research to a testable strategy because now
+[44:34] like even if you're trading from home an opening 
+range breakout now you know that the reason why
+[44:40] your breakout is actually has been working fairly 
+well over the past five years six years and not
+[44:46] that this paper is from 2018 like it is because 
+you have informations accumulating overnight
+[44:53] Yeah. Imbalance revealing in the first 30 minutes 
+and that's what is pushing the price in your
+[44:59] direction. So now you start getting like more 
+knowledge, more awareness around the why your
+[45:07] strategy should work and the why you're doing 
+what you're doing. Mhm. This is what I really
+[45:14] find fascinating about this process of justifying 
+what you're doing based on leveraging the work of
+[45:20] people that are much smarter than you at the 
+spent. So, well, they say like your why is so   important, right? And just in life, let alone in 
+terms of trading like knowing why you're putting
+[45:30] a strategy to use or why you're planning to 
+trade a strategy is so important. You know,
+[45:36] like you said originally, a lot of people have 
+maybe an idea, but usually that idea is just   something they found, you know, come across and 
+there's no validation, no trying. But this is
+[45:45] not only got a thesis behind it like an actual 
+academic thesis but taking the understanding of
+[45:51] what that's representing as you mentioned you know 
+with the uh overnight action and all these orders
+[45:57] and participants waiting to step in and because 
+they're waiting that then creates as you say an   imbalance in price and our job a lot of the time 
+in terms of edge and profitability is because you
+[46:07] notice an imbalance in price and so you know it's 
+showing you that full process step by step as you
+[46:12] say and [snorts] as you say the opening range 
+breakout is very popular. I'd say over recent   years in particular. But one thing that is cool 
+about um this and over opening range breakout like
+[46:23] in general is that they are part of a structural 
+limitation of the financial world in a way that
+[46:30] there is so many players that are only allowed 
+to trade after 9:30 Eastern time. And that's why
+[46:38] they don't place orders before because they can't 
+because if they were allowed to place the order
+[46:45] before like this market anomaly the fact that 
+there is like the reveal of this imbalance in
+[46:53] the first 30 minutes would disappear. So knowing 
+why it is working like let's say things changes
+[46:59] and this uh usage fund or some pension funds they 
+start trading after or like before 9:30 a.m. the
+[47:12] effect of this one might disappears and knowing 
+that it's working because of that they lose that   inefficiency. Exactly. M so like uh gives you a 
+complete different perspective over what you're
+[47:23] doing and why you're doing and why you're making 
+the money. Next example. Do you have any other
+[47:29] question on this? No no this one this one makes 
+sense 100%. you know, like I said, because it's
+[47:34] a a very widely used strategy, maybe not properly 
+tested or data collected, but um that's I guess
+[47:42] one of the interesting things is that yeah, 
+like uh if it's a if it is a validated strategy
+[47:49] um even if you didn't I guess that's a strange 
+one, right? Maybe an idea is validated not by you,
+[47:55] but someone's obviously validated it to be be able 
+to publish or someone potentially has validated
+[48:01] it, but you're just using the idea of it. Uh 
+just the concept that you've learned online,
+[48:07] you could still be profitable, but you might 
+not have the confidence that you need. Yeah.   Exactly. Long long term. Exactly. Like if you on 
+top of that like you get the confidence over what
+[48:18] you're doing like it changes your perspective on 
+trading completely because like you might get like
+[48:25] let's say we develop the strategy. By the way guys 
+the academia is saying that the first 30 minutes
+[48:32] are the range that is optimal to take advantage 
+of for any opening range breakout. Yeah. So and
+[48:40] that one is like it's not monte they saying that 
+I invite you to develop a strategy based on the
+[48:46] rules that we discussed before to confirm that 
+obviously the long only type of strategy works
+[48:52] better and it's not just a matter because of 
+the beta of the market that obviously if you
+[48:57] have long strategies and the market is just going 
+higher you get a better performance because that
+[49:04] strategy performed well even in 2022 when the 
+market was bleeding and the other thing is like
+[49:09] the risk toreward ratio to use is one one or one 
+to2 like that one is like the optimal that you can
+[49:19] find for for this strategy yeah for this strategy 
+for academia but again the the the goal is to gain
+[49:26] the independence of going and testing it yourself 
+like trying to get the idea frame it with entry
+[49:39] exit and position sizing and then use large 
+language models to get versions of your strategy
+[49:47] and try to test it yourself because then like 
+you gain independence from anyone like you can
+[49:53] go on the social science research network. Spend 
+the full day finding all the strategies that do
+[49:59] you want testing as many strategies as you want 
+and if you keep digging you find gold. Of course
+[50:05] that's how this game works. not only at home like 
+in every single trading floor on earth. The second
+[50:13] strategy or better the second paper I wanted to 
+still be somehow close to something that is still
+[50:22] understandable across all the retail traders 
+which is a paper from the industry this time.
+[50:33] So the previous one was purely 
+academic. Mhm. This one there is   an industry paper called VWOP, the 
+holy grail of day trading systems.
+[50:49] The biggest difference between this one 
+and the other one again is that this one   is based on research and there 
+is a beauty in that as well like
+[51:02] is very practical. Mhm. Because 
+you have the price, right?
+[51:11] So we have our price and our time and 
+from the price and the trading activity
+[51:18] at any given point in time you can get the 
+VWOP which is the volume weighted average
+[51:24] price. Yes. Say differently, the VWOP is 
+the average price of everything traded
+[51:40] up to any specific point weighted by the volume. 
+Mhm. Is it clear? Yes. Yes. Cool. So this one is
+[51:50] our VWOP and this one is our price or the stock 
+or of the index. Again we need to go back to which
+[52:02] were the findings of the paper and we will need 
+the why. The findings of the paper was that if
+[52:12] you go long when the price is above the VWOP and 
+you go short when the price is below the VWOP,
+[52:26] closing the position when the price crosses 
+back the VWOP. So as exit we will have and
+[52:35] we will repeat this later but as exit we will 
+have that when the price is equal the VW whoop
+[52:43] we close the position we can get 
+very good returns like we can get
+[52:48] systematically good returns and what 
+the research that they did was on QQQ
+[52:55] which is an exchange traded fund. Mhm. 
+tracking the performance of NASDAQ 100
+[53:07] and they used a time frame of 1 minute. So 
+instrument they use QQQ on a one minute time
+[53:15] frame. Every time that a one minute bar was 
+closing above the VWOP was getting longer and
+[53:25] they were closing the position when the price was 
+closing back below the VWOP. Yeah, exactly. With
+[53:31] the VWOP. So exit the position. Let's put it with 
+a and the same like going short on the flip. Yeah,
+[53:40] exactly. on the flip when um one minute bar 
+was closing below the VWOP and closing the
+[53:48] position. This one would have been actually a 
+losing trade but closing the position when it
+[53:54] was crossing back to the to the VWOP line. 
+The returns that the fund was actually like
+[54:02] quite impressive. You can find it in the paper. 
+Something like in the order of 671% over 5 years.
+[54:10] But we need to go beyond the headlines. We don't 
+care about the headlines. What we care is like
+[54:15] understanding what they've been doing and why. Why 
+is it possible that when the price crosses below
+[54:24] or above, we have like these directional moves 
+that allow them to generate 600% over five years.
+[54:33] The reason why is behind the VWOP Argos.
+[54:43] So every single institutional traders that 
+I know at least once if not every single day
+[54:50] they send an execution algorith or they send 
+an execution order to the market. They often
+[54:56] use VWOP algos which is a type of algorithm that 
+tries to track and get the same execution or as
+[55:04] close as possible to the VWOP price. Yes. Okay. 
+So it's like a so it is a volume participation
+[55:12] algo. If there is a lot of volume traded at a 
+specific point, the algo will send more orders
+[55:19] at that specific point in time and that one 
+causes some heavy directional moves because
+[55:25] you have a lot of buyers or a lot of sellers that 
+try to track the VO price and in the moment like
+[55:35] you have this crosses between above or below the 
+view price. The fact that the vast majority of
+[55:42] institutional traders are using this type of algo 
+creates like amplifies these directional moves. So
+[55:48] now we know that it might make sense to follow a 
+logic that is related to this um uh vivop logic.
+[55:57] They did the research. They already tested a 
+strategy a version of a strategy using a one
+[56:02] minute time frame. Yes. So we could do exactly 
+the same. What I would change as first thing
+[56:12] to get a little bit of context and a little bit 
+of different ideas is that we don't need to deploy
+[56:17] the same strategy on QQQ but we could might decide 
+to test the strategy of ENQ so NASDAQ 100 futures
+[56:27] if we want to use the same underlying so NASDAQ 
+100 but you could test it you could test the same
+[56:33] on ES you could so S&P 500 future You could test 
+the same on crude oil. You could test the same on
+[56:41] single stocks. Like again, you're writing the code 
+once and then you can apply that code to whatever
+[56:47] instrument you want, right? As long as you know 
+that you have institutional traders using this
+[56:52] specific algos on that instrument. Yeah, like 
+this logic is supposed to work across all the
+[56:58] instruments, right? This is the first important 
+takeaway. And then like obviously you need to
+[57:04] define your entry. So again it's going to be 
+to go long when the price closes above the VWOP
+[57:18] to go short when the price closes below the 
+VWOP. Mhm. exit. We can decide to simply have
+[57:33] one exit condition. I'm guessing the VWAP is uh 
+plotted on from the open. Yeah. Yeah. That one is
+[57:42] another thing that you might decide like you can 
+decide to use uh the VWOP from the open or you can
+[57:49] decide to use the previous day VWOP incorporate 
+as well. Those are like the type of parameters
+[57:55] that is up to you to use. What I strongly suggest 
+is to use it from the open. Okay? So to start uh
+[58:03] uh considering like tracking from 9:30 a.m. If 
+you're trading US or some markets here in Europe
+[58:11] like starting tracking from 9 and then like uh 
+after you get some data in start like checking
+[58:19] what is the good uh level at which uh um or better 
+and and then like trying to understand even during
+[58:28] the back test what is the number of minutes or 
+hours that you need to have which is the optimal
+[58:36] that allows you like to benefit the most out 
+of the most volume I imagine because it's from
+[58:42] the start of the day. Exactly. Exactly. And uh 
+lastly like obviously like uh the position sizing
+[58:52] [snorts] and just like we discussed before always 
+use one contract in development process. Uh if you
+[59:03] are testing for stocks, you can might decide to 
+use a percentage of your portfolio. Let's say you
+[59:09] have a $100,000 portfolio to allocate 10% of it 
+just to see how it would behave or again like uh
+[59:20] having like uh your position sizing conditional 
+to the volatility of the underlying instrument
+[59:27] just we have seen before. But this is again in 
+the very first phase development phase always
+[59:33] one contract and then you can test different 
+version. Yeah, different version like afterwards
+[59:40] once you make sure that the strategy that you 
+Yeah, exactly. that you have on end is actually
+[59:46] pointing to the right direction of profitability. 
+Next one. Yeah, we can. Yeah. So now we have seen
+[59:54] two examples and both of them I decided to take 
+them because is topics that the classic retail
+[1:00:02] traders release a lot and on that right now we 
+start like going like with the last two examples
+[1:00:09] um with stuff that is one of them more academic 
+which is the one that we're covering now. Yeah.
+[1:00:15] And the difference between this one and the 
+previous one is that this one is the results
+[1:00:21] of a collection of research papers. Okay? So 
+like multiple interviews. Yes. Don't know if
+[1:00:26] some of you already heard of it, but this one 
+is about the post earnings announcement drift.
+[1:00:36] The logic of the post earnings announcement drift
+[1:00:42] is that you have the release of the earnings. 
+Yep. Which is set by this vertical line earnings.
+[1:00:53] And what has been found over literally like 
+60 years of research. This one is one of the
+[1:01:00] very first inefficiencies properly documented. 
+Okay. And still alive today. So it's like to
+[1:01:07] the ones I say ah alpha decay. Yes there is 
+alpha decay but there is always a different
+[1:01:13] angle you can approach with always basing your 
+your knowledge from research. You have to get
+[1:01:20] creative essentially. Yeah a little bit like 
+you need to that's why the advantage of testing   different things and say okay this one is not 
+working on this specific type of stock. Yeah.
+[1:01:31] but maybe can work on a different type of stock. 
+Okay, which we will see with this one as well   where there is like a very good insight. But like 
+you have the earnings so until the earnings day
+[1:01:42] the stock can do whatever let's say that is rising 
+in price then there is the earnings release.
+[1:01:51] What the post earnings announcement drift is 
+saying on a very high level is that if there
+[1:01:56] is a positive surprise in the earnings and 
+as a consequence a positive price reaction.
+[1:02:05] Okay. Yeah. For the following days and weeks 
+the stock keeps drifting higher. Would it be
+[1:02:15] the same in reverse? Exactly. And the same 
+in reverse. If there is a missend earnings
+[1:02:21] or a negative price reaction the day after 
+of the earnings, there is a negative drift
+[1:02:28] that keeps going for the following days or 
+weeks. Mhm. And here are [snorts] the findings
+[1:02:40] of the research which split it across three 
+papers. So the first paper is from 1968 and is an
+[1:02:50] empirical evaluation of accounting income numbers. 
+Empirical evaluation say [laughter] numbers. Okay.
+[1:03:01] And uh this one was the very first um observation 
+that uh where they saw that if there was a
+[1:03:09] positive increase in value the following days 
+and weeks the price was keep drifting higher and
+[1:03:16] this one was like its purest form of the post 
+earnings announcement drift or drifting lower
+[1:03:23] when there was a negative price reaction. Yeah. 
+And this one was the first contribution to this
+[1:03:31] uh uh price anomaly. Yeah. The second one was a 
+paper from 1989 which is delayed price response
+[1:03:42] or risk premium in full was pied the delayed 
+price response or risk premium question mark.
+[1:03:51] delayed price response or risk premium. And the 
+biggest contribution of this paper was noticing
+[1:04:00] that this drift Yeah. was lasting for around 
+60 days. Okay. So 60 trading days which is
+[1:04:10] approximately exactly 3 months Okay. Yes. So 
+including weekends. Exactly. Exactly. Um the
+[1:04:17] third paper was a paper from 2006 called comparing 
+the post earnings announcement drift for surprises
+[1:04:25] calculated from analyst and time series for that's 
+a very long yeah but but the main point of this
+[1:04:33] one was the introduction of the analyst consensus 
+and the general obviously we'll probably have
+[1:04:41] links in the description and we've shown them 
+on screen but for just the general general idea
+[1:04:46] of how much detail these papers have. Like one 
+of these papers, how how long and detailed are
+[1:04:52] they? They are like 30 to 60 pages. But that's the 
+key of taking the paper, downloading it, feeding
+[1:05:01] to the machine and then extracting exactly what is 
+the finding. Okay, what is the reason why? Because
+[1:05:09] for some people that might not sound like a lot, 
+but in reality, you know, that's on one topic.   There's literally one one thesis on one topic 
+that's a 30 to 60 page. But but that's and that's
+[1:05:21] like and this particular one has multiple papers. 
+Yeah. And you need to you need to start changing
+[1:05:27] like the perspective that it fits a lot is because 
+many people spend so many hours studying that that
+[1:05:36] the finding is reliable and you don't need to 
+spend months on just to understand the finding.
+[1:05:42] So in reality, you don't need to because of 
+these papers and and their availability as   well is that you don't need to trust it in the or 
+you don't have to worry about trusting it because
+[1:05:52] the research has been done. Yeah. To your point, 
+it's like okay, you just got to find the angle,   you know. Exactly. Like what where it's at now. 
+Yeah. 100%. Like research has been done. Often
+[1:06:03] these papers are published in financial journals. 
+So like they are peer-reviewed across different
+[1:06:10] academics. So like they they they say if it turns 
+up being published on a journal means yeah what
+[1:06:18] they found is actually true. And uh then like 
+it's up to you like to take like each one of these
+[1:06:26] elements. Yeah. And combining it on a working 
+trading strategy like again on the first one we
+[1:06:32] have the price reaction. So if we have a gap up 
+on the following day Yeah. from open to close.
+[1:06:40] Mhm. um you might have like the first layer of the 
+post earnings announcement drift. The second one
+[1:06:48] you know that it lasts for 60 days. The third one 
+is introducing the concept of the analyst. Yes,
+[1:06:57] the analyst what they do is before the earnings 
+are released they give an estimate of the earnings
+[1:07:04] per share. The insight that they had was okay 
+let's not compare just on the price but let's
+[1:07:13] see what is like the drift if is stronger the 
+drift if the actual earning per share is larger
+[1:07:22] than the estimate of the analyst. Mhm. So if 
+we have a larger or stronger positive drift in
+[1:07:30] this case and if the earnings per share is below 
+the estimates from the analyst. So if there is a
+[1:07:40] miss in the earnings is the negative worse. So it 
+is more strong the negative reaction. And today
+[1:07:50] this is like the standard. So not just using 
+the price reaction but keeping consideration
+[1:07:58] what is the actual earning per share versus 
+the expected earning pressure as well. Okay,
+[1:08:07] these the insights from the papers. Now the 
+why why is it that not the informations are
+[1:08:15] reflected immediately on the price? Because 
+we need to keep in mind that if you go to
+[1:08:21] any university course they will talk to 
+you about deficient market hypothesis.
+[1:08:28] Yes, the efficient market hypothesis is 
+saying that as the news are released,
+[1:08:34] all the informations are reflected immediately on 
+the price. Mhm. But this one like in front of us,
+[1:08:44] we have 60 years of research. They say no, it's 
+not the case because if that uh was the case,
+[1:08:50] you wouldn't have this drift over the following 
+days interest or weeks, right? Mhm. And the reason
+[1:08:57] why is because one there might be a low coverage 
+of the stocks. Okay. So not all the analyst
+[1:09:11] might cover properly all the stocks. So we can 
+say that information travel slowly. Yes. And
+[1:09:21] lack of awareness almost. Yeah. Exactly. like 
+if especially like if we focus on small cap or
+[1:09:32] midcap it's not that these stocks are as much 
+as follow as mega cap so Tesla invidia Apple
+[1:09:43] because they're like the information is out it 
+is reflected right away indeed like newer paper
+[1:09:48] from 2021 show that if you try to apply I post 
+earnings announcement drift strategies to mega
+[1:09:55] cap you basically have no edge. However, 
+if you apply it to small cap or midcap,
+[1:10:04] the price is not reflected immediately 
+because of the analyst having a smaller
+[1:10:10] coverage across the stocks. And the 
+second reason is liquidity constraints.
+[1:10:23] constraints. What do I mean with that? Yes, maybe there 
+is a stock that is followed by a fund manager
+[1:10:33] that would like to build a larger position, but 
+maybe it's not able to create or allocate all
+[1:10:41] the capital that wants to allocate on a single 
+day because there isn't enough liquidity. So it
+[1:10:47] decides to spread the execution of the order over 
+the following 10 days. Yeah. Or over the following
+[1:10:55] couple of weeks. And that's what generates the 
+drift. This drift on the upside or the downside.
+[1:11:05] If we now try to take all of this and translate 
+it into a trading strategy, we need our entry
+[1:11:15] which again can be if we have a positive price 
+reaction. So the price increases and we have a
+[1:11:28] bits on the earnings. So the actual earnings 
+per share is larger than the expected earning
+[1:11:36] per share. Then we open a long position 
+at the opening of the following day. Okay.
+[1:11:45] Exit again we take it from research suggesting 
+that 60 days is optimal. So let's use 60 days
+[1:11:54] position taking them as starting point. Yeah. as 
+suggested starting point and as position sizing.
+[1:12:08] You could do something like either a percentage 
+of your portfolio. So allocating for every single
+[1:12:15] stocks that you're monitoring let's say one to 2% 
+of your portfolio or a specific dollar amount or
+[1:12:22] again like in this specific case you could do as 
+a position size conditional to either the price
+[1:12:31] movement or like the deviation between the earning 
+per share the actual earning per share with the
+[1:12:39] from the expected earning per share. [snorts] And 
+you could try to check and and you could try to
+[1:12:47] test these different variation to understand which 
+one has the best risk adjusted returns. We in this
+[1:12:53] particular one cuz like with the VWAP uh it was 
+un it's quite easy to understand where would your
+[1:12:58] stop be right and where would you look to exit 
+that trade as we already saw with the diagram.
+[1:13:04] Uh and same with the opening range breakout with 
+this one in particular. What would that look like?   because you would essentially maybe be the low 
+of the previous day. No, not necessarily like um
+[1:13:14] that one is needs to be tested like uh for that 
+purpose like given the fact that here we have
+[1:13:20] um cross-sectional type of trade and monitoring 
+let's say we're monitoring 20 to 30 stocks.
+[1:13:30] The simplest starting point for an exit is 
+just focusing on time. So you take the time
+[1:13:36] which was suggested from the research and focus 
+on that. Afterwards you might add an additional
+[1:13:42] layer for risk management purposes where you say 
+okay let's put like let's try to put like 5% lower
+[1:13:51] than the opening of the day or like if we have a 
+gap up like using the closing before the earnings
+[1:14:00] got released. Okay, as a stop-loss for example. 
+But these are just like examples that you would
+[1:14:07] you would you think that these are things that you 
+would when you get to the sort of encoding stage   and so on you would have these sort of rules so 
+you can do your back test and everything. Yeah I
+[1:14:16] would start for the big test I would start exactly 
+like with this simplified version. to just using
+[1:14:21] a time exit of 60 days. And then like I would 
+once I divide between in sample data and out of
+[1:14:29] sample in sample is where I would add different 
+rules like for example what would happen if I
+[1:14:36] include a stop-loss. Okay. Would improve their 
+risk adjusted performance. Okay. There is where
+[1:14:43] like you test people. Exactly. Because um why do 
+you do that? Why do you do this split? Because
+[1:14:51] you don't want that you just c fit your strategy. 
+Then you notice that if you add a 1% stop loss,
+[1:15:00] it is the best possible results that you can 
+get in sample but then like you apply it out   of sample on unseen data and in that way like you 
+understand did I over fit or was actually the best
+[1:15:11] possible version. Understood. And so it really 
+is all a process that you need to follow to make
+[1:15:18] sure that uh um you're not fooling yourself, you 
+see. And um yeah and one one interesting point as
+[1:15:28] well like obviously as I was saying this one is 
+a strategy that nowadays is working the best on
+[1:15:37] small cap and midcap but not necessarily like you 
+need to focus on small cap and midcap in US. You
+[1:15:44] could take the same strategy and applying on the 
+European stock market, right? Because you might
+[1:15:50] find that in Europe there is a better performance 
+across I can imagine maybe the analysts are even
+[1:15:59] less maybe. Yeah exactly like there is less 
+coverage there is less interest there is less
+[1:16:04] um maybe even the liquidity aspects in terms 
+of the constraints. Exactly. So like see you're
+[1:16:11] funny like getting there. You're getting there. 
+You're getting there. Like all of that like is   all points that you really start. This is the 
+new way of how an institutional trader thinks
+[1:16:21] of like connecting these dons thinking exactly 
+just like you did right now thinking yeah there
+[1:16:27] there is less liquidity in Europe so maybe I 
+could apply this strategy on European names
+[1:16:33] rather than just focusing on US names and um 
+and um on the one thing that I want to mention
+[1:16:41] if you want to try to develop strategies on the 
+postix announcement drift that the short side is
+[1:16:48] becoming less effective for one simple reason 
+that when a company has negative results Yes.
+[1:16:58] they tend to pre-annon announce it. Yes. Mhm. 
+So that one is making a huge difference nowadays
+[1:17:05] that you have the CEO saying yeah the numbers are 
+going to be poor. [laughter] So like you want to
+[1:17:12] get ahead of it. Yeah. doing doing a lot of risk 
+management EPR before end and that's why you do
+[1:17:21] have try and soften the blow. Yeah. And that's 
+why you do have already like already some down
+[1:17:26] a negative price reaction before the earnings 
+is announced and that's why you so those gaps
+[1:17:33] won't be as dramatic potential. Exactly. 
+Exactly. And even the consequence might be   not as dramatic. Yeah. It might be a 30-day thing 
+or or just sideways because it's already priced.
+[1:17:43] Exactly. So essentially you're trying to 
+the thesis of this the foundation is that   it's something that's in a surprise to the market 
+almost. Exactly. versus uh if they're announcing
+[1:17:52] it then it's already going to start getting priced 
+into them. if they start putting some announcement
+[1:17:58] of yeah it's going to be a bad so like doing some 
+management of the expectations that's where like
+[1:18:06] the p tends to die out and this is a tendency 
+that the cos tends to do a lot before negative
+[1:18:15] numbers I've seen some cases even in positive 
+numbers that they started like saying yeah   not the numbers are going to be much better than 
+what we're so then it wouldn't be valid for that
+[1:18:24] and that one exactly when you will have um so I 
+guess like even though it's the CEO it's almost
+[1:18:29] in the same category as the analysts right if the 
+analysts are covering that oh you know this is a
+[1:18:34] well one they're covering it a lot and they might 
+be even covering it saying hey this is going to be   negative it's going to be this giving their thesis 
+uh again it will start to get priced in it will
+[1:18:43] start to be expected uh so similar thesis if the 
+CEO is talking about it on the positive side as
+[1:18:48] well it's not going to be as much of a a shock if 
+you will in the market and you probably won't see
+[1:18:54] as strong of a gap. Maybe we still get a gap, but 
+not as strong. Sometimes you might not even get a   gap because it's already been spread out there 
+to the masses and Exactly. Exactly. But again,
+[1:19:03] on the positive side, we see it rarely, but can 
+happen. It is something that you just need to be   aware of. It's almost like because the CEOs don't 
+want a very drastic negative uh impact on their
+[1:19:16] stock because that won't come across well. 
+But they love no doubt a a surprise positive
+[1:19:22] announcement because then you know it's all in 
+the headlines. Oh, the stock's up 10% today.   100%. 100%. And it is just something that it's 
+a good to know if you're developing strategies
+[1:19:33] like that. What's interesting as well though is 
+uh these strategies so far, they're not complex,
+[1:19:39] you know, they're not like uh something that's 
+overly hard to understand. It's not even hard
+[1:19:45] to understand necessarily. And a lot of the 
+time when people talk about institutions and   institutional trading, they automatically probably 
+assume that there has to have crazy technology,
+[1:19:56] uh, crazy information, insider information and 
+so and you know the thoughts instantly go there
+[1:20:02] versus actually I can trade like this really 
+as you said the difference being that rather
+[1:20:08] than just being an idea and a strategy that 
+you may have learned from somewhere this is   uh backed up by years of data, years of evidence 
+and research to give more confidence and certainty
+[1:20:20] and the framework to then build upon and just uh 
+again find the angle for today if it's like the
+[1:20:25] the last example being 60 years old still works 
+today. Yeah. 100%. But it's just about adapting
+[1:20:31] as you mentioned maybe it's the markets maybe 
+rather than large cap you're going medium to low
+[1:20:37] uh or small sorry um and then it might be instead 
+of the US market you're moving over to European   market could be the Asian market. Um, so these 
+slight tweaks that again aren't complex. It's just
+[1:20:47] for taking the thesis, the idea, the foundation of 
+said strategy and concept um, and then validating
+[1:20:54] it for today. Like 100% like complexity doesn't 
+mean more profitable. It is something that you
+[1:21:01] learn quickly on a trading floor, especially like 
+once you have like a incredible infrastructure
+[1:21:07] because you need to know what you're doing. Like 
+complexity actually means fragility more often
+[1:21:14] than not because you have many points where your 
+strategy can break like they I made more than 30
+[1:21:21] million euro for the bank and 80% of it were out 
+of extremely simple strategies. This is so key
+[1:21:31] like I cannot say exactly what the strategy was 
+doing but it wasn't complex at all. Mhm. Fourth
+[1:21:39] example is related to another extremely 
+well-known anomaly which is the overnight
+[1:21:50] market anomaly.
+[1:22:00] Have you ever heard of this? No,   I haven't. Not this one. Okay. So 
+what is interesting about this one?
+[1:22:14] Let me Yeah. Picasso my Bangok.
+[1:22:22] So the market closes at 400 p.m. Mhm. 
+Market closes Market opens at 9:30.
+[1:22:31] closes at 4, opens at 9:30, 
+closes at 4, right? Yep.
+[1:22:41] There is a paper from 2008 which is called 
+the return difference between trading and
+[1:22:50] non-trading hours like night and day. What 
+they found in 2008 like across multiple index,
+[1:23:00] across multiple equity index, across multiple 
+stocks was noticing that the returns once
+[1:23:10] you analyze what contributed the most on the 
+performance of for example the S&P 500 which
+[1:23:18] has been like amazing and constantly rising. 
+Yeah. What they noticed was like that 90% of
+[1:23:24] these returns was coming from overnight holdings. 
+So regular trading session 9:30 to 4 basically
+[1:23:32] flat and then overnight gap flat overnight 
+gap and again that one was in 2008 around 90%.
+[1:23:43] If we break it, if at home you do exactly the 
+same like getting a strategy which as entry
+[1:23:55] it opens a position at that goes long at 4 p.m. 
+And as exit, you close the position. So you exit
+[1:24:08] at 9:30 a.m. when the market's open. Okay, you 
+will see that if you do this and you apply this
+[1:24:16] strategy on let's say NASDAQ using NQ contracts 
+from 2015 to today like June 2026 you have again
+[1:24:28] 90% of the returns that are coming over from this 
+strategy from holding the position overnight and
+[1:24:38] only 10% if you were just holding during regular 
+trading hours. It is something like extremely
+[1:24:46] fascinating that has been there like literally 
+for decades and not just on NASDAQ but across
+[1:24:55] multiple indices and again everyone at home 
+can just do this simple test and the reason why
+[1:25:08] is that 90% of the returns of equity indexes
+[1:25:15] is coming from overnight gap, 
+right? And the reason why
+[1:25:25] we have multiple line of thoughts. There 
+is multiple theories. There isn't like
+[1:25:31] a single theory that is like saying 
+this is this is the exact reason why.
+[1:25:37] But the first one is about overnight
+[1:25:44] risk premium.
+[1:25:50] So the holders of the position overnight 
+needs to be rewarded by the fact that they
+[1:25:57] are holding that position overnight. 
+Yes. Where there is lower liquidity,   the market is closed. So you need to be 
+rewarded by that. What is weird however
+[1:26:08] is that it's 90% of the returns which is that's 
+why like there is some academics that are saying
+[1:26:14] is a little bit too high. Um even like pract 
+um even like professionals they're saying it's
+[1:26:21] not possible that all of that is explained 
+within that. Yeah within like overnight risk
+[1:26:28] premium. And [snorts] the second one on the D 
+is related to overnight liquidity. So overnight
+[1:26:43] liquidity during the night there is 
+informations that get released as we
+[1:26:48] have seen before with the opening range breakout 
+thing that uh new informations are out there is
+[1:26:55] news there might be earnings and given the 
+fact that the liquidity is not as strong as
+[1:27:02] uh during regular trading hours, the price 
+reaction might be a little bit more aggressive
+[1:27:11] than it would have been during regular trading 
+hours and then there is a reversal during regular
+[1:27:19] trading hours. Exactly. So like this one 
+like once you see it across like multiple
+[1:27:24] days it might explain that overnight we have an 
+overreaction and then we have like a movement
+[1:27:32] towards the fair market value of the underlying uh 
+trading instrument and this one like I feel like
+[1:27:40] it's a very strong why and what is nice is that 
+you can use like knowing is knowing that 90% of
+[1:27:52] the returns of the index are coming overnight 
+given a low liquidity. This is just a starting
+[1:27:59] point like this one is like one of those things 
+that where I want to conclude with is that you
+[1:28:06] could take this idea and you start like saying 
+okay we have seen the opening range breakout how
+[1:28:12] it is working but if you're telling me that 
+90% of the returns are happening overnight.
+[1:28:19] Mhm. What about trying to develop an opening 
+range breakout that only takes place overnight
+[1:28:25] because that's where like you have the biggest 
+directional moves if this research is right. And
+[1:28:31] this is like the full process of like having 
+an idea having an idea triggered by research
+[1:28:39] and then like start framing your trading strategy 
+around it. And that's like how you go from idea
+[1:28:50] to rules and the next steps would be to encode it 
+and test your idea until you don't finally arrive
+[1:29:01] to in terms of encoding obviously it's can't 
+whiteboard that uh but what does that look like
+[1:29:08] so if you've got the ideas like the four ideas 
+we've gone through uh you have the rules around
+[1:29:13] it so the rules I guess would be the criteria no 
+and then once you have those two things. What is
+[1:29:19] just a general idea? Maybe it's something 
+we can do in the future, but general idea,   what does that look like in terms of the next step 
+when when inputting into a language model? So with
+[1:29:30] the we need to understand that the language model 
+is a tool, right? You we cannot pretend that is a
+[1:29:38] senior developer that is working for Palanteer. 
+I wish it was like that, but it's not there yet.
+[1:29:45] they say he's going to be there in six months. 
+So fingers crossed. But um the the idea is like
+[1:29:50] um to follow an iterative process. So let's say 
+that our entry is supposed to get us long at 4
+[1:29:59] p.m. when [clears throat] markets close. So like 
+first you develop the first part. So like okay,
+[1:30:05] I want a strategy that goes long at 
+400 p.m. Eastern time. Then you check
+[1:30:12] if it's working fine. If it's working fine, 
+then you at the next condition. Okay. Now,   encode an exit on the top of what you just 
+developed, which exit the position and 930M.
+[1:30:23] Mhm. Then you apply to your data and you make 
+sure that the logic is working fine. If the   logic is working correctly, then you start working 
+on the position sizing like linking the position
+[1:30:34] to the volatility of the instrument. Have a 
+larger position when the volatility is low.
+[1:30:42] have a smaller position when the volatility is 
+high and so on. So following all these steps with
+[1:30:47] an iterative process until you don't have all the 
+rules that you defined yes compiled so into the
+[1:30:56] piece of code and that you know that is working 
+the way it is supposed to work. So that one is
+[1:31:02] like the process on a very high level and the good 
+thing is like again there is so many softwares
+[1:31:08] um in first place these multi charts that where 
+the programming language is literally called
+[1:31:14] easy language because it's so like intuitive to 
+understand like for a human on how it needs to
+[1:31:21] be coded okay you can use uh pine script so like 
+threading view that is getting quite popular to
+[1:31:30] follow exactly the same process of like you can 
+even feed to the machine like uh the manuals on
+[1:31:38] how to code with pine script and then like the 
+machine build knowledge pool. Yeah, exactly. To
+[1:31:43] build the knowledge pool like right now we really 
+are in this space where retail traders can have   this massive step to really start trading like 
+an institutional trader would. And it's not that
+[1:31:55] one thing one point I want to make that all of you 
+needs to start automating your training strategies
+[1:32:02] but if you follow the process even if you learn 
+how to encode basic version of your strategy to
+[1:32:09] make test it properly and then like understanding 
+if what you're doing actually makes sense if you   might end up with an uprising equity line then you 
+might decide to only automate a portion of it or
+[1:32:20] only to use it as confirmation and then still 
+trade manually. So it's like it's really just
+[1:32:25] an additional knowledge base validating. Exactly. 
+Tool box that you can add to your arsenal. This is
+[1:32:35] like one thing that I really thought that retail 
+traders are missing and that now finally like
+[1:32:43] um they can start piecing it together. in terms 
+of uh as an institution and generally what retail
+[1:32:49] can do if they choose to is you could have these 
+four ideas but you you could have them all four   running simultaneously 100%. Like that one you 
+got me there. That one is the end game because
+[1:33:00] the end game is not just to run one single trading 
+strategy. The goal is to run uncorrelated trading
+[1:33:08] strategies and that's what allows institutional 
+traders to make money every month. Because you
+[1:33:13] might have a strategy that works well in trending 
+market, right? But if you are in a mean reverting
+[1:33:19] market, the strategy will perform poorly. 
+But if you have another strategy which is
+[1:33:25] taking advantage of mean reverting conditions, 
+then the other strategy Exactly. So like that's
+[1:33:31] what uncorrelated means that you might have a 
+set of strategy that works well in different
+[1:33:38] market conditions and overall they give you that 
+beautiful job is to really refine and learn over
+[1:33:45] time how to manage them so that you limit draw 
+downs on one maximize profits on the other and
+[1:33:50] vice versa. Exactly like uh the exact process 
+that I follow is like once a month I review which
+[1:33:57] are the strategies that are running live. Are you 
+able to give an insight in terms of you know when
+[1:34:03] you were in your career how many systems would be 
+operational at once or or you would be managing?
+[1:34:08] Yeah. So like what I suggest as a retail trader to 
+have at least three four strategies trading at the
+[1:34:17] same time because in a case you are leveraging 
+the power of your machine to have this trading
+[1:34:23] strategies trading automatically for you. Yes. 
+which is a massive advantage like if you try to   follow four strategies at the same time it's very 
+hard to do it manually and that's why like it's
+[1:34:33] important like to eventually trade everything 
+uh as automated trading while I was working for
+[1:34:42] the bank I had something like 400 strategies 
+running simultaneously but that way it's like
+[1:34:48] you get to that point especially like once you 
+are monitoring the performance across different
+[1:34:55] instruments or you are monitoring the trading 
+activity across different instruments. To put
+[1:35:01] a context like the day I left the bank the total 
+volume that was going through me was approximately
+[1:35:08] 15 billion euro on a yearly base. So like you need 
+to have multiple systems running at the same time.
+[1:35:18] Um right now like personally I use a maximum of 
+between 25 and 100 systems really depending on
+[1:35:26] the type of market conditions that we are in. 
+So would you do you find yourself consistently
+[1:35:32] developing tweaking 100% like that one is the job 
+the job is freely so changes from manually trading
+[1:35:38] and having to like maybe do analysis to more an 
+analyzing history analyzing edge you refining
+[1:35:46] performance. Yeah, because obviously like trading 
+strategy stops working. So you really need to have
+[1:35:51] this organism that starts from research, refining, 
+validating, deploying and back. Something we'll go
+[1:36:01] deeper in tomorrow's words of wisdom for sure 
+because I think that's the right place for it.   But in terms of when we think about that and as 
+we probably move into an era where more retail
+[1:36:11] traders start to implement such systems, do you 
+feel like manual trading will always have a place?
+[1:36:18] uh or do you feel like as maybe more and more 
+automation takes place that it's almost going
+[1:36:24] to be necessary to have a portfolio of edges that 
+you manage and uh the manual side becomes your
+[1:36:31] research the manual side becomes your refinement 
+your man your manual side becomes your review of
+[1:36:37] your automated strategies or do you think the 
+retail side in terms of manual discretionary   trading will always be there I mean I think it 
+will always be there but like the distribution
+[1:36:47] will change because like once you understand that 
+your computer can trade on your behalf and you
+[1:36:54] can run and if you run multiple systems and with 
+multiple again just three or four simultaneously
+[1:37:02] can be enough to make your profits on a more 
+consistent base like people will be like okay so
+[1:37:10] you're telling me that I can have four strategies 
+running live while I'm at work without the need of
+[1:37:18] me sitting in front of the monitor to wait for a 
+specific entry condition. People will move towards
+[1:37:24] that direction because if freedom time give them 
+more confidence, they have no emotions interfering
+[1:37:31] with their trading activity. So it's going to 
+be some sort of natural step moving towards that
+[1:37:39] uh that direction. Definitely. I think obviously 
+this first step is education like this, you know,
+[1:37:44] being able to hear about the process, how 
+to go about it, how to think. Uh excited   to do a full master class over on Char Academy 
+with you as well. Super fun. Um but yeah, no,
+[1:37:54] this is this has been incredible. Is there 
+is there more to go over or is No, I think   we're done. It's incredible. I know something 
+different for the audience there. As I said,
+[1:38:02] we're going to sit down and do a Words of Wisdom, 
+dive into your your background and more of that   experience that you've had at the institutions 
+and then where you're heading moving forward as
+[1:38:10] well. So, if you're interested in that, that will 
+be coming out very very soon. Keep an eye out. Uh,   but for now, of course, links for Matteo will be 
+in the description below. Make sure you check them
+[1:38:20] out. Drop a like. Again, this is knowledge and and 
+wisdom really that he doesn't have to share, but
+[1:38:25] he's doing so because he wants to bring the new 
+era of information and I I guess getting ahead,
+[1:38:30] right? getting ahead of what's to come as you just 
+said. Uh so make sure you drop a comment with your   biggest takeaway from this episode. Any questions 
+you have, throw them in the chat. I'll tell you
+[1:38:39] why. Because when we do that master class, we can 
+use some of those questions to really give you
+[1:38:44] uh the answers that you're looking for, 
+right? It'll be a perfect opportunity. And   uh what other episodes are on screen right 
+now? And until next time everyone, take

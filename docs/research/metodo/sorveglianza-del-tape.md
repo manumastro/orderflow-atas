@@ -66,10 +66,10 @@ ragionata viene dopo e non toglie niente all'avviso.
 
 ## 0. Il Giro D'Orizzonte
 
-Prima di tutto il resto, e prima di **ogni** risposta durante la seduta. In questo
-repository arriva da solo: un hook `UserPromptSubmit` lo esegue a ogni messaggio e ne infila lo
-stdout nel contesto (`.claude/settings.json`, `.claude/hooks/giro-orizzonte.sh`, mezzo secondo).
-A mano:
+Prima di tutto il resto, e prima di **ogni** risposta durante la seduta. Fino al 10
+ottobre 2026 arrivava da solo: un hook `UserPromptSubmit` lo eseguiva a ogni messaggio e ne
+infilava lo stdout nel contesto (`.claude/hooks/giro-orizzonte.sh`, mezzo secondo). Dall'11
+ottobre l'hook e' spento, e si lancia a mano:
 
 ```bash
 python3 FabioOrderFlow/tools/giro_orizzonte.py

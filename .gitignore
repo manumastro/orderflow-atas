@@ -29,3 +29,8 @@ Thumbs.db
 # residui locali, non viaggiano
 __pycache__/
 .tmp-*
+
+# quant: i dati vengono da ATAS e si riscaricano; build e ambiente locale
+quant/dati/
+quant/src/**/bin/
+quant/src/**/obj/

@@ -42,3 +42,9 @@ ricalcolano da sole, nasce il pannello delle condizioni, e il lavoro comincia a 
 Windows perche' l'esecuzione lo impone. Nello stesso passaggio si scopre che **la memoria
 dell'agente non viaggia con git e due voci erano gia' divergite dal repo**. Vedi
 [[il-contesto-sta-nel-repo]] e [[dove-siamo]].
+
+**11 ottobre — il metodo quantitativo.** Su richiesta esplicita dell'utente lo scope diventa il
+metodo istituzionale del transcript di Matteo Conte: idea da un paper, regole, codice, backtest,
+validazione. Il framework si scrive in C# .NET 10 perche' la velocita' e' un requisito. Le lezioni
+della fase 40R (nullo, statistica per giornata, look-ahead) ci entrano come vincoli. Il corso di
+Fabio diventa fonte di idee. Vedi [[dove-siamo]].

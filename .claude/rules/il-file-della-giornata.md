@@ -16,7 +16,7 @@ Si carica solo quando si tocca una giornata. Procedura completa in
   stampa alla sezione 4bis a ogni messaggio.
 - **Ogni soglia si dichiara accanto al numero che produce**, mai lasciata implicita.
 - **Nessun id di chart nei file**: cambia a ogni ricarica dell'indicatore.
-- **In replay il diario torna indietro da solo** (`riavvolgi_giornata.py`, nell'hook del giro).
+- **In replay il diario torna indietro da solo** (`riavvolgi_giornata.py`, dentro lo script del giro, che dall'11 ottobre 2026 si lancia a mano).
   Sposta solo i blocchi che **dichiarano in apertura** un orario avanti all'orologio; quelli che
   si limitano a *citarne* uno restano e vengono segnalati — li' il problema e' una misura presa su
   una finestra che finisce nel futuro, e si corregge rifacendo la misura.

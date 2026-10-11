@@ -58,7 +58,7 @@ Come si usano insieme: [`come-l-agente-vede-e-comanda-atas.md`](../docs/research
 
 | Script | Cosa fa |
 |---|---|
-| `tools/giro_orizzonte.py` | Tutto il contesto prima di un'analisi; lo lancia l'hook a ogni messaggio |
+| `tools/giro_orizzonte.py` | Tutto il contesto prima di una lettura dal vivo; si lancia a mano (l'hook e' spento dall'11 ottobre 2026) |
 | `tools/scala_dei_tempi.py` | Le sedute dal piu' lontano al piu' vicino, per il giro |
 | `tools/ora.py` | L'orario italiano con cui si parla a chi opera |
 | `tools/annota.py` | Scrive una lettura sul chart e la registra nel diario della giornata |

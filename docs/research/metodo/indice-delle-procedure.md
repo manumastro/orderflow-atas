@@ -17,7 +17,7 @@ Due procedure che non si saltano mai, e che nelle istruzioni compaiono solo come
 
 [**`il-giro-d-orizzonte.md`**](il-giro-d-orizzonte.md) — **l'input**: cosa si guarda prima di
 rispondere, per ogni risposta e in qualunque fase di mercato, piu' **il quadro** (profile framing
-e COT insieme) che si fa anche senza che lo si chieda. Arriva da solo con un hook, e va letto.
+e COT insieme) che si fa anche senza che lo si chieda. Dall'11 ottobre 2026 si lancia a mano quando si chiede una lettura dal vivo, e va letto.
 
 [**`come-si-risponde-dal-vivo.md`**](come-si-risponde-dal-vivo.md) — **l'output**: la direzione e
 i suoi numeri (`LONG` / `SHORT` / `NIENTE`, ingresso, stop, **break even**, bersaglio,

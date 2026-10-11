@@ -1,52 +1,41 @@
 ---
 name: dove-siamo
-description: Lo stato del lavoro a settembre 2026: cosa e' attivo, su cosa si opera, cosa e' aperto
+description: "Lo stato del lavoro a ottobre 2026: lo scope e' il metodo quantitativo (framework C# in quant/), NQ, dati solo da ATAS, fino alla validazione"
 metadata:
+  node_type: memory
   type: project
+  originSessionId: 9e6fa3fe-14f2-4ed2-af51-b266c885bbe4
+  modified: 2026-10-11T09:27:16.517Z
 ---
 
-**Aggiornato al 20 settembre 2026.** Se la data e' vecchia di settimane, verifica prima di
-fidarti: questo file orienta, non comanda. Le regole stanno in `CLAUDE.md`.
+**Aggiornato all'11 ottobre 2026.** Se la data e' vecchia di settimane, verifica prima di
+fidarti: questo file orienta, non comanda. Le regole stanno in `CLAUDE.md` e in
+`quant/il-metodo-quantitativo.md`.
 
 ## Dove Si E' Arrivati
 
-Il progetto e' nella fase di **lettura discrezionale dal vivo**, non di ricerca sistematica. Si
-legge il mercato seduta per seduta col metodo del live Q1 di Fabio, si scrive un file di giornata
-**durante** la seduta, e si misura a posteriori cosa era giusto. La fase di backtest sistematico
-e' chiusa da metà settembre. Vedi [[la-storia-del-progetto]].
+**L'11 ottobre 2026 lo scope e' cambiato**, su decisione esplicita dell'utente: si studia e si
+costruisce **il metodo quantitativo istituzionale** (idea da un paper -> regole -> codice ->
+backtest -> validazione), dal transcript di Matteo Conte in `quant/fonti/`. Il corso di Fabio
+diventa fonte di idee e supporto. Vedi [[la-storia-del-progetto]].
 
-## Cosa E' Fermo E Non Si Rimette In Discussione
+**Why:** l'utente ha un background da programmatore e vuole un framework dalla A alla Z, con la
+**velocita' di esecuzione come requisito** ("python e' troppo lento"): il framework e' in C# .NET 10.
 
-- **Lo strumento e' NQ, e solo NQ** (deciso il 18 settembre). Oro, crude ed ES sono stati provati
-  fra il 16 e il 18 settembre: quei file restano come evidenza e non si estendono.
-- **Il corso di Fabio comanda.** Il dossier Triple AAA e' citabile ma non comanda — descrive lo
-  stesso setup dentro un'impalcatura con un gate orario che nel live non esiste.
-- **La sessione e' New York**, cash 13:30-20:00Z.
+**How to apply:** prima di lavorare in `quant/` leggi `quant/il-metodo-quantitativo.md`. Gli otto
+obblighi della lettura discrezionale valgono solo quando l'utente chiede una lettura dal vivo.
 
-## Cosa E' Vivo Adesso
+## Le Decisioni Dell'Utente
 
-- **Le trascrizioni del corso sono 6 su circa 20.** L'utente sta studiando le altre e le
-  incollera' in `fabio_course/fabio_q1/`. I documenti di metodo sono scritti perche' una lezione
-  nuova possa **contraddire una riga e correggerla sul posto**: ogni riga cita il minuto da cui
-  viene.
-- **Si sta facendo pratica in replay**, non solo dal vivo. L'ultimo e' il replay del 14 settembre
-  su NQZ6, con la disciplina di non leggere il diario della giornata vera prima di aver dato la
-  lettura.
-- **Il chart si aggiorna da solo, e il motore sta dentro l'indicatore** dal 20 settembre 2026:
-  l'analisi deposita delle *regole* (`bridge.py rules`) e l'indicatore ricalcola POC, bordi del
-  valore, estremi, nodi e mensole a ogni barra. Non c'e' nessun processo da tenere acceso, e il
-  guasto del "livello vivo fermo che non lo dice" si e' chiuso togliendo di mezzo il processo che
-  moriva. All'agente resta **quali** livelli contano e **a cosa serve arrivarci**, non il prezzo.
-- **In replay il diario torna indietro da solo**: `riavvolgi_giornata.py` sposta in fondo al file
-  i blocchi datati dopo l'orologio del replay, e gira nell'hook del giro d'orizzonte.
-- **Il lavoro si sta spostando su un PC Windows**, perche' l'esecuzione passa da Tradeify che
-  richiede R|Trader Pro, che non esiste su macOS. Il trasloco e' cominciato il 20 settembre e non
-  e' ancora verificato del tutto: la notifica di sistema di `avviso.py` su Windows e' scritta ma
-  mai eseguita.
+- **Solo NQ**, per ora ("poi vediamo").
+- **Dati solo da ATAS**, dai tick al Level 2 completo; la domenica la connessione e' rifiutata.
+- **Fino alla validazione**: l'esecuzione si pensa quando il framework e' buono.
+- **Le prime idee saranno paper sulle prop firm**: l'utente ne mandera' tre.
 
-## Cosa Resta Aperto
+## Cosa E' Aperto
 
-- Il calendario macro non ha una fonte nel repository: si dice *"il minuto 12:30Z e' il piu'
-  pesante"*, mai il nome di un evento.
-- Non esiste un modello attivo e nessuna regola operativa e' approvata. **Descrivere non e'
-  validare**, e vale anche per il metodo del live.
+- La **profondita' storica** dei dati ATAS dipende dall'abbonamento: va misurata al primo giorno
+  di connessione (`quant/i-dati-da-atas.md`, il piano). Oggi l'archivio ha 50 giornate M1.
+- La **divisione dentro/fuori di NQ non e' fissata**, apposta: si fissa con la storia lunga.
+- L'hook del giro d'orizzonte e' **spento** dall'11 ottobre 2026, su richiesta dell'utente: per
+  una lettura dal vivo si lancia a mano (`docs/research/metodo/il-giro-d-orizzonte.md`).

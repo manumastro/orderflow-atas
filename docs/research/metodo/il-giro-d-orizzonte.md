@@ -69,18 +69,27 @@ sedute dal bridge — e le regole con la finestra ancora vuota si contano invece
 scrive poco: una lettura dal vivo che parte dalle ultime barre senza sapere dove sta la settimana e'
 la lettura che il giro esiste per impedire.
 
-## Non Costa Niente: Arriva Da Solo
+## Si Lancia A Mano, Quando Si Legge Dal Vivo
 
-Un hook `UserPromptSubmit` in [`../../../.claude/settings.json`](../../../.claude/settings.json)
-esegue [`../../../.claude/hooks/giro-orizzonte.sh`](../../../.claude/hooks/giro-orizzonte.sh) a
-ogni messaggio e ne mette lo stdout nel contesto del prompt.
+Fino al 10 ottobre 2026 un hook `UserPromptSubmit` eseguiva
+[`../../../.claude/hooks/giro-orizzonte.sh`](../../../.claude/hooks/giro-orizzonte.sh) a ogni
+messaggio e ne metteva lo stdout nel contesto. **Dall'11 ottobre l'hook e' spento**: lo scope e' il
+metodo quantitativo, e il giro serve solo quando l'utente chiede una lettura dal vivo. Allora si
+lancia, prima di rispondere, lo stesso script che girava nell'hook (riavvolge il diario in replay,
+fa il giro, legge gli avvisi):
 
-**Il giro automatico si legge, non si ignora.** Se il blocco manca — hook disattivato, sessione
-diversa — si lancia a mano:
+```bash
+CLAUDE_PROJECT_DIR="$PWD" bash .claude/hooks/giro-orizzonte.sh
+```
+
+Oppure il solo giro:
 
 ```bash
 python3 FabioOrderFlow/tools/giro_orizzonte.py
 ```
+
+**Il giro si legge, non si ignora.** Per riaccendere l'hook basta rimettere in
+`.claude/settings.json` il blocco `UserPromptSubmit` che lancia lo script (e' nella storia di git).
 
 Se dice che il bridge non risponde, **lo si dichiara nella risposta**: una lettura senza dati va
 detta tale, non presentata come una lettura.
@@ -150,6 +159,6 @@ fine perde proprio le letture sbagliate, che sono la parte verificabile. Formato
 [`../giornate/come-si-scrive-una-giornata.md`](../giornate/come-si-scrive-una-giornata.md).
 
 **In replay il diario torna indietro da solo.** `riavvolgi_giornata.py` sposta in fondo al file i
-blocchi datati dopo l'orologio del replay, e gira nello stesso hook del giro. Cosa sposta e cosa
+blocchi datati dopo l'orologio del replay, e gira dentro lo script del giro. Cosa sposta e cosa
 invece si limita a segnalare sta in
 [`../giornate/come-si-scrive-una-giornata.md`](../giornate/come-si-scrive-una-giornata.md).

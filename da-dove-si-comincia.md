@@ -1,29 +1,35 @@
 # Da Dove Si Comincia: orderflow-atas
 
-Studio del corso di order flow di Fabio 'Fabervaale' Valentini, con verifica sui dati reali di ATAS.
+Dall'11 ottobre 2026: **il metodo quantitativo istituzionale**, costruito come framework dalla A
+alla Z, su NQ e con i dati di ATAS. Prima di allora, lo studio del corso di order flow di Fabio
+'Fabervaale' Valentini, che resta come fonte di idee e come supporto alla lettura dal vivo.
 
-Il repository non contiene un sistema di trading. Contiene un **metodo**: partire da cio' che il
-corso insegna, isolare quali affermazioni sono osservabili, misurarle, e registrare tanto cio' che
-regge quanto cio' che non regge. Nessuna regola operativa e' stata approvata.
+Il repository non contiene un sistema di trading. Contiene un **metodo**: un'idea presa da un paper
+diventa regole, codice, backtest e validazione, e si registra tanto cio' che regge quanto cio' che
+non regge. Nessuna regola operativa e' stata approvata.
 
 ## Le Tre Decisioni Che Governano Tutto
 
-**Il corso comanda.** Ogni operazione, ogni livello, ogni condizione deve poter essere ricondotta a
-un minuto di una lezione del live Q1 in
-[`fabio_course/fabio_q1/`](fabio_course/fabio_q1/). Il modello **IVB / Triple AAA** del dossier
-illustrato resta citabile — e' di Fabio e va menzionato — ma **non comanda**.
+**Lo scope e' il metodo quantitativo.** Idea, regole, codice, backtest, validazione, dal transcript
+di Matteo Conte in [`quant/fonti/`](quant/fonti/). Il corso di Fabio non comanda piu': e' una fonte
+di idee.
 
-**Lo strumento e' NQ, e solo NQ.** Con la conseguenza che la sessione operativa e' **New York**,
-perche' e' quello che il corso dice e il corso comanda.
+**Lo strumento e' NQ, e solo NQ; i dati vengono solo da ATAS.**
 
-**L'agente costruisce il contesto, non opera** (20 settembre 2026). Non prende decisioni
-operative e non arma condizioni: tiene aggiornato tutto il contesto necessario perche' la
-decisione la prenda una persona.
+**Si arriva fino alla validazione.** Niente ordini, niente esecuzione automatica, finche' il
+framework non e' maturo e l'utente non lo chiede. La velocita' e' un requisito: il framework e' in
+C# .NET 10.
 
 ## Da Dove Si Comincia
 
 | Serve | File |
 |---|---|
+| **La metodologia istituzionale**, esattamente come da transcript, fase per fase | [`quant/la-metodologia-istituzionale.md`](quant/la-metodologia-istituzionale.md) |
+| **Il framework**: come realizza ogni fase, le aggiunte, i cancelli, come si usa | [`quant/il-metodo-quantitativo.md`](quant/il-metodo-quantitativo.md) |
+| **I dati da ATAS**: cosa da', fin dove, cosa e' collegato, il piano | [`quant/i-dati-da-atas.md`](quant/i-dati-da-atas.md) |
+| **Le idee**: una scheda per strategia, e come si scrive | [`quant/idee/come-si-scrive-un-idea.md`](quant/idee/come-si-scrive-un-idea.md) |
+| **I rapporti** delle validazioni, e il registro delle prove | [`quant/risultati/`](quant/risultati/), [`quant/registro/`](quant/registro/) |
+| *La lettura discrezionale, supporto:* **gli obblighi** quando si chiede una lettura dal vivo | [`docs/research/metodo/gli-obblighi-della-lettura-dal-vivo.md`](docs/research/metodo/gli-obblighi-della-lettura-dal-vivo.md) |
 | **Il metodo che comanda**: i tre modelli, il vocabolario, il regime, la sessione, il COT, il framing | [`docs/research/metodo/i-tre-modelli-del-live-q1.md`](docs/research/metodo/i-tre-modelli-del-live-q1.md) |
 | **I setup**: la libreria dei pattern, ingresso, stop, bersaglio | [`docs/research/metodo/i-pattern-di-esecuzione.md`](docs/research/metodo/i-pattern-di-esecuzione.md) |
 | **La gestione**: break even, parziali, conto in R, size. Nel live e' l'edge | [`docs/research/metodo/la-gestione-della-posizione.md`](docs/research/metodo/la-gestione-della-posizione.md) |
@@ -45,7 +51,8 @@ decisione la prenda una persona.
 La fase sistematica sul **modello 40R** e' stata misurata su un mese di NQ e **chiusa**: 49-51% con
 obiettivo 1:1, indistinguibile dal modello nullo che entra senza nessuna condizione. Conservata come
 evidenza in [`docs/research/archivio-modello-40r/`](docs/research/archivio-modello-40r/), non va
-riaperta senza richiesta esplicita.
+riaperta senza richiesta esplicita. Le sue lezioni di metodo (il nullo, la statistica per giornata,
+il look-ahead, i limiti eseguiti al tocco) sono dentro il framework quantitativo.
 
 I **recorder di agosto 2026** stanno in
 [`docs/research/archivio-2026-08/`](docs/research/archivio-2026-08/).
@@ -56,7 +63,14 @@ Gli **strumenti diversi da NQ** — oro (GCZ6, MGCZ6), crude (MCLV6), ES — res
 ## Struttura
 
 ```text
-fabio_course/fabio_q1/     le trascrizioni del live Q1  <- la fonte che comanda
+quant/                     il metodo quantitativo        <- lo scope
+quant/fonti/               transcript e paper
+quant/idee/                una scheda per strategia
+quant/src/                 il framework in C#: dati, motore, statistiche, validazione, strategie
+quant/registro/            le prove e la divisione dentro/fuori campione, in git
+quant/risultati/           i rapporti delle validazioni
+quant/dati/                l'archivio dei dati di ATAS, fuori da git
+fabio_course/fabio_q1/     le trascrizioni del live Q1  <- fonte di idee, comanda la lettura dal vivo
 fabio_course/ivbaaa/       il dossier illustrato        <- riferimento
 docs/research/metodo/      le procedure attive
 docs/research/giornate/    una analisi per giornata di mercato
@@ -71,6 +85,10 @@ prop/                      esecuzione: mercato guida, sizing, fee, regole delle 
 ## Avvio Rapido
 
 ```bash
+# il framework quantitativo
+cd quant/src && dotnet build -c Release && dotnet test Quant.Test -c Release
+Quant.Cli/bin/Release/net10.0/quant.exe aiuto
+
 # build e deploy delle estensioni ATAS
 cd FabioOrderFlow/src && ./deploy.sh
 

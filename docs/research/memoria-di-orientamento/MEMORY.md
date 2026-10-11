@@ -1,3 +1,3 @@
-- [Dove siamo](dove-siamo.md) — lo stato del lavoro a settembre 2026: NQ e solo NQ, lettura discrezionale dal vivo, 6 trascrizioni su 20, il trasloco su Windows in corso
+- [Dove siamo](dove-siamo.md) — dall'11 ottobre 2026 lo scope e' il metodo quantitativo: framework C# in quant/, NQ, dati solo da ATAS, fino alla validazione
 - [La storia del progetto](la-storia-del-progetto.md) — le fasi da luglio a settembre e perche' ciascuna e' finita: serve a non riaprire una strada gia' chiusa
 - [Il contesto sta nel repo](il-contesto-sta-nel-repo.md) — la divisione: qui l'orientamento, nel repo le regole; e perche' una memoria che diverge non se ne accorge

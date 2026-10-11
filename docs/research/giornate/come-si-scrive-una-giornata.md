@@ -106,7 +106,7 @@ leggono come contesto. La disciplina del replay e' non sapere come finisce, e un
 toglie in silenzio.
 
 `riavvolgi_giornata.py` sposta quei blocchi in fondo al file, sotto **«Il futuro di un giro
-precedente»**, e gira da solo nell'hook del giro d'orizzonte. **Non cancella niente**: sono il
+precedente»**, e gira dentro lo script del giro d'orizzonte (`.claude/hooks/giro-orizzonte.sh`, a mano dall'11 ottobre 2026). **Non cancella niente**: sono il
 registro di un giro che c'e' stato davvero, e servono al confronto di fine sessione.
 
 **Si sposta solo cio' che dichiara il proprio orario in apertura** — `**13:03Z — la mensola
