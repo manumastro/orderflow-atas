@@ -20,4 +20,11 @@ public static class CatalogoContratti
     public static Contratto Da(string nome) =>
         Fabbriche.TryGetValue(nome, out var f) ? f()
             : throw new ArgumentException($"contratto sconosciuto: {nome}. Disponibili: {string.Join(", ", Nomi)}");
+
+    /// <summary>Le politiche del compratore (come opera in ciascuna fase), per nome.</summary>
+    public static IReadOnlyList<Politica> Politiche { get; } = [.. PolitichePerFase.Tutte()];
+
+    public static Politica Politica(string nome) =>
+        Politiche.FirstOrDefault(p => string.Equals(p.Nome, nome, StringComparison.OrdinalIgnoreCase))
+            ?? throw new ArgumentException($"politica sconosciuta: {nome}. Disponibili: {string.Join(", ", Politiche.Select(p => p.Nome))}");
 }

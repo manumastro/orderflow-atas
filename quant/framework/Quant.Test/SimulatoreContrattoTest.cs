@@ -147,4 +147,54 @@ public class SimulatoreContrattoTest
         Assert.Equal(0.8 * 2000 + 500, ciclo.Incassato, 6);
         Assert.Equal(FineFase.LimiteRigido, ciclo.FineFinanziata);
     }
+
+    [Fact]
+    public void La_condotta_scala_e_chiude_al_bracket()
+    {
+        double[] c = [100, 300, 250], m = [50, 280, 100];
+        new Condotta { Scala = 2, TargetGiorno = 500 }.Applica(c, m);
+        Assert.Equal([200.0, 500, 500], c);
+        Assert.Equal([100.0, 560, 500], m);
+
+        double[] c2 = [-100, -500, 300], m2 = [-150, -650, 200];
+        new Condotta { StopGiorno = 400, TargetGiorno = 400 }.Applica(c2, m2);
+        Assert.Equal([-100.0, -400, -400], c2);
+        Assert.Equal([-150.0, -400, -400], m2);
+    }
+
+    [Fact]
+    public void Lo_stop_del_giorno_tiene_lontano_il_limite_giornaliero()
+    {
+        var f = Base with { LimiteGiornaliero = 1250, LimiteRigido = true };
+        var s = new Fisse([(-500, -1500)], [(4500, 4500)]);
+        Assert.Equal(FineFase.LimiteRigido, Gioca(f, s).Item1);
+        var rng = new Caso(1);
+        var conStop = SimulatoreContratto.Valutazione(f, new Fisse([(-500, -1500)], [(4500, 4500)]).Apri(), ref rng, new double[1], new double[1], new Condotta { StopGiorno = 1000 });
+        Assert.Equal((FineFase.Target, 2), conStop);
+    }
+
+    [Fact]
+    public void La_politica_neutra_non_cambia_nessun_ciclo()
+    {
+        var c = TradeifyGrowth50K.Regole(false);
+        var s = new SessioniBrowniane(850, 0, 78);
+        var senza = SimulatoreContratto.Esegui(c, s, 2_000, 7);
+        var neutra = SimulatoreContratto.Esegui(c, s, 2_000, 7, new SimulatoreContratto.Opzioni { Politica = Politica.Neutra });
+        for (var i = 0; i < senza.Length; i++)
+        {
+            Assert.Equal(senza[i].Netto, neutra[i].Netto);
+            Assert.Equal(senza[i].Tentativi, neutra[i].Tentativi);
+            Assert.Equal(senza[i].SessioniFinanziate, neutra[i].SessioniFinanziate);
+        }
+    }
+
+    [Fact]
+    public void La_scala_due_equivale_a_una_deviazione_doppia()
+    {
+        var c = TradeifyGrowth50K.Regole(false);
+        var doppia = SimulatoreContratto.Esegui(c, new SessioniBrowniane(1700, -12, 78), 2_000, 7);
+        var pol = new Politica("x2", new Condotta { Scala = 2 }, new Condotta { Scala = 2 });
+        var scalata = SimulatoreContratto.Esegui(c, new SessioniBrowniane(850, -6, 78), 2_000, 7, new SimulatoreContratto.Opzioni { Politica = pol });
+        for (var i = 0; i < doppia.Length; i++) Assert.Equal(doppia[i].Netto, scalata[i].Netto, 6);
+    }
 }

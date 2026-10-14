@@ -22,6 +22,8 @@ quant contratto tradeify-growth-50k --d 850                # sessioni browniane,
 quant contratto tradeify-growth-50k --d 850 --deriva -118  # con una deriva per sessione
 quant contratto tradeify-growth-50k --sorgente seduta --contratti 2       # sessioni vere di NQ
 quant contratto tradeify-growth-50k --sorgente youngblood --contratti 8   # la strategia di Youngblood
+quant contratto tradeify-growth-50k --d 850 --politica v4-f1   # una politica del compratore
+quant contratto tradeify-growth-50k --d 850 --politiche        # una riga per ogni politica
 ```
 
 Opzioni: `--prezzo`, `--reset` (i prezzi effettivi alla data), `--cicli 100000`, `--seme`,
@@ -29,6 +31,12 @@ Opzioni: `--prezzo`, `--reset` (i prezzi effettivi alla data), `--cicli 100000`,
 dopo N prelievi, per esempio con il passaggio al vivo), `--senza-limite` (toglie il limite
 giornaliero, per misurarne l'effetto), `--controlli 78` (controlli per sessione delle sessioni
 browniane).
+
+**La politica del compratore** (`Politica.cs`, dal 14 ottobre 2026): per ciascuna fase, valutazione
+e finanziato, una **condotta**: la scala rispetto alle sessioni della sorgente (deviazione, deriva e
+costi crescono insieme) e un bracket sul P&L del giorno, stop e target. Le politiche stanno nello
+studio che le prova, [`politica-per-fase`](../studi/politica-per-fase/1-idea.md), e si registrano in
+`CatalogoContratti.Politiche`. Senza politica, ogni ciclo e' identico a prima (test).
 
 ## Cosa Simula
 
@@ -66,6 +74,7 @@ Come nel motore, ogni convenzione e' una scelta, e si dichiara accanto ai numeri
 | consistenza | sessione migliore dall'ultimo prelievo <= quota x profitto dall'ultimo prelievo | Tradeify, "Rules: Consistency Rule" |
 | costi (sorgenti storiche) | 2,82 $ per MNQ a sessione: 1,82 $ di commissione Tradeify e 2 tick di slittamento | come il motore: 1 tick per esecuzione a mercato |
 | tetto ai tentativi | 1.000 | un compratore che non passa mai smette |
+| stop e target del giorno (politica) | esatti al livello; lo stop sul peggiore del passo, il target sulla chiusura del passo | ottimista come il limite giornaliero; il target sulla chiusura e' prudente |
 
 ## Il Settimo Parametro
 

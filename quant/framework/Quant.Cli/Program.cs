@@ -31,6 +31,8 @@ opzioni del contratto:
                                      sessioni storiche: contratti (MNQ di default), costo per contratto
   --prezzo 145 --reset 95 --cicli 100000 --seme 1 --orizzonte 1000 --max-prelievi N --solo-valutazione
   --senza-limite                     toglie il limite giornaliero (per misurarne l'effetto)
+  --politica NOME | --politiche      come opera il compratore in ogni fase (quant/studi/politica-per-fase/);
+                                     --politiche: una riga per ogni politica del catalogo
 
 opzioni comuni:
   --simbolo NQ|SINT   --tipo m1   --p chiave=valore (ripetibile)
@@ -195,13 +197,28 @@ try
                 OrizzonteFinanziato = o.Intero("orizzonte", 1000),
                 MassimoPrelievi = o.Valore("max-prelievi") is null ? null : o.Intero("max-prelievi", 0),
                 SoloValutazione = o.Flag("solo-valutazione"),
+                Politica = o.Valore("politica") is { } np ? CatalogoContratti.Politica(np) : null,
             };
+            if (o.Flag("politiche"))
+            {
+                Console.WriteLine($"{contratto.Nome}; sessioni: {sorgente.Descrizione}");
+                Console.WriteLine($"orizzonte finanziato {opz.OrizzonteFinanziato} sessioni{(opz.MassimoPrelievi is { } m ? $", al massimo {m} prelievi" : "")}");
+                Console.WriteLine($"{"politica",-9} {"P",6} {"prelievo",8} {"netto",7} {"SE",4} {"mediana",7} {"perdita",7}  condotta");
+                foreach (var pol in CatalogoContratti.Politiche)
+                {
+                    var rp = Riepilogo.Da(SimulatoreContratto.Esegui(contratto, sorgente, o.Intero("cicli", 100_000), (ulong)o.Intero("seme", 1), opz with { Politica = pol }), contratto.Prezzi);
+                    Console.WriteLine($"{pol.Nome,-9} {rp.Passaggio,6:0.000} {rp.ProbabilitaPrelievo,8:P1} {rp.NettoMedio,7:N0} {rp.ErroreNetto,4:N0} {rp.NettoP50,7:N0} {rp.ProbabilitaPerdita,7:P1}  valutazione {pol.Valutazione}; finanziato {pol.Finanziata}");
+                }
+                Console.WriteLine($"({t.ElapsedMilliseconds:N0} ms)");
+                return 0;
+            }
             var cicli = SimulatoreContratto.Esegui(contratto, sorgente, o.Intero("cicli", 100_000), (ulong)o.Intero("seme", 1), opz);
             var riep = Riepilogo.Da(cicli, contratto.Prezzi);
             Console.WriteLine($"{contratto.Nome}: {contratto.Fonte}");
             Console.WriteLine($"prezzi: ingresso {contratto.Prezzi.Ingresso:N0} $, reset {contratto.Prezzi.Reset:N0} $, attivazione {contratto.Prezzi.Attivazione:N0} $");
             Console.WriteLine($"sessioni: {sorgente.Descrizione}");
             Console.WriteLine($"orizzonte finanziato {opz.OrizzonteFinanziato} sessioni{(opz.MassimoPrelievi is { } mp ? $", al massimo {mp} prelievi" : "")}");
+            if (opz.Politica is { } po) Console.WriteLine($"politica {po}");
             Console.WriteLine();
             foreach (var r in riep.Righe(sessioniStoriche)) Console.WriteLine("  " + r);
             Console.WriteLine();

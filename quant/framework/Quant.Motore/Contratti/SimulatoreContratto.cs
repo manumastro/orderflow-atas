@@ -38,6 +38,8 @@ public static class SimulatoreContratto
         public int? MassimoPrelievi { get; init; }
         /// <summary>Simula solo la valutazione: niente fase finanziata.</summary>
         public bool SoloValutazione { get; init; }
+        /// <summary>Come il compratore opera in ciascuna fase (la scala e il bracket del giorno). Null: come le sessioni.</summary>
+        public Politica? Politica { get; init; }
     }
 
     public static Ciclo[] Esegui(Contratto contratto, ISorgenteSessioni sorgente, int cicli, ulong seme, Opzioni? opzioni = null)
@@ -68,7 +70,7 @@ public static class SimulatoreContratto
             for (var f = 0; f < fasi; f++)
             {
                 ciclo.Arrivate[f]++;
-                var (fine, sessioni) = Valutazione(c.Valutazione[f], cursore, ref rng, chiusura, minimo);
+                var (fine, sessioni) = Valutazione(c.Valutazione[f], cursore, ref rng, chiusura, minimo, o.Politica?.Valutazione);
                 ciclo.SessioniValutazione += sessioni;
                 if (fine != FineFase.Target) { passato = false; break; }
                 ciclo.Passate[f]++;
@@ -85,13 +87,15 @@ public static class SimulatoreContratto
     }
 
     /// <summary>Una fase di valutazione: fino al target, alla violazione o alla scadenza.</summary>
-    public static (FineFase Fine, int Sessioni) Valutazione(Fase f, ICursoreSessioni cursore, ref Caso rng, double[] chiusura, double[] minimo)
+    public static (FineFase Fine, int Sessioni) Valutazione(Fase f, ICursoreSessioni cursore, ref Caso rng, double[] chiusura, double[] minimo, Condotta? condotta = null)
     {
+        condotta ??= Condotta.Neutra;
         var conto = new Conto(f);
         var target = f.Target ?? throw new InvalidOperationException($"la fase {f.Nome} non ha un target");
         for (var s = 1; ; s++)
         {
             var n = cursore.Prossima(ref rng, chiusura, minimo);
+            condotta.Applica(chiusura.AsSpan(0, n), minimo.AsSpan(0, n));
             var esito = conto.Sessione(chiusura.AsSpan(0, n), minimo.AsSpan(0, n), target);
             if (esito is { } fine) return (fine, s);
             if (f.Scadenza is { } sc && s >= sc) return (FineFase.Scadenza, s);
@@ -105,9 +109,11 @@ public static class SimulatoreContratto
         var conto = new Conto(f);
         double basePeriodo = 0, migliore = 0;
         var giorniBuoni = 0;
+        var condotta = o.Politica?.Finanziata ?? Condotta.Neutra;
         for (var s = 1; s <= o.OrizzonteFinanziato; s++)
         {
             var n = cursore.Prossima(ref rng, chiusura, minimo);
+            condotta.Applica(chiusura.AsSpan(0, n), minimo.AsSpan(0, n));
             var prima = conto.Saldo;
             var esito = conto.Sessione(chiusura.AsSpan(0, n), minimo.AsSpan(0, n), double.PositiveInfinity);
             ciclo.SessioniFinanziate = s;
