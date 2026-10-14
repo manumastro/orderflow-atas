@@ -37,6 +37,8 @@ Cosa si chiede all'utente prima di usarle sta in [`come-l-agente-vede-e-comanda-
 | `/rollovers` | `from`, `to`, `type` | date di rollover del contratto; `type` fra `ExpirationDate`, `VolumeBasedCurrentEnd`, `VolumeBasedNextStart` |
 | `/profile` | `period`, `session`, `levels` | profilo fisso nativo: POC, value area, footprint completo, versione scalata e originale |
 | `/candles` | `from`, `to`, `fromBar`, `toBar`, `levels` | candele del chart con volume, tick, bid/ask, delta, `maxDelta`/`minDelta`, VWAP, POC, value area, open interest e footprint opzionale |
+| `/serie` | `minutes`, `days`, `fromBar`, `toBar`, `diretto` | le candele dello strumento del chart da `CandlesDataProvider`, indipendenti dai giorni che il chart carica; stesso formato di `/candles`. **ATAS ne da' circa 30 giorni di borsa, non di piu'** (misurato il 14 ottobre 2026: a 1 e a 60 minuti, a blocchi o in una richiesta) |
+| `/opzioni` | `expiration`, `strikes`, `wait` | senza `expiration` le serie di opzioni dello strumento; con `expiration` le opzioni di quella scadenza, `strikes` per lato intorno al prezzo, con bid, ask, ultimo, open interest, volume e settlement da `OptionsDataProvider`. Nessun calcolo: la GEX la fa il framework |
 | `/cumulative` | `from`, `to`, `minVolume`, `maxVolume`, `mode`, `ticks` | trade aggregati storici con il filtro di volume nativo di ATAS |
 | `/depth` | `from`, `to`, `periodSeconds` | snapshot storici del book |
 | `/levels` | `chart` | `GET` restituisce i livelli del chart, `POST`/`PUT` li sostituisce, `DELETE` li cancella. **Un POST qui spegne le regole**: il controllo passa a mano |

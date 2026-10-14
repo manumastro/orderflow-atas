@@ -84,6 +84,41 @@ public sealed class PonteAtas : IDisposable
         return ([.. tutte.DistinctBy(b => b.Inizio).OrderBy(b => b.Inizio)], nomeStrumento, periodo);
     }
 
+    /// <summary>
+    /// Registra la catena delle opzioni dello strumento del chart, cosi' com'e' (/opzioni del bridge):
+    /// per le prossime <paramref name="scadenze"/> serie, i <paramref name="strike"/> strike piu' vicini
+    /// al prezzo per lato. Un file JSON per serie in quant/dati/&lt;simbolo&gt;/opzioni/&lt;giorno&gt;/&lt;HHmm&gt;Z-&lt;scadenza&gt;.json:
+    /// il dato grezzo, senza calcoli, perche' la GEX si calcola dopo con la convenzione dichiarata.
+    /// ATAS non ha la storia delle opzioni: si registra da oggi in avanti.
+    /// </summary>
+    public async Task<List<string>> RegistraOpzioni(string chart, string simbolo, int scadenze = 3, int strike = 40, Action<string>? avanzamento = null)
+    {
+        using var elenco = await Chiedi("/opzioni", new Dictionary<string, string?> { ["chart"] = chart });
+        var oggi = DateTime.UtcNow.Date;
+        var giorni = elenco.RootElement.GetProperty("series").EnumerateArray()
+            .Select(s => DateTime.Parse(s.GetProperty("expiration").GetString()!, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal).Date)
+            .Where(d => d >= oggi).Distinct().OrderBy(d => d).Take(scadenze).ToList();
+        var adesso = DateTime.UtcNow;
+        var cartella = Path.Combine(Archivio.Radice, simbolo.ToUpperInvariant(), "opzioni", adesso.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
+        Directory.CreateDirectory(cartella);
+        var scritti = new List<string>();
+        foreach (var g in giorni)
+        {
+            var scadenza = g.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+            using var doc = await Chiedi("/opzioni", new Dictionary<string, string?>
+            {
+                ["chart"] = chart, ["expiration"] = scadenza,
+                ["strikes"] = strike.ToString(CultureInfo.InvariantCulture), ["wait"] = "30",
+            });
+            var file = Path.Combine(cartella, $"{adesso:HHmm}Z-{scadenza}.json");
+            await File.WriteAllTextAsync(file, doc.RootElement.GetRawText());
+            var r = doc.RootElement;
+            avanzamento?.Invoke($"  {scadenza}: {r.GetProperty("quoted").GetInt32()} quotate su {r.GetProperty("count").GetInt32()} opzioni -> {Path.GetFileName(file)}");
+            scritti.Add(file);
+        }
+        return scritti;
+    }
+
     internal static Barra DaJson(JsonElement c, Strumento s)
     {
         long Ms(string nome) => Tempo.Ms(DateTime.Parse(c.GetProperty(nome).GetString()!, CultureInfo.InvariantCulture,

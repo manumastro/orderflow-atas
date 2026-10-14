@@ -291,6 +291,12 @@ public sealed partial class DataBridge : Indicator
 
     protected override void OnDispose()
     {
+        foreach (var serie in _serie.Values)
+        {
+            (serie as IDisposable)?.Dispose();
+        }
+
+        _serie.Clear();
         Unregister();
         base.OnDispose();
     }
@@ -590,6 +596,8 @@ public sealed partial class DataBridge : Indicator
                 "/rollovers" => await RolloversAsync(query, cancellation).ConfigureAwait(false),
                 "/profile" => await ProfileAsync(query).ConfigureAwait(false),
                 "/candles" => Candles(query),
+                "/serie" => await SerieAsync(query, cancellation).ConfigureAwait(false),
+                "/opzioni" => await OpzioniAsync(query, cancellation).ConfigureAwait(false),
                 "/cumulative" => await CumulativeAsync(query, cancellation).ConfigureAwait(false),
                 "/depth" => await DepthAsync(query, cancellation).ConfigureAwait(false),
                 "/levels" => await LevelsAsync(context).ConfigureAwait(false),
@@ -2246,7 +2254,7 @@ public sealed partial class DataBridge : Indicator
         endpoints = new[]
         {
             "/health", "/charts", "/instrument", "/limits", "/session", "/rollovers",
-            "/profile", "/candles", "/cumulative", "/depth", "/levels", "/rules", "/regime", "/panel",
+            "/profile", "/candles", "/serie", "/opzioni", "/cumulative", "/depth", "/levels", "/rules", "/regime", "/panel",
             "/watch", "/muri", "/nodi", "/scala", "/ruolo", "/disegni", "/ui",
         },
     };
@@ -2428,6 +2436,126 @@ public sealed partial class DataBridge : Indicator
             count = candles.Count,
             candles,
         };
+    }
+
+    // Le serie di candele chieste a ATAS con /serie, una per periodo in minuti: restano aperte finche'
+    // vive l'indicatore, cosi' le pagine successive non ricaricano la storia.
+    private readonly Dictionary<int, ICandleSeriesSubscription> _serie = new();
+    private readonly SemaphoreSlim _serieLock = new(1, 1);
+
+    /// <summary>
+    /// La storia lunga dello strumento del chart, indipendente da quanti giorni il chart carica:
+    /// `CandlesDataProvider.SubscribeCandles` con barre di `minutes` minuti, poi
+    /// `LoadMoreHistoryAsync` a blocchi di 30 giorni (il massimo che ATAS accetta) finche' si
+    /// arriva a `days` o ATAS non da' piu' niente. Le candele si leggono a pagine con
+    /// `fromBar`/`toBar`, nello stesso formato di /candles. Sul chart del continuo e' la storia del
+    /// contratto principale, cucita ai rollover e non aggiustata.
+    /// </summary>
+    private async Task<object> SerieAsync(
+        System.Collections.Specialized.NameValueCollection query,
+        CancellationToken cancellation)
+    {
+        var minuti = Math.Clamp(OptionalInt(query, "minutes") ?? 1, 1, 1440);
+        var giorni = Math.Clamp(OptionalInt(query, "days") ?? 30, 1, 3650);
+        var diretto = OptionalBool(query, "diretto") ?? false;
+        var provider = CandlesDataProvider;
+        if (provider is null || !provider.IsAvailable)
+        {
+            throw new BridgeException(503, "CandlesDataProvider non disponibile su questo chart");
+        }
+
+        var attesa = TimeSpan.FromMinutes(3);
+        List<IndicatorCandle> candele;
+        int giorniChiesti;
+        var esaurita = false;
+        await _serieLock.WaitAsync(cancellation).ConfigureAwait(false);
+        try
+        {
+            if (!_serie.TryGetValue(minuti, out var serie))
+            {
+                serie = provider.SubscribeCandles(new CandleSeriesRequest
+                {
+                    TimeFrame = CandleSeriesTimeFrame.Minutes(minuti),
+                    // diretto=1: tutti i giorni in una richiesta, per misurare se ATAS accetta piu' di 30
+                    DaysToLoad = diretto ? giorni : Math.Min(giorni, 30),
+                });
+                _serie[minuti] = serie;
+                _serieGiorni[minuti] = diretto ? giorni : Math.Min(giorni, 30);
+            }
+
+            await serie.Loaded.WaitAsync(attesa, cancellation).ConfigureAwait(false);
+            while (_serieGiorni[minuti] < giorni)
+            {
+                var prima = Leggi(serie).Count;
+                var blocco = Math.Min(30, giorni - _serieGiorni[minuti]);
+                await serie.LoadMoreHistoryAsync(blocco).WaitAsync(attesa, cancellation).ConfigureAwait(false);
+                _serieGiorni[minuti] += blocco;
+                // le candele possono arrivare dopo la fine del task: si aspetta fino a 20 secondi
+                for (var k = 0; k < 40 && Leggi(serie).Count == prima; k++)
+                {
+                    await Task.Delay(500, cancellation).ConfigureAwait(false);
+                }
+
+                if (Leggi(serie).Count == prima)
+                {
+                    esaurita = true;
+                    break;
+                }
+            }
+
+            candele = Leggi(serie);
+            giorniChiesti = _serieGiorni[minuti];
+        }
+        finally
+        {
+            _serieLock.Release();
+        }
+
+        var first = Math.Max(0, OptionalInt(query, "fromBar") ?? 0);
+        var last = Math.Min(candele.Count - 1, OptionalInt(query, "toBar") ?? candele.Count - 1);
+        var pagina = new List<object>();
+        for (var i = first; i <= last && pagina.Count < MaxItems; i++)
+        {
+            if (Describe(candele[i], false, i) is { } d)
+            {
+                pagina.Add(d);
+            }
+        }
+
+        return new
+        {
+            schema = Schema,
+            instrument = InstrumentInfo?.Instrument,
+            timeFrame = $"M{minuti}",
+            chartType = "Serie",
+            totalBars = candele.Count,
+            daysRequested = giorniChiesti,
+            historyExhausted = esaurita,
+            firstTime = candele.Count > 0 ? Iso(candele[0].Time) : null,
+            lastTime = candele.Count > 0 ? Iso(candele[^1].LastTime) : null,
+            truncated = pagina.Count >= MaxItems,
+            count = pagina.Count,
+            candles = pagina,
+        };
+    }
+
+    private readonly Dictionary<int, int> _serieGiorni = new();
+
+    /// <summary>
+    /// Le candele della sottoscrizione. L'interfaccia di ATAS non le espone; la classe che la
+    /// implementa ha una proprieta' pubblica `Candles` (letta con reflection, 14 ottobre 2026).
+    /// </summary>
+    private static List<IndicatorCandle> Leggi(ICandleSeriesSubscription serie)
+    {
+        if (serie.GetType().GetProperty("Candles")?.GetValue(serie) is not System.Collections.IList lista)
+        {
+            throw new BridgeException(500, "la sottoscrizione non espone le candele: ATAS e' cambiato?");
+        }
+
+        lock (lista.SyncRoot)
+        {
+            return lista.OfType<IndicatorCandle>().ToList();
+        }
     }
 
     /// <summary>

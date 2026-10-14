@@ -111,9 +111,13 @@ diventano un'ipotesi solo con una scheda nuova.
 
 1. **La storia di ES da ATAS**: quanti anni di barre a 1 minuto da `quant scarica --simbolo ES`. ES e'
    ora nel framework (`Strumento.ES`, 50 $ a punto).
-2. **La registrazione delle opzioni**: ogni giorno, alle 15:30 e alla chiusura, i livelli del GEX
-   Profile (Zero Gamma, muri, Max Pain, Expected Move) e, se si possono leggere, quelli di X-Ray. Da
-   verificare se il Data Bridge legge cio' che calcolano gli altri indicatori del chart.
+2. **La registrazione delle opzioni**: dal 14 ottobre 2026 `quant opzioni` registra la catena delle
+   opzioni CME su ESZ6 dalla connessione di ATAS (strike, tipo, open interest, volume, prezzi), il
+   dato grezzo. Va lanciata ogni giorno a orari fissi (proposta: 9:35, 12:00, 15:30, 16:00 ET), con
+   ATAS aperto. I valori calcolati dagli indicatori di ATAS (GEX Profile, X-Ray) **non si leggono**:
+   stanno in campi offuscati. La gamma la calcoleremo noi, con le due convenzioni di segno.
+4. **La storia di ES, misurata**: `CandlesDataProvider` da' solo 30 giorni di borsa; il resto
+   dipende da quanti giorni carica un chart, da misurare.
 3. **Il calendario delle scadenze**: i terzi venerdi', con le festivita'.
 
 ## Le Prove

@@ -97,6 +97,20 @@ contratto poco scambiato non sono un errore del bridge: sono minuti senza scambi
 
 Nessuna esportazione in blocco di tick o book: **il bridge e' la via d'uscita**.
 
+## Misurato Il 14 Ottobre 2026
+
+- **Le barre per codice** (`/serie`, sopra `CandlesDataProvider.SubscribeCandles`) arrivano a
+  **circa 30 giorni di borsa** e non oltre: `LoadMoreHistoryAsync` non aggiunge niente, e nemmeno
+  chiedere 400 giorni in una volta. Vale a 1 e a 60 minuti, su ES continuo (dal 2 settembre). La
+  storia piu' lunga passa solo dai giorni che **il chart** carica (l'M1 ne ha 90): quanto in la'
+  arriva un chart e' la prossima misura, cambiando i giorni del chart.
+- **Le opzioni** (`/opzioni`, sopra `OptionsDataProvider`): la connessione Rithmic da' le opzioni CME
+  su ESZ6, 33 serie (giornaliere, fine mese, mensili), con open interest, volume, ultimo,
+  settlement e, quando la sottoscrizione e' calda, bid e ask. **Nessuna storia**: si registra con
+  `quant opzioni --chart <ESZ6> --simbolo ES` in `quant/dati/ES/opzioni/<giorno>/`, il dato grezzo.
+- ES in archivio: 44.588 barre M1 di ESZ6, 5 agosto - 14 ottobre 2026; come per NQ, prima della
+  scadenza di settembre ESZ6 non era il contratto principale.
+
 ## Il Piano
 
 1. **Misurare i diritti, appena la connessione torna** (lunedi'), con quattro misure:

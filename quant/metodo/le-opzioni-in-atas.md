@@ -113,11 +113,13 @@ Sulla tab `2 SETTIMANA M30` (NQZ6, connessione Rithmic) ci sono **due** indicato
 1. **Non si puo' fare un backtest con questi indicatori.** Non hanno storia: Chain registra da
    quando e' sul chart, l'OI e' giornaliero. Nel metodo un'idea diventa regola
    solo dopo il backtest e la validazione.
-2. **La storia si puo' costruire da qui in avanti**, registrando ogni giorno i livelli (Zero Gamma,
-   muri, Max Pain, Expected Move, OI per strike) dall'indicatore o, meglio, i prezzi delle opzioni
-   dalla connessione. Dopo qualche mese c'e' un campione; dopo un anno, uno serio. Resta dentro la
-   decisione 2 del progetto (dati solo da ATAS). **Da verificare**: se il Data Bridge puo' leggere
-   cio' che calcola un altro indicatore, o le quote delle opzioni.
+2. **La storia si costruisce da qui in avanti, ed e' gia' possibile** (14 ottobre 2026): il Data
+   Bridge legge la catena delle opzioni dalla connessione (`/opzioni`) e `quant opzioni` la
+   registra in `quant/dati/ES/opzioni/`, strike per strike, con open interest, volume e prezzi.
+   La GEX si calcola poi nel framework, con la convenzione dichiarata e la sua alternativa, invece
+   di fidarsi del calcolo chiuso degli indicatori, i cui valori stanno in campi offuscati e non si
+   leggono. Dopo qualche mese c'e' un campione; dopo un anno, uno serio. Resta dentro la
+   decisione 2 del progetto (dati solo da ATAS).
 3. **Una storia lunga di GEX su NQ da fuori** (fornitori come SpotGamma, Menthor Q, OptionsDepth, o
    i dati CME) **esce dalla decisione 2**: servirebbe una richiesta esplicita.
 4. **Prima i paper.** La fase 1 vale anche qui: si cercano i paper sulla copertura dei dealer, la

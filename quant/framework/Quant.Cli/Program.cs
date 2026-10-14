@@ -13,6 +13,8 @@ quant: il framework quantitativo, dall'idea alla validazione.
   quant chart                        i chart aperti in ATAS, dal bridge
   quant scarica --chart ID [--simbolo NQ]
                                      scarica le barre caricate su quel chart di ATAS
+  quant opzioni --chart ID [--simbolo ES] [--scadenze 3] [--strike 40]
+                                     registra la catena delle opzioni (ATAS non ne ha la storia)
   quant sintetico [--giorni 500] [--seme 42] [--deriva-notte PUNTI] [--deriva-cassa PUNTI]
                                      genera il mercato finto SINT (per validare il framework)
   quant divisione [--simbolo NQ] [--fissa] [--quota 0.8] [--fine AAAA-MM-GG]
@@ -72,6 +74,17 @@ try
             var n = Archivio.Scrivi<Barra>(simbolo, tipo, barre, b => b.Inizio);
             Console.WriteLine($"{n:N0} barre di {strumento} {periodo} in {simbolo}/{tipo}, " +
                               $"{Tempo.Utc(barre[0].Inizio):yyyy-MM-dd} -> {Tempo.Utc(barre[^1].Inizio):yyyy-MM-dd}, {t.ElapsedMilliseconds:N0} ms");
+            return 0;
+        }
+
+        case "opzioni":
+        {
+            var chart = o.Valore("chart") ?? throw new ArgumentException("--chart ID di un chart del contratto (per esempio ESZ6 M1): vedi `quant chart`");
+            var simbolo = o.Valore("simbolo") ?? "ES";
+            using var ponte = new PonteAtas(o.Valore("bridge"));
+            var t = Stopwatch.StartNew();
+            var file = await ponte.RegistraOpzioni(chart, simbolo, o.Intero("scadenze", 3), o.Intero("strike", 40), Console.WriteLine);
+            Console.WriteLine($"{file.Count} serie registrate in {Path.GetDirectoryName(file.FirstOrDefault() ?? "")}, {t.ElapsedMilliseconds:N0} ms");
             return 0;
         }
 
