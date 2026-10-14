@@ -132,24 +132,20 @@ def ricerche() -> list[dict]:
         titolo, _, corpo = s.partition("\n")
         if titolo.strip() in ("Come Sono Organizzati",):
             continue
-        righe = [r for r in corpo.splitlines() if r.startswith("|") and not re.match(r"^\|[\s|:-]+\|$", r)]
-        intestazioni = [r for r in righe if re.search(r"\|\s*(sigla|paper|filone|Fabio dice)\s*\|", r)]
-        dati = [r for r in righe if r not in intestazioni]
-        # le righe "Fabio dice" sono la sintesi, non paper
-        sintesi = 0
-        blocchi = re.split(r"^### ", corpo, flags=re.M)
-        for b in blocchi:
-            if b.startswith("Cosa Dicono"):
-                sintesi = len([r for r in b.splitlines() if r.startswith("|")]) - 2
+        # le tabelle dei paper, fuori dalla sintesi "Cosa Dicono" (quella confronta, non elenca paper)
+        tabelle = "\n".join(b for b in re.split(r"^### ", corpo, flags=re.M) if not b.startswith("Cosa Dicono"))
+        righe = [r for r in tabelle.splitlines() if r.startswith("|") and not re.match(r"^\|[\s|:-]+\|$", r)]
+        dati = [r for r in righe if not re.search(r"\|\s*(sigla|paper|filone)\s*\|", r)]
         stati = {k: 0 for k in STATI_PAPER}
+        tabella_stato = bool(re.search(r"\|\s*stato\s*\|\s*$", corpo, re.M))
         for r in dati:
-            for k in reversed(STATI_PAPER):
-                if re.search(rf"\|\s*{k}\s*\|\s*$", r):
-                    stati[k] += 1
-                    break
-        n = len(dati) - max(sintesi, 0)
-        if sum(stati.values()) == 0 and re.search(r"stato: trovato", corpo):
-            stati["trovato"] = n
+            k = next((k for k in reversed(STATI_PAPER) if re.search(rf"\|\s*{k}\s*\|\s*$", r)), None)
+            if k is None and not tabella_stato:
+                # senza colonna dello stato: chi ha l'analisi e' analizzato, gli altri sono trovati
+                k = "analizzato" if "analisi.md" in r else "trovato"
+            if k:
+                stati[k] += 1
+        n = len(dati)
         studio = re.findall(r"studi/([a-z0-9-]+)/", corpo)
         if n <= 0:
             continue

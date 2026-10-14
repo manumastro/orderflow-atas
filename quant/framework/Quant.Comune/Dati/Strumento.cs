@@ -16,6 +16,10 @@ public sealed record Strumento(string Simbolo, double Tick, double ValorePunto)
     public static readonly Strumento NQ = new("NQ", 0.25, 20.0);
     public static readonly Strumento MNQ = new("MNQ", 0.25, 2.0);
 
+    /// <summary>ES dal 14 ottobre 2026, solo per lo studio delle opzioni (CLAUDE.md, decisione 2).</summary>
+    public static readonly Strumento ES = new("ES", 0.25, 50.0);
+    public static readonly Strumento MES = new("MES", 0.25, 5.0);
+
     /// <summary>
     /// Il simbolo dell'archivio decide il contratto. SINT e' la serie sintetica: ha le specifiche
     /// di NQ perche' serve a provare il framework su un mercato dove la verita' e' nota.
@@ -24,6 +28,8 @@ public sealed record Strumento(string Simbolo, double Tick, double ValorePunto)
     {
         "NQ" or "SINT" => NQ with { Simbolo = simbolo.ToUpperInvariant() },
         "MNQ" => MNQ,
-        _ => throw new ArgumentException($"strumento sconosciuto: {simbolo}. Lo scope e' NQ."),
+        "ES" => ES,
+        "MES" => MES,
+        _ => throw new ArgumentException($"strumento sconosciuto: {simbolo}. Lo scope e' NQ, piu' ES per le opzioni."),
     };
 }

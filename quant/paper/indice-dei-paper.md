@@ -175,19 +175,50 @@ BTC), SSRN 6938742 (squilibrio degli ordini), SSRN 5660581 (141 predittori di BT
 
 ## opzioni-gamma
 
-**Nello scope**: riguarda NQ ([`le-opzioni-in-atas.md`](../metodo/le-opzioni-in-atas.md)). Trovati il
-14 ottobre 2026 nella stessa ricerca; **stato: trovato**.
+**Nello scope**: le opzioni sull'S&P 500 e la loro copertura sui future, per lo studio su **ES**
+(CLAUDE.md, decisione 2, dal 14 ottobre 2026). Gli indicatori di ATAS: [`le-opzioni-in-atas.md`](../metodo/le-opzioni-in-atas.md).
+Cercati il 14 ottobre 2026; i sette con il PDF libero sono stati letti per intero lo stesso giorno.
+Studio: [`opzioni-gamma-es`](../studi/opzioni-gamma-es/1-idea.md).
+
+**Cosa manca in letteratura**: nessun paper revisionato, e nessuna ricerca seria di industria,
+**prova i livelli che ATAS disegna** (Zero Gamma o Flip, call wall, put wall). Esistono solo nel
+materiale dei fornitori. Nessun paper prova il pinning sugli strike degli 0DTE.
+
+### Letti E Analizzati
+
+| sigla | paper | autori, anno | sede | cosa ne viene |
+|---|---|---|---|---|
+| GJ | [*Pinning in the S&P 500 futures*](opzioni-gamma/golez-2012-pinning-in-the-sp500-futures/analisi.md) | Golez, Jackwerth, 2012 | R, Journal of Financial Economics | il future S&P chiude vicino allo strike il 21,3% dei venerdi' di scadenza seriale contro il 15% atteso, quasi tutto dal basso, nell'ultima mezz'ora |
+| BB | [*Gamma Fragility*](opzioni-gamma/barbon-2021-gamma-fragility/analisi.md) | Barbon, Buraschi, 2021 | P, SSRN 3725454 | gamma dei dealer del giorno prima alta: volatilita' piu' bassa; sugli indici il segno dei dealer e' assunto, non misurato |
+| BDLM | [*Hedging demand and market intraday momentum*](opzioni-gamma/baltussen-2021-hedging-demand-and-market-intraday-momentum/analisi.md) | Baltussen, Da, Lammers, Martens, 2021 | R, Journal of Financial Economics | la giornata fino alle 15:30 predice l'ultima mezz'ora in 62 future (NQ t 7,97, ES t 4,97); sui future S&P **solo con gamma netta negativa** |
+| BTW | [*The Derivative Payoff Bias*](opzioni-gamma/baltussen-2024-the-derivative-payoff-bias/analisi.md) | Baltussen, Terstegge, Whelan, 2024 | P, SSRN 4562800 | su ES la notte prima della scadenza del terzo venerdi' sale di 14,3 punti base (t 3,54), il giorno dopo scende |
+| GPP | [*Demand-Based Option Pricing*](opzioni-gamma/garleanu-2009-demand-based-option-pricing/analisi.md) | Garleanu, Pedersen, Poteshman, 2009 | R, Review of Financial Studies | metodo: su SPX 1996-2001 i dealer sono corti di put e lunghi di call, ma sommando gli strike **corti di gamma quasi ovunque** |
+| VAPG | [*0DTE Index Options and Market Volatility*](opzioni-gamma/vasquez-2025-0dte-index-options-and-market-volatility/analisi.md) | Vasquez, Amaya, Pearson, Garcia-Ares, 2025 | P, Cboe | gamma dei market maker di solito positiva, negativa in parte di almeno un giorno su quattro; effetto sulla volatilita' mediano piccolo |
+| SM | [*Gamma Exposure*](opzioni-gamma/squeezemetrics-2017-gamma-exposure/analisi.md) | SqueezeMetrics, 2017 | white paper | la definizione della GEX e la convenzione del segno; nessun test, nessun campione fuori |
+
+### Trovati
 
 | paper | autori, anno | sede | dall'abstract | PDF |
 |---|---|---|---|---|
-| *Hedging demand and market intraday momentum* (IDEAS) | Baltussen, Da, Lammers, Martens, 2021 | R, Journal of Financial Economics | in piu' di 60 future la giornata predice l'ultima mezz'ora; legato alla copertura dei dealer corti di gamma | libero (Notre Dame) |
-| *Does Option Trading Have a Pervasive Impact on Underlying Stock Prices?* ([doi](https://doi.org/10.1093/rfs/hhaa082)) | Ni, Pearson, Poteshman, White, 2021 | R, Review of Financial Studies | dealer lunghi di gamma: volatilita' piu' bassa; corti: piu' alta | a pagamento |
-| *0DTEs: Trading, Gamma Risk and Volatility Propagation* ([SSRN 4692190](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4692190)) | Dim, Eraker, Vilkov, 2024 | P | gamma netta dei dealer in media positiva, con volatilita' intraday piu' bassa | SSRN |
-| *Does 0DTE Options Trading Increase Volatility?* ([SSRN 4426358](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4426358)) | Brogaard, Han, Won | P | piu' volume 0DTE, piu' volatilita' (+9,1% della media), guidato dal retail | SSRN |
-| *Do S&P500 Options Increase Market Volatility? Evidence from 0DTEs* ([SSRN 5641974](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5641974)) | Adams e altri, 2025 | P | volatilita' realizzata piu' bassa nei giorni con 0DTE; meno momento intraday | SSRN |
-| *0DTE Index Options and Market Volatility: How Large is Their Impact?* (Cboe) | Vasquez, Amaya, Pearson, Garcia-Ares, 2025 | P | con gamma dei dealer negativa la volatilita' sale fino a 3,3 punti (da riassunti) | libero (Cboe) |
+| *Does Option Trading Have a Pervasive Impact on Underlying Stock Prices?* ([doi](https://doi.org/10.1093/rfs/hhaa082)) | Ni, Pearson, Poteshman, White, 2021 | R, Review of Financial Studies | dealer lunghi di gamma: volatilita' piu' bassa; corti: piu' alta | bozza 2006 |
+| *Stock price clustering on option expiration dates* ([doi](https://doi.org/10.1016/j.jfineco.2004.08.005)) | Ni, Pearson, Poteshman, 2005 | R, Journal of Financial Economics | le azioni chiudono sugli strike alla scadenza | a pagamento |
+| *A market-induced mechanism for stock pinning* ([pagina](https://math.nyu.edu/~avellane/stock_pinning.html)) | Avellaneda, Lipkin, 2003 | R, Quantitative Finance | modello: la copertura dei market maker attira il prezzo allo strike | libero |
+| *Liquidity Provision to Leveraged ETFs and Equity Options Rebalancing Flows* ([SSRN 3925725](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3925725)) | Barbon, Beckmeyer, Buraschi, Moerke | P | gamma negativa: momento nell'ultima mezz'ora; positiva: inversione | libero |
+| *End-of-Day Reversal* ([SSRN 5039009](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5039009)) | Baltussen, Da, Soebhag, 2025 | P | le azioni invertono nell'ultima mezz'ora, non per la gamma | libero |
+| *Dealer Gamma Exposure and Overnight Gap Risk* ([SSRN 6650858](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6650858)) | Maurer, 2026 | P | **l'unico test fuori campione di una GEX**: aiuta a prevedere i gap della notte solo con VIX basso | SSRN |
+| *0DTEs: Trading, Gamma Risk and Volatility Propagation* ([SSRN 4692190](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4692190)) | Dim, Eraker, Vilkov, 2024 | P | gamma dei dealer in media positiva, volatilita' intraday piu' bassa | SSRN |
+| *Does 0DTE Options Trading Increase Volatility?* ([SSRN 4426358](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4426358)) | Brogaard, Han, Won | P | piu' volume 0DTE, piu' volatilita' | SSRN |
+| *Do S&P500 Options Increase Market Volatility? Evidence from 0DTEs* ([SSRN 5641974](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5641974)) | Adams e altri, 2025 | P | volatilita' piu' bassa nei giorni con 0DTE, meno momento intraday | SSRN |
+| *The impact of option hedging on the spot market volatility* ([doi](https://doi.org/10.1016/j.jimonfin.2022.102627)) | Anderegg, Ulmann, Sornette, 2022 | R, JIMF | sul cambio: gamma dei market maker ricostruita, negativa, alza la volatilita' | libero (SNB) |
+| *Option Market Activity* ([doi](https://doi.org/10.1093/rfs/hhl025)) | Lakonishok, Lee, Pearson, Poteshman, 2007 | R, Review of Financial Studies | sulle azioni chi non e' market maker vende piu' opzioni di quante ne compri | libero (bozza) |
+| *Intraday Share Price Volatility and Leveraged ETF Rebalancing* ([doi](https://doi.org/10.1093/rof/rfv061)) | Shum e altri, 2016 | R, Review of Finance | volatilita' di fine giornata legata al ribilanciamento degli ETF a leva | libero |
+| *Do leveraged ETFs really amplify late-day returns and volatility?* ([doi](https://doi.org/10.1016/j.finmar.2018.09.001)) | Ivanov, Lenkey, 2018 | R, Journal of Financial Markets | l'effetto e' economicamente trascurabile | libero (Fed) |
 | *Net buying pressure and the information in bitcoin option trades* ([arXiv 2109.02776](https://arxiv.org/abs/2109.02776)) | Alexander, Deng, Feng, Wan, 2023 | R, Journal of Financial Markets | i vincoli dei market maker formano i prezzi delle opzioni Deribit | libero |
-| *Bitcoin option expiration, gamma exposure, and intraday price reversals* ([doi](https://doi.org/10.1016/j.frl.2026.110340)) | Weiss e altri, 2026 | R, Finance Research Letters | calo un'ora prima della scadenza Deribit, poi ritorno; solo con gamma dei dealer corta (da riassunti) | a pagamento |
+| *Bitcoin option expiration, gamma exposure, and intraday price reversals* ([doi](https://doi.org/10.1016/j.frl.2026.110340)) | Weiss e altri, 2026 | R, Finance Research Letters | calo prima della scadenza Deribit, poi ritorno, con gamma dei dealer corta (da riassunti) | a pagamento |
+
+Due note di ricerca di Cboe (Mandy Xu, 2023 e 2025) dicono che la copertura netta degli 0DTE dei
+market maker e' al massimo lo 0,2% della liquidita' giornaliera dell'SPX: un riferimento per quanto
+una GEX stimata dall'open interest puo' distare dalle posizioni vere.
 
 ## Gli Esempi Del Transcript
 

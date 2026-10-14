@@ -66,6 +66,7 @@ studi/<idea>/
 |---|---|---|
 | [`contratto-prop`](studi/contratto-prop/1-idea.md) | il valore del contratto di una prop firm (tre paper); Tradeify Growth 50K | studiato fino alla validazione del simulatore |
 | [`politica-per-fase`](studi/politica-per-fase/1-idea.md) | l'incrocio dei tre paper: grande in valutazione, piccolo o con un bracket nel finanziato | criteri sigillati: K1 e K4 smentiti, K2 e K3 reggono; l'incrocio non regge come scritto |
+| [`opzioni-gamma-es`](studi/opzioni-gamma-es/1-idea.md) | la gamma dei dealer su ES: momento dell'ultima mezz'ora, scadenze (sette paper letti) | idea; servono la storia di ES e la registrazione delle opzioni |
 | [`momento-intraday`](studi/momento-intraday/1-idea.md) | esempio 1 del transcript | codificato, in attesa della storia lunga |
 | [`vwap-tendenza`](studi/vwap-tendenza/1-idea.md) | esempio 2 del transcript | codificato, in attesa della storia lunga |
 | [`anomalia-notte`](studi/anomalia-notte/1-idea.md) | esempio 4 del transcript | codificato, in attesa della storia lunga |
