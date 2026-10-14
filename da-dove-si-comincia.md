@@ -70,6 +70,7 @@ quant/paper/               DA DOVE: la biblioteca, paper/<filone>/<paper>/ (anal
 quant/studi/               COSA: un'idea per cartella, con le fasi numerate (1-idea.md, 2-regole/, ...)
 quant/registro/            le prove fatte e la divisione dentro/fuori campione, in git
 quant/dati/                l'archivio dei dati di ATAS, fuori da git
+quant/sito/                il sito locale: python quant/sito/sito.py, poi http://127.0.0.1:8790
 fabio_course/fabio_q1/     le trascrizioni del live Q1  <- fonte di idee, comanda la lettura dal vivo
 fabio_course/ivbaaa/       il dossier illustrato        <- riferimento
 docs/research/metodo/      le procedure attive

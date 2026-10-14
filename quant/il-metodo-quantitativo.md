@@ -133,6 +133,14 @@ Ogni aggiunta e' spiegata nel documento della sua fase.
 
 ## Come Si Compila E Si Usa
 
+**Per vedere tutto**, studio per studio e fase per fase, c'e' il sito locale: legge `quant/` a ogni
+pagina, quindi non va rigenerato.
+
+```bash
+python quant/sito/sito.py                # http://127.0.0.1:8790
+```
+
+
 ```bash
 cd quant/framework
 dotnet build -c Release                  # una volta, e dopo ogni modifica

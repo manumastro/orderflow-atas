@@ -262,7 +262,7 @@ public sealed partial class DataBridge
                         FieldInfo fi => $"field {fi.FieldType.Name} {fi.Name}",
                         _ => $"{m.MemberType} {m.Name}",
                     }).Where(x => !x.Contains("<", StringComparison.Ordinal)).Distinct().Take(150),
-                implementatori = tipi.Where(x => x != t && t.IsAssignableFrom(x)).Select(x => x.FullName).Take(40),
+                implementatori = tipi.Where(x => x != t && t.IsAssignableFrom(x)).Select(x => x.FullName).Take(500),
             }),
         };
     }

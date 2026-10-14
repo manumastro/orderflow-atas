@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Il Metodo Quantitativo</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect x=%221%22 y=%229%22 width=%222.5%22 height=%226%22 fill=%22%231d5c87%22/%3E%3Crect x=%224.5%22 y=%227%22 width=%222.5%22 height=%228%22 fill=%22%231d5c87%22/%3E%3Crect x=%228%22 y=%224%22 width=%222.5%22 height=%2211%22 fill=%22%231d5c87%22/%3E%3Crect x=%2211.5%22 y=%221%22 width=%222.5%22 height=%2214%22 fill=%22%231d5c87%22/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>
+/* Layout: a lab notebook. Fixed index on the left (studies, research, method), the open study on the
+   right with its pipeline of five phases as the spine of the page. */
+:root {
+  --bg: #f2f3ef;        /* engineering paper, slightly green */
+  --surface: #ffffff;
+  --ink: #17201c;
+  --muted: #5d6a63;
+  --line: #d6dcd6;
+  --accent: #1d5c87;    /* ink-blue: phases done, links */
+  --accent-soft: #e2ecf3;
+  --ok: #2c7a4b;
+  --ko: #b03a36;
+  --wait: #a8701c;
+  --code-bg: #f7f8f5;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1412; --surface: #151d1a; --ink: #e2e9e5; --muted: #8e9e97; --line: #26322d;
+    --accent: #72b3df; --accent-soft: #19303f; --ok: #5fbf86; --ko: #e07a72; --wait: #d9a552;
+    --code-bg: #111816; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1412; --surface: #151d1a; --ink: #e2e9e5; --muted: #8e9e97; --line: #26322d;
+  --accent: #72b3df; --accent-soft: #19303f; --ok: #5fbf86; --ko: #e07a72; --wait: #d9a552;
+  --code-bg: #111816; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.6 var(--body); }
+a { color: var(--accent); text-underline-offset: 2px; }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.app { display: grid; grid-template-columns: 270px minmax(0, 1fr); min-height: 100vh; }
+nav.indice {
+  position: sticky; top: 0; height: 100vh; overflow-y: auto; border-right: 1px solid var(--line);
+  padding: 22px 18px 40px; display: flex; flex-direction: column; gap: 22px; background: var(--bg);
+}
+.marchio { font: 700 19px/1.15 var(--display); letter-spacing: -0.01em; text-decoration: none; color: var(--ink); }
+.marchio small { display: block; font: 500 11px/1.4 var(--mono); color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; margin-top: 4px; }
+.gruppo h4 { margin: 0 0 6px; font: 500 11px/1.4 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.gruppo a { display: flex; align-items: center; gap: 8px; padding: 4px 6px; margin: 0 -6px; border-radius: 4px; color: var(--ink); text-decoration: none; font-size: 14px; line-height: 1.35; }
+.gruppo a:hover { background: var(--accent-soft); }
+.gruppo a.attivo { background: var(--accent-soft); color: var(--accent); font-weight: 500; }
+.mini { display: inline-flex; gap: 2px; flex: none; }
+.mini i { width: 6px; height: 10px; border-radius: 1px; background: var(--line); }
+.mini i.si { background: var(--accent); }
+main { padding-block: 28px 80px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); min-width: 0; }
+.colonna { max-width: 1040px; margin: 0 auto; padding: 0 12px; display: flex; flex-direction: column; gap: 28px; }
+.occhiello { font: 500 11px/1.4 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+h1.titolo { font: 700 clamp(26px, 3.6vw, 38px)/1.1 var(--display); letter-spacing: -0.015em; margin: 4px 0 0; text-wrap: balance; }
+.sotto { color: var(--muted); max-width: 72ch; margin: 8px 0 0; }
+h2.sezione { font: 700 20px/1.2 var(--display); margin: 0 0 12px; }
+
+/* home */
+.griglia { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; }
+.scheda { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 16px 16px 14px; display: flex; flex-direction: column; gap: 10px; text-decoration: none; color: var(--ink); }
+.scheda:hover { border-color: var(--accent); }
+.scheda b { font: 700 16px/1.25 var(--display); }
+.scheda p { margin: 0; color: var(--muted); font-size: 13.5px; line-height: 1.45; }
+.binario { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; }
+.binario span { height: 5px; border-radius: 1px; background: var(--line); }
+.binario span.si { background: var(--accent); }
+.binario-etichette { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; font: 500 10px/1.2 var(--mono); color: var(--muted); }
+.esito { font: 500 12px/1.4 var(--mono); color: var(--ink); border-left: 2px solid var(--line); padding-left: 8px; }
+.barra { display: flex; height: 8px; border-radius: 2px; overflow: hidden; background: var(--line); }
+.barra i { display: block; }
+.legenda { display: flex; flex-wrap: wrap; gap: 4px 12px; font: 500 11px/1.4 var(--mono); color: var(--muted); }
+.legenda span::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 1px; margin-right: 5px; background: var(--c); vertical-align: -1px; }
+
+/* the study: the five-phase spine */
+.fasi { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--surface); }
+.fase { appearance: none; border: 0; border-right: 1px solid var(--line); background: none; color: var(--ink); text-align: left; padding: 12px 14px 12px; cursor: pointer; display: flex; flex-direction: column; gap: 4px; font: inherit; position: relative; }
+.fase:last-child { border-right: 0; }
+.fase .n { font: 700 22px/1 var(--display); color: var(--line); }
+.fase.piena .n { color: var(--accent); }
+.fase .nome { font-weight: 600; font-size: 14px; }
+.fase .quanti { font: 500 11px/1.3 var(--mono); color: var(--muted); }
+.fase.aperta { background: var(--accent-soft); }
+.fase.aperta::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--accent); }
+.fase:hover { background: var(--accent-soft); }
+.file-tab { display: flex; flex-wrap: wrap; gap: 6px; }
+.file-tab button { appearance: none; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: 500 12px/1.3 var(--mono); padding: 5px 9px; border-radius: 4px; cursor: pointer; }
+.file-tab button.aperto { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.riga-fase { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px 16px; }
+.vuota { border: 1px dashed var(--line); border-radius: 6px; padding: 22px; color: var(--muted); }
+.sigillo { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; font: 500 12px/1.5 var(--mono); padding: 10px 12px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); }
+.pill { display: inline-block; padding: 1px 8px; border-radius: 999px; font: 600 11px/1.6 var(--mono); letter-spacing: 0.03em; color: var(--surface); }
+.pill.ok { background: var(--ok); } .pill.ko { background: var(--ko); } .pill.wait { background: var(--wait); }
+.hash { color: var(--muted); overflow-wrap: anywhere; }
+
+/* rendered documents */
+.foglio { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 26px clamp(16px, 4vw, 40px) 30px; min-width: 0; }
+.percorso { font: 500 12px/1.4 var(--mono); color: var(--muted); overflow-wrap: anywhere; }
+.md { max-width: 80ch; }
+.md h1 { font: 700 28px/1.15 var(--display); letter-spacing: -0.01em; margin: 0 0 14px; text-wrap: balance; }
+.md h2 { font: 700 21px/1.2 var(--display); margin: 34px 0 10px; text-wrap: balance; }
+.md h3 { font: 600 16.5px/1.3 var(--body); margin: 26px 0 8px; }
+.md p, .md li { max-width: 75ch; }
+.md table { border-collapse: collapse; font-size: 13.5px; line-height: 1.45; font-variant-numeric: tabular-nums; }
+.md .tabella { overflow-x: auto; margin: 12px 0 16px; max-width: 100%; }
+.md th, .md td { border-bottom: 1px solid var(--line); padding: 6px 10px; text-align: left; vertical-align: top; }
+.md th { font: 600 12px/1.4 var(--body); color: var(--muted); border-bottom-color: var(--ink); }
+.md code { font: 13px/1.5 var(--mono); background: var(--code-bg); padding: 1px 4px; border-radius: 3px; overflow-wrap: anywhere; }
+.md pre { background: var(--code-bg); border: 1px solid var(--line); border-radius: 5px; padding: 12px 14px; overflow-x: auto; }
+.md pre code { background: none; padding: 0; overflow-wrap: normal; }
+.md blockquote { margin: 14px 0; padding: 4px 16px; border-left: 3px solid var(--accent); color: var(--ink); background: var(--accent-soft); border-radius: 0 4px 4px 0; }
+.md hr { border: 0; border-top: 1px solid var(--line); margin: 26px 0; }
+.codice { margin: 0; background: var(--code-bg); border: 1px solid var(--line); border-radius: 5px; padding: 14px; overflow-x: auto; font: 12.5px/1.55 var(--mono); }
+.hljs-keyword, .hljs-built_in { color: var(--accent); }
+.hljs-string { color: var(--ok); }
+.hljs-comment { color: var(--muted); font-style: italic; }
+.hljs-number, .hljs-literal { color: var(--wait); }
+.hljs-title, .hljs-type { color: var(--ink); font-weight: 500; }
+.barra-alta { display: none; }
+.tema { appearance: none; border: 1px solid var(--line); background: var(--surface); color: var(--muted); border-radius: 4px; font: 500 11px/1 var(--mono); padding: 6px 8px; cursor: pointer; align-self: flex-start; }
+
+@media (max-width: 860px) {
+  .app { grid-template-columns: minmax(0, 1fr); }
+  nav.indice { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--line); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  nav.indice .gruppo { display: none; }
+  nav.indice.aperto .gruppo { display: block; }
+  #marchio-largo { display: none; }
+  .barra-alta { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .colonna { padding: 0; }
+  .fasi { grid-template-columns: repeat(5, minmax(64px, 1fr)); overflow-x: auto; }
+  .fase { padding: 10px 8px; }
+  .fase .nome { font-size: 12px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .scheda, .fase, .gruppo a { transition: background-color .15s, border-color .15s; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="indice" id="indice">
+    <div class="barra-alta">
+      <a class="marchio" href="#/">Il metodo quantitativo</a>
+      <button class="tema" id="apri-indice" type="button">Indice</button>
+    </div>
+    <a class="marchio" href="#/" id="marchio-largo">Il metodo quantitativo<small>orderflow-atas · quant/</small></a>
+    <div class="gruppo" id="nav-studi"><h4>Studi</h4></div>
+    <div class="gruppo" id="nav-ricerche"><h4>Ricerche</h4></div>
+    <div class="gruppo" id="nav-metodo"><h4>Il metodo</h4></div>
+    <div class="gruppo" id="nav-paper"><h4>Paper analizzati</h4></div>
+    <button class="tema" id="tema" type="button">Tema: sistema</button>
+  </nav>
+  <main><div class="colonna" id="vista"><p class="sotto">Carico lo stato del repository…</p></div></main>
+</div>
+<script>
+const FASI_BREVI = ["idea", "regole", "codice", "backtest", "validaz."];
+let DATI = null;
+
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const testo = async p => { const r = await fetch("/api/testo?path=" + encodeURIComponent(p)); if (!r.ok) throw new Error(p); return r.text(); };
+const inline = s => marked.parseInline(s || "");
+
+// tema: sistema -> scuro -> chiaro
+const TEMI = ["sistema", "scuro", "chiaro"];
+function applicaTema(t) {
+  const r = document.documentElement;
+  if (t === "scuro") r.dataset.theme = "dark"; else if (t === "chiaro") r.dataset.theme = "light"; else delete r.dataset.theme;
+  $("#tema").textContent = "Tema: " + t;
+  try { localStorage.setItem("tema", t); } catch (e) {}
+}
+$("#tema").addEventListener("click", () => applicaTema(TEMI[(TEMI.indexOf($("#tema").textContent.slice(6)) + 1) % 3]));
+try { applicaTema(localStorage.getItem("tema") || "sistema"); } catch (e) { applicaTema("sistema"); }
+$("#apri-indice").addEventListener("click", () => $("#indice").classList.toggle("aperto"));
+
+function slug(t) {
+  return t.toLowerCase().trim().replace(/<[^>]+>/g, "").replace(/[^\p{L}\p{N}\s-]/gu, "").replace(/\s/g, "-");
+}
+function dirDi(p) { return p.includes("/") ? p.slice(0, p.lastIndexOf("/")) : ""; }
+function risolvi(base, href) {
+  const parti = (base ? base.split("/") : []);
+  for (const x of href.split("/")) {
+    if (x === "..") parti.pop(); else if (x !== "." && x !== "") parti.push(x);
+  }
+  return parti.join("/");
+}
+// dove porta un link relativo dentro il sito
+function rotta(path, anchor) {
+  const m = path.match(/^quant\/studi\/([^/]+)\/?(.*)$/);
+  if (m) {
+    const st = DATI.studi.find(s => s.nome === m[1]);
+    if (st) {
+      if (!m[2] || m[2] === "1-idea.md") return `#/studio/${st.nome}/1`;
+      for (const f of st.fasi) {
+        const i = f.files.indexOf(path);
+        if (i >= 0) return `#/studio/${st.nome}/${f.n}/${i}`;
+        if (f.files.some(x => x.startsWith(path.replace(/\/$/, "") + "/"))) return `#/studio/${st.nome}/${f.n}`;
+      }
+    }
+  }
+  if (path.endsWith(".md")) return "#/doc/" + path + (anchor ? "@" + anchor : "");
+  if (/\.[a-z0-9]+$/i.test(path)) return "/raw?path=" + encodeURIComponent(path);
+  return null;
+}
+
+function rendi(md, base) {
+  const div = document.createElement("div");
+  div.className = "md";
+  div.innerHTML = marked.parse(md.replace(/^---\n[\s\S]*?\n---\n/, ""));
+  div.querySelectorAll("h1,h2,h3,h4").forEach(h => { if (!h.id) h.id = slug(h.textContent); });
+  div.querySelectorAll("table").forEach(t => { const w = document.createElement("div"); w.className = "tabella"; t.replaceWith(w); w.appendChild(t); });
+  div.querySelectorAll("a[href]").forEach(a => {
+    const h = a.getAttribute("href");
+    if (/^[a-z]+:/i.test(h)) { a.target = "_blank"; a.rel = "noopener"; return; }
+    if (h.startsWith("#")) { a.href = location.hash.split("@")[0] + "@" + h.slice(1); return; }
+    const [p, anc] = h.split("#");
+    const r = rotta(risolvi(base, decodeURIComponent(p)), anc);
+    if (r) a.href = r; else a.removeAttribute("href");
+    if (r && r.startsWith("/raw")) a.target = "_blank";
+  });
+  div.querySelectorAll("pre code").forEach(c => hljs.highlightElement(c));
+  return div;
+}
+
+function frontmatter(md) {
+  const m = md.match(/^---\n([\s\S]*?)\n---\n/);
+  if (!m) return null;
+  const o = {};
+  for (const r of m[1].split("\n")) { const i = r.indexOf(":"); if (i > 0) o[r.slice(0, i).trim()] = r.slice(i + 1).trim().replace(/^"|"$/g, ""); }
+  return o;
+}
+
+function navigazione(attiva) {
+  const st = DATI.studi.map(s => {
+    const mini = s.fasi.map(f => `<i class="${f.files.length ? "si" : ""}"></i>`).join("");
+    return `<a href="#/studio/${s.nome}" class="${attiva === "studio:" + s.nome ? "attivo" : ""}"><span class="mini">${mini}</span>${esc(s.nome)}</a>`;
+  }).join("");
+  $("#nav-studi").innerHTML = "<h4>Studi</h4>" + st;
+  $("#nav-ricerche").innerHTML = "<h4>Ricerche</h4>" + DATI.ricerche.map(r =>
+    `<a href="#/doc/${DATI.indice_paper}@${slug(r.ancora)}">${esc(r.titolo)} <span class="occhiello">${r.paper}</span></a>`).join("");
+  $("#nav-metodo").innerHTML = "<h4>Il metodo</h4>" + `<a href="#/doc/${DATI.mappa}" class="${attiva === "doc:" + DATI.mappa ? "attivo" : ""}">La mappa</a>` +
+    DATI.metodo.map(m => `<a href="#/doc/${m.path}" class="${attiva === "doc:" + m.path ? "attivo" : ""}">${esc(m.titolo)}</a>`).join("");
+  $("#nav-paper").innerHTML = "<h4>Paper analizzati</h4>" + `<a href="#/doc/${DATI.indice_paper}">L'indice dei paper</a>` +
+    DATI.analisi.map(a => `<a href="#/doc/${a.path}" class="${attiva === "doc:" + a.path ? "attivo" : ""}">${esc(a.titolo.replace(": L'Analisi", ""))}</a>`).join("");
+  $("#indice").classList.remove("aperto");
+}
+
+const COLORI_STATO = { "da cercare": "var(--line)", trovato: "var(--wait)", scaricato: "var(--muted)", letto: "var(--accent-soft)", analizzato: "var(--accent)" };
+
+function home() {
+  navigazione("home");
+  const studi = DATI.studi.map(s => {
+    const fatte = s.fasi.filter(f => f.files.length).length;
+    const binario = s.fasi.map(f => `<span class="${f.files.length ? "si" : ""}"></span>`).join("");
+    return `<a class="scheda" href="#/studio/${s.nome}">
+      <span class="occhiello">${esc(s.nome)} · ${fatte} fasi su 5</span>
+      <b>${esc(s.titolo)}</b>
+      ${s.mappa.cosa ? `<p>${inline(s.mappa.cosa)}</p>` : ""}
+      <div><div class="binario">${binario}</div><div class="binario-etichette">${FASI_BREVI.map(x => `<span>${x}</span>`).join("")}</div></div>
+      ${s.mappa.stato ? `<div class="esito">${inline(s.mappa.stato)}</div>` : ""}
+    </a>`;
+  }).join("");
+  const ricerche = DATI.ricerche.map(r => {
+    const tot = Object.values(r.stati).reduce((a, b) => a + b, 0) || 1;
+    const barra = Object.entries(r.stati).filter(([, v]) => v).map(([k, v]) => `<i style="width:${100 * v / tot}%;background:${COLORI_STATO[k]}"></i>`).join("");
+    const leg = Object.entries(r.stati).filter(([, v]) => v).map(([k, v]) => `<span style="--c:${COLORI_STATO[k]}">${v} ${k}</span>`).join("");
+    return `<a class="scheda" href="#/doc/${DATI.indice_paper}@${slug(r.ancora)}">
+      <span class="occhiello">fase 1 · ${r.paper} paper</span>
+      <b>${esc(r.titolo)}</b>
+      <div class="barra">${barra}</div><div class="legenda">${leg}</div>
+      ${r.studi.length ? `<p>studio: ${r.studi.map(esc).join(", ")}</p>` : `<p>nessuno studio ancora</p>`}
+    </a>`;
+  }).join("");
+  $("#vista").innerHTML = `
+    <header><div class="occhiello">NQ · dati solo da ATAS · fino alla validazione</div>
+      <h1 class="titolo">Ogni idea, fase per fase</h1>
+      <p class="sotto">Gli studi di <code>quant/studi/</code> con le cinque fasi della metodologia: idea, regole, codice, backtest, validazione. Le ricerche sono i filoni di paper ancora in fase 1. Il sito legge il repository a ogni pagina.</p></header>
+    <section><h2 class="sezione">Studi</h2><div class="griglia">${studi}</div></section>
+    <section><h2 class="sezione">Ricerche</h2><div class="griglia">${ricerche}</div></section>`;
+}
+
+async function studio(nome, n, i) {
+  const s = DATI.studi.find(x => x.nome === nome);
+  if (!s) return nonTrovato(nome);
+  navigazione("studio:" + nome);
+  n = Number(n || 1); i = Number(i || 0);
+  const fase = s.fasi[n - 1];
+  const fasi = s.fasi.map(f => `<button class="fase ${f.files.length ? "piena" : ""} ${f.n === n ? "aperta" : ""}" data-n="${f.n}" type="button">
+      <span class="n">${f.n}</span><span class="nome">${esc(f.nome)}</span>
+      <span class="quanti">${f.files.length ? f.files.length + (f.files.length === 1 ? " file" : " file") : "vuota"}</span></button>`).join("");
+  const files = fase.files.length > 1 ? `<div class="file-tab">${fase.files.map((f, k) =>
+      `<button type="button" data-i="${k}" class="${k === i ? "aperto" : ""}">${esc(f.replace(/^quant\/studi\/[^/]+\/[^/]+\//, "") || f.split("/").pop())}</button>`).join("")}</div>` : "";
+  const sigilli = n === 5 ? s.sigilli.map(g => {
+    const pill = g.intatto === true ? `<span class="pill ok">sigillo intatto</span>` : g.intatto === false ? `<span class="pill ko">sigillo rotto</span>` : `<span class="pill wait">hash non registrato</span>`;
+    return `<div class="sigillo">${pill}<span>${esc(g.file.split("/").pop())}</span><span class="hash">sha256 ${esc(g.attuale)}</span></div>`;
+  }).join("") : "";
+  $("#vista").innerHTML = `
+    <header><div class="occhiello"><a href="#/">Studi</a> · ${esc(s.nome)}</div>
+      <h1 class="titolo">${esc(s.titolo)}</h1>
+      ${s.stato ? `<p class="sotto">${inline(s.stato)}</p>` : ""}</header>
+    <div class="fasi" role="tablist">${fasi}</div>
+    <section style="display:flex;flex-direction:column;gap:12px">
+      <div class="riga-fase"><h2 class="sezione" style="margin:0">Fase ${n}: ${esc(fase.nome)}</h2>
+        <a href="#/doc/${fase.metodo}">Come si fa questa fase</a></div>
+      ${sigilli}${files}<div id="contenuto"></div>
+    </section>`;
+  $("#vista").querySelectorAll(".fase").forEach(b => b.addEventListener("click", () => location.hash = `#/studio/${nome}/${b.dataset.n}`));
+  $("#vista").querySelectorAll(".file-tab button").forEach(b => b.addEventListener("click", () => location.hash = `#/studio/${nome}/${n}/${b.dataset.i}`));
+  const c = $("#contenuto");
+  if (!fase.files.length) {
+    c.innerHTML = `<div class="vuota">Nessun file in questa fase. ${n === 4 ? "Il backtest di questo studio, se c'e', e' raccontato nei risultati della fase 5." : ""}</div>`;
+    return;
+  }
+  const path = fase.files[Math.min(i, fase.files.length - 1)];
+  await mostraFile(c, path);
+}
+
+async function mostraFile(c, path) {
+  const t = await testo(path);
+  const foglio = document.createElement("div");
+  foglio.className = "foglio";
+  foglio.innerHTML = `<div class="percorso">${esc(path)}</div>`;
+  if (path.endsWith(".md")) {
+    foglio.appendChild(rendi(t, dirDi(path)));
+  } else {
+    const pre = document.createElement("pre"); pre.className = "codice";
+    const code = document.createElement("code"); code.textContent = t;
+    if (path.endsWith(".cs")) code.className = "language-csharp";
+    pre.appendChild(code); hljs.highlightElement(code); foglio.appendChild(pre);
+  }
+  c.replaceChildren(foglio);
+}
+
+async function documento(path, anchor) {
+  navigazione("doc:" + path);
+  const t = await testo(path);
+  const fm = frontmatter(t);
+  const vista = $("#vista");
+  vista.innerHTML = "";
+  const foglio = document.createElement("div");
+  foglio.className = "foglio";
+  let testa = `<div class="percorso">${esc(path)}</div>`;
+  if (fm) {
+    const pdf = DATI.analisi.find(a => a.path === path)?.pdf;
+    testa += `<div class="legenda" style="margin:8px 0 18px">${["sigla", "fonte", "identificativo", "tipo", "revisione_fra_pari", "stato", "letto_il"].filter(k => fm[k]).map(k => `<span style="--c:var(--accent)">${k.replace(/_/g, " ")}: ${esc(fm[k])}</span>`).join("")}
+      ${pdf ? `<a href="/raw?path=${encodeURIComponent(pdf)}" target="_blank">apri il PDF</a>` : fm.pdf ? `<span>PDF non in questo PC</span>` : ""}</div>`;
+  }
+  foglio.innerHTML = testa;
+  foglio.appendChild(rendi(t, dirDi(path)));
+  vista.appendChild(foglio);
+  if (anchor) document.getElementById(anchor)?.scrollIntoView(); else window.scrollTo(0, 0);
+}
+
+function nonTrovato(x) { $("#vista").innerHTML = `<div class="vuota">Non trovato: ${esc(x)}. <a href="#/">Torna agli studi</a></div>`; }
+
+async function vai() {
+  try {
+    DATI = await (await fetch("/api/indice")).json();
+    const h = decodeURIComponent(location.hash.slice(1) || "/");
+    const [via, anchor] = h.split("@");
+    const p = via.split("/").filter(Boolean);
+    if (p[0] === "studio") await studio(p[1], p[2], p[3]);
+    else if (p[0] === "doc") await documento(p.slice(1).join("/"), anchor);
+    else home();
+    if (p[0] === "studio") window.scrollTo(0, 0);
+  } catch (e) {
+    $("#vista").innerHTML = `<div class="vuota">Il server non risponde o il file non c'e' (${esc(e.message)}). Avvia <code>python quant/sito/sito.py</code> e ricarica.</div>`;
+  }
+}
+window.addEventListener("hashchange", vai);
+vai();
+</script>
+</body>
+</html>

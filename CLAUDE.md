@@ -14,7 +14,8 @@ Dall'11 ottobre 2026.
    Conte (`quant/metodo/fonti/`); le idee vengono dai paper. **Il corso di Fabio non comanda piu'**: e' una
    fonte di idee e un supporto, e un'osservazione del live diventa regola solo passando la pipeline.
 2. **Lo strumento e' NQ, e solo NQ; i dati vengono solo da ATAS.** Altri strumenti e altre fonti
-   si aggiungono su richiesta esplicita.
+   si aggiungono su richiesta esplicita. **ES** dal 14 ottobre 2026, su richiesta, solo per lo
+   studio delle opzioni (gli indicatori X-Ray di ATAS disegnano solo su ES).
 3. **Si arriva fino alla validazione.** Nessun ordine e nessuna esecuzione automatica: l'esecuzione
    si progetta quando il framework e' maturo, su richiesta esplicita. **La velocita' e' un
    requisito**: il framework e' in C# .NET 10, non in Python.

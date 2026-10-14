@@ -30,6 +30,22 @@ chiusura, e la gaussiana e' quella della sola cassa.
 **I big trades sono a 60** sull'M1 e sul range: *"the big trades guys are 60. The filter it's on
 60"* `[2 · 1:29:47]`. Prima erano a 50.
 
+## La Finestra ES
+
+Dal 14 ottobre 2026 il workspace ha **una seconda finestra, ES**, con le stesse quattro tab nello
+stesso ordine e con gli stessi indicatori: ES continuo (id ATAS 4936) per il composito, ESZ6 (34376)
+per le altre tre. La chiede l'utente per lo studio delle opzioni: gli indicatori Options X-Ray di
+ATAS disegnano solo su ES ([`le-opzioni-in-atas.md`](../../../quant/metodo/le-opzioni-in-atas.md)).
+La finestra NQ non cambia.
+
+Si costruisce con `FabioOrderFlow/tools/workspace_finestra_es.py --aspetta`, ad ATAS chiuso, con una
+copia accanto (`Fabio workspace prima della finestra ES.aws`). Gli id dei contratti si leggono dal
+workspace dopo averli aperti una volta in ATAS. Le tab degli indicatori opzioni sono nello script
+(`--con-opzioni`) ma **spente**: prima i paper su opzioni e gamma exposure.
+
+**Big trades a 60 anche su ES**: e' la taratura di Fabio per NQ; su ES, dove un contratto vale meno,
+e' probabilmente bassa. Da studiare.
+
 ## Il Ruolo, Dal Timeframe
 
 `IlRuoloDelChart.cs`. L'impostazione **Role** vale `Auto`; gli altri valori forzano il ruolo.
