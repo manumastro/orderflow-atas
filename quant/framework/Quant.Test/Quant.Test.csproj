@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- I test del framework e dei contratti degli studi. -->
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <ServerGarbageCollection>false</ServerGarbageCollection>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Quant.Validazione/Quant.Validazione.csproj" />
+    <ProjectReference Include="../Quant.Studi/Quant.Studi.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="Xunit" />
+    <Using Include="Quant.Dati" />
+    <Using Include="Quant.Calcolo" />
+    <Using Include="Quant.Regole" />
+    <Using Include="Quant.Regole.Contratti" />
+    <Using Include="Quant.Strategie" />
+    <Using Include="Quant.Motore" />
+    <Using Include="Quant.Motore.Contratti" />
+    <Using Include="Quant.Validazione" />
+    <Using Include="Quant.Validazione.Contratti" />
+    <Using Include="Quant.Studi" />
+  </ItemGroup>
+</Project>

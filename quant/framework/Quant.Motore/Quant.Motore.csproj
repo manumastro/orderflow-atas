@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Il backtest: il motore, le metriche, il simulatore di contratto. Fase 4. -->
+  <PropertyGroup>
+    <RootNamespace>Quant.Motore</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Quant.Strategie/Quant.Strategie.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="Quant.Dati" />
+    <Using Include="Quant.Calcolo" />
+    <Using Include="Quant.Regole" />
+    <Using Include="Quant.Regole.Contratti" />
+    <Using Include="Quant.Strategie" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Quant.Validazione" />
+    <InternalsVisibleTo Include="Quant.Test" />
+  </ItemGroup>
+</Project>

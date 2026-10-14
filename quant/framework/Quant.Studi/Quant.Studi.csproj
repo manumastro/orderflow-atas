@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Il codice delle idee: le strategie e i contratti di ogni studio, che stanno in quant/studi/<idea>/3-codice/, e i cataloghi che li registrano. -->
+  <PropertyGroup>
+    <RootNamespace>Quant.Studi</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../studi/*/3-codice/**/*.cs" Link="studi/%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Quant.Strategie/Quant.Strategie.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="Quant.Dati" />
+    <Using Include="Quant.Calcolo" />
+    <Using Include="Quant.Regole" />
+    <Using Include="Quant.Regole.Contratti" />
+    <Using Include="Quant.Strategie" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Quant.Test" />
+  </ItemGroup>
+</Project>

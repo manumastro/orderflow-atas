@@ -1,0 +1,10 @@
+<Solution>
+  <Project Path="Quant.Comune/Quant.Comune.csproj" />
+  <Project Path="Quant.Regole/Quant.Regole.csproj" />
+  <Project Path="Quant.Strategie/Quant.Strategie.csproj" />
+  <Project Path="Quant.Motore/Quant.Motore.csproj" />
+  <Project Path="Quant.Validazione/Quant.Validazione.csproj" />
+  <Project Path="Quant.Studi/Quant.Studi.csproj" />
+  <Project Path="Quant.Cli/Quant.Cli.csproj" />
+  <Project Path="Quant.Test/Quant.Test.csproj" />
+</Solution>

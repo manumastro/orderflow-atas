@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- La validazione: nulli, Monte Carlo, Sharpe deflazionato, cancelli, rapporto, forma chiusa. Fase 5. -->
+  <PropertyGroup>
+    <RootNamespace>Quant.Validazione</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Quant.Motore/Quant.Motore.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="Quant.Dati" />
+    <Using Include="Quant.Calcolo" />
+    <Using Include="Quant.Regole" />
+    <Using Include="Quant.Regole.Contratti" />
+    <Using Include="Quant.Strategie" />
+    <Using Include="Quant.Motore" />
+    <Using Include="Quant.Motore.Contratti" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Quant.Test" />
+  </ItemGroup>
+</Project>

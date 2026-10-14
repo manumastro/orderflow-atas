@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- La base: i dati di mercato (Dati/) e il calcolo (Calcolo/). Non dipende da niente. -->
+  <PropertyGroup>
+    <RootNamespace>Quant.Comune</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Quant.Test" />
+  </ItemGroup>
+</Project>

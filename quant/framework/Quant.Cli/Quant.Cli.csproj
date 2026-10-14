@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- La riga di comando quant. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>quant</AssemblyName>
+    <PackageId>Quant.Cli</PackageId>
+    <RootNamespace>Quant.Cli</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Quant.Validazione/Quant.Validazione.csproj" />
+    <ProjectReference Include="../Quant.Studi/Quant.Studi.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="Quant.Dati" />
+    <Using Include="Quant.Calcolo" />
+    <Using Include="Quant.Regole" />
+    <Using Include="Quant.Regole.Contratti" />
+    <Using Include="Quant.Strategie" />
+    <Using Include="Quant.Motore" />
+    <Using Include="Quant.Motore.Contratti" />
+    <Using Include="Quant.Validazione" />
+    <Using Include="Quant.Validazione.Contratti" />
+    <Using Include="Quant.Studi" />
+  </ItemGroup>
+</Project>

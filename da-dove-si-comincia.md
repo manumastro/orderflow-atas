@@ -11,7 +11,7 @@ non regge. Nessuna regola operativa e' stata approvata.
 ## Le Tre Decisioni Che Governano Tutto
 
 **Lo scope e' il metodo quantitativo.** Idea, regole, codice, backtest, validazione, dal transcript
-di Matteo Conte in [`quant/fonti/`](quant/fonti/). Il corso di Fabio non comanda piu': e' una fonte
+di Matteo Conte in [`quant/metodo/fonti/`](quant/metodo/fonti/). Il corso di Fabio non comanda piu': e' una fonte
 di idee.
 
 **Lo strumento e' NQ, e solo NQ; i dati vengono solo da ATAS.**
@@ -24,11 +24,11 @@ C# .NET 10.
 
 | Serve | File |
 |---|---|
-| **La metodologia istituzionale**, esattamente come da transcript, fase per fase | [`quant/la-metodologia-istituzionale.md`](quant/la-metodologia-istituzionale.md) |
-| **Il framework**: come realizza ogni fase, le aggiunte, i cancelli, come si usa | [`quant/il-metodo-quantitativo.md`](quant/il-metodo-quantitativo.md) |
-| **I dati da ATAS**: cosa da', fin dove, cosa e' collegato, il piano | [`quant/i-dati-da-atas.md`](quant/i-dati-da-atas.md) |
-| **Le idee**: una scheda per strategia, e come si scrive | [`quant/idee/come-si-scrive-un-idea.md`](quant/idee/come-si-scrive-un-idea.md) |
-| **I rapporti** delle validazioni, e il registro delle prove | [`quant/risultati/`](quant/risultati/), [`quant/registro/`](quant/registro/) |
+| **La metodologia istituzionale**, esattamente come da transcript, fase per fase | [`quant/metodo/la-metodologia-istituzionale.md`](quant/metodo/la-metodologia-istituzionale.md) |
+| **Il framework**: come realizza ogni fase, le aggiunte, i cancelli, come si usa | [`quant/il-metodo-quantitativo.md`](quant/il-metodo-quantitativo.md), la mappa: una cartella per fase |
+| **I dati da ATAS**: cosa da', fin dove, cosa e' collegato, il piano | [`quant/metodo/i-dati-da-atas.md`](quant/metodo/i-dati-da-atas.md) |
+| **Le idee**: uno studio per idea in `quant/studi/`, e come si scrive la scheda | [`quant/metodo/1-come-si-scrive-un-idea.md`](quant/metodo/1-come-si-scrive-un-idea.md) |
+| **I rapporti** delle validazioni: in ogni studio, `quant/studi/<idea>/5-validazione/risultati/`; il registro delle prove | [`quant/studi/`](quant/studi/), [`quant/registro/`](quant/registro/) |
 | *La lettura discrezionale, supporto:* **gli obblighi** quando si chiede una lettura dal vivo | [`docs/research/metodo/gli-obblighi-della-lettura-dal-vivo.md`](docs/research/metodo/gli-obblighi-della-lettura-dal-vivo.md) |
 | **Il metodo che comanda**: i tre modelli, il vocabolario, il regime, la sessione, il COT, il framing | [`docs/research/metodo/i-tre-modelli-del-live-q1.md`](docs/research/metodo/i-tre-modelli-del-live-q1.md) |
 | **I setup**: la libreria dei pattern, ingresso, stop, bersaglio | [`docs/research/metodo/i-pattern-di-esecuzione.md`](docs/research/metodo/i-pattern-di-esecuzione.md) |
@@ -64,11 +64,11 @@ Gli **strumenti diversi da NQ** — oro (GCZ6, MGCZ6), crude (MCLV6), ES — res
 
 ```text
 quant/                     il metodo quantitativo        <- lo scope
-quant/fonti/               transcript e paper
-quant/idee/                una scheda per strategia
-quant/src/                 il framework in C#: dati, motore, statistiche, validazione, strategie
-quant/registro/            le prove e la divisione dentro/fuori campione, in git
-quant/risultati/           i rapporti delle validazioni
+quant/metodo/              COME si fa: la metodologia, il transcript, una pagina per fase
+quant/framework/           CON COSA: il codice C#, un progetto per livello, e la riga di comando
+quant/paper/               DA DOVE: la biblioteca, paper/<filone>/<paper>/ (analisi e PDF)
+quant/studi/               COSA: un'idea per cartella, con le fasi numerate (1-idea.md, 2-regole/, ...)
+quant/registro/            le prove fatte e la divisione dentro/fuori campione, in git
 quant/dati/                l'archivio dei dati di ATAS, fuori da git
 fabio_course/fabio_q1/     le trascrizioni del live Q1  <- fonte di idee, comanda la lettura dal vivo
 fabio_course/ivbaaa/       il dossier illustrato        <- riferimento
@@ -86,7 +86,7 @@ prop/                      esecuzione: mercato guida, sizing, fee, regole delle 
 
 ```bash
 # il framework quantitativo
-cd quant/src && dotnet build -c Release && dotnet test Quant.Test -c Release
+cd quant/framework && dotnet build -c Release && dotnet test Quant.Test -c Release
 Quant.Cli/bin/Release/net10.0/quant.exe aiuto
 
 # build e deploy delle estensioni ATAS

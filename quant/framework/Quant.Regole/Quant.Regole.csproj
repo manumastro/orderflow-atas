@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Il linguaggio delle regole: Ordine, Dimensione, Parametri, il contratto di una prop firm. Fase 2. -->
+  <PropertyGroup>
+    <RootNamespace>Quant.Regole</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Quant.Comune/Quant.Comune.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="Quant.Dati" />
+    <Using Include="Quant.Calcolo" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Quant.Test" />
+  </ItemGroup>
+</Project>

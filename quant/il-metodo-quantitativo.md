@@ -1,170 +1,157 @@
 # Il Metodo Quantitativo: Il Framework
 
 Dall'11 ottobre 2026 lo scope del progetto e' **la metodologia istituzionale**, costruita come
-framework dalla A alla Z. Due documenti, con due ruoli diversi:
-
-- [`la-metodologia-istituzionale.md`](la-metodologia-istituzionale.md): **la metodologia esattamente
-  come da transcript**, fase per fase, ogni affermazione con il suo minuto `[MC · mm:ss]`. Non
-  contiene aggiunte. **Comanda.**
-- questo documento: **come il framework realizza ogni fase**, e cosa aggiunge, dichiarandolo come
-  aggiunta, con il motivo. Dove il framework e la metodologia divergono, lo si scrive qui.
-
-Il codice sta in `quant/src/`, i dati in `quant/dati/` (fuori da git), le idee in `quant/idee/`, i
-rapporti in `quant/risultati/`, il registro delle prove in `quant/registro/`.
+framework dalla A alla Z. Questo documento e' **la mappa**: dove sta cosa, le aggiunte del framework
+con il loro perche', come si compila e cosa manca. La metodologia esattamente come da transcript,
+fase per fase, sta in [`la-metodologia-istituzionale.md`](metodo/la-metodologia-istituzionale.md),
+e **comanda**.
 
 Le decisioni che delimitano il lavoro, prese dall'utente:
 
 - **solo NQ**, per ora;
-- **dati solo da ATAS** ([`i-dati-da-atas.md`](i-dati-da-atas.md));
-- **si arriva fino alla validazione**: le fasi 6 e 7 della metodologia (il vivo, il portafoglio)
-  sono fuori scope finche' il framework non e' maturo;
+- **dati solo da ATAS** ([`i-dati-da-atas.md`](metodo/i-dati-da-atas.md));
+- **si arriva fino alla validazione**: le fasi 6 e 7 sono fuori scope finche' il framework non e'
+  maturo;
 - **la velocita' e' un requisito**, per questo il framework e' in **C# .NET 10**, lo stesso
-  linguaggio di ATAS: una strategia validata qui potra' un giorno girare dentro ATAS senza essere
-  riscritta.
+  linguaggio di ATAS.
 
-## Fase Per Fase
+## Dove Sta Cosa
 
-| | fase della metodologia | nel framework | aggiunta del framework |
-|---|---|---|---|
-| 0 | [la differenza](la-metodologia-istituzionale.md#0-la-differenza-fra-retail-e-istituzionale): strategie validate, non operazioni | tutto il framework | — |
-| 1 | [l'idea](la-metodologia-istituzionale.md#1-lidea): dal paper, il finding e il perche', non si copia | una scheda per idea in `quant/idee/` ([modello](idee/come-si-scrive-un-idea.md)); le fonti in `quant/fonti/` | la scheda scrive anche **cosa ucciderebbe la strategia** (dal perche' strutturale `[MC · 46:23]`) e **le varianti, dichiarate prima di provarle** |
-| 2 | [le regole](la-metodologia-istituzionale.md#2-le-regole): ingresso, uscita (stop, target, tempo), dimensione | `Ordine` (ingresso, `Stop`, `Target`/`TargetR`, `UscitaAlle`), `Dimensione` (`fissa`, `rischio`, `volatilita`) | — |
-| 3 | [il codice](la-metodologia-istituzionale.md#3-il-codice): a iterazioni, ogni pezzo verificato | una classe `Strategia` in `Quant/Strategie/`, registrata in `Catalogo.cs`; il codice lo scrive l'agente | **la strategia vede solo il passato** (il `Contesto`): il look-ahead non si puo' scrivere |
-| 4 | [il backtest](la-metodologia-istituzionale.md#4-il-backtest): rigiocare la storia, netto, % vincente, media, drawdown | `Backtest.Esegui`, `Metriche`, `quant prova` | **convenzioni di esecuzione dichiarate**; **statistiche per giornata** |
-| 5a | [dentro e fuori campione](la-metodologia-istituzionale.md#5a-il-test-di-divisione-dentro-e-fuori-campione), 80/20, regole congelate | `quant divisione`, `quant valida --fuori` | la divisione **si fissa una volta**; il fuori campione **si consuma**; **il modello nullo**; **lo Sharpe deflazionato**; **i cancelli con soglie** |
-| 5b | [il Monte Carlo](la-metodologia-istituzionale.md#5b-il-monte-carlo): rimescolamento, ricampionamento, distribuzione, metri per il vivo | `MonteCarlo.Rimescola`, `Ricampiona`; i metri nel rapporto | **il ricampionamento per giornata**, a blocchi |
-| 6 | [il vivo](la-metodologia-istituzionale.md#6-il-vivo): automazione, sorveglianza | **fuori scope** | — |
-| 7 | [il ciclo e il portafoglio](la-metodologia-istituzionale.md#7-il-ciclo-e-il-portafoglio): strategie poco correlate, revisione mensile | **fuori scope**, salvo il registro che tiene la storia delle prove | — |
+`quant/` ha cinque aree, e ciascuna risponde a una domanda:
 
-**Gli esempi del transcript** sono nel catalogo come strategie di prova, ciascuno con la sua scheda:
-[`momento-intraday`](idee/momento-intraday.md) (esempio 1), [`vwap-tendenza`](idee/vwap-tendenza.md)
-(esempio 2), [`anomalia-notte`](idee/anomalia-notte.md) (esempio 4). **La PEAD (esempio 3) non c'e'**:
-lavora su azioni, utili e consenso degli analisti, e lo scope e' NQ.
+```text
+quant/
+├── il-metodo-quantitativo.md     questa mappa
+├── metodo/      COME si fa      la metodologia, il transcript, una pagina per fase
+├── framework/   CON COSA        il codice C# riusabile: un progetto per livello
+├── paper/       DA DOVE         la biblioteca: un filone per domanda, una cartella per paper
+├── studi/       COSA            le idee, una cartella ciascuna, dalla A alla Z
+├── registro/                    le prove fatte e la divisione dentro/fuori (in git)
+└── dati/                        l'archivio delle barre di ATAS (fuori da git)
+```
+
+**Uno studio segue la pipeline dentro la sua cartella**, con le fasi numerate come nella
+metodologia. Si crea solo cio' che serve:
+
+```text
+studi/<idea>/
+├── 1-idea.md            la scheda: paper, finding, perche', cosa la ucciderebbe, varianti
+├── 2-regole/            le regole scritte, se non bastano i riquadri della scheda (per esempio
+│                        le regole di una prop firm, con le fonti)
+├── 3-codice/            il codice dell'idea: la strategia, il contratto
+├── 4-backtest/          i rapporti delle prove, se servono a parte
+└── 5-validazione/
+    ├── criteri/         i criteri sigillati con un hash, e il loro esito
+    └── risultati/       i rapporti di `quant valida` e gli studi scritti
+```
+
+**Il metodo**, una pagina per fase, con lo stesso numero:
+
+| | fase | come si fa |
+|---|---|---|
+| 0 | [la differenza](metodo/la-metodologia-istituzionale.md#0-la-differenza-fra-retail-e-istituzionale) | [cosa vuol dire validata](metodo/0-cosa-vuol-dire-validata.md) |
+| 1 | [l'idea](metodo/la-metodologia-istituzionale.md#1-lidea) | [come si cercano le idee](metodo/1-come-si-cercano-le-idee.md), [come si scrive un'idea](metodo/1-come-si-scrive-un-idea.md) |
+| 2 | [le regole](metodo/la-metodologia-istituzionale.md#2-le-regole) | [come si scrivono le regole](metodo/2-come-si-scrivono-le-regole.md) |
+| 3 | [il codice](metodo/la-metodologia-istituzionale.md#3-il-codice) | [come si scrive una strategia](metodo/3-come-si-scrive-una-strategia.md) |
+| 4 | [il backtest](metodo/la-metodologia-istituzionale.md#4-il-backtest) | [il backtest](metodo/4-il-backtest.md), [il simulatore di contratto](metodo/4-il-simulatore-di-contratto.md) |
+| 5 | [la validazione](metodo/la-metodologia-istituzionale.md#5-la-validazione) | [come si valida](metodo/5-come-si-valida.md), [il framework si valida prima](metodo/5-il-framework-si-valida-prima.md) |
+| 6 | [il vivo](metodo/la-metodologia-istituzionale.md#6-il-vivo) | [il vivo](metodo/6-il-vivo.md): fuori scope |
+| 7 | [il ciclo e il portafoglio](metodo/la-metodologia-istituzionale.md#7-il-ciclo-e-il-portafoglio) | [il ciclo e il portafoglio](metodo/7-il-ciclo-e-il-portafoglio.md): fuori scope |
+| | i dati | [i dati da ATAS](metodo/i-dati-da-atas.md) |
+
+**Gli studi** oggi:
+
+| studio | cosa | stato |
+|---|---|---|
+| [`contratto-prop`](studi/contratto-prop/1-idea.md) | il valore del contratto di una prop firm (tre paper); Tradeify Growth 50K | studiato fino alla validazione del simulatore |
+| [`momento-intraday`](studi/momento-intraday/1-idea.md) | esempio 1 del transcript | codificato, in attesa della storia lunga |
+| [`vwap-tendenza`](studi/vwap-tendenza/1-idea.md) | esempio 2 del transcript | codificato, in attesa della storia lunga |
+| [`anomalia-notte`](studi/anomalia-notte/1-idea.md) | esempio 4 del transcript | codificato, in attesa della storia lunga |
+
+La PEAD (esempio 3) non c'e': lavora su azioni, utili e consenso degli analisti, e lo scope e' NQ.
+
+**I paper**: [`paper/indice-dei-paper.md`](paper/indice-dei-paper.md), per filone. Paper e studi sono
+separati perche' non si corrispondono uno a uno: tre paper fanno lo studio `contratto-prop`, e un paper
+puo' servire a piu' studi.
+
+## Il Codice
+
+**Il framework** e' in `framework/`, nella forma standard di .NET: ogni progetto e' una cartella con
+i suoi sorgenti. I progetti seguono le fasi della pipeline, e **le dipendenze vanno in un verso
+solo**: un progetto usa quelli prima, mai quelli dopo, e lo fa rispettare il compilatore.
+
+```text
+progetto            cosa contiene                                   namespace                       dipende da
+Quant.Comune        i dati di mercato, il calcolo                   Quant.Dati, Quant.Calcolo       niente
+Quant.Regole        Ordine, Dimensione, Parametri, Contratto  (2)   Quant.Regole, .Contratti        Comune
+Quant.Strategie     Strategia, Contesto, Posizione            (3)   Quant.Strategie                 Regole
+Quant.Motore        Backtest, Metriche, simulatore contratto  (4)   Quant.Motore, .Contratti        Strategie
+Quant.Validazione   nulli, Monte Carlo, cancelli, rapporto    (5)   Quant.Validazione, .Contratti   Motore
+Quant.Studi         il codice degli studi e i cataloghi             Quant.Studi                     Strategie
+quant (Quant.Cli)   la riga di comando                              -                               Validazione, Studi
+Quant.Test          i test                                          Quant.Test                      Validazione, Studi
+```
+
+- **Se un pezzo ha bisogno di una fase successiva, e' nel posto sbagliato.** Cosi' si e' deciso dove
+  stanno i pezzi di confine: `Parametri` nelle regole (i parametri sono parte delle regole),
+  `Posizione` nelle strategie (e' cio' che la strategia legge), i dati e il generatore casuale nella
+  base comune (li usano tutti).
+- **Il codice delle idee sta negli studi**, `studi/<idea>/3-codice/`, un file per strategia o per
+  contratto. Lo compila il progetto `Quant.Studi`, che lo raccoglie da li' e lo registra nei due
+  cataloghi (`Catalogo` per le strategie, `CatalogoContratti` per i contratti). Il framework non sa
+  niente delle idee.
+- Ogni progetto dichiara una volta sola, nel suo `.csproj`, i namespace che usa: i sorgenti non hanno
+  `using Quant...`. `InternalsVisibleTo` apre gli interni solo a chi ne ha bisogno (il `Contesto` al
+  motore) e ai test.
 
 ## Le Aggiunte, E Perche'
 
 Il transcript non tratta alcune cose che in questo repository sono gia' costate care, nella fase
 40R ([`fase-sistematica-40r-chiusa.md`](../docs/research/archivio-modello-40r/fase-sistematica-40r-chiusa.md)).
 L'elenco di cio' che il transcript non dice sta in fondo a
-[`la-metodologia-istituzionale.md`](la-metodologia-istituzionale.md#cosa-il-transcript-non-dice).
+[`la-metodologia-istituzionale.md`](metodo/la-metodologia-istituzionale.md#cosa-il-transcript-non-dice).
+Ogni aggiunta e' spiegata nel documento della sua fase.
 
-| aggiunta | perche' |
-|---|---|
-| **la strategia vede solo il passato** | il look-ahead e' stato il primo errore della fase 40R |
-| **convenzioni di esecuzione conservative**, stampate accanto al numero | nella fase 40R un limite si eseguiva al tocco, cioe' a mercato |
-| **statistiche per giornata**: il t si calcola sul netto giornaliero | le operazioni della stessa giornata non sono indipendenti: uno z ingenuo di +4,1 e' diventato t = +1,4 |
-| **il modello nullo** | nella fase 40R le condizioni facevano 49% e il nullo 47%: senza confronto il 49% sembrava un risultato |
-| **la divisione si fissa una volta** e non si sposta | ricalcolata a ogni download, porterebbe pezzi di fuori campione dentro senza che nessuno se ne accorga |
-| **il fuori campione si consuma**, e il registro sa se un'altra variante l'ha gia' visto | il fuori campione guardato due volte e' diventato dentro |
-| **il registro delle prove** (`quant/registro/prove.jsonl`, in git) | per contare le varianti provate |
-| **lo Sharpe deflazionato** (Bailey e Lopez de Prado, 2014) | provando cento varianti, la migliore ha uno Sharpe alto anche se nessuna vale niente |
-| **il ricampionamento per giornata**, a blocchi di 5 | pescare operazioni una per una sottostima le code |
-| **i cancelli, con soglie** | il transcript dice "buoni risultati dentro e fuori": serve un criterio scritto prima di guardare |
-
-## Le Convenzioni Di Esecuzione
-
-| convenzione | valore di default | perche' |
+| aggiunta | perche' | fase |
 |---|---|---|
-| ordine a mercato | si esegue all'apertura della barra dopo la decisione | la decisione si prende a barra chiusa |
-| commissione | 2,50 $ per contratto per lato | commissioni e tasse CME, ordine di grandezza retail/prop |
-| slittamento | 1 tick su ogni esecuzione a mercato o a stop, in ingresso e in uscita | NQ ha spread di 1 tick |
-| limite | si esegue solo se il prezzo lo **attraversa** di un tick | toccarlo non garantisce l'eseguito |
-| stop e target nella stessa barra | **vince lo stop** | senza tick non si sa chi e' venuto prima |
-| target nella barra dell'ingresso | **non conta** | idem |
-| eseguito oltre lo stop (gap) | l'ingresso non si fa, e si conta fra i saltati | il rischio non e' misurabile |
-| rollover | la serie si rettifica all'indietro (Panama) | una posizione a cavallo del cambio non deve vedere un salto finto |
+| **la scheda scrive cosa ucciderebbe la strategia e le varianti, prima di provarle** | il perche' strutturale `[MC · 46:23]` dice anche quando smette di funzionare; le varianti contano | [1](metodo/1-come-si-scrive-un-idea.md) |
+| **la strategia vede solo il passato** | il look-ahead e' stato il primo errore della fase 40R | [3](metodo/3-come-si-scrive-una-strategia.md#il-contesto-solo-il-passato) |
+| **convenzioni di esecuzione conservative**, stampate accanto al numero | nella fase 40R un limite si eseguiva al tocco, cioe' a mercato | [4](metodo/4-il-backtest.md#le-convenzioni-di-esecuzione) |
+| **statistiche per giornata**: il t si calcola sul netto giornaliero | le operazioni della stessa giornata non sono indipendenti: uno z ingenuo di +4,1 e' diventato t = +1,4 | [4](metodo/4-il-backtest.md#le-statistiche) |
+| **il modello nullo** | nella fase 40R le condizioni facevano 49% e il nullo 47%: senza confronto il 49% sembrava un risultato | [5](metodo/5-come-si-valida.md#il-modello-nullo) |
+| **la divisione si fissa una volta** e non si sposta | ricalcolata a ogni download, porterebbe pezzi di fuori campione dentro | [5](metodo/5-come-si-valida.md#5a-dentro-e-fuori-campione) |
+| **il fuori campione si consuma**, e il registro sa se un'altra variante l'ha gia' visto | il fuori campione guardato due volte e' diventato dentro | [5](metodo/5-come-si-valida.md#5a-dentro-e-fuori-campione) |
+| **il registro delle prove** | per contare le varianti provate | [5](metodo/5-come-si-valida.md#5a-dentro-e-fuori-campione) |
+| **lo Sharpe deflazionato** (Bailey e Lopez de Prado, 2014) | provando cento varianti, la migliore ha uno Sharpe alto anche se nessuna vale niente | [5](metodo/5-come-si-valida.md#lo-sharpe-deflazionato) |
+| **il ricampionamento per giornata**, a blocchi di 5 | pescare operazioni una per una sottostima le code | [5](metodo/5-come-si-valida.md#5b-il-monte-carlo) |
+| **i cancelli, con soglie** | il transcript dice "buoni risultati dentro e fuori": serve un criterio scritto prima di guardare | [5](metodo/5-come-si-valida.md#i-cancelli) |
+| **il framework si valida prima delle strategie**, sul mercato sintetico | un nullo che sbirciava guadagnava +447.000 $ su una passeggiata casuale | [5](metodo/5-il-framework-si-valida-prima.md) |
+| **i criteri sigillati** con un hash prima di guardare i dati (Tomas Fernandez, 2026) | un criterio scritto dopo aver visto il risultato non e' una prova; nel primo uso due criteri su quattro erano scritti male, e si e' visto | [5](metodo/5-come-si-valida.md#i-criteri-sigillati) |
+| **il simulatore di contratto** della prop firm | l'idea dei tre paper sulle prop firm; i soldi veri del compratore, non il saldo simulato | [4](metodo/4-il-simulatore-di-contratto.md) |
 
-**La dimensione** realizza la fase 2 della metodologia: `fissa` (un contratto, lo sviluppo), `rischio`
-(stessa somma a rischio sullo stop: il volatility targeting del transcript, dove la distanza dello
-stop segue il range), `volatilita` (stessa somma divisa l'escursione media delle ultime N giornate).
-
-## Il Modello Nullo
-
-Rifa ogni operazione vera con le stesse uscite, gli stessi contratti e gli stessi costi, togliendo
-una cosa sola:
-
-- **il quando**: giornata e minuto a caso dentro il campione e dentro la finestra della strategia,
-  stesso verso, **stessa esposizione** (l'uscita a tempo si sposta con l'ingresso). E' il nullo che
-  toglie il beta: su un campione salito per caso, anche il nullo long guadagna;
-- **il verso**: stesso istante, verso a caso. Su una strategia che va solo long misura il beta del
-  campione, non un vantaggio: **e' un cancello solo per le strategie che scelgono il verso**.
-
-## I Cancelli
-
-Una validazione **supera i cancelli** se passano tutti. Superarli non approva una regola operativa:
-dice che la prova non l'ha smentita. Le soglie stanno in `Validatore.cs` e qui, e si cambiano insieme.
-
-| | condizione | soglia | fase |
-|---|---|---|---|
-| D1 | dentro: batte il nullo del quando | p <= 0,05 | aggiunta |
-| D2 | dentro: batte il nullo del verso (solo se la strategia sceglie il verso) | p <= 0,05 | aggiunta |
-| D3 | dentro: Sharpe deflazionato per le varianti nel registro | >= 0,95 | aggiunta |
-| F1 | fuori: operazioni | >= 30 | aggiunta |
-| F2 | fuori: netto | > 0 | 5a, "rende ancora bene fuori" |
-| F3 | fuori: Sharpe annuo | >= 50% di quello dentro | 5a, "confrontare dentro e fuori" |
-| F4 | fuori: mai guardato da un'altra variante | intatto | 5a, "regole congelate" |
-
-Il Monte Carlo non ha un cancello: il transcript lo usa per leggere la forza del vantaggio e per i
-metri del vivo, e il rapporto li stampa (finale p5/p50/p95, probabilita' di perdita, drawdown
-p50/p95/p99, serie di perdite, drawdown entro 10, 20, 50 e 100 operazioni).
-
-## Come Si Usa
+## Come Si Compila E Si Usa
 
 ```bash
-cd quant/src
+cd quant/framework
 dotnet build -c Release                  # una volta, e dopo ogni modifica
-dotnet test Quant.Test -c Release        # i test del motore e della validazione
+dotnet test Quant.Test -c Release        # i test di tutte le fasi
 Q=Quant.Cli/bin/Release/net10.0/quant.exe
 
 $Q chart                                 # i chart aperti in ATAS
-$Q scarica --chart <id> --simbolo NQ     # le barre del chart in archivio
+$Q scarica --chart <id> --simbolo NQ     # fase 4: le barre del chart in archivio
 $Q dati                                  # cosa c'e' in archivio
-$Q divisione --simbolo NQ                # mostra il confine dentro/fuori; --fissa lo fissa, una volta
-$Q strategie                             # il catalogo, con regole e parametri
+$Q strategie                             # fase 3: il catalogo, con regole e parametri
 $Q prova momento-intraday --p rr=2       # fase 4: backtest dentro campione, nel registro
+$Q divisione --simbolo NQ                # fase 5a: il confine dentro/fuori; --fissa, una volta
 $Q valida momento-intraday               # fase 5 dentro: nulli, Monte Carlo, Sharpe deflazionato
 $Q valida momento-intraday --fuori       # fase 5a: una volta, a regole congelate
+$Q contratto verifica                    # il simulatore di contratto contro i criteri sigillati
+$Q contratto tradeify-growth-50k --d 850 # il valore di un contratto di prop firm
 ```
 
 Opzioni comuni: `--simbolo NQ|SINT`, `--tipo m1`, `--p chiave=valore` (ripetibile),
 `--commissione 2.5`, `--slittamento 1`, `--repliche 1000`, `--simulazioni 10000`. Un parametro
 sconosciuto e' un errore: quasi sempre e' un refuso.
-
-**La divisione di NQ non e' ancora fissata**, apposta: oggi l'archivio ha 50 giornate (3 agosto - 9
-ottobre 2026, dal chart M1 di NQZ6). Si fissa quando la storia lunga e' scaricata.
-
-**Il codice di una strategia si scrive come dice la fase 3**: prima l'ingresso, si verifica; poi
-l'uscita, si verifica; poi la dimensione.
-
-## Il Framework Si Valida Prima Delle Strategie
-
-Su un mercato finto, dove la verita' e' nota (`quant sintetico`), il framework deve fare due cose:
-non trovare niente dove non c'e' niente, e trovare cio' che si e' piantato. Misurato l'11 ottobre
-2026, 1.500 giornate sintetiche per prova, 400 repliche del nullo:
-
-| prova | esito |
-|---|---|
-| **passeggiata casuale**, 3 strategie x 20 semi | **nessuna supera i cancelli**; D1 a p <= 0,05 in 3 casi su 60, il 5% atteso: il nullo e' tarato |
-| **deriva piantata di notte**, +15 punti a notte | `anomalia-notte` passa D3, F2, F3 e i cancelli fuori; **D1 no** |
-| deriva di notte +15 / +30 / +50 punti, 5 semi ciascuna | D1 a p <= 0,05 in 0, 0 e 1 caso su 5 |
-
-**Il limite che ne esce: D1 ha poca potenza sulle anomalie di esposizione.** Quando la strategia
-*e'* una finestra di esposizione (la notte), le finestre casuali con la stessa esposizione coprono
-gran parte della stessa notte, e la differenza da misurare si riduce. Per quelle ipotesi la prova
-giusta e' il confronto con il complemento, che e' anche quello del paper dell'esempio 4:
-`anomalia-notte --p parte=notte` contro `--p parte=giorno`. Un confronto appaiato fra due varianti
-non e' ancora un comando.
-
-Due difetti del nullo trovati cosi', e corretti prima di questa versione:
-
-1. **il nullo del quando dentro la stessa giornata sbirciava il futuro.** Il verso di un'operazione
-   VWAP dipende dal percorso della giornata; spostarla prima nella stessa giornata le faceva
-   catturare il movimento che l'aveva generata. Sulla passeggiata casuale quel nullo guadagnava
-   +447.000 $. Ora la giornata si pesca a caso;
-2. **il nullo del verso premiava il beta**: su un campione salito per caso, una strategia solo long
-   batteva la moneta. Ora conta solo per le strategie che scelgono il verso.
-
-**Ogni modifica al motore o alla validazione ripete questa prova** prima di toccare dati veri.
 
 ## La Velocita'
 
@@ -175,14 +162,20 @@ Misurata l'11 ottobre 2026 su questo PC, Release:
 | generare 2,07 milioni di barre M1 sintetiche (1.500 giornate) | 2,5 s |
 | scaricare da ATAS 41.142 barre M1 | 2,9 s |
 | `valida --fuori` completa su 2,07 milioni di barre: 2 backtest, 4 nulli da 1.000 repliche, 3 Monte Carlo da 10.000 | 0,9 - 2,6 s |
-| 23 test unitari | 0,4 s |
+| 47 test unitari | 0,4 s |
+| `contratto verifica`: 18 righe da 200.000 tentativi | 21,6 s |
+| un contratto, 100.000 cicli browniani da 78 controlli per sessione | 1,8 s |
 
 ## Cosa Manca
 
 - **La storia lunga di NQ.** Quanta ne da' ATAS lo dice il tariffario, e si misura appena la
-  connessione torna: [`i-dati-da-atas.md`](i-dati-da-atas.md).
+  connessione torna: [`i-dati-da-atas.md`](metodo/i-dati-da-atas.md).
 - **Tick e book nel motore.** Il motore lavora su barre; con i tick l'ambiguita' stop/target si
   risolve esattamente invece che al peggio.
 - **Il confronto appaiato fra varianti**, per le anomalie di esposizione.
-- **Le idee dai paper sulle prop firm**, che l'utente mandera'.
+- **Il contratto applicato alle operazioni di una strategia del catalogo**: oggi il simulatore
+  di contratto prende sessioni browniane o storiche con il verso a caso; il passo dopo e' dargli le
+  operazioni di una prova (`Backtest`), quando una strategia avra' passato i suoi cancelli.
+- **Il sigillo dei cancelli** per ogni strategia: oggi le soglie sono scritte prima, ma non
+  sigillate; i criteri del simulatore di contratto lo sono.
 - **Le fasi 6 e 7**: il vivo e il portafoglio, fuori scope finche' il framework non e' maturo.

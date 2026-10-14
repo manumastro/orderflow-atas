@@ -1,5 +1,0 @@
-<Solution>
-  <Project Path="Quant/Quant.csproj" />
-  <Project Path="Quant.Cli/Quant.Cli.csproj" />
-  <Project Path="Quant.Test/Quant.Test.csproj" />
-</Solution>

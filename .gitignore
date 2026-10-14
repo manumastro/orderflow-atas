@@ -32,5 +32,6 @@ __pycache__/
 
 # quant: i dati vengono da ATAS e si riscaricano; build e ambiente locale
 quant/dati/
-quant/src/**/bin/
-quant/src/**/obj/
+quant/framework/**/bin/
+quant/framework/**/obj/
+quant/paper/**/*.pdf

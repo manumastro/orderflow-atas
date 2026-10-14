@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Cio' che una strategia e': Strategia, Contesto, Posizione. Fase 3. -->
+  <PropertyGroup>
+    <RootNamespace>Quant.Strategie</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Quant.Regole/Quant.Regole.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="Quant.Dati" />
+    <Using Include="Quant.Calcolo" />
+    <Using Include="Quant.Regole" />
+    <Using Include="Quant.Regole.Contratti" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Quant.Motore" />
+    <InternalsVisibleTo Include="Quant.Validazione" />
+    <InternalsVisibleTo Include="Quant.Test" />
+  </ItemGroup>
+</Project>
