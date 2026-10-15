@@ -108,6 +108,59 @@ Sulla tab `2 SETTIMANA M30` (NQZ6, connessione Rithmic) ci sono **due** indicato
 - **un indicatore Options X-Ray**, che su NQ scrive solo "SPX options data · for ES, MES, SPY and US
   500 charts only" e non disegna niente, come da documentazione.
 
+## La GEX Calcolata Da Noi
+
+**Dal 15 ottobre 2026** `FabioOrderFlow/tools/gex.py` calcola la GEX di NQZ6 dalla catena che il
+bridge legge (`/opzioni`), e il giro d'orizzonte la stampa nella tab 2. Il modello, una riga per
+scelta:
+
+- prezzo dell'opzione: il medio fra bid e ask, se no l'ultimo;
+- volatilita' implicita: **Black-76** (il modello delle opzioni su future), tasso zero, dalla sola
+  opzione fuori dal denaro di ogni strike; vale per la call e per la put;
+- scadenza: le 16:00 di New York; le trimestrali alle 9:30 (la SOQ del CME);
+- **GEX di uno strike** = gamma x open interest x 20 $ x F² x 1%: i dollari di future che il dealer
+  compra o vende per un movimento dell'1%;
+- **convenzione A** (fornitori, SqueezeMetrics): dealer lunghi le call, corti le put; GEX = call - put;
+- **convenzione B** [GPP]: dealer corti di tutto; la GEX e' negativa ovunque e dice solo dove pesa;
+- **zero gamma**: dove la GEX totale A cambia segno, ricalcolando la gamma con la volatilita' di ogni
+  strike ferma, su +-8% dal prezzo a passi dello 0,1%. Fino al 15 ottobre la griglia era di +-4%, e
+  alle 11:04 la settimana non aveva uno zero dentro;
+- **il future**: l'ultimo prezzo scambiato (chiusura della barra in corso del chart M30) quando il
+  bridge legge la scadenza. Le scadenze si leggono una dopo l'altra in circa tre minuti, quindi ognuna
+  ha il suo (`scadenze[].future`, `future_quando`). Il `future` del riassunto e' quello dell'ultima
+  lettura, datato da `future_quando`; `prezzo_bridge` e' l'M1 subito dopo, con la differenza. Il 15
+  ottobre il future (29.975,5) non tornava con il bridge delle 18:43 (29.946,25): non era sbagliato,
+  era di tre minuti dopo, ma il JSON lo datava all'inizio del calcolo;
+- **gli strike**: 120 per lato per scadenza (era 100). Il tetto del bridge e' 500 sottoscrizioni per
+  richiesta (`TettoSottoscrizioni` in `LeOpzioni.cs`): 120 strike x 2 lati x 2 tipi = 480. Un giorno con
+  piu' serie ne prende meno (`strike_per_lato` per scadenza);
+- **le riletture**: la catena arriva a pezzi, e `gex.py` rilegge ogni scadenza ogni 3 secondi finche'
+  l'open interest cresce meno dello 0,5%. Lo fa fino a sei volte per le scadenze entro sette giorni e
+  per le trimestrali, due volte per le settimanali lontane, che sono quotate a pezzi e pesano circa il 7%
+  della GEX A. Con sei riletture per tutte il calcolo passava da tre minuti e mezzo a cinque e mezzo.
+
+**Il segnale dell'open interest.** L'OI "di ieri" cambia fra le letture, e dentro una lettura cresce
+mentre le quotazioni arrivano. Per ogni scadenza il JSON ha `oi_prima_lettura`, `oi_ultima_lettura`,
+`letture` e `oi_stabile`: falso se dopo le riletture l'OI cresceva ancora. In
+`oi_cambiato_rispetto_al_calcolo_precedente` c'e' invece il confronto con l'ultimo calcolo archiviato
+dello stesso giorno: OI totale (sulle scadenze comuni) e i cinque strike piu' pesanti. Il 15 ottobre,
+fra le 18:43 e le 19:10, il totale e' salito del 24%; buona parte viene dai 120 strike al posto di 100 e
+dalle settimanali lontane quotate meglio. Un OI che si muove molto e' una catena arrivata a pezzi, non
+posizioni nuove.
+
+**La finestra del volume.** `volume` e' il `CurrentDayTotalVolume` della quotazione di ATAS: il giorno di
+contrattazione del CME. Per le opzioni sui future comincia alle 17:00 di Chicago del giorno prima, cioe'
+alle 00:00 italiane in ora legale. Alle 08:32-09:51 UTC del 15 ottobre i +-6% avevano gia' 19-21 mila
+contratti, quindi la notte e' dentro. L'azzeramento alle 17:00 di Chicago non e' ancora visto: una
+lettura fra le 22:00 e le 23:00 UTC deve dare quasi zero. Il JSON lo dice in `volume_finestra`.
+
+**I limiti**: l'open interest e' di ieri e non vede gli 0DTE aperti e chiusi in giornata; il segno
+vero dei dealer non si conosce [GPP]; il GEX Profile di ATAS in modalita' Vol usa il volume del
+giorno, non l'open interest, e non coincide con questo calcolo. **La misura della scala**: il 15
+ottobre la GEX A totale era -1,5 miliardi di $ per 1%, cioe' circa 2.500 future NQ da vendere per un
+ribasso di 300 punti, contro 500-700 mila contratti scambiati al giorno. Su NQ le opzioni sul future
+sono piccole rispetto al future; su SPX ed ES il rapporto e' un altro.
+
 ## Cosa Ne Puo' Fare Il Metodo
 
 1. **Non si puo' fare un backtest con questi indicatori.** Non hanno storia: Chain registra da

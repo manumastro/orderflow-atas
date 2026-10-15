@@ -64,19 +64,42 @@ Un evento senza esito e' una previsione; con l'esito diventa memoria di come il 
 il 24 settembre e' successo, e per un messaggio l'agente ha visto solo l'inizio. Per questo la
 vecchia sezione 4 (le tabelle del file di ieri) e' stata tolta — la sezione 0 misura le stesse
 sedute dal bridge — e le regole con la finestra ancora vuota si contano invece di elencarle.
+**La soglia vera e' piu' bassa**: il 15 ottobre 2026 un giro di 9,8 KB e' arrivato solo in
+anteprima. Il bersaglio e' **8,5 KB senza il quadro** (8,4 misurati quel giorno), con il quadro
+stampato in 8 righe: cornici su una riga, tre sedute di cassa (le altre le porta la tab 2), al
+massimo sette eventi tagliati a 105 caratteri, il profilo della notte solo con le fasce sopra l'8%.
 
 **E la risposta segue lo stesso ordine.** Si ragiona dal piu' lontano al piu' vicino anche quando si
 scrive poco: una lettura dal vivo che parte dalle ultime barre senza sapere dove sta la settimana e'
 la lettura che il giro esiste per impedire.
 
-## Si Lancia A Mano, Quando Si Legge Dal Vivo
+## Le Quattro Tab, Nell'Ordine
+
+**Dal 15 ottobre 2026 il giro legge tutte e quattro le tab del workspace di NQ**, ognuna dal suo
+chart e dalla piu' lontana alla piu' vicina. Fino ad allora guardava solo l'M1. Il ruolo di ogni
+tab lo dichiara l'indicatore (`/ruolo`); il codice e' `FabioOrderFlow/tools/le_quattro_tab.py`.
+
+| tab | chart | cosa stampa il giro |
+|---|---|---|
+| 1 COMPOSITO | NQ Daily (continuo) | il valore di 90 giornate, grezzo e aggiustato al rollover; le ultime sei giornate |
+| 2 SETTIMANA | NQZ6 M30 | il valore di cassa di ogni giorno (POC su o giu', staccato); le ultime tre ore a mezz'ora |
+| 2 LE OPZIONI | catena di NQZ6 | la GEX calcolata da noi (`gex.py`): totale, zero gamma, muri, nelle due convenzioni |
+| 3 SEDUTA | NQZ6 M1 | le sedute di cassa, dove sta il prezzo, la struttura oraria, gli eventi, il pannello, il tape, il profilo |
+| 4 ESECUZIONE | NQZ6 Range 40 | le ultime sei barre range con verso, durata, delta; il riassunto delle ultime trenta |
+
+**La GEX** sta nella tab 2 perche' li' c'e' il GEX Profile di ATAS. Calcolarla costa due minuti e
+mezzo (17 scadenze), quindi il giro stampa una cache e, se ha piu' di 30 minuti, la ricalcola in
+background. Il modello e i suoi limiti stanno in
+[`quant/metodo/le-opzioni-in-atas.md`](../../../quant/metodo/le-opzioni-in-atas.md#la-gex-calcolata-da-noi).
+
+## L'Hook
 
 Fino al 10 ottobre 2026 un hook `UserPromptSubmit` eseguiva
 [`../../../.claude/hooks/giro-orizzonte.sh`](../../../.claude/hooks/giro-orizzonte.sh) a ogni
-messaggio e ne metteva lo stdout nel contesto. **Dall'11 ottobre l'hook e' spento**: lo scope e' il
-metodo quantitativo, e il giro serve solo quando l'utente chiede una lettura dal vivo. Allora si
-lancia, prima di rispondere, lo stesso script che girava nell'hook (riavvolge il diario in replay,
-fa il giro, legge gli avvisi):
+messaggio e ne metteva lo stdout nel contesto. Dall'11 ottobre era spento: lo scope e' il metodo
+quantitativo. **Il 15 ottobre 2026 l'utente l'ha fatto riaccendere** (`.claude/settings.json`):
+il giro torna a ogni messaggio, in circa quattro secondi. A mano si lancia lo stesso script (riavvolge
+il diario in replay, fa il giro, legge gli avvisi):
 
 ```bash
 CLAUDE_PROJECT_DIR="$PWD" bash .claude/hooks/giro-orizzonte.sh
@@ -88,8 +111,8 @@ Oppure il solo giro:
 python3 FabioOrderFlow/tools/giro_orizzonte.py
 ```
 
-**Il giro si legge, non si ignora.** Per riaccendere l'hook basta rimettere in
-`.claude/settings.json` il blocco `UserPromptSubmit` che lancia lo script (e' nella storia di git).
+**Il giro si legge, non si ignora.** Per spegnere l'hook si toglie da `.claude/settings.json` il
+blocco `UserPromptSubmit`.
 
 Se dice che il bridge non risponde, **lo si dichiara nella risposta**: una lettura senza dati va
 detta tale, non presentata come una lettura.

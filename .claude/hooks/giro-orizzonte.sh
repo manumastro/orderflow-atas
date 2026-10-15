@@ -69,7 +69,7 @@ if echo "$RIAVVOLTO" | grep -q "parcheggio\|spostati"; then
   echo
 fi
 
-OUT=$(python3 FabioOrderFlow/tools/giro_orizzonte.py --barre 8 2>&1)
+OUT=$(python3 FabioOrderFlow/tools/giro_orizzonte.py --barre 3 2>&1)
 if [ $? -ne 0 ]; then
   echo "[giro d'orizzonte] fallito:"
   echo "$OUT" | tail -5
@@ -107,17 +107,11 @@ if [ -f "$AVVISI" ]; then
     # Alla prima esecuzione della sessione non si riversano ore di log: si mostra la coda.
     [ "$LETTE" -eq 0 ] && [ "$NUOVE" -gt 15 ] && NUOVE=15
     echo
-    echo "──────────────────────────────────────────────────────────────────────────────"
-    echo "9. GLI AVVISI DEI MONITOR — $NUOVE nuovi (~/.fabio-avvisi.log; ORARI LOCALI, non UTC)"
-    echo "──────────────────────────────────────────────────────────────────────────────"
+    echo "== 9. GLI AVVISI DEI MONITOR — $NUOVE nuovi (~/.fabio-avvisi.log; ORARI LOCALI, non UTC)"
     tail -n "$NUOVE" "$AVVISI" | sed 's/^/  /'
   else
     echo
-    echo "──────────────────────────────────────────────────────────────────────────────"
-    echo "9. GLI AVVISI DEI MONITOR — nessun avviso nuovo dall'ultimo messaggio"
-    echo "──────────────────────────────────────────────────────────────────────────────"
-    echo "  (silenzio vero: i sorveglianti hanno scritto zero righe. Se invece sono spenti,"
-    echo "   lo dice la sezione 1 insieme allo stato del bridge.)"
+    echo "== 9. GLI AVVISI DEI MONITOR — nessuno dall'ultimo messaggio (silenzio vero: zero righe nel log)"
   fi
   echo "$TOTALE" > "$SEGNALIBRO"
 fi

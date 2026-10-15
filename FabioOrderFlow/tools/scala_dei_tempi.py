@@ -91,7 +91,10 @@ def misura(chart: str, giorno: str, cassa: tuple[str, str], grana: float) -> dic
     if not cs:
         return None
     out = {}
+    # la notte (dalle 22:00Z del giorno prima all'apertura della cassa) si misura a parte: senza, la
+    # "seduta finora" mescolava notte e cassa (lacuna segnalata dalla fase 4 il 15/10)
     for nome, filtro in (("giorno", lambda c: True),
+                         ("notte", lambda c: c["time"][:10] < giorno or c["time"][11:16] < cassa[0]),
                          ("cassa", lambda c: cassa[0] <= c["time"][11:16] < cassa[1]
                           and c["time"][:10] == giorno)):
         sel = [c for c in cs if filtro(c)]
@@ -179,7 +182,7 @@ def stampa(chart: str, budget: float) -> None:
     oggi_m = misura(chart, oggi, cassa, grana) or {}
     prezzo = (oggi_m.get("giorno") or {}).get("C")
 
-    print(f"\n{'-' * 60}\n0. DAL PIU' LONTANO AL PIU' VICINO — {strumento} (cassa {cassa_txt}, fasce da {fmt(grana)})\n{'-' * 60}")
+    print(f"\n== TAB 3 · SEDUTA — {strumento} M1 (cassa {cassa_txt}, fasce da {fmt(grana)})")
     if mancanti:
         print(f"  la storia e' in costruzione: mancano {mancanti} sedute, arrivano ai prossimi giri")
 
@@ -212,7 +215,7 @@ def stampa(chart: str, budget: float) -> None:
                      f"POC {fmt(v[0])}  valore {fmt(v[1])}-{fmt(v[2])}  delta {('%+d' % c['D'])}  "
                      f"chiude {chiude} il valore  {mig}")
         prec = v
-    for r in righe[-5:]:
+    for r in righe[-3:]:  # le tre ultime: i giorni prima li porta la tab 2
         print(r)
 
     # --- dove sta il prezzo ------------------------------------------------------------------
@@ -295,12 +298,19 @@ def stampa(chart: str, budget: float) -> None:
         ultime = chiavi[-6:]
         seq = "  ".join(f"{int(k[11:13]) + 2:02d}h {fmt(ore[k]['C'])}({ore[k]['D']:+d})" for k in ultime)
         print(f"    ultime ore (chiusura, delta): {seq}")
-        hh = [ore[k]["H"] for k in chiavi[-6:]]
-        ll = [ore[k]["L"] for k in chiavi[-6:]]
-        forma = ("massimi e minimi crescenti" if hh[-1] > hh[0] and ll[-1] > ll[0]
-                 else "massimi e minimi decrescenti" if hh[-1] < hh[0] and ll[-1] < ll[0]
-                 else "senza direzione")
-        print(f"    le ultime sei ore: {forma}")
+        # LA FORMA SI LEGGE SUGLI SWING, non sul primo e sull'ultimo estremo della finestra: il 15/10
+        # alle 18:43 il confronto fra l'ora di sei ore prima e l'ultima diceva "massimi e minimi
+        # crescenti" mentre i minimi delle ore 13, 14 e 15 scendevano (lacuna segnalata dal quadro).
+        # Qui: gli ultimi due massimi di swing e gli ultimi due minimi di swing delle 72 ore.
+        def verso(punti: list) -> str | None:
+            if len(punti) < 2:
+                return None
+            (a, _), (b, _) = sorted(punti, key=lambda x: x[1])[-2:]
+            return "crescenti" if b > a else "decrescenti" if b < a else "uguali"
+        vm, vn = verso(alti), verso(bassi)
+        forma = (f"massimi e minimi {vm}" if vm and vm == vn and vm != "uguali"
+                 else f"massimi {vm or 'n.d.'}, minimi {vn or 'n.d.'}")
+        print(f"    gli ultimi due swing H1: {forma}")
 
     # --- gli eventi --------------------------------------------------------------------------
     try:
@@ -308,16 +318,18 @@ def stampa(chart: str, budget: float) -> None:
     except Exception:
         eventi = []
     g = dt.date.fromisoformat(oggi)
-    passati = [e for e in eventi if (g - dt.timedelta(days=2)).isoformat() <= e["data"] < oggi]
-    prossimi = [e for e in eventi if oggi <= e["data"] <= (g + dt.timedelta(days=2)).isoformat()]
+    passati = [e for e in eventi if (g - dt.timedelta(days=1)).isoformat() <= e["data"] < oggi][-2:]
+    prossimi = [e for e in eventi if oggi <= e["data"] <= (g + dt.timedelta(days=2)).isoformat()][:5]
     print("  GLI EVENTI (docs/research/calendario/eventi.json)")
     for e in passati:
         print((f"    {e['data'][8:10]}/{e['data'][5:7]} {e.get('ora', ''):>5}  {e['evento']}"
-               f"{'  -> ' + e['esito'] if e.get('esito') else ''}")[:150])
+               f"{'  -> ' + e['esito'] if e.get('esito') else ''}")[:105])
     for e in prossimi:
         segno = ">>" if e["data"] == oggi else "  "
-        print(f"  {segno}{e['data'][8:10]}/{e['data'][5:7]} {e.get('ora', ''):>5}  {e['evento']}"
-              f"  [{e.get('peso', '')}]{'  -> ' + e['esito'] if e.get('esito') else ''}")
+        # tagliata a 120 caratteri: il 15 ottobre 2026 gli esiti scritti dallo studio globale
+        # portavano il giro oltre la soglia oltre la quale arriva all'agente solo in anteprima
+        print((f"  {segno}{e['data'][8:10]}/{e['data'][5:7]} {e.get('ora', ''):>5}  {e['evento']}"
+               f"  [{e.get('peso', '')}]{'  -> ' + e['esito'] if e.get('esito') else ''}")[:105])
     if not passati and not prossimi:
         print("    nessun evento nel calendario: va aggiornato a mano, a inizio giornata")
 

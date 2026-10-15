@@ -64,7 +64,7 @@ def bridge(*args) -> dict | None:
 
 
 def titolo(n: int, testo: str) -> None:
-    print(f"\n{'-' * 60}\n{n}. {testo}\n{'-' * 60}")
+    print(f"\n== {n}. {testo}")  # una riga: le cornici pesavano 2 KB del budget di 10
 
 
 def ora_piu_avanti(testo: str, adesso_utc: str) -> str | None:
@@ -155,6 +155,14 @@ def main() -> int:
                 print(f"  {len(registrati)} chart registrati: serve --chart fra "
                       f"{', '.join(x['instrument'] for x in registrati)}")
 
+    # TAB 1 e 2 ---------------------------------------- le quattro tab, dalla piu' lontana
+    # Dal 15 ottobre 2026 il giro legge tutte e quattro le tab del workspace, ognuna dal suo chart
+    # e nell'ordine del ruolo: composito Daily, settimana M30 (con la GEX delle opzioni), seduta
+    # M1 (la sezione che segue e il resto del giro), esecuzione Range (in fondo). Vedi
+    # le_quattro_tab.py e metodo/il-giro-d-orizzonte.md.
+    import le_quattro_tab
+    le_quattro_tab.stampa("lontane")
+
     # 0 ------------------------------------------------ dal piu' lontano al piu' vicino
     # Una persona guarda prima le settimane, poi le sedute, poi dove sta il prezzo rispetto a
     # tutto questo e quali eventi lo hanno mosso; solo dopo scende alla notte e al tape. Il giro
@@ -204,8 +212,7 @@ def main() -> int:
         print(f"  {h['instrument']} {h['timeFrame']}  {h['bars']:,} barre  "
               f"ora di mercato {ora.completa(h['marketTimeUtc'])} "
               f"{ora.sigla_di(h['marketTimeUtc'])}{avviso}")
-        print(f"  TUTTI GLI ORARI DI QUESTO BLOCCO SONO ITALIANI. La cash di New York apre alle "
-              f"{ora.hhmm(h['marketTimeUtc'][:10] + 'T13:30:00Z')}.")
+        print(f"  orari italiani; la cash di New York apre alle {ora.hhmm(h['marketTimeUtc'][:10] + 'T13:30:00Z')}")
         print(f"  file della giornata usato: {g}.md")
         r = bridge("rollovers")
         if r and r.get("rollovers"):
@@ -284,10 +291,13 @@ def main() -> int:
             if m and m.group(1).strip():
                 q, fonte = m.group(1).strip(), f.name
                 break
-    if q:
-        if fonte != oggi.name:
-            print(f"  ATTENZIONE: nessun quadro per oggi, questo viene da {fonte} ed e' vecchio")
-        for r in q.splitlines()[:12]:
+    if q and fonte != oggi.name:
+        # Un quadro di un altro giorno non si stampa: si legge come se fosse di oggi, e pesa un
+        # kilobyte del budget del giro (il 15 ottobre 2026 era quello del 24 settembre).
+        print(f"  NESSUN QUADRO PER OGGI: l'ultimo e' in {fonte}, vecchio, e non si stampa.")
+        print("  Procedura: docs/research/metodo/il-framing-e-il-cot-si-leggono-insieme.md")
+    elif q:
+        for r in q.splitlines()[:8]:
             print(f"  {r}")
     else:
         print("  NESSUN QUADRO. Il framing e il COT non sono stati fatti, o non sono stati")
@@ -429,17 +439,19 @@ def main() -> int:
         poc = max(b, key=b.get)
         for k in sorted(b, reverse=True):
             q = b[k] / tot * 100
-            if q < 2.0:
+            if q < 8.0:
                 continue
             m = " POC" if k == poc else ""
             et = f"{k:g}-{k+passo:g}"
             print(f"  {et:<15} {b[k]:8,} {q:5.1f}%  delta {dl[k]:+7,}  "
                   f"{'#' * int(q / 1.5)}{m}")
-        print(f"  (fascia {passo:g}, fasce sotto l'1% omesse; POC {poc:g}-{poc+passo:g} con "
+        print(f"  (fascia {passo:g}, fasce sotto l'8% omesse; POC {poc:g}-{poc+passo:g} con "
               f"{b[poc]/tot*100:.1f}% e delta {dl[poc]:+,})")
 
-    print("\n" + "─" * 78)
-    print("Questo e' il contesto. La conclusione si scrive guardando tutto, non le ultime barre.")
+    # TAB 4 -------------------------------------------------------------- l'esecuzione
+    le_quattro_tab.stampa("esecuzione")
+
+    print("\nQuesto e' il contesto. La conclusione si scrive guardando tutto, non le ultime barre.")
     return 0
 
 

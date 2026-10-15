@@ -35,3 +35,6 @@ quant/dati/
 quant/framework/**/bin/
 quant/framework/**/obj/
 quant/paper/**/*.pdf
+
+# lo studio globale: i JSON grezzi dei collettori restano fuori da git
+studio/rapporti/*/dati/

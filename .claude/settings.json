@@ -1,1 +1,17 @@
-{}
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/giro-orizzonte.sh",
+            "timeout": 25,
+            "statusMessage": "giro d'orizzonte..."
+          }
+        ]
+      }
+    ]
+  }
+}

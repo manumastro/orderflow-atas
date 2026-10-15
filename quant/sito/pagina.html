@@ -156,6 +156,7 @@ h2.sezione { font: 700 20px/1.2 var(--display); margin: 0 0 12px; }
       <button class="tema" id="apri-indice" type="button">Indice</button>
     </div>
     <a class="marchio" href="#/" id="marchio-largo">Il metodo quantitativo<small>orderflow-atas · quant/</small></a>
+    <div class="gruppo" id="nav-giornate"><h4>Studio globale</h4></div>
     <div class="gruppo" id="nav-studi"><h4>Studi</h4></div>
     <div class="gruppo" id="nav-ricerche"><h4>Ricerche</h4></div>
     <div class="gruppo" id="nav-metodo"><h4>Il metodo</h4></div>
@@ -248,6 +249,8 @@ function navigazione(attiva) {
     return `<a href="#/studio/${s.nome}" class="${attiva === "studio:" + s.nome ? "attivo" : ""}"><span class="mini">${mini}</span>${esc(s.nome)}</a>`;
   }).join("");
   $("#nav-studi").innerHTML = "<h4>Studi</h4>" + st;
+  $("#nav-giornate").innerHTML = "<h4>Studio globale</h4>" + (DATI.giornate || []).slice(0, 10).map(g =>
+    `<a href="#/giorno/${g.data}" class="${attiva === "giorno:" + g.data ? "attivo" : ""}">${esc(g.data)}</a>`).join("");
   $("#nav-ricerche").innerHTML = "<h4>Ricerche</h4>" + DATI.ricerche.map(r =>
     `<a href="#/doc/${DATI.indice_paper}@${slug(r.ancora)}">${esc(r.titolo)} <span class="occhiello">${r.paper}</span></a>`).join("");
   $("#nav-metodo").innerHTML = "<h4>Il metodo</h4>" + `<a href="#/doc/${DATI.mappa}" class="${attiva === "doc:" + DATI.mappa ? "attivo" : ""}">La mappa</a>` +
@@ -283,10 +286,15 @@ function home() {
       ${r.studi.length ? `<p>studio: ${r.studi.map(esc).join(", ")}</p>` : `<p>nessuno studio ancora</p>`}
     </a>`;
   }).join("");
+  const g = (DATI.giornate || [])[0];
+  const giorno = g ? `<section><h2 class="sezione">Studio globale</h2><div class="griglia"><a class="scheda" href="#/giorno/${g.data}">
+      <span class="occhiello">${esc(g.data)} · ${g.fasi.filter(f => f.path).length} rapporti su 5${g.precedenti.length ? " · " + g.precedenti.length + " aggiornamenti" : ""}</span>
+      <b>${esc(g.titolo)}</b>${g.riga ? `<p>${inline(g.riga)}</p>` : ""}</a></div></section>` : "";
   $("#vista").innerHTML = `
     <header><div class="occhiello">NQ · dati solo da ATAS · fino alla validazione</div>
       <h1 class="titolo">Ogni idea, fase per fase</h1>
       <p class="sotto">Gli studi di <code>quant/studi/</code> con le cinque fasi della metodologia: idea, regole, codice, backtest, validazione. Le ricerche sono i filoni di paper ancora in fase 1. Il sito legge il repository a ogni pagina.</p></header>
+    ${giorno}
     <section><h2 class="sezione">Studi</h2><div class="griglia">${studi}</div></section>
     <section><h2 class="sezione">Ricerche</h2><div class="griglia">${ricerche}</div></section>`;
 }
@@ -363,6 +371,32 @@ async function documento(path, anchor) {
   if (anchor) document.getElementById(anchor)?.scrollIntoView(); else window.scrollTo(0, 0);
 }
 
+// lo studio globale di un giorno: il quadro per primo, poi le quattro fasi; i quadri sostituiti come file del quadro
+async function giornata(data, chiave, i) {
+  const g = (DATI.giornate || []).find(x => x.data === data);
+  if (!g) return nonTrovato(data);
+  navigazione("giorno:" + data);
+  const fase = g.fasi.find(f => f.chiave === chiave) || g.fasi[0];
+  i = Number(i || 0);
+  const schede = g.fasi.map(f => `<button class="fase ${f.path ? "piena" : ""} ${f === fase ? "aperta" : ""}" data-k="${f.chiave}" type="button">
+      <span class="nome">${esc(f.nome)}</span><span class="quanti">${f.path ? esc(f.stato || "fatto") : "manca"}</span></button>`).join("");
+  const versioni = fase.chiave === "quadro" ? [fase.path, ...g.precedenti.map(p => p.path)].filter(Boolean) : [fase.path].filter(Boolean);
+  const etich = fase.chiave === "quadro" ? ["l'ultimo", ...g.precedenti.map(p => "sostituito alle " + p.ora)] : [];
+  const tab = versioni.length > 1 ? `<div class="file-tab">${versioni.map((v, k) =>
+      `<button type="button" data-i="${k}" class="${k === i ? "aperto" : ""}">${esc(etich[k])}</button>`).join("")}</div>` : "";
+  $("#vista").innerHTML = `
+    <header><div class="occhiello"><a href="#/">Studi</a> · studio globale · ${esc(g.data)}</div>
+      <h1 class="titolo">${esc(g.titolo)}</h1>
+      ${g.riga ? `<p class="sotto">${inline(g.riga)}</p>` : ""}</header>
+    <div class="fasi" role="tablist">${schede}</div>
+    <section style="display:flex;flex-direction:column;gap:12px">${tab}<div id="contenuto"></div></section>`;
+  $("#vista").querySelectorAll(".fase").forEach(b => b.addEventListener("click", () => location.hash = `#/giorno/${data}/${b.dataset.k}`));
+  $("#vista").querySelectorAll(".file-tab button").forEach(b => b.addEventListener("click", () => location.hash = `#/giorno/${data}/quadro/${b.dataset.i}`));
+  const c = $("#contenuto");
+  if (!versioni.length) { c.innerHTML = `<div class="vuota">Questa fase non c'e' per il ${esc(data)}.</div>`; return; }
+  await mostraFile(c, versioni[Math.min(i, versioni.length - 1)]);
+}
+
 function nonTrovato(x) { $("#vista").innerHTML = `<div class="vuota">Non trovato: ${esc(x)}. <a href="#/">Torna agli studi</a></div>`; }
 
 async function vai() {
@@ -372,9 +406,10 @@ async function vai() {
     const [via, anchor] = h.split("@");
     const p = via.split("/").filter(Boolean);
     if (p[0] === "studio") await studio(p[1], p[2], p[3]);
+    else if (p[0] === "giorno") await giornata(p[1], p[2], p[3]);
     else if (p[0] === "doc") await documento(p.slice(1).join("/"), anchor);
     else home();
-    if (p[0] === "studio") window.scrollTo(0, 0);
+    if (p[0] === "studio" || p[0] === "giorno") window.scrollTo(0, 0);
   } catch (e) {
     $("#vista").innerHTML = `<div class="vuota">Il server non risponde o il file non c'e' (${esc(e.message)}). Avvia <code>python quant/sito/sito.py</code> e ricarica.</div>`;
   }

@@ -221,7 +221,10 @@ public sealed partial class DataBridge
         return new LetturaDelRegime
         {
             Nome = nome,
-            Perche = $"efficienza {efficienza:0.00} (netto {Prezzo(netto)} su strada {Prezzo(strada)}), "
+            // LA FINESTRA SI DICHIARA (lacuna dello studio globale del 15/10): senza, chi legge "CHOPPY"
+            // non sa se e' l'ultima mezz'ora o la giornata.
+            Perche = $"ultime {FinestraRegime} barre {OraLocale(GetCandle(da).Time):HH:mm}-{OraLocale(GetCandle(ultimo).Time):HH:mm}: "
+                     + $"efficienza {efficienza:0.00} (netto {Prezzo(netto)} su strada {Prezzo(strada)}), "
                      + $"{rientri} rotture rientrate, copertura {(copertura ? "si" : "no")}",
             Size = size,
             Efficienza = efficienza,

@@ -18,12 +18,14 @@ namespace FabioOrderFlow.Observation;
 ///            &amp;strikes=40               solo i 40 strike piu' vicini al prezzo, per lato (default)
 ///            &amp;wait=20                  secondi massimi di attesa delle quotazioni (default)
 ///
-/// Le sottoscrizioni restano aperte finche' vive l'indicatore: la seconda richiesta e' immediata.
+/// Le sottoscrizioni restano aperte finche' vive l'indicatore, e la seconda richiesta e' immediata;
+/// oltre il tetto di ATAS (512 per indicatore) si chiudono quelle che la richiesta non usa.
 /// </summary>
 public sealed partial class DataBridge
 {
     private readonly Dictionary<string, IOptionQuoteSubscription> _opzioni = new();
     private readonly SemaphoreSlim _opzioniLock = new(1, 1);
+    private const int TettoSottoscrizioni = 500;
 
     private async Task<object> OpzioniAsync(System.Collections.Specialized.NameValueCollection query, CancellationToken cancellation)
     {
@@ -81,6 +83,20 @@ public sealed partial class DataBridge
         await _opzioniLock.WaitAsync(cancellation).ConfigureAwait(false);
         try
         {
+            // ATAS concede 512 sottoscrizioni alle opzioni per indicatore, e una sottoscrizione mai
+            // chiusa resta aperta finche' vive l'indicatore: il 15 ottobre 2026 la terza scadenza
+            // chiesta ha avuto solo l'errore del limite. Se le nuove non ci stanno, si chiudono
+            // quelle che questa richiesta non usa.
+            var chiavi = scelteOpzioni.Select(o => o.SecurityId ?? o.Code).ToHashSet();
+            if (_opzioni.Count + chiavi.Count(k => !_opzioni.ContainsKey(k)) > TettoSottoscrizioni)
+            {
+                foreach (var k in _opzioni.Keys.Where(k => !chiavi.Contains(k)).ToList())
+                {
+                    _opzioni[k].Dispose();
+                    _opzioni.Remove(k);
+                }
+            }
+
             sottoscrizioni = scelteOpzioni.Select(o =>
             {
                 var chiave = o.SecurityId ?? o.Code;

@@ -29,6 +29,7 @@ C# .NET 10.
 | **I dati da ATAS**: cosa da', fin dove, cosa e' collegato, il piano | [`quant/metodo/i-dati-da-atas.md`](quant/metodo/i-dati-da-atas.md) |
 | **Le idee**: uno studio per idea in `quant/studi/`, e come si scrive la scheda | [`quant/metodo/1-come-si-scrive-un-idea.md`](quant/metodo/1-come-si-scrive-un-idea.md) |
 | **I rapporti** delle validazioni: in ogni studio, `quant/studi/<idea>/5-validazione/risultati/`; il registro delle prove | [`quant/studi/`](quant/studi/), [`quant/registro/`](quant/registro/) |
+| **Lo studio fatto da agenti**: lo studio globale (macro, COT, gamma, order flow) e lo studio dei paper, una fase per agente | [`studio/il-sistema-di-studio.md`](studio/il-sistema-di-studio.md), il metodo in [`studio/la-metodologia-agentica.md`](studio/la-metodologia-agentica.md) |
 | *La lettura discrezionale, supporto:* **gli obblighi** quando si chiede una lettura dal vivo | [`docs/research/metodo/gli-obblighi-della-lettura-dal-vivo.md`](docs/research/metodo/gli-obblighi-della-lettura-dal-vivo.md) |
 | **Il metodo che comanda**: i tre modelli, il vocabolario, il regime, la sessione, il COT, il framing | [`docs/research/metodo/i-tre-modelli-del-live-q1.md`](docs/research/metodo/i-tre-modelli-del-live-q1.md) |
 | **I setup**: la libreria dei pattern, ingresso, stop, bersaglio | [`docs/research/metodo/i-pattern-di-esecuzione.md`](docs/research/metodo/i-pattern-di-esecuzione.md) |

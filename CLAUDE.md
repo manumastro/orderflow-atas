@@ -15,7 +15,9 @@ Dall'11 ottobre 2026.
    fonte di idee e un supporto, e un'osservazione del live diventa regola solo passando la pipeline.
 2. **Lo strumento e' NQ, e solo NQ; i dati vengono solo da ATAS.** Altri strumenti e altre fonti
    si aggiungono su richiesta esplicita. **ES** dal 14 ottobre 2026, su richiesta, solo per lo
-   studio delle opzioni (gli indicatori X-Ray di ATAS disegnano solo su ES).
+   studio delle opzioni (gli indicatori X-Ray di ATAS disegnano solo su ES). **Macro e COT** da fonti
+   pubbliche (World Monitor, CFTC) dal 15 ottobre 2026, su richiesta, solo come **contesto** dello
+   studio globale: mai in un backtest.
 3. **Si arriva fino alla validazione.** Nessun ordine e nessuna esecuzione automatica: l'esecuzione
    si progetta quando il framework e' maturo, su richiesta esplicita. **La velocita' e' un
    requisito**: il framework e' in C# .NET 10, non in Python.
@@ -43,6 +45,15 @@ Cinque, uno per riga. **Ciascuno si assolve aprendo il suo documento**, non fida
 | **3** | **Ogni risultato contro il modello nullo, e la significativita' per giornata**, mai per operazione. Un risultato senza nullo non e' un risultato. | [come-si-valida](quant/metodo/5-come-si-valida.md), [il-backtest](quant/metodo/4-il-backtest.md#le-statistiche) |
 | **4** | **Ogni numero porta le sue convenzioni**: costi, slittamento, ambiguita', campione, varianti provate. I risultati negativi si scrivono come quelli positivi. | [il-backtest](quant/metodo/4-il-backtest.md#le-convenzioni-di-esecuzione) |
 | **5** | **Il framework si valida prima delle strategie**: dopo ogni modifica al motore o alla validazione, i test e la prova sul mercato sintetico (sulla passeggiata casuale non passa niente). | [il-framework-si-valida-prima](quant/metodo/5-il-framework-si-valida-prima.md) |
+
+## Il Metodo Agentico
+
+Dal 15 ottobre 2026 lo studio si fa anche **con agenti, uno per fase, ognuno con la sua skill**, e un
+orchestratore che li mette in fila: `/studio-globale` (macro, COT, gamma, order flow, quadro) e
+`/studio-paper` (cerca, scarica, leggi, verifica, sintesi). **Un lavoro nuovo di questo tipo si
+costruisce con le dodici regole** di [la-metodologia-agentica](studio/la-metodologia-agentica.md) (la
+prima: il codice raccoglie e misura, l'agente legge); i sistemi, le fonti, come si lanciano e le
+lezioni del primo giro in [il-sistema-di-studio](studio/il-sistema-di-studio.md).
 
 **Quando l'utente chiede una lettura del mercato dal vivo**, valgono gli otto obblighi della
 lettura discrezionale, tutti: [gli-obblighi-della-lettura-dal-vivo](docs/research/metodo/gli-obblighi-della-lettura-dal-vivo.md).
@@ -77,4 +88,5 @@ lettura discrezionale, tutti: [gli-obblighi-della-lettura-dal-vivo](docs/researc
 
 Le regole che valgono solo su una parte del repository si caricano da sole quando si tocca quella
 parte, e stanno in [`.claude/rules/`](.claude/rules/): il framework quantitativo, i dati e il
-bridge, l'indicatore e il deploy, il file della giornata, il file delle regole dei livelli.
+bridge, l'indicatore e il deploy, il file della giornata, il file delle regole dei livelli, la
+metodologia agentica (skill, agenti, `studio/`).

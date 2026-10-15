@@ -178,23 +178,46 @@ BTC), SSRN 6938742 (squilibrio degli ordini), SSRN 5660581 (141 predittori di BT
 **Nello scope**: le opzioni sull'S&P 500 e la loro copertura sui future, per lo studio su **ES**
 (CLAUDE.md, decisione 2, dal 14 ottobre 2026). Gli indicatori di ATAS: [`le-opzioni-in-atas.md`](../metodo/le-opzioni-in-atas.md).
 Cercati il 14 ottobre 2026; i sette con il PDF libero sono stati letti per intero lo stesso giorno.
-Studio: [`opzioni-gamma-es`](../studi/opzioni-gamma-es/1-idea.md).
+Il 15 ottobre una seconda ricerca (gamma, 0DTE e volatilita' intraday) ne ha aggiunti due, BPVZ e DPS,
+letti e verificati. Studio: [`opzioni-gamma-es`](../studi/opzioni-gamma-es/1-idea.md).
 
 **Cosa manca in letteratura**: nessun paper revisionato, e nessuna ricerca seria di industria,
 **prova i livelli che ATAS disegna** (Zero Gamma o Flip, call wall, put wall). Esistono solo nel
-materiale dei fornitori. Nessun paper prova il pinning sugli strike degli 0DTE.
+materiale dei fornitori; l'unico test trovato e' un preprint SSRN non letto (Popovici 2026, SSRN
+7082418, vedi la [ricerca del 15 ottobre](ricerche/2026-10-15-gamma-0dte-volatilita-intraday.md)).
+Nessun paper prova il pinning sugli strike degli 0DTE.
 
 ### Letti E Analizzati
 
-| sigla | paper | autori, anno | sede | cosa ne viene |
-|---|---|---|---|---|
-| GJ | [*Pinning in the S&P 500 futures*](opzioni-gamma/golez-2012-pinning-in-the-sp500-futures/analisi.md) | Golez, Jackwerth, 2012 | R, Journal of Financial Economics | il future S&P chiude vicino allo strike il 21,3% dei venerdi' di scadenza seriale contro il 15% atteso, quasi tutto dal basso, nell'ultima mezz'ora |
-| BB | [*Gamma Fragility*](opzioni-gamma/barbon-2021-gamma-fragility/analisi.md) | Barbon, Buraschi, 2021 | P, SSRN 3725454 | gamma dei dealer del giorno prima alta: volatilita' piu' bassa; sugli indici il segno dei dealer e' assunto, non misurato |
-| BDLM | [*Hedging demand and market intraday momentum*](opzioni-gamma/baltussen-2021-hedging-demand-and-market-intraday-momentum/analisi.md) | Baltussen, Da, Lammers, Martens, 2021 | R, Journal of Financial Economics | la giornata fino alle 15:30 predice l'ultima mezz'ora in 62 future (NQ t 7,97, ES t 4,97); sui future S&P **solo con gamma netta negativa** |
-| BTW | [*The Derivative Payoff Bias*](opzioni-gamma/baltussen-2024-the-derivative-payoff-bias/analisi.md) | Baltussen, Terstegge, Whelan, 2024 | P, SSRN 4562800 | su ES la notte prima della scadenza del terzo venerdi' sale di 14,3 punti base (t 3,54), il giorno dopo scende |
-| GPP | [*Demand-Based Option Pricing*](opzioni-gamma/garleanu-2009-demand-based-option-pricing/analisi.md) | Garleanu, Pedersen, Poteshman, 2009 | R, Review of Financial Studies | metodo: su SPX 1996-2001 i dealer sono corti di put e lunghi di call, ma sommando gli strike **corti di gamma quasi ovunque** |
-| VAPG | [*0DTE Index Options and Market Volatility*](opzioni-gamma/vasquez-2025-0dte-index-options-and-market-volatility/analisi.md) | Vasquez, Amaya, Pearson, Garcia-Ares, 2025 | P, Cboe | gamma dei market maker di solito positiva, negativa in parte di almeno un giorno su quattro; effetto sulla volatilita' mediano piccolo |
-| SM | [*Gamma Exposure*](opzioni-gamma/squeezemetrics-2017-gamma-exposure/analisi.md) | SqueezeMetrics, 2017 | white paper | la definizione della GEX e la convenzione del segno; nessun test, nessun campione fuori |
+**R** rivista con revisione fra pari, **P** preprint o working paper. **Stato**: tutti `analizzato`;
+solo BPVZ e DPS hanno anche la verifica avversaria (fase 4), le altre sette no.
+
+| sigla | paper | autori, versione letta | sede | ruolo | stato | cosa ne viene |
+|---|---|---|---|---|---|---|
+| GJ | [*Pinning in the S&P 500 futures*](opzioni-gamma/golez-2012-pinning-in-the-sp500-futures/analisi.md) | Golez, Jackwerth, 2012, versione pubblicata | R, Journal of Financial Economics | idea | analizzato | il future S&P chiude vicino allo strike il 21,3% dei venerdi' di scadenza seriale contro il 15% atteso, quasi tutto dal basso, nell'ultima mezz'ora |
+| BB | [*Gamma Fragility*](opzioni-gamma/barbon-2021-gamma-fragility/analisi.md) | Barbon, Buraschi, 18 marzo 2021 | P, SSRN 3725454 | idea | analizzato | gamma dei dealer del giorno prima alta: volatilita' piu' bassa; sugli indici il segno dei dealer e' assunto, non misurato |
+| BDLM | [*Hedging demand and market intraday momentum*](opzioni-gamma/baltussen-2021-hedging-demand-and-market-intraday-momentum/analisi.md) | Baltussen, Da, Lammers, Martens, 2021, versione pubblicata | R, Journal of Financial Economics | idea | analizzato | la giornata fino alle 15:30 predice l'ultima mezz'ora in 62 future (NQ t 7,97, ES t 4,97); sui future S&P **solo con gamma netta negativa** |
+| BTW | [*The Derivative Payoff Bias*](opzioni-gamma/baltussen-2024-the-derivative-payoff-bias/analisi.md) | Baltussen, Terstegge, Whelan, gennaio 2024 | P, SSRN 4562800 | idea | analizzato | su ES la notte prima della scadenza del terzo venerdi' sale di 14,3 punti base (t 3,54), il giorno dopo scende |
+| GPP | [*Demand-Based Option Pricing*](opzioni-gamma/garleanu-2009-demand-based-option-pricing/analisi.md) | Garleanu, Pedersen, Poteshman, NBER WP 11843, dicembre 2005 (pubblicato 2009) | R, Review of Financial Studies | metodo | analizzato | su SPX 1996-2001 i dealer sono corti di put e lunghi di call, ma sommando gli strike **corti di gamma quasi ovunque** |
+| VAPG | [*0DTE Index Options and Market Volatility*](opzioni-gamma/vasquez-2025-0dte-index-options-and-market-volatility/analisi.md) | Vasquez, Amaya, Pearson, Garcia-Ares, 25 gennaio 2025 | P, Cboe | idea | analizzato | gamma dei market maker di solito positiva, negativa in parte di almeno un giorno su quattro; effetto sulla volatilita' mediano piccolo |
+| SM | [*Gamma Exposure*](opzioni-gamma/squeezemetrics-2017-gamma-exposure/analisi.md) | SqueezeMetrics, dicembre 2017 | white paper | idea | analizzato | la definizione della GEX e la convenzione del segno; nessun test, nessun campione fuori |
+| BPVZ | [*Gamma positioning and market quality*](opzioni-gamma/buis-2024-gamma-positioning-and-market-quality/analisi.md) | Buis, Pieterse-Bloem, Verschoor, Zwinkels, 2024, versione dell'editore | R, Journal of Economic Dynamics and Control | idea | analizzato, verificato il 15 ottobre 2026 | **simulazione**: gamma positiva, volatilita' piu' bassa e autocorrelazione dei rendimenti brevi piu' negativa; negativa, il contrario, e mercato piu' fragile. Con il dealer al 18-19% del flusso la volatilita' e' nel rumore, l'autocorrelazione no; nessuno scenario sotto il 18% |
+| DPS | [*Risky Intraday Order Flow and Option Liquidity*](opzioni-gamma/doshi-2025-risky-intraday-order-flow-and-option-liquidity/analisi.md) | Hitesh Doshi, Paola Pederzoli, Saim Ayberk Sert, 23 maggio 2025 | P, SSRN 5006194 | metodo | analizzato, verificato il 15 ottobre 2026 | opzioni SPX 2004-2021: lo spread delle brevissime lo spiega la volatilita' intraday del flusso, non la gamma dell'inventario; la copertura in delta e' secondaria (prova indiretta, nessun dato sul future, nessun segno) |
+
+**La sintesi del filone** (15 ottobre 2026, dettagli e numeri nella
+[ricerca](ricerche/2026-10-15-gamma-0dte-volatilita-intraday.md#la-sintesi)). Tutti e nove danno lo
+stesso verso: gamma dei dealer positiva smorza e fa tornare indietro il prezzo, negativa lo spinge;
+nessuno trova il contrario. Sul **livello** della volatilita' l'effetto e' piccolo (VAPG, BB, BPVZ
+sotto il 30% del flusso); sulla **forma** del percorso (il segno dell'autocorrelazione dei rendimenti
+brevi, il range e le code della giornata) lo e' meno: e' la variabile da provare per prima. Restano
+aperti: **il segno** dei dealer sugli indici (GPP corti, VAPG di solito lunghi, gli altri lo
+assumono); **gli 0DTE** (i paper su SSRN si contraddicono, i letti non li toccano o li toccano poco);
+**il passo gamma -> ordini sul future**, che nessuno misura e che DPS mette in dubbio in modo
+indiretto. Nessuno usa NDX o NQ. Su NQ, con le sole barre e dentro il campione, si misurano le
+variabili (autocorrelazione intraday, volatilita' realizzata, momento secondo del delta); la gamma
+c'e' solo da ottobre 2026, e su NQ cade nel fuori campione. Su NQ la copertura vale circa lo 0,4-0,5%
+del flusso (stima nostra), molto sotto gli scenari di BPVZ. Il prossimo da scaricare col browser, con
+la persona per Cloudflare: **Adams e altri 2025** (SSRN 5641974).
 
 ### Trovati
 
@@ -219,6 +242,14 @@ materiale dei fornitori. Nessun paper prova il pinning sugli strike degli 0DTE.
 Due note di ricerca di Cboe (Mandy Xu, 2023 e 2025) dicono che la copertura netta degli 0DTE dei
 market maker e' al massimo lo 0,2% della liquidita' giornaliera dell'SPX: un riferimento per quanto
 una GEX stimata dall'open interest puo' distare dalle posizioni vere.
+
+### La Ricerca Del 15 Ottobre 2026: Gamma, 0DTE E Volatilita' Intraday
+
+Domanda: che effetto hanno la gamma dei dealer e le opzioni 0DTE sulla volatilita' intraday dei
+future sugli indici? I 19 candidati, perche' BPVZ e DPS (ora fra i letti, sopra) e la sintesi:
+[`ricerche/2026-10-15-gamma-0dte-volatilita-intraday.md`](ricerche/2026-10-15-gamma-0dte-volatilita-intraday.md).
+Gli scartati con un titolo sul tema (Singh, Elms, Ladia, Wilkens, Popovici, 2026) sono solo su SSRN,
+con l'abstract non letto: restano nel file della ricerca, non in questo indice.
 
 ## Gli Esempi Del Transcript
 

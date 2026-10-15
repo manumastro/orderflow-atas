@@ -138,5 +138,82 @@
     "evento": "Scadenza dell'embargo aereo sull'Iran citata da Hezbollah iracheno",
     "peso": "contesto",
     "esito": ""
+  },
+  {
+    "data": "2026-10-14",
+    "ora": "14:30",
+    "evento": "CPI USA di settembre (att. 3,6% a/a, core 2,5% a/a)",
+    "peso": "alto",
+    "esito": "3,7% a/a, core 2,6% (BLS, non riverificato); NQZ6 -205,75 nell'ora, cassa -1,96% a 30.185"
+  },
+  {
+    "data": "2026-10-14",
+    "ora": "20:40-22:50",
+    "evento": "Vendite sull'AI: Dell -11%, obbligazioni CoreWeave verso il 15%",
+    "peso": "contesto",
+    "esito": "SMH -3,98%, NVDA -3,16%, XLK -2,98% contro RSP -0,57%; cassa NQZ6 minimo 30.078"
+  },
+  {
+    "data": "2026-10-14",
+    "ora": "23:40",
+    "evento": "Daly (Fed): rialzi probabilmente necessari, ma non urgenti",
+    "peso": "medio",
+    "esito": "NQZ6 nell'ora delle 00:00 da 30.154,75 a 29.991,75 (-163), delta -1.320"
+  },
+  {
+    "data": "2026-10-15",
+    "ora": "pre-mercato",
+    "evento": "Trimestrale TSMC (EPS atteso 4,45 $)",
+    "peso": "medio",
+    "esito": "utile record sopra le stime (CNBC 09:27); NQZ6 minimo della notte 29.754 alle 09:06"
+  },
+  {
+    "data": "2026-10-15",
+    "ora": "14:30",
+    "evento": "Vendite al dettaglio USA set. (att. +0,3% m/m; core +0,6%)",
+    "peso": "alto",
+    "esito": "dato non trovato (WebSearch); NQZ6 ora 14 -26,5 (escursione 165,75), ora 15 min 29.622,5"
+  },
+  {
+    "data": "2026-10-15",
+    "ora": "14:30",
+    "evento": "PPI USA set. (att. +0,6% m/m, prec. 0,4%; core +0,3%)",
+    "peso": "alto",
+    "esito": "6,3% a/a (titolo CNBC 18:15, BLS non verificato); 10A -10 pb, NQZ6 ora 14 -26,5"
+  },
+  {
+    "data": "2026-10-15",
+    "ora": "14:30",
+    "evento": "Philly Fed (att. 28,2, prec. 37,8) e sussidi (att. 199 mila)",
+    "peso": "medio",
+    "esito": "dati non trovati (WebSearch); stessa ora del PPI, NQZ6 ora 14 delta +1.223"
+  },
+  {
+    "data": "2026-10-15",
+    "ora": "12:00-18:30",
+    "evento": "Vendite sull'AI, giorno 2: memorie, Samsung, bond neocloud",
+    "peso": "contesto",
+    "esito": "SMH -2,44%, NVDA -2,11%, RSP +0,98%; NQZ6 min 29.622,5, poi +439 entro le 17"
+  },
+  {
+    "data": "2026-10-16",
+    "ora": "05:30",
+    "evento": "Discorso del presidente della Fed Warsh",
+    "peso": "alto",
+    "esito": ""
+  },
+  {
+    "data": "2026-10-16",
+    "ora": "21:30",
+    "evento": "COT (posizioni di martedi' 13)",
+    "peso": "contesto",
+    "esito": ""
+  },
+  {
+    "data": "2026-10-28",
+    "ora": "19:00",
+    "evento": "FOMC (Polymarket 15/10: fermo 71,5%, +25 pb 27,5%); dopo GOOGL, MSFT",
+    "peso": "alto",
+    "esito": ""
   }
 ]

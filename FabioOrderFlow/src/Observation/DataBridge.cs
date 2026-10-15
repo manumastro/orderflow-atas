@@ -1944,6 +1944,15 @@ public sealed partial class DataBridge : Indicator
                 : percentile >= PercentileAlto ? PanelVerde
                 : percentile <= PercentileMorto ? PanelAmbra
                 : PanelGrigio));
+        // LA BARRA CHIUSA (lacuna dello studio globale del 15/10): la velocita' sopra e' quella della
+        // barra in formazione, che a inizio minuto e' sempre "morta". Questa non cambia piu'.
+        var (percentileChiusa, volumeChiusa, chiusaOk) = VelocitaProxy(ultimo - 1);
+        righe.Add(new RigaPannello(
+            chiusaOk
+                ? $"           barra chiusa {OraLocale(GetCandle(ultimo - 1).Time):HH:mm}: {Lotti(volumeChiusa)} lotti, "
+                  + $"{percentileChiusa}° percentile su {FinestraVelocita} barre"
+                : "           barra chiusa: non misurabile",
+            PanelGrigio));
         righe.Add(new RigaPannello(
             !copreFinestra
                 ? $"           big trade: il registro copre solo da {EtaDelTape()}. Non e' zero, e' non lo so"

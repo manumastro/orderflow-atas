@@ -8,7 +8,7 @@ documento, non fidandosi della riga.
 
 | | | documento |
 |---|---|---|
-| **1** | **Guarda tutto il contesto, dal piu' lontano al piu' vicino**: settimane, sedute, eventi, poi notte e tape. Si lancia a mano (`CLAUDE_PROJECT_DIR="$PWD" bash .claude/hooks/giro-orizzonte.sh`) e si legge. Se il bridge non risponde, **lo si dichiara**. Il calendario degli eventi lo tiene l'agente. | [il-giro-d-orizzonte](il-giro-d-orizzonte.md) |
+| **1** | **Guarda tutto il contesto, dal piu' lontano al piu' vicino**: le quattro tab nell'ordine (Daily, M30 con la GEX, M1, Range). Dal 15 ottobre 2026 arriva da solo a ogni messaggio (hook); a mano `CLAUDE_PROJECT_DIR="$PWD" bash .claude/hooks/giro-orizzonte.sh`. Si legge. Se il bridge non risponde, **lo si dichiara**. Il calendario degli eventi lo tiene l'agente. | [il-giro-d-orizzonte](il-giro-d-orizzonte.md) |
 | **2** | **Fai il quadro — framing e COT insieme — anche senza che lo si chieda.** Una lettura con la sezione 4bis vuota e' una lettura sulle ultime barre. | [il-framing-e-il-cot](il-framing-e-il-cot-si-leggono-insieme.md) |
 | **3** | **Leggi la giornata di oggi e di ieri prima di chiedere dati**, poi chiedi solo cio' che manca. | [come-si-scrive-una-giornata](../giornate/come-si-scrive-una-giornata.md) |
 | **4** | **Dichiara quale dei tre modelli gira e qual e' il regime**, prima di dire che un setup esiste. Lo decide la posizione del prezzo, non l'umore; il regime lo **misura l'indicatore** e il giro lo stampa, non si deduce a mano. | [i-tre-modelli-del-live-q1](i-tre-modelli-del-live-q1.md) |

@@ -1,0 +1,828 @@
+[0:22] Okay, we should be live.
+[0:28] Welcome back to Deep Charts in this official
+[0:33] options and gamma option flow and gamma exposure boot camp where you will get
+[0:40] one level deeper than what we're probably used to. Just give us a last
+[0:46] check if everything is all right, if you can see me and hear me properly because
+[0:51] we are about to go deeper into a series of topics that a lot of traders
+[0:58] are not necessarily familiar with. Um, a lot of people do not know uh in our
+[1:03] community what options are, how they work, and how to use that specific type
+[1:10] of data to take more informed decision and to get even deeper in the type of
+[1:15] data you plot on your chart for your intraday trades. And we're going to do this is the first lesson of a series of
+[1:22] lessons that uh will last today, tomorrow, the day
+[1:28] after with me and Fabio and at the end of the week to close things with a bang
+[1:33] uh also with Rodulfo who is uh one of the primary uh researchers at Deep Charts that created the whole new gamma
+[1:41] suite that we have at Deep Charts. Right. So my goal today is to make you
+[1:47] understand the basics of options in case you're not familiar with them to uh get
+[1:52] you started basically with uh gamma and the Greeks and all the little details
+[1:58] that you might not know about options that [snorts] will serve you as a futures trader to understand what gam
+[2:05] exposure is what the gamma levels are actually uh because we've briefly gone
+[2:10] through them uh in the last webinar that I suggest you to watch where We launched Deep Gamma, but we've not really gone
+[2:16] through the nitty-gritty details of how options work, why they are such an amazing type of uh contract and
+[2:23] derivative, why they're so used by traders, and
+[2:28] why market makers need to hedge themselves and create these hedging
+[2:33] flows also potentially in the future market. So, let's see if everything is
+[2:40] fine from the live chat. I have the live chat here. Um,
+[2:46] awesome. Everything seems to be okay. And let's start with a question. How many of you guys are familiar with
+[2:52] options?
+[3:00] because it might be something um not necessarily familiar to you, but in the
+[3:06] professional space, options are one of the most common types of contracts of
+[3:14] derivatives, right? Because as you know, and now we're going to share the screen so you can follow along with this
+[3:19] explanation. Uh we see that most people in the chat are not really familiar with it.
+[3:25] Awesome. Okay, so we're going to start from the very basics. Okay. So you no
+[3:30] need to to panic uh if you don't understand about gamma, delta, all this mathematical stuff. We're try we're going to try and make it as simple as
+[3:37] humanly possible for you guys. So as you guys know we have
+[3:42] let me take the text tool and what we have when you go into
+[3:49] financial markets is you typically trade instruments, right? You you trade
+[3:55] financial instruments. And let's just get a little bit less zoomed so we can
+[4:00] see. Okay. Yeah. So,
+[4:07] let's say you want to trade a market, right? You need to differentiate between what's a market and what's the derivative, right? So, for example, we
+[4:13] trade the S&P 500 future, right? And you can trade the S&P 500 futures
+[4:22] through a variety of different derivatives. And what derivatives are is basically contracts that allow you to
+[4:33] trade the underlying asset potentially with a leverage. So you have your futures
+[4:43] that you're probably very familiar with like the ES, you have the CFDs,
+[4:52] and you have options, right? So options are like a a specific type of derivative
+[4:58] that as we have seen for the stock market amount to more than 60% of the
+[5:06] daily notional volume. Right? So it's worth knowing about these and it's also
+[5:13] worth knowing why they're such a uh liked and appreciated
+[5:19] financial derivative from professional traders. So
+[5:26] imagine options as an insurance contract, right? Imagine options like an
+[5:32] insurance contract where you're buying a fire insurance, right? So if you're buying a fire insurance, you're going to
+[5:38] have two people. You're going to have the option buyer, right? the guy who
+[5:44] wants to buy an option and you're going to have the seller of
+[5:51] this insurance.
+[5:58] So you always have a buyer and a seller. And
+[6:04] there's two types of options. There is call options
+[6:12] and there is put options.
+[6:19] And you can be a buyer of a call or a seller of a call. You can be a buyer of
+[6:26] a put or you can be the seller of a put. And
+[6:33] what these are, what these contracts are, as the name suggests, is options.
+[6:39] So if you buy a call, what you're basically doing is you're
+[6:45] buying the right to buy the underlying.
+[6:55] We got some advertisements going on in the meantime. uh you have the buying
+[7:01] right to buying the underlying contract
+[7:06] and the put. When you're buying the put, you're buying the right to sell the
+[7:12] underlying contract or the underlying asset in this case.
+[7:20] So the cool thing about option is that you just when you buy an option you
+[7:26] just reserve the right to buy, right? So you buy the right to buy. What does this mean really? Well, let's make an
+[7:32] example. Uh let's make an example in the put because this is the one the most common uh type of option bought by
+[7:40] investors, right?
+[7:46] Let's say this is the chart of S&P 500
+[7:51] and let's say you're an investor who invested in the stock market and
+[7:57] you bought and now you're at a profit, right? Let's say
+[8:04] you bought for example Apple stock. Let's make this as Apple
+[8:10] stock. And let's say you bought Apple at the
+[8:16] price of $100
+[8:21] and you bought 100 shares.
+[8:29] Now you're in profit. Now price is $500.
+[8:35] So you are in profit of $400 times 100 shares of Apple.
+[8:45] So you're in profit of around $40,000.
+[8:50] Okay, this is your profit right now. Great. You're making money. We love it.
+[8:56] But now you expect that because the earnings of Apple didn't do as well as you
+[9:03] expected, you think that price might drop, right?
+[9:09] So you don't want to lose these $40,000 that you've made, right?
+[9:16] So what do you do? You sell. Well, you could sell, but it's
+[9:23] inconvenient, you know, especially if you're an investor. When you sell, you have to pay taxes on it, right? Or maybe
+[9:29] if you're an institutional investor and you didn't buy a 100 shares of Apple, you bought 10,000 millions of shares of
+[9:35] Apple. It's going to be really inconvenient to sell because of all of the orderflow dynamics that we know. If
+[9:40] we sell everything as an institution, we're going to crash the price. They're going to frontr run us. It's going to be a mess. So, we don't like it. So
+[9:49] instead of actually selling at $500, I can buy the right to sell at 500.
+[9:58] So I can buy the 500 strike put
+[10:06] that will give me the right if I want to sell at Apple at
+[10:14] $500. That's what a put is. It's I'm reserving the right to maybe sell in
+[10:19] case I want to. I don't have to, right? But just in case, I'm gonna pay a
+[10:24] premium and I'm going to pay, let's say,
+[10:30] $1,000 and I'm going to buy this option. I'm going to buy the option to sell.
+[10:37] That's what a put is. Same thing for the call.
+[10:43] If I am buying the call, I'm buying the right to buy. So for example, let's say
+[10:50] price is decently low and your forecasting models of this stock. Let's
+[10:56] say this is Tesla stock.
+[11:02] Price is decently low for your valuation, but you don't know yet, right? Because their earnings are not
+[11:08] great. So you want to buy, but you're not sure yet. So instead of buying and putting the money on the line right
+[11:13] away, you buy the option to buy maybe in the future. So you pay
+[11:20] $1,000 of premium to buy a Tesla call
+[11:29] at, for example, $100.
+[11:40] Let's say this is Tesla at $100.
+[11:47] And you only exercise this option to buy all of this stuff only if for example
+[11:53] price rises. So when price rises
+[12:01] you can exercise your right. Okay.
+[12:06] So, this is what an option is. An option is basically securing the right to do a
+[12:12] trade. Call if you want to buy, put if you want to sell. Is that clear for now?
+[12:18] Give me a one in the chat if this is all clear for now before we move on. I'm
+[12:24] going step by step. So, if you know a little bit about options, you know, this is the the beginnings, right?
+[12:31] Awesome.
+[12:41] [snorts] Now the second thing you want to know is that these option have an expiration. So
+[12:50] you basically have the call that you're buying at 100 will
+[12:57] give you the right to buy the underlying asset within a certain date. So maybe you will buy a 30DTE options. So I keep
+[13:08] the option to buy this underlying asset within the next 30 days.
+[13:13] Or you can buy a 90 DTE. DTE stands for days till expiration.
+[13:23] [snorts]
+[13:31] Or I can buy it today. You know, I can buy a zero DTE options.
+[13:38] So this is what we call the daily option, the dailies.
+[13:46] So I promise to buy or let's say not I promise to buy I reserve the right to buy within a certain date
+[13:54] and at the end of the date at expiration
+[14:02] when the day finally comes I have two options. I can either exercise my right
+[14:11] and buy 100 shares of Tesla.
+[14:21] So this is option one or at expiration or also before the
+[14:27] expiration by the way. I can also just not do anything, not exercise the right.
+[14:36] Okay, same thing with a put.
+[14:44] So this is the perspective of the buyer. So the buyer of an option,
+[14:52] let's put this here and let's get back to our buyers and seller. All of these
+[14:57] example we bought a call or we bought a put. We bought this option contract. So
+[15:03] we were still the buyer. So the buyer of an option when you buy an option you buy
+[15:11] the right
+[15:21] to buy for a call or to sell
+[15:27] with a put.
+[15:33] the underlying asset at a price called strike
+[15:43] within a certain expiration.
+[15:50] Okay. And this is our buyer, right? This is
+[15:56] the buyer of the option. The seller
+[16:02] is basically selling the right to buy. So he will be your counterpart. So for example,
+[16:09] the buyer of the put will choose if exercising that option. The seller has
+[16:18] granted that option to the buyer. Right? So if this guy this investor for example
+[16:26] bought the right to sell this seller will commit will have the duty the obligation. So the option seller or the
+[16:33] option writer will guarantee the option
+[16:42] to buy or sell. So he will be forced he has an
+[16:48] obligation to buy or sell the underlying asset
+[16:58] at a at the strike price within a certain expiration.
+[17:08] Okay. So the difference here is very big because the buyer has the right
+[17:15] to buy or sell. The seller has the obligation.
+[17:23] He's forced, right? But this is how it looks like. It's exactly like an
+[17:29] insurance contract. How many of you guys have, for example, uh insurance, a fire insurance or an
+[17:36] insurance on your health or an insurance on your car, right? Or or a theft
+[17:41] insurance, right? How does that work? Well, it works that you pay the insurance company a premium maybe every
+[17:49] year, maybe every whatever that is, whatever the DTE of your insurance is,
+[17:56] you just pay. So it's a cost for you
+[18:04] and that cost is the profit of the insurer.
+[18:13] [snorts] So of course you know in this insurance world you know it's all about risk and
+[18:20] reward right? Maybe you know the insurer will sell only if he thinks that
+[18:26] something is not likely to happen. Right? But this is the basic idea. There's a buyer and there's a seller.
+[18:33] Now everything clear for now. There is an expiration. There is a buyer. There is a seller. The buyer spends money to
+[18:40] buy. The seller cashes in the premium and in case he will have to sell or buy.
+[18:47] Right? Everything clear for now guys? another one in the chat and we continue.
+[18:59] And by the way, options are are just phenomenal stuff. Like now we're just talking about them in the realm of gam
+[19:05] exposure, but if you're going to start also trading option is just an amazing an amazing world to discover. I also am
+[19:12] a options trader myself. I trade most of my money in options. Okay. Yes. teach us
+[19:19] about the GEX levels. That's not going to be today's topics, guys. Today's topics is to get everyone at the same
+[19:25] level from what it comes to options basics and the Greeks. So that Gex level
+[19:31] makes sense because if I tell you, hey, buy here, sell here, you're not going to be able to use that.
+[19:38] But if you know what the [ __ ] gamma is, right, then you might understand a little bit about option flow. But if you
+[19:44] do not know what options are, it's going to be really hard for you to understand. So, we're going to get into what gam
+[19:50] exposure is in the second and third lesson. Today, we're going to learn about gamma, right? And the Greeks and
+[19:58] all of that. But first, we need to start from the basics and make sure everyone is on
+[20:03] board with it. Awesome. Now, we've learned about calls. We've learned about puts. We've learned about the difference
+[20:10] between being a buyer of an option and selling an option. And we understand that you know there's an expiration to
+[20:17] these options. So let's make another example.
+[20:32] Let's say you buy a call option. So you buy the right to
+[20:39] buy and let's say the price now
+[20:44] is price of Apple
+[20:53] is now $500 per share.
+[21:00] Now when you buy a call there's a lot of calls you know in the book of every
+[21:07] exchange and you can either buy the option to buy at 500 which is where the price is now.
+[21:17] So you can buy at the strike 500.
+[21:22] If you buy at the strike 500, it means you're buying the option to buy at 500.
+[21:29] We call this at the money
+[21:36] because you're buying at the exact price where Apple is now, but
+[21:42] you can also buy the option to buy at 490.
+[21:52] So you're basically buying the option to buy a little lower than where wherever
+[21:57] price is now.
+[22:02] So you can even if the price now is is 500, you can buy an option to buy
+[22:07] slightly lower and there might be a seller ready to sell it to you. So you're buying where you're already
+[22:14] potentially in profit because it's if if price stays here, you bought at 490,
+[22:19] you're already in profit, right? So we call this in the money because it's
+[22:25] basically in profit already.
+[22:32] Or if you're very bullish about Apple or you only want to buy if price is very
+[22:38] bullish, you can buy the rights to buy a little
+[22:45] higher and say I'm only going to buy if the price is higher. Right? So you
+[22:52] can buy the option to buy at 510.
+[22:57] So you're buying not cheaper, you're buying at a premium. So you're buying you're paying a little more, right? So
+[23:04] this is what we call a out of the money
+[23:11] option. So the distance between
+[23:18] the at the money strike or let's say the distance between the strike of your
+[23:23] option and the price of the underlying asset is
+[23:30] so the distance between the price of your option and the underlying asset. This thing that out of the money in the
+[23:36] money is what we call the moneyiness of an option.
+[23:45] Okay. And the same thing go the same thing goes for a put. Okay. This is the call
+[23:52] option.
+[23:58] And now we're going to have a put option example. So the put option example
+[24:06] is exactly the same. Say prices here. Price of Apple is 500.
+[24:25] You can choose to buy an at the money put,
+[24:34] which is at the money, which is exactly where it is now, right?
+[24:45] Or you could buy the option to sell a little lower, right?
+[24:55] Or for example, maybe a little higher. Let's start let's start like this. You want to sell at a higher price. So you
+[25:00] want to sell at a premium at a better price to sell. You prefer selling at 510.
+[25:06] So that that and price is 500. So if price is still there by expiration, this
+[25:12] is in the money. This is earning money already, right? So that's why we call this
+[25:18] in the money puts. Or you can buy a little bit lower.
+[25:26] And this is what we call at 490, for example,
+[25:33] an out of the money put.
+[25:39] because you're selling at a lower price, not such a convenient price, right? You only buy if it drops a little bit. Now,
+[25:48] if you if you see, right, the moniness is of course
+[25:53] inverted, right? So, of course, you can imagine that,
+[25:59] and I'm going to ask this question to the chat to see how many of you people understood.
+[26:04] Which of these ones is going to cost more? The at the money call or the in the money call?
+[26:12] Will it be more expensive to buy the same price that is now or
+[26:17] buying at an even better price will be more expensive? Which one?
+[26:23] Of
+[26:33] course, in the money. Exactly. So, which one will be more expensive?
+[26:40] The at the money call or the out of the money call where you buy at an even
+[26:47] higher price? Well, this one is going to be way
+[26:52] cheaper because whoever's going to sell it is going to consider, hey, price is 500 now. So, I'm selling this guy at
+[26:57] 510. If price stays there, [snorts] I cash in $10 difference, right?
+[27:13] Awesome. So, this is the first thing, right? This is
+[27:20] the first thing that determines the how much you pay for an option. So the moneyiness is the first and the
+[27:28] moneyiness is what will determine as we will see the gamma and of course
+[27:34] the delta.
+[27:41] Then let's get back to our example, right? Because moneyiness is just the first
+[27:48] element, right? The second element, as we said, is time.
+[27:58] Let's say you're an insurance company and you're selling an insurance
+[28:04] and one insurance covers you from any accident for one
+[28:09] week. Another
+[28:23] insurance covers you for one year.
+[28:30] Which one will be more expensive?
+[28:39] Well, in one week only so much can happen. In one year, a lot of [ __ ] can
+[28:45] happen. So, if I'm the insurer, I'm going to ask you for a lot more money on the one year, right? [snorts]
+[28:51] So, of course, the longer the expiration, the higher the price.
+[28:58] And as time goes by, the option price gets lower and lower
+[29:05] and lower until it reaches zero at expiration. Okay?
+[29:12] Just like an insurance, options works exactly the same.
+[29:18] A one-year option will cost [snorts] a lot of money to buy and will give you a lot of money
+[29:25] if you sell it. a one week, maybe a little less.
+[29:31] Okay? And the relationship is quadratic. We're not going to go into all of the
+[29:37] let's say mathematical theory theory, but time to expiration is um is not
+[29:44] linear, right? How the price goes down through time is not linear. It has this
+[29:51] curve. And most of the effective time is specifically the last few days or the
+[29:57] last few months depending on you know the option. Anyway,
+[30:07] so we have these two dimensions. We have the moneyiness where do we buy?
+[30:13] We have the time to expiration that as you guys will see will be the
+[30:20] basic of theta.
+[30:27] [snorts] And the last thing is the so-called implied volatility.
+[30:38] [snorts] Let's make an example also here.
+[30:44] Let's say let's see if we find an e-loo. Yeah,
+[30:52] beautiful eagloo. Let's copy this image.
+[30:58] Okay. And then let's search for a wooden house.
+[31:10] Okay. Let's see. Yeah, let's try this one.
+[31:18] [snorts]
+[31:24] Now, let's say you're you're selling an insurance, right, on a house and you're
+[31:30] selling a fire insurance. Where would you charge more money for a
+[31:36] fire insurance in an igloo? in the ice, in the in the
+[31:42] snow, or in a hot summer day on a wooden house, maybe there's also people doing
+[31:48] barbecue and smoking cigarettes. Which one will you charge more?
+[31:57] [snorts]
+[32:02] Well, clearly you're going to charge way more here because there's more chances of there being a fire.
+[32:11] There you go. And in an igloo, well, there's not a lot of chances there's going to be a fire,
+[32:17] right? So, and even if there was a fire, it's going to switch off because there's [ __ ] snow all over the place. Awesome.
+[32:24] So, I'm not going to charge much here because the probability is low. So, the implied volatility
+[32:32] is basically what we're then going to learn. The name is Vega.
+[32:40] Implied volatility is that part in the price of an option
+[32:45] that is determined by the probability of price either going up for a call or going down for a put.
+[32:52] Right? Because let's say let's say you're in a situation like this. Okay?
+[33:00] Let's say let's make an example. Very easy. Let's
+[33:07] say we're buying a put on S&P and price is extremely bullish.
+[33:13] Extremely bullish. Everyone is roaring. Everyone is just so excited about the
+[33:19] market going up and let's [ __ ] go. The government is printing money and Apple is making a lot of money and and
+[33:25] they're making a lot of earnings. There's no ch like very low probably it's going to go down. [snorts] And you
+[33:31] want to buy the right to sell. You want to buy a put
+[33:36] that's going to cost a lot of money or a little money.
+[33:42] The right to sell when everything is super bullish.
+[33:48] What do you think? A lot of money or a few money?
+[34:03] It's going to be cheaper. Exactly. Because you know, who cares? But now,
+[34:09] let's say that price starts falling and falling and falling and falling and we're already down 5%.
+[34:15] What's going to happen to the premiums that people pay for the puts? What if
+[34:23] you want to buy a put after the price has already gone down? And everyone is starting to panic now.
+[34:30] Is it going to be more or less expensive?
+[34:35] Clearly, it's going to be more expensive. Not necessarily because the price is lower, right? But because everyone is
+[34:43] afraid that something is happening, everything is everyone is nervous. So
+[34:49] this is the difference in implied volatility. The implied volatility is
+[34:57] that part of the option pricing that is determined by how fearful people are.
+[35:02] Okay. And that's so cool. Like that's Do you understand how different this is?
+[35:08] Put me full screen. Do you understand how difference this is from
+[35:13] normal, you know, futures or CFD contracts? Because CFD contracts in future you just
+[35:20] buy if price think you think prices go up that's it you pay a commission you pay a spread that's it with CFDs the
+[35:27] same thing price is going to go down you think price sells you don't care there's panic more panic it's going to cost you
+[35:34] more commissions right it's just you're going to buy or sell with options
+[35:39] because there's time involved and there's an expiration involved and
+[35:46] there's the right to maybe buy or sell. So it's like an insurance contract.
+[35:51] Then there is an implied volatility metrics as well. If there's a lot of fear insurers, if the fire is is running
+[35:59] wild, a fire insurance will be more expensive. So it's it's a way different game that
+[36:08] you play with option and it's very fun because you can express yourformational advantage in many different ways. This
+[36:16] is why they're so widely used from professional traders and getting back to
+[36:22] our chart. What options to to summarize
+[36:28] the price of an option? Okay, because as I told you before, you pay for this option, right? You pay the premium
+[36:36] and you know, you pay $1,000, for example, to buy Tesla. You pay $1,000 to
+[36:42] buy co to sell Apple. Whatever that is that premium is how much is this price
+[36:47] determined. So the premium right [snorts] the premium of an option.
+[36:54] So the option premium
+[37:00] is how much does it cost to buy that option or how much do you charge to sell
+[37:06] that option. And the pricing of this option was a
+[37:12] little bit unknown how to properly properly price
+[37:17] this up to let's say 40 50 60 years ago.
+[37:22] And then two genius mathematicians came up with this model to price option.
+[37:29] uh these two guys named Blacks and Scholes
+[37:36] that won the Nobel Prize because they came up with the best
+[37:42] possible model, the best possible formula, mathematical formula to determine the
+[37:49] price of an option. And we're not going to get into all the maths here, but what
+[37:55] you need to know, the main thing you need to know is what you've learned today. that the price of an option
+[38:02] depends on the moneyiness. So,
+[38:08] how far are we from the underlying price?
+[38:18] And that's determined by delta or better that's the measure of
+[38:26] this is delta
+[38:31] or how moneyiness impacts the price. Then you have the time component right
+[38:37] the time to expiration tte
+[38:42] that is measured by the theta
+[38:52] and the implied volatility the fear or the implied probability that
+[38:59] something will happen
+[39:05] also known as the IV
+[39:14] and in the calculation of the black and shores model. Of course, there's also the
+[39:20] uh lesser known and looked at which is the current interest rates. So risk-f
+[39:26] free rates which is the raw that no one cares about
+[39:34] or at least it doesn't play a big role in or it doesn't change much. Okay, it only changes when the central banks
+[39:40] changes the interest rates. But forget about it for a second. Let's keep things simple for today. So the delta
+[39:48] is how much the price of an option
+[39:53] the premium let's call it premium just to
+[39:59] how much the premium of an option changes
+[40:07] based on $1 movement of the underlying price
+[40:19] that's delta and the and gamma comes after this.
+[40:25] Theta is how much the premium of an option changes
+[40:33] based or let's let's say as time goes by
+[40:43] and vega is how much the premium of changes
+[40:50] at a change of implied volatility.
+[41:00] So these are what we call the Greeks
+[41:05] and maybe today we're also going to be able to see them. Now one important thing you need to know is that most
+[41:12] options gives you a one 100 leverage as in
+[41:21] one option typically
+[41:27] one option contract equals
+[41:33] 100 shares for example of Apple whatever it is or also the S&P the NASDAQ the ES s
+[41:40] all of that is typically 100x for all American style
+[41:46] European style option mostly is 100x so for example
+[41:53] let's think about the delta right
+[41:58] let's think about the delta if the price of one option is 100 times
+[42:09] Or let's say one option gives you 100 times the underlying asset. If
+[42:17] the price for example moves by the price of the underlying asset moves by 100
+[42:25] points, how much will be the change in the price
+[42:31] of my option? Typically $100, right? So I wanted to I want you guys to properly
+[42:38] visualize it, right? I want you guys to visualize delta, [snorts] theta, and vega. But first, I want to
+[42:44] understand if everything is clear for now. If you have any questions for now
+[42:50] because after this, we're going to start getting into the Greeks and how they work.
+[43:03] Actually, first we're going to get into the payoff charts, which is more important [snorts]
+[43:16] seems to have a lot of benefits for the buyers of options, but whoever selling the option is taking huge risks. Yeah,
+[43:22] you could say that. But as we will see because of how options are priced, it's
+[43:28] not always like that because the buyers buyer has its own risk and the risk is
+[43:33] implied in the options price. We'll see. [snorts]
+[43:44] Okay, seems like everyone understands. Perfect.
+[43:50] So, let's create
+[43:58] an example of the payoff chart of options.
+[44:04] Let's say you buy an option, right? You buy an option on Apple 500 strike
+[44:11] and let's put the price of the option here. Sorry, the price of the underlying asset
+[44:18] here and your profit and loss. How much money you make if you buy an option P and L.
+[44:31] Now, let's say you buy it at 500. So, the strike here is $500.
+[44:38] [snorts] And let's say you buy a call option.
+[44:48] When you buy a call option, you buy the option to buy, right?
+[44:57] So, let's say that the price let's let's search it actually. Let's search it.
+[45:06] Let's say we want to buy a call on Apple.
+[45:15] And let's say we want to buy it next month. 30 DTE. Okay. 1,000.
+[45:22] So if you buy the option, you're going to pay
+[45:28] $1,000. That's your loss. And that's your maximum loss. Like you
+[45:35] cannot lose more than what you paid.
+[45:40] So, you're going to spend $1,000
+[45:45] to buy this option. Okay? In case price and let's say now just for
+[45:54] the sake of this, let's say that the price of Apple is 500 and you're buying an at the money call. So, you're buying
+[46:00] it at the price that it is now. If price rises,
+[46:07] your option will start to be worth more. And
+[46:13] let's say price rises by 10 points. And now the price is
+[46:20] 510, [snorts]
+[46:28] right? the price went up by 10 points and as we
+[46:34] discussed this is giving you access to 100 times Apple shares. So 10 times 100 shares
+[46:45] that's $1,000. So, you're in profit technically of
+[46:51] $1,000 now because price went up 10 points times 100 because it's 100 shares
+[47:00] of Apple. So, you basically if price goes up by 10 points, you've already paid off what
+[47:08] you've spent, okay, for this option. And so, your profit and loss now is at
+[47:14] break even. You're exactly at 0.
+[47:21] So before you start seeing some profit, you need to go at least above this.
+[47:27] As price keeps going up, you make potentially endless amounts of money,
+[47:32] right? Infinite because it it can go up uh indefinitely. And let's say price
+[47:38] reaches $600.
+[47:44] And let's say this is now a in the money call at $600. How much money would you
+[47:51] have made? Well, 100 times
+[47:57] 500 to 600 is 100. So 100 times 100 is $10,000 profit plus $10,000 profit
+[48:07] minus the 1,000 you paid. That's 9,000 total.
+[48:16] Okay. And this is how you structure a payoff
+[48:23] chart of a buy call. Right?
+[48:29] So the cool thing about buying an option is that your loss
+[48:36] is always limited because if price goes down, you don't have to exercise your
+[48:43] right to buy. You're not you're not stupid. You just bought the option to buy. You didn't say I'm going to buy.
+[48:50] Say I'm buy the option to buy and I'm paying it. Right? So I'm doing a move. I'm paying it and we don't care.
+[48:58] So even if price goes extremely below, you do not lose more. Your loss is
+[49:05] capped by the premium you paid and potentially the profit is unlimited.
+[49:19] Right? Because if price goes up indefinitely, I earn money indefinitely. That's the cool part about buying
+[49:24] options. We will see the bad part later.
+[49:37] Now, let's imagine that we're the other side of this trade that we're selling a call.
+[49:48] Well, if we sell the call, we're going to be the exact other side of this trade, right?
+[49:55] So, if the guy paid $1,000, we earn $1,000.
+[50:05] And if price goes down, you know, that's what we earned.
+[50:12] If price starts going up though, we start losing money. And the first thing we lose is all of the premium we cashed
+[50:18] in. If price reaches 510,
+[50:24] we cashed in at 500, right?
+[50:32] But if price starts going lower, there's a huge risk because
+[50:38] here we can lose an indefinite amount of money. So when we sell options,
+[50:45] our profit is capped, but we get this extra time, you know, we
+[50:52] get this extra price that we charged for, but potentially we can lose a limited
+[50:57] amount of money. So it could feel like it's riskier, right? But [snorts] it's
+[51:03] as we will see, it's not necessarily like that because of how options are priced. But, you know, if in case we
+[51:08] just sell carelessly, then this money that this guy made, uh, we're going to
+[51:14] have to pay for that, guys. We're going to have to pay for that [ __ ] So, we're going to lose potentially
+[51:20] indefinitely. Okay? And this is the seller of an
+[51:25] option. This is if you sell a call. And by the way, you guys can do both. You
+[51:31] can buy a call or you can sell a call. It's completely up to you.
+[51:37] [snorts] So this is the payoff chart of a buy call or a sell call. Long call, short
+[51:44] call. [snorts] Now let's see
+[51:50] the opposite. The put. Let's say we buy a put and the put is
+[51:58] the right to sell. Well, when we buy a put, we spend, let's
+[52:05] say, still $1,000. So, that's our maximum loss.
+[52:11] And we buy the $500 put, 500 strike put.
+[52:19] And if price starts falling, we start earning money because our option is
+[52:25] worth more. now [snorts]
+[52:31] and potentially if price keeps dropping we make a lot of money
+[52:38] and if price drops by 100 points we make 9,000.
+[52:49] Our break even will be at 490.
+[52:55] And that's it. If we sell the put, it's going to look
+[53:02] exactly the opposite. So this is the money we will cash in.
+[53:11] it will start we will start losing it as soon as price starts falling
+[53:18] and we could potentially lose a lot of money.
+[53:27] Okay, [snorts]
+[53:35] by the way I mostly sell options just so you know. So before you start judging, hey, it's not convenient. Well, wait for
+[53:41] it because it's going to get funny. It's going to get real funny.
+[53:49] So, of course, you don't need to wait until expiration, right? So, let's let's make something
+[53:55] very clear. If you bought an option
+[54:02] and you don't want it anymore, you can sell it. If you sold an option and
+[54:08] you're starting to lose money, you can exit the position. You can put a stop-loss to your sell put.
+[54:17] So, you know, loss is indefinite. Yeah, that's not exactly how it works, right?
+[54:22] Because this is just the payoff chart at expiration. But as we said
+[54:31] uh the p the premium of this changes through time right
+[54:38] so but for now is this clear is this is it clear the payoff chart is is clear for
+[54:44] you guys. [snorts]
+[54:52] It's not more dangerous to buy or to sell. It all depends on why and how and when you do it.
+[55:00] Some ads going on.
+[55:13] [snorts] Awesome. So, it seems like everything is clear for everyone. Okay. Now,
+[55:21] as I said, this is only the
+[55:27] payoff chart when the option is expired. But in the meantime,
+[55:34] if I let's say buy a call now and sell it now, like I just buy it and then I
+[55:40] resell it, I didn't earn or lose anything because the time didn't pass. Can we put me as full screen?
+[55:47] If let's say I buy the call now and then I resell it automatically, it's still
+[55:54] worth pretty much the same. You know, maybe two seconds have passed. I maybe
+[56:00] has lost some money because of time decay, right? But the price I paid a,000
+[56:05] and then I'm reselling it at 900. My loss is like I don't know $1. Okay. So
+[56:12] the loss that is created the premium that you pay if
+[56:19] you don't exercise your option but you just trade options so you buy you sell you buy you sell that loss that premium
+[56:26] you pay you don't pay it until expiration really that's when you you paid it fully and that option is expired
+[56:32] it's worth nothing right so in the meantime you can buy and sell and buy
+[56:39] and sell and buy and sell and that's happens every single day in the options market. So
+[56:45] the next step now and when all this gamma stuff and delta will
+[56:52] come all together is within the moment you buy the option and
+[56:58] the expiration. And we're going to see now what happens because it's it's really cool how it changes through time
+[57:04] and it makes you understand why gamma is so important and why as this huge market
+[57:11] of options unfolds every single day and market makers
+[57:17] have to be the counterpart to all this trading activity from retails and
+[57:23] institutions. They're the biggest counterpart of all them. The way they hedge these position is dynamic
+[57:31] changes throughout the session. Especially in the last two hours of the session, they have to start hedging way
+[57:37] more especially if they're long or short gamma and you know
+[57:42] in the last part of the session as you will see that's where most of the theta of the time decay does its effect right.
+[57:51] So also what's it's part of the plans in in deep trust to have the charm exposure
+[57:56] which is the um a very cool other type of uh thing that we will learn today.
+[58:04] But is it clear for now guys? Let me just switch on the screens that have switched off real quick.
+[58:11] Okay now it feels like I'm even more professional isn't it?
+[58:18] sell calls and puts are a bit confusing. Why? What is What is this confusing
+[58:24] about them? So, if I'm an option seller, the time decay works for me. Correct. Correct.
+[58:31] Nice catch, Luca. What about Vanna and charm? Those are secondord Greeks. So,
+[58:37] they're Greeks derived from the main Greeks. We'll see them in a minute.
+[58:43] [snorts] So, if buying and selling put isn't
+[58:49] clear, I suggest you to rewatch this video multiple times. And let's get back to screen sharing
+[58:56] mode. [snorts] Awesome.
+[59:06] Now, let's see an option in practice. Okay, let's see this long call
+[59:13] on Apple. Let's deszoom.
+[59:19] See, this is exactly the chart that we created, right? We bought the call
+[59:27] at a,000 $1,000 500 strike. This is sorry, this
+[59:33] is 900 strike. Uh, is it sorry 300? Yeah, 300.
+[59:43] Let's zoom in a little bit. And this is a 30 days to expiration, right? Today is
+[59:49] the 3 of August. The This is the long call expiring on September the 4th. So,
+[59:58] 32 days to expiration. And this over here, this toggle over
+[1:00:04] here is the passage of time. You see it's at expiration now. Can you guys see properly? Should I zoom in a little bit
+[1:00:10] more? Maybe. Maybe. Let me zoom in a little bit. Yeah, that's better. That's better. [snorts]
+[1:00:15] Now, this is the time at expiration. But look
+[1:00:21] at what happens when I drag this all the way to the other side. Look. Look at what happens to the price of the option.
+[1:00:28] Whoop. What happened? Well,
+[1:00:34] time did its thing because if I buy an option now
+[1:00:40] and I resell it, well, this is still a 32 days option, so it's worth pretty
+[1:00:46] much the same. If I wait maybe 24 hours,
+[1:00:53] and now I'm losing $18. Let's wait another day. Now I'm losing
+[1:01:02] $45. five days I'm losing $100,
+[1:01:09] 13 days I'm losing $200 if I resell it now, right? Because I
+[1:01:15] bought it and the price of that option was, you know, uh the whole time was worth
+[1:01:24] $1,000. Now, uh almost let's say 14 days have passed.
+[1:01:31] So now this option is worth $200 less. So if I resell it now to the market, I'm going to close my position at a $200
+[1:01:39] loss. Mhm. If
+[1:01:45] we wait 23 days or mid midway, I've lost almost
+[1:01:51] $500. Almost half of my option is the worth of my option is gone.
+[1:01:57] And as we move on closer and closer, now it's 25 days to expiration.
+[1:02:03] See, 25 days to expiration, I've lost $500. Half of the the value of my option
+[1:02:10] is gone because time passes. So if I want to resell now the right to buy at
+[1:02:20] 306, well that's going to worth less because now it's we were 32 days to expiration.
+[1:02:28] Now it's 25 days past. So it's 7 days to expiration and the last 5 days,
+[1:02:35] the last seven days, sorry, I lose the remaining of the money and now my option
+[1:02:41] is worth nothing. And if I were to resell it now to anyone,
+[1:02:46] it's, you know, worth nothing more. So I I lose the entire amount. Okay, is that
+[1:02:52] clear? Is that clear how time passing
+[1:02:57] makes my option worth less and less? And if you see it, it's 32 days till expiration.
+[1:03:06] But you would expect that in the middle, right, at 14 days to expiration, it
+[1:03:11] would have lost half of its value. No, because as I said, it's not linear. It's quadratic. It's logarithmic.
+[1:03:18] So by half of the time, you've only lost a third of the value.
+[1:03:25] And we're almost there at expiration. And we're halfway through. Okay. So that's why time exerts most of its
+[1:03:31] influence the closer you get to the expiration.
+[1:03:40] Is everything clear for now guys? Awesome. Now let's get back
+[1:03:48] to now.
+[1:03:53] Okay. This was the effect of time. Now let's say we are two day through okay and
+[1:04:02] suddenly the market starts going crazy a news pops out on Apple or Trump starts saying
+[1:04:10] something and the he says well to from tomorrow only green candles. Okay
+[1:04:17] well that's going to change the implied volatility. So let's say that the implied volatility
+[1:04:23] starts rising. Oo look at what happens. Oh my god. Ooh, what's that, bro?
+[1:04:31] My option is now worth more because there's a higher probability
+[1:04:37] that is discounted. It's priced in in the prices of option that in the future
+[1:04:45] price is very volatile, right? And it could be possibly way higher. And as you
+[1:04:51] can see now, my option, even though it's still at the same exact price as it was before, huh,
+[1:04:56] it's exactly the same price, $36 of Apple, but because implied volatility
+[1:05:03] suddenly increased, my option is worth more. So, if I were to resell it now, I would sell it back
+[1:05:12] at a $1,700 profit,
+[1:05:17] right? because there's a fire happening. We just bought a fire insurance and the
+[1:05:22] fire just started. So, if I bought a fire insurance at $100 and now the fire
+[1:05:29] has started, I can take this thing that I bought for 100, sell it to someone else for 10 times the price, right?
+[1:05:37] That's exactly why you should think of these as fire insuranceances.
+[1:05:42] So this is the effect of volatility. If you
+[1:05:49] buy a call and the implied volatility rises,
+[1:05:55] you your the value of your option that hasn't expired yet
+[1:06:00] will be more. But even if volatility is high, but you're very close to
+[1:06:07] expiration, look at what happens. Time decay
+[1:06:13] makes your options still worthless. Why? Because yes, implied volatility is 61%.
+[1:06:20] That could there could be a fire, right? Maybe happening. But I'm 10 hours till
+[1:06:26] expiration. So in the 10 hours is not going to happen anything. Let's say it's 1 hour. Yeah, nothing is going to
+[1:06:31] happen, bro, in 1 hour. Okay, price could still be around here 1 hour from now. Even though implied volatility is
+[1:06:37] high. Okay. And this is the effect of implied volatility.
+[1:06:44] Is this clear for now guys?
+[1:06:49] What if the price of the stock doubles? Well, if the price of the stock doubles
+[1:06:58] and for example price is 300, right? And let's say that
+[1:07:06] price doubles. Well, there's not even the chance that it doubles within 30 days. Sorry. Uh
+[1:07:14] let's put it like this. Yeah. Yeah. We cannot see further than that. Well, let's say price rises by 100 points,
+[1:07:21] which is still like almost, right? Well, your option will be worth more and more and more and more as price rises. and
+[1:07:28] implied volatility, you know, will or let's say
+[1:07:33] let's say we're here. Okay, implied volatility will not change much at that point. And this is this is a great
+[1:07:43] question. This was the best question I've seen so far because this will lead me to make you understand
+[1:07:49] another very important thing we're going to get through. But first, I want to understand if if everyone got everything right.
+[1:07:58] Okay. Yes. Yes. But who trades sell option and are they mostly market makers? No. No. It's mostly
+[1:08:04] institutional trader and yours truly. H. Now
+[1:08:10] let's zoom out for a second as our dear friend suggested. Say implied volatility
+[1:08:15] is what it is. And let's do like this.
+[1:08:25] Now, as you can see, let's see if I have a Do
+[1:08:30] I have Epic Pen here? No, I don't have the Epic Pen. Let me download the Epic
+[1:08:35] Pen, guys. If you don't know Epic Pen, have Epic Pen on your This is a free
+[1:08:41] a free u sponsorships. I'm not sponsored by Epic Pen, by the way.
+[1:08:47] It's just incredibly uh useful little uh thing that I look
+[1:08:53] that I use. This is my new computer. It's a whole new setup. So, I want you guys to focus
+[1:09:00] on where the effects of volatility
+[1:09:06] and time mostly happen. Where do you see a big change?
+[1:09:14] Let me just install this real quick.
+[1:09:23] Is gamma scalping affected by IV? What do you mean,
+[1:09:28] Andrea? You explained so well and so clear. Well, I'm glad to hear that, especially with options because it's
+[1:09:33] it's it's a it's a very vast topic. I'm buying epic pen calls right now.
+[1:09:43] No, but for real. Um,
+[1:09:50] I've also installed deep charts just in case, you know.
+[1:09:55] Okay. Accept everything. I sign my life away.
+[1:10:01] Yes, sir. Thank you very much. Does the platform has the in-built charm
+[1:10:07] surface included? We're working on it. It's not ready yet. We have more effect on strike price.
+[1:10:12] Correct? Well, not on strike price, but on the at the money strike.
+[1:10:20] When you're going to see the effect of an option if the option is at the money.
+[1:10:25] That's that's where I was going.
+[1:10:33] Okay, let's see if we're ready. Yeah, we're
+[1:10:39] ready with the pen as you can see. Look at this part of the chart
+[1:10:46] and look at this part of the chart.
+[1:10:54] Do they change a lot through time? Not much. Right. Let's move implied
+[1:11:01] volatility a little bit. Do does it move much in those areas that I highlighted?
+[1:11:07] Not so much. Right? It just changes in the middle. That's
+[1:11:14] very interesting because options about are just about
+[1:11:20] probability. And when you bought a 305 call and price
+[1:11:26] is 230 as yeah, fire up, fire down, time
+[1:11:32] passing, it's still 230. I mean, not much can happen from here.
+[1:11:38] So price is not going to change much based on volatility and time. You lost money on this trade. Done.
+[1:11:46] Up here 390. Okay. I bought at 305. Price went
+[1:11:52] up 50% for Christ's sake. What can happen you know in 18 days? Not much.
+[1:11:59] Yeah. Fire up, fire down. Time passing. Yeah. Whatever. Still
+[1:12:05] you made money. Congrats. But here we're still close. You know, a lot of
+[1:12:12] things could happen. So, at the money, okay, the more you're
+[1:12:19] close to the at the money strike, the more the price of your option will
+[1:12:25] be affected by temporary changes in implied volatility.
+[1:12:32] And time decay will make all of its effects especially there.
+[1:12:40] Okay, this is something very important. This is what we call the convexity of options.
+[1:12:48] Most of the stuff, most of the action of these Greeks happen in the middle. And I want to show it to you guys.
+[1:12:55] Let's get the chart of
+[1:13:00] Vega. This is the chart of how much a change
+[1:13:07] in implied volatility will change the price of my option.
+[1:13:13] Well, as you can see, the biggest effect is here. The more you're far away in those
+[1:13:20] rectangles I drew before, the more implied volatility doesn't really play a
+[1:13:26] big role. And also, as we've seen, through time,
+[1:13:32] the effect of implied volatility is lower and lower because as you get closer to expiration, the higher the
+[1:13:39] probability that you're going to expire in the money or out of the money.
+[1:13:46] This is the chart of Vega. Okay,
+[1:13:53] let's see the chart of theta instead. Okay, this is interesting.
+[1:14:00] This is the chart of theta. So, if Vega was,
+[1:14:07] as you can see, it's on the upper side of the chart, right? It's a it's a it's a positive number. Why? Because if
+[1:14:14] volatility increases, the price of the option increases. But as we've seen, as time passes,
+[1:14:22] the price of our option slowly gets lower, like the value of our option gets lower and lower. So theta
+[1:14:32] influences negatively. So it's it's downwards. It's the same curve. It tells
+[1:14:37] us the same thing. It's affecting mostly here. Here doesn't affect much. Here doesn't affect much,
+[1:14:43] but it affects negatively, right? So, and as time goes by, the effect is
+[1:14:53] only concentrated in the middle, right? The more time passes, the more here we don't care. Here, we don't care. We only
+[1:14:59] care in the central part. And theta goes higher and higher, higher and higher. Now, it affects only the
+[1:15:06] very close strikes. And then doesn't have any effect anymore because
+[1:15:11] the option expired. Okay.
+[1:15:17] So this is the cool thing about theta and Vega and
+[1:15:22] we define a long call whenever we're buying long call
+[1:15:29] or long put.
+[1:15:35] So whenever we buy options, so we're on the buyer side of the insurance.
+[1:15:42] were basically long Vega or long volatility
+[1:15:52] because volatility influences positively our option
+[1:15:58] and we're short theta
+[1:16:04] or short time because time influences
+[1:16:13] negatively. Now let's do the same example
+[1:16:18] with the opposite one. So instead of buying a call, we sell the call. Let's
+[1:16:25] look at the chart first. Okay, let's see.
+[1:16:32] We sold a call. We sold this call at 305. Uh let's put it at 310 maybe.
+[1:16:40] What's the price now? 3005. That's fine. Okay. Right. This is the break even
+[1:16:46] point. Correct. So, let's reset. Okay.
+[1:16:52] Now, we sold. If price goes lower, we earn money. If price goes higher, we lose a lot of
+[1:16:59] money. So,
+[1:17:05] as time goes by,
+[1:17:11] I make the money. Okay. At the center, if price goes below,
+[1:17:16] doesn't change much. In the middle, it changes a lot. Here,
+[1:17:22] doesn't change much. But time passing makes me money.
+[1:17:27] So if I put the theta chart, you can see it's positive, right? So time if I'm an option seller,
+[1:17:37] so let's say I'm selling a call or selling a put.
+[1:17:45] We say that we're long theta
+[1:17:52] because the passage of time is what we earn money with. Imagine No other contracts allows you to earn
+[1:17:59] from the passage of time. Like, hey, I'm betting that time passes. What the [ __ ]
+[1:18:06] Let's see Vega instead. Well, if I sold the fire insurance and the fire starts,
+[1:18:13] yeah, I'm going to have to pay from for the damage now. If I reby this option now, I'm doomed. I have to pay for a lot
+[1:18:20] of money. So, volatility affects the price of my option negatively. So Vega
+[1:18:26] is negative. Most of the effect of course happens close to the at the money strikes out of
+[1:18:33] the money and in the money. Not a lot of effect. Okay. So we say that we are short volatility
+[1:18:42] or short Vega.
+[1:18:48] Back to full screen. Is everything clear for now? I understand that this is a completely new
+[1:18:55] world for you for for most of you guys for a lot of you guys, right? So, it's normal that you do not understand how
+[1:19:01] this works right away. Okay, don't worry. I strongly advise you to rewatch
+[1:19:08] this video and the next videos um so that you're really grasping what
+[1:19:15] I'm saying here. And I also invite you as a test, I don't know if there's demo accounts or prop firms for options to
+[1:19:21] also trade, start practicing a little bit with options to understand and see these things in real time yourself. So
+[1:19:28] you really take a grasp of the options world because only as
+[1:19:33] a deep like only as a if you truly understand options, you're going to
+[1:19:39] truly understand gamma exposure at a level that no one else does. and you're going to be able to understand the more
+[1:19:45] advanced stuff that's going to come in the future. Okay, so we're we're laying down the basics today.
+[1:19:52] Awesome. Let's get back to screen mode
+[1:19:58] and let's now get to
+[1:20:03] what we're all here for, the gamma. And let's understand what gamma is.
+[1:20:12] [snorts] Let's see if there's any question. By the way,
+[1:20:21] yeah, charm, vana, gamma, heat maps are coming. We're working on it, but gamma
+[1:20:26] is already there.
+[1:20:31] Okay,
+[1:20:40] awesome. A tail event. Um, a tail event. We're going to get into the the uh
+[1:20:46] distribution of probabilities and then you're going to see what this thing be behind
+[1:20:53] is and what's a tail event. Now
+[1:21:00] let's understand delta.
+[1:21:05] Let's reset. Okay. Now let's zoom in a little bit
+[1:21:14] and let's see what delta is. So delta, as we
+[1:21:20] said before, it's how this chart goes up or down. How fast.
+[1:21:26] Literally, that's it. Delta is
+[1:21:31] how much money I'm making or how the price of my option is changing as price
+[1:21:38] goes up or as price goes down. That's what delta is. So, let's see.
+[1:21:47] Let's zoom in. Now, the price is 305 and I made
+[1:21:53] absolutely 0. Now let's move one point up. Let's go to
+[1:21:59] 306. Sorry, this is 300 5.4. Let's go to
+[1:22:06] 306.4.
+[1:22:12] I made around $50. Okay. So here I had zero.
+[1:22:20] One point up I had $50. So we say that the delta
+[1:22:27] is 50 because for a one point from $35
+[1:22:35] to $36 my option price went up 50 not 100
+[1:22:43] because we remember that this is giving us 100x leverage. So $1 should be
+[1:22:50] $100, right? But we're not at expiration yet. We're
+[1:22:55] not yet
+[1:23:00] like still a lot of stuff can happen. So for now I'm just earning half basically. Okay, you see that price is not going up
+[1:23:07] directly. But let's see what happens here. Let's say we want to zoom in
+[1:23:14] from 340 to 341.
+[1:23:20] So 340 I'm earning 2,770.
+[1:23:25] Okay, let's start from here. Yeah. 2,6
+[1:23:32] and something 80. Yeah, 2,682. Let's go to 41
+[1:23:41] 2700. So I earned $100. So here, one change in
+[1:23:48] uh $1 change in the underlying price makes me $50 if it goes up. If it goes
+[1:23:54] down, minus 50. Here I earn 100.
+[1:24:02] So here the delta is 50. We say here the delta is 100.
+[1:24:09] It's how much money I'm making as price goes up or down. behind
+[1:24:17] here. Let's see what happens. $245, right?
+[1:24:24] I'm losing $1,000. If I go a little bit up or a little bit
+[1:24:30] down, nothing changes. The difference is zero. So, $1 change me
+[1:24:36] 0 in my profit and loss. So, we say that the delta is zero.
+[1:24:44] So how much a movement in price affects this price of my option is called the
+[1:24:51] delta. Here the delta is zero. Here as we see the delta is 50. Here you know
+[1:24:56] it's going to be 10 you know 20 30 40 50.
+[1:25:03] And the more you go up the more it's 100. And you can just think of it in simple terms. How fast does this line go
+[1:25:11] up? Well, it goes not up at all here. So, here is zero.
+[1:25:19] Here it start going faster, right? So, if we have to measure the speed of this, here it start going faster. Start going
+[1:25:26] faster, start going faster up, faster up, faster up. And here it's reaches a
+[1:25:32] linear speed, right? So, that's constant. So, the line of delta should look something
+[1:25:39] like this. Let's see if that's true. Take the chart of the delta. Yep, that's how it looks
+[1:25:45] like. Here the effect is zero. Here the effect
+[1:25:51] is 50. Here the effect is 100. And that's delta. So what delta does it is
+[1:25:58] it measures the price the changing price of my option
+[1:26:04] with a one point measure uh change in the underlying asset. Okay, this is the delta.
+[1:26:12] Is that clear? Is that clear what delta is?
+[1:26:17] [snorts] Exactly. Delta, if you want, is the slope of the line. Correct.
+[1:26:25] Now, let's say we want to measure
+[1:26:31] the effect of delta.
+[1:26:36] So let's say we want to see how delta changes through price where here delta
+[1:26:44] didn't change much didn't change much here it start changing a little bit
+[1:26:51] here it start changing a lot and here slowly it starts stabilizing
+[1:26:57] stabilizing and the speed of the line goes back to zero.
+[1:27:04] So if you had to look for a chart of how delta changes through time, it would
+[1:27:10] look something like this. And that my friends is gamma.
+[1:27:16] Gamma is how delta changes through price.
+[1:27:24] So to recap, if the price of the option
+[1:27:39] And how this price of the option changes based on one movement of the underlying asset is the delta. So delta is
+[1:27:52] how much the price of my option
+[1:27:58] changes for $1 move in underlying.
+[1:28:06] or set in more simple terms
+[1:28:12] how fast this line goes up. So, let's screenshot it. I'm going to
+[1:28:18] share this with you guys, by the way. I'm going to um share this thing at
+[1:28:23] least with the guys in the community. So,
+[1:28:31] this is the delta
+[1:28:49] And gamma is how fast delta goes up. Let
+[1:28:54] me let me take a screenshot of this as well. This
+[1:28:59] is the chart of delta.
+[1:29:05] And I can send you guys this, by the way. I can send you guys this whole thing that we made here, this whole
+[1:29:11] explanation.
+[1:29:21] So this is the delta.
+[1:29:26] The gamma is a second order Greek because it's derived from delta. So
+[1:29:32] delta is the first order derivative. Gamma is a second order derivative
+[1:29:42] and it measures the variation of delta. So how much does
+[1:29:49] delta change for a $1 move of the underlying
+[1:30:01] So delta is the speed of the option price. Gamma is the speed of delta. So
+[1:30:08] this is the speed. This is the acceleration.
+[1:30:13] I like this. Let's let's let's put it here. This is the speed.
+[1:30:24] This is the acceleration.
+[1:30:34] And we take this and we say how fast does this line
+[1:30:43] goes up? That's our gamma.
+[1:30:55] Yes. How much delta changes through time is we call charm. Yes. And we're going to go into that when we're going to char
+[1:31:02] we're going to start teaching about the charm and the vanna. But for now it's a lot of stuff already. Okay. Especially
+[1:31:07] for our audience that is not necessarily all professional traders. So let's take the gamma.
+[1:31:15] And here comes and this is going to be the topic of tomorrow.
+[1:31:22] our beautiful gamma. And why we call it gamma exposure?
+[1:31:34] Because before expiration how this option price changes is not
+[1:31:42] linear. So the activity that the market makers
+[1:31:48] will have to do is dynamic and will change through time
+[1:31:54] because here if price is still the same, they're not going to have to hedge a lot. As time goes by, they will have to
+[1:32:02] hedge more and more and more and more. And let's make an example with a zero DTE option.
+[1:32:10] And let's assume, let's zoom in a little bit.
+[1:32:18] Let's say I'm a market maker and if price I I'm long gamma, right? I'm long this call
+[1:32:26] because someone sold it to me. Well, even if price stays where it is
+[1:32:32] now, I don't have to hedge anything. If price goes, if time passes, I have to
+[1:32:38] hedge more. If time passes even faster, I have to hedge more. And in the last minutes I have to hedge everything.
+[1:32:48] And if price goes up a little bit I have to hedge 50. If price goes up I have to
+[1:32:54] hedge 100. The more it goes down the less I have to hedge.
+[1:33:01] So the hedging activity of market makers is dynamic and the best way you can
+[1:33:06] understand it if you have is if you have a deep understanding of these Greeks.
+[1:33:11] And it's going to take some time, but today we've laid down the basics. You
+[1:33:17] know what's gamma, you know what's delta, and I strongly advise you get
+[1:33:22] back to full screen. I strongly advise you to rewatch this first introduction to options and to the Greeks and maybe
+[1:33:31] to start testing out a little bit as we've done today with options strat um the payoff chart and how it changes
+[1:33:37] through time. and imagine that you have to neutralize your position, that you have to hedge your position so that you
+[1:33:43] can kind of act in your mind like you were a market maker. In the next lesson
+[1:33:48] tomorrow, we're going to learn exactly what we mean by gamma exposure
+[1:33:54] specifically and what do we mean by dynamic delta hedging? And we're going
+[1:34:01] to understand how market makers have to dynamically hedge their position that
+[1:34:07] they're taking as a counterpart of every trader in the options market and why it
+[1:34:12] is dynamic and how exactly it works. And we're going to start getting into what
+[1:34:18] these, you know, long gamma, short gamma level um are, how to use them and how to
+[1:34:25] interpret them and the how to interpret the overall regime of um the volatility
+[1:34:32] and how these things can affect the day-to-day price action that we all trade in the futures and how it can
+[1:34:38] gives us a boost in theformational advantage we have over other retails
+[1:34:44] because let me be clear. Most of what we're going to learn, what you're going to learn in this course, most retail
+[1:34:50] traders don't use it because they think it's too complicated. Just like orderflow, this is just one level
+[1:34:55] deeper. And I can promise you after you've learned this, there's not much more. Like we're we're getting close to the bottom of [ __ ] here. And
+[1:35:05] the impact that this stuff has on your positions,
+[1:35:12] you cannot ignore it. Because there's days where the effects of gamma exposure
+[1:35:19] hedging from market maker is so obvious and is so big that this is going to
+[1:35:26] serve you not just in your futures trading. It could help you in your
+[1:35:31] options trading in the future. It could help you in S&P as it does in other assets.
+[1:35:37] But the option market the effect and the notional value of the option market is
+[1:35:43] so big that you cannot ignore this. You cannot actively choose to ignore one of
+[1:35:52] the factors and sometimes one of the biggest factors in how price moves in
+[1:35:58] the intraday action. So, I hope to see you here in the next lessons. And
+[1:36:04] tomorrow, we're going to get a little bit even deeper from the theory side of things. And following up, we're going to
+[1:36:10] have some more practical sessions where we see how to use the GAM exposure stuff that we've explained uh with Fabio, with
+[1:36:16] me, with uh Rodulfo, and it's going to be very exciting. So, if you enjoyed
+[1:36:23] this session, please leave a like, subscribe to the channel. I will see you guys in the next one. And re-watch this
+[1:36:30] video multiple times, especially if it's your first time with option. And as always, trade safe and trade deep. I'll
+[1:36:37] see you next time.

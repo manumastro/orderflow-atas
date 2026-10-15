@@ -8,7 +8,8 @@ rigenerare. Solo lettura, solo su 127.0.0.1, solo file dentro il repository.
     python quant/sito/sito.py --porta 8800
 
 La pagina (pagina.html) disegna; questo file da' i dati:
-    /api/indice          studi con le fasi e i sigilli, ricerche (filoni di paper), metodo, paper
+    /api/indice          studi con le fasi e i sigilli, ricerche (filoni di paper), metodo, paper,
+                         e le giornate dello studio globale (studio/rapporti/<data>/)
     /api/testo?path=...  il testo di un file del repository
     /raw?path=...        un file cosi' com'e' (i PDF dei paper, che non stanno in git)
 """
@@ -154,6 +155,28 @@ def ricerche() -> list[dict]:
     return out
 
 
+# Lo studio globale di un giorno: studio/rapporti/<data>/, il quadro per primo.
+FASI_GIORNO = [("quadro", "Il quadro", "5-quadro.md"), ("macro", "Macro", "1-macro.md"), ("cot", "COT", "2-cot.md"),
+               ("gamma", "Gamma", "3-gamma.md"), ("orderflow", "Order flow", "4-orderflow.md")]
+
+
+def giornate() -> list[dict]:
+    """Le giornate dello studio globale, la piu' recente per prima, con i quadri sostituiti."""
+    out = []
+    radice = REPO / "studio" / "rapporti"
+    if not radice.is_dir():
+        return out
+    for d in sorted((x for x in radice.iterdir() if x.is_dir() and re.match(r"\d{4}-\d{2}-\d{2}$", x.name)), reverse=True):
+        quadro = leggi(d / "5-quadro.md")
+        fasi = [{"chiave": k, "nome": nome, "path": rel(d / f) if (d / f).is_file() else None,
+                 "stato": paragrafo(leggi(d / f), "Stato").split("(")[0].split(".")[0].strip()} for k, nome, f in FASI_GIORNO]
+        precedenti = [{"ora": f"{x.name[:2]}:{x.name[2:]}", "path": rel(x / "5-quadro.md")}
+                      for x in sorted((d / "precedenti").glob("[0-9]" * 4), reverse=True) if (x / "5-quadro.md").is_file()]
+        out.append({"data": d.name, "titolo": titolo_md(quadro, d.name), "riga": paragrafo(quadro, "In una riga"),
+                    "fasi": fasi, "precedenti": precedenti})
+    return out
+
+
 def documenti(cartella: Path) -> list[dict]:
     return [{"path": rel(f), "titolo": titolo_md(leggi(f), f.stem)} for f in sorted(cartella.glob("*.md"))]
 
@@ -175,6 +198,7 @@ def indice() -> dict:
         "metodo": documenti(QUANT / "metodo"),
         "analisi": analisi(),
         "indice_paper": "quant/paper/indice-dei-paper.md",
+        "giornate": giornate(),
     }
 
 
