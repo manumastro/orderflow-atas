@@ -108,8 +108,35 @@ Nessuna esportazione in blocco di tick o book: **il bridge e' la via d'uscita**.
   su ESZ6, 33 serie (giornaliere, fine mese, mensili), con open interest, volume, ultimo,
   settlement e, quando la sottoscrizione e' calda, bid e ask. **Nessuna storia**: si registra con
   `quant opzioni --chart <ESZ6> --simbolo ES` in `quant/dati/ES/opzioni/<giorno>/`, il dato grezzo.
-- ES in archivio: 44.588 barre M1 di ESZ6, 5 agosto - 14 ottobre 2026; come per NQ, prima della
-  scadenza di settembre ESZ6 non era il contratto principale.
+- **La storia lunga c'e', dal chart del continuo** (15 ottobre 2026). Alzando `MaxCandlesPerChart`
+  nelle impostazioni di ATAS, un chart **NQ continuo a 1 minuto** carica **3.343.038 barre, dal 12
+  aprile 2017**: in archivio `NQ/m1`, 140 MB, **2.365 sedute di cassa complete** (circa 250 l'anno).
+  Delle 86 incomplete, quasi tutte sono festivi e chiusure anticipate (210 barre: chiusura alle 13:00);
+  cinque hanno qualche buco nei dati (2019-08-05, 2020-07-21, 2020-12-24, 2026-02-20, 2026-03-19).
+  Prima, con un chart a 5 minuti, erano arrivati 17 mesi (`NQ/m5`, dal 25 maggio 2025).
+- **Il continuo di ATAS** passa al contratto principale alle date di `/rollovers` (a volume, 40 dal
+  2017), **senza rettificare il prezzo**. Un contratto singolo invece, prima del suo rollover, e'
+  poco scambiato: l'M1 di NQZ6 dal 4 marzo aveva un terzo delle barre attese. Per questo l'M1 di
+  NQZ6 e ESZ6 scaricato prima e' stato tagliato al rollover dell'11 settembre 2026 (`quant taglia`).
+- **I rollover**: `quant rollover --chart <continuo> --simbolo NQ --misurato NQU6=294.5` prende le
+  date da ATAS e scrive `NQ/rollover.json`, con lo scarto di ogni cambio e il metodo
+  (`ScartiDiRollover.cs`, con il suo test):
+  - **salto** (15): se fra l'ultima barra del contratto vecchio e la prima del nuovo c'e' solo l'ora
+    di pausa di Globex (i rollover di giovedi' fino al 2019, alcuni lunedi' dal 2024), il salto e'
+    lo scarto. Il tasso implicito torna con i tassi meno i dividendi: 0,5-1,8% nel 2017-2019, 0,1% a
+    fine 2021, 4-5,5% nel 2024-2025;
+  - **carry** (22): se in mezzo c'e' il fine settimana il salto e' inutilizzabile (giugno 2020 -118
+    punti, giugno 2026 +513, settembre 2026 -10,75). Lo scarto e' prezzo x tasso x giorni fino al
+    rollover dopo, con il tasso interpolato linearmente fra quelli dei rollover noti;
+  - **misurato** (1): NQU6 -> NQZ6, 11 settembre 2026, +294,5 punti di mediana sui minuti in cui i
+    due contratti stampano insieme (il carry avrebbe dato +294,25).
+- **L'errore dei carry**: nel 2020-2023 i tassi si sono mossi in fretta e l'interpolazione e'
+  lineare. Nel 2020-2021 lo scarto stimato e' probabilmente sopra il vero di 20-25 punti per
+  rollover, nel 2022-2023 sotto fino a circa 60. **Pesa solo sui livelli rettificati del passato**
+  (le distanze fra prezzi di contratti diversi); i rendimenti dentro una giornata non ne dipendono.
+  Per toglierlo, si misura ogni rollover sui minuti appaiati, se ATAS carica i contratti scaduti.
+- **Nei test intraday la prima seduta dopo un rollover si esclude**: e' l'unica in cui un rendimento
+  dalla chiusura del giorno prima mette insieme due contratti. **Da fare nel motore.**
 
 ## Il Piano
 

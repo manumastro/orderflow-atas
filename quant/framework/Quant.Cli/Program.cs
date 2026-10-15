@@ -13,6 +13,10 @@ quant: il framework quantitativo, dall'idea alla validazione.
   quant chart                        i chart aperti in ATAS, dal bridge
   quant scarica --chart ID [--simbolo NQ]
                                      scarica le barre caricate su quel chart di ATAS
+  quant rollover --chart ID [--simbolo NQ] [--tipo m1] [--misurato NQU6=294.5]
+                                     date dei cambi da ATAS, scarto misurato, dal salto o dal carry: SIMBOLO/rollover.json
+  quant taglia --simbolo NQ --tipo m1 --prima AAAA-MM-GGTHH:MMZ
+                                     toglie dall'archivio i record prima di quell'istante
   quant opzioni --chart ID [--simbolo ES] [--scadenze 3] [--strike 40]
                                      registra la catena delle opzioni (ATAS non ne ha la storia)
   quant sintetico [--giorni 500] [--seme 42] [--deriva-notte PUNTI] [--deriva-cassa PUNTI]
@@ -74,6 +78,61 @@ try
             var n = Archivio.Scrivi<Barra>(simbolo, tipo, barre, b => b.Inizio);
             Console.WriteLine($"{n:N0} barre di {strumento} {periodo} in {simbolo}/{tipo}, " +
                               $"{Tempo.Utc(barre[0].Inizio):yyyy-MM-dd} -> {Tempo.Utc(barre[^1].Inizio):yyyy-MM-dd}, {t.ElapsedMilliseconds:N0} ms");
+            return 0;
+        }
+
+        case "rollover":
+        {
+            // Le date dei cambi le da' ATAS (/rollovers sul chart del continuo); lo scarto lo calcola
+            // ScartiDiRollover: misurato, salto (se la pausa e' breve) o carry (se c'e' il fine settimana).
+            var chart = o.Valore("chart") ?? throw new ArgumentException("--chart ID del chart del continuo: vedi `quant chart`");
+            var simbolo = o.Valore("simbolo") ?? "NQ";
+            var tipo = o.Valore("tipo") ?? "m1";
+            var strumento = Strumento.Da(simbolo);
+            // --misurato NQU6=294.5: lo scarto del rollover che parte da NQU6, misurato sui minuti appaiati
+            var misurati = o.Tutti("misurato").Select(x => x.Split('='))
+                .ToDictionary(x => x[0], x => double.Parse(x[1], CultureInfo.InvariantCulture), StringComparer.OrdinalIgnoreCase);
+            var barre = Archivio.Leggi<Barra>(simbolo, tipo, tempo: b => b.Inizio);
+            if (barre.Length == 0) throw new InvalidOperationException($"archivio vuoto per {simbolo}/{tipo}");
+            using var ponte = new PonteAtas(o.Valore("bridge"));
+            using var doc = await ponte.Chiedi("/rollovers", new Dictionary<string, string?>
+            {
+                ["chart"] = chart,
+                ["from"] = Tempo.Utc(barre[0].Inizio).AddDays(-120).ToString("yyyy-MM-dd"),
+                ["to"] = Tempo.Utc(barre[^1].Inizio).AddDays(120).ToString("yyyy-MM-dd"),
+            });
+            var date = doc.RootElement.GetProperty("rollovers").EnumerateArray()
+                .Select(r => (Codice: r.GetProperty("code").GetString()!, Tempo: Tempo.Ms(DateTime.Parse(r.GetProperty("date").GetString()!, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal))))
+                .OrderBy(r => r.Tempo).ToList();
+            var cambi = date.Zip(date.Skip(1), (a, b) => new ScartiDiRollover.Cambio(a.Tempo, a.Codice, b.Codice, b.Tempo)).ToList();
+            var rollover = ScartiDiRollover.Calcola(barre, strumento, cambi, misurati);
+            foreach (var r in rollover)
+                Console.WriteLine($"  {Tempo.Utc(r.Tempo):yyyy-MM-dd ddd HH:mm}Z  {r.Da} -> {r.A}  {strumento.InPrezzo(r.Scarto),9:+0.00;-0.00} punti  {r.Metodo}");
+            Archivio.ScriviRollover(simbolo, rollover);
+            Console.WriteLine($"{rollover.Count} rollover in {simbolo}/rollover.json: " +
+                              string.Join(", ", rollover.GroupBy(r => r.Metodo).Select(g => $"{g.Count()} {g.Key}")));
+            return 0;
+        }
+
+        case "taglia":
+        {
+            // Toglie dall'archivio i record prima di un istante: per le barre di un contratto singolo
+            // scaricate quando non era ancora il principale (poco scambiato, con i buchi).
+            var simbolo = o.Valore("simbolo") ?? throw new ArgumentException("--simbolo");
+            var tipo = o.Valore("tipo") ?? "m1";
+            var prima = DateTime.Parse(o.Valore("prima") ?? throw new ArgumentException("--prima AAAA-MM-GGTHH:MMZ"), CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal);
+            var soglia = Tempo.Ms(prima);
+            var tolti = 0;
+            foreach (var f in Directory.GetFiles(Archivio.Cartella(simbolo, tipo), "*.bin"))
+            {
+                var mese = Path.GetFileNameWithoutExtension(f);
+                var tutti = Archivio.Leggi<Barra>(simbolo, tipo, DateTime.ParseExact(mese + "-01", "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal),
+                    DateTime.ParseExact(mese + "-01", "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal).AddMonths(1), b => b.Inizio);
+                var restano = tutti.Where(b => b.Inizio >= soglia).ToArray();
+                tolti += tutti.Length - restano.Length;
+                if (restano.Length == 0) File.Delete(f); else Archivio.ScriviMese<Barra>(simbolo, tipo, mese, restano);
+            }
+            Console.WriteLine($"{tolti:N0} barre tolte da {simbolo}/{tipo}, prima del {prima:yyyy-MM-dd HH:mm}Z");
             return 0;
         }
 

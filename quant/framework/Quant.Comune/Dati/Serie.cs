@@ -11,9 +11,10 @@ public readonly record struct RiassuntoGiorno(DateOnly Data, int Apertura, int M
 
 /// <summary>
 /// Un cambio di contratto nella serie continua. Scarto = prezzo del nuovo meno prezzo del vecchio,
-/// in tick, misurato allo stesso istante.
+/// in tick, allo stesso istante. Metodo: come e' stato ottenuto lo scarto (misurato, salto, carry:
+/// vedi <see cref="ScartiDiRollover"/>); vuoto nei file scritti prima del 15 ottobre 2026.
 /// </summary>
-public readonly record struct Rollover(long Tempo, string Da, string A, int Scarto);
+public readonly record struct Rollover(long Tempo, string Da, string A, int Scarto, string Metodo = "");
 
 /// <summary>
 /// Le barre di uno strumento con il calendario gia' calcolato: per ogni barra il minuto di New York

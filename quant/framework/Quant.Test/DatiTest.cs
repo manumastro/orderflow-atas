@@ -66,4 +66,45 @@ public class DatiTest
         Assert.Equal(prima + 1200, serie.Barre[1999].Chiusura);
         Assert.Equal(barre[2000].Chiusura, serie.Barre[2000].Chiusura);
     }
+
+    private static Barra B(DateTime t, double apertura, double chiusura) => new()
+    {
+        Inizio = Tempo.Ms(t), Fine = Tempo.Ms(t.AddSeconds(59)),
+        Apertura = Strumento.NQ.InTick(apertura), Massimo = Strumento.NQ.InTick(Math.Max(apertura, chiusura)),
+        Minimo = Strumento.NQ.InTick(Math.Min(apertura, chiusura)), Chiusura = Strumento.NQ.InTick(chiusura), Volume = 100,
+    };
+
+    [Fact]
+    public void LoScartoDelRolloverViene_dal_salto_dal_carry_o_dalla_misura()
+    {
+        var u = DateTimeKind.Utc;
+        // tre rollover a 91 giorni l'uno dall'altro: giovedi' con un'ora di pausa, venerdi' con il fine
+        // settimana in mezzo, giovedi' con un'ora di pausa
+        var t1 = new DateTime(2019, 3, 7, 22, 0, 0, u);
+        var t2 = t1.AddDays(91);
+        var t3 = t2.AddDays(91);
+        var t4 = t3.AddDays(91);
+        var barre = new[]
+        {
+            B(t1.AddMinutes(-61), 10_000, 10_000), B(t1, 10_020, 10_021),                 // salto +20
+            B(t2.AddMinutes(-61), 10_000, 10_000), B(t2.AddHours(48), 9_900, 9_901),     // fine settimana: -100 inutilizzabile
+            B(t3.AddMinutes(-61), 10_000, 10_000), B(t3, 10_040, 10_041),                 // salto +40
+        };
+        var cambi = new[]
+        {
+            new ScartiDiRollover.Cambio(Tempo.Ms(t1), "NQH9", "NQM9", Tempo.Ms(t2)),
+            new ScartiDiRollover.Cambio(Tempo.Ms(t2), "NQM9", "NQU9", Tempo.Ms(t3)),
+            new ScartiDiRollover.Cambio(Tempo.Ms(t3), "NQU9", "NQZ9", Tempo.Ms(t4)),
+        };
+        var r = ScartiDiRollover.Calcola(barre, Strumento.NQ, cambi);
+        Assert.Equal(("salto", 20.0), (r[0].Metodo, Strumento.NQ.InPrezzo(r[0].Scarto)));
+        Assert.Equal(("salto", 40.0), (r[2].Metodo, Strumento.NQ.InPrezzo(r[2].Scarto)));
+        // a meta' strada il tasso e' la media dei due, e il prezzo e' lo stesso: lo scarto e' circa 30
+        Assert.Equal("carry", r[1].Metodo);
+        Assert.Equal(30.0, Strumento.NQ.InPrezzo(r[1].Scarto), 0);
+
+        // una misura data da fuori vince sul salto
+        var m = ScartiDiRollover.Calcola(barre, Strumento.NQ, cambi, new Dictionary<string, double> { ["NQH9"] = 25.5 });
+        Assert.Equal(("misurato", 25.5), (m[0].Metodo, Strumento.NQ.InPrezzo(m[0].Scarto)));
+    }
 }
