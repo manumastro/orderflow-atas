@@ -43,6 +43,8 @@ obblighi della lettura discrezionale valgono solo quando l'utente chiede una let
 - La **profondita' storica** dei dati ATAS dipende dall'abbonamento: va misurata al primo giorno
   di connessione (`quant/metodo/i-dati-da-atas.md`, il piano). Oggi l'archivio ha 50 giornate M1
   di NQZ6, ma **solo 22 sedute complete** (dal 10 settembre): prima NQZ6 non era il contratto principale.
-- La **divisione dentro/fuori di NQ non e' fissata**, apposta: si fissa con la storia lunga.
+- **Storia lunga di NQ dal 15 ottobre 2026**: M1 dal continuo di ATAS, dal 12 aprile 2017, 2.365
+  sedute complete; rollover in `NQ/rollover.json` (`quant/metodo/i-dati-da-atas.md`). La
+  **divisione e' fissata**: dentro fino al 31 dicembre 2024, fuori dal 2025.
 - L'hook del giro d'orizzonte e' **spento** dall'11 ottobre 2026, su richiesta dell'utente: per
   una lettura dal vivo si lancia a mano (`docs/research/metodo/il-giro-d-orizzonte.md`).

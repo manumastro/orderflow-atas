@@ -135,8 +135,11 @@ Nessuna esportazione in blocco di tick o book: **il bridge e' la via d'uscita**.
   rollover, nel 2022-2023 sotto fino a circa 60. **Pesa solo sui livelli rettificati del passato**
   (le distanze fra prezzi di contratti diversi); i rendimenti dentro una giornata non ne dipendono.
   Per toglierlo, si misura ogni rollover sui minuti appaiati, se ATAS carica i contratti scaduti.
-- **Nei test intraday la prima seduta dopo un rollover si esclude**: e' l'unica in cui un rendimento
-  dalla chiusura del giorno prima mette insieme due contratti. **Da fare nel motore.**
+- **Nei test la prima seduta dopo un rollover si esclude**: e' l'unica in cui un rendimento dalla
+  chiusura del giorno prima mette insieme due contratti. Dal 15 ottobre 2026 lo fa il motore:
+  `Serie.DopoRollover` segna quelle giornate, `Backtest` non ci apre posizioni (le conta in
+  `EsclusiRollover`, e il rapporto lo scrive), il nullo del quando non ci pesca. La strategia le vede
+  comunque, cosi' il contesto resta coerente.
 
 ## Il Piano
 

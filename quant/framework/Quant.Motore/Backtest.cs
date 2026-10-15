@@ -19,6 +19,8 @@ public sealed class Risultato
     public required double[] NettoGiorno { get; init; }
     /// <summary>Ingressi eseguibili scartati: la dimensione dava zero contratti, o l'eseguito cadeva gia' oltre lo stop.</summary>
     public required int Saltati { get; init; }
+    /// <summary>Ingressi non fatti perche' la giornata e' la prima dopo un rollover (<see cref="Serie.DopoRollover"/>).</summary>
+    public int EsclusiRollover { get; init; }
     public required TimeSpan Durata { get; init; }
     public int Barre => Serie.Giorni[GiornoA].Ultimo - Serie.Giorni[GiornoDa].Primo + 1;
     public DateOnly Da => Serie.Giorni[GiornoDa].Data;
@@ -32,7 +34,7 @@ public sealed class Risultato
 ///
 /// L'ordine degli eventi su ogni barra i:
 /// 1. uscita richiesta dalla strategia, all'apertura;
-/// 2. ingresso in attesa (deciso alla chiusura di i-1);
+/// 2. ingresso in attesa (deciso alla chiusura di i-1); mai nella prima giornata dopo un rollover;
 /// 3. uscite della posizione: a tempo all'apertura, poi gap, poi stop e target dentro la barra;
 /// 4. la strategia vede la barra chiusa e decide;
 /// 5. fine giornata: chiusura e annullamento, se la strategia lo chiede.
@@ -57,6 +59,7 @@ public static class Backtest
         var operazioni = new List<Operazione>();
         var netto = new double[giornoA - giornoDa + 1];
         var saltati = 0;
+        var esclusiRollover = 0;
         var inizio = serie.Giorni[giornoDa].Primo;
         var fine = serie.Giorni[giornoA].Ultimo;
         var giornoCorrente = -1;
@@ -78,6 +81,11 @@ public static class Backtest
             if (c.InAttesa is { } o && c.Pos is null)
             {
                 if (b.Inizio >= o.Scadenza) c.InAttesa = null;
+                else if (serie.DopoRollover[serie.IndiceGiorno[i]])
+                {
+                    c.InAttesa = null;
+                    esclusiRollover++;
+                }
                 else if (Eseguito(o, b, e) is { } prezzo)
                 {
                     c.InAttesa = null;
@@ -137,7 +145,7 @@ public static class Backtest
         {
             Strategia = strategia.Nome, Versione = strategia.Versione, Impronta = parametri.Impronta(strategia.Nome, strategia.Versione),
             Parametri = parametri, Esecuzione = e, Dimensione = dimensione.Descrizione, Serie = serie,
-            GiornoDa = giornoDa, GiornoA = giornoA, Operazioni = operazioni, NettoGiorno = netto, Saltati = saltati,
+            GiornoDa = giornoDa, GiornoA = giornoA, Operazioni = operazioni, NettoGiorno = netto, Saltati = saltati, EsclusiRollover = esclusiRollover,
             Durata = orologio.Elapsed,
         };
 

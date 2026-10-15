@@ -104,6 +104,8 @@ public static class Rapporto
         foreach (var c in new[] { v.Dentro, v.Fuori }.OfType<Campione>())
             s.AppendLine($"| {c.Nome} | " + string.Join(" | ", Enum.GetValues<MotivoUscita>().Select(m => c.Risultato.Operazioni.Count(o => o.MotivoUscita == m))) + " |");
         s.AppendLine();
+        if (dentro.EsclusiRollover > 0 || v.Fuori?.Risultato.EsclusiRollover > 0)
+            s.AppendLine($"Ingressi non fatti nella prima giornata dopo un rollover: dentro {dentro.EsclusiRollover}, fuori {v.Fuori?.Risultato.EsclusiRollover ?? 0}.");
         if (dentro.Saltati > 0 || v.Fuori?.Risultato.Saltati > 0)
             s.AppendLine($"Ingressi saltati (dimensione zero o eseguito oltre lo stop): dentro {dentro.Saltati}, fuori {v.Fuori?.Risultato.Saltati ?? 0}.");
 

@@ -128,4 +128,21 @@ public class BacktestTest
         Assert.Equal(r.Operazioni.Sum(o => o.Netto), r.NettoGiorno.Sum(), 6);
         Assert.Equal(-105.0, r.NettoGiorno[0], 6);
     }
+
+    [Fact]
+    public void NellaPrimaGiornataDopoUnRolloverNonSiApre()
+    {
+        // due giornate, il rollover all'apertura della seconda: la stessa strategia entra il lunedi' e non il martedi'
+        var lun = Giornata(Lunedi, (100, 101, 99, 100), (100, 101, 99, 100), (100, 101, 99, 100)).Barre;
+        var mar = Giornata(Lunedi.AddDays(1), (100, 101, 99, 100), (100, 101, 99, 100), (100, 101, 99, 100)).Barre;
+        var barre = lun.Concat(mar).ToArray();
+        var roll = new Rollover(mar[0].Inizio, "NQH6", "NQM6", 0, "test");
+        var serie = new Serie(Strumento.NQ, barre, "test", [roll]);
+        Assert.Equal([false, true], serie.DopoRollover);
+
+        var r = Backtest.Esegui(serie, new Comandata(0, _ => new Ordine { Lato = Lato.Long }), new Parametri(), Zero);
+        var o = Assert.Single(r.Operazioni);
+        Assert.Equal(Lunedi, o.Giorno);
+        Assert.Equal(1, r.EsclusiRollover);
+    }
 }

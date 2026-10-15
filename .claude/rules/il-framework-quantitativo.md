@@ -22,8 +22,9 @@ Quant.Cli/bin/Release/net10.0/quant.exe <comando>
 1. **Il registro e la divisione sono veri.** `quant/registro/prove.jsonl` conta le
    varianti provate e `divisioni.json` fissa il confine dentro/fuori. Le prove sul mercato sintetico, i test e gli
    esperimenti usano `QUANT_REGISTRO`, `QUANT_RISULTATI` e `QUANT_DATI` puntati alla scratchpad.
-   **Mai `quant divisione --fissa` su NQ senza che l'utente lo chieda**: si fissa una volta, quando
-   la storia lunga e' scaricata.
+   **La divisione di NQ e' fissata** (15 ottobre 2026, dentro fino al 31 dicembre 2024): non si
+   sposta. **Il fuori campione di NQ e' dal 2025 in poi**, e ogni sguardo ai dati 2025-2026 (anche
+   esplorativo, anche su `NQ/m5`) lo consuma: si guarda solo con `valida --fuori`.
 2. **`valida --fuori` consuma il fuori campione.** Si lancia a regole congelate, una volta per
    variante, e solo quando l'utente lo vuole.
 3. **Il look-ahead non si scrive**: una strategia legge solo dal `Contesto`. Ogni dato precalcolato

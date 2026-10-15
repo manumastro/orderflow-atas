@@ -30,6 +30,13 @@ public sealed class Serie
     /// <summary>Indice in <see cref="Giorni"/> della giornata della barra.</summary>
     public int[] IndiceGiorno { get; }
     public Giornata[] Giorni { get; }
+
+    /// <summary>
+    /// Per ogni giornata: vero se contiene la prima barra dopo un rollover. E' l'unica giornata in cui
+    /// un rendimento dalla chiusura del giorno prima mette insieme due contratti, e lo scarto della
+    /// rettifica e' a volte stimato (quant/metodo/i-dati-da-atas.md): il motore non ci apre posizioni.
+    /// </summary>
+    public bool[] DopoRollover { get; }
     public RiassuntoGiorno[] Riassunti { get; }
     public Rollover[] Rollover { get; }
     public bool Rettificata { get; }
@@ -72,6 +79,13 @@ public sealed class Serie
         }
         if (barre.Length > 0) giorni.Add(new Giornata(corrente, primo, barre.Length - 1));
         Giorni = [.. giorni];
+
+        DopoRollover = new bool[Giorni.Length];
+        foreach (var r in Rollover)
+        {
+            var k = Array.FindIndex(barre, b => b.Inizio >= r.Tempo);
+            if (k > 0) DopoRollover[IndiceGiorno[k]] = true;
+        }
 
         Riassunti = new RiassuntoGiorno[Giorni.Length];
         for (var d = 0; d < Giorni.Length; d++)

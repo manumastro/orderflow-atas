@@ -52,8 +52,12 @@ Le aggiunte del framework, perche' il transcript non dice cosa fare quando la re
   con strategia, versione, impronta, parametri, campione e risultato. Serve a **contare le varianti
   provate**.
 
-**La divisione di NQ non e' ancora fissata**, apposta: l'archivio ha 50 giornate (3 agosto - 9
-ottobre 2026). Si fissa quando la storia lunga e' scaricata.
+**La divisione di NQ e' fissata dal 15 ottobre 2026**, su richiesta dell'utente, dopo aver
+scaricato la storia lunga (M1 dal 12 aprile 2017): **dentro fino al 31 dicembre 2024** (1.994
+giornate), **fuori dal 1 gennaio 2025** (463 giornate quel giorno, e crescono). Il confine e' a fine
+anno invece che all'80% esatto (19 novembre 2024), come proposto all'utente: circa l'82% dentro.
+`divisioni.json` registra anche la quota 0,8 di default, che qui non e' stata usata. **Anche
+`NQ/m5` (dal 25 maggio 2025) e' tutto fuori campione.**
 
 ## Il Modello Nullo
 

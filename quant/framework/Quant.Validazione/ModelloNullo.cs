@@ -46,6 +46,7 @@ public static class ModelloNullo
         var tutti = new List<int>();
         for (var d = r.GiornoDa; d <= r.GiornoA; d++)
         {
+            if (serie.DopoRollover[d]) continue; // come il motore: nessun ingresso dopo un rollover
             var g = serie.Giorni[d];
             for (var j = g.Primo; j < g.Ultimo; j++)
                 if (InFinestra(serie.MinutoEt[j], da, a)) tutti.Add(j);
