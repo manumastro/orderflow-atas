@@ -112,6 +112,32 @@ def coda_sezione(testo: str, titoli: list[str], righe: int = 40) -> str:
     return "\n".join(fuori).rstrip()
 
 
+def senza_segnali(righe: list[dict]) -> list[dict]:
+    """IL GIRO FA IL PUNTO, NON DA' SEGNALI (16 ottobre 2026, richiesta dell'utente). L'analisi
+    dell'indicatore porta ancora le righe del vecchio sistema a segnali: lo scenario (SERVE A
+    LONG/SHORT, bersaglio, invalida, pareggio, le condizioni), i veti e il consiglio di size del
+    regime. Le misure restano - regime, efficienza, velocita', big trade, livello in gioco - e il
+    resto si toglie qui, non nell'indicatore: il pannello e' condiviso e non si ridistribuisce per
+    una scelta di lettura. La regola: docs/research/metodo/come-si-risponde-dal-vivo.md."""
+    fuori, scenario = [], False
+    for r in righe:
+        t = (r.get("text") or "").strip()
+        if t.startswith("SERVE"):
+            scenario = True
+            continue
+        if scenario and (t.startswith(("bersaglio", "pareggio", "[x]", "[ ]", "invalida"))):
+            continue
+        scenario = False
+        if r.get("peso") == "veto" or t.startswith(("VETI", "!")):
+            continue
+        if "size" in t and not t.startswith(("REGIME", "VELOCITA")):
+            continue
+        if t.startswith("NIENTE IN GIOCO"):
+            r = {**r, "text": "IN GIOCO    nessun livello vicino; i due piu' vicini:"}
+        fuori.append(r)
+    return fuori
+
+
 def main() -> int:
     p = argparse.ArgumentParser(description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -353,11 +379,11 @@ def main() -> int:
         # `analisi`: sul chart non ci sono, ma l'agente li deve dichiarare (CLAUDE.md, obbligo 4).
         visti = {r.get("text") for r in pn.get("lines", [])}
         extra = [r for r in pn.get("analisi", []) if r.get("text") not in visti]
+        extra = [r for r in senza_segnali(extra)]
         if extra:
-            print("  -- NON SUL CHART, per l'agente: regime, velocita', in gioco, veti --")
+            print("  -- NON SUL CHART, per l'agente: regime, velocita', livello in gioco --")
             for riga in extra:
-                marca = {"veto": "!!", "attenzione": " *"}.get(riga.get("peso"), "  ")
-                print(f"  {marca} {riga.get('text', '')}")
+                print(f"     {riga.get('text', '')}")
 
     # 6ter ----------------------------------------------------------------- i livelli
     # QUESTA SEZIONE ESISTE PERCHE' IL PANNELLO NON LO DICE PIU'. Il 20 settembre 2026 il blocco

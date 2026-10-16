@@ -349,6 +349,63 @@ def confluenze(cartella: Path, soglia: float = 15.0) -> dict:
             "nota": "solo vicinanze fra fonti diverse; nessuna e' validata come supporto o resistenza"}
 
 
+def in_breve(cartella: Path) -> dict:
+    """UN FILE PICCOLO PER FASE, da leggere per primo (15 ottobre 2026: la gamma e l'order flow leggevano i
+    JSON grandi a pezzi e sforavano il tempo). Sono gli stessi numeri dei file grandi, scelti e messi in
+    fila, piu' le poche misure che prima l'agente calcolava a mano (la scala della GEX): ogni conto si fa
+    qui, una volta. I file grandi restano per un dato che qui manca."""
+    def leggi(nome: str) -> dict:
+        try:
+            return json.loads((cartella / nome).read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            return {}
+    gx, sed, pan = leggi("gex-NQZ6.json"), leggi("sedute-NQZ6.json"), leggi("pannello.json")
+    out: dict = {}
+    if gx:
+        tot = gx.get("tutte") or {}
+        vol_medio = None
+        righe = sed.get("sedute") or []
+        if righe:
+            vol_medio = round(sum(r["volume"] for r in righe) / len(righe))
+        f = gx.get("future") or 0
+        # la scala: future NQ da comprare o vendere per un movimento dell'1%, contro il volume medio di cassa
+        # (GEX in milioni di $ per 1%; un future NQ vale 20 $ a punto, quindi f*20 $ di nozionale)
+        scala = {}
+        for conv in ("tot_a", "tot_b"):
+            if tot.get(conv) and f:
+                n = abs(tot[conv]) * 1e6 / (f * 20)
+                scala[conv.replace("tot_", "convenzione_")] = {
+                    "future_per_1pct": round(n), "punti_di_un_1pct": round(f / 100, 1),
+                    "quota_del_volume_medio_di_cassa_pct": round(100 * n / vol_medio, 2) if vol_medio else None}
+        pesanti = sorted(gx.get("per_strike") or [], key=lambda r: abs(r.get("gex_netta") or 0), reverse=True)[:10]
+        out["gamma"] = {
+            "quando": gx.get("quando"), "future": f, "future_quando": gx.get("future_quando"),
+            "prezzo_bridge": gx.get("prezzo_bridge"),
+            "orizzonti": {k: {x: (gx.get(k) or {}).get(x) for x in ("tot_a", "tot_b", "zero", "zeri", "call_wall",
+                                                                      "put_wall", "peso_b", "giorno")}
+                          for k in ("tutte", "settimana", "prima")},
+            "strike_pesanti": pesanti,
+            "scadenze": [{x: s_.get(x) for x in ("giorno", "tipo", "oi", "vol_atm", "mossa_attesa", "quotate",
+                                                 "opzioni", "oi_stabile")} | (gx.get("gex_per_scadenza") or {}).get(s_["giorno"], {})
+                         for s_ in gx.get("scadenze") or []],
+            "scadenze_saltate": [x.get("giorno") for x in gx.get("scadenze_saltate") or []],
+            "oi_cambiato": gx.get("oi_cambiato_rispetto_al_calcolo_precedente"),
+            "volume_medio_di_cassa_20_sedute": vol_medio, "scala": scala,
+            "realizzata": (leggi("ore-NQZ6.json") or {}).get("volatilita_realizzata")}
+    if sed or pan:
+        out["orderflow"] = {
+            "pannello": [r.get("text") for r in pan.get("lines") or []],
+            "oggi_notte": sed.get("oggi_notte"), "oggi_cassa": sed.get("oggi_cassa"),
+            "ultime_5_sedute": [{k: v for k, v in r.items() if k != "profilo_da_10"} for r in (sed.get("sedute") or [])[-5:]],
+            "profilo_di_ieri": ((sed.get("sedute") or [{}])[-1]).get("profilo_da_10"),
+            "composito_di_cassa": sed.get("composito_di_cassa"), "composito_di_cassa_90": sed.get("composito_di_cassa_90"),
+            "zona": sed.get("zona_nel_composito_di_cassa"), "rendimento_dalla_chiusura_di_ieri": sed.get("rendimento_dalla_chiusura_di_ieri"),
+            "composito_della_tab_1": (leggi("tab-ruoli.json").get("composito") or {}).get("dati"),
+            "barre_range": leggi("range-NQZ6.json")}
+    out["confluenze"] = (leggi("confluenze.json") or {}).get("confluenze")
+    return out
+
+
 def orderflow(cartella: Path, manifesto: dict, giro_dopo: bool = False) -> None:
     """Le misure dell'order flow. Con `giro_dopo` il giro e le quattro tab NON si fanno qui: li fa main()
     una volta sola, a GEX finita (ogni calcolo si fa una volta)."""
@@ -457,6 +514,7 @@ def main() -> int:
         scrivi(cartella, "giro.txt", passo(manifesto, "giro", "giro.txt", giro) or "")
     scrivi(cartella, "confluenze.json", passo(manifesto, "confluenze", "confluenze.json",
                                               lambda: confluenze(cartella)) or {})
+    scrivi(cartella, "in-breve.json", passo(manifesto, "in-breve", "in-breve.json", lambda: in_breve(cartella)) or {})
 
     manifesto["_totale_secondi"] = round(time.time() - inizio, 1)
     manifesto["_raccolto"] = dt.datetime.now(ROMA).strftime("%Y-%m-%d %H:%M ora italiana")

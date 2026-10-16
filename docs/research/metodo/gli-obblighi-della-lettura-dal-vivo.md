@@ -11,11 +11,11 @@ documento, non fidandosi della riga.
 | **1** | **Guarda tutto il contesto, dal piu' lontano al piu' vicino**: le quattro tab nell'ordine (Daily, M30 con la GEX, M1, Range). Dal 15 ottobre 2026 arriva da solo a ogni messaggio (hook); a mano `CLAUDE_PROJECT_DIR="$PWD" bash .claude/hooks/giro-orizzonte.sh`. Si legge. Se il bridge non risponde, **lo si dichiara**. Il calendario degli eventi lo tiene l'agente. | [il-giro-d-orizzonte](il-giro-d-orizzonte.md) |
 | **2** | **Fai il quadro — framing e COT insieme — anche senza che lo si chieda.** Una lettura con la sezione 4bis vuota e' una lettura sulle ultime barre. | [il-framing-e-il-cot](il-framing-e-il-cot-si-leggono-insieme.md) |
 | **3** | **Leggi la giornata di oggi e di ieri prima di chiedere dati**, poi chiedi solo cio' che manca. | [come-si-scrive-una-giornata](../giornate/come-si-scrive-una-giornata.md) |
-| **4** | **Dichiara quale dei tre modelli gira e qual e' il regime**, prima di dire che un setup esiste. Lo decide la posizione del prezzo, non l'umore; il regime lo **misura l'indicatore** e il giro lo stampa, non si deduce a mano. | [i-tre-modelli-del-live-q1](i-tre-modelli-del-live-q1.md) |
+| **4** | **Dichiara quale dei tre modelli gira e qual e' il regime**, come descrizione del mercato. Lo decide la posizione del prezzo, non l'umore; il regime lo **misura l'indicatore** e il giro lo stampa, non si deduce a mano. | [i-tre-modelli-del-live-q1](i-tre-modelli-del-live-q1.md) |
 | **5** | **Non parafrasare un termine a memoria**: apri la fonte. Un'affermazione con conseguenza operativa deve essere tracciabile a un minuto del live, o e' un'osservazione. | [glossario-del-metodo](glossario-del-metodo.md) |
-| **6** | **Ogni prezzo che nomini dice a cosa serve arrivarci** — permesso, bersaglio, invalidazione, posizionamento. Se non lo sai dire, non nominarlo. | [come-si-risponde-dal-vivo](come-si-risponde-dal-vivo.md) |
-| **7** | **Rispondi con una direzione e i suoi numeri**: `LONG` / `SHORT` / `NIENTE`, ingresso, stop, **break even**, bersaglio, invalidazione. Poche righe. Niente gestione senza sapere che l'utente e' dentro. | [come-si-risponde-dal-vivo](come-si-risponde-dal-vivo.md) |
-| **8** | **Prima di armare una condizione, le sette prove.** Una condizione non descrive un setup: **lo separa dal suo sosia**. | [sorveglianza-del-tape](sorveglianza-del-tape.md) |
+| **6** | **Ogni prezzo che nomini dice cosa cambia arrivandoci** — cambio di modello, tratto successivo, smentita, posizionamento. Se non lo sai dire, non nominarlo. | [come-si-risponde-dal-vivo](come-si-risponde-dal-vivo.md) |
+| **7** | **Fai il punto della situazione, non dare segnali** (16 ottobre 2026): niente `LONG` / `SHORT` / `NIENTE`, ingresso, stop o bersaglio. Il punto usa tutti gli studi del giorno (l'ultimo quadro, cosa e' cambiato, le fasi con la loro eta'), dove sta il prezzo, i livelli e cosa guardare. Fino al 15 ottobre questo obbligo chiedeva la direzione. | [come-si-risponde-dal-vivo](come-si-risponde-dal-vivo.md) |
+| **8** | **Prima di armare una condizione, le sette prove** (solo se l'utente riapre la sorveglianza, fase chiusa). Una condizione non descrive un setup: **lo separa dal suo sosia**. | [sorveglianza-del-tape](sorveglianza-del-tape.md) |
 
 ## La Gerarchia Delle Fonti Della Lettura
 
@@ -39,7 +39,7 @@ AAA e' citabile ma non comanda: ha un gate orario che nel live non esiste. Lo st
 | **il prezzo** di ogni livello — POC, bordi, estremi, nodi, mensole, aggressione, assorbimento | l'indicatore, a ogni barra |
 | **il regime**, il proxy della velocita' e i big trades sopra soglia | l'indicatore, a ogni barra |
 | **quali** livelli contano, su quale finestra, e a cosa serve arrivarci | l'agente |
-| la **lettura** — direzione, ingresso, stop, bersaglio | l'agente, **su richiesta** |
+| il **punto della situazione** — dove siamo, cosa e' cambiato, cosa guardare | l'agente, **su richiesta**; segnali operativi mai (16 ottobre 2026) |
 
 Non c'e' nessun processo da accendere, e i marcatori sono tre: `~` misurato su finestra aperta,
 `=` misurato su finestra chiusa, `*` dichiarato a mano — l'eccezione, l'unico che puo' invecchiare

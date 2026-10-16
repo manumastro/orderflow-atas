@@ -19,6 +19,8 @@ vicina. Il rapporto segue [`../studio-globale/modello-del-rapporto.md`](../studi
 
 ## I Tuoi Dati
 
+**Leggi per primo `dati/in-breve.json`, la sezione `orderflow`**: e' un file solo, piccolo, con i numeri che ti servono gia' scelti (il pannello riga per riga, la notte e la cassa di oggi, le ultime 5 sedute, i compositi, le barre range). Apri i file grandi qui sotto solo per un dato che li' manca, e mai a pezzi: lo studio ha un tempo (15 ottobre 2026: leggendo i JSON grandi a pezzi questa fase ha sforato).
+
 Tutti in `dati/`, raccolti da `studio/raccogli.py` dal bridge di ATAS:
 
 | file | cosa c'e' |

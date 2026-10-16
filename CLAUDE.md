@@ -55,8 +55,10 @@ costruisce con le dodici regole** di [la-metodologia-agentica](studio/la-metodol
 prima: il codice raccoglie e misura, l'agente legge); i sistemi, le fonti, come si lanciano e le
 lezioni del primo giro in [il-sistema-di-studio](studio/il-sistema-di-studio.md).
 
-**Quando l'utente chiede una lettura del mercato dal vivo**, valgono gli otto obblighi della
-lettura discrezionale, tutti: [gli-obblighi-della-lettura-dal-vivo](docs/research/metodo/gli-obblighi-della-lettura-dal-vivo.md).
+**Quando l'utente chiede una lettura del mercato dal vivo** ("vedi ora", "rifai giro"), si fa **il punto
+della situazione con tutti gli studi, non si danno segnali** (niente LONG, SHORT, NIENTE, ingressi o
+stop; 16 ottobre 2026), e valgono gli obblighi della lettura discrezionale, tutti:
+[gli-obblighi-della-lettura-dal-vivo](docs/research/metodo/gli-obblighi-della-lettura-dal-vivo.md).
 
 ## Regole Di Lavoro
 
@@ -71,6 +73,9 @@ lettura discrezionale, tutti: [gli-obblighi-della-lettura-dal-vivo](docs/researc
   `FabioOrderFlow/progress.txt`.
 - **Registra i risultati negativi** come quelli positivi, e dichiara soglie, convenzioni e
   orizzonti accanto al numero che producono.
+- **L'utente sta imparando le opzioni**: quando se ne parla, ogni termine si spiega in parole semplici,
+  con cosa significa per il prezzo e quanto e' provato. La regola: `.claude/skills/studio-globale/SKILL.md`,
+  "Le regole che valgono per tutte le fasi".
 - **Scrivi per una persona e per un agente**: termine tecnico spiegato alla prima occorrenza,
   frasi brevi, nessuna decisione importante lasciata solo nella conversazione.
 - **Ogni file di documentazione ha un nome descrittivo.** Niente `README.md`; l'ingresso e'

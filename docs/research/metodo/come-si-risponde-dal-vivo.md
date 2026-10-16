@@ -1,6 +1,6 @@
 # Come Si Risponde Dal Vivo
 
-Stato: **obbligo**. Riguarda l'**output**: cosa si dice, in che forma, con quali parole.
+Stato: **obbligo**, riscritto il 16 ottobre 2026 (il punto, non i segnali). Riguarda l'**output**: cosa si dice, in che forma, con quali parole.
 L'**input** — guardare tutto prima — sta in [`il-giro-d-orizzonte.md`](il-giro-d-orizzonte.md).
 
 Chi legge **ha gli occhi sul grafico**, a mercato aperto, e deve capire in dieci secondi. La
@@ -8,48 +8,52 @@ lettura serve a dire quello che **non si vede guardando**.
 
 ---
 
-## Si Dice La Direzione, Non La Si Lascia Intendere
+## Si Fa Il Punto, Non Si Danno Segnali
 
-**Quando l'utente chiede cosa fare, si risponde con una direzione e i suoi numeri.** Non con una
-descrizione da cui dedurla, non con un elenco di rami equiprobabili, non con un cappello di
-cautele. Richiesta esplicita dell'utente, 17 settembre 2026.
+**Dal 16 ottobre 2026 la lettura dal vivo fa il punto della situazione e non da' segnali.** Niente
+`LONG`, `SHORT` o `NIENTE`, niente ingresso, stop, break even o bersaglio. Richiesta dell'utente:
+*"vorrei che il giro normale non dica ad esempio NIENTE o altro di simile, quello e' basato su un
+vecchio sistema che feci per cui l'agente mi deve dare dei segnali, invece deve solo fare il punto
+della situazione utilizzando tutti gli studi fatti, considerando tutto il contesto possibile"*.
+Sostituisce la richiesta del 17 settembre 2026 ("si dice la direzione"), che resta nella storia
+del file.
+
+**Il punto usa tutti gli studi, non solo il giro.** In ordine, dal piu' lontano al piu' vicino:
 
 ```text
-DIREZIONE      LONG, SHORT oppure NIENTE. Una parola, per prima.
-INGRESSO       a che prezzo, e su quale evento (chiusura sopra X, ritorno su Y)
-STOP           un prezzo, dietro una STRUTTURA di ordini eseguiti - mai un numero tondo
-BREAK EVEN     il LIVELLO al quale l'analisi si smonta, e quale struttura lo giustifica
-BERSAGLIO      un prezzo e i punti che dista
-INVALIDA       il prezzo che smonta la lettura
+1 IL QUADRO     l'ultimo studio globale del giorno (5-quadro.md) con la sua ora: cosa diceva
+2 COSA E' CAMBIATO   da quel quadro: quali sue smentite si sono avverate, quali livelli sono caduti
+3 LE FASI       macro, COT, opzioni, valore: una riga ciascuna, con l'eta' del dato
+4 ADESSO        dove sta il prezzo nel valore (ieri, oggi, notte), il regime e la velocita' misurati
+5 I PREZZI      i livelli che contano, ognuno con cosa cambia arrivandoci
+6 COSA GUARDARE il discriminante: quale fatto osservabile cambierebbe il punto, nei due sensi
 ```
 
-**Il campo BREAK EVEN non e' decorativo**: nel live e' l'edge. Uno stop senza il suo punto di
-break even e' meta' istruzione. Sta in
-[`la-gestione-della-posizione.md`](la-gestione-della-posizione.md).
+**Si dice sempre, perche' cambia la lettura:** se uno studio e' vecchio rispetto al prezzo (e
+allora si propone di rifarlo), se il volume e' troppo sottile perche' una misura valga, se una
+misura viene da una **barra non chiusa**, se una lettura precedente e' stata smentita, e **qual e'
+il regime**. Le opzioni si spiegano in parole semplici: l'utente le sta imparando
+(`.claude/skills/studio-globale/SKILL.md`, "Le regole che valgono per tutte le fasi").
 
-**`NIENTE` e' una direzione e si dice senza scusarsi.** "Non c'e' un setup, questi sono i due
-prezzi che lo farebbero nascere" e' una risposta completa. Cio' che non e' una risposta e'
-descrivere il tape e lasciare che sia chi legge a concludere.
-
-**Le cautele di provenienza non entrano nella risposta dal vivo.** Restano nei file, che e'
-tracciabilita'. **Quello che invece si dice sempre, perche' cambia cosa si fa:** se il volume e'
-troppo sottile perche' il segnale valga, se una misura viene da una **barra non chiusa**, se una
-lettura precedente e' stata smentita, e **qual e' il regime**.
-
-**Non si da' gestione su una posizione senza sapere che l'utente e' dentro.**
+**Le righe operative del pannello non si riportano.** L'indicatore porta ancora lo scenario
+(`SERVE A`, bersaglio, pareggio), i veti e il consiglio di size del regime: il giro li toglie
+(`senza_segnali` in `FabioOrderFlow/tools/giro_orizzonte.py`) e la risposta non li ricostruisce.
 
 ---
 
-## La Forma: Tre Parti, In Quest'Ordine, E Nient'Altro
+## La Forma: Breve, Con La Conclusione Prima
 
-1. **Lo stato**, una frase. Cosa sta facendo il prezzo, e se e' deciso o no.
+1. **Lo stato**, una frase. Dove siamo e cosa sta facendo il prezzo, e se e' deciso o no.
 2. **La misura**, due o tre numeri. Solo quelli che sostengono la frase sopra.
-3. **Il discriminante**, una riga per ramo. Quale livello risolve, e cosa significa ciascun esito.
+3. **Il discriminante**, una riga per ramo. Quale fatto risolve, e cosa significa ciascun esito per il
+   quadro (non per un'operazione).
+
+Le sei voci del punto stanno dentro queste tre parti: il quadro e le fasi nello stato, adesso e i
+prezzi nella misura, cosa guardare nel discriminante.
 
 **Regole:**
 
 - **Un numero entra solo se cambia la conclusione.**
-- **Niente tabella sotto le quattro righe.**
 - **Non si rielenca cio' che e' gia' sul chart.**
 - **Un termine tecnico si spiega alla prima occorrenza della seduta**, non tutte le volte.
 - **Se non e' cambiato niente, si scrive quella riga sola.**
@@ -61,25 +65,24 @@ tutto, comprese le misure che si riveleranno sbagliate — sono la parte verific
 
 ---
 
-## Prima Di Dichiarare Che Un Setup Esiste
+## Il Modello E Il Regime Si Dichiarano
 
-**Si dichiara quale dei tre modelli sta girando, e lo decide la posizione del prezzo, non
-l'umore.**
+**Si dichiara quale dei tre modelli descrive il mercato, e lo decide la posizione del prezzo, non
+l'umore.** E' una descrizione: dice che tipo di mercato e', non cosa fare.
 
 ```text
-balance / mean reverting   il prezzo e' chiuso dentro la cash precedente  -> fade dei bordi verso il POC
-momentum                   una balance viene rotta                        -> con speed of tape, o non si entra
-trend following            giornata direzionale                           -> si fade il ritracciamento nel verso del giorno
+balance / mean reverting   il prezzo e' chiuso dentro la cash precedente  -> i bordi respingono verso il POC
+momentum                   una balance viene rotta                        -> conta la speed of tape della rottura
+trend following            giornata direzionale                           -> i ritracciamenti vanno nel verso del giorno
 ```
 
-Prendere un setup momentum dentro la balance, o un mean reverting fuori dal valore, e' lo stesso
-errore con due nomi. Dettaglio e citazioni in
+Leggere come momentum un mercato in balance, o come balance un prezzo fuori dal valore, e' lo
+stesso errore con due nomi. Dettaglio e citazioni in
 [`i-tre-modelli-del-live-q1.md`](i-tre-modelli-del-live-q1.md).
 
-**E si dichiara il regime**, perche' decide la size prima di decidere il setup: direzionale (una
-candela copre piu' di cinque candele del range precedente), balance, oppure choppy. Su una
-giornata choppy si riduce la size, si prendono profitti piccoli sui livelli, si accettano i break
-even e si chiude al secondo stop.
+**E si dichiara il regime** come lo misura l'indicatore: direzionale (una candela copre piu' di
+cinque candele del range precedente), balance, oppure choppy. Dice quanto il prezzo sta andando da
+qualche parte (l'efficienza: netto su strada), non cosa fare.
 
 ---
 
@@ -88,19 +91,20 @@ even e si chiude al secondo stop.
 **Ogni volta che si nomina un prezzo, una zona o un livello, si dice a cosa serve arrivarci.**
 Vale ovunque: letture dal vivo, file della giornata, etichette sul chart, risposte a una domanda.
 
-Un livello puo' servire a **quattro cose**, e va detto quale:
+Dal 16 ottobre 2026 si dice **cosa cambia del quadro** arrivandoci, non cosa permette di fare.
+Un livello puo' fare **quattro cose**, e va detto quale:
 
 | | cosa cambia arrivandoci |
 |---|---|
-| **permesso** | cambia cosa e' lecito fare: i bordi del valore per il mean reverting, la rottura della balance per il momentum |
-| **bersaglio** | apre il tratto successivo — e allora si dice **quale** e **quanti punti** |
-| **invalidazione** | smonta una lettura in corso: un rimbalzo smette di esserlo |
+| **cambio di modello** | il prezzo entra o esce da un valore: da balance a momentum, o il contrario |
+| **tratto successivo** | apre la strada fino al prossimo livello, e allora si dice **quale** e **quanti punti** |
+| **smentita** | smonta una lettura in corso o una riga del quadro: un rimbalzo smette di esserlo |
 | **posizionamento** | dice chi resta intrappolato o liberato, e quindi chi dovra' agire |
 
 **Sbagliato:** *"serve riprendere 29.372,50"* — riprenderlo per cosa?
 
-**Giusto:** *"serve riprendere 29.372,50, dove ieri si e' aperto lo short: sopra, il primo
-bersaglio e' la mensola a 29.453,50, ottanta punti, e chi ha comprato stamattina smette di essere
+**Giusto:** *"29.372,50 e' dove ieri si sono aperte le vendite: sopra, la strada e' aperta fino
+alla mensola a 29.453,50, ottanta punti, e chi ha comprato stamattina smette di essere
 sott'acqua."*
 
 **Corollario:** se non si sa dire a cosa serve un livello, quel livello non va nominato — e

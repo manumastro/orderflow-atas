@@ -19,9 +19,9 @@ Due procedure che non si saltano mai, e che nelle istruzioni compaiono solo come
 rispondere, per ogni risposta e in qualunque fase di mercato, piu' **il quadro** (profile framing
 e COT insieme) che si fa anche senza che lo si chieda. Dall'11 ottobre 2026 si lancia a mano quando si chiede una lettura dal vivo, e va letto.
 
-[**`come-si-risponde-dal-vivo.md`**](come-si-risponde-dal-vivo.md) — **l'output**: la direzione e
-i suoi numeri (`LONG` / `SHORT` / `NIENTE`, ingresso, stop, **break even**, bersaglio,
-invalidazione), la forma in tre parti, l'obbligo di dichiarare modello e regime, l'obbligo di dire
+[**`come-si-risponde-dal-vivo.md`**](come-si-risponde-dal-vivo.md) — **l'output**: dal 16 ottobre 2026
+**il punto della situazione con tutti gli studi, senza segnali** (fino al 15 ottobre era la
+direzione con i suoi numeri), la forma breve, l'obbligo di dichiarare modello e regime, l'obbligo di dire
 **a cosa serve** ogni livello che si nomina, e la verifica di ogni termine alla fonte.
 
 Il primo riguarda l'input e il secondo l'output: **si guarda tutto, si scrive poco, e si sceglie

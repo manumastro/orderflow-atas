@@ -1,248 +1,119 @@
-# Fase 4 · L'Order Flow Delle Quattro Tab · 2026-10-15 (aggiornamento delle 18:43)
+# Fase 4 · L'Order Flow Delle Quattro Tab · 2026-10-15 (aggiornamento delle 19:52)
 
-**Stato**: parziale (la cassa di oggi e' in corso, fino alle 22:00; mancano il composito di sola
-cassa a 90 giorni, la cassa di oggi in `sedute-NQZ6.json` e la finestra del regime: vedi Cosa Non
-Sappiamo)
-**Dati**: `tab-ruoli.json`, `quattro-tab.txt`, `sedute-NQZ6.json`, `ore-NQZ6.json`, `pannello.json`,
-`giro.txt`; per gli agganci le date di `2-cot.md` e la riga GEX del giro. Ora dei dati: **18:43** ora
-italiana (`pannello.json`, `marketTimeUtc` 16:43Z; barra in formazione). `raccolta.json` non e' ancora
-riscritto (dice 11:04-11:10): l'ora viene dal pannello, non dalla raccolta. GEX nel giro alle 11:51
-(412 minuti prima, OI di ieri); COT al martedi' 6 ottobre (9 giorni). Errori della raccolta: non
-noti finche' `raccolta.json` non e' chiuso.
-Rapporto precedente: `precedenti/1850/4-orderflow.md` (dati delle 11:04).
+**Stato**: parziale (cassa di oggi in corso fino alle 22:00; il composito di sola cassa ha 30 sedute su 90)
+**Dati**: `tab-ruoli`, `quattro-tab`, `sedute-NQZ6`, `ore-NQZ6`, `range-NQZ6`, `pannello`, `giro`, `confluenze`. Raccolta
+**19:52** ora italiana (`raccolta.json`; pannello 17:52Z, barra in formazione); GEX NQZ6 19:30 (OI di ieri); COT al 6/10
+(9 giorni). Errori: nessuno. La sez. 4bis del giro ripete il quadro delle 18:43: non usata. Precedente: `precedenti/1952/`.
 
-**In una riga**: la cassa di oggi costruisce valore sotto quello di ieri, staccato di 22 punti; dal
-minimo di 29.622,50 nella prima mezz'ora il prezzo e' risalito di 439 punti con delta in acquisto e
-si e' fermato 20 punti sotto il VAL di ieri; l'indicatore misura ancora un regime choppy.
+**In una riga**: la cassa di oggi ha allargato il valore fino a toccare quello di ieri (19 punti, non piu' staccato); il
+prezzo sta sopra il POC di oggi e 8,25 sotto il VAL di ieri, CVD e prezzo sul massimo; l'indicatore misura **balance**.
 
-Convenzioni: cassa = 15:30-22:00 ora italiana (13:30-20:00 UTC); **POC** = il prezzo con il volume
-massimo; **area di valore** (VAL bordo basso, VAH bordo alto) = il 70% del volume attorno al POC;
-**delta** = contratti aggrediti in acquisto meno in vendita (bridge); **CVD** = il delta cumulato;
-**shift** = VAL **e** VAH piu' bassi (o piu' alti) del giorno prima (`profile-framing.md` §2);
-**staccato** = l'area non tocca quella del giorno prima (convenzione del collettore). Prezzi NQZ6.
+Convenzioni: cassa 15:30-22:00 italiane; **POC** = prezzo col volume massimo; **valore** = 70% del volume attorno al POC
+(VAL basso, VAH alto); **delta** = aggressori in acquisto meno in vendita, **CVD** il suo cumulato; **shift** = VAL **e** VAH
+piu' bassi del giorno prima (`profile-framing.md` §2); **staccato** = aree che non si toccano. Prezzi NQZ6.
 
-## Cosa E' Cambiato Dalle 11:04
+## Cosa E' Cambiato Dalle 18:43
 
-| misura | 11:04 | 18:43 | fonte |
+| misura | 18:43 | 19:52 | fonte |
 |---|---|---|---|
-| prezzo | 29.867,75 | 29.946,25 (+78,50) | pannello |
-| cassa di oggi | non aperta | valore 29.792-30.060, POC 29.960, estremi 29.622,50-30.061,75 (in corso) | `tab-ruoli.json` |
-| riga VALORE | fuori Londra, sopra | **dentro NY oggi, sotto il POC** | pannello |
-| regime | CHOPPY: 0,15, 6 rotture rientrate, copertura no | CHOPPY: **0,10** (49,50 su 508,25), **3** rotture rientrate, copertura **si'** | pannello |
-| velocita' (proxy) | morta, 24 lotti, 0 big trade | morta, 312 lotti, percentile 0; **2 big trade, netto -158** | pannello |
-| porte | 29.920 sopra / 29.840 sotto | 29.960 POC cassa sopra (+13,75) / 29.920 POC notte sotto (-26,25) | pannello |
-| veti | libro sottile; choppy | **in mezzo al range delle ultime 30 barre** (43%); choppy | pannello |
-| CVD | dalla chiusura di ieri -2.402 | **dall'apertura 15:30 +8.960 (+1,6%)** su 569.186 lotti | pannello |
-| barra daily | range 404, delta -2.321, 180k | range 536, delta **+7.829**, 877k (ieri intero 729k) | `quattro-tab.txt` |
-| minimo Europa | 29.754 | 29.711 | pannello, livelli |
-| barre range, ultime 30 | 25 minuti, delta -0,2% | **9 minuti**, delta +3,3% | TAB 4 |
-| big trade sui livelli | `null` | numerico (0 o 1 per livello) | pannello, `alLivello` |
-| composito 90 gg, VAH | 30.550 / 30.820 agg. | 30.530 / 30.810 agg. | `tab-ruoli.json` |
+| prezzo | 29.946,25 | **30.073,75** (+127,50) | pannello |
+| valore di cassa oggi | 29.792-30.060, POC 29.960, staccato di 22 | **29.800-30.101**, POC 29.959; **sovrapposto di 19** | `oggi_cassa` |
+| regime | CHOPPY, efficienza 0,10 | **BALANCE**, 0,17 sulle 30 barre 19:23-19:52 | pannello |
+| CVD dalle 15:30 | +8.960; CVD 95%, prezzo 74% | **+11.815** (+1,8%); CVD 100%, prezzo 94% | pannello |
+| in gioco / veti / 30 barre range | niente / 2 veti / 9 minuti | **VAL cash ieri 30.082**, da sotto / nessuna riga VETI / **19 minuti** | pannello, TAB 4 |
 
 ## I Fatti
 
-### Tab 1 · Composito (NQ Daily continuo, 90 barre dal 2026-06-11, grana 5; `tab-ruoli.json`)
+**Tab 1 · Composito** (`tab-ruoli`, `sedute-NQZ6`): il prezzo e' 382,25 sotto il VAL di cassa, 256,25 sopra il POC di 24 ore.
 
-| versione | VAL | VAH | POC | zona del prezzo |
+| versione | VAL | VAH | POC | zona |
 |---|---|---|---|---|
-| grezzo (continuo come lo incolla ATAS) | 28.410 | 30.530 | 29.517,50 | fair value |
-| aggiustato (+299,25 prima del 2026-09-11) | 29.340 | 30.810 | 29.817,50 | fair value |
-| di sola cassa, 20 sedute dal 17/09 (`sedute-NQZ6.json`) | 30.458 | 31.177 | 30.770 | non data dal collettore |
+| 24 ore, aggiustato (+299,25 prima del 11/09; grezzo 28.410-30.530) | 29.340 | 30.805 | 29.817,50 | fair value |
+| sola cassa, 20 sedute dal 17/09 / "90", **30 sedute** dal 03/09 (6 prima del rollover) | 30.458 / 30.456 | 31.177 / 31.309 | 30.770 | **discount** |
 
-Le prime due righe sono barre di 24 ore (nota nel JSON). Il prezzo e' 128,75 punti sopra il POC
-aggiustato e 511,75 sotto il VAL del composito di cassa. Il composito di cassa non include oggi:
-e' identico a quello delle 11:04.
+**Tab 2 · Settimana** (`sedute-NQZ6`, M1 fasce da 1; tutte chiudono dentro il valore). Dal 12/10 ogni seduta ha shift giu' e valore staccato; oggi no:
 
-### Tab 2 · Settimana (cassa per giorno; `sedute-NQZ6.json` M1 fasce da 1, oggi da `tab-ruoli.json` M30)
+| seduta | VAL-VAH | POC | delta | staccato | shift |
+|---|---|---|---|---|---|
+| 14/10 | 30.082-30.478 | 30.173 | +530 | si' | giu' |
+| **15/10, in corso** | **29.800-30.101** | **29.959** | **+11.815** su 645.337 | **no** | giu' |
 
-| seduta | VAL-VAH | POC | chiusura | volume | delta | chiude | staccato | shift |
-|---|---|---|---|---|---|---|---|---|
-| 08/10 | 30.949-31.369 | 31.235 | 30.976,25 | 530.520 | +9.344 | dentro | no | giu' |
-| 09/10 | 31.039-31.122 | 31.090 | 31.112,25 | 332.510 | -1.110 | dentro | no | nessuno |
-| 12/10 | 30.865-30.958 | 30.890 | 30.895,75 | 308.696 | +1.248 | dentro | si' | giu' |
-| 13/10 | 30.712-30.800 | 30.775 | 30.788,75 | 359.526 | -270 | dentro | si' | giu' |
-| 14/10 | 30.082-30.478 | 30.173 | 30.185 | 540.320 | +530 | dentro | si' | giu' |
-| **15/10, in corso** | **29.792-30.060** | **29.960** | - | - | CVD +8.960 | - | si' (tab) | GIU (tab) |
+Profili da 10 punti (solo fasce sopra il 2% del volume): **14/10** nodi 30.140-30.250 e 30.470-30.510,
+nulla fra 30.250 e 30.470; **oggi** nodi 29.950-30.030 (29.990-30.000 al 5,5%) e 29.760-29.840, nulla fra
+29.840 e 29.910 e sopra 30.030. **Scala dei POC di cassa**: sotto 29.959 (oggi, -114,75) e 29.730-29.737
+(18 e 17/09); sopra **30.173** (14/10, seduta della rottura, +99,25), 30.609-30.634, 30.745-30.783,
+30.835-30.922, 31.065-31.530. Nessun POC fra 30.173 e 30.609.
 
-La riga di oggi e' della tab Settimana ("GIU staccato in corso", POC sul giorno prima): VAL 29.792 <
-30.082 e VAH 30.060 < 30.478, e fra il VAH di oggi e il VAL di ieri restano 22 punti. Il campo
-`shift` del collettore non c'e' per oggi (lacuna sotto).
+**Tab 3 · Seduta** (`sedute-NQZ6`, `ore-NQZ6`, `giro`, `pannello`; ora italiana)
 
-**La scala dei POC di cassa** (20 sedute dal 17/09 piu' oggi), rispetto a 29.946,25:
+- **Notte 00:00-15:30** (collettore): VAL 29.753, POC 29.815, VAH 29.898, 30.158,50-29.711, delta -1.162.
+  La notte del pannello (finestra non scritta) ha POC 29.920, VAH 29.982, VAL 29.844; Europa POC 29.815.
+- **Ore**: 15:00 +2.416 (min 29.622,50); 16:00 +4.594; 17:00 +2.414; 18:00 +535; 19:00 (53 min) **+2.106**,
+  max 30.102,25. Mezz'ora 19:30 (aperta) **+1.572**, 30.000 -> 30.074,75. Volume per mezz'ora dalle 18:00:
+  41.967, 38.520, 28.040, 29.400. Dalla chiusura di ieri (30.185): -111,25 (-0,369%); range 20 sedute: al 23%.
+- **Volatilita' realizzata** (rendimenti a 5 minuti, annua): 4 ore 32,9%, 24 ore 22,7%, 48 ore 20,8%. Tape M1
+  chiuso: 60 min +2.836 (+4,4%). Struttura oraria (giro): "ultimi due swing H1 massimi e minimi decrescenti"
+  (29.978,25 e 29.899,50; 29.823,50 e 29.754); il prezzo e' sopra entrambi i massimi.
 
-| POC | seduta | dove |
-|---|---|---|
-| 29.730 / 29.737 | 18/09, 17/09 | sotto, 209-216 punti |
-| **29.960** | oggi, in formazione | sopra, 13,75 |
-| **30.173** | 14/10, la seduta della rottura sotto i valori dal 21/09 | sopra, 226,75 |
-| 30.609 / 30.630 / 30.634 | 29/09, 28/09, 01/10 | sopra |
-| 30.745-30.783 | 23/09, 24/09, 13/10, 21/09 | sopra; 30.770 e' il POC del composito di cassa |
-| 30.835-30.922 | 30/09, 12/10, 25/09, 22/09 | sopra |
-| 31.065-31.530 | 02/10 ... 06/10 | sopra |
-
-Fra 30.173 e 30.609 nessun POC di cassa; fra 29.737 e 29.960 nemmeno.
-
-### Tab 3 · Seduta (`tab-ruoli.json`, `pannello.json`, `ore-NQZ6.json`, `giro.txt`)
-
-| finestra | VAL | POC | VAH | estremi |
-|---|---|---|---|---|
-| notte | 29.844 | 29.920 | 29.982 | max 30.158,50 |
-| Europa | 29.777 | 29.815 | 29.843 | min 29.711 |
-| **cassa di oggi** (M1 e Range concordano) | 29.792 | 29.960 | 30.060 | 29.622,50 - 30.061,75 |
-| cassa di ieri | 30.082 | 30.173 (M1) / 30.187 (Range) | 30.478 | 30.078 - 30.660,75 |
-
-- **Dove sta il prezzo** (giro, TAB 3): dentro il valore di oggi, sotto il POC; sotto il valore di
-  ieri di 135,50; al **16%** del range delle ultime 20 sedute (29.622,50-31.616,50).
-- **Delta orario** (`ore-NQZ6.json`, ora italiana): 13:00 +332; 14:00 (dati USA alle 14:30) **+1.223**,
-  min 29.711; 15:00 **+2.416**, 191.688 lotti, min 29.622,50, chiusura 29.688; 16:00 **+4.594**,
-  207.862 lotti, 29.688,25 -> 29.971,25; 17:00 +2.414, max 30.061,75, chiusura 30.013,25; 18:00
-  (44 minuti) -222, chiusura 29.946.
-- **Mezz'ore** (TAB 2): 17:00 delta +324, 79.332 lotti; 17:30 **+2.090**, 55.912, 29.998,50 ->
-  30.013,25 (range 73); 18:00 -699, 41.967, -> 29.925,50; 18:30 +482, 19.798 (aperta).
-- **Struttura oraria** (giro): swing sopra 29.978,25 (06h) e 30.591,25-30.628,50 (13/10); sotto
-  29.899,50 (11h), 29.823,50, 29.754 e **29.622,50 (15h)**. Lettura del giro: "le ultime sei ore:
-  massimi e minimi crescenti".
-- **Profilo 22:00 di ieri -> 18:43** (giro, sez. 8, fasce da 50, notte e cassa insieme): POC
-  29.800-29.850 23,0% delta +3.180; 29.750-29.800 19,4% +532; 29.950-30.000 17,2% **+2.822**;
-  29.900-29.950 12,2% -637.
-- **Tape M1** (giro, sez. 7, barre chiuse): 15 min 21.920 lotti, +480 (+2,2%); 30 min 41.993, +251;
-  60 min 90.222, +1.152 (+1,3%), range 29.909,25-30.037,25.
-
-**Il regime e la velocita', come li misura l'indicatore** (`pannello.json`, barra delle 18:43):
+**Regime e velocita', come li misura l'indicatore** (`pannello.json`, 19:52):
 
 | riga | valore |
 |---|---|
-| REGIME | **CHOPPY**: efficienza 0,10 (netto 49,50 punti su strada 508,25), 3 rotture rientrate, copertura si' |
-| VELOCITA' (proxy, non la speed of tape) | **morta**: 312 lotti, percentile 0 su 60 barre; 2 big trade da 60+ lotti in 10 barre, netto -158 |
-| VALORE | dentro NY oggi 29.792-30.060, sotto il POC 29.960; sotto la cassa di ieri e di martedi' |
-| in gioco | niente; porte: sopra 29.960 POC cassa (+13,75), sotto 29.920 POC notte (-26,25) |
-| VETI | 2: prezzo al 43% del range delle ultime 30 barre (29.909,25-29.995,75); regime choppy |
-| CVD dall'apertura 15:30 | +8.960 su 569.186 lotti (+1,6%); **CVD al 95% del suo range, prezzo al 74%** |
+| REGIME | **BALANCE**; **ultime 30 barre, 19:23-19:52**: efficienza 0,17 (netto 71,75 su strada 422,50), 1 rottura rientrata, copertura si' |
+| VELOCITA' (proxy, non speed of tape) | aperta: **morta**, 497 lotti, 2° percentile su 60; **chiusa 19:51: 1.283 lotti, 76° percentile**; 2 big trade 60+, netto +174 |
+| VALORE / IN GIOCO | dentro NY oggi, sopra il POC / **VAL cash ieri 30.082**, 8,25 sotto, **arrivato da sotto** |
 
-Efficienza = spostamento netto diviso strada percorsa. La riga operativa che il pannello stampa
-sotto il regime non si riporta (descrizione, non regola).
+Efficienza = spostamento netto / strada; la riga operativa sotto il regime non si riporta. CVD: "CVD e prezzo
+insieme sul massimo: i compratori sono seguiti". **Livelli dalle 15:30** (`alLivello`): VAL ieri 30.082: 3 tocchi,
+tiene 1, passa 2, 325 lotti, delta +101. POC 29.959: 39 tocchi, 5.310 lotti (il piu' scambiato), delta -142.
+VAL 29.800: tiene 17 su 30. POC 30.173: 0 tocchi.
 
-**I livelli sul chart, dalle 15:30** (`pannello.json`, `alLivello`):
-
-| livello | prezzo | tocchi | tiene | passa | lotti | delta | big (netto) |
-|---|---|---|---|---|---|---|---|
-| VAL, POC, max cassa ieri; max notte | 30.082-30.660,75 | 0 | - | - | 0 | 0 | 0 |
-| VAH cassa | 30.060 | 1 | 1 | 0 | 201 | +41 | 0 |
-| VAH notte | 29.982 | 28 | 10 | 18 | 2.043 | +43 | 0 |
-| POC cassa | 29.960 | 31 | 15 | 16 | **4.481** | **+389** | 1 (+132) |
-| POC notte | 29.920 | 17 | 8 | 9 | 2.429 | +21 | 0 |
-| VAH Europa (unito a VAL notte 29.844) | 29.843 | 15 | 12 | 3 | 1.979 | +147 | 0 |
-| top nodo Europa | 29.824,75 | 27 | 10 | 17 | 3.046 | +80 | 1 (+85) |
-| POC Europa | 29.815 | 30 | 17 | 13 | 2.801 | +91 | 0 |
-| VAL cassa (unito a mensola 29.796) | 29.792 | 24 | 11 | 13 | 3.224 | +6 | 0 |
-| VAL Europa | 29.777 | 17 | 12 | 5 | 2.301 | **-275** | 1 (-71) |
-| min Europa | 29.711 | 9 | 3 | 6 | 2.172 | -114 | 1 (+70) |
-| min cassa | 29.622,50 | 1 | 1 | 0 | 12 | -12 | 0 |
-
-### Tab 4 · Esecuzione (NQZ6 Range 40 tick = 10 punti; `quattro-tab.txt`)
-
-- Ultime barre: 18:41:37 giu' (12 s, 306 lotti, -18), 18:41:49 su (19 s, 281, +13), 18:42:09 giu'
-  (7 s, 167, +39); aperta dalle 18:42:16, 68 s, 831 lotti, delta -37.
-- Ultime 30 chiuse: 16 su, 14 giu', delta +455 (+3,3%), fra 29.911,75 e 29.991,75 in **9 minuti**
-  (alle 11:04: 30 barre in 25 minuti).
+**Tab 4 · Esecuzione** (Range 40 tick = 10 punti; `quattro-tab`, `range-NQZ6`): ultime barre 39, 24, 51 s. Ultime 30: 16 su,
+14 giu', delta +1.430 (+5,6%), 30.017,25-30.102,25; durata mediana **33,0 s**, fra il 75° (24,8) e il 90° (40,0) di 600 barre.
 
 ## Cosa Dicono Per NQ
 
-1. **Il valore continua a scendere.** Se la cassa chiude cosi', dal 07/10 sei sedute su sette hanno
-   valore piu' basso, le ultime quattro staccate. Per `profile-framing.md` §5 il valore che si sposta
-   e' il modello di momentum. Il POC della seduta della rottura resta **30.173 (14/10)** `[1 · 24:35]`:
-   oggi non e' stato toccato (0 tocchi dalle 15:30).
-2. **Dentro la seduta, la direzione si e' girata e poi fermata.** Minimo 29.622,50 nella prima mezz'ora
-   di cassa, poi 16:00 e 17:00 con delta +4.594 e +2.414 e 439,25 punti di salita fino a 30.061,75. Il
-   massimo e' 20,25 punti sotto il VAL di ieri (30.082): il valore di ieri non e' stato riaccettato.
-   Il VAL e' una strada `[1 · 1:19:30]`: stanotte e' stato passato dall'alto, oggi non e' stato
-   raggiunto dal basso. Poi 115,50 punti di ritorno, fino al POC di oggi. **Osservazione**.
-3. **Delta in acquisto che ottiene poco, attorno a 30.000.** Mezz'ora delle 17:30: delta +2.090 per 15
-   punti di avanzamento (range 73). Fascia 29.950-30.000: delta +2.822. Il CVD della cassa e' al 95% del
-   suo range, il prezzo al 74%: il delta e' salito piu' del prezzo. Il pannello non stampa una
-   divergenza; **osservazione**, non misura dell'indicatore.
-4. **Tre scale, tre posizioni nella curva.** Composito aggiustato di 90 giorni (24 ore): fair value,
-   128,75 sopra il picco `[5 · 55:05]`. Composito di cassa di 20 sedute: 511,75 sotto il VAL. Range delle
-   20 sedute: al 16%, **basso nella curva** `[5 · 1:01:05]`. La regola del live (sola cassa, 90 giorni,
-   `i-tre-modelli-del-live-q1.md` §10, `[4 · 14:14]`) non e' rispettata da nessuna delle tre scale.
-5. **La cassa di oggi e' tornata sul valore di cassa di meta' settembre.** Il VAL di oggi (29.792) sta
-   dentro il valore del 18/09 (29.694-29.819). Il minimo di cassa 29.622,50 e' 16,75 sopra quello del
-   17/09 (29.605,75). Il 21/09 la cassa aveva aperto a 30.222: il vuoto di cassa di stamattina
-   (29.819-30.082) ora e' quasi tutto dentro il valore di oggi. **Osservazione**.
-6. **Il regime lo dice l'indicatore: choppy.** Efficienza 0,10 su 508,25 punti di strada, 3 rotture
-   rientrate, copertura si'. Il prezzo va da un lato all'altro dell'asta `[6 · 54:03]` (§7). Le barre
-   range da 40 tick ora durano 7-19 s, contro 18-47 s di stamattina, ma restano in 80 punti. Il volume
-   per mezz'ora cala: 79k, 56k, 42k, poi 20k (aperta). Il framing di settimana (momentum) e quello della
-   seduta (rotazione) non coincidono: **il regime si dichiara, il setup no**.
-7. **Chi ha difeso i bordi di sotto.** VAL Europa 29.777: tenuto 12 volte su 17, delta -275, venditori
-   aggressivi che non hanno ottenuto prezzo. POC di cassa 29.960: il livello piu' scambiato (4.481
-   lotti, 31 tocchi, 15 tenute e 16 passaggi). E' un punto di rotazione, non un bordo. **Osservazione**.
+1. **Il valore scende ancora, ma non si stacca piu'.** Shift giu' per la quinta seduta (§2), pero' il VAH
+   di oggi entra di 19 punti in quello di ieri. Per §3 i profili sovrapposti si uniscono: blocco 14-15/10
+   da 29.800 a 30.478. Sovrapposizione piccola, cassa aperta: **osservazione**, da rileggere alle 22:00.
+2. **Il VAL di ieri e' la strada in gioco** `[1 · 1:19:30]`: raggiunto dal basso, passato 2 volte su 3, ora
+   8,25 sotto. Oltre: il POC della rottura 30.173 `[1 · 24:35]`, poi 30.250-30.470 senza fasce sopra il 2%
+   nel profilo del 14/10, zona di transito (§6).
+3. **Il delta ora ottiene prezzo.** Alle 18:43 CVD 95% e prezzo 74%; ora 100% e 94%; la mezz'ora delle
+   19:30 fa +1.572 per 74,75 punti. Lo stampa il pannello: non e' una ricostruzione.
+4. **Regime balance, misurato su 30 minuti**: prezzo chiuso nel valore, rotture che rientrano (`i-tre-modelli-del-live-q1.md`
+   §7); barre range piu' lente (33 s). Tre scale (§10, `[5 · 55:05]`): cassa discount, 24 ore fair value, 20 sedute al
+   23%, **basso nella curva** `[5 · 1:01:05]`. La settimana resta di momentum (§5): **il regime si dichiara, il setup no**.
 
 ## I Livelli E Le Date
 
 | prezzo o data | da dove viene | a cosa serve arrivarci |
 |---|---|---|
-| 30.890-30.922 | POC di cassa 12/10, 25/09, **22/09** | mensola di tre POC; il 22/09 e' la data COT della fase 2 |
-| 30.770 | POC del composito di cassa, 20 sedute | il cuore della distribuzione di cassa recente |
-| 30.712 | VAL cassa 13/10 (pannello, "sotto martedi'") | bordo del valore di due sedute fa |
-| 30.478-30.712 | VAH 14/10 - VAL 13/10 | vuoto fra due sedute, con lo scaffale di fine settembre dentro (28/09-01/10) |
-| 30.609-30.634 | POC di cassa 29/09, 28/09, 01/10 | primo scaffale di valore sopra il buco di POC 30.173-30.609 |
-| 30.458 / 30.478 | VAL composito di cassa / VAH 14/10 | rientro nella distribuzione di cassa recente |
-| 30.173 | POC cassa 14/10 | il POC della seduta della rottura `[1 · 24:35]`; 0 tocchi oggi |
-| 30.082 | VAL cassa 14/10 | riaccettarlo smentisce lo stacco di oggi; non raggiunto (max 30.061,75) |
-| 30.060-30.082 | VAH oggi - VAL ieri | vuoto di 22 punti fra le due casse |
-| 30.060 / 30.061,75 | VAH e massimo di cassa di oggi | bordo alto del valore in costruzione: uscirne riapre il vuoto sopra |
-| 29.982 | VAH notte | 28 tocchi, passato 18 volte: bordo consumato |
-| 29.960 | POC cassa oggi (porta sopra del pannello) | il centro del valore di oggi |
-| 29.920 | POC notte (porta sotto del pannello) | il centro del valore della notte |
-| 29.815-29.844 | POC Europa, VAH Europa, VAL notte; POC composito agg. 90 gg 29.817,50; VAH 18/09 29.819 | confluenza: il fair value del composito di 24 ore |
-| 29.777-29.796 | VAL Europa, VAL cassa oggi, mensola europea | bordo basso di oggi: uscirne e' lasciare il valore della seduta |
-| 29.730-29.737 | POC cassa 17 e 18/09 | l'ultimo valore di cassa prima del 21/09 |
-| 29.622,50 / 29.605,75 | minimo di cassa oggi / minimo di cassa 17/09 | estremi bassi delle 20 sedute: sotto, nessun valore di cassa recente |
-| 29.340 | VAL composito aggiustato 90 gg | sotto e' discount sulla scala lunga |
-| 15/10 22:00 | chiusura della cassa e scadenza dello 0DTE (giro) | la seduta di oggi diventa un profilo chiuso |
-| 16/10 05:30 / 21:30 | Warsh (Fed); nuovo COT, posizioni al 13/10 (giro) | notte di domani; posizionamento prima del 14/10 |
+| 30.456-30.770 | VAL e POC del composito di cassa | rientrare dal discount nella distribuzione di cassa |
+| 30.478 | VAH 14/10, bordo alto del blocco unito | uscire dal blocco 14-15/10 dall'alto |
+| 30.250-30.470 | fasce sotto il 2% del 14/10 | zona di transito dentro il valore di ieri |
+| 30.173 | POC 14/10, seduta della rottura | il primo punto del ritorno; 0 tocchi oggi |
+| 30.082-30.102 | VAL ieri; VAH e massimo di oggi | la strada in gioco: accettare o rifiutare il valore di ieri |
+| 29.950-30.030 | nodo alto di oggi, POC 29.959 | il centro del valore in costruzione |
+| 29.840-29.910 | fasce sotto il 2% di oggi | collo fra i due nodi della cassa |
+| 29.777-29.815 | VAL Europa, VAL cassa 29.800, POC notte | bordo basso di oggi: sotto si lascia il valore della seduta |
+| 29.622,50 | minimo di cassa (15:30-16:00) | estremo delle 20 sedute: sotto, nessun valore di cassa recente |
+| 15/10 22:00; 16/10 05:30, 21:30 | chiusura cassa e 0DTE; Warsh (Fed); COT al 13/10 (giro) | il profilo di oggi si chiude (§1, §3 da rileggere); il COT non vedra' il 14 e il 15/10 |
 
 ## Cosa Non Sappiamo
 
-- **lacuna del collettore: la cassa di oggi non e' in `sedute-NQZ6.json`.** Mancano apertura, delta di
-  cassa, "chiude", `staccato` e `shift` del collettore; ci sono solo il valore della tab (M30, M1,
-  Range) e il CVD del pannello.
-- **lacuna del collettore: `oggi_finora` ha cambiato contenuto.** Alle 11:04 era la notte. Ora va dalle
-  00:00 alle 18:43, notte e cassa insieme (POC 29.800, VAL 29.700, VAH 29.950), con numeri tondi da
-  50 benche' il file dichiari fasce da 1. La notte chiusa alle 15:30 non c'e' come profilo a se'.
-- **lacuna del collettore: composito di sola cassa a 90 giorni** e la sua zona (premium, fair value,
-  discount); unita' della "quota" dei nodi non dichiarata.
-- **lacuna del collettore: finestra del regime.** Non si sa su quante barre l'indicatore misura
-  efficienza e rotture rientrate, ne' come definisce la copertura. Per questo non si sa se la salita
-  delle 16:00 (+283 punti) sta dentro la misura.
-- **lacuna del collettore: velocita' sulla barra chiusa.** Il percentile 0 e' della barra M1 aperta
-  (312 lotti); manca lo stesso proxy sull'ultima chiusa.
-- **lacuna del collettore: profilo per fasce della cassa del 14/10 e di oggi.** Serve a dire se
-  30.173-30.478 e 29.792-30.060 sono nodi o fasce sottili (la correzione di `profile-framing.md`).
-- **lacuna del collettore: ritmo delle barre range.** Manca una distribuzione di riferimento delle
-  durate: "accelera" resta un'osservazione.
-- **lacuna del collettore: definizione della struttura oraria.** Il giro dice "massimi e minimi
-  crescenti" sulle ultime sei ore, ma i minimi orari di `ore-NQZ6.json` delle 13, 14 e 15 scendono
-  (29.748,50; 29.711; 29.622,50). La regola di swing del giro non e' dichiarata.
-- **lacuna del collettore: `raccolta.json`** non e' ancora riscritto; l'ora dei dati viene dal pannello.
-- Discrepanze dichiarate, non risolte: POC di ieri 30.173 (M1) contro 30.187 (Range); scarto al
-  rollover +299,25 (tab) contro +293,75 (`profile-framing.md`, mediana al minuto).
-- L'ora delle 15:00 di `ore-NQZ6.json` include la mezz'ora prima della cassa.
-- L'esito dei dati delle 14:30 non e' nei miei dati (fase 1). Niente footprint per prezzo sui bordi.
+- **lacuna del collettore: composito di cassa a 90 giorni** con 30 sedute, senza dire se le 6 prima del rollover
+  sono aggiustate; **finestra della notte del pannello** (POC 29.920 contro 29.815 del collettore).
+- **lacuna del collettore: definizioni di "copertura" e "rottura rientrata"**, unita' delle 30 barre; **veti**
+  (riga assente: zero o omessi?); **big trade per livello** tornati `null`; **regola di swing del giro**;
+  **profili da 10 sotto il 2%** (il collo si vede, la profondita' no).
+- Discrepanze: POC 14/10 30.173 (M1) / 30.187 (Range); rollover +299,25 (tab) / +293,75 (`profile-framing.md`);
+  prezzo 30.073,75 (pannello) / 30.074,75 (giro, un istante dopo). Durate range con le pause; niente footprint.
 
 ## Per Il Quadro
 
-1. **COT** (fase 2): il 22/09, data della variazione piu' grande delle ultime quattro, la cassa aveva
-   valore 30.888-30.980 e POC 30.922, dentro la mensola 30.890-30.922. Il 6/10 il valore era
-   31.483-31.556. Il COT di domani (posizioni al 13/10) non vedra' 14/10 e 15/10, le due sedute
-   staccate.
-2. **Gamma, tutte le scadenze** (giro, 11:51, OI di ieri, convenzione A): il muro a 30.000 sta nella
-   fascia dove oggi il delta in acquisto ha ottenuto poco (17:30, +2.090 per 15 punti). Il massimo di
-   cassa e' a 30.061,75. Lo zero gamma 30.887 sta contro la mensola dei POC 30.890-30.922.
-3. **Gamma 0DTE**: il put wall 29.700 sta sopra il minimo di cassa 29.622,50, sotto il VAL di oggi
-   29.792. Lo zero gamma 0DTE 30.461 coincide con il VAL del composito di cassa (30.458) e col VAH del
-   14/10 (30.478). Lo 0DTE scade alle 22:00 (la GEX di ES e' ancora in raccolta).
-4. **Macro** (fase 1): delta orario positivo dalle 13:00 alle 17:00, +1.223 nell'ora dei dati delle
-   14:30; minimo nella prima mezz'ora di cassa, poi la salita. Il pannello va riletto dopo Warsh
-   (16/10 05:30), non estrapolato.
+1. **Gamma** (19:30, conv. A): call e put wall 30.000 nel nodo alto di oggi; zero gamma 0DTE 30.278 nella zona
+   sotto il 2% del 14/10; zero gamma di tutte 30.499 accanto ai VAL di cassa 28/09 e 21/09 (`confluenze.json`).
+2. **Volatilita'**: realizzata 4 ore 32,9% contro implicita ATM 0DTE 22,4%: coerente con la GEX negativa?
+3. **COT** (report 22/09, 29/09, 06/10): valori di cassa tutti sopra il prezzo; `stesso_dato` in `confluenze.json`.
+4. **Macro**: delta di cassa positivo in ogni ora dalle 15:00; da rileggere dopo Warsh (16/10 05:30).

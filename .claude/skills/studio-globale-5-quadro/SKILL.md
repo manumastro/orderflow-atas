@@ -28,7 +28,7 @@ Oltre alle sezioni del modello:
 - **Gli agganci, uno per uno**: per ogni aggancio delle fasi, conferma, contraddizione o niente da dire.
 - **La tabella dei livelli confermati**: un prezzo entra se lo indicano almeno due fasi entro una
   soglia dichiarata (15 punti su NQ, salvo diversa ragione scritta). Colonne: prezzo, quali fasi,
-  cosa dice ciascuna, a cosa serve arrivarci. **Si parte da `dati/confluenze.json`**: il collettore
+  cosa dice ciascuna, a cosa serve arrivarci. **Si parte da `dati/in-breve.json` (le confluenze sono in fondo) e da `dati/confluenze.json`**: il collettore
   trova le vicinanze fra order flow, gamma e COT, e segna `stesso_dato` quando due fonti leggono lo
   stesso numero del bridge. Il quadro le verifica contro i rapporti e aggiunge quelle che vengono dalla
   macro o dalle letture delle fasi; le vicinanze non si ricalcolano a mano.

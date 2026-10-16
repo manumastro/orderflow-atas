@@ -17,7 +17,15 @@ Il rapporto segue [`../studio-globale/modello-del-rapporto.md`](../studio-global
   dei paper e cosa li ucciderebbe; e la sintesi piu' recente in `quant/paper/ricerche/` sul filone
   opzioni-gamma, se c'e'.
 
+## Per Chi Legge
+
+L'utente sta imparando le opzioni (16 ottobre 2026). Nella sezione **In una riga** e in **Cosa dicono per
+NQ** ogni termine si spiega la prima volta, e ogni numero dice cosa significa per il prezzo e quanto e'
+provato. La regola intera e' nell'orchestratore, "Le regole che valgono per tutte le fasi".
+
 ## I Tuoi Dati
+
+**Leggi per primo `dati/in-breve.json`, la sezione `gamma`**: e' un file solo, piccolo, con i numeri che ti servono gia' scelti e la **scala gia' calcolata** (future per 1% contro il volume medio di cassa): non rifarla. Apri i file grandi qui sotto solo per un dato che li' manca, e mai a pezzi: lo studio ha un tempo (15 ottobre 2026: leggendo i JSON grandi a pezzi questa fase ha sforato).
 
 `dati/gex-NQZ6.json` (calcolato da `gex.py` dentro `studio/raccogli.py`). **Lo studio e' di NQ**: la GEX
 di ES si raccoglie solo se l'utente la chiede (`--con-es`), e solo allora se ne parla. Il file contiene:

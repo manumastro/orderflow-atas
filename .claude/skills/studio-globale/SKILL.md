@@ -142,6 +142,10 @@ Le regole dell'aggiornamento:
 - **Si riusa solo cio' che esiste per quel giorno.** Se l'utente chiede di tenere macro e COT ma
   `1-macro.md` o `2-cot.md` di quel giorno non ci sono, lo dici e li fai: un quadro senza macro non e'
   un aggiornamento, e' un buco.
+- **Il COT fa eccezione: si riusa da un giorno all'altro** finche' non esce un report nuovo (il
+  venerdi' alle 21:30 italiane), perche' il report e' lo stesso (richiesta del 16 ottobre 2026). Si
+  copia `2-cot.md` dell'ultimo studio nella cartella di oggi e il quadro ne dichiara la data; la
+  raccolta di `cot` costa 15 secondi e si puo' rifare, l'agente no.
 - **Il riuso si dichiara**: nel resoconto all'utente e nel quadro, con l'ora della raccolta di ogni fase
   riusata ("macro delle 10:45, COT al 6 ottobre").
 - **Il quadro si rifa' sempre**, perche' e' l'unico che confronta le fasi: una fase nuova puo' confermare
@@ -151,8 +155,15 @@ Le regole dell'aggiornamento:
 
 ## Le Regole Che Valgono Per Tutte Le Fasi
 
-- **Descrizione, non regola.** Nessuna fase produce un ingresso, uno stop o una direzione. Una
-  lettura operativa si da' solo se l'utente la chiede, con gli obblighi della lettura dal vivo.
+- **L'utente sta imparando le opzioni** (16 ottobre 2026: "lo sto ancora imparando"). Quando si parla di
+  opzioni, nel resoconto in chat come nelle risposte dal vivo, si scrive per chi impara: ogni termine
+  (GEX, zero gamma, call wall, put wall, max pain, 0DTE, OI, pinning) si spiega in parole semplici la prima
+  volta che compare; si dice **cosa significa per il prezzo**, non solo il numero; si dice **quanto e'
+  provato** (su NQ niente lo e': i paper sono su S&P e su singoli titoli) e cosa non sappiamo (il segno
+  dei dealer). I rapporti restano tecnici; la spiegazione semplice va all'utente.
+- **Descrizione, non regola.** Nessuna fase produce un ingresso, uno stop o una direzione, e
+  nemmeno la lettura dal vivo: dal 16 ottobre 2026 fa il punto della situazione usando questi studi
+  (`docs/research/metodo/come-si-risponde-dal-vivo.md`).
 - **I dati esterni sono contesto.** Macro e COT vengono da fuori ATAS su richiesta dell'utente (15
   ottobre 2026): servono a descrivere, mai a un backtest. NQ 2025-2026 dal bridge e' lettura dal vivo,
   non `quant/dati`: il fuori campione del metodo quantitativo non si tocca.
