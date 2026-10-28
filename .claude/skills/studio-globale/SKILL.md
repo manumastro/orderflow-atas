@@ -1,6 +1,6 @@
 ---
 name: studio-globale
-description: Lo studio globale di NQ dal piu' lontano al piu' vicino - macro, COT, gamma, order flow delle quattro tab - con un collettore che prende tutti i dati, quattro agenti che li leggono in parallelo e un quinto che scrive il quadro del giorno. Usala quando l'utente chiede lo studio globale, il quadro completo, o di preparare la giornata.
+description: Lo studio globale di NQ, o di ES con --strumento ESZ6, dal piu' lontano al piu' vicino - macro, COT, gamma, order flow delle quattro tab - con un collettore che prende tutti i dati, quattro agenti che li leggono in parallelo e un quinto che scrive il quadro del giorno. Usala quando l'utente chiede lo studio globale, il quadro completo, o di preparare la giornata.
 argument-hint: "[AAAA-MM-GG] [rifai:<fasi>] - oppure a parole, per esempio \"tieni macro e COT, rifai gamma e order flow\""
 ---
 
@@ -28,9 +28,9 @@ i dieci minuti**:
 
 | passo | tempo | come |
 |---|---|---|
-| raccolta | meno di 1 minuto | **ogni calcolo si fa una volta** (richiesta del 15 ottobre 2026). La GEX e' una sola per giro e studio: si riusa se ha meno di 30 minuti, dichiarandone l'eta', altrimenti si calcola una volta (circa 3,5 minuti) e la usa anche il giro. Il giro e le quattro tab si fanno una volta, dopo la GEX. Macro 25 s, COT 15 s, order flow 4 s |
-| analisi | 3-4 minuti | in parallelo, ognuna parte appena i suoi dati ci sono; rapporti di 120 righe al massimo, `maxTurns: 20` |
-| quadro | 3-4 minuti | parte da `confluenze.json`, che il codice gia' calcola; 150 righe al massimo |
+| raccolta | meno di 1 minuto | **ogni calcolo si fa una volta** (richiesta del 15 ottobre 2026). La GEX e' una sola per giro e studio: si riusa se ha meno di 30 minuti, dichiarandone l'eta', altrimenti si calcola una volta (circa 50 secondi su NQ dal 27 ottobre 2026, prima 3,5 minuti) e la usa anche il giro. Il giro e le quattro tab si fanno una volta, dopo la GEX. Macro 25 s, COT 15 s, order flow 4 s |
+| analisi | 3-4 minuti | in parallelo, ognuna parte appena i suoi dati ci sono; rapporti di 135 righe al massimo, con In parole semplici in cima, `maxTurns: 20` |
+| quadro | 3-4 minuti | parte da `confluenze.json`, che il codice gia' calcola; 180 righe al massimo |
 
 Se un passo sfora, **e' un difetto da correggere nel codice o nella skill**, non un'attesa da
 spiegare: si misura dove va il tempo e si toglie lavoro agli agenti, non controlli.
@@ -58,16 +58,36 @@ spiegare: si misura dove va il tempo e si toglie lavoro agli agenti, non control
    python studio/raccogli.py --out studio/rapporti/<data>/dati --fonti <fonti>
    ```
 
+   **Lo studio di ES** (27 ottobre 2026). Lo strumento e' un parametro del collettore, non un'eccezione:
+
+   ```bash
+   python studio/raccogli.py --out studio/rapporti/<data>-ES/dati --fonti <fonti> --strumento ESZ6
+   ```
+
+   - **la cartella** e' `studio/rapporti/<data>-ES/` (quella di NQ resta `<data>/`): i rapporti, i
+     precedenti e il rimando dell'ultima riga del QUADRO stanno li';
+   - **i file** portano lo strumento: `sedute-ESZ6.json`, `ore-ESZ6.json`, `range-ESZ6.json`,
+     `gex-ESZ6.json`; `cot.json` ha `strumento: ESZ6` e l'S&P 500 e-mini come indice principale, con i
+     prezzi di ES; `macro.json` ha in piu' i settori dell'S&P (`ampiezza_sp500`) e le trimestrali dei
+     pesi massimi non tech; il giro e le quattro tab guardano i chart di ES;
+   - **il file della giornata** e' `docs/research/giornate/ESZ6-<data>.md`: il quadro scrive li' il suo
+     blocco QUADRO, e il giro di ES lo cerca solo li' (mai nel file di NQ);
+   - **le soglie** sono di ES (`SCALE` in `raccogli.py`): profilo a fasce da 0,25, nodi del composito
+     da 1 punto distanti almeno 10, confluenze entro 4 punti (15 su NQ), 50 $ a punto (20 su NQ);
+   - **agli agenti** il prompt dice lo strumento e la cartella (`<strumento>` = ESZ6, `<cartella>` =
+     `<data>-ES`): dove una skill dice NQ in un esempio, vale per lo strumento dello studio.
+
    Le fonti non richieste restano come sono; i file riscritti finiscono in `dati/precedenti/<HHMM>/`.
 
    **Non aspettare la fine della raccolta** (15 ottobre 2026: "cosi' ci mette tanto"). Le fonti arrivano
-   a tempi diversi: macro, COT e order flow in meno di un minuto; la GEX di NQ in circa 3 minuti (meno di
-   un secondo se il giro l'ha calcolata negli ultimi cinque minuti). **La GEX e' solo di NQ**: quella di ES
-   (`--con-es`, 6-8 minuti in piu') si raccoglie solo se l'utente la chiede. Si fa cosi':
+   a tempi diversi: macro, COT e order flow in meno di un minuto; la GEX dello strumento in circa 50 secondi su NQ
+   (meno di un secondo se il giro l'ha calcolata negli ultimi cinque minuti). **La GEX e' quella dello
+   strumento dello studio**: con `--con-es` si calcolano tutte e due (circa 2,5 minuti in piu'), solo se
+   l'utente lo chiede. Si fa cosi':
    - lancia la raccolta in background;
    - appena i file di una fase sono riscritti dopo l'avvio, sposta il suo rapporto vecchio e lancia il
-     suo agente. Macro: `macro.json`. COT: `cot.json`. Order flow: `tab-ruoli.json`, `sedute-NQZ6.json`,
-     `pannello.json`. Gamma: `gex-NQZ6.json`;
+     suo agente. Macro: `macro.json`. COT: `cot.json`. Order flow: `tab-ruoli.json`, `sedute-<strumento>.json`,
+     `pannello.json`. Gamma: `gex-<strumento>.json`;
    - dagli agenti che partono prima della fine, di' che `raccolta.json` sara' riscritto dopo.
 
    Il quadro parte solo a raccolta finita e a rapporti consegnati. Leggi `dati/raccolta.json`: per ogni
@@ -79,7 +99,7 @@ spiegare: si misura dove va il tempo e si toglie lavoro agli agenti, non control
    `studio-orderflow`, ciascuna con:
 
    ```text
-   Fase <n> dello studio globale di NQ, <data>. Cartella: studio/rapporti/<data>/.
+   Fase <n> dello studio globale di <strumento>, <data>. Cartella: studio/rapporti/<cartella>/.
    I dati sono gia' raccolti in dati/ (vedi dati/raccolta.json). Segui la tua skill e il modello del
    rapporto, scrivi <n>-<fase>.md e rispondi con 5 righe: stato, tre fatti, le lacune dei dati.
    ```
@@ -92,17 +112,16 @@ spiegare: si misura dove va il tempo e si toglie lavoro agli agenti, non control
    che usa.
 6. **La fine: lo studio, non il resoconto del lavoro.** All'utente va **il contenuto del quadro**,
    scritto in chiaro in chat (15 ottobre 2026: un resoconto fatto di tempi, costi e percorsi non e' un
-   risultato). Nell'ordine:
-   - la riga del giorno;
-   - le cinque righe (macro, COT, gamma, valore, adesso), ciascuna con l'eta' del suo dato;
-   - cosa e' cambiato dall'ultimo quadro, se e' un aggiornamento;
-   - i livelli confermati da almeno due fasi, con a cosa serve arrivarci;
-   - le contraddizioni;
-   - gli orari, in ora italiana;
-   - cosa smentirebbe il quadro.
+   risultato), **in parole semplici** (21 ottobre 2026: "vorrei che sia piu' comprensibile tutto
+   all'umano"; lo schema fisso a gradini, "piu' chiaro e schematico"). Nell'ordine:
+   - la sezione **In parole semplici** di `5-quadro.md`, com'e': il punto, i gradini dal piu' ampio
+     al piu' vicino, i prezzi da guardare, quando, cambia idea se, quanto e' provato, le parole;
+   - l'eta' dei dati di ogni fase, in una riga.
 
-   Il testo si prende da `5-quadro.md`, senza aggiungere niente. Poi, in due righe: le fasi parziali e
-   le lacune piu' gravi, il tempo, il percorso del quadro. **Nessun commit**: lo decide l'utente.
+   Il testo si prende da `5-quadro.md`, senza aggiungere niente. Le sezioni tecniche (gli agganci, le
+   convenzioni, le lacune) restano nel file e nell'artifact: in chat si dice dove sono. Poi, in due
+   righe: le fasi parziali e le lacune piu' gravi, il tempo, il percorso del quadro. **Nessun commit**:
+   lo decide l'utente.
 7. **Il sito o l'artifact, solo se l'utente lo chiede** (vedi "La pubblicazione" sotto).
 
 ## La Pubblicazione, Su Richiesta
@@ -122,7 +141,8 @@ si pubblica lo studio **del giorno attuale**: si aggiorna quello che c'e', o si 
   3. Se `artifact.txt` non c'e', si pubblica il file senza `url` (icona `chart`) e si scrive
      l'indirizzo restituito in `artifact.txt`.
 
-  Il codice impagina e non riscrive: la pagina contiene il testo dei rapporti com'e'.
+  Il codice impagina e non riscrive: la pagina contiene il testo dei rapporti com'e'. Per ogni fase
+  mette in cima **In parole semplici** e sotto, chiuso, il rapporto tecnico (21 ottobre 2026).
 
 ## L'Aggiornamento In Giornata
 
@@ -155,6 +175,10 @@ Le regole dell'aggiornamento:
 
 ## Le Regole Che Valgono Per Tutte Le Fasi
 
+- **Prima la persona** (21 ottobre 2026: "vorrei che sia piu' comprensibile tutto all'umano"). Ogni
+  rapporto si apre con **In parole semplici**, uno schema fisso a gradini dal piu' ampio al piu' vicino; come
+  si scrive sta in [`modello-del-rapporto.md`](modello-del-rapporto.md). Vale per il resoconto in
+  chat e per l'artifact: in cima va la parte per la persona, il dettaglio tecnico sotto.
 - **L'utente sta imparando le opzioni** (16 ottobre 2026: "lo sto ancora imparando"). Quando si parla di
   opzioni, nel resoconto in chat come nelle risposte dal vivo, si scrive per chi impara: ogni termine
   (GEX, zero gamma, call wall, put wall, max pain, 0DTE, OI, pinning) si spiega in parole semplici la prima

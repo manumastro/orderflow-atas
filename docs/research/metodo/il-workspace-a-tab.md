@@ -23,8 +23,9 @@ voglio studiarli meglio dopo"*.
 | **3 SEDUTA M1** | NQZ6, M1 | la seduta di adesso, PD e il giorno prima a destra, il pannello, footprint, big trades, speed of tape, DOM | `[1 · 1:24:04]`, `[4 · 11:57]` |
 | **4 RANGE 40** | NQZ6, range 40 | lo stesso tape quando il mercato e' choppy: zone, big trades, delta cumulato. Niente pannello | `[2 · 1:16:00]`, `[2 · 1:29:52]` |
 
-**Perche' M30 e non H1 per la settimana.** La cassa apre alle 13:30Z: una barra H1 delle 13:00Z
-mette mezz'ora di premarket dentro la seduta. Le barre M30 cadono esattamente sull'apertura e sulla
+**Perche' M30 e non H1 per la settimana.** La cassa apre alle :30 (09:30 di New York, 13:30Z o
+14:30Z secondo la data): una barra H1 che comincia all'ora piena mette mezz'ora di premarket dentro
+la seduta. Le barre M30 cadono esattamente sull'apertura e sulla
 chiusura, e la gaussiana e' quella della sola cassa.
 
 **I big trades sono a 60** sull'M1 e sul range: *"the big trades guys are 60. The filter it's on
@@ -42,6 +43,24 @@ Si costruisce con `FabioOrderFlow/tools/workspace_finestra_es.py --aspetta`, ad 
 copia accanto (`Fabio workspace prima della finestra ES.aws`). Gli id dei contratti si leggono dal
 workspace dopo averli aperti una volta in ATAS. Le tab degli indicatori opzioni sono nello script
 (`--con-opzioni`) ma **spente**: prima i paper su opzioni e gamma exposure.
+
+**Rifatta il 25 ottobre 2026.** Il workspace salvato il 18 ottobre aveva solo la finestra NQ. L'utente,
+passato alla connessione Rithmic della prop firm, ha chiesto di nuovo la finestra ES, questa volta per
+scaricare i dati di ES. Lo stesso script, con `--aspetta`, ha scritto le stesse quattro tab (4936 e
+34376). La copia `prima della finestra ES.aws` ora e' quella del 25 ottobre, con la sola NQ: la
+copia del 14 ottobre e' stata sovrascritta. **ATAS non si chiude da fuori**: `CloseMainWindow`
+lascia ATAS in attesa di una conferma sullo schermo, e la chiusura deve farla l'utente.
+
+**La finestra NQ clonata da quella ES, 26 ottobre 2026.** L'utente ha sistemato a mano la finestra ES
+e ha tolto la finestra NQ: tre tab (1 COMPOSITO Daily su 4936, 2 SETTIMANA M30 e 3 SEDUTA M1 su
+34376), niente Range; sulla M30 gli indicatori Chain `OptionsGexProfile` e `OptionsKeyLevels`, sulla
+seduta `OptionsKeyLevels` e `KeyLevels` di X-Ray, e niente `TradingDepthOfMarket` (com'era alla chiusura
+delle 14:52). Poi ha chiesto la stessa finestra
+per NQ. `workspace_clona_finestra.py --aspetta` copia la finestra ES tab per tab, con gli indicatori e
+le loro impostazioni, cambia solo i contratti (4936 -> 5222, 34376 -> 34387), toglie i disegni e la
+mette come prima finestra, con dimensione e posizione della vecchia finestra NQ. Copia: `Fabio
+workspace prima della finestra NQ.aws`. **Gli indicatori X-Ray non disegnano su NQ**
+(`quant/metodo/le-opzioni-in-atas.md`): su NQ ci sono perche' la finestra e' una copia esatta.
 
 **Big trades a 60 anche su ES**: e' la taratura di Fabio per NQ; su ES, dove un contratto vale meno,
 e' probabilmente bassa. Da studiare.
@@ -173,6 +192,5 @@ Il 9 ottobre 2026, 17:50 italiane: composito di 90 barre dal 08/06, grezzo 28.39
 
 - **Il delta cumulato di ATAS riparte dalla sessione di default**, non dall'apertura della cassa
   come il CVD del pannello. Le opzioni della sessione personalizzata non sono state toccate.
-- **L'apertura della cassa e' un orario UTC fisso, 13:30Z.** Dal 1 novembre 2026, con l'ora solare
-  americana, la cassa apre alle 14:30Z: zone, sedute e giro vanno spostati prima di allora, o
-  tutti i profili di cassa sbaglieranno di un'ora.
+- **L'apertura della cassa era un orario UTC fisso, 13:30Z: risolto il 27 ottobre 2026.** Ora e'
+  09:30 di New York convertita per data (14:30Z dal 2 novembre), in indicatore, giro e studio: [gli-orari-si-scrivono-nel-fuso-del-mercato.md](gli-orari-si-scrivono-nel-fuso-del-mercato.md).

@@ -7,14 +7,15 @@ questo tipo, sta in [`la-metodologia-agentica.md`](la-metodologia-agentica.md).
 
 ## Lo Studio Globale
 
-**Cosa risponde**: in che contesto si muove NQ oggi, dal piu' lontano al piu' vicino. Come il giro
+**Cosa risponde**: in che contesto si muove NQ oggi (o ES, con `--strumento ESZ6`), dal piu' lontano
+al piu' vicino. Come il giro
 d'orizzonte, ma scritto, ragionato e con le fonti fuori da ATAS: il giro mostra i numeri, lo studio li
 legge e li mette in fila.
 
 ```text
 /studio-globale [AAAA-MM-GG] [rifai:<fasi>]     o a parole: "tieni macro e COT, rifai gamma e order flow"
 
-1 raccolta   studio/raccogli.py: macro, COT, quattro tab, sedute, ore, pannello, GEX di NQ (ES solo su richiesta)   ~1-3 min
+1 raccolta   studio/raccogli.py [--strumento ESZ6]: macro, COT, quattro tab, sedute, ore, pannello, GEX   ~1-3 min
 2 analisi    in parallelo, solo lettura:
                studio-macro      1-macro.md        tassi, volatilita', calendario, notizie
                studio-cot        2-cot.md          la procedura COT del live di Fabio
@@ -27,6 +28,22 @@ legge e li mette in fila.
   ([il modello](../.claude/skills/studio-globale/modello-del-rapporto.md)); i dati in `dati/`, fuori
   da git, con `raccolta.json` che dice fonte per fonte se c'e' e quanto ci ha messo.
 - **Veloce: sotto i dieci minuti** (richiesta del 15 ottobre 2026). **Ogni calcolo si fa una volta**: la GEX e' una sola per giro e studio (si riusa sotto i 30 minuti, dichiarandone l'eta', altrimenti si calcola una volta), il giro si fa una volta dopo la GEX, le confluenze le calcola il codice e gli agenti non rifanno conti: cosi' la raccolta sta sotto il minuto. Rapporti di 120 righe, quadro di 150, `maxTurns: 20`. I tempi per passo sono nell'orchestratore, sezione "La velocita' e' un requisito".
+- **Lo strumento e' un parametro, non un'eccezione** (27 ottobre 2026: "adatta il collettore per essere
+  nativo in NQ e ES"). `raccogli.py --strumento NQZ6|ESZ6` (difetto NQZ6), cartella `<data>/` o
+  `<data>-ES/`. Lo seguono:
+  - **le scale** (`SCALE`): fasce del profilo 1 o 0,25, nodi del composito, soglia delle confluenze 15 o
+    4 punti, 20 o 50 $ a punto;
+  - **l'order flow**: `sedute-/ore-/range-<strumento>.json`, le quattro tab e il giro sui chart dello
+    strumento, quindi anche la GEX della tab 2; il giro cerca il QUADRO solo nel file della giornata dello
+    strumento (`ESZ6-<data>.md`: un file senza prefisso e' di NQ);
+  - **la GEX**: `gex-<strumento>.json`, con il `moltiplicatore` scritto nel JSON;
+  - **il COT** (`cot.raccogli(strumento)`): l'indice principale (NASDAQ-100 mini 209742 o S&P 500 e-mini
+    13874A) per il cross-confirm, il prezzo alle date, il ritardo in prezzo e il profilo delle settimane
+    dei report, cercati nella cache e nel chart M1 dello strumento; la TFF di tutti e due (`tff_nasdaq`,
+    `tff_sp500`). I livelli del COT entrano nelle confluenze solo se `cot.json` e' dello stesso strumento;
+  - **la macro** (`macro.raccogli(strumento)`): per ES in piu' gli undici ETF settoriali dell'S&P, KRE, IWM,
+    SPY, l'ampiezza per settori (`ampiezza_sp500`: RSP meno SPY, settori che salgono) e le trimestrali
+    dei pesi massimi non tech. L'S&P per titolo non c'e' fra le fonti gratuite gia' usate.
 - **Il codice misura, gli agenti leggono.** Le quattro fasi d'analisi non hanno Bash: non scaricano e
   non ricalcolano. Una misura che manca e' una **lacuna del collettore**, e si aggiunge a `raccogli.py`.
 - **Il confronto fra le fasi lo fa solo il quadro**: ogni fase lascia i suoi agganci (**Per il
@@ -155,7 +172,15 @@ TFF separate; lo shift del live alla lettera e il composito di sola cassa con i 
 | macro | FRED senza chiave (CSV pubblico), il dato uscito degli eventi, VIX e rendimenti di oggi, le probabilita' FOMC dai future sui fed funds, l'ampiezza del Nasdaq-100, la descrizione delle notizie |
 | COT | il rollover di calendario per ogni report, il profilo della settimana coperta da ciascun report, la TFF completa |
 
-**Ancora aperte**: il composito a 90 sedute ne ha 30 finche' l'archivio non cresce; l'ora di azzeramento
+**Chiuse il 27 ottobre 2026** (lo studio di ES, `studio/rapporti/2026-10-27-ES/`): COT, macro, GEX e giro
+seguono lo strumento (sopra); la struttura oraria del giro sommava 2 ore all'UTC e dopo il cambio dell'ora
+del 25/10 scriveva "25h" e un'ora avanti: ora converte con il fuso di Roma (`scala_dei_tempi.py`); la
+grana del giro su ES era 0,21 (la scala dello strumento, fuori dal tick) contro lo 0,25 del collettore,
+e i due si azzeravano a vicenda la cache di ESZ6: ora e' un multiplo del tick (`grigliaMuri`).
+
+**Risolta il 27/10**: la cassa cablata a 13:30Z-20:00Z in tutto il codice ora e' 09:30-16:00 di New York convertita per data ([la regola](../docs/research/metodo/gli-orari-si-scrivono-nel-fuso-del-mercato.md)). **Ancora aperte**: il composito a 90 sedute ne ha 30 finche' l'archivio non cresce (su ES 17, dal 27/10:
+la cache e' ripartita alla grana giusta); per ES niente tab Range nel workspace, e i big trade
+non sono tarati su ES; l'ora di azzeramento
 del volume delle opzioni va verificata fra le 22 e le 23 UTC; un OI "definitivo" del CME non esiste
 nel bridge, c'e' solo il segnale di stabilita'.
 

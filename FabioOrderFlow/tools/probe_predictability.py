@@ -8,7 +8,7 @@ toglie tutto: dal prezzo di chiusura della barra si cammina sul tape e si guarda
 simmetrica viene toccata prima, +X punti o -X punti. Nessun limite, nessuno spread, nessuna
 asimmetria. Se nessuna misura separa questo, nessuna regola di esecuzione la salvera'.
 
-    ./probe_predictability.py CARTELLA --barrier 20 --window 13:30-15:30
+    ./probe_predictability.py CARTELLA --barrier 20 --window 09:30NY-11:30NY
 """
 
 from __future__ import annotations
@@ -20,6 +20,8 @@ import json
 import math
 import os
 from datetime import datetime, timedelta
+
+import sedute  # le finestre si convertono per data: 09:30NY-11:30NY
 
 
 def parse(raw: str) -> datetime:
@@ -98,7 +100,7 @@ def observe(candles_path, tape_path, previous_path, window, points, big_size):
             developing[level["price"]] = developing.get(level["price"], 0) + level["volume"]
         if i == 0:
             continue
-        if window and not (window[0] <= bar["lastTime"][11:16] <= window[1]):
+        if window and not sedute.in_finestra(bar["lastTime"], *window, chiusa=True):
             continue
         end = parse(bar["lastTime"])
         if end < times[0] or end > times[-1] - timedelta(seconds=1):
@@ -161,7 +163,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("directory", help="cartella con cAA-GG.json e tAA-GG.json")
     parser.add_argument("--barrier", type=float, default=20.0, help="ampiezza della barriera in punti")
-    parser.add_argument("--window", metavar="HH:MM-HH:MM")
+    parser.add_argument("--window", metavar="HH:MM-HH:MM",
+                        help="09:30NY-11:30NY si converte per data (sedute.py); senza fuso e' UTC fisso")
     parser.add_argument("--big-trade", type=int, default=20)
     parser.add_argument("--out", help="salva le osservazioni in JSON Lines")
     args = parser.parse_args()

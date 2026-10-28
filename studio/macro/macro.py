@@ -2,7 +2,15 @@
 """La fotografia macro per chi guarda NQ: tassi, volatilita', dollaro, materie prime, calendario,
 trimestrali, mercati di previsione, sentiment, notizie. Fase 1 dello studio globale.
 
-    python studio/macro/macro.py --out <cartella>       # scrive macro.json e stampa il riassunto
+    python studio/macro/macro.py --out <cartella>                     # NQZ6: scrive macro.json e stampa il riassunto
+    python studio/macro/macro.py --out <cartella> --strumento ESZ6    # ES: in piu' i settori dell'S&P 500
+
+**Lo strumento** (27 ottobre 2026). Per NQ il modulo resta com'era. Per ES aggiunge, con le stesse
+fonti: gli ETF settoriali dell'S&P 500 (piu' KRE, IWM e SPY) e la loro ampiezza (`ampiezza_sp500`:
+RSP equipesato contro SPY pesato per capitalizzazione, quanti settori salgono); le trimestrali dei
+pesi massimi non tecnologici dell'S&P 500 oltre a quelle tech. L'elenco dei titoli dell'S&P 500 non
+c'e' fra le fonti gratuite gia' usate (api.nasdaq.com lo rifiuta): l'ampiezza per titolo resta del
+Nasdaq-100, quella dell'S&P si legge per settori.
 
 **Da dove viene.** Le fonti sono quelle di World Monitor (github.com/koala73/worldmonitor, AGPL-3.0):
 il pannello "NQ Pulse" (`src/config/nq-context.ts`: NQ=F, QQQ, ^VXN, ^TNX, le otto grandi del
@@ -55,6 +63,17 @@ QUOTAZIONI = {
     "TLT": "Treasury 20+ anni (ETF)", "HYG": "high yield (ETF)", "SMH": "semiconduttori (ETF)", "XLK": "tecnologia (ETF)",
 }
 GRANDI = ["AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "META", "AVGO", "TSLA"]
+# SOLO PER ES: i settori dell'S&P 500 (gli undici Select Sector SPDR), le banche regionali, le small cap
+# e l'S&P pesato per capitalizzazione, da confrontare con RSP (equipesato)
+SETTORI_SP = {
+    "XLK": "tecnologia (ETF)", "XLF": "finanziari (ETF)", "XLV": "salute (ETF)", "XLY": "consumi discrezionali (ETF)",
+    "XLC": "comunicazioni (ETF)", "XLI": "industriali (ETF)", "XLP": "consumi di base (ETF)", "XLE": "energia (ETF)",
+    "XLU": "utility (ETF)", "XLRE": "immobiliare (ETF)", "XLB": "materiali (ETF)",
+}
+ALTRI_SP = {"SPY": "S&P 500 pesato per capitalizzazione (ETF)", "KRE": "banche regionali (ETF)", "IWM": "Russell 2000 (ETF)"}
+# SOLO PER ES: i pesi massimi non tecnologici dell'S&P 500, per le trimestrali (le tech restano quelle sotto)
+GRANDI_SP = ["BRK.B", "JPM", "LLY", "V", "MA", "XOM", "UNH", "WMT", "JNJ", "PG", "HD", "COST", "BAC", "ABBV",
+             "CVX", "KO", "MRK", "WFC", "GS", "MS", "CAT", "GE", "PEP", "MCD", "LIN", "IBM", "ORCL", "CRM"]
 # le date FOMC 2026 (seconda giornata = decisione), da federalreserve.gov come in World Monitor
 FOMC_2026 = ["2026-01-28", "2026-03-18", "2026-04-29", "2026-06-17", "2026-07-29", "2026-09-16", "2026-10-28", "2026-12-09"]
 POLYMARKET_TAG = ["fed", "inflation", "recession", "tariffs"]
@@ -127,7 +146,7 @@ def quotazione(simbolo: str) -> dict:
     ieri = m.get("chartPreviousClose") if len(chiusure) < 2 else chiusure[-2]
     var = lambda n: round(100 * (ultimo / chiusure[-1 - n] - 1), 2) if len(chiusure) > n else None  # noqa: E731
     rend = [chiusure[i] / chiusure[i - 1] - 1 for i in range(max(1, len(chiusure) - 20), len(chiusure))]
-    return {"simbolo": simbolo, "nome": QUOTAZIONI.get(simbolo, simbolo), "ultimo": round(ultimo, 4),
+    return {"simbolo": simbolo, "nome": QUOTAZIONI.get(simbolo) or SETTORI_SP.get(simbolo) or ALTRI_SP.get(simbolo, simbolo), "ultimo": round(ultimo, 4),
             "quando": dt.datetime.fromtimestamp(m.get("regularMarketTime", 0), dt.timezone.utc).isoformat(),
             "var_1g": round(100 * (ultimo / ieri - 1), 2) if ieri else None, "var_5g": var(5), "var_20g": var(20),
             "pct_1a": percentile(chiusure, ultimo), "min_1a": round(min(chiusure), 4), "max_1a": round(max(chiusure), 4),
@@ -349,8 +368,37 @@ def calendario() -> dict:
             "fonte": "nfs.faireconomy.media (Forex Factory), date FOMC da federalreserve.gov"}
 
 
-def trimestrali() -> dict:
-    """Le trimestrali delle otto grandi del Nasdaq nei prossimi 14 giorni (api.nasdaq.com, gratuita)."""
+def ampiezza_sp500(quot: list[dict]) -> dict | None:
+    """L'ampiezza dell'S&P 500 per settori (solo ES): RSP equipesato contro SPY pesato per capitalizzazione
+    (positivo = il titolo medio fa meglio dei grandi) a 1, 5 e 20 giorni, e quanti degli undici settori
+    salgono. Dalle quotazioni gia' raccolte: nessuna fonte nuova."""
+    q = {x["simbolo"]: x for x in quot}
+    rsp, spy = q.get("RSP"), q.get("SPY")
+    sett = [q[s] for s in SETTORI_SP if s in q]
+    if not (rsp and spy) and not sett:
+        return None
+    out: dict = {}
+    if rsp and spy:
+        out["rsp_meno_spy_pct"] = {k: (round(rsp[k] - spy[k], 2) if rsp.get(k) is not None and spy.get(k) is not None else None)
+                                   for k in ("var_1g", "var_5g", "var_20g")}
+    for k in ("var_1g", "var_5g", "var_20g"):
+        v = [s[k] for s in sett if s.get(k) is not None]
+        if v:
+            out[f"settori_{k}"] = {"salgono": sum(1 for x in v if x > 0), "scendono": sum(1 for x in v if x < 0),
+                                   "mediana_pct": round(statistics.median(v), 2),
+                                   "migliore": max(sett, key=lambda s: s.get(k) if s.get(k) is not None else -1e9)["simbolo"],
+                                   "peggiore": min(sett, key=lambda s: s.get(k) if s.get(k) is not None else 1e9)["simbolo"]}
+    out["settori_letti"] = len(sett)
+    out["fonte"] = "Yahoo chart (le stesse quotazioni di `quotazioni`): undici Select Sector SPDR, RSP e SPY"
+    return out
+
+
+def trimestrali(strumento: str = "NQZ6") -> dict:
+    """Le trimestrali delle otto grandi del Nasdaq nei prossimi 14 giorni (api.nasdaq.com, gratuita); per ES
+    anche quelle dei pesi massimi non tecnologici dell'S&P 500 (`GRANDI_SP`)."""
+    cercati = set(GRANDI) | {"NFLX", "AMD", "ASML", "TSM", "QCOM", "INTC"}
+    if strumento.upper().startswith("ES"):
+        cercati |= {s.replace(".", "/") for s in GRANDI_SP} | set(GRANDI_SP)
     trovate = []
     for i in range(15):
         g = dt.date.today() + dt.timedelta(days=i)
@@ -362,10 +410,12 @@ def trimestrali() -> dict:
         except Exception:
             continue
         for r in (d.get("data") or {}).get("rows") or []:
-            if r.get("symbol") in GRANDI or r.get("symbol") in ("NFLX", "AMD", "ASML", "TSM", "QCOM", "INTC"):
+            if r.get("symbol") in cercati:
                 trovate.append({"data": g.isoformat(), "simbolo": r["symbol"], "quando": r.get("time"),
-                                "eps_atteso": r.get("epsForecast")})
-    return {"trimestrali": trovate, "fonte": "api.nasdaq.com/api/calendar/earnings"}
+                                "eps_atteso": r.get("epsForecast"),
+                                "gruppo": "tech/Nasdaq" if r["symbol"] not in GRANDI_SP and r["symbol"].replace("/", ".") not in GRANDI_SP
+                                          else "S&P 500 non tech"})
+    return {"trimestrali": trovate, "cercati": len(cercati), "fonte": "api.nasdaq.com/api/calendar/earnings"}
 
 
 def previsioni() -> dict:
@@ -440,12 +490,17 @@ FONTI = {"treasury": treasury, "fred": fred, "calendario": calendario, "trimestr
          "fomc_future": fomc_future, "ampiezza": ampiezza}
 
 
-def raccogli() -> dict:
+def raccogli(strumento: str = "NQZ6") -> dict:
+    """Tutta la macro in un dizionario; la usano main() e studio/raccogli.py. Con ES (`strumento` ESZ6) in
+    piu' i settori dell'S&P 500, la loro ampiezza e le trimestrali dei pesi massimi non tech."""
     inizio = time.time()
-    esito = {"raccolto_utc": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"), "errori": {}}
+    es = strumento.upper().startswith("ES")
+    esito = {"raccolto_utc": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"), "strumento": strumento,
+             "errori": {}}
+    simboli = list(QUOTAZIONI) + GRANDI + ([s for s in list(SETTORI_SP) + list(ALTRI_SP) if s not in QUOTAZIONI] if es else [])
     with ThreadPoolExecutor(max_workers=12) as pool:
-        quot = {s: pool.submit(quotazione, s) for s in list(QUOTAZIONI) + GRANDI}
-        altre = {k: pool.submit(f) for k, f in FONTI.items()}
+        quot = {s: pool.submit(quotazione, s) for s in simboli}
+        altre = {k: pool.submit((lambda: trimestrali(strumento)) if k == "trimestrali" else f) for k, f in FONTI.items()}
         esito["quotazioni"] = []
         for s, fut in quot.items():
             try:
@@ -457,6 +512,8 @@ def raccogli() -> dict:
                 esito[k] = fut.result()
             except Exception as e:  # noqa: BLE001
                 esito["errori"][k] = str(e)[:160]
+    if es:
+        esito["ampiezza_sp500"] = ampiezza_sp500(esito["quotazioni"])
     if "calendario" in esito and "fred" in esito:
         esito["esiti"] = esiti(esito["calendario"], esito["fred"])
     dff = (esito.get("fred") or {}).get("serie", {}).get("DFF")
@@ -487,6 +544,11 @@ def riassunto(m: dict) -> None:
     a = m.get("ampiezza")
     if a:
         print(f"  Nasdaq-100: {a['salgono']} su, {a['scendono']} giu', mediana {a['var_mediana_pct']:+}%, pesata {a['var_pesata_cap_pct']:+}%")
+    sp = m.get("ampiezza_sp500")
+    if sp:
+        s1 = sp.get("settori_var_1g") or {}
+        print(f"  S&P 500 per settori: {s1.get('salgono')} su, {s1.get('scendono')} giu' su {sp['settori_letti']}; "
+              f"RSP-SPY {sp.get('rsp_meno_spy_pct')}")
     for q in (m.get("tempo_reale") or {}).get("quotazioni", []):
         print(f"  adesso {q['simbolo']:<7} {q['ultimo']}  {q['ora_italiana']}  {q['stato']}")
     c = m.get("calendario")
@@ -499,8 +561,9 @@ def riassunto(m: dict) -> None:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--out", help="cartella dove scrivere macro.json")
+    ap.add_argument("--strumento", default="NQZ6", help="lo strumento dello studio: NQZ6 (difetto) o ESZ6")
     a = ap.parse_args()
-    m = raccogli()
+    m = raccogli(a.strumento)
     if a.out:
         os.makedirs(a.out, exist_ok=True)
         with open(os.path.join(a.out, "macro.json"), "w", encoding="utf-8") as f:

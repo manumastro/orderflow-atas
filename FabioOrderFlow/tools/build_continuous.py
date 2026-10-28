@@ -16,12 +16,14 @@ Il footprint viene spostato con le barre, quindi anche POC e value area storici 
 confrontabili.
 
     ./build_continuous.py c-NQU6.json c-NQZ6.json --out continuo.json
-    ./build_continuous.py c-NQU6.json c-NQZ6.json --cash 13:30-20:00 --out daily.json
+    ./build_continuous.py c-NQU6.json c-NQZ6.json --cash 09:30NY-16:00NY --out daily.json
 """
 
 from __future__ import annotations
 
 import argparse
+import sys
+from pathlib import Path
 import json
 import statistics
 from collections import defaultdict
@@ -96,10 +98,14 @@ def value_area(volume_by_price: dict[float, int], percent: float = 70.0):
 
 
 def to_sessions(bars, window):
+    # la finestra si converte per data (sedute.py): 09:30NY-16:00NY e' la cassa d'estate e d'inverno;
+    # 13:30-20:00 senza fuso resta UTC fisso, ed e' sbagliato da novembre a marzo
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import sedute
     begin, end = window
     days = defaultdict(lambda: {"levels": {}, "bars": []})
     for b in bars:
-        if not (begin <= b["time"][11:16] < end):
+        if not sedute.in_finestra(b["time"], begin, end):
             continue
         d = days[b["time"][:10]]
         d["bars"].append(b)
@@ -127,7 +133,9 @@ def to_sessions(bars, window):
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("candles", nargs="+", help="JSON di /candles per contratto, dal piu' vecchio al piu' recente")
-    parser.add_argument("--cash", metavar="HH:MM-HH:MM", help="aggrega in sedute su questa finestra UTC")
+    parser.add_argument("--cash", metavar="HH:MMNY-HH:MMNY",
+                        help="aggrega in sedute su questa finestra: 09:30NY-16:00NY si converte per data "
+                             "(sedute.py); senza fuso e' UTC fisso")
     parser.add_argument("--out", required=True)
     args = parser.parse_args()
 

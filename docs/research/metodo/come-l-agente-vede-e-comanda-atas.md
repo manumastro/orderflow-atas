@@ -69,6 +69,17 @@ Quasi tutto e' lettura. Le eccezioni, dalla piu' innocua alla piu' delicata:
 | `ui --tab N --davanti`, `ui --ridai` | la finestra in primo piano sullo schermo dell'utente | si': `foto_atas.py` rida' il primo piano a chi l'aveva |
 | `disegni --togli TIPO` | **cancella i disegni di quel tipo** dal chart | **no**: un disegno cancellato va ridisegnato a mano |
 | `workspace_a_tab.py --ritocca` | il file del workspace | si', dal backup accanto, ad ATAS chiuso |
+| `workspace_finestra_es.py --aspetta` | aggiunge al workspace la finestra ES, con le quattro tab di NQ | si', da `Fabio workspace prima della finestra ES.aws`, ad ATAS chiuso |
+| `workspace_clona_finestra.py --aspetta` | copia una finestra su un altro strumento, tab e indicatori uguali (default: la finestra ES diventa anche NQ) | si', da `Fabio workspace prima della finestra NQ.aws`, ad ATAS chiuso |
+
+**Come si cambia il workspace** (usato il 9, il 10 e il 14 ottobre, e il 25 ottobre 2026):
+
+1. si lancia lo script con `--aspetta`: resta in attesa che ATAS si chiuda;
+2. **l'utente chiude ATAS**: da fuori non si chiude, perche' `CloseMainWindow` lo lascia fermo su una
+   conferma a schermo, e lo schermo non si fotografa ([le foto](#le-foto-solo-atas-e-lo-si-dice));
+3. alla chiusura lo script salva la copia accanto, poi scrive il file;
+4. si controlla con `workspace_a_tab.py --mostra "Fabio workspace"` (solo la prima finestra), e
+   l'utente riapre ATAS: l'accesso al conto e' suo.
 
 **Prima di `disegni --togli` su un tipo che l'utente ha disegnato a mano** (`RectangleObj`, linee)
 **si chiede**. Il 10 ottobre e' stato usato solo su `CustomHistogramm`, i profili di ATAS che
@@ -177,8 +188,9 @@ copia. Toglierli dal file non basta; si tolgono con `disegni --togli` su ogni ch
   due. Il 1 ottobre: **POC 24 ore 30.820, POC di cassa 30.634**; minimo dell'8, **30.792**. Per il
   metodo conta la cassa `[1 · 1:14:20]`: l'8 si e' fermato sul VAH di cassa del 1 ottobre (30.780),
   non sul suo POC. Il composito di 90 giorni e' anch'esso su barre di 24 ore, e lo dichiara.
-- **La candela Daily di ATAS parte alle 22:00Z del giorno prima**: `time` 2026-09-30T22:00Z e' la
-  giornata del 1 ottobre.
+- **La candela Daily di ATAS parte alle 22:00Z del giorno prima** (misurato in ora legale: sono le
+  18:00 di New York, quindi d'inverno ci si aspetta 23:00Z, da verificare il 2 novembre 2026): `time`
+  2026-09-30T22:00Z e' la giornata del 1 ottobre.
 - **Il continuo `NQ` non e' aggiustato al rollover**: prima dell'11 settembre 2026 i suoi prezzi
   stanno 299,25 punti sotto NQZ6. Dopo, coincidono. `ruolo` sul Daily da' le due versioni.
 - **L'id del chart e l'indice `bar` cambiano a ogni ricarica**: si chiedono, non si ricordano.

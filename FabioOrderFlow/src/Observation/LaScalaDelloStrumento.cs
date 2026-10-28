@@ -70,18 +70,21 @@ public sealed partial class DataBridge
     }
 
     /// <summary>
-    /// L'apertura della cassa per questo strumento. Sul crude il pit NYMEX apre alle 13:00Z e
-    /// chiude alle 18:30Z; su NQ e oro la cassa e' 13:30Z-20:00Z (per l'oro scelta sul volume il 18
-    /// settembre). Un valore scritto nelle proprieta' vince, **salvo il default del NQ su un chart di
-    /// crude**: e' quasi sempre il template ereditato, non una scelta.
+    /// L'apertura della cassa per questo strumento, nel fuso di New York e convertita per data
+    /// (<see cref="LeSedute"/>): sul crude il pit NYMEX 09:00-14:30; su NQ, ES e oro la cassa
+    /// 09:30-16:00 (per l'oro scelta sul volume il 18 settembre). In UTC e' 13:30Z-20:00Z con l'ora
+    /// legale americana e 14:30Z-21:00Z con l'ora solare: fino al 27 ottobre 2026 era scritta fissa
+    /// in UTC. Un valore scritto nelle proprieta' vince, **salvo il default del NQ su un chart di
+    /// crude**: e' quasi sempre il template ereditato, non una scelta. I vecchi default in UTC
+    /// salvati nei workspace (13:30Z, 20:00Z) si leggono come la seduta dinamica.
     /// </summary>
-    private string Apertura => EIlCrude && (string.IsNullOrWhiteSpace(MuriApertura) || MuriApertura == "13:30Z")
-        ? "13:00Z"
-        : string.IsNullOrWhiteSpace(MuriApertura) ? "13:30Z" : MuriApertura;
+    private string Apertura => EIlCrude && LeSedute.Orario(MuriApertura, LeSedute.AperturaCassa) == LeSedute.AperturaCassa
+        ? LeSedute.AperturaPitCrude
+        : LeSedute.Orario(MuriApertura, LeSedute.AperturaCassa);
 
-    private string Chiusura => EIlCrude && (string.IsNullOrWhiteSpace(MuriChiusura) || MuriChiusura == "20:00Z")
-        ? "18:30Z"
-        : string.IsNullOrWhiteSpace(MuriChiusura) ? "20:00Z" : MuriChiusura;
+    private string Chiusura => EIlCrude && LeSedute.Orario(MuriChiusura, LeSedute.ChiusuraCassa) == LeSedute.ChiusuraCassa
+        ? LeSedute.ChiusuraPitCrude
+        : LeSedute.Orario(MuriChiusura, LeSedute.ChiusuraCassa);
 
     /// <summary>Moltiplicatore dei punti: 1 sul NQ.</summary>
     private decimal Scala
@@ -145,8 +148,7 @@ public sealed partial class DataBridge
                 break;
             }
 
-            var ora = c.Time.TimeOfDay;
-            if (giorno == oggi || ora < Momento(Apertura, giorno).TimeOfDay || ora >= Momento(Chiusura, giorno).TimeOfDay)
+            if (giorno == oggi || c.Time < Momento(Apertura, giorno) || c.Time >= Momento(Chiusura, giorno))
             {
                 continue;
             }
@@ -178,7 +180,11 @@ public sealed partial class DataBridge
     private object ScalaInJson() => new
     {
         strumento = InstrumentInfo?.Instrument,
-        cassa = $"{Apertura}-{Chiusura}",
+        // l'orario VERO della cassa di oggi in UTC (14:30Z-21:00Z d'inverno) e la definizione nel
+        // fuso del mercato: chi misura altri giorni converte per la loro data, non riusa questa stringa
+        cassa = LeSedute.Etichetta(Apertura, Chiusura,
+            LeSedute.GiornoDiMercato(CurrentBar > 0 ? GetCandle(CurrentBar - 1).Time : DateTime.UtcNow)),
+        cassaNelFuso = $"{Apertura}-{Chiusura}",
         punti = Math.Round(Scala, 3),
         lotti = Math.Round(ScalaDeiLotti, 3),
         forzata = ScalaPunti > 0 || ScalaLotti > 0,

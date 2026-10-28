@@ -114,11 +114,30 @@ public sealed partial class DataBridge
             _opzioniLock.Release();
         }
 
-        // si aspettano le quotazioni: almeno l'open interest o un prezzo per ogni opzione
+        // si aspettano le quotazioni: almeno l'open interest o un prezzo per ogni opzione. Gli strike
+        // lontani pero' non si quotano mai, e aspettarli tutti portava ogni richiesta al tempo massimo
+        // (27 ottobre 2026: la GEX di ES in 441 secondi, 14 scadenze su 31 senza quotazioni). Allora
+        // si smette anche quando le quotazioni smettono di arrivare: `quiet` millisecondi senza una
+        // opzione quotata in piu', dopo che ne e' arrivata almeno una (default 1000).
+        var quiete = TimeSpan.FromMilliseconds(Math.Clamp(OptionalInt(query, "quiet") ?? 1000, 100, 120_000));
+        static bool Quotata(IOptionQuoteSubscription s) =>
+            s.Summary is { } x && (x.OpenInterest is not null || x.BestBidPrice is not null || x.LastTradePrice is not null);
         var limite = DateTime.UtcNow + attesa;
-        while (DateTime.UtcNow < limite && sottoscrizioni.Any(s => s.Summary is not { } x || (x.OpenInterest is null && x.BestBidPrice is null && x.LastTradePrice is null)))
+        var quotate = sottoscrizioni.Count(Quotata);
+        var ultimaNovita = DateTime.UtcNow;
+        while (DateTime.UtcNow < limite && quotate < sottoscrizioni.Count)
         {
-            await Task.Delay(250, cancellation).ConfigureAwait(false);
+            await Task.Delay(100, cancellation).ConfigureAwait(false);
+            var ora = sottoscrizioni.Count(Quotata);
+            if (ora > quotate)
+            {
+                quotate = ora;
+                ultimaNovita = DateTime.UtcNow;
+            }
+            else if (quotate > 0 && DateTime.UtcNow - ultimaNovita >= quiete)
+            {
+                break;
+            }
         }
 
         var righe = sottoscrizioni.Select(s =>

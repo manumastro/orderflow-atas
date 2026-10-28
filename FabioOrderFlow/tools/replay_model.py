@@ -9,7 +9,7 @@ Il file e' organizzato come il dossier, una sezione per pagina, e ogni punto che
 aperto e' una costante dichiarata oppure un'opzione di riga di comando. Le scelte sono di chi
 scrive lo script, non del dossier: cambiarle cambia i risultati.
 
-    ./replay_model.py candles.json --tape tape.json --window 13:30-15:30 --manage 30
+    ./replay_model.py candles.json --tape tape.json --window 09:30NY-11:30NY --manage 30
 """
 
 from __future__ import annotations
@@ -19,6 +19,9 @@ import bisect
 import json
 from datetime import datetime, timedelta
 from statistics import median
+
+import ora
+import sedute  # le finestre si convertono per data: 09:30NY-11:30NY
 
 # ============================================================ pagina 02: chart setup
 # Il dossier prescrive il template OrderTrack con le linee di value area attive. La percentuale
@@ -295,7 +298,7 @@ def control_lost(side: str, cumulative_delta: int, threshold: int) -> bool:
 def signal(bars, i, vas, levels, flow):
     if i < 1:
         return None
-    if SESSION_WINDOW and not (SESSION_WINDOW[0] <= bars[i]["lastTime"][11:16] <= SESSION_WINDOW[1]):
+    if SESSION_WINDOW and not sedute.in_finestra(bars[i]["lastTime"], *SESSION_WINDOW, chiusa=True):
         return None
 
     previous, bar = bars[i - 1], bars[i]
@@ -503,7 +506,8 @@ def main() -> None:
     page04.add_argument("--stop", choices=["va", "bar"], default=STOP_MODE)
 
     page07 = parser.add_argument_group("pagina 07 - session timing")
-    page07.add_argument("--window", metavar="HH:MM-HH:MM", help="finestra oraria UTC")
+    page07.add_argument("--window", metavar="HH:MM-HH:MM",
+                        help="finestra oraria: 09:30NY-11:30NY si converte per data (sedute.py); senza fuso e' UTC fisso")
 
     tests = parser.add_argument_group("ipotesi sotto test - non vengono dal dossier")
     tests.add_argument("--invert", action="store_true", help="controllo non valido, vedi il commento nel file")
@@ -626,8 +630,7 @@ def main() -> None:
                                   "speedPro": sig.get("speedPro"), "speedContro": sig.get("speedContro"),
                                   "outcome": out["outcome"], "r": round(out["r"], 2)}))
             if not args.quiet:
-                rome = parse(sig["time"]).hour + 2
-                print(f"barra {sig['bar']}  {sig['time'][11:19]} UTC ({rome:02d}:{sig['time'][14:16]} Roma)  "
+                print(f"barra {sig['bar']}  {sig['time'][11:19]} UTC ({ora.hhmm(sig['time'])} Roma)  "
                       f"{sig['side'].upper()}  {sig['level']}")
                 print(f"   delta {sig['previousDelta']:+,} -> {sig['delta']:+,}   "
                       f"VA {sig['val']:,.2f}-{sig['vah']:,.2f}   qty {out['quantity']}")

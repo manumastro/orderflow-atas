@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Tutti i dati dello studio globale, in un colpo, prima che parta qualunque agente.
 
-    python studio/raccogli.py --out studio/rapporti/<data>/dati
+    python studio/raccogli.py --out studio/rapporti/<data>/dati                        # NQZ6
+    python studio/raccogli.py --out studio/rapporti/<data>-ES/dati --strumento ESZ6    # ES
 
 **Perche' esiste** (15 ottobre 2026). Nel primo giro ogni agente raccoglieva i suoi dati e li
 ricalcolava: l'agente della gamma ha rifatto la GEX due volte e si e' scritto uno script per gli
@@ -14,7 +15,12 @@ Due fili in parallelo, perche' non si disturbano:
     rete     macro (World Monitor e altre fonti pubbliche)  ->  macro.json
              COT (CFTC)                                     ->  cot.json
     bridge   le quattro tab, il giro, il pannello, le sedute, le ore  ->  vedi sotto
-             la GEX di NQZ6 (ES solo con --con-es: lo studio e' di NQ, richiesta del 15 ottobre 2026)
+             la GEX dello strumento (l'altro solo con --con-es)
+
+**Lo strumento e' un parametro** (27 ottobre 2026): `--strumento NQZ6` (difetto) o `ESZ6`. Lo seguono
+le scale (`SCALE`), i file `sedute-/ore-/range-/gex-<strumento>.json`, le tab e il giro (con il chart
+M1 dello strumento, quindi anche la GEX della tab 2), il COT (l'indice principale, il prezzo alle date,
+il cross-confirm) e la macro (per ES i settori e le trimestrali dell'S&P 500).
 
 Alla fine `raccolta.json` dice, fonte per fonte, se c'e', quanto ci ha messo e l'errore.
 """
@@ -50,8 +56,17 @@ import gex  # noqa: E402
 import le_quattro_tab  # noqa: E402
 import macro  # noqa: E402
 import scala_dei_tempi as scala  # noqa: E402
+import sedute as orari  # noqa: E402  gli orari delle sedute, nel fuso del mercato e convertiti per data
 
 ROMA = ZoneInfo("Europe/Rome")
+
+# LO STRUMENTO DELLO STUDIO: NQZ6 per difetto; ESZ6 con --strumento (richiesta dell'utente del 27 ottobre
+# 2026, "facciamo uno studio completo" su ES). Le scale dipendono dallo strumento: ES si muove circa un
+# quarto di NQ in punti e vale 50 $ a punto invece di 20.
+SCALE = {"NQZ6": {"radice": "NQ", "fasce": 1.0, "nodo": 5.0, "stacco": 50.0, "soglia": 15.0, "dollari": 20},
+         "ESZ6": {"radice": "ES", "fasce": 0.25, "nodo": 1.0, "stacco": 10.0, "soglia": 4.0, "dollari": 50}}
+S = "NQZ6"
+SC = SCALE[S]
 STAMPA = threading.Lock()
 
 
@@ -89,7 +104,7 @@ def sedute(chart_m1: str, quante: int = 20) -> dict:
     scala.PORTA = scala.porta()
     salute = scala.chiedi(f"/health?chart={chart_m1}") or {}
     oggi = scala.giorno_di_mercato(salute.get("marketTimeUtc") or dt.datetime.utcnow().isoformat())
-    cache, mancanti = scala.riempi(chart_m1, "NQZ6", oggi, ("13:30", "20:00"), 1.0, budget=240)
+    cache, mancanti = scala.riempi(chart_m1, S, oggi, SC["fasce"], budget=240)
     righe, prec = [], None
     for k in sorted(x for x in cache if not x.startswith("_")):
         c = (cache[k] or {}).get("cassa")
@@ -128,9 +143,10 @@ def sedute(chart_m1: str, quante: int = 20) -> dict:
     composito = composito_di(righe)
     for r in righe:
         r.pop("_hist", None)
-    # OGGI, diviso: la notte (dalle 22:00Z di ieri alle 13:30Z) e la cassa in corso, ciascuna con il suo
-    # valore. Fino al 15/10 `oggi_finora` era il giorno intero, notte e cassa insieme (lacuna della fase 4)
-    oggi_m = scala.misura(chart_m1, oggi, ("13:30", "20:00"), 1.0) or {}
+    # OGGI, diviso: la notte (dalle 18:00 di New York di ieri all'apertura) e la cassa in corso, ciascuna
+    # con il suo valore. Fino al 15/10 `oggi_finora` era il giorno intero, notte e cassa insieme (lacuna
+    # della fase 4). Gli orari sono quelli di oggi, da sedute.py (fino al 27/10 erano 22:00Z e 13:30Z fissi)
+    oggi_m = scala.misura(chart_m1, oggi, SC["fasce"], S) or {}
     oggi_out: dict = {}
     for parte in ("notte", "cassa"):
         x = oggi_m.get(parte)
@@ -142,9 +158,11 @@ def sedute(chart_m1: str, quante: int = 20) -> dict:
         oggi_out[parte]["profilo_da_10"] = fasce_del_profilo(x["hist"])
     cassa_oggi = oggi_out.get("cassa")
     if cassa_oggi and righe and "poc" in cassa_oggi:
-        # la cassa di oggi in fila con le sedute chiuse: stesse misure, ma IN CORSO fino alle 22:00 italiane
+        # la cassa di oggi in fila con le sedute chiuse: stesse misure, ma IN CORSO fino alla chiusura
+        # delle 16:00 di New York (20:00Z o 21:00Z secondo la data: sedute.py)
         ieri = righe[-1]
-        cassa_oggi["in_corso"] = (salute.get("marketTimeUtc") or "")[11:16] < "20:00"
+        adesso = salute.get("marketTimeUtc")
+        cassa_oggi["in_corso"] = (orari.momento(adesso, oggi) < orari.cassa(oggi, S)[1]) if adesso else True
         cassa_oggi["valore_rispetto_a_ieri"] = ("SU" if cassa_oggi["poc"] > ieri["poc"] else
                                                 "GIU" if cassa_oggi["poc"] < ieri["poc"] else "=")
         cassa_oggi["staccato"] = cassa_oggi["val"] > ieri["vah"] or cassa_oggi["vah"] < ieri["val"]
@@ -154,7 +172,7 @@ def sedute(chart_m1: str, quante: int = 20) -> dict:
                                            "sotto" if cassa_oggi["ultimo"] < cassa_oggi["val"] else "dentro")
     ultimo = (oggi_m.get("giorno") or {}).get("C")
     # la variabile di BDLM (Baltussen e altri): il rendimento dalla chiusura di cassa di ieri. Si scrive
-    # sempre; quella del paper e' alle 21:30 italiane (19:30Z in ora legale)
+    # sempre; quella del paper e' mezz'ora prima della chiusura, le 15:30 di New York
     rendimento = None
     if righe and ultimo:
         rendimento = {"chiusura_di_ieri": righe[-1]["chiusura"], "ultimo": ultimo,
@@ -167,7 +185,8 @@ def sedute(chart_m1: str, quante: int = 20) -> dict:
     for nome, c in (("20_sedute", composito), ("90_sedute", composito_lungo)):
         if c and ultimo:
             zona[nome] = ("premium" if ultimo > c["vah"] else "discount" if ultimo < c["val"] else "fair value")
-    return {"strumento": "NQZ6", "cassa": "13:30Z-20:00Z", "fasce": 1.0, "oggi": oggi,
+    return {"strumento": S, "cassa": orari.etichetta_cassa(oggi, S),
+            "cassa_definizione": orari.descrizione_cassa(S), "fasce": SC["fasce"], "oggi": oggi,
             "sedute_non_in_cache": mancanti, "sedute": righe, "composito_di_cassa": composito, "composito_di_cassa_90": composito_lungo,
             "zona_nel_composito_di_cassa": zona, "oggi_notte": oggi_out.get("notte"), "oggi_cassa": cassa_oggi,
             "rendimento_dalla_chiusura_di_ieri": rendimento,
@@ -187,16 +206,17 @@ def composito_di(righe: list[dict]) -> dict | None:
     cv = scala.valore(comp)
     fasce: dict[float, float] = {}
     for k, v in comp.items():
-        fasce[k // 5 * 5] = fasce.get(k // 5 * 5, 0) + v
+        f = k // SC["nodo"] * SC["nodo"]
+        fasce[f] = fasce.get(f, 0) + v
     tot = sum(comp.values())
     nodi: list[float] = []
     for k in sorted(fasce, key=fasce.get, reverse=True):
-        if all(abs(k - n) >= 50 for n in nodi):
+        if all(abs(k - n) >= SC["stacco"] for n in nodi):
             nodi.append(k)
         if len(nodi) == 5:
             break
     return {"sedute": len(righe), "dal": righe[0]["giorno"], "poc": cv[0], "val": cv[1], "vah": cv[2],
-            "nodi_da_5_punti": [{"da": k, "a": k + 5, "quota_percento_del_volume": round(100 * fasce[k] / tot, 2)}
+            "nodi_da_5_punti": [{"da": k, "a": k + SC["nodo"], "quota_percento_del_volume": round(100 * fasce[k] / tot, 2)}
                                 for k in nodi]}
 
 
@@ -226,7 +246,7 @@ def ore(chart_m1: str, base: str) -> dict:
         out.append({"ora_italiana": t.strftime("%d/%m %H:00"), "apertura": g[0]["open"], "massimo": max(x["high"] for x in g),
                     "minimo": min(x["low"] for x in g), "chiusura": g[-1]["close"], "volume": sum(x["volume"] for x in g),
                     "delta": sum(x.get("delta", 0) for x in g), "minuti": len(g)})
-    return {"strumento": "NQZ6", "barre_orarie": out, "volatilita_realizzata": realizzata(cs),
+    return {"strumento": S, "barre_orarie": out, "volatilita_realizzata": realizzata(cs),
             "fonte": "bridge, M1 aggregato per ora (l'ultima e' aperta)"}
 
 
@@ -267,18 +287,20 @@ def barre_range(base: str, chart: dict | None, quante: int = 600) -> dict:
 def quattro() -> str:
     buf = io.StringIO()
     with contextlib.redirect_stdout(buf):
-        le_quattro_tab.stampa("lontane")
-        le_quattro_tab.stampa("esecuzione")
+        le_quattro_tab.stampa("lontane", SC["radice"])
+        le_quattro_tab.stampa("esecuzione", SC["radice"])
     return buf.getvalue()
 
 
 def giro() -> str:
     env = os.environ | {"PYTHONUTF8": "1", "PYTHONIOENCODING": "utf-8", "GEX_SENZA_RICALCOLO": "1"}
-    return subprocess.run([sys.executable, str(STRUMENTI / "giro_orizzonte.py"), "--barre", "5"], cwd=REPO,
+    base = client.discover(None)
+    m1 = (le_quattro_tab.le_tab(client.get(base, "/charts", timeout=10)["charts"], SC["radice"]).get("seduta") or {}).get("id")
+    return subprocess.run([sys.executable, str(STRUMENTI / "giro_orizzonte.py"), "--barre", "5"] + (["--chart", m1] if m1 else []), cwd=REPO,
                           capture_output=True, text=True, encoding="utf-8", timeout=180, env=env).stdout
 
 
-def confluenze(cartella: Path, soglia: float = 15.0) -> dict:
+def confluenze(cartella: Path, soglia: float | None = None) -> dict:
     """I prezzi che due fonti diverse indicano entro `soglia` punti (lacuna del quadro: la tabella la
     faceva a mano). Fonti: order flow (sedute di cassa, oggi, composito), gamma (zeri, muri, strike
     pesanti), COT (il valore della cassa nei giorni del report). Il codice trova le vicinanze; dire a
@@ -289,8 +311,9 @@ def confluenze(cartella: Path, soglia: float = 15.0) -> dict:
             return json.loads((cartella / nome).read_text(encoding="utf-8"))
         except (OSError, ValueError):
             return {}
+    soglia = soglia or SC["soglia"]
     livelli: list[dict] = []
-    sed = leggi("sedute-NQZ6.json")
+    sed = leggi(f"sedute-{S}.json")
     for r in sed.get("sedute") or []:
         for k in ("poc", "val", "vah"):
             livelli.append({"prezzo": r[k], "fonte": "orderflow", "cosa": f"{k.upper()} cassa {r['giorno']}",
@@ -307,7 +330,7 @@ def confluenze(cartella: Path, soglia: float = 15.0) -> dict:
             if k in comp:
                 livelli.append({"prezzo": comp[k], "fonte": "orderflow", "cosa": f"{k.upper()} {nome} ({comp['sedute']} sedute)",
                                 "dato": f"{chiave}:{k}"})
-    gx = leggi("gex-NQZ6.json")
+    gx = leggi(f"gex-{S}.json")
     for parte, nome in (("tutte", "tutte"), ("settimana", "entro 7 giorni"), ("prima", "0DTE")):
         x = gx.get(parte) or {}
         if x.get("zero"):
@@ -321,11 +344,22 @@ def confluenze(cartella: Path, soglia: float = 15.0) -> dict:
     for r in pesanti:
         livelli.append({"prezzo": r["k"], "fonte": "gamma", "cosa": f"strike pesante, GEX netta A {r['gex_netta']}",
                         "dato": f"gex:strike:{r['k']}"})
-    for r in (leggi("cot.json").get("prezzo_alle_date") or []):
-        for k in ("poc", "val", "vah"):
-            if r.get(k):
-                livelli.append({"prezzo": r[k], "fonte": "cot", "cosa": f"{k.upper()} cassa del report {r['giorno']}",
-                                "dato": f"{r['giorno']}:{k}"})
+    ct = leggi("cot.json")
+    # il COT entra solo se e' dello strumento dello studio: un cot.json di NQ ha prezzi di NQ, e nelle
+    # confluenze di ES sarebbero vicinanze inventate (fino al 27/10 il COT era sempre di NQZ6)
+    if ct.get("strumento", "NQZ6") == S:
+        for r in (ct.get("prezzo_alle_date") or []):
+            for k in ("poc", "val", "vah"):
+                if r.get(k):
+                    livelli.append({"prezzo": r[k], "fonte": "cot", "cosa": f"{k.upper()} cassa del report {r['giorno']}",
+                                    "dato": f"{r['giorno']}:{k}"})
+        # il valore della settimana coperta dal report (dal mercoledi' al martedi' del report)
+        for w in (ct.get("settimane_dei_report") or []):
+            for k in ("poc", "val", "vah"):
+                if w.get(k):
+                    livelli.append({"prezzo": w[k], "fonte": "cot",
+                                    "cosa": f"{k.upper()} della settimana del report {w['al']} ({len(w.get('sedute') or [])} sedute)",
+                                    "dato": f"settimana:{w['al']}:{k}"})
     livelli.sort(key=lambda x: x["prezzo"])
     # gruppi: livelli consecutivi a non piu' di `soglia` dal primo del gruppo
     gruppi, cur = [], []
@@ -345,7 +379,7 @@ def confluenze(cartella: Path, soglia: float = 15.0) -> dict:
         stesso = all(x["fonte"] != "gamma" for x in g) and len(set(dati)) < len(dati)
         out.append({"da": g[0]["prezzo"], "a": g[-1]["prezzo"], "fonti": fonti, "stesso_dato": stesso,
                     "livelli": [{k: x[k] for k in ("prezzo", "fonte", "cosa")} for x in g]})
-    return {"soglia_punti": soglia, "livelli_letti": len(livelli), "confluenze": out,
+    return {"strumento": S, "soglia_punti": soglia, "livelli_letti": len(livelli), "confluenze": out,
             "nota": "solo vicinanze fra fonti diverse; nessuna e' validata come supporto o resistenza"}
 
 
@@ -359,7 +393,7 @@ def in_breve(cartella: Path) -> dict:
             return json.loads((cartella / nome).read_text(encoding="utf-8"))
         except (OSError, ValueError):
             return {}
-    gx, sed, pan = leggi("gex-NQZ6.json"), leggi("sedute-NQZ6.json"), leggi("pannello.json")
+    gx, sed, pan = leggi(f"gex-{S}.json"), leggi(f"sedute-{S}.json"), leggi("pannello.json")
     out: dict = {}
     if gx:
         tot = gx.get("tutte") or {}
@@ -368,17 +402,20 @@ def in_breve(cartella: Path) -> dict:
         if righe:
             vol_medio = round(sum(r["volume"] for r in righe) / len(righe))
         f = gx.get("future") or 0
-        # la scala: future NQ da comprare o vendere per un movimento dell'1%, contro il volume medio di cassa
-        # (GEX in milioni di $ per 1%; un future NQ vale 20 $ a punto, quindi f*20 $ di nozionale)
+        # la scala: future da comprare o vendere per un movimento dell'1%, contro il volume medio di cassa
+        # (GEX in milioni di $ per 1%; un future vale `moltiplicatore` $ a punto: 20 NQ, 50 ES, quindi
+        # f*moltiplicatore $ di nozionale). Il moltiplicatore e' quello scritto da gex.py, se c'e'
+        molt = gx.get("moltiplicatore") or SC["dollari"]
         scala = {}
         for conv in ("tot_a", "tot_b"):
             if tot.get(conv) and f:
-                n = abs(tot[conv]) * 1e6 / (f * 20)
+                n = abs(tot[conv]) * 1e6 / (f * molt)
                 scala[conv.replace("tot_", "convenzione_")] = {
                     "future_per_1pct": round(n), "punti_di_un_1pct": round(f / 100, 1),
                     "quota_del_volume_medio_di_cassa_pct": round(100 * n / vol_medio, 2) if vol_medio else None}
         pesanti = sorted(gx.get("per_strike") or [], key=lambda r: abs(r.get("gex_netta") or 0), reverse=True)[:10]
         out["gamma"] = {
+            "strumento": gx.get("strumento") or S, "moltiplicatore": molt,
             "quando": gx.get("quando"), "future": f, "future_quando": gx.get("future_quando"),
             "prezzo_bridge": gx.get("prezzo_bridge"),
             "orizzonti": {k: {x: (gx.get(k) or {}).get(x) for x in ("tot_a", "tot_b", "zero", "zeri", "call_wall",
@@ -391,7 +428,7 @@ def in_breve(cartella: Path) -> dict:
             "scadenze_saltate": [x.get("giorno") for x in gx.get("scadenze_saltate") or []],
             "oi_cambiato": gx.get("oi_cambiato_rispetto_al_calcolo_precedente"),
             "volume_medio_di_cassa_20_sedute": vol_medio, "scala": scala,
-            "realizzata": (leggi("ore-NQZ6.json") or {}).get("volatilita_realizzata")}
+            "realizzata": (leggi(f"ore-{S}.json") or {}).get("volatilita_realizzata")}
     if sed or pan:
         out["orderflow"] = {
             "pannello": [r.get("text") for r in pan.get("lines") or []],
@@ -401,7 +438,7 @@ def in_breve(cartella: Path) -> dict:
             "composito_di_cassa": sed.get("composito_di_cassa"), "composito_di_cassa_90": sed.get("composito_di_cassa_90"),
             "zona": sed.get("zona_nel_composito_di_cassa"), "rendimento_dalla_chiusura_di_ieri": sed.get("rendimento_dalla_chiusura_di_ieri"),
             "composito_della_tab_1": (leggi("tab-ruoli.json").get("composito") or {}).get("dati"),
-            "barre_range": leggi("range-NQZ6.json")}
+            "barre_range": leggi(f"range-{S}.json")}
     out["confluenze"] = (leggi("confluenze.json") or {}).get("confluenze")
     return out
 
@@ -410,7 +447,7 @@ def orderflow(cartella: Path, manifesto: dict, giro_dopo: bool = False) -> None:
     """Le misure dell'order flow. Con `giro_dopo` il giro e le quattro tab NON si fanno qui: li fa main()
     una volta sola, a GEX finita (ogni calcolo si fa una volta)."""
     base = client.discover(None)
-    tab = le_quattro_tab.le_tab(client.get(base, "/charts", timeout=10)["charts"])
+    tab = le_quattro_tab.le_tab(client.get(base, "/charts", timeout=10)["charts"], SC["radice"])
     m1 = (tab.get("seduta") or {}).get("id")
 
     def ruoli():
@@ -424,9 +461,9 @@ def orderflow(cartella: Path, manifesto: dict, giro_dopo: bool = False) -> None:
 
     scrivi(cartella, "pannello.json", passo(manifesto, "pannello", "pannello.json",
                                             lambda: client.get(base, "/panel", {"chart": m1}, timeout=30)) or {})
-    scrivi(cartella, "sedute-NQZ6.json", passo(manifesto, "sedute", "sedute-NQZ6.json", lambda: sedute(m1)) or {})
-    scrivi(cartella, "ore-NQZ6.json", passo(manifesto, "ore", "ore-NQZ6.json", lambda: ore(m1, base)) or {})
-    scrivi(cartella, "range-NQZ6.json", passo(manifesto, "range", "range-NQZ6.json",
+    scrivi(cartella, f"sedute-{S}.json", passo(manifesto, "sedute", f"sedute-{S}.json", lambda: sedute(m1)) or {})
+    scrivi(cartella, f"ore-{S}.json", passo(manifesto, "ore", f"ore-{S}.json", lambda: ore(m1, base)) or {})
+    scrivi(cartella, f"range-{S}.json", passo(manifesto, "range", f"range-{S}.json",
                                               lambda: barre_range(base, tab.get("esecuzione"))) or {})
 
 
@@ -452,9 +489,14 @@ def main() -> int:
     ap.add_argument("--senza-gex", action="store_true", help="salta la GEX (per una prova veloce)")
     ap.add_argument("--con-es", action="store_true",
                     help="calcola anche la GEX di ESZ6 (circa 6-8 minuti in piu'); per difetto solo NQZ6")
+    ap.add_argument("--strumento", default="NQZ6", choices=sorted(SCALE),
+                    help="lo strumento dello studio: NQZ6 (difetto) o ESZ6; lo seguono scale, file, tab, giro, GEX, "
+                         "COT (indice principale e prezzi) e macro (settori dell'S&P per ES)")
     a = ap.parse_args()
+    global S, SC
+    S, SC = a.strumento, SCALE[a.strumento]
     fonti = {f.strip() for f in a.fonti.split(",") if f.strip()} - ({"gex"} if a.senza_gex else set())
-    strumenti_gex = ("NQZ6", "ESZ6") if a.con_es else ("NQZ6",)
+    strumenti_gex = ("NQZ6", "ESZ6") if a.con_es else (S,)
     ignote = fonti - {"macro", "cot", "orderflow", "gex"}
     if ignote:
         raise SystemExit(f"fonti sconosciute: {', '.join(sorted(ignote))}")
@@ -468,7 +510,8 @@ def main() -> int:
     vecchio = cartella / "raccolta.json"
     manifesto: dict = json.loads(vecchio.read_text(encoding="utf-8")) if vecchio.exists() else {}
     file_di = {"macro": ["macro.json"], "cot": ["cot.json"], "gex": [f"gex-{x}.json" for x in strumenti_gex],
-               "orderflow": ["tab-ruoli.json", "quattro-tab.txt", "giro.txt", "pannello.json", "sedute-NQZ6.json", "ore-NQZ6.json"]}
+               "orderflow": ["tab-ruoli.json", "quattro-tab.txt", "giro.txt", "pannello.json", f"sedute-{S}.json", f"ore-{S}.json",
+                             f"range-{S}.json"]}
     da_archiviare = [f for fonte in fonti for f in file_di[fonte] if (cartella / f).exists()]
     if da_archiviare:
         archivio = cartella / "precedenti" / dt.datetime.now(ROMA).strftime("%H%M")
@@ -491,9 +534,9 @@ def main() -> int:
     with ThreadPoolExecutor(max_workers=5) as pool:
         lavori = []
         if "macro" in fonti:
-            lavori.append(pool.submit(lambda: scrivi(cartella, "macro.json", passo(manifesto, "macro", "macro.json", macro.raccogli) or {})))
+            lavori.append(pool.submit(lambda: scrivi(cartella, "macro.json", passo(manifesto, "macro", "macro.json", lambda: macro.raccogli(S)) or {})))
         if "cot" in fonti:
-            lavori.append(pool.submit(lambda: scrivi(cartella, "cot.json", passo(manifesto, "cot", "cot.json", cot.raccogli) or {})))
+            lavori.append(pool.submit(lambda: scrivi(cartella, "cot.json", passo(manifesto, "cot", "cot.json", lambda: cot.raccogli(S)) or {})))
         if bridge_vivo:
             if "orderflow" in fonti:
                 lavori.append(pool.submit(orderflow, cartella, manifesto, "gex" in fonti))

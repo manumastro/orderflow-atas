@@ -23,8 +23,8 @@ barra chiusa:
 | scala | finestra | grana | lisciatura | sottile se | lunghezza minima |
 |---|---|---|---|---|---|
 | `90G` | 90 giorni del chart NQ Daily continuo, aggiustato al rollover | 10 punti | ±3 fasce | < 0,6 x il massimo entro 300 punti | 30 punti |
-| `SETT` | dal lunedi' (domenica 22:00Z) | 5 punti | ±2 fasce | < 0,5 x il massimo entro 100 punti | 15 punti |
-| `OGGI` | dalle 22:00Z | 5 punti | ±1 fascia | < 0,5 x il massimo entro 60 punti | 15 punti |
+| `SETT` | dal lunedi' (domenica 18:00 New York) | 5 punti | ±2 fasce | < 0,5 x il massimo entro 100 punti | 15 punti |
+| `OGGI` | dalle 18:00 New York del giorno prima | 5 punti | ±1 fascia | < 0,5 x il massimo entro 60 punti | 15 punti |
 
 **Il chart continuo non e' aggiustato.** Fino all'11/09/2026 riporta NQU6, 289-308 punti sotto
 NQZ6. L'indicatore misura lo scarto da solo, confrontando le chiusure dei giorni presenti su

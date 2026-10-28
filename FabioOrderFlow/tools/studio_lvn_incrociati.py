@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Gli LVN incrociati: lo studio dietro a GliLvnIncrociati.cs, rifatto dal bridge.
 
-Per ogni seduta di cassa dal 15/09/2026 calcola, all'apertura (13:30Z), le zone sottili di tre
+Per ogni seduta di cassa dal 15/09/2026 calcola, all'apertura (09:30 di New York), le zone sottili di tre
 profili - il composito di 90 giorni dal chart NQ Daily continuo, aggiustato al rollover; la
-settimana dal lunedi'; il giorno dalle 22:00Z - e i tratti dove almeno due coincidono. Poi guarda
+settimana dal lunedi'; il giorno dalle 18:00 di New York del giorno prima - e i tratti dove almeno due coincidono. Poi guarda
 il primo ingresso del prezzo in ciascun tratto durante la cassa: "respinta" se torna di 20 punti
 dalla parte da cui e' arrivato, "attraversata" se esce dall'altra parte.
 
@@ -15,6 +15,7 @@ Richiede il bridge acceso con i chart NQZ6 M1 e NQ Daily (continuo).
 """
 
 import json,urllib.request,os,math,datetime as dt
+import sedute  # gli orari delle sedute, nel fuso del mercato e convertiti per data (fino al 27/10/2026 fissi in Z)
 P=json.load(open(os.path.expanduser('~/.fabio-data-bridge.json')))['port']
 g=lambda p: json.load(urllib.request.urlopen(f"http://127.0.0.1:{P}{p}",timeout=180))
 ids={(c['instrument'],c['timeFrame']):c['id'] for c in g('/charts')['charts']}
@@ -23,7 +24,7 @@ if ('NQ','Daily') not in ids:
 G=5.0
 ROLL='2026-09-14'; OFF=299.25    # spread NQZ6-NQU6 all'11/09, ultimo giorno prima del cambio
 def mday(t):
-    tt=dt.datetime.fromisoformat(t.replace('Z','+00:00')); return (tt+dt.timedelta(hours=2)).date().isoformat()
+    return sedute.giorno_di_mercato(t)
 daily=g(f"/candles?chart={ids[('NQ','Daily')]}&from=2026-01-01T00:00:00Z&to=2026-10-02T00:00:00Z&levels=true")['candles']
 m1=g(f"/candles?chart={ids[('NQZ6','M1')]}&from=2026-09-13T22:00:00Z&to=2026-10-02T00:00:00Z&levels=true")['candles']
 def add(h,levels,off=0.0):
@@ -79,9 +80,9 @@ for d in giorni:
     # Il lunedi' la settimana e' lo stesso profilo del giorno: si usa la settimana prima (audit 01/10/2026).
     lun_fine = None
     if D.weekday()==0:
-        lun_fine = f"{(lun-dt.timedelta(days=1)).isoformat()}T22:00:00Z"; lun = lun-dt.timedelta(days=7)
-    apre=f"{d}T13:30:00Z"; chiude=f"{d}T20:00:00Z"
-    z=tutte(d, f"{(lun-dt.timedelta(days=1)).isoformat()}T22:00:00Z", f"{(D-dt.timedelta(days=1)).isoformat()}T22:00:00Z", apre, lun_fine)
+        lun_fine = sedute.iso(sedute.inizio_giorno(lun)); lun = lun-dt.timedelta(days=7)
+    apre, chiude = (sedute.iso(x) for x in sedute.cassa(d))
+    z=tutte(d, sedute.iso(sedute.inizio_giorno(lun)), sedute.iso(sedute.inizio_giorno(D)), apre, lun_fine)
     inc=incroci(z)
     cs=[x for x in m1 if apre<=x['time']<chiude]
     if not cs: continue

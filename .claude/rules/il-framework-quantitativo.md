@@ -17,7 +17,7 @@ dotnet build -c Release && dotnet test Quant.Test -c Release
 Quant.Cli/bin/Release/net10.0/quant.exe <comando>
 ```
 
-**I cinque vincoli che hanno gia' prodotto errori, qui o nella fase 40R:**
+**I sei vincoli che hanno gia' prodotto errori, qui o nella fase 40R:**
 
 1. **Il registro e la divisione sono veri.** `quant/registro/prove.jsonl` conta le
    varianti provate e `divisioni.json` fissa il confine dentro/fuori. Le prove sul mercato sintetico, i test e gli
@@ -43,3 +43,7 @@ Quant.Cli/bin/Release/net10.0/quant.exe <comando>
    codice di un'idea** (una strategia, un contratto) sta nello studio, `quant/studi/<idea>/3-codice/`,
    namespace `Quant.Studi`: lo compila `Quant.Studi` e si registra in `Catalogo.cs` o
    `CatalogoContratti.cs`. I rapporti di uno studio vanno in `quant/studi/<idea>/5-validazione/risultati/`.
+6. **Gli orari sono di New York, convertiti per data**: una strategia scrive la cassa come minuti
+   di New York (`Calendario.AperturaCassa`, `Contesto.OggiAlle`), mai come ore UTC. Un UTC fisso
+   sbaglia ogni seduta d'inverno, cioe' meta' dello storico:
+   `docs/research/metodo/gli-orari-si-scrivono-nel-fuso-del-mercato.md`.

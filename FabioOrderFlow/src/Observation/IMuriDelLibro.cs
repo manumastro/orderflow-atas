@@ -57,11 +57,14 @@ public sealed partial class DataBridge
         Description = "Dopo l'apertura misura solo la cassa; prima, solo la notte e la mattina.")]
     public bool MuriDallApertura { get; set; } = true;
 
-    [Display(Name = "Session open (UTC)", GroupName = "Muri")]
-    public string MuriApertura { get; set; } = "13:30Z";
+    [Display(Name = "Session open", GroupName = "Muri",
+        Description = "Nel fuso del mercato, convertito per data: 09:30NY (anche 08:00LON, 17:00CT; 13:30Z e' UTC fisso). " +
+                      "Vale per la scala, i muri, le zone del valore e il pannello.")]
+    public string MuriApertura { get; set; } = LeSedute.AperturaCassa;
 
-    [Display(Name = "Session close (UTC)", GroupName = "Muri")]
-    public string MuriChiusura { get; set; } = "20:00Z";
+    [Display(Name = "Session close", GroupName = "Muri",
+        Description = "Nel fuso del mercato, convertito per data: 16:00NY.")]
+    public string MuriChiusura { get; set; } = LeSedute.ChiusuraCassa;
 
     [Display(Name = "Min lots in window", GroupName = "Muri",
         Description = "Sotto questo volume il tratto e' troppo giovane: nessun muro, e lo dice.")]
@@ -164,7 +167,7 @@ public sealed partial class DataBridge
             var apertura = Momento(Apertura, ultimaBarra.Time);
             var inizio = ultimaBarra.Time >= apertura
                 ? apertura
-                : Momento(Chiusura, ultimaBarra.Time).AddDays(-1);
+                : Momento(Chiusura, ultimaBarra.Time.Date.AddDays(-1));
 
             _muriDa = inizio;
             primo = ultimo;

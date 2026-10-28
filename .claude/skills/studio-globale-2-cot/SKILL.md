@@ -1,6 +1,6 @@
 ---
 name: studio-globale-2-cot
-description: Fase 2 dello studio globale di NQ - il COT con la procedura del live di Fabio (Legacy, Non-Commercial, ultima variazione, skew del 30%, cross-confirm sui quattro indici, la data del report riportata sul prezzo). Legge i dati CFTC gia' raccolti e scrive 2-cot.md.
+description: Fase 2 dello studio globale (NQ o ES) - il COT con la procedura del live di Fabio (Legacy, Non-Commercial, ultima variazione, skew del 30%, cross-confirm sui quattro indici, la data del report riportata sul prezzo). Legge i dati CFTC gia' raccolti e scrive 2-cot.md.
 argument-hint: "[cartella del rapporto]"
 ---
 
@@ -28,18 +28,19 @@ Apri, non riassumere a memoria:
 - le ultime quattro settimane, ciascuna con skew, z a 52 settimane, percentile della variazione e il
   rollover in due regole (`settimana_di_rollover` sull'open interest, `rollover_calendario` sul
   calendario; `regola_rollover` le spiega);
-- la **TFF del Nasdaq**, per categoria: variazioni, percentili a tre anni di netto, long e short, z52 e
-  le ultime quattro;
-- il cross-confirm;
-- **`prezzo_alle_date`**: dove stava NQZ6 rispetto al valore della sua seduta di cassa nei giorni del
+- la **TFF del Nasdaq e dell'S&P 500** (`tff_nasdaq`, `tff_sp500`), per categoria: variazioni,
+  percentili a tre anni di netto, long e short, z52 e le ultime quattro;
+- il cross-confirm, rispetto all'indice **principale**: quello dello strumento dello studio
+  (`strumento` e `principale`: NQZ6 il NASDAQ-100 mini, ESZ6 l'S&P 500 e-mini);
+- **`prezzo_alle_date`**: dove stava lo strumento dello studio rispetto al valore della sua seduta di cassa nei giorni del
   report, con il **ritardo in prezzo** fino a oggi, dalla chiusura e dal POC (`prezzo_adesso`);
 - **`settimane_dei_report`**: il profilo di cassa della settimana coperta da ogni report, dal giorno
   dopo il report precedente al martedi'. Contiene estremi, volume, delta, POC, VAL e VAH della
   settimana, e la distanza del prezzo di adesso dal POC. `prima_del_rollover` segna le sedute in cui
-  NQZ6 non era ancora il contratto principale (volume sottostimato); `mancanti` i giorni senza dati;
+  il contratto non era ancora il principale (volume sottostimato); `mancanti` i giorni senza dati;
 - la prossima pubblicazione, in ora italiana.
 
-Per la scala dei POC di quei giorni, `dati/sedute-NQZ6.json`.
+Per la scala dei POC di quei giorni, `dati/sedute-<strumento>.json`.
 
 **Non hai Bash e non ricalcoli niente**: se ti serve una misura che non c'e', e' una lacuna del
 collettore e la scrivi.
@@ -53,11 +54,11 @@ collettore e la scrivi.
    0,30 (convenzione nostra, dichiarala) e lo z: lo skew satura a +-1 quando le due variazioni hanno
    segno opposto, e allora conta lo z.
 5. **Il cross-confirm** sui quattro indici, com'e'.
-6. **La data sul prezzo**: per le ultime quattro date, dove stava NQZ6 rispetto al valore della seduta.
+6. **La data sul prezzo**: per le ultime quattro date, dove stava lo strumento dello studio rispetto al valore della seduta.
    **Il prodotto del passo e' un livello**: il valore del giorno in cui il posizionamento si e' mosso di
    piu', con a cosa serve arrivarci.
 
-Poi la **TFF** del Nasdaq come complemento, con la riserva che le categorie non coincidono con la
+Poi la **TFF** dell'indice principale come complemento, con la riserva che le categorie non coincidono con la
 Legacy. **Le riserve sempre**: l'eta' del dato e il prossimo report (venerdi', 21:30 italiane in ora
 legale), la settimana di rollover, il COT non dice *quando*.
 

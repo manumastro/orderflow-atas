@@ -40,6 +40,27 @@ public struct Scambio
     public int Lato;
 }
 
+/// <summary>
+/// Uno scambio aggregato del tape di ATAS, 44 byte: un ordine aggressore con tutto cio' che ha
+/// eseguito, e il book di prima e di dopo. Lato come in <see cref="Scambio"/>. Bid e ask valgono 0
+/// quando ATAS non li da'. I suoi <see cref="Tick"/> singoli sono, nello stesso ordine, i record
+/// consecutivi del file dei tick dello stesso mese.
+/// </summary>
+[StructLayout(LayoutKind.Sequential, Pack = 4)]
+public struct ScambioAggregato
+{
+    public long Tempo;
+    public int Lato;
+    public int Volume;
+    public int PrimoPrezzo;
+    public int UltimoPrezzo;
+    public int BidPrima;
+    public int AskPrima;
+    public int BidDopo;
+    public int AskDopo;
+    public int Tick;
+}
+
 public static class Tempo
 {
     public static DateTime Utc(long ms) => DateTime.UnixEpoch.AddMilliseconds(ms);

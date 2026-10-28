@@ -201,16 +201,22 @@ Si dichiara **per regola**, perche' finestre diverse misurano popolazioni divers
 cash e quello della notte sono due numeri, non due stime dello stesso numero.
 
 ```json
-"finestra": {"da": "13:30Z"}                                    dalle 13:30Z a adesso
-"finestra": {"da": "2026-09-13T22:00:00Z", "a": "07:00Z"}       una finestra chiusa
+"finestra": {"da": "09:30NY"}                                   dall'apertura della cassa a adesso
+"finestra": {"da": "18:00NY", "a": "08:00LON"}                  la notte, chiusa all'apertura di Londra
 ```
+
+**Gli orari si scrivono nel fuso del loro mercato** (dal 27 ottobre 2026): `09:30NY` (anche `ET`),
+`08:00LON`, `17:00CT`, e l'indicatore li converte in UTC **per la data della seduta**, ora legale
+compresa (`LeSedute.cs`). `13:30Z` e' ancora accettato ma e' **UTC fisso**: dal 2 novembre 2026 la
+cassa apre alle 14:30Z, e una finestra `13:30Z` misurerebbe mezz'ora di premarket. Regola:
+[gli-orari-si-scrivono-nel-fuso-del-mercato.md](gli-orari-si-scrivono-nel-fuso-del-mercato.md).
 
 Un orario nudo si appoggia al **giorno di mercato** — in replay quello del replay, non
 l'orologio del muro. Se la fine cade prima dell'inizio, la finestra **attraversa la mezzanotte**
-e l'inizio si sposta al giorno prima: e' il caso normale della notte, `22:00Z -> 07:00Z`.
+e l'inizio si sposta al giorno prima: e' il caso normale della notte, `18:00NY -> 08:00LON`.
 
 ```json
-"finestra": {"da": "13:30Z", "a": "20:00Z", "seduta": -1}      la cassa della seduta precedente
+"finestra": {"da": "09:30NY", "a": "16:00NY", "seduta": -1}    la cassa della seduta precedente
 ```
 
 **`seduta: -1` e' la seduta precedente che ha barre in quella finestra**, quindi il lunedi' e'
@@ -446,14 +452,17 @@ e ci moltiplica le soglie:
 | stacco dell'invalidazione | 10 | 1,7 | 0,07 |
 | big trade | 60 lotti | 9 lotti | 5 lotti |
 
-**La cassa cambia con lo strumento.** Su NQ e oro e' 13:30Z-20:00Z; sul crude e' il pit NYMEX,
-**13:00Z-18:30Z**. Vale per la scala, per il tratto dei muri e delle etichette e per il delta
-"da apertura" del pannello; le regole del crude la dichiarano nelle loro finestre. Un `13:30Z`
-scritto nelle proprieta' di un chart di crude si tratta come il template ereditato, non come
-una scelta, e si usa 13:00Z.
+**La cassa cambia con lo strumento, e si scrive nel fuso di New York.** Su NQ, ES e oro e'
+09:30-16:00 New York (13:30Z-20:00Z d'estate, 14:30Z-21:00Z d'inverno); sul crude e' il pit NYMEX,
+**09:00-14:30 New York**. Vale per la scala, per il tratto dei muri e delle etichette e per il delta
+"da apertura" del pannello; le regole del crude la dichiarano nelle loro finestre. Il default del
+NQ scritto nelle proprieta' di un chart di crude si tratta come il template ereditato, non come
+una scelta, e si usa il pit. I vecchi default in UTC salvati nei workspace (`13:30Z`, `20:00Z`) si
+leggono come la seduta dinamica. `/scala` da' `cassa` (l'orario vero di oggi in UTC) e
+`cassaNelFuso` (la definizione).
 
 Sul NQ la scala e' 1 **fissa**: e' lo strumento del metodo e le sue soglie non devono muoversi da
-sole. Sugli altri si misura sulle ultime sei casse in memoria (13:30Z-20:00Z); i due riferimenti
+sole. Sugli altri si misura sulle ultime sei casse in memoria (09:30-16:00 New York); i due riferimenti
 sono le mediane del NQ sulle sedute 15-22 settembre. Si forza dalle proprieta' dell'istanza,
 gruppo **Instrument**, e si legge su **`/scala`**.
 

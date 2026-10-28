@@ -309,7 +309,7 @@ in quello stesso intervallo era **negativo** →
 **Sono barre intere, non la fascia al livello, e la testata lo dice apposta.** Sono due
 popolazioni diverse: un delta di fascia si legge **contro** il delta di seduta, non si somma con
 lui. Le due finestre sono `Lookback largo` (30 barre) e **dall'apertura della cash**
-(`Apertura cash (UTC)`, `13:30Z` su NQ); il giorno lo prende dall'ultima barra e non
+(`Session open`, `09:30NY` su NQ, convertito per data: [gli-orari-si-scrivono-nel-fuso-del-mercato.md](gli-orari-si-scrivono-nel-fuso-del-mercato.md)); il giorno lo prende dall'ultima barra e non
 dall'orologio di casa, perche' in replay sono due date diverse.
 
 **Il delta si stampa sempre anche come quota del volume** — `+1.745 (+4,5%)` — perche' la

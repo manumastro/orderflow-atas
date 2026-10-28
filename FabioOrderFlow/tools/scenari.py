@@ -40,6 +40,8 @@ import sys
 from pathlib import Path
 import time
 
+import sedute  # gli orari delle sedute, nel fuso del mercato e convertiti per data
+
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 from avviso import avvisa                                          # noqa: E402
@@ -358,18 +360,26 @@ def main() -> None:
     ap.add_argument("--from", dest="begin", help="inizio della finestra chiesta al bridge")
     ap.add_argument("--to", dest="end", default="2100-01-01T00:00")
     ap.add_argument("--chart")
-    ap.add_argument("--ivb-da", default="15:30",
-                    help="inizio della finestra IVB in ora locale (default 15:30, cash NY degli "
-                         "indici). Il crude NYMEX vuole 15:00")
-    ap.add_argument("--ivb-a", default="16:00",
-                    help="fine della finestra IVB (default 16:00). Col crude 15:30")
+    ap.add_argument("--ivb-da", default=None,
+                    help="inizio della finestra IVB in ora italiana (default: le 09:30 di New York "
+                         "del --giorno convertite, da sedute.py: 15:30, o 14:30 fra il 25/10 e il 1/11)")
+    ap.add_argument("--ivb-a", default=None,
+                    help="fine della finestra IVB in ora italiana (default: le 10:00 di New York convertite)")
     ap.add_argument("--controlla", action="store_true",
                     help="verifica nomi e sintassi di ogni `quando` senza toccare il bridge")
     ap.add_argument("--prova", action="store_true", help="valuta su tutta la storia senza scrivere niente")
     ap.add_argument("--intervallo", type=int, default=20)
-    ap.add_argument("--fuso", type=int, default=2)
+    ap.add_argument("--fuso", type=int, default=None,
+                    help="ore fra UTC e l'Italia (default: quelle del --giorno, 2 o 1)")
     ap.add_argument("--cache", default="/tmp/fof-scenari.json")
     args = ap.parse_args()
+    # GLI ORARI SI CONVERTONO PER DATA (sedute.py): fino al 27 ottobre 2026 qui c'erano +2 e
+    # 15:30-16:00 fissi, sbagliati d'inverno e fra il 25/10 e il 1/11
+    ivb_da, ivb_a = sedute.ivb(args.giorno)
+    if args.fuso is None:
+        args.fuso = int(ivb_da.astimezone(sedute.ROMA).utcoffset().total_seconds() // 3600)
+    args.ivb_da = args.ivb_da or ivb_da.astimezone(sedute.ROMA).strftime("%H:%M")
+    args.ivb_a = args.ivb_a or ivb_a.astimezone(sedute.ROMA).strftime("%H:%M")
 
     if args.variabili:
         print(VARIABILI)

@@ -265,10 +265,11 @@ public sealed partial class DataBridge
     }
 
     /// <summary>
-    /// Il giorno di mercato di una barra: dalle 22:00Z la notte appartiene alla seduta dopo, come la
-    /// conta il CME. Un valore costruito alle 23:00Z di lunedi' e' valore di martedi'.
+    /// Il giorno di mercato di una barra: dalle 18:00 di New York (17:00 di Chicago) la notte
+    /// appartiene alla seduta dopo, come la conta il CME: 22:00Z in ora legale, 23:00Z in ora solare.
+    /// Fino al 27 ottobre 2026 era 22:00Z fisso. Definizione in <see cref="LeSedute"/>.
     /// </summary>
-    private static DateTime GiornoDiMercato(DateTime t) => t.Hour >= 22 ? t.Date.AddDays(1) : t.Date;
+    private static DateTime GiornoDiMercato(DateTime t) => LeSedute.GiornoDiMercato(t);
 
     /// <summary>
     /// Chi ha costruito quel valore: il giorno che ci ha messo piu' volume, o i due giorni se nessuno

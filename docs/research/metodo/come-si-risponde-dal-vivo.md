@@ -56,6 +56,10 @@ prezzi nella misura, cosa guardare nel discriminante.
 - **Un numero entra solo se cambia la conclusione.**
 - **Non si rielenca cio' che e' gia' sul chart.**
 - **Un termine tecnico si spiega alla prima occorrenza della seduta**, non tutte le volte.
+- **Prima la persona** (21 ottobre 2026: "vorrei che sia piu' comprensibile tutto all'umano"): lo
+  stato e il discriminante si scrivono in parole comuni, senza sigle e senza codici interni, e ogni
+  numero dice cosa significa per il prezzo. Le regole di scrittura sono quelle di **In parole
+  semplici** in [`modello-del-rapporto.md`](../../../.claude/skills/studio-globale/modello-del-rapporto.md).
 - **Se non e' cambiato niente, si scrive quella riga sola.**
 - **Prima la conclusione, poi il perche'.**
 

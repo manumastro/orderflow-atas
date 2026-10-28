@@ -15,7 +15,7 @@ calcola la GEX con un modello dichiarato, e la salva in una cache che il giro d'
 - volatilita' implicita: Black-76 (opzioni su future), tasso zero, dalla sola opzione **fuori dal
   denaro** di ogni strike (la call sopra il future, la put sotto), e vale per call e put;
 - scadenza: le 16:00 di New York; le trimestrali (`Regular`) alle 9:30, come la SOQ del CME;
-- **GEX di uno strike** = gamma x open interest x 20 $ x F^2 x 1%: i dollari che il dealer compra o
+- **GEX di uno strike** = gamma x open interest x moltiplicatore (20 $ NQ, 50 $ ES) x F^2 x 1%: i dollari che il dealer compra o
   vende sul future per un movimento dell'1%;
 - **convenzione A** (dei fornitori, SqueezeMetrics, e la piu' diffusa): i dealer sono **lunghi** le
   call e **corti** le put. GEX = call - put. Positiva: il dealer smorza. Negativa: amplifica.
@@ -27,7 +27,8 @@ calcola la GEX con un modello dichiarato, e la salva in una cache che il giro d'
   scadenza (`underlyingPrice` di `/opzioni`, cioe' l'ultimo prezzo scambiato). Le scadenze si leggono
   una dopo l'altra in circa tre minuti, quindi ogni scadenza ha il suo future e la sua ora; il
   `future` del riassunto e' quello dell'ultima lettura, con la sua ora in `future_quando`;
-- **strike**: 120 per lato per scadenza, nel tetto di 500 sottoscrizioni per richiesta del bridge
+- **strike**: +-4 mosse attese della scadenza, fra 25 e 120 per lato (dal 27 ottobre 2026; prima sempre 120)
+  per scadenza, nel tetto di 500 sottoscrizioni per richiesta del bridge
   (`LeOpzioni.cs`): 120 x 2 lati x 2 tipi = 480; un giorno con piu' serie ne prende meno.
 
 L'open interest e' quello di **ieri**, e non vede le posizioni aperte e chiuse in giornata (gli
@@ -122,13 +123,20 @@ def leggi_stabile(base: str, chart: str, giorno: str, strikes: int, attesa: int,
     Le quotazioni arrivano dalla connessione un po' alla volta. Il 15 ottobre 2026, con un'attesa fissa
     di 8 secondi, la catena di ES e' arrivata a meta' (14 scadenze su 32 perse, lo 0DTE con 55 mila
     contratti invece di 110 mila). Le sottoscrizioni restano aperte nel bridge, quindi rileggere costa
-    poco: si rilegge con 3 secondi finche' l'OI cresce meno dello 0,5%, al massimo `giri` volte."""
+    poco: si rilegge finche' l'OI cresce meno dello 0,5%, al massimo `giri` volte.
+
+    LA VELOCITA' (27 ottobre 2026: la GEX di ES in 441 secondi). Il bridge aspettava che ogni strike
+    fosse quotato, e quelli lontani non lo sono mai: ogni richiesta arrivava al tempo massimo. Ora il
+    bridge smette anche dopo `quiet` millisecondi senza quotazioni nuove, e una scadenza che alla prima
+    lettura non ha nessuna quotazione non si rilegge."""
     oi = lambda d: sum((o.get("openInterest") or 0) for o in d.get("options", []))  # noqa: E731
-    d = client.get(base, "/opzioni", {"chart": chart, "expiration": giorno, "strikes": strikes, "wait": attesa}, timeout=180)
+    d = client.get(base, "/opzioni", {"chart": chart, "expiration": giorno, "strikes": strikes, "wait": attesa,
+                                      "quiet": 1000}, timeout=180)
     primo, letture = oi(d), 1
-    for _ in range(giri):
+    for _ in range(giri if d.get("quoted") else 0):
         prima = oi(d)
-        nuovo = client.get(base, "/opzioni", {"chart": chart, "expiration": giorno, "strikes": strikes, "wait": 3}, timeout=60)
+        nuovo = client.get(base, "/opzioni", {"chart": chart, "expiration": giorno, "strikes": strikes, "wait": 2,
+                                              "quiet": 500}, timeout=60)
         letture += 1
         if oi(nuovo) <= prima * 1.005:
             d = nuovo if oi(nuovo) >= prima else d
@@ -151,6 +159,10 @@ def calcola(base: str, chart: str, giorni: int, strikes: int, attesa: int) -> di
     adesso = dt.datetime.now(dt.timezone.utc)
     serie = serie_della_catena(base, chart, giorni)
     fatti: set[str] = set()
+    # LA FINESTRA DEGLI STRIKE (27 ottobre 2026): +-4 mosse attese della scadenza, non sempre `strikes`
+    # per lato. Fuori da li' la gamma e' quasi zero e le opzioni quasi mai quotate: chiederle costava solo
+    # tempo. La prima scadenza si legge intera, e da li' vengono il passo degli strike e la volatilita'.
+    passo_k, vol_nota = None, None
     for s in serie:
         giorno = s["expiration"][:10]
         if giorno in fatti:
@@ -159,6 +171,9 @@ def calcola(base: str, chart: str, giorni: int, strikes: int, attesa: int) -> di
         fatti.add(giorno)
         n_serie = sum(1 for x in serie if x["expiration"][:10] == giorno)
         per_lato = max(1, min(strikes, TETTO_BRIDGE // (4 * n_serie)))
+        if passo_k and vol_nota and f:
+            t_s = max((scadenza_utc(s["expiration"], s["type"]) - adesso).total_seconds(), 600) / (365 * 86400)
+            per_lato = min(per_lato, max(25, math.ceil(4 * vol_nota * math.sqrt(t_s) * f / passo_k)))
         # le riletture costano tempo: fino a sei per le scadenze che pesano (entro sette giorni e le
         # trimestrali), due per le settimanali lontane, quotate a pezzi e quasi senza OI. Il 15 ottobre
         # 2026, con sei riletture per tutte, il calcolo di NQ e' passato da tre minuti a cinque e mezzo
@@ -181,6 +196,14 @@ def calcola(base: str, chart: str, giorni: int, strikes: int, attesa: int) -> di
             if v:
                 vol[k] = v
         noti = sorted(vol)
+        vicini = sorted(k for k in per_strike if abs(k - f) <= 0.02 * f)
+        if len(vicini) > 2:
+            # il passo piu' fine visto finora: le scadenze lontane hanno strike ogni 25 o 50 punti, e
+            # prenderne il passo stringeva la finestra della trimestrale (il 27/10: 25 strike per lato)
+            p_ = sorted(b - a for a, b in zip(vicini, vicini[1:]))[(len(vicini) - 1) // 2]
+            passo_k = min(passo_k or p_, p_)
+        if noti:
+            vol_nota = max(vol_nota or 0, vol[min(noti, key=lambda x: abs(x - f))])
         if not noti:
             # una scadenza senza nessun prezzo valido non si perde in silenzio: si dichiara
             saltate.append({"giorno": giorno, "tipo": s["type"], "quotate": d.get("quoted"),
@@ -249,6 +272,9 @@ def riassunto(dati: dict, strumento: str) -> dict:
     primo = min((r["scad"] for r in righe), default=None)
     entro7 = [r for r in righe if r["t"] <= 7 / 365]
     return {"strumento": strumento, "quando": dati["quando"], "future": f, "scadenze": dati["scadenze"],
+            # i dollari a punto del future con cui si e' calcolata la GEX (20 NQ, 50 ES): scritti nel JSON
+            # perche' chi legge non lo ricavi dalla docstring (lacuna della fase 3 di ES, 27 ottobre 2026)
+            "moltiplicatore": molt,
             "scadenze_saltate": dati.get("saltate", []),
             "tutte": profilo(righe, f, molt),
             "prima": profilo([r for r in righe if r["scad"] == primo], f, molt) | {"giorno": primo},
@@ -268,10 +294,12 @@ def riassunto(dati: dict, strumento: str) -> dict:
 
 # Il volume delle opzioni: CurrentDayTotalVolume della quotazione di ATAS (LeOpzioni.cs), cioe' il volume
 # del giorno di contrattazione del CME, che per le opzioni sui future comincia alle 17:00 di Chicago del
-# giorno prima (00:00 ora italiana in ora legale, 23:00 in ora solare). Misurato il 15 ottobre 2026: alle
+# giorno prima (22:00Z con Chicago in ora legale, 23:00Z in ora solare: in ora italiana le 00:00, salvo la
+# settimana fra il cambio europeo e quello americano, quando sono le 23:00). Misurato il 15 ottobre 2026: alle
 # 08:32-09:51 UTC i +-6% avevano gia' 19-21 mila contratti, quindi la notte e' dentro. L'ora esatta
 # dell'azzeramento non e' ancora vista: una lettura fra le 22:00 e le 23:00 UTC deve dare quasi zero.
-VOLUME_FINESTRA = ("giorno di contrattazione CME: dalle 17:00 CT del giorno prima (00:00 italiane in ora legale) "
+VOLUME_FINESTRA = ("giorno di contrattazione CME: dalle 17:00 di Chicago del giorno prima (00:00 italiane; 23:00 "
+                   "nella settimana fra il cambio d'ora europeo e quello americano) "
                    "a ora; include la notte (misurato 15/10/2026); azzeramento alle 17:00 CT da verificare")
 
 

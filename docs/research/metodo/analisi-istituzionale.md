@@ -243,8 +243,9 @@ Per l'analisi istituzionale contano cinque osservabili.
 Volume per prezzo su una finestra dichiarata, con POC e area di valore. Da qui si ricava **dove il
 mercato ha accettato di scambiare**, che e' la domanda di location.
 
-Convenzione del repository: cash **13:30-20:00 UTC**, notte 20:00-13:30 UTC. La finestra va
-dichiarata perche' cambia il profilo.
+Convenzione del repository: cash **09:30-16:00 New York**, notte dalla chiusura all'apertura,
+convertite in UTC per data (13:30-20:00Z d'estate, 14:30-21:00Z d'inverno: [gli-orari-si-scrivono-nel-fuso-del-mercato.md](gli-orari-si-scrivono-nel-fuso-del-mercato.md)). La
+finestra va dichiarata perche' cambia il profilo.
 
 ### 2. Il Delta Di Sessione Contro Il Movimento Di Prezzo
 

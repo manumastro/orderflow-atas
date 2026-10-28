@@ -210,10 +210,122 @@
     "esito": ""
   },
   {
+    "data": "2026-10-20",
+    "ora": "22:00-23:00",
+    "evento": "Rally dei chip dopo la chiusura; SpaceX sopra le stime",
+    "peso": "contesto",
+    "esito": "NQZ6 ora 22 +206 (29.687,5 -> 29.893,75), delta +1.260; SPCX +10% pre-mercato"
+  },
+  {
+    "data": "2026-10-21",
+    "ora": "02:38",
+    "evento": "Trump vuole 'un paio di giorni' per la tregua con l'Iran",
+    "peso": "contesto",
+    "esito": "NQZ6 dal massimo 30.010,25 (ora 02) al minimo 29.845,75 (ora 03)"
+  },
+  {
+    "data": "2026-10-21",
+    "ora": "09:54",
+    "evento": "Pasdaran: mine navali fermano tre petroliere a Hormuz",
+    "peso": "contesto",
+    "esito": "WTI 99,44 alle 11:02; NQZ6 ora 09 +89,75, ora 10 -160,25 (min 29.736,25)"
+  },
+  {
+    "data": "2026-10-21",
+    "ora": "dopo le 22:00",
+    "evento": "Trimestrali META (EPS att. 6,54 $) e TSLA (0,22 $)",
+    "peso": "alto",
+    "esito": "5 sedute al 26/10 (Yahoo): META -10,6%, TSLA +6,4%; reazione del 22 non isolata"
+  },
+  {
+    "data": "2026-10-22",
+    "ora": "14:30",
+    "evento": "Sussidi di disoccupazione USA (att. 200 mila, prec. 199)",
+    "peso": "medio",
+    "esito": "194 mila, settimana al 17/10 (FRED ICSA; prec. rivisto 200)"
+  },
+  {
+    "data": "2026-10-23",
+    "ora": "15:45",
+    "evento": "PMI flash USA: manifattura att. 55,4 (prec. 57), servizi 57,8",
+    "peso": "medio",
+    "esito": "manifattura 56,0 (max 53 mesi), servizi 57,9; prezzi al ritmo piu' alto dal 2022 (web)"
+  },
+  {
+    "data": "2026-10-23",
+    "ora": "16:00",
+    "evento": "Michigan finale: fiducia att. 46,3; attese d'inflazione prec. 4,7%",
+    "peso": "medio",
+    "esito": ""
+  },
+  {
+    "data": "2026-10-27",
+    "ora": "15:00",
+    "evento": "Fiducia consumatori Conference Board (att. 81,2, prec. 81,9)",
+    "peso": "medio",
+    "esito": "web non verif. 91,7 (prec. FF 81,9); NQZ6 ore 15 e 16 +133/+133; ESZ6 +25/+19"
+  },
+  {
     "data": "2026-10-28",
     "ora": "19:00",
-    "evento": "FOMC (16/10 15:29: +25 pb ZQ 15,5%, Polymarket 13,5%); dopo GOOGL, MSFT",
+    "evento": "FOMC, conferenza 19:30 (28/10: +25 pb ZQ 8%, Polymarket 4,6%)",
     "peso": "alto",
+    "esito": ""
+  },
+  {
+    "data": "2026-10-28",
+    "ora": "dopo le 21:00",
+    "evento": "Trimestrali MSFT (EPS att. 4,71 $) e GOOGL (2,94 $)",
+    "peso": "alto",
+    "esito": ""
+  },
+  {
+    "data": "2026-10-29",
+    "ora": "13:30",
+    "evento": "PIL USA anticipato (att. 3,2%, prec. 1,5%) e PCE core (att. 0,3% m/m)",
+    "peso": "alto",
+    "esito": ""
+  },
+  {
+    "data": "2026-10-29",
+    "ora": "13:30",
+    "evento": "Sussidi di disoccupazione USA (att. 198 mila, prec. 194)",
+    "peso": "medio",
+    "esito": ""
+  },
+  {
+    "data": "2026-10-29",
+    "ora": "dopo le 21:00",
+    "evento": "Trimestrali AMZN (EPS att. 2,01 $) e INTC (0,28 $)",
+    "peso": "alto",
+    "esito": ""
+  },
+  {
+    "data": "2026-10-29",
+    "ora": "13:30",
+    "evento": "Deflatore del PIL anticipato (att. 3,2%, prec. 6,2%)",
+    "peso": "medio",
+    "esito": ""
+  },
+  {
+    "data": "2026-10-30",
+    "ora": "13:30",
+    "evento": "Costo del lavoro ECI t/t (att. 0,8%, prec. 0,9%)",
+    "peso": "medio",
+    "esito": ""
+  },
+  {
+    "data": "2026-10-29",
+    "ora": "prima delle 14:30",
+    "evento": "Trimestrali S&P non tech: LLY, MA, MRK, CAT, LIN",
+    "peso": "medio",
+    "esito": ""
+  },
+  {
+    "data": "2026-10-30",
+    "ora": "prima delle 14:30",
+    "evento": "Trimestrali S&P non tech: XOM, ABBV, CVX",
+    "peso": "medio",
     "esito": ""
   }
 ]

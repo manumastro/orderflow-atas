@@ -219,10 +219,10 @@ public sealed partial class DataBridge : Indicator
     [Range(2, 500)]
     public int PanelLookback { get; set; } = 10;
 
-    [Display(Name = "Apertura cash (UTC)", GroupName = "Watch",
-        Description = "L'ora UTC da cui il pannello somma il delta di seduta. Su NQ e' 13:30Z " +
-                      "(15:30 italiane in ora legale). Non tocca i livelli: solo il pannello.")]
-    public string AperturaCash { get; set; } = "13:30Z";
+    [Display(Name = "Apertura cash", GroupName = "Watch",
+        Description = "Non usata dal codice: il pannello prende l'apertura da 'Session open' (Muri). " +
+                      "Nel fuso del mercato, 09:30NY, convertita per data.")]
+    public string AperturaCash { get; set; } = LeSedute.AperturaCassa;
 
     [Display(Name = "Price axis padding", GroupName = "Levels",
         Description = "Pixel in piu' oltre la larghezza misurata della scala dei prezzi. " +

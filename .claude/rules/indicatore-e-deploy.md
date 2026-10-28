@@ -18,6 +18,10 @@ cd FabioOrderFlow/src && ./deploy.sh
 - **Un `git pull` non porta l'indicatore**: nel repo c'e' il sorgente C#, non la DLL. Finche' non
   si esegue `deploy.sh`, sul chart resta la versione precedente — e non e' distinguibile a occhio
   da un pull che non ha funzionato.
+- **Gli orari di sessione sono dinamici**: si scrivono nel fuso del mercato (`09:30NY`, `08:00LON`,
+  `18:00NY`) e si convertono per data con `Observation/LeSedute.cs`, l'unico posto che li definisce.
+  Fino al 27 ottobre 2026 la cassa era 13:30Z-20:00Z fissa, e dal 2 novembre avrebbe misurato
+  un'ora prima: `docs/research/metodo/gli-orari-si-scrivono-nel-fuso-del-mercato.md`.
 - **Quando l'API ATAS non e' chiara, ispeziona gli assembly con reflection** invece di dedurla
   dalla documentazione: `docs/atas/` non sempre coincide con la build installata.
 - **Non modificare `docs/atas/api/`** salvo necessita' tecnica concreta.

@@ -148,16 +148,16 @@ def tab_esecuzione(base: str, c: dict) -> None:
               f"in {sec / 60:.0f} minuti")
 
 
-def stampa(parte: str) -> None:
-    """parte: 'lontane' (tab 1, 2 e opzioni) o 'esecuzione' (tab 4)."""
+def stampa(parte: str, radice: str = "NQ") -> None:
+    """parte: 'lontane' (tab 1, 2 e opzioni) o 'esecuzione' (tab 4); radice: NQ o ES."""
     try:
         base = client.discover(None)
-        tab = le_tab(client.get(base, "/charts", timeout=10)["charts"])
+        tab = le_tab(client.get(base, "/charts", timeout=10)["charts"], radice)
         if parte == "lontane":
             if tab["composito"]:
                 tab_composito(base, tab["composito"])
             else:
-                print("  TAB 1 (Daily di NQ) non registrata nel bridge")
+                print(f"  TAB 1 (Daily di {radice}) non registrata nel bridge")
             if tab["settimana"]:
                 tab_settimana(base, tab["settimana"])
                 prezzo = (ultime(base, tab["settimana"], 1) or [{}])[-1].get("close")

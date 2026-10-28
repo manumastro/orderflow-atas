@@ -60,7 +60,7 @@ public sealed partial class DataBridge
         var apertura = Momento(Apertura, ultimaBarra.Time);
         var inizio = ultimaBarra.Time >= apertura
             ? apertura
-            : Momento(Chiusura, ultimaBarra.Time).AddDays(-1);
+            : Momento(Chiusura, ultimaBarra.Time.Date.AddDays(-1));
         var primo = ultimo;
         while (primo > 0 && GetCandle(primo - 1) is { } precedente && precedente.Time >= inizio)
         {

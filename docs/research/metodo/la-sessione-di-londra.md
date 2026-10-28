@@ -13,7 +13,7 @@
 > sue regole: [`i-tre-modelli-del-live-q1.md`](i-tre-modelli-del-live-q1.md), sezione 8.
 
 Questo repository e' nato su New York e lo presuppone dappertutto senza dirlo: l'IVB e' i primi
-trenta minuti delle 13:30Z, il gate Tier 01 e' una chiusura M30 di quella finestra, le soglie in
+trenta minuti della cassa (09:30 di New York, 13:30Z d'estate e 14:30Z d'inverno), il gate Tier 01 e' una chiusura M30 di quella finestra, le soglie in
 lotti vengono dal volume della cash americana. Questo documento dice **cosa cambia se si opera
 anche Londra**, con i numeri misurati invece che con l'analogia.
 

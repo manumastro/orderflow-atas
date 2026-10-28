@@ -7,7 +7,15 @@ ribasso stava due giorni indietro, e il 24 la notte era uscita sotto un valore c
 due sedute: sono cose che si vedono solo guardando prima il quadro largo.
 
 Le sedute chiuse non cambiano piu': si misurano una volta e si tengono in una cache per strumento
-(`~/.fabio-scala-dei-tempi-<STRUMENTO>.json`). L'hook ha 25 secondi, e la prima volta la cache si
+(`~/.fabio-scala-dei-tempi-<STRUMENTO>.json`).
+
+**Gli orari delle sedute vengono da `sedute.py`**, nel fuso del mercato e convertiti per data: la
+cassa e' 09:30-16:00 di New York (13:30Z-20:00Z d'estate, 14:30Z-21:00Z d'inverno), il giorno
+comincia alle 18:00 di New York del giorno prima. Fino al 27 ottobre 2026 erano 13:30Z-20:00Z e
+22:00Z fissi. Ogni seduta in cache porta la sua `finestra` (la cassa in UTC con cui e' stata
+misurata), e la cache porta `_sedute` = la versione della definizione: una cache senza `_sedute`
+viene dal codice a ora fissa, e se ne tengono solo le sedute in ora legale americana, che con
+l'ora fissa erano gia' giuste; le altre si rimisurano (`migra_cache`). L'hook ha 25 secondi, e la prima volta la cache si
 riempie a rate, col tempo che c'e': il giro lo dice, invece di stampare una storia a meta' come se
 fosse intera.
 
@@ -25,6 +33,13 @@ import os
 import time
 import urllib.request
 from pathlib import Path
+from zoneinfo import ZoneInfo
+
+import sedute
+
+ROMA = ZoneInfo("Europe/Rome")
+#: La versione della definizione delle sedute con cui la cache e' misurata (vedi `migra_cache`).
+VERSIONE_SEDUTE = "fuso-del-mercato-1"
 
 REPO = Path(__file__).resolve().parents[2]
 EVENTI = REPO / "docs" / "research" / "calendario" / "eventi.json"
@@ -55,9 +70,8 @@ def chiedi(percorso: str, timeout: float = 20) -> dict | None:
 
 
 def giorno_di_mercato(iso: str) -> str:
-    """Dalle 22:00Z la notte appartiene alla seduta dopo, come la conta il CME."""
-    t = dt.datetime.fromisoformat(iso.replace("Z", "+00:00"))
-    return (t.date() + dt.timedelta(days=1) if t.hour >= 22 else t.date()).isoformat()
+    """Dalle 18:00 di New York la notte appartiene alla seduta dopo, come la conta il CME (sedute.py)."""
+    return sedute.giorno_di_mercato(iso)
 
 
 def valore(hist: dict[float, float]) -> tuple[float, float, float] | None:
@@ -81,22 +95,26 @@ def valore(hist: dict[float, float]) -> tuple[float, float, float] | None:
     return poc, ps[i], ps[j]
 
 
-def misura(chart: str, giorno: str, cassa: tuple[str, str], grana: float) -> dict | None:
-    """Una seduta intera (dalle 22:00Z del giorno prima) e la sua cassa, con gli istogrammi."""
+def misura(chart: str, giorno: str, grana: float, strumento: str | None = None) -> dict | None:
+    """Una seduta intera (dalle 18:00 di New York del giorno prima) e la sua cassa, con gli istogrammi.
+
+    Gli orari sono quelli di `sedute.py` per QUESTA data: la cassa del 2 novembre 2026 e'
+    14:30Z-21:00Z, quella del 30 ottobre 13:30Z-20:00Z."""
     g = dt.date.fromisoformat(giorno)
-    da = f"{(g - dt.timedelta(days=1)).isoformat()}T22:00:00Z"
-    a = f"{g.isoformat()}T22:00:00Z"
-    r = chiedi(f"/candles?chart={chart}&from={da}&to={a}&levels=true", timeout=60)
-    cs = (r or {}).get("candles") or []
+    inizio, fine = sedute.inizio_giorno(g), sedute.inizio_giorno(g + dt.timedelta(days=1))
+    apre, chiude = sedute.cassa(g, strumento)
+    r = chiedi(f"/candles?chart={chart}&from={sedute.iso(inizio)}&to={sedute.iso(fine)}&levels=true", timeout=60)
+    cs = [c for c in (r or {}).get("candles") or []
+          if inizio <= dt.datetime.fromisoformat(c["time"].replace("Z", "+00:00")) < fine]
     if not cs:
         return None
-    out = {}
-    # la notte (dalle 22:00Z del giorno prima all'apertura della cassa) si misura a parte: senza, la
+    quando = lambda c: dt.datetime.fromisoformat(c["time"].replace("Z", "+00:00"))  # noqa: E731
+    out = {"finestra": sedute.etichetta_cassa(g, strumento)}
+    # la notte (dall'inizio del giorno all'apertura della cassa) si misura a parte: senza, la
     # "seduta finora" mescolava notte e cassa (lacuna segnalata dalla fase 4 il 15/10)
     for nome, filtro in (("giorno", lambda c: True),
-                         ("notte", lambda c: c["time"][:10] < giorno or c["time"][11:16] < cassa[0]),
-                         ("cassa", lambda c: cassa[0] <= c["time"][11:16] < cassa[1]
-                          and c["time"][:10] == giorno)):
+                         ("notte", lambda c: quando(c) < apre),
+                         ("cassa", lambda c: apre <= quando(c) < chiude)):
         sel = [c for c in cs if filtro(c)]
         if not sel:
             continue
@@ -108,22 +126,41 @@ def misura(chart: str, giorno: str, cassa: tuple[str, str], grana: float) -> dic
         out[nome] = dict(O=sel[0]["open"], H=max(c["high"] for c in sel), L=min(c["low"] for c in sel),
                          C=sel[-1]["close"], V=sum(c["volume"] for c in sel), D=sum(c["delta"] for c in sel),
                          hist={str(k): v for k, v in hist.items()})
-    return out or None
+    return out if len(out) > 1 else None
+
+
+def migra_cache(cache: dict) -> dict:
+    """Una cache misurata a ora fissa (13:30Z-20:00Z, giorno dalle 22:00Z: prima del 27 ottobre 2026)
+    tiene solo le sedute in ora legale americana, che erano gia' giuste; le altre si rimisurano."""
+    if cache.get("_sedute") == VERSIONE_SEDUTE:
+        return cache
+    tenute = {"_grana": cache["_grana"]} if "_grana" in cache else {}
+    for k, v in cache.items():
+        if k.startswith("_"):
+            continue
+        try:
+            estate = dt.datetime.combine(dt.date.fromisoformat(k), dt.time(12), sedute.NEW_YORK).dst()
+        except ValueError:
+            continue
+        if estate:
+            tenute[k] = v
+    tenute["_sedute"] = VERSIONE_SEDUTE
+    return tenute
 
 
 def carica_cache(strumento: str) -> tuple[Path, dict]:
     f = Path.home() / f".fabio-scala-dei-tempi-{strumento}.json"
     try:
-        return f, json.load(open(f, encoding="utf-8"))
+        return f, migra_cache(json.load(open(f, encoding="utf-8")))
     except Exception:
-        return f, {}
+        return f, {"_sedute": VERSIONE_SEDUTE}
 
 
-def riempi(chart: str, strumento: str, oggi: str, cassa, grana, budget: float) -> tuple[dict, int]:
+def riempi(chart: str, strumento: str, oggi: str, grana, budget: float) -> tuple[dict, int]:
     """Riempie le sedute chiuse che mancano, dalla piu' recente, finche' c'e' tempo."""
     f, cache = carica_cache(strumento)
     if cache.get("_grana") != grana:
-        cache = {"_grana": grana}
+        cache = {"_grana": grana, "_sedute": VERSIONE_SEDUTE}
     inizio = time.time()
     mancanti = 0
     g = dt.date.fromisoformat(oggi)
@@ -137,7 +174,7 @@ def riempi(chart: str, strumento: str, oggi: str, cassa, grana, budget: float) -
         if time.time() - inizio > budget:
             mancanti += 1
             continue
-        m = misura(chart, k, cassa, grana)
+        m = misura(chart, k, grana, strumento)
         cache[k] = m if m else {"vuoto": True}
     tmp = f.with_suffix(".tmp")
     json.dump(cache, open(tmp, "w", encoding="utf-8"))
@@ -171,23 +208,29 @@ def stampa(chart: str, budget: float) -> None:
     adesso = salute.get("marketTimeUtc") or dt.datetime.utcnow().isoformat()
     oggi = giorno_di_mercato(adesso)
     scala = chiedi(f"/scala?chart={chart}") or {}
-    cassa_txt = scala.get("cassa") or "13:30Z-20:00Z"
-    cassa = tuple(x.strip("Z") for x in cassa_txt.split("-"))
+    # l'orario vero della cassa di OGGI; ogni altra seduta si misura con il suo (sedute.py)
+    cassa_txt = sedute.etichetta_cassa(oggi, strumento)
     s = float(scala.get("punti") or 1)
     # La grana di POC e bordi e' 1 punto, come l'indicatore (LeZoneDelValore.cs) e come il
     # profilo di ATAS: fino al 28 settembre 2026 era 5, e il VAL di lunedi' 21 usciva 30.485
     # nel giro e 30.514 sul chart. Una trend day col volume piatto amplifica la differenza.
-    grana = max(0.01, round(1 * s, 2)) if s < 1 else 1.0
-    cache, mancanti = riempi(chart, strumento, oggi, cassa, grana, budget)
-    oggi_m = misura(chart, oggi, cassa, grana) or {}
+    # Sotto il punto (ES: scala 0,213) la grana si porta a un multiplo del tick (`grigliaMuri`,
+    # 0,25 su ES): fino al 27 ottobre 2026 era 0,21, fuori griglia (il POC del 26/10 usciva 7.714,35
+    # contro 7.714,50), e diversa dallo 0,25 di studio/raccogli.py, cosi' giro e collettore si
+    # azzeravano a vicenda la cache di ESZ6 (il composito di cassa restava a 17 sedute).
+    tick = float((scala.get("soglie") or {}).get("grigliaMuri") or 0.25)
+    grana = max(tick, round(round(s / tick) * tick, 6)) if s < 1 else 1.0
+    cache, mancanti = riempi(chart, strumento, oggi, grana, budget)
+    oggi_m = misura(chart, oggi, grana, strumento) or {}
     prezzo = (oggi_m.get("giorno") or {}).get("C")
 
-    print(f"\n== TAB 3 · SEDUTA — {strumento} M1 (cassa {cassa_txt}, fasce da {fmt(grana)})")
+    print(f"\n== TAB 3 · SEDUTA — {strumento} M1 (cassa {cassa_txt} = {sedute.descrizione_cassa(strumento)[:11]} "
+          f"New York, fasce da {fmt(grana)})")
     if mancanti:
         print(f"  la storia e' in costruzione: mancano {mancanti} sedute, arrivano ai prossimi giri")
 
-    sedute = sorted(k for k, v in cache.items() if not k.startswith("_") and v and not v.get("vuoto"))
-    tutte = [(k, cache[k]) for k in sedute] + ([(oggi, oggi_m)] if oggi_m else [])
+    in_cache = sorted(k for k, v in cache.items() if not k.startswith("_") and v and not v.get("vuoto"))
+    tutte = [(k, cache[k]) for k in in_cache] + ([(oggi, oggi_m)] if oggi_m else [])
 
     # --- le settimane: tolte il 28 settembre 2026 --------------------------------------------
     # Il valore della settimana non e' un riferimento del live. La cornice di Fabio sono le sedute
@@ -289,14 +332,17 @@ def stampa(chart: str, budget: float) -> None:
         livelli = [(p, "massimo", k) for p, k in alti] + [(p, "minimo", k) for p, k in bassi]
         sopra = sorted([x for x in livelli if x[0] > prezzo])[:4]
         sotto = sorted([x for x in livelli if x[0] <= prezzo], reverse=True)[:4]
-        quando = lambda k: f"{k[8:10]}/{k[5:7]} {int(k[11:13]) + 2:02d}h"
+        # L'ORA ITALIANA SI CONVERTE, NON SI SOMMA (ora.py): fino al 27 ottobre 2026 qui c'era "+ 2", e
+        # dopo il cambio dell'ora del 25/10 ogni ora usciva un'ora avanti ("26/10 25h", "08h" alle 07:30)
+        ita = lambda k: dt.datetime.fromisoformat(k + ":00:00+00:00").astimezone(ROMA)  # noqa: E731
+        quando = lambda k: ita(k).strftime("%d/%m %Hh")  # noqa: E731
         print("  LA STRUTTURA ORARIA (H1, ultime 72 ore)")
         for p, tipo, k in reversed(sopra):
             print(f"    sopra  {fmt(p)}  {tipo} di swing H1 delle {quando(k)}")
         for p, tipo, k in sotto:
             print(f"    sotto  {fmt(p)}  {tipo} di swing H1 delle {quando(k)}")
         ultime = chiavi[-6:]
-        seq = "  ".join(f"{int(k[11:13]) + 2:02d}h {fmt(ore[k]['C'])}({ore[k]['D']:+d})" for k in ultime)
+        seq = "  ".join(f"{ita(k):%H}h {fmt(ore[k]['C'])}({ore[k]['D']:+d})" for k in ultime)
         print(f"    ultime ore (chiusura, delta): {seq}")
         # LA FORMA SI LEGGE SUGLI SWING, non sul primo e sull'ultimo estremo della finestra: il 15/10
         # alle 18:43 il confronto fra l'ora di sei ore prima e l'ultima diceva "massimi e minimi

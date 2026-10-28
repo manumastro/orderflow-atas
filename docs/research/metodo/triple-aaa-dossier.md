@@ -471,10 +471,11 @@ dossier non pretende il contrario.
 Dove il dossier lascia un numero aperto, questo repository fissa una convenzione e la dichiara
 qui, invece di lasciarla nella conversazione:
 
-- **Finestra IVB**: 13:30-14:00 UTC, la prima mezz'ora della cash di New York. Il dossier dice
+- **Finestra IVB**: 09:30-10:00 New York (13:30-14:00Z d'estate, 14:30-15:00Z d'inverno), la prima
+  mezz'ora della cash di New York. Il dossier dice
   *"first 30 min of NY/RTH"*.
-- **Sessione cash**: 13:30-20:00 UTC, come gia' fissato in
-  [`profile-framing.md`](profile-framing.md).
+- **Sessione cash**: 09:30-16:00 New York, convertita in UTC per data (13:30-20:00Z d'estate), come
+  gia' fissato in [`profile-framing.md`](profile-framing.md).
 - **"Visibly larger delta print"**: il dossier non da' una soglia. Qualsiasi soglia usata in una
   misura va scritta accanto al risultato, mai assunta.
 - **"40 Range"**: barre a range di 40 punti su NQ. Non e' una scelta neutra: l'archivio ha

@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Il COT degli indici, con la procedura del live di Fabio. Fase 2 dello studio globale.
 
-    python studio/cot/cot.py --out <cartella>     # scrive cot.json e stampa la lettura
+    python studio/cot/cot.py --out <cartella>                     # NQZ6: scrive cot.json e stampa la lettura
+    python studio/cot/cot.py --out <cartella> --strumento ESZ6    # lo stesso con ES come strumento principale
 
 **La procedura** (docs/research/metodo/i-tre-modelli-del-live-q1.md, sezione 9, `[1 · 26:01 - 43:18]`):
 
@@ -27,8 +28,13 @@ scadenza trimestrale; `rollover_calendario` quando il martedi' del report cade f
 settimana prima della scadenza trimestrale (terzo venerdi' di marzo, giugno, settembre, dicembre) e la
 scadenza stessa: e' la finestra in cui il volume passa al contratto successivo.
 
+**Lo strumento principale segue lo strumento dello studio** (27 ottobre 2026): NQZ6 legge il
+NASDAQ-100 mini (209742), ESZ6 l'S&P 500 e-mini (13874A). Il cross-confirm conta gli indici concordi
+con il principale; la TFF si scrive per entrambi (`tff_nasdaq`, `tff_sp500`).
+
 Il passo 6 legge il valore della seduta di cassa del martedi' del report dalla cache del giro
-d'orizzonte (`~/.fabio-scala-dei-tempi-NQZ6.json`), o dal bridge se manca. Accanto c'e' il **profilo
+d'orizzonte (`~/.fabio-scala-dei-tempi-<STRUMENTO>.json`, alla grana dello strumento: 1 punto su NQ,
+0,25 su ES), o dal bridge se manca. Accanto c'e' il **profilo
 della settimana coperta dal report** (dal mercoledi' dopo il report precedente al martedi' del report,
 solo cassa): il COT fotografa il martedi', ma le posizioni si sono mosse in tutta la settimana.
 Descrizione, non segnale.
@@ -55,6 +61,8 @@ sys.path.insert(0, str(REPO / "FabioOrderFlow" / "tools"))
 LEGACY = "6dca-aqww"   # Legacy, Futures Only
 TFF = "gpe5-46if"      # Traders in Financial Futures, Futures Only
 INDICI = {"209742": "NASDAQ-100 mini", "13874A": "S&P 500 e-mini", "124603": "Dow x5", "239742": "Russell 2000 mini"}
+# la radice dello strumento dello studio -> (codice CFTC dell'indice principale, grana del profilo di cassa)
+PRINCIPALE = {"NQ": ("209742", 1.0), "ES": ("13874A", 0.25)}
 SETTIMANE = 160
 SOGLIA_SKEW = 0.30
 
@@ -149,13 +157,13 @@ def legacy(codice: str) -> dict:
             "settimane_in_serie": len(serie)}
 
 
-def tff_nasdaq() -> dict:
-    """La TFF del Nasdaq: per categoria netto, variazioni, percentili a tre anni di netto, long e short,
+def tff(codice: str) -> dict:
+    """La TFF di un indice (Nasdaq 209742, S&P 500 13874A): per categoria netto, variazioni, percentili a tre anni di netto, long e short,
     lo z a 52 settimane della variazione netta e le ultime quattro settimane (lacune della fase 2,
     15 ottobre 2026). Le categorie non coincidono con la Legacy."""
-    righe = socrata(TFF, "cftc_contract_market_code='209742'", 160)
+    righe = socrata(TFF, f"cftc_contract_market_code='{codice}'", 160)
     r = righe[0]
-    out = {"data": r["report_date_as_yyyy_mm_dd"][:10]}
+    out = {"mercato": r.get("market_and_exchange_names"), "codice": codice, "data": r["report_date_as_yyyy_mm_dd"][:10]}
     for nome, (l, s, dl, ds) in {
         "dealer": ("dealer_positions_long_all", "dealer_positions_short_all", "change_in_dealer_long_all", "change_in_dealer_short_all"),
         "asset_manager": ("asset_mgr_positions_long", "asset_mgr_positions_short", "change_in_asset_mgr_long", "change_in_asset_mgr_short"),
@@ -178,20 +186,25 @@ def tff_nasdaq() -> dict:
     return out
 
 
-def valore_del_giorno(giorno: str) -> dict | None:
-    """Passo 6: la seduta di cassa di NQZ6 nel giorno del report, dalla cache del giro o dal bridge."""
+def chart_m1(sc, strumento: str) -> str | None:
+    """L'id del chart M1 dello strumento fra quelli registrati nel bridge."""
+    charts = (sc.chiedi("/charts") or {}).get("charts") or []
+    return next((c["id"] for c in charts if c["instrument"] == strumento and c["timeFrame"] == "M1"), None)
+
+
+def valore_del_giorno(giorno: str, strumento: str = "NQZ6", grana: float = 1.0) -> dict | None:
+    """Passo 6: la seduta di cassa dello strumento nel giorno del report, dalla cache del giro o dal bridge."""
     try:
         import scala_dei_tempi as sc
     except Exception:
         return None
-    _, cache = sc.carica_cache("NQZ6")
-    m = cache.get(giorno)
+    _, cache = sc.carica_cache(strumento)
+    m = cache.get(giorno) if cache.get("_grana") == grana else None
     if not m or m.get("vuoto"):
         try:
             sc.PORTA = sc.porta()
-            charts = (sc.chiedi("/charts") or {}).get("charts") or []
-            chart = next((c["id"] for c in charts if c["instrument"] == "NQZ6" and c["timeFrame"] == "M1"), None)
-            m = sc.misura(chart, giorno, ("13:30", "20:00"), 1.0) if chart else None
+            chart = chart_m1(sc, strumento)
+            m = sc.misura(chart, giorno, grana, strumento) if chart else None
         except Exception:
             m = None
     cassa = (m or {}).get("cassa")
@@ -205,29 +218,48 @@ def valore_del_giorno(giorno: str) -> dict | None:
     dove = "sopra il valore" if c > vah else "sotto il valore" if c < val else "dentro il valore"
     return {"giorno": giorno, "apertura": cassa["O"], "chiusura": c, "massimo": cassa["H"], "minimo": cassa["L"],
             "poc": poc, "val": val, "vah": vah, "delta": cassa["D"], "chiude": dove,
-            "fonte": "NQZ6 cassa 13:30Z-20:00Z, fasce da 1 punto (bridge)"}
+            "fonte": f"{strumento} cassa {sc.sedute.etichetta_cassa(giorno, strumento)} "
+                     f"({sc.sedute.descrizione_cassa(strumento)}), fasce da {grana:g} punti (cache del giro o bridge)"}
 
 
-def profilo_settimana(data_report: str, data_prec: str | None) -> dict:
-    """Le sedute di cassa di NQZ6 coperte dal report: dal giorno dopo il report precedente al martedi'
+def profilo_settimana(data_report: str, data_prec: str | None, strumento: str = "NQZ6",
+                      grana: float = 1.0) -> dict:
+    """Le sedute di cassa dello strumento coperte dal report: dal giorno dopo il report precedente al martedi'
     del report, incluso. Estremi, volume, delta e il valore della settimana (gli istogrammi di cassa
     delle sedute sommati), dalla cache del giro; i giorni feriali che mancano si dichiarano."""
     fine = dt.date.fromisoformat(data_report)
     inizio = dt.date.fromisoformat(data_prec) + dt.timedelta(days=1) if data_prec else fine - dt.timedelta(days=6)
     out = {"dal": inizio.isoformat(), "al": data_report, "sedute": [], "mancanti": [],
-           "fonte": "NQZ6 cassa 13:30Z-20:00Z, fasce da 1 punto (cache di scala_dei_tempi)"}
+           "fonte": f"{strumento} cassa 09:30-16:00 New York, convertita in UTC per data (sedute.py), "
+                    f"fasce da {grana:g} punti (cache di scala_dei_tempi, o bridge)"}
     try:
         import scala_dei_tempi as sc
-        _, cache = sc.carica_cache("NQZ6")
+        _, cache = sc.carica_cache(strumento)
+        if cache.get("_grana") != grana:  # una cache a un'altra grana non si mescola
+            cache = {}
     except Exception as e:  # noqa: BLE001
         out["errore"] = str(e)[:160]
         return out
     hist: dict[float, float] = {}
     tot = None
+    chart: list = []  # il chart M1, cercato solo se serve
+
+    def dal_bridge(giorno: str) -> dict | None:
+        # la cache del giro tiene 25 giorni: un report piu' vecchio (ES il 29/09, lacuna del 27/10) si
+        # misura dal bridge, finche' ATAS ha i minuti
+        try:
+            if not chart:
+                sc.PORTA = sc.PORTA or sc.porta()
+                chart.append(chart_m1(sc, strumento))
+            m = sc.misura(chart[0], giorno, grana, strumento) if chart[0] else None
+            return (m or {}).get("cassa")
+        except Exception:  # noqa: BLE001
+            return None
+
     g = inizio
     while g <= fine:
         if g.weekday() < 5:
-            cassa = (cache.get(g.isoformat()) or {}).get("cassa")
+            cassa = (cache.get(g.isoformat()) or {}).get("cassa") or dal_bridge(g.isoformat())
             if not cassa:
                 out["mancanti"].append(g.isoformat())
             else:
@@ -243,7 +275,7 @@ def profilo_settimana(data_report: str, data_prec: str | None) -> dict:
                 tot["delta"] += cassa.get("D", 0)
         g += dt.timedelta(days=1)
     # prima del rollover trimestrale (il giovedi' otto giorni prima del terzo venerdi') il contratto
-    # principale era il precedente: il volume e il valore di NQZ6 di quei giorni sono sottostimati
+    # principale era il precedente: il volume e il valore del contratto di quei giorni sono sottostimati
     prima = []
     for x in out["sedute"]:
         d = dt.date.fromisoformat(x)
@@ -272,39 +304,44 @@ def prossima_pubblicazione(data_report: str) -> str:
     return f"{venerdi.isoformat()} (venerdi', 15:30 ET = {roma:%H:%M} ora italiana)"
 
 
-def raccogli() -> dict:
-    """Tutto il COT in un dizionario; la usano main() e studio/raccogli.py."""
+def raccogli(strumento: str = "NQZ6") -> dict:
+    """Tutto il COT in un dizionario; la usano main() e studio/raccogli.py. `strumento` e' quello dello
+    studio (NQZ6 o ESZ6): ne segue l'indice principale, il prezzo alle date e il cross-confirm."""
+    codice_p, grana = PRINCIPALE[strumento[:2].upper()]
+    nome_p = INDICI[codice_p]
     esito = {"raccolto_utc": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
              "fonte": "publicreporting.cftc.gov (Legacy futures only 6dca-aqww; TFF gpe5-46if)",
-             "indici": {}, "errori": {}}
+             "strumento": strumento, "principale": nome_p, "indici": {}, "errori": {}}
     for codice in INDICI:
         try:
             esito["indici"][INDICI[codice]] = legacy(codice)
         except Exception as e:  # noqa: BLE001
             esito["errori"][INDICI[codice]] = str(e)[:160]
-    try:
-        esito["tff_nasdaq"] = tff_nasdaq()
-    except Exception as e:  # noqa: BLE001
-        esito["errori"]["tff"] = str(e)[:160]
-    nq = esito["indici"].get("NASDAQ-100 mini")
-    if nq:
+    for chiave, codice in (("tff_nasdaq", "209742"), ("tff_sp500", "13874A")):
+        try:
+            esito[chiave] = tff(codice)
+        except Exception as e:  # noqa: BLE001
+            esito["errori"][chiave] = str(e)[:160]
+    pr = esito["indici"].get(nome_p)
+    if pr:
         segni = {k: (v["noncomm"]["dnetto"] > 0) - (v["noncomm"]["dnetto"] < 0) for k, v in esito["indici"].items()}
-        concordi = sum(1 for s in segni.values() if s == segni["NASDAQ-100 mini"])
-        esito["cross_confirm"] = {"segni_dnetto": segni, "concordi_col_nasdaq": f"{concordi} su {len(segni)}"}
-        esito["prezzo_alle_date"] = [x for x in (valore_del_giorno(s["data"]) for s in nq["ultime_4"]) if x]
-        esito["settimane_dei_report"] = [profilo_settimana(s["data"], s["data_precedente"]) for s in nq["ultime_4"]]
-        # il ritardo in prezzo: quanto si e' mosso NQZ6 dalla chiusura di cassa del giorno del report a
-        # oggi (lacuna segnalata dalla fase 2, 15 ottobre 2026); l'ultimo prezzo dalla cache del giro
+        concordi = sum(1 for s in segni.values() if s == segni[nome_p])
+        esito["cross_confirm"] = {"rispetto_a": nome_p, "segni_dnetto": segni,
+                                  "concordi_col_principale": f"{concordi} su {len(segni)}"}
+        esito["prezzo_alle_date"] = [x for x in (valore_del_giorno(s["data"], strumento, grana) for s in pr["ultime_4"]) if x]
+        esito["settimane_dei_report"] = [profilo_settimana(s["data"], s["data_precedente"], strumento, grana)
+                                         for s in pr["ultime_4"]]
+        # il ritardo in prezzo: quanto si e' mosso lo strumento dalla chiusura di cassa del giorno del
+        # report a oggi (lacuna segnalata dalla fase 2, 15 ottobre 2026); l'ultimo prezzo dal bridge
         try:
             import scala_dei_tempi as sc
             sc.PORTA = sc.porta()
-            charts = (sc.chiedi("/charts") or {}).get("charts") or []
-            m1 = next((c["id"] for c in charts if c["instrument"] == "NQZ6" and c["timeFrame"] == "M1"), None)
+            m1 = chart_m1(sc, strumento)
             ora = (sc.chiedi(f"/health?chart={m1}") or {}) if m1 else {}
             ultimo = (sc.chiedi(f"/candles?chart={m1}&fromBar={max(0, int(ora.get('bars', 1)) - 1)}") or {}).get("candles") if m1 else None
             if ultimo:
                 adesso = ultimo[-1]["close"]
-                esito["prezzo_adesso"] = {"NQZ6": adesso, "quando_utc": ultimo[-1]["time"]}
+                esito["prezzo_adesso"] = {"strumento": strumento, "prezzo": adesso, "quando_utc": ultimo[-1]["time"]}
                 for p_ in esito["prezzo_alle_date"]:
                     p_["ritardo_in_prezzo"] = {"punti": round(adesso - p_["chiusura"], 2),
                                                "percento": round(100 * (adesso / p_["chiusura"] - 1), 2),
@@ -312,17 +349,20 @@ def raccogli() -> dict:
                 for w in esito["settimane_dei_report"]:
                     if "poc" in w:
                         w["prezzo_adesso_dal_poc"] = round(adesso - w["poc"], 2)
+            else:
+                esito["errori"]["prezzo_adesso"] = f"nessun chart M1 di {strumento} nel bridge"
         except Exception as e:  # noqa: BLE001
             esito["errori"]["prezzo_adesso"] = str(e)[:160]
-        esito["prossima_pubblicazione"] = prossima_pubblicazione(nq["data"])
+        esito["prossima_pubblicazione"] = prossima_pubblicazione(pr["data"])
     return esito
 
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--out", help="cartella dove scrivere cot.json")
+    ap.add_argument("--strumento", default="NQZ6", help="lo strumento dello studio: NQZ6 (difetto) o ESZ6")
     a = ap.parse_args()
-    esito = raccogli()
+    esito = raccogli(a.strumento)
     if a.out:
         os.makedirs(a.out, exist_ok=True)
         with open(os.path.join(a.out, "cot.json"), "w", encoding="utf-8") as f:
@@ -336,9 +376,10 @@ def main() -> int:
               f"skew {n['skew_variazione']:+.2f} z52 {n['z52_dnetto']}  piede: {n['piede_sull_acceleratore']}"
               f"{'  ROLLOVER' if v['settimana_di_rollover'] else ''}")
     if "cross_confirm" in esito:
-        print(f"  cross-confirm: {esito['cross_confirm']['concordi_col_nasdaq']} indici con la stessa direzione del Nasdaq")
+        print(f"  cross-confirm: {esito['cross_confirm']['concordi_col_principale']} indici con la stessa direzione "
+              f"di {esito['principale']}")
         for p in esito["prezzo_alle_date"]:
-            print(f"  {p['giorno']}: NQZ6 cassa {p['apertura']} -> {p['chiusura']}, valore {p['val']:g}-{p['vah']:g} "
+            print(f"  {p['giorno']}: {esito['strumento']} cassa {p['apertura']} -> {p['chiusura']}, valore {p['val']:g}-{p['vah']:g} "
                   f"POC {p['poc']:g}, {p['chiude']}, delta {p['delta']:+,}")
         print(f"  prossima pubblicazione: {esito['prossima_pubblicazione']}")
     return 0

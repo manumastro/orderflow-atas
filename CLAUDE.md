@@ -67,6 +67,11 @@ stop; 16 ottobre 2026), e valgono gli obblighi della lettura discrezionale, tutt
 - **Le fasi chiuse restano chiuse**: il modello 40R come modello (le sue lezioni di metodo sono
   dentro il framework), la sorveglianza a condizioni armate, la strada del sottoagente. Non si
   riaprono senza richiesta esplicita.
+- **Gli orari sono sempre dinamici** (27 ottobre 2026): ogni orario di sessione si scrive nel fuso
+  del suo mercato (la cassa 09:30-16:00 di New York, il giorno CME dalle 17:00 di Chicago, la London
+  dalle 08:00 di Londra) e si converte in UTC per la data della seduta, mai un UTC fisso. Un solo
+  punto per linguaggio, `LeSedute.cs` e `sedute.py`:
+  [gli-orari-si-scrivono-nel-fuso-del-mercato](docs/research/metodo/gli-orari-si-scrivono-nel-fuso-del-mercato.md).
 - **Quando una regola cambia, si cambia nel documento che la tiene**, e qui resta al massimo la
   riga che ci rimanda: due copie della stessa regola divergono senza che nessuno se ne accorga.
 - **Per ogni fase sostanziale** aggiorna il documento canonico e aggiungi una riga datata a
@@ -77,7 +82,9 @@ stop; 16 ottobre 2026), e valgono gli obblighi della lettura discrezionale, tutt
   con cosa significa per il prezzo e quanto e' provato. La regola: `.claude/skills/studio-globale/SKILL.md`,
   "Le regole che valgono per tutte le fasi".
 - **Scrivi per una persona e per un agente**: termine tecnico spiegato alla prima occorrenza,
-  frasi brevi, nessuna decisione importante lasciata solo nella conversazione.
+  frasi brevi, nessuna decisione importante lasciata solo nella conversazione. **Prima la persona**
+  (21 ottobre 2026): rapporti, quadro, artifact e letture dal vivo si aprono con la parte in parole
+  semplici, e il tecnico sta sotto. Come si scrive: `.claude/skills/studio-globale/modello-del-rapporto.md`.
 - **Ogni file di documentazione ha un nome descrittivo.** Niente `README.md`; l'ingresso e'
   `da-dove-si-comincia.md`. L'unica cartella esclusa e' `docs/atas/`.
 - **Non accumulare output intermedi**: i file grezzi vanno nella scratchpad di sessione, e le prove

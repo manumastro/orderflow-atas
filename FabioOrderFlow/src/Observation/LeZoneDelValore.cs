@@ -27,9 +27,10 @@ namespace FabioOrderFlow.Observation;
 /// </summary>
 public sealed partial class DataBridge
 {
-    [Display(Name = "London da (UTC)", GroupName = "Levels",
-        Description = "Da quando si misura la value area della London. Si vede solo prima di New York.")]
-    public string LondonDa { get; set; } = "07:00Z";
+    [Display(Name = "London da", GroupName = "Levels",
+        Description = "Da quando si misura la value area della London, nel fuso di Londra e convertito per data " +
+                      "(08:00LON). Si vede solo prima di New York.")]
+    public string LondonDa { get; set; } = LeSedute.AperturaLondra;
 
     private static readonly string[] Giorni =
         { "DOMENICA", "LUNEDI", "MARTEDI", "MERCOLEDI", "GIOVEDI", "VENERDI", "SABATO" };
@@ -138,7 +139,7 @@ public sealed partial class DataBridge
             }
             else
             {
-                var da = Momento(LondonDa, giorno);
+                var da = Momento(LeSedute.Orario(LondonDa, LeSedute.AperturaLondra), giorno);
                 var p = adesso >= da ? Profilo(da, apertura, passo, grana) : null;
                 if (p is not null)
                 {

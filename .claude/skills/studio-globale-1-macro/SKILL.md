@@ -1,18 +1,18 @@
 ---
 name: studio-globale-1-macro
-description: Fase 1 dello studio globale di NQ - la macro. Legge i dati gia' raccolti (tassi, curva, volatilita', dollaro, materie prime, credito, calendario USD, FOMC, trimestrali, mercati di previsione, sentiment, notizie) e scrive 1-macro.md; aggiorna il calendario degli eventi del giro.
+description: Fase 1 dello studio globale (NQ, o ES con --strumento ESZ6) - la macro. Legge i dati gia' raccolti (tassi, curva, volatilita', dollaro, materie prime, credito, calendario USD, FOMC, trimestrali, mercati di previsione, sentiment, notizie) e scrive 1-macro.md; aggiorna il calendario degli eventi del giro.
 argument-hint: "[cartella del rapporto]"
 ---
 
 # Fase 1: La Macro
 
-Il contesto piu' lontano: in che mondo di tassi, volatilita' e notizie si muove NQ oggi. Il rapporto
+Il contesto piu' lontano: in che mondo di tassi, volatilita' e notizie si muove oggi lo strumento dello studio (NQ o ES). Il rapporto
 segue [`../studio-globale/modello-del-rapporto.md`](../studio-globale/modello-del-rapporto.md).
 
 ## I Tuoi Dati
 
 `dati/macro.json` (raccolto da `studio/raccogli.py` con `studio/macro/macro.py`), da leggere **tutto**;
-`dati/ore-NQZ6.json` per cosa ha fatto NQ ora per ora nelle ultime 48 ore; `dati/raccolta.json` per
+`dati/ore-<strumento>.json` per cosa ha fatto lo strumento ora per ora nelle ultime 48 ore; `dati/raccolta.json` per
 l'ora e gli errori. Le fonti e i loro limiti: [`studio/macro/le-fonti-della-macro.md`](../../../studio/macro/le-fonti-della-macro.md).
 
 Le chiavi di `macro.json`:
@@ -26,6 +26,7 @@ Le chiavi di `macro.json`:
 | `tempo_reale` | VIX, VIX9D, VIX3M, VXN, 10 anni, ZT=F e 2YY=F di adesso, con l'ora e se il dato e' **di oggi** |
 | `fomc_future` | la probabilita' di un passo alla prossima riunione dai future sui fed funds, con il metodo |
 | `ampiezza` | il Nasdaq-100: quanti salgono e quanti scendono, la media, la mediana, i dieci piu' grandi |
+| `ampiezza_sp500` | **solo ES**: RSP meno SPY a 1, 5 e 20 giorni (positivo = il titolo medio fa meglio dei grandi) e quanti degli undici settori salgono, con il migliore e il peggiore; i settori (XLF, XLI, XLE, XLK, XLV, XLY, XLP, XLU, XLB, XLRE, XLC) e KRE, IWM, SPY stanno in `quotazioni`. L'S&P per titolo non c'e' fra le fonti gratuite |
 | `calendario`, `trimestrali`, `previsioni`, `sentiment` | come prima |
 | `notizie` | titolo e **testo** (il sommario del feed, quando c'e') |
 
@@ -40,10 +41,11 @@ Fed), al massimo due ricerche, e scrivi da dove viene.
 2. **La volatilita'**: VIX e VXN con il percentile a un anno; la struttura VIX9D / VIX / VIX3M
    (VIX9D sopra VIX3M = struttura invertita, la paura e' vicina).
 3. **Dollaro, petrolio, oro, credito**: DXY, WTI, oro, HYG, TLT.
-4. **Chi guida**: NQ contro ES contro RSP (la partecipazione), SMH, le otto grandi; le trimestrali.
+4. **Chi guida**: NQ contro ES contro RSP (la partecipazione), SMH, le otto grandi; le trimestrali. Per ES
+   anche i settori e `ampiezza_sp500`, e le trimestrali dei pesi massimi non tech (`gruppo`).
 5. **Il sentiment**: Fear & Greed e la variazione in una settimana.
 6. **Il calendario**: gli eventi USD di oggi e domani con l'ora italiana e l'attesa; quelli di ieri con
-   il dato uscito e **cosa ha fatto NQ** nell'ora (da `ore-NQZ6.json`).
+   il dato uscito e **cosa ha fatto lo strumento** nell'ora (da `ore-<strumento>.json`).
 7. **Le notizie**: le cinque che spiegano il movimento di ieri e della notte, con l'ora e il movimento
    orario accanto. Una notizia senza un movimento di prezzo e' rumore, e si dice.
 

@@ -41,6 +41,16 @@ def campo(testo: str, etichetta: str) -> str:
     return " ".join(m.group(1).split()) if m else ""
 
 
+def dividi(testo: str) -> tuple[str, str]:
+    """La parte per la persona (## In Parole Semplici) e il resto, il rapporto tecnico.
+
+    La pagina mette la prima in cima e il resto sotto, chiuso (21 ottobre 2026: prima la persona)."""
+    m = re.search(r"^## In Parole Semplici\s*\n(.*?)(?=^## |\Z)", testo, re.M | re.S)
+    if not m:
+        return "", testo
+    return m.group(1).strip(), (testo[:m.start()] + testo[m.end():]).strip()
+
+
 def pagina(data: str) -> Path:
     cartella = RAPPORTI / data
     if not cartella.is_dir():
@@ -48,7 +58,9 @@ def pagina(data: str) -> Path:
     fasi = []
     for chiave, nome, file in FASI:
         t = leggi(cartella / file)
+        semplice, tecnico = dividi(t)
         fasi.append({"chiave": chiave, "nome": nome, "file": file, "testo": t,
+                     "semplice": semplice, "tecnico": tecnico,
                      "titolo": (re.search(r"^# (.+)$", t, re.M) or [None, nome])[1],
                      "stato": campo(t, "Stato").split("(")[0].split(".")[0].strip()})
     precedenti = []
@@ -134,6 +146,13 @@ th, td { text-align: left; vertical-align: top; padding: 7px 10px; border-bottom
 th { font: 600 12px/1.3 var(--mono); letter-spacing: .04em; text-transform: uppercase; color: var(--muto); white-space: nowrap; }
 td:first-child { white-space: nowrap; font-weight: 600; }
 .vuota { color: var(--muto); padding: 24px 0; }
+.semplice { background: var(--accento-tenue); border-radius: 6px; padding: 4px 20px 16px; margin: 16px 0 8px; font-size: 16px; line-height: 1.65; }
+.semplice > h2:first-child { border-top: 0; padding-top: 0; margin-top: 14px; }
+.semplice ol { gap: 10px; }
+.semplice table { background: var(--carta); }
+details.tecnico { margin-top: 20px; border-top: 1px solid var(--linea); }
+details.tecnico > summary { cursor: pointer; padding: 14px 0 6px; font: 600 15px/1.3 var(--display); color: var(--muto); }
+details.tecnico > summary:focus-visible { outline: 2px solid var(--accento); outline-offset: 2px; }
 @media (max-width: 560px) { article { padding: 4px 16px 20px; } }
 </style>
 
@@ -181,7 +200,18 @@ function mostra(chiave, ora) {
   $("#avviso").hidden = !vecchio;
   if (vecchio) $("#avviso").textContent = `Questo e' il quadro sostituito alle ${vecchio.ora}: e' qui per confronto, il quadro valido e' l'ultimo.`;
   const testo = vecchio ? vecchio.testo : f.testo;
-  $("#rapporto").replaceChildren(testo ? rendi(testo) : Object.assign(document.createElement("p"), { className: "vuota", textContent: `${f.file} non c'e' per questo giorno.` }));
+  if (!testo) {
+    $("#rapporto").replaceChildren(Object.assign(document.createElement("p"), { className: "vuota", textContent: `${f.file} non c'e' per questo giorno.` }));
+  } else if (!vecchio && f.semplice) {
+    // prima la persona: la parte in parole semplici in cima, il rapporto tecnico sotto, chiuso
+    // ogni "→ cosa vuol dire" va a capo sotto il suo fatto (lo schema a gradini, 21 ottobre 2026)
+    const box = rendi("## In parole semplici\n\n" + f.semplice.replace(/\n(\s*)→/g, "  \n$1→")); box.className = "semplice";
+    const det = document.createElement("details"); det.className = "tecnico";
+    det.append(Object.assign(document.createElement("summary"), { textContent: "Il rapporto tecnico: numeri, fonti, convenzioni e lacune" }), rendi(f.tecnico));
+    $("#rapporto").replaceChildren(box, det);
+  } else {
+    $("#rapporto").replaceChildren(rendi(testo));
+  }
   try { history.replaceState(null, "", "#" + f.chiave); } catch (e) {}
 }
 

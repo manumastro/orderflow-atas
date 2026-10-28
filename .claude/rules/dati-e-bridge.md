@@ -9,7 +9,7 @@ paths:
 Contratto ed endpoint in `docs/research/metodo/contratto-data-bridge.md`, client
 `FabioOrderFlow/tools/bridge.py`.
 
-**I quattro vincoli che hanno gia' prodotto errori:**
+**I cinque vincoli che hanno gia' prodotto errori:**
 
 - **`bar` e' un indice di posizione, non un identificatore**: riparte a ogni ricarica
   dell'indicatore. Per riconoscere una barra si usa **`time`**.
@@ -18,6 +18,10 @@ Contratto ed endpoint in `docs/research/metodo/contratto-data-bridge.md`, client
 - **La speed of tape non esiste nel bridge.** Il proxy e' il volume per barra M1 contro la
   distribuzione recente, e **va dichiarato come proxy ogni volta che si usa**.
 - **L'id del chart cambia a ogni ricarica**: si chiede a `/charts` o `/health`, non si cabla.
+- **Gli orari di sessione sono dinamici**: il bridge parla UTC, ma la cassa e' 09:30-16:00 di New
+  York convertita per data (13:30Z d'estate, 14:30Z d'inverno). Fino al 27 ottobre 2026 era
+  13:30Z-20:00Z fissa ovunque. Ogni finestra viene da `FabioOrderFlow/tools/sedute.py`, mai da un
+  orario scritto a mano: `docs/research/metodo/gli-orari-si-scrivono-nel-fuso-del-mercato.md`.
 
 **Il delta esiste anche prezzo per prezzo.** `bridge.py candles --levels` da' la footprint di ogni
 barra: e' lo strumento con cui si misura l'assorbimento del live — sforzo alto, risultato nullo.

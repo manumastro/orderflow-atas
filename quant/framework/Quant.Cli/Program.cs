@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Globalization;
+using System.Runtime.InteropServices;
 using System.Text;
 
 CultureInfo.DefaultThreadCurrentCulture = CultureInfo.GetCultureInfo("it-IT");
@@ -17,6 +18,8 @@ quant: il framework quantitativo, dall'idea alla validazione.
                                      date dei cambi da ATAS, scarto misurato, dal salto o dal carry: SIMBOLO/rollover.json
   quant taglia --simbolo NQ --tipo m1 --prima AAAA-MM-GGTHH:MMZ
                                      toglie dall'archivio i record prima di quell'istante
+  quant scambi --chart NQ --da AAAA-MM-GG --a AAAA-MM-GG [--simbolo NQ] [--minuti 30] [--rifai]
+                                     il tape completo (scambi aggregati e tick), un mese per file, controllato sulle barre M1
   quant opzioni --chart ID [--simbolo ES] [--scadenze 3] [--strike 40]
                                      registra la catena delle opzioni (ATAS non ne ha la storia)
   quant sintetico [--giorni 500] [--seme 42] [--deriva-notte PUNTI] [--deriva-cassa PUNTI]
@@ -144,6 +147,76 @@ try
             var t = Stopwatch.StartNew();
             var file = await ponte.RegistraOpzioni(chart, simbolo, o.Intero("scadenze", 3), o.Intero("strike", 40), Console.WriteLine);
             Console.WriteLine($"{file.Count} serie registrate in {Path.GetDirectoryName(file.FirstOrDefault() ?? "")}, {t.ElapsedMilliseconds:N0} ms");
+            return 0;
+        }
+
+        case "scambi":
+        {
+            // Il tape completo dal chart del continuo, un mese per file: scambi aggregati in
+            // SIMBOLO/scambi, i loro tick singoli in SIMBOLO/tick. ATAS restituisce una lista vuota
+            // anche quando sbaglia: ogni giornata si confronta con le barre M1 in archivio, e se il
+            // tape ha meno volume delle barre la giornata si riscarica.
+            var chart = o.Valore("chart") ?? throw new ArgumentException("--chart del continuo (NQ): vedi `quant chart`");
+            var simbolo = o.Valore("simbolo") ?? "NQ";
+            var strumento = Strumento.Da(simbolo);
+            DateTime Giorno(string k) => DateTime.ParseExact(o.Valore(k) ?? throw new ArgumentException($"--{k} AAAA-MM-GG"), "yyyy-MM-dd",
+                CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal);
+            var da = Giorno("da");
+            var a = Giorno("a");
+            var minuti = o.Intero("minuti", 30);
+            using var ponte = new PonteAtas(o.Valore("bridge"));
+            var totale = Stopwatch.StartNew();
+            for (var mese = new DateTime(da.Year, da.Month, 1, 0, 0, 0, DateTimeKind.Utc); mese < a; mese = mese.AddMonths(1))
+            {
+                var nome = mese.ToString("yyyy-MM", CultureInfo.InvariantCulture);
+                if (!o.Flag("rifai") && File.Exists(Path.Combine(Archivio.Cartella(simbolo, "scambi"), nome + ".bin")))
+                {
+                    Console.WriteLine($"{nome}: gia' in archivio (--rifai per riscaricarlo)");
+                    continue;
+                }
+                var inizio = mese < da ? da : mese;
+                var fine = mese.AddMonths(1) < a ? mese.AddMonths(1) : a;
+                var barre = Archivio.Leggi<Barra>(simbolo, "m1", inizio, fine, b => b.Inizio);
+                var aggregati = new List<ScambioAggregato>();
+                var tick = new List<Scambio>();
+                for (var g = inizio; g < fine; g = g.AddDays(1))
+                {
+                    if (g.DayOfWeek == DayOfWeek.Saturday) continue;
+                    var t = Stopwatch.StartNew();
+                    var (ga, gt) = (new List<ScambioAggregato>(), new List<Scambio>());
+                    var dentro = barre.Where(b => b.Inizio >= Tempo.Ms(g) && b.Inizio < Tempo.Ms(g.AddDays(1))).ToArray();
+                    long volBarre = dentro.Sum(b => (long)b.Volume), deltaBarre = dentro.Sum(b => (long)b.Delta);
+                    long vol = 0, delta = 0;
+                    for (var prova = 1; prova <= 2; prova++)
+                    {
+                        ga.Clear();
+                        gt.Clear();
+                        // Misurato il 18 ottobre 2026: nei giorni passati ATAS da' vuota ogni finestra
+                        // fra l'apertura di Globex (22:00 o 23:00Z) e la mezzanotte UTC che non arriva
+                        // alla mezzanotte. Per questo la sera e' una finestra sola, 21:00-24:00Z, dopo la
+                        // chiusura: la fascia piu' tranquilla.
+                        var sera = g.AddHours(21);
+                        for (var w = g; w < sera; w = w.AddMinutes(minuti))
+                            await ponte.Scambi(chart, strumento, w, w.AddMinutes(minuti) < sera ? w.AddMinutes(minuti) : sera, ga, gt);
+                        await ponte.Scambi(chart, strumento, sera, g.AddDays(1), ga, gt);
+                        vol = ga.Sum(x => (long)x.Volume);
+                        delta = ga.Sum(x => (long)x.Volume * x.Lato);
+                        if (vol >= volBarre || prova == 2) break;
+                        Console.WriteLine($"  {g:yyyy-MM-dd}: tape {vol:N0} lotti, barre {volBarre:N0}: riscarico (prova {prova + 1})");
+                    }
+                    var volTick = gt.Sum(x => (long)x.Volume);
+                    var esito = dentro.Length == 0 ? "senza barre per il confronto"
+                        : vol == volBarre && delta == deltaBarre ? "= barre"
+                        : $"barre {volBarre:N0} delta {deltaBarre:+#,0;-#,0;0} (scarto {vol - volBarre:+#,0;-#,0;0} e {delta - deltaBarre:+#,0;-#,0;0})";
+                    if (volTick != vol) esito += $"; TICK {volTick:N0} LOTTI CONTRO {vol:N0}";
+                    Console.WriteLine($"  {g:yyyy-MM-dd ddd}  {ga.Count,9:N0} scambi {gt.Count,10:N0} tick  vol {vol,9:N0} delta {delta,7:+#,0;-#,0;0}  {esito}  {t.Elapsed.TotalSeconds:N0} s");
+                    aggregati.AddRange(ga);
+                    tick.AddRange(gt);
+                }
+                Archivio.ScriviMese<ScambioAggregato>(simbolo, "scambi", nome, CollectionsMarshal.AsSpan(aggregati));
+                Archivio.ScriviMese<Scambio>(simbolo, "tick", nome, CollectionsMarshal.AsSpan(tick));
+                Console.WriteLine($"{nome}: {aggregati.Count:N0} scambi e {tick.Count:N0} tick in {simbolo}/scambi e {simbolo}/tick, {totale.Elapsed:hh\\:mm\\:ss} dall'inizio");
+            }
             return 0;
         }
 

@@ -4,7 +4,7 @@
 Serve a rendere visibile la sensibilita' di ogni scelta: un risultato che cambia segno fra due
 valori adiacenti di una soglia non e' un risultato, e' un artefatto della soglia.
 
-    ./replay_sweep.py /percorso/mese --sweep manage=0,20,40,80 -- --window 13:30-15:30
+    ./replay_sweep.py /percorso/mese --sweep manage=0,20,40,80 -- --window 09:30NY-11:30NY
 """
 
 from __future__ import annotations

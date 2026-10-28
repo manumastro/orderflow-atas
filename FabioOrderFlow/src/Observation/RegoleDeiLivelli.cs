@@ -191,8 +191,10 @@ public sealed partial class DataBridge
     }
 
     /// <summary>
-    /// La finestra di una regola. Un orario nudo (<c>13:30Z</c>) si appoggia al giorno di
-    /// mercato; un ISO completo vale cosi' com'e'. Senza <c>A</c> la finestra arriva a adesso,
+    /// La finestra di una regola. Un orario nudo si appoggia al giorno di mercato e si scrive nel
+    /// fuso del suo mercato (<c>09:30NY</c>, <c>08:00LON</c>, <c>18:00NY</c>), che si converte per
+    /// data; <c>13:30Z</c> e' UTC fisso e sbaglia di un'ora meta' dell'anno. Un ISO completo vale
+    /// cosi' com'e'. Regola: docs/research/metodo/gli-orari-si-scrivono-nel-fuso-del-mercato.md. Senza <c>A</c> la finestra arriva a adesso,
     /// e allora il livello si muove.
     /// </summary>
     private sealed record BridgeWindow
@@ -624,11 +626,15 @@ public sealed partial class DataBridge
             var da = Momento(regola.Finestra.Da!, giorno);
             var a = regola.Finestra.A is null ? (DateTime?)null : Momento(regola.Finestra.A!, giorno);
             // Una finestra che finisce prima di cominciare attraversa la mezzanotte: e' il caso
-            // normale della notte, dichiarata come 22:00Z -> 07:00Z. Senza questo l'inizio
-            // cadrebbe stasera invece che ieri sera, e la finestra sarebbe vuota.
+            // normale della notte, dichiarata come 18:00NY -> 08:00LON. Senza questo l'inizio
+            // cadrebbe stasera invece che ieri sera, e la finestra sarebbe vuota. L'inizio si
+            // ricalcola sulla data di ieri, non spostando di 24 ore un istante UTC: a cavallo del
+            // cambio d'ora le 24 ore sbaglierebbero di un'ora.
+            var giornoDa = giorno;
             if (a is not null && a <= da)
             {
-                da = da.AddDays(-1);
+                giornoDa = giorno.AddDays(-1);
+                da = LeSedute.EOrario(regola.Finestra.Da!) ? Momento(regola.Finestra.Da!, giornoDa) : da.AddDays(-1);
             }
 
             ProfiloFinestra? profilo;
@@ -646,8 +652,8 @@ public sealed partial class DataBridge
                 var trovate = 0;
                 for (var passo = 1; passo <= 10 && trovate < -regola.Finestra.Seduta; passo++)
                 {
-                    var daP = da.AddDays(-passo);
-                    var aP = a.Value.AddDays(-passo);
+                    var daP = LeSedute.EOrario(regola.Finestra.Da!) ? Momento(regola.Finestra.Da!, giornoDa.AddDays(-passo)) : da.AddDays(-passo);
+                    var aP = LeSedute.EOrario(regola.Finestra.A!) ? Momento(regola.Finestra.A!, giorno.AddDays(-passo)) : a.Value.AddDays(-passo);
                     var chiaveP = $"{daP:O}|{aP:O}|{regola.Passo}|{regola.Grana}";
                     if (!cache.TryGetValue(chiaveP, out var p))
                     {
@@ -910,23 +916,11 @@ public sealed partial class DataBridge
     }
 
     /// <summary>
-    /// Un momento della finestra. <c>13:30Z</c> e' un orario del giorno di mercato;
-    /// un ISO completo vale cosi' com'e'.
+    /// Un momento della finestra: <c>09:30NY</c>, <c>08:00LON</c>, <c>17:00CT</c> si convertono
+    /// per la data del giorno di mercato (ora legale compresa); <c>13:30Z</c> e' UTC fisso; un ISO
+    /// completo vale cosi' com'e'. La definizione sta in <see cref="LeSedute"/>.
     /// </summary>
-    private static DateTime Momento(string grezzo, DateTime giorno)
-    {
-        var testo = grezzo.Trim();
-        if (testo.Length <= 6 && testo.Contains(':', StringComparison.Ordinal))
-        {
-            var parti = testo.TrimEnd('Z').Split(':');
-            return giorno.Date
-                .AddHours(int.Parse(parti[0], CultureInfo.InvariantCulture))
-                .AddMinutes(parti.Length > 1 ? int.Parse(parti[1], CultureInfo.InvariantCulture) : 0);
-        }
-
-        return DateTime.Parse(testo, CultureInfo.InvariantCulture,
-            DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal);
-    }
+    private static DateTime Momento(string grezzo, DateTime giorno) => LeSedute.Momento(grezzo, giorno);
 
     // ------------------------------------------------------------------ l'endpoint
 

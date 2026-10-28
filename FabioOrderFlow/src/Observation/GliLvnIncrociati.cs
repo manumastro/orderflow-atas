@@ -155,11 +155,12 @@ public sealed partial class DataBridge
             var adesso = GetCandle(ultimo).Time;
             var giorno = GiornoDiMercato(adesso);
             var lunedi = giorno.AddDays(-(((int)giorno.DayOfWeek + 6) % 7));
-            var inizioSettimana = lunedi.AddDays(-1).AddHours(22);
-            var inizioGiorno = giorno.AddDays(-1).AddHours(22);
+            // le 18:00 di New York del giorno prima, convertite per data (22:00Z o 23:00Z): LeSedute
+            var inizioSettimana = LeSedute.InizioDelGiorno(lunedi);
+            var inizioGiorno = LeSedute.InizioDelGiorno(giorno);
             var fineSettimana = DateTime.MaxValue;
 
-            // LA SETTIMANA VALE DOPO LA PRIMA CASSA CHIUSA. Il lunedi', prima delle 20:00Z, il profilo
+            // LA SETTIMANA VALE DOPO LA PRIMA CASSA CHIUSA. Il lunedi', prima della chiusura di cassa, il profilo
             // della settimana e' lo stesso del giorno: incrociarli contava due volte lo stesso dato
             // (audit del 1 ottobre 2026, osservazione dell'utente). Fino ad allora si usa la
             // settimana prima, intera.

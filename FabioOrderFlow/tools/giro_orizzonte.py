@@ -37,6 +37,7 @@ from pathlib import Path
 # Si difende qui e non solo nell'hook perche' CLAUDE.md dice di lanciare questo comando a mano
 # quando il blocco manca: un programma che funziona solo se chiamato dal suo hook non e' difeso.
 import ora  # gli orari si stampano in italiano, vedi ora.py
+import sedute  # gli orari delle sedute, nel fuso del mercato e convertiti per data
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -187,7 +188,19 @@ def main() -> int:
     # M1 (la sezione che segue e il resto del giro), esecuzione Range (in fondo). Vedi
     # le_quattro_tab.py e metodo/il-giro-d-orizzonte.md.
     import le_quattro_tab
-    le_quattro_tab.stampa("lontane")
+    # Le tab dello strumento guardato: NQ per difetto, ES se --chart indica un chart di ES (lo studio
+    # globale di ES del 27 ottobre 2026). Il chart si cerca per id o per nome fra i registrati.
+    guardato = CHART[1] if len(CHART) > 1 else ""
+    try:
+        registrati = json.loads(subprocess.run([sys.executable, str(BRIDGE), "charts"], capture_output=True,
+                                               text=True, timeout=30).stdout).get("charts") or []
+    except Exception:
+        registrati = []
+    for x in registrati:
+        if guardato in (x.get("id"), x.get("instrument")):
+            guardato = x.get("instrument", "")
+    RADICE = "ES" if guardato.upper().startswith("ES") else "NQ"
+    le_quattro_tab.stampa("lontane", RADICE)
 
     # 0 ------------------------------------------------ dal piu' lontano al piu' vicino
     # Una persona guarda prima le settimane, poi le sedute, poi dove sta il prezzo rispetto a
@@ -206,8 +219,10 @@ def main() -> int:
             strumento, data_mercato = h["instrument"], h["marketTimeUtc"][:10]
             # In replay la giornata e' un file a parte, perche' la seduta e' gia' stata operata
             # dal vivo e il suo diario non va sovrascritto: si cerca prima quello.
-            # NQZ6 ha inoltre file storici senza prefisso, debito aperto: si prova anche cosi'.
-            candidati = [f"{strumento}-{data_mercato}", data_mercato]
+            # NQZ6 ha inoltre file storici senza prefisso, debito aperto: si prova anche cosi', ma SOLO
+            # per NQ: un file senza prefisso e' di NQ, e il giro di ES (27 ottobre 2026) non deve leggere
+            # il QUADRO di NQ. Lo strumento guardato vuole il suo file, ESZ6-<data>.md.
+            candidati = [f"{strumento}-{data_mercato}"] + ([data_mercato] if strumento.upper().startswith("NQ") else [])
             if data_mercato != dt.date.today().isoformat():
                 candidati.insert(0, f"{strumento}-{data_mercato}-replay")
             g = next((k for k in candidati if (GIORNATE / f"{k}.md").exists()), candidati[0])
@@ -238,7 +253,12 @@ def main() -> int:
         print(f"  {h['instrument']} {h['timeFrame']}  {h['bars']:,} barre  "
               f"ora di mercato {ora.completa(h['marketTimeUtc'])} "
               f"{ora.sigla_di(h['marketTimeUtc'])}{avviso}")
-        print(f"  orari italiani; la cash di New York apre alle {ora.hhmm(h['marketTimeUtc'][:10] + 'T13:30:00Z')}")
+        # l'apertura VERA di oggi (09:30 di New York convertite per data): fino al 27 ottobre 2026 era
+        # 13:30Z fisso, e fra il 25/10 e il 1/11 diceva 14:30 italiane giusto per caso, poi un'ora prima
+        g_m = sedute.giorno_di_mercato(h["marketTimeUtc"])
+        apre, chiude = sedute.cassa(g_m, h.get("instrument"))
+        print(f"  orari italiani; la cash di New York ({sedute.descrizione_cassa(h.get('instrument'))[:11]} New York) "
+              f"apre alle {ora.hhmm(apre)} e chiude alle {ora.hhmm(chiude)} ({sedute.etichetta_cassa(g_m, h.get('instrument'))})")
         print(f"  file della giornata usato: {g}.md")
         r = bridge("rollovers")
         if r and r.get("rollovers"):
@@ -320,14 +340,14 @@ def main() -> int:
     if q and fonte != oggi.name:
         # Un quadro di un altro giorno non si stampa: si legge come se fosse di oggi, e pesa un
         # kilobyte del budget del giro (il 15 ottobre 2026 era quello del 24 settembre).
-        print(f"  NESSUN QUADRO PER OGGI: l'ultimo e' in {fonte}, vecchio, e non si stampa.")
+        print(f"  NESSUN QUADRO PER OGGI in {oggi.name}: l'ultimo e' in {fonte}, vecchio, e non si stampa.")
         print("  Procedura: docs/research/metodo/il-framing-e-il-cot-si-leggono-insieme.md")
     elif q:
         for r in q.splitlines()[:8]:
             print(f"  {r}")
     else:
         print("  NESSUN QUADRO. Il framing e il COT non sono stati fatti, o non sono stati")
-        print("  scritti fra <!-- QUADRO --> e <!-- /QUADRO --> nel file della giornata.")
+        print(f"  scritti fra <!-- QUADRO --> e <!-- /QUADRO --> nel file della giornata ({oggi.name}).")
         print("  Procedura: docs/research/metodo/il-framing-e-il-cot-si-leggono-insieme.md")
         print("  Una lettura data senza il quadro e' una lettura sulle ultime barre.")
 
@@ -396,7 +416,7 @@ def main() -> int:
         print("  il bridge non risponde su /rules")
     else:
         print(f"  {rl.get('levels')} livelli disegnati da {rl.get('count')} regole, "
-              f"ricalcolati alla barra {rl.get('resolvedAtMarketTime', '?')[11:16]}Z")
+              f"ricalcolati alla barra {(rl.get('resolvedAtMarketTime') or '?')[11:16]}Z")
         saltate = rl.get("skipped") or []
         if not saltate:
             print("  ogni regola ha prodotto il suo livello")
@@ -412,12 +432,12 @@ def main() -> int:
 
     # 7 ------------------------------------------------------------------- il tape
     titolo(7, "IL TAPE RECENTE")
-    # la finestra e' la seduta globex in corso: dalle 22:00 CEST di ieri, cioe' 20:00Z.
-    # Il giorno e' quello DI MERCATO: in replay la data locale e' un'altra, e usarla chiedeva
-    # barre che nel replay non esistono ancora.
+    # la finestra parte dalla chiusura della cassa di ieri (16:00 di New York, convertita per data:
+    # 20:00Z o 21:00Z). Il giorno e' quello DI MERCATO: in replay la data locale e' un'altra, e usarla
+    # chiedeva barre che nel replay non esistono ancora.
     base = h["marketTimeUtc"][:10] if h else data_nuda
     ieri = (dt.date.fromisoformat(base) - dt.timedelta(days=1)).isoformat()
-    d = bridge("candles", "--from", f"{ieri}T20:00")
+    d = bridge("candles", "--from", sedute.iso(sedute.cassa(ieri)[1])[:16])
     cs = (d or {}).get("candles") or []
     if not cs:
         print("  nessuna barra")
@@ -475,7 +495,7 @@ def main() -> int:
               f"{b[poc]/tot*100:.1f}% e delta {dl[poc]:+,})")
 
     # TAB 4 -------------------------------------------------------------- l'esecuzione
-    le_quattro_tab.stampa("esecuzione")
+    le_quattro_tab.stampa("esecuzione", RADICE)
 
     print("\nQuesto e' il contesto. La conclusione si scrive guardando tutto, non le ultime barre.")
     return 0

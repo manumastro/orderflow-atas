@@ -12,7 +12,8 @@ location viene prima del segnale. L'order flow conferma un livello gia' marcato;
 
 > *"I don't use opening and closing price. I use only the cash session."*
 
-Ogni profilo si costruisce sulla sola sessione cash, **13:30-20:00 UTC** (09:30-16:00 New York).
+Ogni profilo si costruisce sulla sola sessione cash, **09:30-16:00 New York**, convertita in UTC per
+data (13:30-20:00Z d'estate, 14:30-21:00Z d'inverno: [gli-orari-si-scrivono-nel-fuso-del-mercato.md](gli-orari-si-scrivono-nel-fuso-del-mercato.md)).
 La notte si osserva a parte, per il retest dei bordi, ma non entra nel profilo.
 
 Conseguenza pratica: un chart daily a barre di 24 ore **non e' il profilo che serve**. La barra
@@ -223,7 +224,7 @@ invece che solo le OHLC.
 ```bash
 python3 FabioOrderFlow/tools/bridge.py candles --chart NQU6 --from 2026-08-31 --to 2026-09-15 --levels --out u6.json
 python3 FabioOrderFlow/tools/bridge.py candles --chart NQZ6 --from 2026-08-31 --to 2026-09-15 --levels --out z6.json
-python3 FabioOrderFlow/tools/build_continuous.py u6.json z6.json --cash 13:30-20:00 --out continuo.json
+python3 FabioOrderFlow/tools/build_continuous.py u6.json z6.json --cash 09:30NY-16:00NY --out continuo.json
 ```
 
 Come misura lo spread, e perche' cosi':

@@ -40,10 +40,11 @@ ROSSO = "#EF5350"
 
 
 def momento(raw: str, giorno: dt.date) -> dt.datetime:
+    """`09:30NY`, `08:00LON`, `17:00CT` si convertono per data; `13:30Z` e' UTC fisso (sedute.py)."""
     testo = raw.strip()
-    if len(testo) <= 6 and ":" in testo:
-        ora = dt.time.fromisoformat(testo.rstrip("Z"))
-        return dt.datetime.combine(giorno, ora, tzinfo=dt.timezone.utc)
+    if len(testo) <= 9 and ":" in testo:
+        import sedute
+        return sedute.momento(testo, giorno)
     return bridge.parse_time(testo)
 
 

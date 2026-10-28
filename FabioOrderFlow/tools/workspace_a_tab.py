@@ -128,8 +128,10 @@ def disegni(chart: dict, tieni_tipi: set[str]) -> None:
 def atas_aperto() -> bool:
     """Vero se il processo di ATAS X (OFT.PlatformX.exe) e' in esecuzione."""
     r = subprocess.run(["tasklist", "/FI", "IMAGENAME eq OFT.PlatformX.exe", "/NH"],
-                       capture_output=True, text=True, check=False)
-    return "oft.platformx.exe" in r.stdout.lower()
+                       capture_output=True, text=True, errors="replace", check=False)
+    # errors="replace": con PYTHONUTF8=1 l'output di tasklist (codepage della console) non e' UTF-8,
+    # il lettore moriva e stdout restava None (27 ottobre 2026)
+    return "oft.platformx.exe" in (r.stdout or "").lower()
 
 
 def mostra(nome: str) -> int:
