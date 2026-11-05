@@ -3,7 +3,7 @@
 
 Il workspace ha quattro tab, e ognuna ha un ruolo che l'indicatore dichiara (`/ruolo`):
 
-    1 COMPOSITO   NQ Daily    il valore di 90 sedute, e le ultime giornate intere
+    1 COMPOSITO   NQ Daily    il valore di 90 sedute, le ultime giornate intere, gli scalini (mese, settimana, giorno)
     2 SETTIMANA   NQZ6 M30    il valore di cassa di ogni giorno, e le ultime ore a mezz'ora
     3 SEDUTA      NQZ6 M1     le sedute di cassa, la struttura oraria, il tape (il resto del giro)
     4 ESECUZIONE  NQZ6 Range  le ultime barre da 40 tick: verso, durata, delta
@@ -24,6 +24,7 @@ from pathlib import Path
 
 import bridge as client
 import gex
+import gli_scalini
 import ora
 
 GIORNI = ["lun", "mar", "mer", "gio", "ven", "sab", "dom"]
@@ -81,6 +82,14 @@ def tab_composito(base: str, c: dict) -> None:
         viva = "  in corso" if b is barre[-1] else ""
         print(f"  {giorno(b['lastTime'])}  {n(b['open'])} -> {n(b['close'])}  range {b['high'] - b['low']:.0f}  "
               f"delta {k(b['delta'])}  vol {b['volume'] / 1000:.0f}k{viva}")
+    # gli scalini di mese, settimana e giorno, e il ping-pong (5 novembre 2026, dal video sul bias dalla
+    # price action): contesto, non regola; docs/research/metodo/il-bias-del-giorno.md. La regola la calcola il
+    # server della pagina X-Ray (/api/scalini), in un posto solo: qui si chiede e si stampa
+    try:
+        for riga in gli_scalini.righe(gli_scalini.dal_server(str(c["instrument"]).upper()[:2])):
+            print("  " + riga)
+    except Exception as e:  # il giro non deve morire per gli scalini
+        print(f"  gli scalini non si leggono: {type(e).__name__}: {e}")
 
 
 def tab_settimana(base: str, c: dict) -> None:
@@ -106,8 +115,20 @@ def tab_settimana(base: str, c: dict) -> None:
 
 def tab_opzioni(strumento: str, prezzo: float | None) -> None:
     """La GEX dalla cache di gex.py; se e' vecchia, la ricalcola in background (due minuti e mezzo)."""
-    titolo(f"TAB 2 · LE OPZIONI — GEX di {strumento} (gex.py): descrizione, non regola")
-    cache = gex.cache_di(strumento)
+    # Su ES/SPX dal 5 novembre 2026 vale solo X-Ray (OptionsDepth), come sul chart di ATAS: la nostra
+    # GEX della catena ES (gex.py, convenzione A) non si calcola e non si stampa
+    if strumento.upper().startswith("ES"):
+        titolo(f"TAB 2 · LE OPZIONI — {strumento}: solo X-Ray (OptionsDepth), in prezzi di ES")
+        cache = None
+    else:
+        titolo(f"TAB 2 · LE OPZIONI — GEX di {strumento} (gex.py): descrizione, non regola")
+        cache = gex.cache_di(strumento)
+    if cache is not None:
+        _gex_py(strumento, prezzo, cache)
+    _xray()
+
+
+def _gex_py(strumento: str, prezzo: float | None, cache) -> None:
     eta = time.time() - cache.stat().st_mtime if cache.exists() else None
     # Il lucchetto lo tiene gex.esegui; qui si guarda solo. Con GEX_SENZA_RICALCOLO (lo imposta
     # studio/raccogli.py, che la GEX la calcola da se') non si lancia niente: il 15 ottobre 2026 due
@@ -121,6 +142,36 @@ def tab_opzioni(strumento: str, prezzo: float | None) -> None:
               + ("questa e' la precedente" if cache.exists() else "al prossimo giro"))
     if cache.exists():
         gex.stampa(json.loads(cache.read_text(encoding="utf-8")), prezzo=prezzo)
+
+
+def _xray() -> None:
+    # X-Ray (30 ottobre 2026): la stima di OptionsDepth su SPX, dai file di XrayLive. Su ES e' lo
+    # stesso indice, su NQ solo contesto; il segno dei market maker qui e' stimato, non supposto
+    try:
+        sys.path.insert(0, str(QUI.parents[1] / "quant" / "strumenti" / "xray" / "scripts"))
+        import xray_query
+        # la GEX viva (2 novembre 2026): lo stesso modello di gex.py, ricalcolato ogni minuto dal server della
+        # pagina; e' quella da leggere in cassa. Come si legge: quant/metodo/come-si-leggono-le-opzioni-dal-vivo.md
+        for riga in xray_query.righe_gex_viva():
+            print("  " + riga)
+        for riga in xray_query.righe_giro():
+            print("  " + riga)
+    except Exception as e:  # il giro non deve morire per X-Ray
+        print(f"  X-Ray non si legge: {type(e).__name__}: {e}")
+
+
+def quattro_domande(base: str, tab: dict, radice: str) -> None:
+    """Le opzioni in quattro domande (regime, meteo, muri sul profilo, grilletto), dal video sul bias dalle
+    opzioni: docs/research/metodo/il-bias-del-giorno.md. Le calcola il server della pagina (/api/quattro-domande),
+    bordi del valore e muri del ping-pong compresi; xray_query le mette in fila."""
+    try:
+        sys.path.insert(0, str(QUI.parents[1] / "quant" / "strumenti" / "xray" / "scripts"))
+        import xray_query
+        print()
+        for riga in xray_query.righe_quattro_domande(xray_query.quattro_domande(radice)):
+            print("  " + riga)
+    except Exception as e:  # il giro non deve morire per le quattro domande
+        print(f"  le quattro domande su {radice} non si leggono: {type(e).__name__}: {e}")
 
 
 def tab_esecuzione(base: str, c: dict) -> None:
@@ -162,6 +213,11 @@ def stampa(parte: str, radice: str = "NQ") -> None:
                 tab_settimana(base, tab["settimana"])
                 prezzo = (ultime(base, tab["settimana"], 1) or [{}])[-1].get("close")
                 tab_opzioni(tab["settimana"]["instrument"], prezzo)
+                # le opzioni in quattro domande (5 novembre 2026): dello strumento del giro e, se il giro e' di NQ,
+                # anche di ES, dove c'e' X-Ray, la stima del fornitore
+                for rad in dict.fromkeys([radice, "ES"]):
+                    t = tab if rad == radice else le_tab(client.get(base, "/charts", timeout=10)["charts"], rad)
+                    quattro_domande(base, t, rad)
             else:
                 print("  TAB 2 (M30) non registrata nel bridge")
         elif tab["esecuzione"]:

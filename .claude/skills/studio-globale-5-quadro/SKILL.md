@@ -38,6 +38,11 @@ Oltre alle sezioni del modello:
   trova le vicinanze fra order flow, gamma e COT, e segna `stesso_dato` quando due fonti leggono lo
   stesso numero del bridge. Il quadro le verifica contro i rapporti e aggiunge quelle che vengono dalla
   macro o dalle letture delle fasi; le vicinanze non si ricalcolano a mano.
+- **I muri delle opzioni sul bordo del valore, col regime** (dal 5 novembre 2026): le confluenze dove un
+  livello della gamma sta vicino a un bordo del valore o a un muro del ping-pong, con il regime che
+  `confluenze.json` porta in `regime`. La lettura del video (col freno il muro tiene, con l'acceleratore si
+  rompe) si scrive come ipotesi non provata, mai come regola:
+  [il bias del giorno](../../../docs/research/metodo/il-bias-del-giorno.md).
 - **Le contraddizioni** fra le fasi, scritte e non risolte a forza.
 - **Gli orari di oggi**: gli eventi con l'ora italiana e cosa potrebbero cambiare del quadro.
 - **Cosa smentirebbe il quadro**: i fatti osservabili che lo renderebbero sbagliato.

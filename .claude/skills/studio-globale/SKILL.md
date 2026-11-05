@@ -66,8 +66,9 @@ spiegare: si misura dove va il tempo e si toglie lavoro agli agenti, non control
 
    - **la cartella** e' `studio/rapporti/<data>-ES/` (quella di NQ resta `<data>/`): i rapporti, i
      precedenti e il rimando dell'ultima riga del QUADRO stanno li';
-   - **i file** portano lo strumento: `sedute-ESZ6.json`, `ore-ESZ6.json`, `range-ESZ6.json`,
-     `gex-ESZ6.json`; `cot.json` ha `strumento: ESZ6` e l'S&P 500 e-mini come indice principale, con i
+   - **i file** portano lo strumento: `sedute-ESZ6.json`, `ore-ESZ6.json`, `range-ESZ6.json`, `scalini-ESZ6.json`,
+     `quattro-domande-ESZ6.json` (gli ultimi due dal 5 novembre 2026: [il bias del giorno](../../../docs/research/metodo/il-bias-del-giorno.md));
+     niente `gex-ESZ6.json` (5 novembre 2026: su ES vale solo X-Ray, in `xray.json` -> `in_prezzi_di_es`); `cot.json` ha `strumento: ESZ6` e l'S&P 500 e-mini come indice principale, con i
      prezzi di ES; `macro.json` ha in piu' i settori dell'S&P (`ampiezza_sp500`) e le trimestrali dei
      pesi massimi non tech; il giro e le quattro tab guardano i chart di ES;
    - **il file della giornata** e' `docs/research/giornate/ESZ6-<data>.md`: il quadro scrive li' il suo
@@ -87,7 +88,7 @@ spiegare: si misura dove va il tempo e si toglie lavoro agli agenti, non control
    - lancia la raccolta in background;
    - appena i file di una fase sono riscritti dopo l'avvio, sposta il suo rapporto vecchio e lancia il
      suo agente. Macro: `macro.json`. COT: `cot.json`. Order flow: `tab-ruoli.json`, `sedute-<strumento>.json`,
-     `pannello.json`. Gamma: `gex-<strumento>.json`;
+     `pannello.json`. Gamma: `gex-<strumento>.json` (e `xray.json`, X-Ray su SPX, in meno di un secondo);
    - dagli agenti che partono prima della fine, di' che `raccolta.json` sara' riscritto dopo.
 
    Il quadro parte solo a raccolta finita e a rapporti consegnati. Leggi `dati/raccolta.json`: per ogni

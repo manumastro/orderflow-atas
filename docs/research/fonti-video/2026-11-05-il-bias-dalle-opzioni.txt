@@ -1,0 +1,201 @@
+Fonte: video YouTube sul bias del giorno dalle opzioni (cruscotto su SPX, simile a quello di OptionsDepth,
+la fonte di X-Ray), trascrizione incollata dall'utente il 5 novembre 2026. Autore e link non dati.
+Si cita [V2 · m:ss]. E' una fonte di idee, non una regola: vedi docs/research/metodo/il-bias-del-giorno.md.
+
+[0:00] Today at 10:20 in the morning, a put
+[0:02] wall broke like it wasn't even there. At
+[0:05] 3:00 in the afternoon, the exact same
+[0:07] kind of level held 12 times in a row.
+[0:10] Same type of level, same market,
+[0:13] opposite result. And one panel on this
+[0:16] dashboard told you which one was going
+[0:17] to happen before it happened. If you
+[0:20] trade futures, you don't need to become
+[0:22] an options trader. You need four checks
+[0:25] in this order. One, the regime. Are we
+[0:28] on smooth road or on ice? Two, the
+[0:32] weather. How far is the market expected
+[0:34] to travel today and is the wind with you
+[0:36] or against you? Three, the levels. Where
+[0:40] are the options walls and where do they
+[0:42] sit on your volume profile? Four, your
+[0:44] trigger. That part never changes. It's
+[0:47] your order flow. Let's do all four on
+[0:50] today's real session. Check number one,
+[0:52] cumulative net gamma. Think of market
+[0:55] makers as the shock absorbers of the
+[0:57] market. When they're long gamma, every
+[0:59] bump gets absorbed. They buy the dips
+[1:02] and sell the rips. Price slows down,
+[1:04] levels hold. The day stays in a range.
+[1:07] When they're short gamma, the shocks are
+[1:09] gone. Their hedging goes with the move.
+[1:12] A small push becomes a jump. Levels
+[1:14] break. Ranges get wider. That's it.
+[1:17] Above zero, shocks on. Below zero,
+[1:20] shocks off. Here is today at the open.
+[1:23] 9:30. Zero DTE gamma flips negative
+[1:26] right on the bell. All expireies
+[1:28] together minus 5.3 billion. So before
+[1:32] the first candle closed, the dashboard
+[1:34] was already saying shocks off. Don't
+[1:37] expect levels to hold this morning. What
+[1:39] does that mean in numbers? Across 101
+[1:42] sessions, April to September, when zero
+[1:44] DTE gamma stayed positive most of the
+[1:47] day, the median range was 51 points.
+[1:50] When it stayed negative, 70 points,
+[1:52] about a third wider. And here's the part
+[1:54] people miss. The direction didn't
+[1:57] change. Same median move up or down. The
+[2:00] regime doesn't tell you where. It tells
+[2:02] you how far and whether your levels are
+[2:04] likely to hold or break. Positive. Think
+[2:08] fade the edges target the middle.
+[2:10] Negative. Think breaks, extensions, and
+[2:13] wider stops. Tendencies, not rules. Now,
+[2:16] the gamma profile. Same idea drawn
+[2:19] across price. It answers one question.
+[2:22] If price moved here, would the shock
+[2:24] switch back on? At 931, the flip was at
+[2:27] 7638 on the S&P, 52 points under price.
+[2:32] Price was sitting on ice and the smooth
+[2:34] road started 52 points lower. Watch
+[2:37] where the S&P spent the afternoon, right
+[2:39] on top of that line. And this is why you
+[2:42] check it more than once. By 230, zero
+[2:45] DTE gamma was plus 4.6 billion. All
+[2:49] expireies flipped positive. The shocks
+[2:51] came back on. Same day, different market
+[2:55] into the close. It flipped again hard as
+[2:58] today's options died minus7 billion. The
+[3:02] regime is not a morning bias. It's a
+[3:04] live reading. So in the morning, the
+[3:06] regime said levels break. At 2:30, it
+[3:10] said levels hold. Remember that. It's
+[3:13] going to explain both trades. But first,
+[3:15] the weather. Check number two, the
+[3:18] volatility page. This is the weather
+[3:20] forecast. At 9:35, the zero DTE straddle
+[3:24] was pricing plus or minus 0.54%
+[3:28] to the close, about 41 points on the S&P
+[3:31] X. That's how far the options market
+[3:33] expected today to travel. In negative
+[3:35] gamma, realized movement tends to beat
+[3:38] that forecast. Today, the low printed
+[3:40] about 20 points past it. Two more
+[3:43] numbers on this page. Implied minus
+[3:45] realized, plus 4.2 points. Options were
+[3:49] priced for more movement than the market
+[3:51] had actually been delivering. The
+[3:52] insurance was expensive. And skew. Skew
+[3:56] is the price of crash insurance versus
+[3:58] the price of a lottery ticket on the
+[4:00] upside. 1 month skew 4.74.
+[4:03] Puts cost more than calls. That's
+[4:05] normal. What you watch is when it
+[4:07] suddenly jumps. That's fear entering the
+[4:10] room. Charm. Charm is the wind. As
+[4:13] options lose time value, dealers have to
+[4:15] rehedge even if price doesn't move. That
+[4:18] creates a drift. Negative charm is wind
+[4:21] at your back. Positive charm is wind in
+[4:23] your face. It gets stronger after lunch
+[4:26] on zero DTE. It never gives you a trade
+[4:28] on its own. It tells you whether you're
+[4:30] riding with the wind or walking into it.
+[4:32] Vanna is the sale. It tells you how much
+[4:35] dealer hedging leans when volatility
+[4:37] moves. If VIX drops and VANA is on the
+[4:40] right side, dealers end up buying.
+[4:43] That's how quiet days grind higher. If
+[4:45] VIX spikes, the same sale can push the
+[4:48] other way. Context for event days, not a
+[4:51] 5-minute timing tool. Premium flow is
+[4:53] the cash register. It shows what the
+[4:56] market maker bought and sold, calls and
+[4:58] puts. At 11, calls sold, net minus 10
+[5:02] million. At 2:30, calls bought, puts
+[5:05] sold, net plus 11 million. At the close,
+[5:09] plus 39 million. The flow turned in the
+[5:12] afternoon at the same time the regime
+[5:14] turned. Two panels telling you the same
+[5:16] story. Regime, weather, wind, flow. Now,
+[5:22] the part that actually puts you in a
+[5:24] trade. Where do the options walls sit on
+[5:27] your volume profile? First, one detail.
+[5:30] The dashboard is S&PX. You trade ES. Add
+[5:34] the basis today around 42 points. Now,
+[5:38] think of your volume profile as the
+[5:40] market's living room. The point of
+[5:42] control is the couch where everybody
+[5:44] sits. The value area, high and low, are
+[5:47] the walls of the room. And the options
+[5:50] walls, those are bouncers standing at
+[5:52] the doors. 9:30. The biggest call strike
+[5:55] on the board was higher at 7750. too far
+[5:59] away to matter yet, but there was a
+[6:01] positive strike at 7700 on the S&P.
+[6:04] That's about 7741 on ES. And the
+[6:08] overnight value area high was 7739.
+[6:12] A speed bump sitting right on the top
+[6:14] wall of the room. Price pushed into it
+[6:16] twice. 7740, then 7742.
+[6:21] Both times it got thrown back toward the
+[6:23] couch. The overnight point of control,
+[6:25] 7724.
+[6:27] Positive strike near the VH. Look for
+[6:30] exhaustion. Back to the P. That part
+[6:33] worked. But remember the regime. Shocks
+[6:35] off. At 1020, price came down to the
+[6:38] overnight value area low 7711. The put
+[6:42] wall 7670 on the S&P was right there
+[6:46] about 7712 on ES bouncer at the bottom
+[6:50] door. In a positive regime, that's where
+[6:53] I look for absorption. In negative
+[6:55] gamma, the bouncer is the one pushing.
+[6:57] No absorption. One candle through, then
+[7:00] another 76.86 by 10:35. That's the
+[7:05] sometimes levels break and the regime
+[7:07] warned you at 9:30. Now the afternoon
+[7:11] shocks back on the put wall moved to
+[7:13] 7640 on the S&P, 76.8150
+[7:18] on ES. The session value area low 768175
+[7:23] and the gamma flip 7638 on the S&P was
+[7:27] sitting just under it. Same setup
+[7:30] bouncer at the bottom door with the
+[7:32] floor of the smooth road right behind
+[7:34] him. Different regime. 2 p.m. First test
+[7:38] hold. Then again and again. 12 tests
+[7:42] between 2 and 3:45. At 3:00, one wick to
+[7:46] 7676.
+[7:48] A spring. 17,000 contracts and it closed
+[7:51] back inside. That's absorption. Sellers
+[7:54] hitting the bid and going nowhere. Then
+[7:57] the rotation back to the couch. The
+[7:59] point of control 769275.
+[8:03] And with the flow turning bullish into
+[8:05] the close, it went through it 7706.
+[8:08] So here's the whole rule. Put wall near
+[8:11] the VA. In positive gamma, look for
+[8:15] absorption and a rotation back to the
+[8:17] PO. In negative gamma, be ready for it
+[8:20] to break. Call wall near the VA. In
+[8:24] positive gamma, look for exhaustion back
+[8:27] to the P. In negative gamma, it can
+[8:30] squeeze straight through. The level
+[8:32] tells you where. The regime tells you
+[8:35] what's likely. Your order flow tells you
+[8:38] when. 1020. A put wall breaks. 3 p.m.
+[8:42] The same kind of level holds 12 times.
+[8:45] It wasn't luck. It wasn't the level. It
+[8:47] was the regime. That's all you need from
+[8:50] the options side. Regime, weather,
+[8:53] levels on your profile. Then your order
+[8:55] flow pulls the trigger. If you want this
+[8:57] as a one-page checklist, comment regime
+[8:59] and I'll send it to you. Everything you
+[9:02] saw today was recorded on today's real
+[9:04] session. And remember, none of this
+[9:07] predicts the future. It tells you which
+[9:09] version of the day you're probably in.

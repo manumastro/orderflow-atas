@@ -16,6 +16,7 @@ Due fili in parallelo, perche' non si disturbano:
              COT (CFTC)                                     ->  cot.json
     bridge   le quattro tab, il giro, il pannello, le sedute, le ore  ->  vedi sotto
              la GEX dello strumento (l'altro solo con --con-es)
+    file     X-Ray (OptionsDepth su SPX, letto da XrayLive)  ->  xray.json, con la fonte gex
 
 **Lo strumento e' un parametro** (27 ottobre 2026): `--strumento NQZ6` (difetto) o `ESZ6`. Lo seguono
 le scale (`SCALE`), i file `sedute-/ore-/range-/gex-<strumento>.json`, le tab e il giro (con il chart
@@ -47,15 +48,18 @@ if hasattr(sys.stdout, "reconfigure"):
 
 REPO = Path(__file__).resolve().parents[1]
 STRUMENTI = REPO / "FabioOrderFlow" / "tools"
-for p in (STRUMENTI, REPO / "studio" / "macro", REPO / "studio" / "cot"):
+XRAY = REPO / "quant" / "strumenti" / "xray" / "scripts"
+for p in (STRUMENTI, REPO / "studio" / "macro", REPO / "studio" / "cot", XRAY):
     sys.path.insert(0, str(p))
 
 import bridge as client  # noqa: E402
 import cot  # noqa: E402
 import gex  # noqa: E402
+import gli_scalini  # noqa: E402  gli scalini di mese, settimana e giorno, e il ping-pong (5 novembre 2026)
 import le_quattro_tab  # noqa: E402
 import macro  # noqa: E402
 import scala_dei_tempi as scala  # noqa: E402
+import xray_query  # noqa: E402  X-Ray (OptionsDepth su SPX) dalla cache di ATAS, gia' decifrata da XrayLive
 import sedute as orari  # noqa: E402  gli orari delle sedute, nel fuso del mercato e convertiti per data
 
 ROMA = ZoneInfo("Europe/Rome")
@@ -330,6 +334,10 @@ def confluenze(cartella: Path, soglia: float | None = None) -> dict:
             if k in comp:
                 livelli.append({"prezzo": comp[k], "fonte": "orderflow", "cosa": f"{k.upper()} {nome} ({comp['sedute']} sedute)",
                                 "dato": f"{chiave}:{k}"})
+    pp = (leggi(f"scalini-{S}.json").get("ping_pong") or {})
+    for k, nome in (("muro_alto", "muro alto del ping-pong giornaliero"), ("muro_basso", "muro basso del ping-pong giornaliero")):
+        if pp.get(k) is not None:
+            livelli.append({"prezzo": pp[k], "fonte": "orderflow", "cosa": f"{nome} (dal {pp.get('dal')})", "dato": f"pingpong:{k}"})
     gx = leggi(f"gex-{S}.json")
     for parte, nome in (("tutte", "tutte"), ("settimana", "entro 7 giorni"), ("prima", "0DTE")):
         x = gx.get(parte) or {}
@@ -344,6 +352,14 @@ def confluenze(cartella: Path, soglia: float | None = None) -> dict:
     for r in pesanti:
         livelli.append({"prezzo": r["k"], "fonte": "gamma", "cosa": f"strike pesante, GEX netta A {r['gex_netta']}",
                         "dato": f"gex:strike:{r['k']}"})
+    # su ES i livelli delle opzioni sono quelli di X-Ray in prezzi di ES (5 novembre 2026: prevale OptionsDepth)
+    if S.startswith("ES"):
+        xe = leggi("xray.json").get("in_prezzi_di_es") or {}
+        for f in xe.get("flip") or []:
+            livelli.append({"prezzo": f, "fonte": "gamma", "cosa": "flip di X-Ray (OptionsDepth)", "dato": "xray:flip"})
+        for k, nome in (("freno_piu_forte", "freno piu' forte di X-Ray"), ("acceleratore_piu_forte", "acceleratore piu' forte di X-Ray")):
+            if xe.get(k):
+                livelli.append({"prezzo": xe[k], "fonte": "gamma", "cosa": nome, "dato": f"xray:{k}"})
     ct = leggi("cot.json")
     # il COT entra solo se e' dello strumento dello studio: un cot.json di NQ ha prezzi di NQ, e nelle
     # confluenze di ES sarebbero vicinanze inventate (fino al 27/10 il COT era sempre di NQZ6)
@@ -379,7 +395,11 @@ def confluenze(cartella: Path, soglia: float | None = None) -> dict:
         stesso = all(x["fonte"] != "gamma" for x in g) and len(set(dati)) < len(dati)
         out.append({"da": g[0]["prezzo"], "a": g[-1]["prezzo"], "fonti": fonti, "stesso_dato": stesso,
                     "livelli": [{k: x[k] for k in ("prezzo", "fonte", "cosa")} for x in g]})
+    # il regime al momento della raccolta, accanto alle confluenze (5 novembre 2026, dal video sul bias dalle opzioni):
+    # per il video un muro sul bordo del valore tiene col freno e si rompe con l'acceleratore; non provato
+    rg = (leggi(f"quattro-domande-{S}.json").get("regime") or {})
     return {"strumento": S, "soglia_punti": soglia, "livelli_letti": len(livelli), "confluenze": out,
+            "regime": {k: rg.get(k) for k in ("al_prezzo", "zero_dte", "lettura", "provato")} if rg else None,
             "nota": "solo vicinanze fra fonti diverse; nessuna e' validata come supporto o resistenza"}
 
 
@@ -438,7 +458,27 @@ def in_breve(cartella: Path) -> dict:
             "composito_di_cassa": sed.get("composito_di_cassa"), "composito_di_cassa_90": sed.get("composito_di_cassa_90"),
             "zona": sed.get("zona_nel_composito_di_cassa"), "rendimento_dalla_chiusura_di_ieri": sed.get("rendimento_dalla_chiusura_di_ieri"),
             "composito_della_tab_1": (leggi("tab-ruoli.json").get("composito") or {}).get("dati"),
-            "barre_range": leggi(f"range-{S}.json")}
+            "barre_range": leggi(f"range-{S}.json"),
+            # gli scalini di mese, settimana e giorno e il ping-pong: contesto dal video del 5/11, non provato
+            "scalini": leggi(f"scalini-{S}.json")}
+    xr = leggi("xray.json")
+    if xr:
+        # X-Ray: la stima di OptionsDepth su SPX (30 ottobre 2026). Per ES e' lo stesso indice; per NQ e'
+        # solo contesto. Gli strike pesanti si tengono a tre per non gonfiare il file
+        for g in (xr.get("gex_market_maker") or {}).values():
+            g["piu_pesanti"] = (g.get("piu_pesanti") or [])[:3]
+        ferme = {k: v for k, v in (xr.get("ricevute_minuti_fa") or {}).items() if v > 30}
+        out.setdefault("gamma", {})["xray"] = {k: v for k, v in xr.items() if k not in ("ricevute_minuti_fa", "cartella")} | {
+            "famiglie_ferme_da_piu_di_30_minuti": ferme}
+    ov = leggi("opzioni-vive.json")
+    if ov:
+        # la GEX viva (ogni minuto) e il VIX/VXN ricostruiti: piu' freschi della GEX di gex.py, stesso modello
+        out.setdefault("gamma", {})["vive"] = ov
+    qd = leggi(f"quattro-domande-{S}.json")
+    if qd:
+        # le opzioni in quattro domande (5 novembre 2026): regime, meteo (movimento atteso, implicita meno
+        # realizzata, skew), i muri vicini ai bordi del valore, il grilletto. Esito della prova del regime in `regime.provato`
+        out.setdefault("gamma", {})["quattro_domande"] = qd
     out["confluenze"] = (leggi("confluenze.json") or {}).get("confluenze")
     return out
 
@@ -465,6 +505,15 @@ def orderflow(cartella: Path, manifesto: dict, giro_dopo: bool = False) -> None:
     scrivi(cartella, f"ore-{S}.json", passo(manifesto, "ore", f"ore-{S}.json", lambda: ore(m1, base)) or {})
     scrivi(cartella, f"range-{S}.json", passo(manifesto, "range", f"range-{S}.json",
                                               lambda: barre_range(base, tab.get("esecuzione"))) or {})
+    # gli scalini (5 novembre 2026, dal video sul bias dalla price action): contesto della fase 4 e del quadro;
+    # come si leggono: docs/research/metodo/il-bias-del-giorno.md. Li calcola il server della pagina (/api/scalini)
+    scrivi(cartella, f"scalini-{S}.json", passo(manifesto, "scalini", f"scalini-{S}.json",
+                                                lambda: gli_scalini.dal_server(SC["radice"])) or {})
+    # le opzioni in quattro domande (regime, meteo, muri sul profilo, grilletto), dal video sul bias dalle opzioni:
+    # per lo strumento dello studio (NQ: GEX viva della catena; ES: X-Ray). Le calcola il server della pagina
+    # (/api/quattro-domande), che prende dal bridge i bordi del valore della tab M30 e i muri del ping-pong
+    scrivi(cartella, f"quattro-domande-{S}.json", passo(manifesto, "quattro domande", f"quattro-domande-{S}.json",
+                                                        lambda: xray_query.quattro_domande(SC["radice"])) or {})
 
 
 def gex_fresca(strumento: str, eta_massima: float = 30 * 60) -> dict:
@@ -496,7 +545,9 @@ def main() -> int:
     global S, SC
     S, SC = a.strumento, SCALE[a.strumento]
     fonti = {f.strip() for f in a.fonti.split(",") if f.strip()} - ({"gex"} if a.senza_gex else set())
-    strumenti_gex = ("NQZ6", "ESZ6") if a.con_es else (S,)
+    # su ES/SPX dal 5 novembre 2026 vale solo X-Ray (OptionsDepth), come sul chart di ATAS: la GEX della
+    # nostra catena ES non si calcola piu', ne' per lo studio di ES ne' con --con-es
+    strumenti_gex = tuple(x for x in (("NQZ6", "ESZ6") if a.con_es else (S,)) if not x.startswith("ES"))
     ignote = fonti - {"macro", "cot", "orderflow", "gex"}
     if ignote:
         raise SystemExit(f"fonti sconosciute: {', '.join(sorted(ignote))}")
@@ -509,9 +560,9 @@ def main() -> int:
     # essere riscritti, cosi' un rapporto gia' scritto resta legato ai dati che ha letto.
     vecchio = cartella / "raccolta.json"
     manifesto: dict = json.loads(vecchio.read_text(encoding="utf-8")) if vecchio.exists() else {}
-    file_di = {"macro": ["macro.json"], "cot": ["cot.json"], "gex": [f"gex-{x}.json" for x in strumenti_gex],
+    file_di = {"macro": ["macro.json"], "cot": ["cot.json"], "gex": [f"gex-{x}.json" for x in strumenti_gex] + ["xray.json", "opzioni-vive.json"],
                "orderflow": ["tab-ruoli.json", "quattro-tab.txt", "giro.txt", "pannello.json", f"sedute-{S}.json", f"ore-{S}.json",
-                             f"range-{S}.json"]}
+                             f"range-{S}.json", f"scalini-{S}.json", f"quattro-domande-{S}.json"]}
     da_archiviare = [f for fonte in fonti for f in file_di[fonte] if (cartella / f).exists()]
     if da_archiviare:
         archivio = cartella / "precedenti" / dt.datetime.now(ROMA).strftime("%H%M")
@@ -537,6 +588,18 @@ def main() -> int:
             lavori.append(pool.submit(lambda: scrivi(cartella, "macro.json", passo(manifesto, "macro", "macro.json", lambda: macro.raccogli(S)) or {})))
         if "cot" in fonti:
             lavori.append(pool.submit(lambda: scrivi(cartella, "cot.json", passo(manifesto, "cot", "cot.json", lambda: cot.raccogli(S)) or {})))
+        if "gex" in fonti:
+            # X-Ray non passa dal bridge: legge i file di XrayLive, in meno di un secondo
+            lavori.append(pool.submit(lambda: scrivi(cartella, "xray.json", passo(
+                manifesto, "xray", "xray.json", lambda: xray_query.riassunto_dati(xray_query.DEFAULT_DIR)
+                | {"in_prezzi_di_es": xray_query.livelli_es()}) or {})))
+            # la GEX viva di NQ (non piu' di ES: su ES vale solo X-Ray) e la volatilita' ricostruita (2 novembre 2026): le scrive il server della
+            # pagina ogni minuto in quant/dati/volatilita/; qui si fotografa l'ultimo stato, in meno di un secondo
+            lavori.append(pool.submit(lambda: scrivi(cartella, "opzioni-vive.json", passo(
+                manifesto, "opzioni vive", "opzioni-vive.json", lambda: {
+                    "gex_viva": {r: xray_query.gex_viva(r) for r in ("NQ",)},
+                    "volatilita": {k: {"ts": v[0], "valore": v[1]} for k, v in xray_query.ultimi_volatilita().items()},
+                    "come_si_legge": "quant/metodo/come-si-leggono-le-opzioni-dal-vivo.md"}) or {})))
         if bridge_vivo:
             if "orderflow" in fonti:
                 lavori.append(pool.submit(orderflow, cartella, manifesto, "gex" in fonti))

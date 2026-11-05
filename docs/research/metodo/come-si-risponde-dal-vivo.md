@@ -32,8 +32,12 @@ del file.
 **Si dice sempre, perche' cambia la lettura:** se uno studio e' vecchio rispetto al prezzo (e
 allora si propone di rifarlo), se il volume e' troppo sottile perche' una misura valga, se una
 misura viene da una **barra non chiusa**, se una lettura precedente e' stata smentita, e **qual e'
-il regime**. Le opzioni si spiegano in parole semplici: l'utente le sta imparando
-(`.claude/skills/studio-globale/SKILL.md`, "Le regole che valgono per tutte le fasi").
+il regime**. Le opzioni (volatilita', GEX viva, X-Ray, Cboe) si leggono nell'ordine di
+[`come-si-leggono-le-opzioni-dal-vivo.md`](../../../quant/metodo/come-si-leggono-le-opzioni-dal-vivo.md), **dalla pagina X-Ray
+come la vede l'utente** (`leggi_pagina.py`, e ogni numero con la sua scheda: richiesta del 2 novembre 2026), e si spiegano in parole semplici: l'utente le sta imparando
+(`.claude/skills/studio-globale/SKILL.md`, "Le regole che valgono per tutte le fasi"). Il riassunto sta nelle
+**quattro domande** del giro (regime, meteo, muri sul profilo, grilletto): **il regime dice quanto, non dove**, e
+ogni frase del video da cui vengono si scrive con l'esito della prova accanto ([il bias del giorno](il-bias-del-giorno.md)).
 
 **Le righe operative del pannello non si riportano.** L'indicatore porta ancora lo scenario
 (`SERVE A`, bersaglio, pareggio), i veti e il consiglio di size del regime: il giro li toglie
@@ -50,6 +54,13 @@ il regime**. Le opzioni si spiegano in parole semplici: l'utente le sta imparand
 
 Le sei voci del punto stanno dentro queste tre parti: il quadro e le fasi nello stato, adesso e i
 prezzi nella misura, cosa guardare nel discriminante.
+
+**La forma esatta, riga per riga** (dal 2 novembre 2026: *"la lettura deve essere piu' chiara e lineare"*):
+in breve, cosa e' cambiato, il prezzo, la paura, i dealer, ES, la tabella dei prezzi, da guardare, una
+riga di dubbi e una di parole. Sta in
+[`come-si-leggono-le-opzioni-dal-vivo.md`](../../../quant/metodo/come-si-leggono-le-opzioni-dal-vivo.md#come-si-scrive-una-lettura-lineare),
+con le sue regole: una riga un'idea, al massimo due numeri, niente elenchi dentro elenchi. **La stessa
+lettura si pubblica nella pagina X-Ray, scheda Lettura** (`scrivi_lettura.py`), quando l'utente la chiede.
 
 **Regole:**
 

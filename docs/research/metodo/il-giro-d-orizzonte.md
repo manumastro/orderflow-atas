@@ -81,9 +81,9 @@ tab lo dichiara l'indicatore (`/ruolo`); il codice e' `FabioOrderFlow/tools/le_q
 
 | tab | chart | cosa stampa il giro |
 |---|---|---|
-| 1 COMPOSITO | NQ Daily (continuo) | il valore di 90 giornate, grezzo e aggiustato al rollover; le ultime sei giornate |
+| 1 COMPOSITO | NQ Daily (continuo) | il valore di 90 giornate, grezzo e aggiustato al rollover; le ultime sei giornate; **gli scalini** di mese, settimana e giorno e il ping-pong del giornaliero (5 novembre 2026, [il bias del giorno](il-bias-del-giorno.md): descrizione, smentiti come previsione) |
 | 2 SETTIMANA | NQZ6 M30 | il valore di cassa di ogni giorno (POC su o giu', staccato); le ultime tre ore a mezz'ora |
-| 2 LE OPZIONI | catena di NQZ6 | la GEX calcolata da noi (`gex.py`): totale, zero gamma, muri, nelle due convenzioni |
+| 2 LE OPZIONI | catena di NQZ6 | la GEX calcolata da noi (`gex.py`): totale, zero gamma, muri, nelle due convenzioni; sotto, la GEX viva di NQ ed ES (ogni minuto, con la variazione dell'ultima ora e i muri saltati), X-Ray e il VIX e VXN ricostruiti; in fondo **le opzioni in quattro domande** per NQ e per ES (regime, meteo con implicita meno realizzata, muri vicini ai bordi del valore, grilletto; 5 novembre 2026, [il bias del giorno](il-bias-del-giorno.md)) |
 | 3 SEDUTA | NQZ6 M1 | le sedute di cassa, dove sta il prezzo, la struttura oraria, gli eventi, il pannello, il tape, il profilo |
 | 4 ESECUZIONE | NQZ6 Range 40 | le ultime sei barre range con verso, durata, delta; il riassunto delle ultime trenta |
 
@@ -91,6 +91,9 @@ tab lo dichiara l'indicatore (`/ruolo`); il codice e' `FabioOrderFlow/tools/le_q
 mezzo (17 scadenze), quindi il giro stampa una cache e, se ha piu' di 30 minuti, la ricalcola in
 background. Il modello e i suoi limiti stanno in
 [`quant/metodo/le-opzioni-in-atas.md`](../../../quant/metodo/le-opzioni-in-atas.md#la-gex-calcolata-da-noi).
+Dal 2 novembre 2026 sotto la cache c'e' la **GEX viva**, che il server della pagina ricalcola ogni
+minuto con lo stesso modello: in cassa e' quella da leggere. L'ordine della lettura e le trappole:
+[`come-si-leggono-le-opzioni-dal-vivo.md`](../../../quant/metodo/come-si-leggono-le-opzioni-dal-vivo.md).
 
 ## L'Hook
 

@@ -1,0 +1,211 @@
+Fonte: video YouTube sul bias del giorno dalla price action (ES, dal mensile al 5 minuti), trascrizione
+incollata dall'utente il 5 novembre 2026. Autore e link non dati. Si cita [V1 · m:ss].
+E' una fonte di idee, non una regola: vedi docs/research/metodo/il-bias-del-giorno.md.
+
+[0:00] Before a pilot takes off, he doesn't
+[0:02] look out of the window. He looks at the
+[0:04] radar. Where's the storm? Where's the
+[0:06] clear sky? Which route is safe today? He
+[0:09] decides all of that on the ground, not
+[0:12] at 30,000 ft. Your bias is your radar.
+[0:15] And most traders take off without one.
+[0:18] Look at this candle. It's green. It
+[0:20] closed higher. It made a higher high.
+[0:23] And it's not bullish. If you can't see
+[0:25] why, your radar is lying to you. How do
+[0:28] you find your bias for the day? It's the
+[0:30] question I get the most in my DMs. So,
+[0:33] in this video, I'll show you my whole
+[0:35] pre-flight check on my real ES chart
+[0:38] from the monthly all the way down to the
+[0:40] 5-minute. And this morning before the
+[0:42] open, I wrote down four flight plans.
+[0:45] Two of them were right, two were wrong.
+[0:47] And the way the right ones played out
+[0:49] was a war. Step one, the staircase. In
+[0:53] auction market theory, we call it one
+[0:55] time framing. Price only goes up when
+[0:57] each candle steps fully onto the next
+[1:00] stair. Three things, all three, a higher
+[1:03] high, a higher low, and a close above
+[1:05] the previous candle's high. Most traders
+[1:08] only check the first two. The third one
+[1:10] is the one that matters. Think of it
+[1:12] like a door. A higher high is knocking
+[1:14] on the door. A close above the previous
+[1:16] high is walking in and closing the door
+[1:19] behind you. The market didn't just visit
+[1:21] the new price, it accepted it. Going
+[1:23] down is the same staircase flipped. A
+[1:26] lower high, a lower low, and a close
+[1:28] below the previous candle's low. Now,
+[1:30] back to that candle. This is September
+[1:33] on the ES monthly chart. A higher high
+[1:35] than August and a higher close. But look
+[1:37] where it closed. Under August's high.
+[1:40] The market reached the new price, but it
+[1:42] never accepted it. That's a pause, not a
+[1:45] trend. And a pause is not a reason to go
+[1:47] short either. Quick test on the real
+[1:50] daily chart. Pause the video and tell
+[1:52] me, step or pause. October 14th, a big
+[1:55] red candle. Scary, but it still made a
+[1:58] higher high. Pause. No lower high. No
+[2:01] step down. October 8th, a lower high, a
+[2:04] lower low, and it closed two ticks above
+[2:07] the previous low. Pause. Two ticks is
+[2:09] enough. October 19th, an inside candle,
+[2:13] a lower high, and a higher low. Pause.
+[2:15] Tell me in the comments how many you got
+[2:17] right. So, what happens when there's no
+[2:19] staircase? Then the market is in
+[2:22] balance. It's pingpong between two
+[2:24] walls. Look at the daily. Since October
+[2:26] 6th, no step. Price bounces between
+[2:29] 78.97 on top and 7676 at the bottom. In
+[2:33] pingpong, you play the walls. You buy
+[2:35] the bottom wall, you sell the top wall,
+[2:38] and you target the other side. And you
+[2:40] never play the middle. That's where
+[2:42] price chops and both sides get stopped
+[2:44] out. And one poke outside the wall is
+[2:47] not a break. A wall only breaks when
+[2:50] price closes beyond it and stays there.
+[2:53] Now, the radar has three layers. I call
+[2:55] them the current, the tide, and the
+[2:58] wave. The monthly is the ocean current,
+[3:01] slow and powerful. It's where the big
+[3:03] funds live. The weekly is the tide. Is
+[3:06] it coming in or going out? And the daily
+[3:09] is the wave, what the market did in the
+[3:11] last few sessions. I always judge the
+[3:14] last completed candle. The one that's
+[3:16] still forming can still change. Then I
+[3:18] put the three together. All three
+[3:20] stepping up, clear sky. I'm a buyer
+[3:23] only. All three stepping down, storm
+[3:26] everywhere. Seller only. I don't catch
+[3:28] the falling knife. And when they
+[3:30] disagree, that's mixed weather. Small
+[3:33] size, walls only, or I stay on the
+[3:35] ground. But here's what nobody tells
+[3:37] you. These rules are never wrong. a
+[3:40] candle closed above the high or it
+[3:42] didn't. What will be wrong sometimes is
+[3:44] your forecast, how today actually plays
+[3:47] out. That's why I don't make one
+[3:49] prediction. I write flight plans,
+[3:51] hypothesis, and I set my fuel, my max
+[3:54] loss before the bell. So this morning,
+[3:58] monthly, the current, April, May,
+[4:00] August, clean steps up September, and
+[4:03] October pausing. The current is still
+[4:06] up. It's just resting. No step down
+[4:08] since March. Weekly, the tide. Two weeks
+[4:11] ago, a clean step up. Then last week, a
+[4:15] lower high, a lower low, and a close at
+[4:17] 7704,
+[4:19] below the previous week's low at 7760. A
+[4:23] full step down. The tide is going out.
+[4:25] Daily the wave. No staircase since
+[4:28] October 6th. Pingpong between the two
+[4:31] walls. So, what does my radar show
+[4:33] today? The current is up. The tide is
+[4:36] going out. The waves are bouncing. Mixed
+[4:38] weather. So, I fly small. I stay close
+[4:41] to the walls and I don't take a long
+[4:43] trip through the middle. Now, we zoom
+[4:45] in. 15 minutes. The auction overnight
+[4:48] value sat between 772450
+[4:51] and 7748.50.
+[4:53] And the top of that value is also the
+[4:55] call wall at 774775.
+[4:59] But during the night, the sellers were
+[5:00] winning slowly. No spike, no panic.
+[5:04] price slid under value all the way down
+[5:07] below us the put wall from the options
+[5:09] market at 770775
+[5:12] and under it the bottom wall of the
+[5:14] daily range 7676
+[5:16] so before the bell I don't guess I write
+[5:19] four flight plans too bullish too
+[5:22] bearish plan one bullish sellers push
+[5:26] into the put wall and get absorbed their
+[5:28] market orders hit a wall of buyers and
+[5:30] price stops going down plan two bullish
+[5:34] Price gets back into yesterday's value
+[5:36] and gets accepted above the value area
+[5:39] high. Plan three, bearish. The put wall
+[5:42] breaks, price gets accepted below it,
+[5:44] and we travel down to 7676.
+[5:48] Plan four, bearish. Price gets back up
+[5:51] to the value area high, gets rejected,
+[5:53] and rotates back down. And for each one,
+[5:56] I write what I need to see in the order
+[5:58] flow before I act. No confirmation, no
+[6:01] action. This is where the 5-minute chart
+[6:04] comes in. Execution. Touching a level is
+[6:07] not enough. It's a trampoline. I want to
+[6:09] see price sink in, sellers fail, and
+[6:12] then bounce back above on the order
+[6:14] flow. That's absorption. Big selling
+[6:17] volume and price refusing to go lower.
+[6:19] So, what happened? The bell rang and the
+[6:23] war started. All night. The sellers had
+[6:26] been winning. They pushed price down to
+[6:28] the put wall at 770775.
+[6:31] But at the put wall, they ran out of
+[6:33] ammunition. Heavy selling and price
+[6:36] refused to go lower. That's absorption.
+[6:39] And that's when the B2 showed up. Buyers
+[6:41] came in big and pushed price back up to
+[6:44] the value area low. There the sellers
+[6:46] counteratt attacked. Two bombs. 360
+[6:50] contracts then 262 contracts. Both got
+[6:53] absorbed. Not one new low. and buyers
+[6:56] marched straight to the value area high,
+[6:58] the same level as the call wall. Flight
+[7:01] plan won validated. Then the second
+[7:04] battle. At the value area high, sellers
+[7:06] tried to push price back into value,
+[7:09] absorbed again. Buyers took control and
+[7:11] price got accepted above value. Flight
+[7:14] plan two validated and they flew
+[7:16] straight to Monday's naked point of
+[7:18] control at 778350.
+[7:21] That's where the enemy was waiting. 501
+[7:24] contracts. Then 428
+[7:27] sellers defending their fortress. From
+[7:30] there, more and more sellers showed up
+[7:32] and price came back down into value.
+[7:34] Plan three, wrong. The put wall never
+[7:37] broke. Plan four, wrong. The value area
+[7:40] high didn't reject price. It got taken.
+[7:43] Two out of four. And that's exactly how
+[7:46] it should work. The two wrong plans
+[7:48] never got their confirmation, so they
+[7:50] cost nothing. I'm not trying to predict
+[7:52] the future. I'm preparing for every
+[7:54] likely scenario and letting the order
+[7:56] flow tell me which one is real. In the
+[7:59] lab, a failed hypothesis isn't a
+[8:01] failure. It's data. And both plans that
+[8:04] worked were bullish. Exactly what the
+[8:06] radar said. The current was up and price
+[8:09] was sitting on the floor. So, here's my
+[8:11] whole pre-flight checklist. Monthly,
+[8:14] weekly, daily, step, pause, or step
+[8:17] down. Aligned or mixed? 15 minutes.
+[8:21] Where was value? What did the night do?
+[8:24] And which wall are we flying to? Four
+[8:26] flight plans on both sides. 5 minutes.
+[8:29] Wait for the order flow. And the fuel,
+[8:32] my max loss set before the bell. The
+[8:34] full checklist is in a free PDF with
+[8:37] this exact example. The link is in the
+[8:39] description. And if you want to watch me
+[8:41] write and test my flight plans live
+[8:43] every morning, join the Discord. The
+[8:46] link is there, too. Because the flight
+[8:48] is decided on the ground, not at 30,000
+[8:51] ft.

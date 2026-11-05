@@ -32,6 +32,7 @@ Tutti in `dati/`, raccolti da `studio/raccogli.py` dal bridge di ATAS:
 | `range-<strumento>.json` | la durata delle barre range: percentili su 600 barre e mediana delle ultime 30, il metro per dire "veloce" o "lenta" |
 | `pannello.json` | il pannello dell'indicatore: il regime **con la sua finestra** (le ultime N barre e l'ora), la velocita' della barra in formazione **e della barra chiusa**, il livello in gioco, i veti, misurati |
 | `giro.txt` | il giro d'orizzonte intero, raccolto **dopo** la GEX: il tape, il profilo della notte, i livelli sul chart, la struttura oraria letta sugli ultimi due swing |
+| `scalini-<strumento>.json` | **gli scalini** di mese, settimana e giorno sull'ultima candela chiusa (scalino su, scalino giu', pausa, con il perche'), `insieme` (allineati o misti) e il **ping-pong** del giornaliero (i due muri dall'ultimo scalino). In `in-breve.json` sta in `orderflow.scalini`. Viene dal video del 5/11 ed e' **smentito come previsione** su NQ 2017-2024 (`quant/studi/scala-dei-tre-tempi`): si legge come descrizione, vedi [il bias del giorno](../../../docs/research/metodo/il-bias-del-giorno.md) |
 | `confluenze.json` | i prezzi che order flow, gamma e COT indicano entro 15 punti, con `stesso_dato` quando due fonti leggono lo stesso numero del bridge: e' il punto di partenza del quadro, non una conclusione |
 
 **Quando lo stesso numero arriva da due fonti** (per esempio il VAL della notte), vale il pannello per i
@@ -45,6 +46,13 @@ una misura, e' una lacuna del collettore e la scrivi.
 ## Le Quattro Tab, In Ordine
 
 1. **Composito**: valore e POC grezzi e aggiustati; il prezzo in premium, fair value o discount.
+   **Gli scalini** (`orderflow.scalini`) dicono tre cose:
+   - dove il prezzo e' stato accettato e dove solo visitato (massimo piu' alto ma chiusura sotto il vecchio
+     massimo);
+   - da quanto il giornaliero e' in ping-pong;
+   - fra quali muri.
+
+   Mai "allineati, quindi si compra": e' stato provato e non regge.
 2. **Settimana**: il valore di ogni giorno; se sale, scende o si sposta (shift = VAL **e** VAH piu'
    bassi), le aree staccate; **la scala dei POC** sopra e sotto il prezzo, e il POC della seduta che ha
    creato la rottura.
@@ -56,6 +64,6 @@ Il **vuoto** si cerca fra il VAH di una seduta e il VAL di un'altra, non in una 
 
 ## Scrivi `4-orderflow.md`
 
-Nei **Livelli**: la scala dei POC, i bordi, i vuoti, ciascuno con a cosa serve arrivarci. Negli agganci
+Nei **Livelli**: la scala dei POC, i bordi, i vuoti, i muri del ping-pong, ciascuno con a cosa serve arrivarci. Negli agganci
 **Per il quadro**: i livelli da confrontare con quelli del COT (le date del report) e della gamma. Il
 regime si dichiara, il setup no.

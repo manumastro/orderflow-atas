@@ -27,6 +27,11 @@ direzione con i suoi numeri), la forma breve, l'obbligo di dichiarare modello e 
 Il primo riguarda l'input e il secondo l'output: **si guarda tutto, si scrive poco, e si sceglie
 quel poco proprio perche' si e' visto tutto.**
 
+[**`il-bias-del-giorno.md`**](il-bias-del-giorno.md) — dal 5 novembre 2026, cosa prendiamo dai due video sul
+bias del giorno: **gli scalini** di mese, settimana e giorno (con il ping-pong) e **le opzioni in quattro
+domande** (regime, meteo, muri sul profilo, grilletto). Il giro e lo studio li stampano come descrizione: le due
+promesse dei video sono state provate e **non reggono** sui nostri dati.
+
 ---
 
 ## 0. Il Metodo Che Comanda
