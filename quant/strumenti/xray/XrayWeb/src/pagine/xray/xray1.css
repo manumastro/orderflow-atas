@@ -1,0 +1,110 @@
+/* X-Ray 1 (Adesso, Per strike, Heat map): gli stili propri del gruppo, solo con i token di stile.css. */
+
+/* ------------------------------------------------------------ la riga prima della cassa (non e' un .avviso) */
+.avviso-cassa {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  padding: 6px 12px;
+  border: 1px solid var(--bordo-forte);
+  border-radius: var(--raggio);
+  background: var(--superficie-2);
+  color: var(--testo);
+  font-size: var(--t-piccolo);
+}
+.avviso-cassa svg { color: var(--testo-2); flex: none; }
+
+/* ------------------------------------------------------------ le pastiglie del segno (regime, scadenze) */
+.segno-pastiglie { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; }
+.segno-pastiglia { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.segno-pastiglia b { font-weight: 600; color: var(--testo); }
+.segno-punto { width: 8px; height: 8px; border-radius: 50%; flex: none; display: inline-block; background: var(--decoro); }
+.segno-punto.senza { background: transparent; border: 1.5px solid var(--decoro); }
+
+/* la distanza accanto a un numero di tessera: piu' piccola, in inchiostro secondario */
+.tessera-dist { font-size: var(--t-corpo); font-weight: 600; color: var(--testo-2); margin-left: 6px; }
+.tessera .dettaglio { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* la striscia del regime per scadenza, sotto la scala dei prezzi */
+.striscia-scadenze {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  align-items: center;
+  padding-top: 6px;
+  border-top: 1px solid var(--bordo);
+  color: var(--testo-2);
+  font-size: var(--t-piccolo);
+}
+.striscia-titolo { font-size: var(--t-mini); text-transform: uppercase; letter-spacing: 0.06em; color: var(--spento); }
+
+/* prima della cassa le righe della seduta di oggi tornano in inchiostro pieno */
+.scala-pre-cassa .scala-tabella tr.altra-seduta td { color: var(--testo); }
+
+/* ------------------------------------------------------------ le tabelle del flusso e degli strike */
+.tabella-flusso td.nome-gruppo { font-weight: 600; color: var(--testo); }
+.tabella-flusso td .barra-inline { width: auto; }
+.tabella-flusso td.trenta { color: var(--testo-2); }
+
+.strike-vicini td.forte { font-weight: 700; color: var(--testo); }
+.strike-vicini tr.blocco td {
+  background: var(--superficie-2);
+  color: var(--spento);
+  font-size: var(--t-mini);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  height: 22px;
+}
+.strike-vicini tr.riga-prezzo td {
+  border-top: 2px solid var(--prezzo);
+  border-bottom: 2px solid var(--prezzo);
+  background: var(--superficie-2);
+  color: var(--testo);
+  font-weight: 700;
+}
+.strike-vicini td.marca { color: var(--testo-2); font-size: var(--t-mini); text-align: left; }
+
+.comandi-tag { display: inline-flex; align-items: center; gap: 4px; }
+
+/* ------------------------------------------------------------ la heat map */
+.heat { max-height: calc(100vh - 88px - 44px - 120px); min-height: 320px; }
+.heat table { width: auto; margin-right: 120px; }
+.heat th { text-align: center; vertical-align: middle; height: auto; padding: 4px 8px; }
+.heat th:first-child { text-align: left; }
+.heat .heat-colonna { display: block; color: var(--testo); }
+.heat .heat-netta { display: inline-flex; align-items: center; gap: 4px; font-weight: 600; color: var(--testo-2); font-size: var(--t-mini); }
+.heat .heat-netta .segno-punto { width: 7px; height: 7px; }
+.heat td.cella { min-width: 72px; max-width: 88px; width: 80px; text-align: center; padding: 0 6px; font-weight: 600; }
+.heat td.cella.debole { background: color-mix(in srgb, var(--neutro) 50%, transparent) !important; }
+.heat td.strike { position: sticky; left: 0; z-index: 1; background: var(--superficie); text-align: left; min-width: 118px; }
+.heat td.strike .heat-dist { color: var(--spento); margin-left: 4px; }
+.heat td.strike.vicino { color: var(--testo); font-weight: 700; }
+.heat td.strike .heat-marche { margin-left: 6px; color: var(--testo-2); letter-spacing: 1px; }
+.heat tr.prezzo td:last-child { position: relative; overflow: visible; }
+.heat tr.prezzo td[data-prezzo]::after {
+  content: attr(data-prezzo);
+  position: absolute;
+  left: calc(100% + 4px);
+  top: -9px;
+  z-index: 4;
+  padding: 0 5px;
+  border-radius: 3px;
+  background: var(--prezzo);
+  color: var(--pagina);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+  white-space: nowrap;
+}
+.heat tr.prezzo td.strike { color: inherit; font-weight: inherit; }
+.heat tr.prezzo td.strike.vicino { color: var(--testo); font-weight: 700; }
+
+@media (max-width: 767px) {
+  .adesso-scala { order: -1; }
+  .heat { max-height: 70vh; }
+  .heat td.strike { min-width: 96px; }
+  .heat td.cella { min-width: 60px; width: 64px; }
+  .tessera .dettaglio { white-space: normal; }
+  .x1 .tessera .etichetta { flex-wrap: wrap; row-gap: 2px; }
+}

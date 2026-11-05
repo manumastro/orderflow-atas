@@ -1,0 +1,124 @@
+{
+  "radice": "NQ",
+  "giorno": null,
+  "ts": null,
+  "unita": "NQ",
+  "baseEsSpx": null,
+  "prezzo": 28331.5,
+  "fonte": "docs/research/metodo/il-bias-del-giorno.md, [V2]",
+  "regime": {
+    "radice": "NQ",
+    "base": "convenzione A, supposta",
+    "fonte": "GEX viva della catena CME di NQ, convenzione A (supposta: dealer lunghi call, corti put)",
+    "alPrezzo": "acceleratore",
+    "zeroDte": "acceleratore",
+    "tutte": "acceleratore",
+    "valori": {
+      "alPrezzo": -939.1,
+      "zeroDte": -175.9,
+      "tutte": -939.1
+    },
+    "lettura": "acceleratore",
+    "frase": "acceleratore: per il video la giornata si allarga e i livelli tendono a rompersi (al bordo si guarda se il prezzo accetta oltre)",
+    "provato": "dice quanto, non dove; da rileggere in giornata; non provato: su 42 sedute di ES con X-Ray (08/09-04/11) il regime 0DTE delle 9:35 NON ha allargato la giornata (0,55 contro 0,74 del movimento atteso, p 0,24, verso opposto al video); opzioni-gamma-es, ipotesi D",
+    "gexPerScadenza": null,
+    "flipPiuVicino": null,
+    "zero": {
+      "tutte": 28851.17,
+      "zeroDte": 28513.03
+    },
+    "quando": 1793882245473
+  },
+  "meteo": {
+    "indice": "NDX",
+    "nomeIndice": "VXN",
+    "fonteLivello": "catena",
+    "quando": 1793882232430,
+    "livello": 25.37,
+    "fascia": "normale",
+    "movimentoOggi": 330,
+    "fasciaPrezzi": [
+      28006.25,
+      28666.25
+    ],
+    "movimentoGiorno": 453,
+    "realizzata20": 21.7,
+    "implicitaMenoRealizzata": 3.7,
+    "implicitaTesto": "assicurazione cara",
+    "pendenza": 2.6,
+    "struttura": "piatta",
+    "skew": 6.2,
+    "skewTesto": "put care"
+  },
+  "muri": {
+    "sogliaPunti": 25,
+    "bordi": [
+      {
+        "nome": "VAL cassa mer 04",
+        "tipo": "VAL",
+        "seduta": "2026-11-04",
+        "prezzo": 28558
+      },
+      {
+        "nome": "VAH cassa mer 04",
+        "tipo": "VAH",
+        "seduta": "2026-11-04",
+        "prezzo": 28785
+      },
+      {
+        "nome": "POC cassa mer 04",
+        "tipo": "POC",
+        "seduta": "2026-11-04",
+        "prezzo": 28632
+      },
+      {
+        "nome": "muro alto del ping-pong",
+        "tipo": "muro alto",
+        "seduta": "2026-11-03",
+        "prezzo": 28969
+      },
+      {
+        "nome": "muro basso del ping-pong",
+        "tipo": "muro basso",
+        "seduta": "2026-11-03",
+        "prezzo": 27615.75
+      }
+    ],
+    "muri": [
+      {
+        "muro": "call wall",
+        "prezzo": 28700,
+        "dalPrezzo": 368.5
+      },
+      {
+        "muro": "put wall",
+        "prezzo": 28000,
+        "dalPrezzo": -331.5
+      },
+      {
+        "muro": "call wall 0DTE",
+        "prezzo": 28700,
+        "dalPrezzo": 368.5
+      },
+      {
+        "muro": "put wall 0DTE",
+        "prezzo": 28250,
+        "dalPrezzo": -81.5
+      },
+      {
+        "muro": "zero gamma",
+        "prezzo": 28851.17,
+        "dalPrezzo": 519.67
+      },
+      {
+        "muro": "zero gamma 0DTE",
+        "prezzo": 28513.03,
+        "dalPrezzo": 181.53
+      }
+    ],
+    "vicini": [],
+    "nota": null
+  },
+  "grilletto": "l'order flow (tab 3 e 4): al muro con freno si cerca l'assorbimento e il ritorno al POC, con acceleratore l'accettazione oltre; qui nessun segnale",
+  "errori": []
+}

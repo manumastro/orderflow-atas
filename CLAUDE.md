@@ -17,7 +17,9 @@ Dall'11 ottobre 2026.
    si aggiungono su richiesta esplicita. **ES** dal 14 ottobre 2026, su richiesta, solo per lo
    studio delle opzioni (gli indicatori X-Ray di ATAS disegnano solo su ES). **Macro e COT** da fonti
    pubbliche (World Monitor, CFTC) dal 15 ottobre 2026, su richiesta, solo come **contesto** dello
-   studio globale: mai in un backtest.
+   studio globale: mai in un backtest. **Le opzioni QQQ e NDX** dal file pubblico del Cboe, e VIX e VXN
+   ufficiali da Yahoo, dal 2 novembre 2026 (e il prezzo di QQQ, dal 5 novembre), su richiesta, solo come
+   **contesto** nella pagina X-Ray.
 3. **Si arriva fino alla validazione.** Nessun ordine e nessuna esecuzione automatica: l'esecuzione
    si progetta quando il framework e' maturo, su richiesta esplicita. **La velocita' e' un
    requisito**: il framework e' in C# .NET 10, non in Python.
@@ -30,8 +32,9 @@ Dall'11 ottobre 2026.
 4  quant/studi/<idea>/                          un'idea dalla A alla Z, con le fasi numerate
 ```
 
-`quant/` ha cinque aree: **metodo** (come si fa), **framework** (il codice C# riusabile), **paper**
-(la biblioteca), **studi** (le idee), piu' **registro** e **dati**. Fra 2 e 3 vince 2: un'aggiunta
+`quant/` ha sei aree: **metodo** (come si fa), **framework** (il codice C# riusabile), **paper**
+(la biblioteca), **studi** (le idee), **strumenti** (i programmi che portano dati e non sono il
+framework: il lettore di X-Ray), piu' **registro** e **dati**. Fra 2 e 3 vince 2: un'aggiunta
 del framework non cambia la metodologia, la completa e lo dice.
 
 ## Gli Obblighi Del Metodo
@@ -78,6 +81,16 @@ stop; 16 ottobre 2026), e valgono gli obblighi della lettura discrezionale, tutt
   `FabioOrderFlow/progress.txt`.
 - **Registra i risultati negativi** come quelli positivi, e dichiara soglie, convenzioni e
   orizzonti accanto al numero che producono.
+- **X-Ray si legge dai file, non a occhio** (30 ottobre 2026): `XrayLive` decifra la cache di ATAS
+  e pubblica in `quant/dati/xray/` la stima di OptionsDepth su SPX (segno dei market maker, livelli,
+  delta scambiato per gruppo, che e' un flusso). Entra nel giro, nella fase 3 dello studio e in
+  `/xray`; su NQ e' solo contesto. Lo stesso processo serve la pagina **http://127.0.0.1:8790/**
+  (il server calcola, la pagina disegna; `XrayGui` e' solo gestione), che dal 2 novembre mette a
+  confronto, ognuna con la sua fonte dichiarata, X-Ray, la catena CME di ATAS (VIX e VXN ricostruiti, GEX
+  di NQ), il Cboe (QQQ, NDX) e gli indici ufficiali. **Su ES e SPX prevale X-Ray (OptionsDepth), come sul
+  chart di ATAS, ed e' l'unica GEX che si mostra, in prezzi di ES** (5 novembre 2026): la regola e' in
+  x-ray-in-vivo, "Come si legge". Cosa sono: [x-ray-in-vivo](quant/metodo/x-ray-in-vivo.md);
+  **come si leggono insieme, in cassa e nello studio**: [come-si-leggono-le-opzioni-dal-vivo](quant/metodo/come-si-leggono-le-opzioni-dal-vivo.md).
 - **L'utente sta imparando le opzioni**: quando se ne parla, ogni termine si spiega in parole semplici,
   con cosa significa per il prezzo e quanto e' provato. La regola: `.claude/skills/studio-globale/SKILL.md`,
   "Le regole che valgono per tutte le fasi".

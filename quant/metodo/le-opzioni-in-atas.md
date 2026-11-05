@@ -70,6 +70,9 @@ chart"**. L'OI e' giornaliero; il resto si registra solo da quando l'indicatore 
 
 ### Options X-Ray: non funziona su NQ
 
+**Dal 30 ottobre 2026 i suoi valori si leggono dai file** (`quant/dati/xray/`), senza guardare il chart:
+[`x-ray-in-vivo.md`](x-ray-in-vivo.md). Qui sotto, cosa mostra sul chart.
+
 Dati di **OptionsDepth** sulle opzioni sull'indice S&P 500 (SPX) del CBOE, aggiornati **ogni
 minuto**, con le posizioni divise per tipo di partecipante (retail, professionisti, market maker).
 Dieci indicatori (dodici pagine di aiuto): Key Levels (con Flip e Pin), Expected Move, Strike
@@ -161,6 +164,74 @@ ottobre la GEX A totale era -1,5 miliardi di $ per 1%, cioe' circa 2.500 future 
 ribasso di 300 punti, contro 500-700 mila contratti scambiati al giorno. Su NQ le opzioni sul future
 sono piccole rispetto al future; su SPX ed ES il rapporto e' un altro.
 
+### Come Si Potrebbe Conoscere Il Segno (ricerca del 30 ottobre 2026)
+
+Il segno dei dealer si **misura** solo con dati che dicono, per ogni trade, **chi** compra e vende
+(cliente o market maker) e se **apre o chiude** una posizione. Il prezzo e l'open interest non bastano:
+100 contratti in piu' di OI possono essere clienti che comprano o clienti che vendono.
+
+| strumento | c'e' il dato? | dove | per noi |
+|---|---|---|---|
+| **SPX** (Cboe) | si', il migliore | Cboe Open-Close (a pagamento); i trade con la capacita' usati da [VAPG] | non lo compriamo; lo vediamo **filtrato da OptionsDepth** |
+| **ES** in ATAS | si', ma **di SPX** | Options X-Ray (OptionsDepth, piano Ultra): posizioni per gruppo (retail, pro, market maker), ogni minuto | e' la **stima di un fornitore** su SPX, non le opzioni CME su ES; metodo non pubblicato. **Dal 30 ottobre 2026 la leggiamo** dai file: [`x-ray-in-vivo.md`](x-ray-in-vivo.md) |
+| **NDX / QQQ** | in parte | Nasdaq NOTO (ISE, PHLX, NOM: apertura e chiusura per tipo di partecipante, a pagamento); Cboe Open-Close sulle sedi Cboe | QQQ e' quotato su piu' borse: ogni fonte ne vede un pezzo |
+| **NQ** (opzioni CME) | **no** | il CME pubblica solo OI e volume totali; il COT da' i future piu' le opzioni in delta per categoria, settimanale, senza gamma ne' strike | nessuna fonte pubblica |
+
+Cosa possiamo fare su NQ, dal piu' semplice:
+
+1. **Il trade firmato**: nel feed del CME (MDP 3.0, tag 5797) ogni trade ha il lato
+   dell'aggressore, anche sulle opzioni. Se il bridge registrasse i trade delle opzioni NQ, si
+   saprebbe per strike chi ha comprato e chi venduto aggredendo (**da verificare** che ATAS e Rithmic
+   lo passino sulle opzioni). Non dice chi e' il dealer ne' se il trade apre o chiude: e' la stessa
+   ipotesi dei fornitori ("chi aggredisce e' il cliente"), ma su un dato vero.
+2. **Il confronto con SPX** (si puo' fare dal 30 ottobre 2026, [`x-ray-in-vivo.md`](x-ray-in-vivo.md)): X-Ray su ES da' la posizione stimata dei market maker su SPX. Se su SPX
+   la gamma misurata e la convenzione A dicono la stessa cosa nei giorni in cui la nostra GEX di ES
+   la dice, la convenzione su NQ ha un indizio in piu'; non una prova (gli utenti di NQ non sono quelli
+   di SPX).
+3. **Comprare i dati di QQQ o NDX** (NOTO, Open-Close): misurano il segno su un sottostante vicino,
+   non sulle opzioni CME su NQ.
+
+I paper: su SPX con i dati Cboe la gamma dei market maker e' **di solito positiva**, negativa almeno per
+un momento in un giorno su quattro [VAPG]; sommando call e put dello stesso strike i dealer risultavano
+corti di gamma quasi ovunque nel 1996-2001 [GPP]. Su NQ nessuno l'ha misurata.
+
+Le fonti: [Cboe, 0DTE e volatilita'](https://cdn.cboe.com/resources/education/research_publications/gammasqueezes.pdf),
+[Cboe Insights](https://www.cboe.com/insights/posts/volatility-insights-evaluating-the-market-impact-of-spx-0-dte-options),
+[OptionsDepth](https://optionsdepth.com/), [Nasdaq NOTO](https://m.nasdaqtrader.com/Micro.aspx?id=noto),
+[CME MDP 3.0 Trade Summary](https://cmegroupclientsite.atlassian.net/wiki/spaces/EPICSANDBOX/pages/457418925/MDP+3.0+-+Trade+Summary),
+[OCC per tipo di conto](https://dev.to/firmtape/how-much-of-the-spx-options-tape-is-dealer-to-dealer-a-free-daily-floor-from-occ-data-1ai3).
+
+## Il VIX E Il VXN Rifatti Dalla Catena
+
+**2 novembre 2026.** Provato nella scratchpad, poi portato nel server della pagina X-Ray
+(`quant/strumenti/xray/XrayLive/Volatilita/`, che lo calcola ogni 5 minuti e lo archivia:
+[lo strumento](../strumenti/xray/x-ray-lettore-e-dashboard.md#le-fonti-a-confronto)). Dalla catena
+che il bridge legge (`/opzioni`: bid, ask e **settlement** di ogni strike, anche lontano) si applica
+**la formula del Cboe**: la varianza a 30 giorni da tutte le opzioni fuori dal denaro, interpolata fra
+due scadenze. Sulle opzioni ES e' il VIX; sulle opzioni NQ e' il VXN.
+
+Le scelte, una per riga:
+- **le scadenze**: i venerdi' prima e dopo i 30 giorni (27/11 e 4/12). Le giornaliere vicine, come la
+  fine mese del 30/11, hanno strike ogni 5 punti, e i 120 strike per lato del bridge tagliano l'ala
+  delle put a −18%;
+- **il prezzo**: il settlement per la chiusura di ieri; il medio bid/ask (bid > 0) per adesso;
+- gli strike senza prezzo si saltano; ci si ferma dopo due prezzi consecutivi ≤ 0,05;
+- F per parita' put-call allo strike con |C−P| minimo; tasso 3,88%; scadenze alle 16:00 di New York.
+
+| | ricostruito | ufficiale (Yahoo) |
+|---|---|---|
+| VIX, chiusura del 30/10 (settlement ES) | **19,29** | 19,42 |
+| VXN, chiusura del 30/10 (settlement NQ) | **27,86** | 28,50 |
+| VIX, 2/11 alle 05:45 di New York (medio bid/ask ES) | **18,58** | 18,91 alle 05:32 |
+
+**La catena arriva a pezzi**: la prima lettura di NQ aveva 54 settlement su 226, e il risultato era
+sbagliato (K0 di 300 punti lontano da F). Si rilegge finche' i settlement smettono di crescere.
+
+A differenza della stima da X-Ray ([`x-ray-in-vivo.md`](x-ray-in-vivo.md), "La Volatilita' Implicita"),
+questa e' la formula vera, con le ali. Ha due limiti: la storia comincia il 2 novembre 2026 (ATAS da' solo
+il settlement di ieri e il vivo; da qui in avanti il server la archivia), e richiede ATAS aperto con la
+connessione.
+
 ## Cosa Ne Puo' Fare Il Metodo
 
 1. **Non si puo' fare un backtest con questi indicatori.** Non hanno storia: Chain registra da
@@ -169,9 +240,7 @@ sono piccole rispetto al future; su SPX ed ES il rapporto e' un altro.
 2. **La storia si costruisce da qui in avanti, ed e' gia' possibile** (14 ottobre 2026): il Data
    Bridge legge la catena delle opzioni dalla connessione (`/opzioni`) e `quant opzioni` la
    registra in `quant/dati/ES/opzioni/`, strike per strike, con open interest, volume e prezzi.
-   La GEX si calcola poi nel framework, con la convenzione dichiarata e la sua alternativa, invece
-   di fidarsi del calcolo chiuso degli indicatori, i cui valori stanno in campi offuscati e non si
-   leggono. Dopo qualche mese c'e' un campione; dopo un anno, uno serio. Resta dentro la
+   La GEX si calcola poi nel framework, con la convenzione dichiarata e la sua alternativa,invece di fidarsi del calcolo chiuso degli indicatori, i cui valori **dal 30 ottobre 2026 si leggono** (sono una cache cifrata decifrata dal vivo: [`x-ray-in-vivo.md`](x-ray-in-vivo.md)). Dopo qualche mese c'e' un campione; dopo un anno, uno serio. Resta dentro la
    decisione 2 del progetto (dati solo da ATAS).
 3. **Una storia lunga di GEX su NQ da fuori** (fornitori come SpotGamma, Menthor Q, OptionsDepth, o
    i dati CME) **esce dalla decisione 2**: servirebbe una richiesta esplicita.

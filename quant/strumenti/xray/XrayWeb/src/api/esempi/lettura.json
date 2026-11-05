@@ -1,0 +1,128 @@
+{
+  "giorno": "2026-11-02",
+  "giorni": [
+    "2026-11-02"
+  ],
+  "letture": [
+    {
+      "file": "1108.json",
+      "lettura": {
+        "strumento": "NQZ6",
+        "prezzo": 28745,
+        "studi": "macro e COT delle 10:58 italiane; gamma, order flow e quadro di oggi non fatti",
+        "inBreve": "NQ e' fermo dentro il valore di oggi, dopo due rifiuti sopra il bordo alto di venerdi'; i dealer restano dalla parte che accelera, su NQ e su ES.",
+        "righe": [
+          {
+            "voce": "Cosa è cambiato",
+            "testo": "Poco dalle 11:00 di New York: il regime passa da choppy a balance, lo zero gamma di NQ scende a 28.998.",
+            "dove": null
+          },
+          {
+            "voce": "Il prezzo",
+            "testo": "Balance, dentro il valore di oggi (28.667-28.783) e sopra il suo POC. I venditori spingono ma il prezzo non fa nuovi minimi: possibile assorbimento, dice il pannello.",
+            "dove": {
+              "pagina": "chart",
+              "scheda": "pannello"
+            }
+          },
+          {
+            "voce": "La paura",
+            "testo": "VXN a 27, stabile. Le scadenze di questa settimana costano piu' di quella a un mese: si paga per Apple stasera e per il voto di domani.",
+            "dove": {
+              "pagina": "volatilita",
+              "scheda": "Fonti a confronto su NDX"
+            },
+            "etichetta": "Paura: VXN 27, stabile"
+          },
+          {
+            "voce": "I dealer",
+            "testo": "Su NQ sono dalla parte che accelera; il punto dove passerebbero a frenare e' 220-250 punti sopra, fra 28.960 e 29.000. Le opzioni di oggi frenano finche' il prezzo resta sopra 28.665.",
+            "dove": {
+              "pagina": "nq",
+              "scheda": "Le fonti a confronto"
+            },
+            "etichetta": "NQ: acceleratore"
+          },
+          {
+            "voce": "ES",
+            "testo": "Anche su ES i dealer accelerano, e X-Ray lo conferma.",
+            "dove": {
+              "pagina": "adesso",
+              "scheda": "Gamma al prezzo"
+            },
+            "etichetta": "ES: acceleratore"
+          }
+        ],
+        "prezzi": [
+          {
+            "prezzo": "28.960-29.030",
+            "cosa": "zero gamma di NQ (catena e NDX), call wall, bordo del COT",
+            "seCiArriva": "sopra, i dealer di NQ passerebbero a frenare (per supposizione)",
+            "da": 28960.0,
+            "a": 29030.0
+          },
+          {
+            "prezzo": "28.857-28.891",
+            "cosa": "bordo alto di venerdi', respinto due volte",
+            "seCiArriva": "sopra, il prezzo esce dal balance verso l'alto",
+            "da": 28857.0,
+            "a": 28891.0
+          },
+          {
+            "prezzo": "28.778-28.788",
+            "cosa": "POC di venerdi' e bordo alto di oggi",
+            "seCiArriva": "sopra, il prezzo torna al centro del balance di venerdi'",
+            "da": 28778.0,
+            "a": 28788.0
+          },
+          {
+            "prezzo": "28.665-28.685",
+            "cosa": "pavimento dell'apertura e zero gamma delle opzioni di oggi",
+            "seCiArriva": "sotto, il pavimento e' rotto e la strada e' aperta fino a 28.500",
+            "da": 28665.0,
+            "a": 28685.0
+          },
+          {
+            "prezzo": "28.446-28.500",
+            "cosa": "bordo basso di venerdi' e put wall",
+            "seCiArriva": "sotto, il prezzo esce dal balance verso il basso",
+            "da": 28446.0,
+            "a": 28500.0
+          }
+        ],
+        "daGuardare": [
+          "Se 28.665-28.685 tiene mentre i venditori spingono: il balance continua.",
+          "Se cede con velocita': il prezzo va verso 28.500."
+        ],
+        "dubbi": "Oggi solo macro e COT; la struttura a termine della catena CME e' rumorosa; il comportamento dei dealer e' supposto, e niente di questo e' provato su NQ.",
+        "parole": [
+          {
+            "parola": "balance",
+            "significa": "il prezzo resta chiuso dentro il valore di un giorno precedente"
+          },
+          {
+            "parola": "dealer",
+            "significa": "chi vende le opzioni e si copre comprando e vendendo il future"
+          },
+          {
+            "parola": "zero gamma",
+            "significa": "il prezzo dove i dealer passano da accelerare i movimenti a frenarli"
+          }
+        ],
+        "versione": 1,
+        "quando": 1793635696504,
+        "oraNY": "11:08",
+        "oraItalia": "17:08"
+      }
+    },
+    {
+      "file": "1110.json",
+      "errore": "prova: file rotto"
+    }
+  ],
+  "prezzoAdesso": {
+    "strumento": "NQZ6",
+    "prezzo": 28336.25,
+    "quando": 1793882320122
+  }
+}

@@ -1,0 +1,158 @@
+{
+  "quando": 1793873835627,
+  "indici": [
+    {
+      "indice": "SPX",
+      "radice": "ES",
+      "nomeIndice": "VIX",
+      "livello": 16.9,
+      "quandoLivello": 1793872981000,
+      "fonteLivello": "yahoo",
+      "fascia": "normale",
+      "soglie": [
+        15,
+        20,
+        30
+      ],
+      "apertura": 17.15,
+      "prezzo": 7724,
+      "movimentoOggi": 51,
+      "scadenzaOggi": "2026-11-05",
+      "volOggi": 18.8,
+      "movimentoGiorno": 82,
+      "volBreve": 14.6,
+      "volMese": null,
+      "pendenza": null,
+      "struttura": null,
+      "skew": 7.3,
+      "skewTesto": "put care",
+      "frasi": [
+        "VIX a 16,9: volatilità normale, ferma da stamattina.",
+        "Le opzioni di oggi prezzano circa ±51 punti di ES da qui alla chiusura delle 16:00 di New York (uno su tre lo supera).",
+        "Le opzioni costano più del movimento vero: VIX 16,9 contro 11,7 di volatilità realizzata nelle ultime 20 sedute (+5,2). L'assicurazione è cara: il mercato si aspetta più movimento di quello che c'è stato.",
+        "Le put costano molto più delle call (+7,3 punti): forte domanda di protezione dal ribasso."
+      ],
+      "realizzata20": 11.7,
+      "realizzata5": 15.2,
+      "implicitaMenoRealizzata": 5.2,
+      "implicitaTesto": "assicurazione cara",
+      "fasciaPrezzi": [
+        7673,
+        7775
+      ],
+      "confronto": {
+        "verdetto": "convergono",
+        "ampiezza": 0.4,
+        "sogliaPunti": 1,
+        "serieConfrontate": [
+          {
+            "id": "vix-catena",
+            "nome": "VIX ricostruito",
+            "fonte": "catena",
+            "valore": 18.71,
+            "quando": 1793635200000
+          },
+          {
+            "id": "vix-ufficiale",
+            "nome": "VIX",
+            "fonte": "yahoo",
+            "valore": 19.11,
+            "quando": 1793635200000
+          }
+        ],
+        "senzaDati": [],
+        "escluse": [
+          {
+            "id": "atm-xray",
+            "motivo": "misura al prezzo (ATM), non stile VIX"
+          }
+        ]
+      }
+    },
+    {
+      "indice": "NDX",
+      "radice": "NQ",
+      "nomeIndice": "VXN",
+      "livello": 25.05,
+      "quandoLivello": 1793873649197,
+      "fonteLivello": "catena",
+      "fascia": "normale",
+      "soglie": [
+        20,
+        26,
+        38
+      ],
+      "apertura": 25.05,
+      "prezzo": 28404.75,
+      "movimentoOggi": 353,
+      "scadenzaOggi": "2026-11-05",
+      "volOggi": 35.5,
+      "movimentoGiorno": 448,
+      "volBreve": 25.4,
+      "volMese": null,
+      "pendenza": null,
+      "struttura": null,
+      "skew": 6.2,
+      "skewTesto": "put care",
+      "frasi": [
+        "VXN a 25,1: volatilità normale, ferma da stamattina.",
+        "Le opzioni di oggi prezzano circa ±353 punti di NQ da qui alla chiusura delle 16:00 di New York (uno su tre lo supera).",
+        "Le opzioni costano più del movimento vero: VXN 25,1 contro 21,7 di volatilità realizzata nelle ultime 20 sedute (+3,4). L'assicurazione è cara: il mercato si aspetta più movimento di quello che c'è stato.",
+        "Le put costano molto più delle call (+6,2 punti): forte domanda di protezione dal ribasso."
+      ],
+      "realizzata20": 21.7,
+      "realizzata5": 27.9,
+      "implicitaMenoRealizzata": 3.4,
+      "implicitaTesto": "assicurazione cara",
+      "fasciaPrezzi": [
+        28051.75,
+        28757.75
+      ],
+      "confronto": {
+        "verdetto": "convergono",
+        "ampiezza": 0.31,
+        "sogliaPunti": 1,
+        "serieConfrontate": [
+          {
+            "id": "vxn-catena",
+            "nome": "VXN ricostruito",
+            "fonte": "catena",
+            "valore": 22.64,
+            "quando": 1793635200000
+          },
+          {
+            "id": "vxn-ufficiale",
+            "nome": "VXN",
+            "fonte": "yahoo",
+            "valore": 22.76,
+            "quando": 1793635200000
+          },
+          {
+            "id": "vol30-ndx",
+            "nome": "VXN da NDX (Cboe)",
+            "fonte": "cboe",
+            "valore": 22.95,
+            "quando": 1793635200000
+          }
+        ],
+        "senzaDati": [
+          {
+            "id": "vol30-qqq",
+            "nome": "Vol 30g QQQ (Cboe)",
+            "motivo": "nessun punto oggi"
+          }
+        ],
+        "escluse": [
+          {
+            "id": "iv30-ndx",
+            "motivo": "misura al prezzo (ATM), non stile VIX"
+          },
+          {
+            "id": "iv30-qqq",
+            "motivo": "misura al prezzo (ATM), non stile VIX"
+          }
+        ]
+      }
+    }
+  ]
+}

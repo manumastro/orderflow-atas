@@ -280,6 +280,9 @@ def riassunto(dati: dict, strumento: str) -> dict:
             "prima": profilo([r for r in righe if r["scad"] == primo], f, molt) | {"giorno": primo},
             "settimana": profilo(entro7, f, molt) if entro7 else None,
             "per_strike": per_strike(righe, f, molt), "per_scadenza": per_scadenza(righe),
+            # la stessa tabella per la sola scadenza piu' vicina (lo 0DTE nei giorni feriali): la pagina X-Ray
+            # la mette accanto allo 0DTE di QQQ e NDX (2 novembre 2026)
+            "per_strike_prima": per_strike([r for r in righe if r["scad"] == primo], f, molt),
             # GEX, zero gamma e muri di ogni scadenza (lacuna segnalata dalla fase 3, 15 ottobre 2026)
             "gex_per_scadenza": {sc: {k: v for k, v in profilo([r for r in righe if r["scad"] == sc], f, molt).items()
                                       if k in ("tot_a", "tot_b", "zero", "call_wall", "put_wall")}

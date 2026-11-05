@@ -1,0 +1,116 @@
+{
+  "radice": "NQ",
+  "giorno": "2026-11-05",
+  "fonte": "catena",
+  "descrizione": "la GEX viva della catena CME via ATAS, ricalcolata ogni minuto (convenzione A, open interest di ieri)",
+  "punti": [
+    {
+      "ts": 1793872351380,
+      "future": 28407.75,
+      "totale": -527.8,
+      "zero": 28741.11,
+      "callWall": 28700,
+      "putWall": 28000,
+      "totale0": -94.5,
+      "zero0": 28506.1,
+      "callWall0": 28700,
+      "putWall0": 28250
+    },
+    {
+      "ts": 1793874696409,
+      "future": 28429,
+      "totale": -631.3,
+      "zero": 28801.68,
+      "callWall": 28700,
+      "putWall": 28000,
+      "totale0": -72.5,
+      "zero0": 28501.84,
+      "callWall0": 28700,
+      "putWall0": 28250
+    },
+    {
+      "ts": 1793875896411,
+      "future": 28428.75,
+      "totale": -638.9,
+      "zero": 28805.39,
+      "callWall": 28700,
+      "putWall": 28000,
+      "totale0": -69.9,
+      "zero0": 28499.6,
+      "callWall0": 28700,
+      "putWall0": 28250
+    },
+    {
+      "ts": 1793877263615,
+      "future": 28423.75,
+      "totale": -751.6,
+      "zero": 28835.7,
+      "callWall": 28700,
+      "putWall": 28000,
+      "totale0": -76.4,
+      "zero0": 28500.69,
+      "callWall0": 28700,
+      "putWall0": 28250
+    },
+    {
+      "ts": 1793878407099,
+      "future": 28439.25,
+      "totale": -726,
+      "zero": 28830.35,
+      "callWall": 28700,
+      "putWall": 28000,
+      "totale0": -66.2,
+      "zero0": 28503.83,
+      "callWall0": 28700,
+      "putWall0": 28250
+    },
+    {
+      "ts": 1793879541747,
+      "future": 28439.75,
+      "totale": -724,
+      "zero": 28830.42,
+      "callWall": 28700,
+      "putWall": 28000,
+      "totale0": -66.4,
+      "zero0": 28504.4,
+      "callWall0": 28700,
+      "putWall0": 28250
+    },
+    {
+      "ts": 1793880680228,
+      "future": 28423.25,
+      "totale": -756.3,
+      "zero": 28836.28,
+      "callWall": 28700,
+      "putWall": 28000,
+      "totale0": -82.3,
+      "zero0": 28505.84,
+      "callWall0": 28700,
+      "putWall0": 28250
+    },
+    {
+      "ts": 1793881786061,
+      "future": 28370.25,
+      "totale": -861.9,
+      "zero": 28834.19,
+      "callWall": 28700,
+      "putWall": 28000,
+      "totale0": -139.8,
+      "zero0": 28509.52,
+      "callWall0": 28700,
+      "putWall0": 28250
+    },
+    {
+      "ts": 1793882245473,
+      "future": 28331.5,
+      "totale": -939.1,
+      "zero": 28851.17,
+      "callWall": 28700,
+      "putWall": 28000,
+      "totale0": -175.9,
+      "zero0": 28513.03,
+      "callWall0": 28700,
+      "putWall0": 28250
+    }
+  ]
+}

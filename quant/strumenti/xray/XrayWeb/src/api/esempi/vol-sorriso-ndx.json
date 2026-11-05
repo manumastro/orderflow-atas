@@ -1,0 +1,186 @@
+{
+ "indice": "NDX",
+ "quando": 1793635200000,
+ "curve": [
+  {
+   "id": "sorriso-nq",
+   "nome": "NQ 27/11 (catena)",
+   "fonte": "catena",
+   "scadenza": "2026-11-27",
+   "giorni": 25.4,
+   "forward": 28790,
+   "punti": [
+    {
+     "moneyness": -8.01,
+     "strike": 26485,
+     "vol": 53.03
+    },
+    {
+     "moneyness": -7,
+     "strike": 26775,
+     "vol": 46.28
+    },
+    {
+     "moneyness": -5.99,
+     "strike": 27065,
+     "vol": 40.48
+    },
+    {
+     "moneyness": -5,
+     "strike": 27350,
+     "vol": 35.29
+    },
+    {
+     "moneyness": -3.99,
+     "strike": 27640,
+     "vol": 30.88
+    },
+    {
+     "moneyness": -3,
+     "strike": 27925,
+     "vol": 27.18
+    },
+    {
+     "moneyness": -2,
+     "strike": 28215,
+     "vol": 24.15
+    },
+    {
+     "moneyness": -1.01,
+     "strike": 28500,
+     "vol": 21.85
+    },
+    {
+     "moneyness": 0,
+     "strike": 28790,
+     "vol": 20.1
+    },
+    {
+     "moneyness": 1.01,
+     "strike": 29080,
+     "vol": 19.08
+    },
+    {
+     "moneyness": 2,
+     "strike": 29365,
+     "vol": 18.89
+    },
+    {
+     "moneyness": 3,
+     "strike": 29655,
+     "vol": 19.29
+    },
+    {
+     "moneyness": 3.99,
+     "strike": 29940,
+     "vol": 20.52
+    },
+    {
+     "moneyness": 5,
+     "strike": 30230,
+     "vol": 22.36
+    },
+    {
+     "moneyness": 5.99,
+     "strike": 30515,
+     "vol": 24.89
+    },
+    {
+     "moneyness": 7,
+     "strike": 30805,
+     "vol": 28.15
+    },
+    {
+     "moneyness": 8.01,
+     "strike": 31095,
+     "vol": 32.18
+    }
+   ]
+  },
+  {
+   "id": "sorriso-ndx",
+   "nome": "NDX 21/11 (Cboe)",
+   "fonte": "cboe",
+   "scadenza": "2026-11-21",
+   "giorni": 19.2,
+   "forward": 28420,
+   "punti": [
+    {
+     "moneyness": -7,
+     "strike": 26430,
+     "vol": 46.14
+    },
+    {
+     "moneyness": -6,
+     "strike": 26715,
+     "vol": 40.45
+    },
+    {
+     "moneyness": -5,
+     "strike": 27000,
+     "vol": 35.24
+    },
+    {
+     "moneyness": -3.99,
+     "strike": 27285,
+     "vol": 30.93
+    },
+    {
+     "moneyness": -3.01,
+     "strike": 27565,
+     "vol": 27.39
+    },
+    {
+     "moneyness": -2.01,
+     "strike": 27850,
+     "vol": 24.36
+    },
+    {
+     "moneyness": -1,
+     "strike": 28135,
+     "vol": 22.2
+    },
+    {
+     "moneyness": 0,
+     "strike": 28420,
+     "vol": 20.56
+    },
+    {
+     "moneyness": 1,
+     "strike": 28705,
+     "vol": 19.7
+    },
+    {
+     "moneyness": 2.01,
+     "strike": 28990,
+     "vol": 19.63
+    },
+    {
+     "moneyness": 3.01,
+     "strike": 29275,
+     "vol": 20.14
+    },
+    {
+     "moneyness": 3.99,
+     "strike": 29555,
+     "vol": 21.3
+    },
+    {
+     "moneyness": 5,
+     "strike": 29840,
+     "vol": 23.4
+    },
+    {
+     "moneyness": 6,
+     "strike": 30125,
+     "vol": 26.06
+    },
+    {
+     "moneyness": 7,
+     "strike": 30410,
+     "vol": 29.44
+    }
+   ]
+  }
+ ]
+}

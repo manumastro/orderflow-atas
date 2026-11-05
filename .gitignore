@@ -34,6 +34,9 @@ __pycache__/
 quant/dati/
 quant/framework/**/bin/
 quant/framework/**/obj/
+# la pagina XrayWeb: le dipendenze si reinstallano (npm ci), il build si rifa' (npm run build)
+quant/strumenti/xray/XrayWeb/node_modules/
+quant/strumenti/xray/XrayWeb/dist/
 quant/paper/**/*.pdf
 
 # lo studio globale: i JSON grezzi dei collettori restano fuori da git

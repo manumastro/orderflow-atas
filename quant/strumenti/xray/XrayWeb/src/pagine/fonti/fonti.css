@@ -1,0 +1,29 @@
+/* Fonti, la diagnosi (C.12). Solo token. */
+
+.tabella-fonti tr.fonte-gruppo td { background: var(--superficie-2); height: 32px; border-top: 1px solid var(--bordo-forte); }
+.gruppo-testa { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.gruppo-testa strong { color: var(--testo); font-weight: 600; }
+.gruppo-cosa { color: var(--spento); font-size: var(--t-piccolo); white-space: normal; }
+.tabella-fonti td.flusso { color: var(--testo); }
+.tabella-fonti td.dove { white-space: normal; min-width: 220px; color: var(--testo-2); }
+.tabella-fonti td.dove a { color: var(--testo-2); text-decoration: none; border-bottom: 1px dotted var(--spento); }
+.tabella-fonti td.dove a:hover { color: var(--testo); }
+.nota-telefono { display: none; }
+
+.famiglie { display: flex; flex-direction: column; border: 1px solid var(--bordo); border-radius: var(--raggio); }
+.famiglia + .famiglia { border-top: 1px solid var(--griglia); }
+.famiglia summary {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 6px 10px; cursor: pointer;
+  font-size: var(--t-piccolo); list-style-position: inside;
+}
+.famiglia summary:hover { background: var(--superficie-2); }
+.famiglia-nome { color: var(--testo); font-weight: 600; }
+.famiglia table { border-top: 1px solid var(--griglia); }
+.famiglia td:first-child { padding-left: 28px; }
+
+@media (max-width: 767px) {
+  .tabella-fonti td.flusso { white-space: normal; min-width: 160px; max-width: 200px; }
+  .nota-telefono { display: block; white-space: normal; color: var(--spento); font-size: var(--t-piccolo); }
+  .tabella-fonti td.dove { min-width: 200px; }
+  .gruppo-testa { max-width: 340px; }
+}

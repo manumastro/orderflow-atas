@@ -1,0 +1,15 @@
+/* NQ · QQQ, la vista Exposure (C.11). Solo token. */
+
+.valore-dist { font-size: var(--t-piccolo); font-weight: 500; color: var(--testo-2); }
+
+.qqq-riga { gap: 4px; }
+.qqq-riga strong { color: var(--testo); font-weight: 600; }
+.rimando { font-size: var(--t-piccolo); color: var(--testo-2); text-decoration: none; border-bottom: 1px dotted var(--spento); }
+.rimando:hover { color: var(--testo); }
+
+.profilo-eta { color: var(--spento); font-weight: 500; }
+.profilo-vecchia { color: var(--attenzione); font-weight: 600; }
+.affiancato.piccolo[data-vecchia='si'] .grafico-scatola { opacity: 0.55; }
+.vicino-bordo { color: var(--testo-2); }
+
+.nq .scala-prezzi { max-height: 640px; }

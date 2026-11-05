@@ -1,0 +1,67 @@
+/* La Lettura: gli stili propri della pagina, con i soli token di stile.css. */
+
+/* una lettura vecchia: l'avviso in testa (icona e parola), il contenuto attenuato */
+.lettura-avviso-vecchia {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid color-mix(in srgb, var(--attenzione) 55%, transparent);
+  border-radius: var(--raggio);
+  background: var(--superficie);
+  color: var(--testo);
+  font-size: var(--t-corpo);
+}
+.lettura-avviso-vecchia svg { color: var(--attenzione); flex: none; }
+.lettura-attenuata { opacity: 0.6; }
+
+.chip-vecchia {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 8px;
+  padding: 0 6px;
+  height: 18px;
+  border: 1px solid color-mix(in srgb, var(--attenzione) 60%, transparent);
+  border-radius: var(--raggio-pillola);
+  color: var(--attenzione);
+  font-size: var(--t-mini);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  vertical-align: middle;
+}
+
+/* la tessera "Lettura del": il valore e' una data, non un numero */
+.tessera[aria-label='Lettura del'] .valore { font-size: 18px; }
+.tessera .lettura-dove { margin-left: 0; }
+
+/* i prezzi come scala: la riga del prezzo di adesso in mezzo, la distanza a destra */
+.lettura-scala { max-height: none; }
+.lettura-tabella td.testo { white-space: normal; min-width: 180px; }
+.lettura-tabella td.lettura-dist { white-space: nowrap; vertical-align: top; }
+.lettura-tabella tr.lettura-adesso td { vertical-align: middle; }
+
+/* sul telefono ogni prezzo diventa una scheda: il prezzo in grassetto, poi "Cos'e'" e "Se ci arriva" */
+@media (max-width: 767px) {
+  .lettura-scala { overflow: visible; border: none; mask-image: none; }
+  .lettura-tabella thead { display: none; }
+  .lettura-tabella, .lettura-tabella tbody { display: block; width: 100%; }
+  .lettura-tabella tr {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 2px 8px;
+    padding: 8px 10px;
+    border: 1px solid var(--bordo);
+    border-radius: var(--raggio);
+    margin-bottom: 6px;
+  }
+  .lettura-tabella tbody tr + tr td { border-top: none; }
+  .lettura-tabella td { display: block; height: auto; padding: 0; position: static; background: none; text-align: left; white-space: normal; min-width: 0; }
+  .lettura-tabella td.lettura-prezzo { font-size: var(--t-titolo); }
+  .lettura-tabella td.lettura-dist { grid-column: 2; grid-row: 1; text-align: right; color: var(--testo-2); }
+  .lettura-tabella td[data-nome] { grid-column: 1 / -1; }
+  .lettura-tabella td[data-nome]::before { content: attr(data-nome) ': '; color: var(--spento); font-size: var(--t-mini); text-transform: uppercase; letter-spacing: 0.04em; }
+  .lettura-tabella tr.lettura-adesso { border: 2px solid var(--prezzo); }
+  .lettura-tabella tr.lettura-adesso td { border: none !important; }
+  .lettura-tabella tr.lettura-adesso td.testo { grid-column: 1 / -1; }
+}

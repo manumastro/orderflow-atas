@@ -1,0 +1,50 @@
+/* Volatilita', il meteo (C.10). Solo token: i verdetti in inchiostro, la barra delle fasce in grigi. */
+
+.meteo-riga { grid-column: span 12; }
+
+.meteo-testa { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px; }
+.meteo-livello { font-size: var(--t-numero); font-weight: 600; line-height: 1.15; color: var(--testo); white-space: nowrap; }
+.meteo-fascia { font-size: var(--t-titolo); font-weight: 500; color: var(--testo-2); }
+.meteo-variazione { font-size: var(--t-piccolo); color: var(--testo-2); font-variant-numeric: tabular-nums; }
+
+/* la barra delle fasce: quattro tratti grigi, quello attivo piu' chiaro, il segno del valore in inchiostro */
+.fasce { display: inline-flex; flex-direction: column; gap: 2px; width: 180px; flex: none; }
+.fasce-pista { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; height: 8px; }
+.fasce-tratto { background: var(--superficie-3); border-radius: 2px; }
+.fasce-tratto[data-attiva='si'] { background: var(--decoro); }
+.fasce-segno {
+  position: absolute; top: -4px; width: 3px; height: 16px; margin-left: -1.5px;
+  background: var(--testo); border-radius: 2px; box-shadow: 0 0 0 2px var(--superficie);
+}
+.fasce-soglie { position: relative; height: 12px; font-size: 10px; color: var(--spento); font-variant-numeric: tabular-nums; }
+.fasce-soglie span { position: absolute; transform: translateX(-50%); line-height: 12px; }
+
+.meteo-numeri { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s2); }
+.meteo-numero {
+  display: flex; flex-direction: column; gap: 1px; min-width: 0;
+  padding: 6px 10px; background: var(--superficie-2); border: 1px solid var(--bordo); border-radius: var(--raggio);
+}
+.meteo-etichetta { font-size: var(--t-mini); color: var(--spento); text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.meteo-etichetta .termine { text-transform: uppercase; }
+.meteo-valore { font-size: 20px; font-weight: 600; color: var(--testo); line-height: 1.2; }
+.meteo-sotto { font-size: var(--t-piccolo); color: var(--testo-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.meteo-fonti {
+  margin: 0; display: flex; align-items: center; gap: 6px; font-size: var(--t-piccolo); color: var(--testo-2);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0;
+}
+.meteo-fonti > span { overflow: hidden; text-overflow: ellipsis; }
+.meteo-fonti svg { flex: none; color: var(--testo); }
+.meteo-fonti strong { color: var(--testo); font-weight: 600; }
+.meteo-apri { align-self: flex-start; }
+.meteo-perche { display: flex; flex-direction: column; gap: 6px; padding-top: 4px; }
+.meteo-perche .frasi { margin: 0; }
+
+.senza-dati { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+@media (max-width: 767px) {
+  .meteo-numeri { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .meteo-fonti { white-space: normal; align-items: flex-start; }
+  .senza-dati { white-space: normal; }
+  .fasce { width: 150px; }
+}

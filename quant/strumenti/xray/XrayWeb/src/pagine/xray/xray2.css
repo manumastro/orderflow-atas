@@ -1,0 +1,16 @@
+/* X-Ray 2 (Livelli nel tempo, Deriva, Previsione): gli stili propri delle pagine, con i soli token di stile.css. */
+
+/* la distanza accanto al valore di una tessera: piu' piccola, in inchiostro secondario */
+.valore-dist { font-size: var(--t-corpo); font-weight: 600; color: var(--testo-2); margin-left: 4px; }
+
+/* la scala dei livelli resta alta quanto il grafico, e scorre dentro */
+.livelli-scala .tabella-scorre { max-height: clamp(360px, calc(100vh - 300px), 680px); }
+
+/* Previsione: le frecce della previsione precedente e successiva, nella tessera "Calcolata alle" */
+.frecce-previsione { display: inline-flex; align-items: center; gap: 2px; margin-left: 6px; vertical-align: middle; }
+.dettaglio-riga { display: flex; align-items: center; justify-content: space-between; gap: 6px; flex-wrap: wrap; }
+
+/* Deriva: i pannelli legati stanno vicini; il comando del delta nell'intestazione */
+.deriva-pannelli { gap: 4px; }
+.deriva-pannelli .scheda { gap: 4px; padding-top: 8px; padding-bottom: 6px; }
+.anomali-nota { color: var(--spento); }

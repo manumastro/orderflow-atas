@@ -1,0 +1,152 @@
+{
+  "fonti": [
+    {
+      "id": "xray",
+      "fonte": "xray",
+      "nome": "X-Ray (cache di ATAS)",
+      "ultimo": 1793635158000,
+      "secondiFa": 42,
+      "stato": "ok",
+      "errore": null,
+      "nota": "ogni minuto, indicatori aperti su ES"
+    },
+    {
+      "id": "catena-es",
+      "fonte": "catena",
+      "nome": "Catena ES (CME)",
+      "ultimo": 1793635020000,
+      "secondiFa": 180,
+      "stato": "ok",
+      "errore": null,
+      "nota": "ogni 5 minuti, ATAS aperto"
+    },
+    {
+      "id": "catena-nq",
+      "fonte": "catena",
+      "nome": "Catena NQ (CME)",
+      "ultimo": 1793632800000,
+      "secondiFa": 2400,
+      "stato": "vecchio",
+      "errore": null,
+      "nota": "ogni 5 minuti, ATAS aperto"
+    },
+    {
+      "id": "gex-nq",
+      "fonte": "catena",
+      "nome": "GEX di NQ",
+      "ultimo": 1793634900000,
+      "secondiFa": 300,
+      "stato": "ok",
+      "errore": null,
+      "nota": "calcolata dalla catena NQ"
+    },
+    {
+      "id": "gex-es",
+      "fonte": "catena",
+      "nome": "GEX di ES",
+      "ultimo": 1793634900000,
+      "secondiFa": 300,
+      "stato": "ok",
+      "errore": null,
+      "nota": "calcolata dalla catena ES"
+    },
+    {
+      "id": "cboe-qqq",
+      "fonte": "cboe",
+      "nome": "Catena QQQ (Cboe)",
+      "ultimo": 1793634300000,
+      "secondiFa": 900,
+      "stato": "ok",
+      "errore": null,
+      "nota": "pagina pubblica, 15 minuti di ritardo"
+    },
+    {
+      "id": "cboe-ndx",
+      "fonte": "cboe",
+      "nome": "Catena NDX (Cboe)",
+      "ultimo": null,
+      "secondiFa": null,
+      "stato": "errore",
+      "errore": "HTTP 403 dal sito del Cboe",
+      "nota": "pagina pubblica, 15 minuti di ritardo"
+    },
+    {
+      "id": "yahoo-vix",
+      "fonte": "yahoo",
+      "nome": "VIX (Yahoo)",
+      "ultimo": 1793634240000,
+      "secondiFa": 960,
+      "stato": "ok",
+      "errore": null,
+      "nota": "circa 15 minuti di ritardo"
+    },
+    {
+      "id": "yahoo-vxn",
+      "fonte": "yahoo",
+      "nome": "VXN (Yahoo)",
+      "ultimo": null,
+      "secondiFa": null,
+      "stato": "assente",
+      "errore": null,
+      "nota": "non ancora raccolto"
+    },
+    {
+      "id": "yahoo-qqq",
+      "fonte": "yahoo",
+      "nome": "prezzo di QQQ (Yahoo)",
+      "ultimo": 1793634240000,
+      "secondiFa": 960,
+      "stato": "ok",
+      "errore": null,
+      "nota": "si legge quando la pagina NQ lo chiede; anche pre e dopo mercato"
+    }
+  ],
+  "sintesi": [
+    {
+      "fonte": "xray",
+      "stato": "ok",
+      "peggiore": "xray",
+      "secondiFa": 42,
+      "flussi": [
+        "xray"
+      ],
+      "testo": "aggiornata 42 s"
+    },
+    {
+      "fonte": "catena",
+      "stato": "vecchio",
+      "peggiore": "catena-nq",
+      "secondiFa": 2400,
+      "flussi": [
+        "catena-es",
+        "catena-nq",
+        "gex-nq",
+        "gex-es"
+      ],
+      "testo": "vecchia 40 min"
+    },
+    {
+      "fonte": "cboe",
+      "stato": "errore",
+      "peggiore": "cboe-ndx",
+      "secondiFa": null,
+      "flussi": [
+        "cboe-qqq",
+        "cboe-ndx"
+      ],
+      "testo": "Catena NDX: errore"
+    },
+    {
+      "fonte": "yahoo",
+      "stato": "assente",
+      "peggiore": "yahoo-vxn",
+      "secondiFa": null,
+      "flussi": [
+        "yahoo-vix",
+        "yahoo-vxn",
+        "yahoo-qqq"
+      ],
+      "testo": "VXN assente"
+    }
+  ]
+}

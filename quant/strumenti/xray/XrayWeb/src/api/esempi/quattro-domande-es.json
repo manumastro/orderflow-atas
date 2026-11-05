@@ -1,0 +1,114 @@
+{
+  "radice": "ES",
+  "giorno": "2026-11-05",
+  "ts": null,
+  "unita": "ES",
+  "baseEsSpx": 29.25,
+  "prezzo": 7723.75,
+  "fonte": "docs/research/metodo/il-bias-del-giorno.md, [V2]",
+  "regime": {
+    "radice": "ES",
+    "base": "stima OptionsDepth su SPX",
+    "fonte": "X-Ray (OptionsDepth): gamma osservata al prezzo e GEX dei market maker per scadenza",
+    "alPrezzo": "acceleratore",
+    "zeroDte": "freno",
+    "tutte": "acceleratore",
+    "valori": {
+      "alPrezzo": -99.32,
+      "zeroDte": 10.026,
+      "tutte": -34.361
+    },
+    "lettura": "segnali opposti",
+    "frase": "segnali opposti: acceleratore su tutte le scadenze, freno sullo 0DTE; il regime non è netto, e lo 0DTE pesa di più man mano che si avvicina la chiusura",
+    "provato": "dice quanto, non dove; da rileggere in giornata; non provato: su 42 sedute di ES con X-Ray (08/09-04/11) il regime 0DTE delle 9:35 NON ha allargato la giornata (0,55 contro 0,74 del movimento atteso, p 0,24, verso opposto al video); opzioni-gamma-es, ipotesi D",
+    "gexPerScadenza": {
+      "0dte": 10.026,
+      "next_expiry": -19.082,
+      "opex": -25.305
+    },
+    "flipPiuVicino": 7761.12,
+    "zero": null
+  },
+  "meteo": {
+    "indice": "SPX",
+    "nomeIndice": "VIX",
+    "fonteLivello": "yahoo",
+    "quando": 1793881471000,
+    "livello": 16.88,
+    "fascia": "normale",
+    "movimentoOggi": 44,
+    "fasciaPrezzi": [
+      7679.75,
+      7767.75
+    ],
+    "movimentoGiorno": 82,
+    "realizzata20": 11.7,
+    "implicitaMenoRealizzata": 5.2,
+    "implicitaTesto": "assicurazione cara",
+    "pendenza": 1.1,
+    "struttura": "piatta",
+    "skew": 7.5,
+    "skewTesto": "put care"
+  },
+  "muri": {
+    "sogliaPunti": 6,
+    "bordi": [
+      {
+        "nome": "VAL cassa mer 04",
+        "tipo": "VAL",
+        "seduta": "2026-11-04",
+        "prezzo": 7715.5
+      },
+      {
+        "nome": "VAH cassa mer 04",
+        "tipo": "VAH",
+        "seduta": "2026-11-04",
+        "prezzo": 7741.75
+      },
+      {
+        "nome": "POC cassa mer 04",
+        "tipo": "POC",
+        "seduta": "2026-11-04",
+        "prezzo": 7729.25
+      },
+      {
+        "nome": "muro alto del ping-pong",
+        "tipo": "muro alto",
+        "seduta": "2026-11-02",
+        "prezzo": 7746.25
+      },
+      {
+        "nome": "muro basso del ping-pong",
+        "tipo": "muro basso",
+        "seduta": "2026-11-02",
+        "prezzo": 7490
+      }
+    ],
+    "muri": [
+      {
+        "muro": "freno più forte",
+        "prezzo": 7854.75,
+        "dalPrezzo": 131
+      },
+      {
+        "muro": "acceleratore più forte",
+        "prezzo": 7632.25,
+        "dalPrezzo": -91.5
+      },
+      {
+        "muro": "flip",
+        "prezzo": 7761.12,
+        "dalPrezzo": 37.37
+      },
+      {
+        "muro": "flip",
+        "prezzo": 7929.42,
+        "dalPrezzo": 205.67
+      }
+    ],
+    "vicini": [],
+    "nota": null
+  },
+  "grilletto": "l'order flow (tab 3 e 4): al muro con freno si cerca l'assorbimento e il ritorno al POC, con acceleratore l'accettazione oltre; qui nessun segnale",
+  "errori": []
+}

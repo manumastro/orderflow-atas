@@ -1,0 +1,654 @@
+{
+  "quando": 1793635200000,
+  "prezzoNQ": 28760.5,
+  "fonti": [
+    {
+      "id": "gex-nq",
+      "nome": "NQ (catena CME)",
+      "fonte": "catena",
+      "quando": 1793635200000,
+      "secondiFa": 300,
+      "conversione": null,
+      "scadenze": "tutte",
+      "totale": -337,
+      "zeroGamma": 29054,
+      "callWall": 29500,
+      "putWall": 28000,
+      "strike": [
+        {
+          "prezzo": 27250,
+          "gex": -0.04
+        },
+        {
+          "prezzo": 27350,
+          "gex": -3.71
+        },
+        {
+          "prezzo": 27450,
+          "gex": -3.31
+        },
+        {
+          "prezzo": 27550,
+          "gex": -14.4
+        },
+        {
+          "prezzo": 27650,
+          "gex": -11.09
+        },
+        {
+          "prezzo": 27750,
+          "gex": -16.5
+        },
+        {
+          "prezzo": 27850,
+          "gex": -19.95
+        },
+        {
+          "prezzo": 27950,
+          "gex": -23.43
+        },
+        {
+          "prezzo": 28050,
+          "gex": -36.5
+        },
+        {
+          "prezzo": 28150,
+          "gex": -40.92
+        },
+        {
+          "prezzo": 28250,
+          "gex": -46.29
+        },
+        {
+          "prezzo": 28350,
+          "gex": -49.94
+        },
+        {
+          "prezzo": 28450,
+          "gex": -52.43
+        },
+        {
+          "prezzo": 28550,
+          "gex": -53.02
+        },
+        {
+          "prezzo": 28650,
+          "gex": -44.44
+        },
+        {
+          "prezzo": 28750,
+          "gex": -34.45
+        },
+        {
+          "prezzo": 28850,
+          "gex": -30.62
+        },
+        {
+          "prezzo": 28950,
+          "gex": -17.82
+        },
+        {
+          "prezzo": 29050,
+          "gex": -3.22
+        },
+        {
+          "prezzo": 29150,
+          "gex": 13.17
+        },
+        {
+          "prezzo": 29250,
+          "gex": 17.71
+        },
+        {
+          "prezzo": 29350,
+          "gex": 23.81
+        },
+        {
+          "prezzo": 29450,
+          "gex": 29.26
+        },
+        {
+          "prezzo": 29550,
+          "gex": 22.32
+        },
+        {
+          "prezzo": 29650,
+          "gex": 21.5
+        },
+        {
+          "prezzo": 29750,
+          "gex": 18.88
+        },
+        {
+          "prezzo": 29850,
+          "gex": 12.05
+        },
+        {
+          "prezzo": 29950,
+          "gex": 9.16
+        },
+        {
+          "prezzo": 30050,
+          "gex": 3.4
+        },
+        {
+          "prezzo": 30150,
+          "gex": 2.86
+        },
+        {
+          "prezzo": 30250,
+          "gex": 6.48
+        }
+      ]
+    },
+    {
+      "id": "gex-qqq",
+      "nome": "QQQ (Cboe)",
+      "fonte": "cboe",
+      "quando": 1793634300000,
+      "secondiFa": 900,
+      "scadenze": "tutte",
+      "conversione": {
+        "da": "QQQ",
+        "tipo": "rapporto",
+        "valore": 41.52,
+        "nota": "NQ / QQQ alla stessa ora"
+      },
+      "totale": -1210.5,
+      "zeroGamma": 28990,
+      "callWall": 29480,
+      "putWall": 28150,
+      "strike": [
+        {
+          "prezzo": 27421.36,
+          "gex": -7.54
+        },
+        {
+          "prezzo": 27504.4,
+          "gex": -35.86
+        },
+        {
+          "prezzo": 27587.44,
+          "gex": -22.38
+        },
+        {
+          "prezzo": 27670.48,
+          "gex": -42.35
+        },
+        {
+          "prezzo": 27753.52,
+          "gex": -62.81
+        },
+        {
+          "prezzo": 27836.56,
+          "gex": -71.68
+        },
+        {
+          "prezzo": 27919.6,
+          "gex": -73.34
+        },
+        {
+          "prezzo": 28002.64,
+          "gex": -97.93
+        },
+        {
+          "prezzo": 28085.68,
+          "gex": -113.53
+        },
+        {
+          "prezzo": 28168.72,
+          "gex": -120.9
+        },
+        {
+          "prezzo": 28251.76,
+          "gex": -122.08
+        },
+        {
+          "prezzo": 28334.8,
+          "gex": -133.39
+        },
+        {
+          "prezzo": 28417.84,
+          "gex": -140.6
+        },
+        {
+          "prezzo": 28500.88,
+          "gex": -126.79
+        },
+        {
+          "prezzo": 28583.92,
+          "gex": -145.06
+        },
+        {
+          "prezzo": 28666.96,
+          "gex": -121.61
+        },
+        {
+          "prezzo": 28750,
+          "gex": -101.68
+        },
+        {
+          "prezzo": 28833.04,
+          "gex": -80.03
+        },
+        {
+          "prezzo": 28916.08,
+          "gex": -45.12
+        },
+        {
+          "prezzo": 28999.12,
+          "gex": 1.46
+        },
+        {
+          "prezzo": 29082.16,
+          "gex": 24.53
+        },
+        {
+          "prezzo": 29165.2,
+          "gex": 52.77
+        },
+        {
+          "prezzo": 29248.24,
+          "gex": 86.8
+        },
+        {
+          "prezzo": 29331.28,
+          "gex": 89.65
+        },
+        {
+          "prezzo": 29414.32,
+          "gex": 89.17
+        },
+        {
+          "prezzo": 29497.36,
+          "gex": 75.37
+        },
+        {
+          "prezzo": 29580.4,
+          "gex": 78.79
+        },
+        {
+          "prezzo": 29663.44,
+          "gex": 72.46
+        },
+        {
+          "prezzo": 29746.48,
+          "gex": 58.6
+        },
+        {
+          "prezzo": 29829.52,
+          "gex": 45.81
+        },
+        {
+          "prezzo": 29912.56,
+          "gex": 35.21
+        },
+        {
+          "prezzo": 29995.6,
+          "gex": 22.06
+        },
+        {
+          "prezzo": 30078.64,
+          "gex": 17.67
+        }
+      ]
+    },
+    {
+      "id": "gex-ndx",
+      "nome": "NDX (Cboe)",
+      "fonte": "cboe",
+      "conversione": {
+        "da": "NDX",
+        "tipo": "base",
+        "valore": 375.2,
+        "nota": "NQ - NDX alla stessa ora"
+      },
+      "strike": []
+    }
+  ],
+  "qqq": {
+    "prezzo": 687.8,
+    "quando": 1793873448869,
+    "secondiFa": 0,
+    "sessione": "pre",
+    "chiusuraPrima": 685.28,
+    "variazione": 0.37,
+    "rapportoNQ": 41.2998,
+    "prezzoCboe": 689.02,
+    "quandoCboe": 1793825999000,
+    "fonte": "yahoo"
+  },
+  "unOraFa": {
+    "ts": 1793878630800,
+    "future": 28431.5,
+    "totale": -736.7,
+    "zero": 28835.74,
+    "callWall": 28700,
+    "putWall": 28000,
+    "totale0": -70,
+    "zero0": 28501.17,
+    "callWall0": 28700,
+    "putWall0": 28250
+  },
+  "movimentoOggi": 330,
+  "finestra": [
+    28100.5,
+    29420.5
+  ],
+  "scala": [
+    {
+      "prezzo": 29864.33,
+      "da": 29864.33,
+      "a": 29864.33,
+      "voci": [
+        {
+          "cosa": "call wall (Cboe NDX)",
+          "tipo": "call-wall",
+          "fonte": "cboe",
+          "scadenza": "tutte",
+          "peso": null,
+          "secondiFa": 55420
+        }
+      ],
+      "distanza": 1103.83,
+      "quando": "adesso",
+      "seduta": null,
+      "zona": false
+    },
+    {
+      "prezzo": 29033.34,
+      "da": 29033.34,
+      "a": 29033.34,
+      "voci": [
+        {
+          "cosa": "call wall (Cboe QQQ)",
+          "tipo": "call-wall",
+          "fonte": "cboe",
+          "scadenza": "tutte",
+          "peso": null,
+          "secondiFa": 56320
+        }
+      ],
+      "distanza": 272.84,
+      "quando": "adesso",
+      "seduta": null,
+      "zona": false
+    },
+    {
+      "prezzo": 28969,
+      "da": 28969,
+      "a": 28969,
+      "voci": [
+        {
+          "cosa": "muro alto del ping-pong",
+          "tipo": "bordo",
+          "fonte": "atas",
+          "scadenza": null,
+          "peso": null,
+          "secondiFa": null
+        }
+      ],
+      "distanza": 208.5,
+      "quando": "adesso",
+      "seduta": null,
+      "zona": false
+    },
+    {
+      "prezzo": 28901.86,
+      "da": 28901.86,
+      "a": 28901.86,
+      "voci": [
+        {
+          "cosa": "zero gamma (Cboe QQQ)",
+          "tipo": "zero",
+          "fonte": "cboe",
+          "scadenza": "tutte",
+          "peso": null,
+          "secondiFa": 56320
+        }
+      ],
+      "distanza": 141.36,
+      "quando": "adesso",
+      "seduta": null,
+      "zona": false
+    },
+    {
+      "prezzo": 28839.8,
+      "da": 28837.83,
+      "a": 28841.77,
+      "voci": [
+        {
+          "cosa": "zero gamma",
+          "tipo": "zero",
+          "fonte": "catena",
+          "scadenza": "tutte",
+          "peso": null,
+          "secondiFa": 1333
+        },
+        {
+          "cosa": "zero gamma (Cboe NDX)",
+          "tipo": "zero",
+          "fonte": "cboe",
+          "scadenza": "tutte",
+          "peso": null,
+          "secondiFa": 55420
+        }
+      ],
+      "distanza": 79.3,
+      "quando": "adesso",
+      "seduta": null,
+      "zona": true
+    },
+    {
+      "prezzo": 28785,
+      "da": 28785,
+      "a": 28785,
+      "voci": [
+        {
+          "cosa": "VAH cassa mer 04",
+          "tipo": "bordo",
+          "fonte": "atas",
+          "scadenza": null,
+          "peso": null,
+          "secondiFa": null
+        }
+      ],
+      "distanza": 24.5,
+      "quando": "adesso",
+      "seduta": null,
+      "zona": false
+    },
+    {
+      "prezzo": 28700,
+      "da": 28700,
+      "a": 28700,
+      "voci": [
+        {
+          "cosa": "call wall",
+          "tipo": "call-wall",
+          "fonte": "catena",
+          "scadenza": "tutte",
+          "peso": null,
+          "secondiFa": 1333
+        },
+        {
+          "cosa": "call wall 0DTE",
+          "tipo": "call-wall",
+          "fonte": "catena",
+          "scadenza": "0dte-nq",
+          "peso": null,
+          "secondiFa": 1333
+        }
+      ],
+      "distanza": -60.5,
+      "quando": "adesso",
+      "seduta": null,
+      "zona": true
+    },
+    {
+      "prezzo": 28632,
+      "da": 28632,
+      "a": 28632,
+      "voci": [
+        {
+          "cosa": "POC cassa mer 04",
+          "tipo": "bordo",
+          "fonte": "atas",
+          "scadenza": null,
+          "peso": null,
+          "secondiFa": null
+        }
+      ],
+      "distanza": -128.5,
+      "quando": "adesso",
+      "seduta": null,
+      "zona": false
+    },
+    {
+      "prezzo": 28576.68,
+      "da": 28558,
+      "a": 28595.35,
+      "voci": [
+        {
+          "cosa": "VAL cassa mer 04",
+          "tipo": "bordo",
+          "fonte": "atas",
+          "scadenza": null,
+          "peso": null,
+          "secondiFa": null
+        },
+        {
+          "cosa": "call wall 0DTE (Cboe QQQ)",
+          "tipo": "call-wall",
+          "fonte": "cboe",
+          "scadenza": "0dte-nq",
+          "peso": null,
+          "secondiFa": 56320
+        },
+        {
+          "cosa": "put wall 0DTE (Cboe QQQ)",
+          "tipo": "put-wall",
+          "fonte": "cboe",
+          "scadenza": "0dte-nq",
+          "peso": null,
+          "secondiFa": 56320
+        },
+        {
+          "cosa": "zero gamma 0DTE (Cboe QQQ)",
+          "tipo": "zero-0dte",
+          "fonte": "cboe",
+          "scadenza": "0dte-nq",
+          "peso": null,
+          "secondiFa": 56320
+        }
+      ],
+      "distanza": -183.82,
+      "quando": "adesso",
+      "seduta": null,
+      "zona": true
+    },
+    {
+      "prezzo": 28506.05,
+      "da": 28506.05,
+      "a": 28506.05,
+      "voci": [
+        {
+          "cosa": "zero gamma 0DTE",
+          "tipo": "zero-0dte",
+          "fonte": "catena",
+          "scadenza": "0dte-nq",
+          "peso": null,
+          "secondiFa": 1333
+        }
+      ],
+      "distanza": -254.45,
+      "quando": "adesso",
+      "seduta": null,
+      "zona": false
+    },
+    {
+      "prezzo": 28250,
+      "da": 28250,
+      "a": 28250,
+      "voci": [
+        {
+          "cosa": "put wall 0DTE",
+          "tipo": "put-wall",
+          "fonte": "catena",
+          "scadenza": "0dte-nq",
+          "peso": null,
+          "secondiFa": 1333
+        }
+      ],
+      "distanza": -510.5,
+      "quando": "adesso",
+      "seduta": null,
+      "zona": false
+    },
+    {
+      "prezzo": 28196.58,
+      "da": 28189.33,
+      "a": 28203.82,
+      "voci": [
+        {
+          "cosa": "put wall (Cboe NDX)",
+          "tipo": "put-wall",
+          "fonte": "cboe",
+          "scadenza": "tutte",
+          "peso": null,
+          "secondiFa": 55420
+        },
+        {
+          "cosa": "put wall (Cboe QQQ)",
+          "tipo": "put-wall",
+          "fonte": "cboe",
+          "scadenza": "tutte",
+          "peso": null,
+          "secondiFa": 56320
+        }
+      ],
+      "distanza": -563.92,
+      "quando": "adesso",
+      "seduta": null,
+      "zona": true
+    },
+    {
+      "prezzo": 28000,
+      "da": 28000,
+      "a": 28000,
+      "voci": [
+        {
+          "cosa": "put wall",
+          "tipo": "put-wall",
+          "fonte": "catena",
+          "scadenza": "tutte",
+          "peso": null,
+          "secondiFa": 1333
+        }
+      ],
+      "distanza": -760.5,
+      "quando": "adesso",
+      "seduta": null,
+      "zona": false
+    },
+    {
+      "prezzo": 27615.75,
+      "da": 27615.75,
+      "a": 27615.75,
+      "voci": [
+        {
+          "cosa": "muro basso del ping-pong",
+          "tipo": "bordo",
+          "fonte": "atas",
+          "scadenza": null,
+          "peso": null,
+          "secondiFa": null
+        }
+      ],
+      "distanza": -1144.75,
+      "quando": "adesso",
+      "seduta": null,
+      "zona": false
+    }
+  ]
+}

@@ -1,0 +1,209 @@
+{
+  "quando": 1793635200000,
+  "curve": [
+    {
+      "id": "termine-es",
+      "nome": "ES (catena)",
+      "indice": "SPX",
+      "fonte": "catena",
+      "quando": 1793635200000,
+      "punti": [
+        {
+          "scadenza": "2026-11-03",
+          "giorni": 1.2,
+          "vol": 15.94,
+          "sospetto": false
+        },
+        {
+          "scadenza": "2026-11-06",
+          "giorni": 4.2,
+          "vol": 17.01,
+          "sospetto": false
+        },
+        {
+          "scadenza": "2026-11-13",
+          "giorni": 11.2,
+          "vol": 17.55,
+          "sospetto": false
+        },
+        {
+          "scadenza": "2026-11-20",
+          "giorni": 18.2,
+          "vol": 18.15,
+          "sospetto": false
+        },
+        {
+          "scadenza": "2026-11-27",
+          "giorni": 25.4,
+          "vol": 18.27,
+          "sospetto": false
+        },
+        {
+          "scadenza": "2026-12-18",
+          "giorni": 46.2,
+          "vol": 19.22,
+          "sospetto": false
+        },
+        {
+          "scadenza": "2027-01-15",
+          "giorni": 74.2,
+          "vol": 19.57,
+          "sospetto": false
+        },
+        {
+          "scadenza": "2027-03-19",
+          "giorni": 137.2,
+          "vol": 20.3,
+          "sospetto": false
+        }
+      ]
+    },
+    {
+      "id": "termine-xray",
+      "nome": "X-Ray (tre scadenze)",
+      "indice": "SPX",
+      "fonte": "xray",
+      "quando": 1793635140000,
+      "punti": [
+        {
+          "scadenza": "2026-11-03",
+          "giorni": 1.2,
+          "vol": 14.92,
+          "sospetto": false
+        },
+        {
+          "scadenza": "2026-11-20",
+          "giorni": 18.2,
+          "vol": 17.22,
+          "sospetto": false
+        },
+        {
+          "scadenza": "2026-12-18",
+          "giorni": 46.2,
+          "vol": 17.74,
+          "sospetto": false
+        }
+      ]
+    },
+    {
+      "id": "termine-nq",
+      "nome": "NQ (catena)",
+      "indice": "NDX",
+      "fonte": "catena",
+      "quando": 1793635200000,
+      "punti": [
+        {
+          "scadenza": "2026-11-03",
+          "giorni": 1.2,
+          "vol": 20.4,
+          "sospetto": false
+        },
+        {
+          "scadenza": "2026-11-06",
+          "giorni": 4.2,
+          "vol": 21.01,
+          "sospetto": false
+        },
+        {
+          "scadenza": "2026-11-13",
+          "giorni": 11.2,
+          "vol": 21.82,
+          "sospetto": false
+        },
+        {
+          "scadenza": "2026-11-20",
+          "giorni": 18.2,
+          "vol": 22.07,
+          "sospetto": false
+        },
+        {
+          "scadenza": "2026-11-27",
+          "giorni": 25.4,
+          "vol": 22.34,
+          "sospetto": false
+        },
+        {
+          "scadenza": "2026-12-18",
+          "giorni": 46.2,
+          "vol": 22.85,
+          "sospetto": false
+        },
+        {
+          "scadenza": "2027-01-15",
+          "giorni": 74.2,
+          "vol": 23.41,
+          "sospetto": false
+        },
+        {
+          "scadenza": "2027-03-19",
+          "giorni": 137.2,
+          "vol": 23.76,
+          "sospetto": false
+        }
+      ]
+    },
+    {
+      "id": "termine-ndx",
+      "nome": "NDX (Cboe)",
+      "indice": "NDX",
+      "fonte": "cboe",
+      "quando": 1793634300000,
+      "punti": [
+        {
+          "scadenza": "2026-11-06",
+          "giorni": 4.2,
+          "vol": 21.41,
+          "sospetto": false
+        },
+        {
+          "scadenza": "2026-11-13",
+          "giorni": 11.2,
+          "vol": 22.11,
+          "sospetto": false
+        },
+        {
+          "scadenza": "2026-11-20",
+          "giorni": 18.2,
+          "vol": 22.5,
+          "sospetto": false
+        },
+        {
+          "scadenza": "2026-11-27",
+          "giorni": 25.4,
+          "vol": 22.68,
+          "sospetto": false
+        },
+        {
+          "scadenza": "2026-12-18",
+          "giorni": 46.2,
+          "vol": 22.99,
+          "sospetto": false
+        },
+        {
+          "scadenza": "2027-01-15",
+          "giorni": 74.2,
+          "vol": 23.42,
+          "sospetto": false
+        },
+        {
+          "scadenza": "2027-03-19",
+          "giorni": 137.2,
+          "vol": 24.26,
+          "sospetto": false
+        }
+      ]
+    },
+    {
+      "id": "termine-qqq",
+      "indice": "NDX",
+      "fonte": "cboe",
+      "punti": []
+    }
+  ],
+  "eventi": [
+    {
+      "giorno": "2026-11-05",
+      "nome": "Sussidi di disoccupazione USA (att. 197 mila, prec. 194)"
+    }
+  ]
+}

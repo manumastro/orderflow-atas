@@ -1,0 +1,651 @@
+{
+  "giorno": "2026-10-30",
+  "ts": 1793379600000,
+  "riferimento": {
+    "prezzo": 7583.75,
+    "fonte": "spot SPX",
+    "vivo": true,
+    "spotX": 7583.75,
+    "es": 7613.75
+  },
+  "base": {
+    "valore": 30.45,
+    "campioni": 389,
+    "giorno": "2026-10-30",
+    "fonte": "mediana di ES - SPX sui minuti di cassa"
+  },
+  "gamma": {
+    "valore": -137.67,
+    "regime": "acceleratore",
+    "istante": 1793379600000,
+    "da": 1793367420000
+  },
+  "charm": {
+    "valore": 38.79,
+    "istante": 1793379600000
+  },
+  "flip": [
+    7560.11,
+    7495.58,
+    7688.21
+  ],
+  "picchiPositivi": [
+    {
+      "strike": 7798.5,
+      "peso": 238.4,
+      "sotto": 7741,
+      "sopra": 7861
+    },
+    {
+      "strike": 7526,
+      "peso": 138.7,
+      "sotto": 7511,
+      "sopra": 7543.5
+    }
+  ],
+  "picchiNegativi": [
+    {
+      "strike": 7406,
+      "peso": -539.2,
+      "sotto": 7401,
+      "sopra": 7451
+    },
+    {
+      "strike": 7611,
+      "peso": -233.5,
+      "sotto": 7586,
+      "sopra": 7643.5
+    }
+  ],
+  "outlook": {
+    "istante": 1793629800000,
+    "da": 1793629800000,
+    "fino": 1793653140000,
+    "zeri": [
+      7426.37,
+      7628.86,
+      7895.97
+    ],
+    "positivi": [
+      {
+        "strike": 7786,
+        "peso": 428.5,
+        "sotto": 7756,
+        "sopra": 7821
+      },
+      {
+        "strike": 7698.5,
+        "peso": 268.8,
+        "sotto": 7676,
+        "sopra": 7843.5
+      }
+    ],
+    "negativi": [],
+    "seduta": "2026-11-02"
+  },
+  "gex": [
+    {
+      "scadenza": "0dte",
+      "presente": true,
+      "istante": 1793379600000,
+      "dte": 0,
+      "scade": 1793390400000,
+      "netto": -2.072,
+      "call": -84.992,
+      "put": 82.92,
+      "entroUnoPercento": 0.628,
+      "muroFreno": {
+        "strike": 7525,
+        "valore": 50.544
+      },
+      "muroAcceleratore": {
+        "strike": 7600,
+        "valore": -47.17
+      }
+    },
+    {
+      "scadenza": "next_expiry",
+      "presente": true,
+      "istante": 1793379600000,
+      "dte": 3,
+      "scade": 1793653200000,
+      "netto": -8.485,
+      "call": -9.521,
+      "put": 1.036,
+      "entroUnoPercento": -17.044,
+      "muroFreno": {
+        "strike": 7500,
+        "valore": 9.834
+      },
+      "muroAcceleratore": {
+        "strike": 7600,
+        "valore": -15.687
+      }
+    },
+    {
+      "scadenza": "opex",
+      "presente": true,
+      "istante": 1793379600000,
+      "dte": 21,
+      "scade": 1795184100000,
+      "netto": -21.406,
+      "call": 15.973,
+      "put": -37.379,
+      "entroUnoPercento": -7.382,
+      "muroFreno": {
+        "strike": 7800,
+        "valore": 21.278
+      },
+      "muroAcceleratore": {
+        "strike": 7500,
+        "valore": -26.246
+      }
+    }
+  ],
+  "vex": [
+    {
+      "scadenza": "0dte",
+      "presente": true,
+      "istante": 1793379600000,
+      "dte": 0,
+      "scade": 1793390400000,
+      "netto": -12809.928,
+      "call": -4036.543,
+      "put": -8773.385,
+      "entroUnoPercento": -14603.187,
+      "muroFreno": {
+        "strike": 7700,
+        "valore": 2517.753
+      },
+      "muroAcceleratore": {
+        "strike": 7525,
+        "valore": -10273.78
+      }
+    },
+    {
+      "scadenza": "next_expiry",
+      "presente": true,
+      "istante": 1793379600000,
+      "dte": 3,
+      "scade": 1793653200000,
+      "netto": -3956.248,
+      "call": -918.196,
+      "put": -3038.052,
+      "entroUnoPercento": -3438.255,
+      "muroFreno": {
+        "strike": 7495,
+        "valore": 4987.252
+      },
+      "muroAcceleratore": {
+        "strike": 7500,
+        "valore": -5820.711
+      }
+    },
+    {
+      "scadenza": "opex",
+      "presente": true,
+      "istante": 1793379600000,
+      "dte": 21,
+      "scade": 1795184100000,
+      "netto": 60166.297,
+      "call": -119902.36,
+      "put": 180068.657,
+      "entroUnoPercento": 928.639,
+      "muroFreno": {
+        "strike": 7800,
+        "valore": 31225.6
+      },
+      "muroAcceleratore": {
+        "strike": 7950,
+        "valore": -12927.07
+      }
+    }
+  ],
+  "dex": [
+    {
+      "gruppo": "firm",
+      "zeroDte": 2029.32,
+      "zeroDteTrentaMinuti": 204.77,
+      "tutte": 3395.66,
+      "tutteTrentaMinuti": 394.87
+    },
+    {
+      "gruppo": "broker",
+      "zeroDte": 281.6,
+      "zeroDteTrentaMinuti": 17.12,
+      "tutte": 553.99,
+      "tutteTrentaMinuti": -64.27
+    },
+    {
+      "gruppo": "procust",
+      "zeroDte": -4276.91,
+      "zeroDteTrentaMinuti": -689.67,
+      "tutte": -1757.61,
+      "tutteTrentaMinuti": -424.67
+    },
+    {
+      "gruppo": "nonprocust",
+      "zeroDte": 455.8,
+      "zeroDteTrentaMinuti": 1353.67,
+      "tutte": 10897.15,
+      "tutteTrentaMinuti": 1482.08
+    }
+  ],
+  "pressione": {
+    "delta": -1940.75,
+    "trades": 1507.24,
+    "trentaMinutiPrima": -735.48,
+    "istante": 1793379600000,
+    "verso": null,
+    "unita": null
+  },
+  "flipVicino": {
+    "prezzo": 7560.11,
+    "distanza": -23.64,
+    "sopra": "freno",
+    "sotto": "freno"
+  },
+  "scala": [
+    {
+      "prezzo": 7895.97,
+      "da": 7895.97,
+      "a": 7895.97,
+      "voci": [
+        {
+          "cosa": "flip",
+          "tipo": "flip",
+          "fonte": "xray",
+          "scadenza": null,
+          "peso": null,
+          "secondiFa": null
+        }
+      ],
+      "distanza": 312.22,
+      "quando": "prossima seduta",
+      "seduta": "2026-11-02",
+      "zona": false
+    },
+    {
+      "prezzo": 7799.25,
+      "da": 7798.5,
+      "a": 7800,
+      "voci": [
+        {
+          "cosa": "freno più forte",
+          "tipo": "freno",
+          "fonte": "xray",
+          "scadenza": null,
+          "peso": 238.4,
+          "secondiFa": null
+        },
+        {
+          "cosa": "muro freno opex",
+          "tipo": "muro-freno",
+          "fonte": "xray",
+          "scadenza": "opex",
+          "peso": 21.278,
+          "secondiFa": null
+        }
+      ],
+      "distanza": 215.5,
+      "quando": "adesso",
+      "seduta": null,
+      "zona": true
+    },
+    {
+      "prezzo": 7786,
+      "da": 7786,
+      "a": 7786,
+      "voci": [
+        {
+          "cosa": "freno più forte",
+          "tipo": "freno",
+          "fonte": "xray",
+          "scadenza": null,
+          "peso": 428.5,
+          "secondiFa": null
+        }
+      ],
+      "distanza": 202.25,
+      "quando": "prossima seduta",
+      "seduta": "2026-11-02",
+      "zona": false
+    },
+    {
+      "prezzo": 7729.8,
+      "da": 7729.8,
+      "a": 7729.8,
+      "voci": [
+        {
+          "cosa": "VAH cassa gio 29",
+          "tipo": "bordo",
+          "fonte": "atas",
+          "scadenza": null,
+          "peso": null,
+          "secondiFa": null
+        }
+      ],
+      "distanza": 146.05,
+      "quando": "adesso",
+      "seduta": null,
+      "zona": false
+    },
+    {
+      "prezzo": 7723.3,
+      "da": 7723.3,
+      "a": 7723.3,
+      "voci": [
+        {
+          "cosa": "POC cassa gio 29",
+          "tipo": "bordo",
+          "fonte": "atas",
+          "scadenza": null,
+          "peso": null,
+          "secondiFa": null
+        }
+      ],
+      "distanza": 139.55,
+      "quando": "adesso",
+      "seduta": null,
+      "zona": false
+    },
+    {
+      "prezzo": 7709.8,
+      "da": 7709.8,
+      "a": 7709.8,
+      "voci": [
+        {
+          "cosa": "VAL cassa gio 29",
+          "tipo": "bordo",
+          "fonte": "atas",
+          "scadenza": null,
+          "peso": null,
+          "secondiFa": null
+        }
+      ],
+      "distanza": 126.05,
+      "quando": "adesso",
+      "seduta": null,
+      "zona": false
+    },
+    {
+      "prezzo": 7698.5,
+      "da": 7698.5,
+      "a": 7698.5,
+      "voci": [
+        {
+          "cosa": "freno",
+          "tipo": "freno",
+          "fonte": "xray",
+          "scadenza": null,
+          "peso": 268.8,
+          "secondiFa": null
+        }
+      ],
+      "distanza": 114.75,
+      "quando": "prossima seduta",
+      "seduta": "2026-11-02",
+      "zona": false
+    },
+    {
+      "prezzo": 7688.21,
+      "da": 7688.21,
+      "a": 7688.21,
+      "voci": [
+        {
+          "cosa": "flip",
+          "tipo": "flip",
+          "fonte": "xray",
+          "scadenza": null,
+          "peso": null,
+          "secondiFa": null
+        }
+      ],
+      "distanza": 104.46,
+      "quando": "adesso",
+      "seduta": null,
+      "zona": false
+    },
+    {
+      "prezzo": 7639.05,
+      "da": 7639.05,
+      "a": 7639.05,
+      "voci": [
+        {
+          "cosa": "VAH cassa ven 30",
+          "tipo": "bordo",
+          "fonte": "atas",
+          "scadenza": null,
+          "peso": null,
+          "secondiFa": null
+        }
+      ],
+      "distanza": 55.3,
+      "quando": "adesso",
+      "seduta": null,
+      "zona": false
+    },
+    {
+      "prezzo": 7628.86,
+      "da": 7628.86,
+      "a": 7628.86,
+      "voci": [
+        {
+          "cosa": "flip",
+          "tipo": "flip",
+          "fonte": "xray",
+          "scadenza": null,
+          "peso": null,
+          "secondiFa": null
+        }
+      ],
+      "distanza": 45.11,
+      "quando": "prossima seduta",
+      "seduta": "2026-11-02",
+      "zona": false
+    },
+    {
+      "prezzo": 7611,
+      "da": 7611,
+      "a": 7611,
+      "voci": [
+        {
+          "cosa": "acceleratore",
+          "tipo": "acceleratore",
+          "fonte": "xray",
+          "scadenza": null,
+          "peso": -233.5,
+          "secondiFa": null
+        }
+      ],
+      "distanza": 27.25,
+      "quando": "adesso",
+      "seduta": null,
+      "zona": false
+    },
+    {
+      "prezzo": 7600,
+      "da": 7600,
+      "a": 7600,
+      "voci": [
+        {
+          "cosa": "muro acceleratore 0DTE",
+          "tipo": "muro-acceleratore",
+          "fonte": "xray",
+          "scadenza": "0dte",
+          "peso": -47.17,
+          "secondiFa": null
+        },
+        {
+          "cosa": "muro acceleratore prossima",
+          "tipo": "muro-acceleratore",
+          "fonte": "xray",
+          "scadenza": "next_expiry",
+          "peso": -15.687,
+          "secondiFa": null
+        }
+      ],
+      "distanza": 16.25,
+      "quando": "adesso",
+      "seduta": null,
+      "zona": true
+    },
+    {
+      "prezzo": 7579.55,
+      "da": 7579.55,
+      "a": 7579.55,
+      "voci": [
+        {
+          "cosa": "POC cassa ven 30",
+          "tipo": "bordo",
+          "fonte": "atas",
+          "scadenza": null,
+          "peso": null,
+          "secondiFa": null
+        }
+      ],
+      "distanza": -4.2,
+      "quando": "adesso",
+      "seduta": null,
+      "zona": false
+    },
+    {
+      "prezzo": 7567.3,
+      "da": 7567.3,
+      "a": 7567.3,
+      "voci": [
+        {
+          "cosa": "VAL cassa ven 30",
+          "tipo": "bordo",
+          "fonte": "atas",
+          "scadenza": null,
+          "peso": null,
+          "secondiFa": null
+        }
+      ],
+      "distanza": -16.45,
+      "quando": "adesso",
+      "seduta": null,
+      "zona": false
+    },
+    {
+      "prezzo": 7560.11,
+      "da": 7560.11,
+      "a": 7560.11,
+      "voci": [
+        {
+          "cosa": "flip",
+          "tipo": "flip",
+          "fonte": "xray",
+          "scadenza": null,
+          "peso": null,
+          "secondiFa": null
+        }
+      ],
+      "distanza": -23.64,
+      "quando": "adesso",
+      "seduta": null,
+      "zona": false
+    },
+    {
+      "prezzo": 7525.5,
+      "da": 7525,
+      "a": 7526,
+      "voci": [
+        {
+          "cosa": "muro freno 0DTE",
+          "tipo": "muro-freno",
+          "fonte": "xray",
+          "scadenza": "0dte",
+          "peso": 50.544,
+          "secondiFa": null
+        },
+        {
+          "cosa": "freno",
+          "tipo": "freno",
+          "fonte": "xray",
+          "scadenza": null,
+          "peso": 138.7,
+          "secondiFa": null
+        }
+      ],
+      "distanza": -58.25,
+      "quando": "adesso",
+      "seduta": null,
+      "zona": true
+    },
+    {
+      "prezzo": 7497.79,
+      "da": 7495.58,
+      "a": 7500,
+      "voci": [
+        {
+          "cosa": "flip",
+          "tipo": "flip",
+          "fonte": "xray",
+          "scadenza": null,
+          "peso": null,
+          "secondiFa": null
+        },
+        {
+          "cosa": "muro freno prossima",
+          "tipo": "muro-freno",
+          "fonte": "xray",
+          "scadenza": "next_expiry",
+          "peso": 9.834,
+          "secondiFa": null
+        },
+        {
+          "cosa": "muro acceleratore opex",
+          "tipo": "muro-acceleratore",
+          "fonte": "xray",
+          "scadenza": "opex",
+          "peso": -26.246,
+          "secondiFa": null
+        }
+      ],
+      "distanza": -85.96,
+      "quando": "adesso",
+      "seduta": null,
+      "zona": true
+    },
+    {
+      "prezzo": 7426.37,
+      "da": 7426.37,
+      "a": 7426.37,
+      "voci": [
+        {
+          "cosa": "flip",
+          "tipo": "flip",
+          "fonte": "xray",
+          "scadenza": null,
+          "peso": null,
+          "secondiFa": null
+        }
+      ],
+      "distanza": -157.38,
+      "quando": "prossima seduta",
+      "seduta": "2026-11-02",
+      "zona": false
+    },
+    {
+      "prezzo": 7406,
+      "da": 7406,
+      "a": 7406,
+      "voci": [
+        {
+          "cosa": "acceleratore più forte",
+          "tipo": "acceleratore",
+          "fonte": "xray",
+          "scadenza": null,
+          "peso": -539.2,
+          "secondiFa": null
+        }
+      ],
+      "distanza": -177.75,
+      "quando": "adesso",
+      "seduta": null,
+      "zona": false
+    }
+  ]
+}

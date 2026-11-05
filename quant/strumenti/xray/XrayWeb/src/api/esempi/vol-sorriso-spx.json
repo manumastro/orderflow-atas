@@ -1,0 +1,176 @@
+{
+ "indice": "SPX",
+ "quando": 1793635200000,
+ "curve": [
+  {
+   "id": "sorriso-es",
+   "nome": "ES 27/11 (catena)",
+   "fonte": "catena",
+   "scadenza": "2026-11-27",
+   "giorni": 25.4,
+   "forward": 7651,
+   "punti": [
+    {
+     "moneyness": -7.99,
+     "strike": 7040,
+     "vol": 50.42
+    },
+    {
+     "moneyness": -7.01,
+     "strike": 7115,
+     "vol": 43.82
+    },
+    {
+     "moneyness": -6.03,
+     "strike": 7190,
+     "vol": 37.83
+    },
+    {
+     "moneyness": -4.98,
+     "strike": 7270,
+     "vol": 31.95
+    },
+    {
+     "moneyness": -4,
+     "strike": 7345,
+     "vol": 27.47
+    },
+    {
+     "moneyness": -3.02,
+     "strike": 7420,
+     "vol": 23.49
+    },
+    {
+     "moneyness": -1.97,
+     "strike": 7500,
+     "vol": 20.02
+    },
+    {
+     "moneyness": -0.99,
+     "strike": 7575,
+     "vol": 17.43
+    },
+    {
+     "moneyness": -0.01,
+     "strike": 7650,
+     "vol": 15.47
+    },
+    {
+     "moneyness": 1.03,
+     "strike": 7730,
+     "vol": 14.11
+    },
+    {
+     "moneyness": 2.01,
+     "strike": 7805,
+     "vol": 13.55
+    },
+    {
+     "moneyness": 2.99,
+     "strike": 7880,
+     "vol": 13.79
+    },
+    {
+     "moneyness": 3.97,
+     "strike": 7955,
+     "vol": 14.64
+    },
+    {
+     "moneyness": 5.02,
+     "strike": 8035,
+     "vol": 16.17
+    },
+    {
+     "moneyness": 6,
+     "strike": 8110,
+     "vol": 18.34
+    },
+    {
+     "moneyness": 6.98,
+     "strike": 8185,
+     "vol": 21.26
+    },
+    {
+     "moneyness": 8.03,
+     "strike": 8265,
+     "vol": 25.18
+    }
+   ]
+  },
+  {
+   "id": "sorriso-xray",
+   "nome": "X-Ray opex 20/11",
+   "fonte": "xray",
+   "scadenza": "2026-11-20",
+   "giorni": 18.2,
+   "forward": 7631.7,
+   "punti": [
+    {
+     "moneyness": -2.97,
+     "strike": 7405,
+     "vol": 23.05
+    },
+    {
+     "moneyness": -2.51,
+     "strike": 7440,
+     "vol": 21.35
+    },
+    {
+     "moneyness": -1.99,
+     "strike": 7480,
+     "vol": 19.69
+    },
+    {
+     "moneyness": -1.53,
+     "strike": 7515,
+     "vol": 18.36
+    },
+    {
+     "moneyness": -1.01,
+     "strike": 7555,
+     "vol": 16.93
+    },
+    {
+     "moneyness": -0.48,
+     "strike": 7595,
+     "vol": 15.84
+    },
+    {
+     "moneyness": -0.02,
+     "strike": 7630,
+     "vol": 14.92
+    },
+    {
+     "moneyness": 0.5,
+     "strike": 7670,
+     "vol": 14.07
+    },
+    {
+     "moneyness": 1.03,
+     "strike": 7710,
+     "vol": 13.49
+    },
+    {
+     "moneyness": 1.48,
+     "strike": 7745,
+     "vol": 13.24
+    },
+    {
+     "moneyness": 2.01,
+     "strike": 7785,
+     "vol": 13
+    },
+    {
+     "moneyness": 2.47,
+     "strike": 7820,
+     "vol": 12.86
+    },
+    {
+     "moneyness": 2.99,
+     "strike": 7860,
+     "vol": 13.02
+    }
+   ]
+  }
+ ]
+}
