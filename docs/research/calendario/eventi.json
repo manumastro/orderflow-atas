@@ -270,49 +270,49 @@
     "ora": "19:00",
     "evento": "FOMC, conferenza 19:30 (28/10: +25 pb ZQ 8%, Polymarket 4,6%)",
     "peso": "alto",
-    "esito": ""
+    "esito": "fermi 3,75-4,00%, voto 10-2 (Cook e Hammack per +25 pb); 'attivita' forte', 'inflazione elevata', 'garantira' la stabilita' dei prezzi' (federalreserve.gov). NQZ6 barra 19:00: 29.841-29.918, chiude 29.853"
   },
   {
     "data": "2026-10-28",
     "ora": "dopo le 21:00",
     "evento": "Trimestrali MSFT (EPS att. 4,71 $) e GOOGL (2,94 $)",
     "peso": "alto",
-    "esito": ""
+    "esito": "MSFT EPS 4,89 $ (att. 4,73), Azure +48%, capex sotto le attese; GOOGL capex 51,4 mld, FCF -9,1 mld, 2027 in forte aumento: GOOGL -12%, MSFT -1,3% alle 16:08 (web, Yahoo)"
   },
   {
     "data": "2026-10-29",
     "ora": "13:30",
     "evento": "PIL USA anticipato (att. 3,2%, prec. 1,5%) e PCE core (att. 0,3% m/m)",
     "peso": "alto",
-    "esito": ""
+    "esito": "PIL 3,4% (att. 3,2%); PCE settembre 3,6% a/a (prec. 3,4%), core 3,1% a/a, +0,3% m/m come atteso; spesa reale ferma (web, non verificato alla fonte BEA)"
   },
   {
     "data": "2026-10-29",
     "ora": "13:30",
     "evento": "Sussidi di disoccupazione USA (att. 198 mila, prec. 194)",
     "peso": "medio",
-    "esito": ""
+    "esito": "194 mila (att. 198) (web)"
   },
   {
     "data": "2026-10-29",
     "ora": "dopo le 21:00",
     "evento": "Trimestrali AMZN (EPS att. 2,01 $) e INTC (0,28 $)",
     "peso": "alto",
-    "esito": ""
+    "esito": "AMZN EPS 1,89 $ e ricavi 201,9 mld sotto le attese, flusso di cassa libero a 12 mesi -42,4 mld, capex 2026 confermato a 220 mld: -5/-7% dopo la chiusura; INTC -23% su guidance debole (PC). NQZ6 da 29.593 a 29.111 fra le 21:00 e le 21:06 italiane; seconda gamba all'apertura asiatica (KOSPI -3,5%), minimo 28.821,50 fra le 02:30 e le 03:00 (web + bridge)"
   },
   {
     "data": "2026-10-29",
     "ora": "13:30",
     "evento": "Deflatore del PIL anticipato (att. 3,2%, prec. 6,2%)",
     "peso": "medio",
-    "esito": ""
+    "esito": "2,2% (att. 3,2%) (web)"
   },
   {
     "data": "2026-10-30",
     "ora": "13:30",
     "evento": "Costo del lavoro ECI t/t (att. 0,8%, prec. 0,9%)",
     "peso": "medio",
-    "esito": ""
+    "esito": "dato non raccolto; NQZ6 giorno 29.180 -> 28.543, cassa 28.798 -> 28.527"
   },
   {
     "data": "2026-10-29",
@@ -325,6 +325,118 @@
     "data": "2026-10-30",
     "ora": "prima delle 14:30",
     "evento": "Trimestrali S&P non tech: XOM, ABBV, CVX",
+    "peso": "medio",
+    "esito": ""
+  },
+  {
+    "data": "2026-10-30",
+    "ora": "15:30-22:00",
+    "evento": "Vendite sui chip dopo i conti di AMZN e INTC",
+    "peso": "contesto",
+    "esito": "SMH -6,98%, XLK -4,89%, RSP -0,79%, VXN 28,5 (+13%); causa propria non trovata"
+  },
+  {
+    "data": "2026-11-02",
+    "ora": "16:00",
+    "evento": "ISM manifatturiero USA (att. 54,5, prec. 54,5)",
+    "peso": "medio",
+    "esito": "55,5, sopra l'atteso (ISM); NQ fermo nel valore di venerdi' intorno a 28.700, volatilita' 0DTE di NQ da 35,6% a 28,3%"
+  },
+  {
+    "data": "2026-11-02",
+    "ora": "22:30 circa (conference call 23:00)",
+    "evento": "Trimestrale AAPL (EPS att. 1,98 $), 11,6% del Nasdaq-100",
+    "peso": "alto",
+    "esito": "EPS 2,10 $ (att. 1,98); guida margine delude (memorie): AAPL -2,8% il 3/11, NQ ora 22 +86"
+  },
+  {
+    "data": "2026-11-02",
+    "ora": "16:00-22:00",
+    "evento": "Vendite su NQ in cassa, nessuna notizia propria nei feed",
+    "peso": "contesto",
+    "esito": "NQZ6 da 28.891,25 (ora 16) a 28.101,75 (ora 21), circa -790; delta orario negativo"
+  },
+  {
+    "data": "2026-11-02",
+    "ora": "",
+    "evento": "Iran: i presidenti USA e iraniano aperti a una soluzione diplomatica",
+    "peso": "contesto",
+    "esito": "WTI giu' due giorni, 96,25 il 3/11 alle 16:36 (5 sedute -3,65%) (CNBC, Yahoo)"
+  },
+  {
+    "data": "2026-11-03",
+    "ora": "16:00",
+    "evento": "JOLTS posti vacanti USA (att. 7,15 mln, prec. 7,08)",
+    "peso": "medio",
+    "esito": "7,52 mln (att. 7,15), +333 mila; CNBC, non verif. BLS; NQ ora 16 +56 (47 min)"
+  },
+  {
+    "data": "2026-11-03",
+    "ora": "notte 3-4",
+    "evento": "Elezioni USA di meta' mandato; Iran: attacchi attesi dopo il voto",
+    "peso": "alto",
+    "esito": "Democratici vincono Camera e Senato; Texas a una governatrice che promette la moratoria sui data center. NQZ6 dal massimo 28.512 (00:30) al minimo 27.615,75 (04:00), -896; poi rimbalzo fino a 28.662 (11h). Nessun attacco all'Iran riportato. 10A a circa 4,90%"
+  },
+  {
+    "data": "2026-11-03",
+    "ora": "dopo le 22:00",
+    "evento": "Trimestrale AMD (EPS rettificato att. 1,89-1,95 $, ricavi att. 13,1 mld, data center 8,2 mld; mossa implicita +-8,6%; comunicato dopo la chiusura, call alle 23:00 = 17:00 NY)",
+    "peso": "medio",
+    "esito": "uscita verso le 22:15: ricavi 13,4 mld (att. 13,1), EPS rettificato 2,09 (att. 1,89-1,95), data center 8,5 mld +97% (att. 8,2), margine rettificato 56%, gaming -40%; guida Q4 circa 17 mld +-3%, margine 55%. NQZ6 22:15-22:17 da 28.264 a 28.395 (+130), rientra nel valore della cassa del 2/11"
+  },
+  {
+    "data": "2026-11-04",
+    "ora": "14:15",
+    "evento": "ADP occupati privati USA, ottobre (att. 70 mila)",
+    "peso": "medio",
+    "esito": "86 mila (att. 70); NQZ6 14:00-14:30 da 28.269 a 28.410"
+  },
+  {
+    "data": "2026-11-04",
+    "ora": "16:00",
+    "evento": "ISM servizi USA (att. 54,8, prec. 54,9)",
+    "peso": "medio",
+    "esito": "dato non trovato (dati e 2 ricerche web); NQZ6 ora 16: 28.818 -> 28.629"
+  },
+  {
+    "data": "2026-11-04",
+    "ora": "dopo le 22:00",
+    "evento": "Trimestrale QCOM (EPS att. 1,46 $)",
+    "peso": "medio",
+    "esito": "esito non nei dati; NQZ6 ora 22: 28.567 -> 28.647"
+  },
+  {
+    "data": "2026-11-05",
+    "ora": "14:30",
+    "evento": "Sussidi di disoccupazione USA (att. 197 mila, prec. 194)",
+    "peso": "medio",
+    "esito": "189 mila (att. 197), FRED ICSA; NQZ6 ora 14 quasi ferma, 28.327 -> 28.308"
+  },
+  {
+    "data": "2026-11-05",
+    "ora": "15:30-16:17",
+    "evento": "Crollo di NQ all'apertura della cassa, causa non dichiarata",
+    "peso": "contesto",
+    "esito": "NQZ6 28.308 -> 27.303 (-1.005); SMH -7,7%, VXN 30,3; Hammack e Barkin per rialzi"
+  },
+  {
+    "data": "2026-11-06",
+    "ora": "14:30",
+    "evento": "Occupati non agricoli USA, ottobre (att. 65 mila, prec. 29)",
+    "peso": "alto",
+    "esito": ""
+  },
+  {
+    "data": "2026-11-06",
+    "ora": "14:30",
+    "evento": "Disoccupazione USA (att. 4,2%) e salari orari m/m (att. 0,3%)",
+    "peso": "alto",
+    "esito": ""
+  },
+  {
+    "data": "2026-11-06",
+    "ora": "16:00",
+    "evento": "Fiducia Michigan prelim. (att. 48,1) e attese d'inflazione",
     "peso": "medio",
     "esito": ""
   }
