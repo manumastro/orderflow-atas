@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- K3 della scala dei tre tempi: il range della cassa nei giorni misti contro quelli allineati. Una
+       descrizione, non una strategia: non passa dal registro. Solo dentro campione (fino al 31/12/2024). -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../../../framework/Quant.Studi/Quant.Studi.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="Quant.Dati" />
+    <Using Include="Quant.Calcolo" />
+    <Using Include="Quant.Studi" />
+  </ItemGroup>
+</Project>

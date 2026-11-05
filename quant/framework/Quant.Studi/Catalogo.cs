@@ -8,6 +8,7 @@ public static class Catalogo
         ["momento-intraday"] = () => new MomentoIntraday(),
         ["vwap-tendenza"] = () => new VwapTendenza(),
         ["anomalia-notte"] = () => new AnomaliaNotte(),
+        ["scala-dei-tre-tempi"] = () => new ScalaDeiTreTempi(),
     };
 
     public static IEnumerable<string> Nomi => Fabbriche.Keys.Order();

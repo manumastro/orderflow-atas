@@ -71,5 +71,6 @@ consuma i dati veri e non entra nel registro vero.
 | `momento-intraday` | [momento-intraday](../studi/momento-intraday/1-idea.md) | 1 |
 | `vwap-tendenza` | [vwap-tendenza](../studi/vwap-tendenza/1-idea.md) | 2 |
 | `anomalia-notte` | [anomalia-notte](../studi/anomalia-notte/1-idea.md) | 4 |
+| `scala-dei-tre-tempi` | [scala-dei-tre-tempi](../studi/scala-dei-tre-tempi/1-idea.md) | no: da un video (5 novembre 2026) |
 
 La PEAD (esempio 3) non c'e': lavora su azioni, utili e consenso degli analisti, e lo scope e' NQ.

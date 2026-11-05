@@ -102,10 +102,15 @@ public static class Validatore
             cancelli.Add(new("F4", "fuori: mai guardato da un'altra variante", giaVisto.Count == 0 ? "intatto" : $"gia' visto da {string.Join(", ", giaVisto)}", giaVisto.Count == 0));
         }
 
+        // le regole in parole si leggono da una strategia preparata con gli stessi parametri: senza Prepara
+        // gli orari e le scelte valgono zero (fino al 5 novembre 2026 il rapporto scriveva "alle 00:00 ET")
+        var preparata = fabbrica();
+        preparata.Prepara(parametri);
+
         return new EsitoValidazione
         {
             Strategia = dentro.Risultato.Strategia,
-            Regole = fabbrica().Regole,
+            Regole = preparata.Regole,
             Idea = fabbrica().Idea,
             Divisione = divisione,
             Dentro = dentro,

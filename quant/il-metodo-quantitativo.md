@@ -70,6 +70,7 @@ studi/<idea>/
 | [`momento-intraday`](studi/momento-intraday/1-idea.md) | esempio 1 del transcript | codificato, in attesa della storia lunga |
 | [`vwap-tendenza`](studi/vwap-tendenza/1-idea.md) | esempio 2 del transcript | codificato, in attesa della storia lunga |
 | [`anomalia-notte`](studi/anomalia-notte/1-idea.md) | esempio 4 del transcript | codificato, in attesa della storia lunga |
+| [`scala-dei-tre-tempi`](studi/scala-dei-tre-tempi/1-idea.md) | la scala (one time framing) di mese, settimana e giorno, da un video del 5/11/2026 | validato dentro il 5/11/2026: **smentito** (5 varianti, nessuna batte il nullo; il tempo misto non e' piu' stretto) |
 
 La PEAD (esempio 3) non c'e': lavora su azioni, utili e consenso degli analisti, e lo scope e' NQ.
 
