@@ -25,7 +25,8 @@ indicatori X-Ray aperti su un chart ES. Cosa sono e come si leggono:
    l'API della pagina: `curl -s http://127.0.0.1:8790/api/adesso` (le rotte in
    `quant/strumenti/xray/x-ray-lettore-e-dashboard.md`, "L'API").
 2. **Se il lettore e' FERMO**: `powershell -File quant/strumenti/xray/scripts/xray_live_task.ps1 -Status`,
-   poi `-Start` (o `-Install` se il task non c'e'). Se una famiglia e' ferma, il suo indicatore non e'
+   e **dillo all'utente**: si accende con `-Start` (o `-Install`, poi `-Start`, se il task non c'e') solo se
+   lo chiede lui, perche' X-Ray non parte da solo (6 novembre 2026). Se una famiglia e' ferma, il suo indicatore non e'
    aperto su ES: dillo all'utente, non leggerla come dato di adesso.
 3. **Le altre fonti, a confronto** (dal 2 novembre 2026; ognuna dice da dove viene): VIX e VXN
    ricostruiti dalla catena CME di ATAS, la volatilita' di X-Ray, QQQ e NDX dal Cboe pubblico, VIX e VXN

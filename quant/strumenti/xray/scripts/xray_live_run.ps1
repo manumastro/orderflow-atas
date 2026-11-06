@@ -1,6 +1,6 @@
 <#
     Lancia il lettore di X-Ray (e il server della pagina) senza finestra e ne raccoglie il log.
-    Lo usa il task all'accesso (xray_live_task.ps1 -Install); a mano serve solo per il log.
+    Lo usa il task (xray_live_task.ps1 -Start, mai all'accesso); a mano serve solo per il log.
 
       powershell -File quant/strumenti/xray/scripts/xray_live_run.ps1 -OutDir <cartella>
 #>

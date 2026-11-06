@@ -162,8 +162,8 @@ internal sealed class MainForm : Form
         };
         barra.Controls.Add(Tema.Bottone("Avvia", (_, _) => Avvia(), primario: true));
         barra.Controls.Add(Tema.Bottone("Ferma", (_, _) => Script("-Stop")));
-        barra.Controls.Add(Tema.Bottone("Avvio all'accesso", (_, _) => Script("-Install")));
-        barra.Controls.Add(Tema.Bottone("Togli avvio", (_, _) => Script("-Remove")));
+        barra.Controls.Add(Tema.Bottone("Registra il task", (_, _) => Script("-Install")));
+        barra.Controls.Add(Tema.Bottone("Togli il task", (_, _) => Script("-Remove")));
         barra.Controls.Add(Tema.Bottone("Stato del task", (_, _) => Script("-Status")));
         barra.Controls.Add(Tema.Bottone("Compatta archivio", (_, _) => Compatta()));
         barra.Controls.Add(Tema.Bottone("Cartella dati...", (_, _) => ScegliCartella()));
@@ -252,7 +252,7 @@ internal sealed class MainForm : Form
         if (_server is null)
         {
             t.Riga("server", $"non risponde su {Pagina}", Tema.Rosso);
-            t.Nota("Il server gira dentro il lettore (XrayLive --watch --serve): parte con Avvia, o all'accesso col task.");
+            t.Nota("Il server gira dentro il lettore (XrayLive --watch --serve): parte con Avvia (all'accesso non parte niente).");
         }
         else
         {
@@ -329,7 +329,7 @@ internal sealed class MainForm : Form
 
     private void Avvia()
     {
-        // con il task registrato lo si riavvia (riparte anche all'accesso); senza, il lettore parte da qui
+        // con il task registrato lo si avvia (all'accesso non parte); senza, il lettore parte da qui
         var registrato = Avvia("powershell", "-NoProfile", "-Command",
             "if (Get-ScheduledTask -TaskName XrayLive -ErrorAction SilentlyContinue) { exit 0 } else { exit 1 }");
         registrato.Exited += (_, _) => BeginInvoke(() =>

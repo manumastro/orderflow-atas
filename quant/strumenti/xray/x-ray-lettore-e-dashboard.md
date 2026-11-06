@@ -9,7 +9,8 @@ di ATAS X. Lo strumento ha tre parti, ciascuna con un solo compito:
 | **XrayWeb**, il client | la pagina per leggere i dati, in stile QuantData (5 novembre 2026): la Lettura, le sei pagine di X-Ray (in prezzi di ES di default), la Volatilita', NQ · QQQ, le Fonti. React, TypeScript, Mantine, ECharts, compilati con Vite: disegna, non calcola | **http://127.0.0.1:8790/** |
 | **XrayGui**, la gestione | controlla se lettore e server sono vivi e se le famiglie arrivano; avvia, ferma, compatta, apre la pagina | il collegamento X-Ray sul desktop |
 
-Ci sono anche gli script, per l'agente e per il task all'accesso.
+Ci sono anche gli script, per l'agente e per il task. **All'avvio del PC non parte niente** (6 novembre
+2026, decisione dell'utente): lettore e pagina si accendono solo a richiesta, con `-Start` o con Avvia.
 
 Il significato dei dati, come si leggono e come entrano nelle letture sono in
 [`quant/metodo/x-ray-in-vivo.md`](../../metodo/x-ray-in-vivo.md). Il formato della cache e la
@@ -34,7 +35,7 @@ derivazione della chiave sono in `docs/ATASX_XRAY_CACHE.md` del repo `ATAS_Tool`
 | `scripts/prova_pagina.py` | prova la pagina nel browser (Playwright): errori, grafici disegnati, filtri, telefono, foto |
 | `scripts/scrivi_lettura.py` | pubblica una lettura dal vivo nella pagina **Lettura** (2 novembre 2026): controlla la forma lineare e l'assenza di segnali, la salva in `quant/dati/letture/<giorno NY>/<HHMM>.json`; il server la serve in `/api/lettura` (`XrayLive/Server/Letture.cs`) |
 | `scripts/leggi_pagina.py` | **la pagina letta come la vede l'utente** (2 novembre 2026): scheda per scheda il testo visibile, la scelta dei comandi e le serie e le linee dei grafici come sono disegnate (l'istanza di ECharts che `Grafico.tsx` appende al nodo come `__grafico`); `--foto DIR` una foto per scheda. E' da dove parte la lettura dell'agente: [come-si-leggono-le-opzioni-dal-vivo](../../metodo/come-si-leggono-le-opzioni-dal-vivo.md) |
-| `scripts/xray_live_task.ps1` | il task all'accesso: `-Install`, `-Start`, `-Stop`, `-Status`, `-Remove`. Lancia il lanciatore dentro `conhost.exe --headless`: su Windows 11 Windows Terminal ignora `-WindowStyle Hidden` e lasciava aperta una finestra di PowerShell (6 novembre 2026); dopo un cambio, `-Install` di nuovo |
+| `scripts/xray_live_task.ps1` | il task, senza trigger: `-Install` lo registra e basta, `-Start` lo accende, `-Stop`, `-Status`, `-Remove`. Non parte all'accesso. Lancia il lanciatore dentro `conhost.exe --headless`: su Windows 11 Windows Terminal ignora `-WindowStyle Hidden` e lascerebbe aperta una finestra di PowerShell (6 novembre 2026); dopo un cambio, `-Install` di nuovo |
 | `scripts/xray_live_run.ps1` | il lanciatore nascosto che il task chiama: un solo lanciatore, il lettore senza finestra, `lettore.log` |
 
 ## I Dati
@@ -86,7 +87,8 @@ Serve Windows e .NET 10. Il lettore e la pagina, senza la finestra di gestione:
 
 ```bash
 dotnet quant/strumenti/xray/XrayLive/bin/Release/net10.0/XrayLive.dll --watch --serve --out quant/dati/xray
-powershell -File quant/strumenti/xray/scripts/xray_live_task.ps1 -Install   # all'accesso, con --serve
+powershell -File quant/strumenti/xray/scripts/xray_live_task.ps1 -Install   # registra il task (non parte all'accesso)
+powershell -File quant/strumenti/xray/scripts/xray_live_task.ps1 -Start     # lo accende, con --serve
 ```
 
 **Le opzioni del server**:
@@ -109,7 +111,7 @@ ne giravano due, e il secondo riprovava ogni minuto contro il mutex del lettore.
 
 ## La Pagina
 
-**http://127.0.0.1:8790/**. Si accende all'accesso, con il lettore.
+**http://127.0.0.1:8790/**. Si accende con il lettore, a richiesta.
 
 **In breve.** Dal 5 novembre 2026, per decisione dell'utente, la pagina e' fatta **in stile QuantData**: un
 software, non un documento. In alto due barre ferme (il menu, l'ora, lo stato delle fonti; poi le pagine del
@@ -227,7 +229,7 @@ volatilita' e gli scalini).
 ora quelle letture stanno nella pagina. Le sue tre pagine:
 - **Stato**: il lettore, il server della pagina, il bridge, l'archivio;
 - **Famiglie**: l'eta' di ogni famiglia e l'indicatore da tenere aperto su ES;
-- **Lettore**: avvia, ferma, avvio all'accesso, compatta, cartella, log.
+- **Lettore**: avvia, ferma, registra o togli il task, compatta, cartella, log.
 
 In alto c'e' il pulsante **Apri la pagina**.
 
@@ -429,7 +431,7 @@ In piu', la pagina e' stata guardata a mano, una pagina alla volta, con Playwrig
 
 Lo stesso codice, in una versione precedente, e' in `tools/XrayLive` e `tools/XrayGui` del repo
 `ATAS_Tool`, dove si e' fatta l'analisi del binario. **La copia canonica e' questa**: qui ci sono i
-dati e il task all'accesso. Quando si cambia il lettore, si cambia qui.
+dati e il task. Quando si cambia il lettore, si cambia qui.
 
 ## Limiti
 

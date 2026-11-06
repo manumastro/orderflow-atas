@@ -1,7 +1,9 @@
 <#
-    Registra (o toglie) l'avvio automatico di XrayLive all'accesso dell'utente.
+    Registra (o toglie) il task di XrayLive. Il task NON parte da solo: niente avvio all'accesso
+    (6 novembre 2026, decisione dell'utente: all'avvio del PC non deve partire niente che non abbia
+    deciso lui). Si accende a richiesta con -Start, e si spegne con -Stop.
 
-      powershell -File scripts/xray_live_task.ps1 -Install
+      powershell -File scripts/xray_live_task.ps1 -Install    registra il task, senza avviarlo
       powershell -File scripts/xray_live_task.ps1 -Status
       powershell -File scripts/xray_live_task.ps1 -Remove
       powershell -File scripts/xray_live_task.ps1 -Stop     ferma lettore e lanciatore, il task resta
@@ -67,7 +69,7 @@ function Get-LauncherProcess {
 }
 
 if ($Stop) {
-    # ferma senza togliere l'avvio all'accesso: il task, il lanciatore (che riavvierebbe il
+    # ferma senza togliere il task: il task, il lanciatore (che riavvierebbe il
     # lettore dopo un minuto) e il lettore
     if (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue) {
         Stop-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
@@ -118,16 +120,14 @@ if (-not (Test-Path -LiteralPath $dll)) {
 # di PowerShell; conhost senza testa da' al lanciatore una console che non si vede mai.
 $action = New-ScheduledTaskAction -Execute 'conhost.exe' `
     -Argument "--headless powershell.exe -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$launcher`" -OutDir `"$OutDir`" -Interval $IntervalSeconds"
-$trigger = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME
+# nessun trigger: il task parte solo con -Start (all'accesso non parte niente)
 $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries `
     -StartWhenAvailable -RestartCount 999 -RestartInterval (New-TimeSpan -Minutes 1) `
     -ExecutionTimeLimit ([TimeSpan]::Zero) -MultipleInstances IgnoreNew
 $principal = New-ScheduledTaskPrincipal -UserId "$env:USERDOMAIN\$env:USERNAME" -LogonType Interactive -RunLevel Limited
 
-Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Settings $settings `
+Register-ScheduledTask -TaskName $taskName -Action $action -Settings $settings `
     -Principal $principal -Description 'X-Ray OptionsDepth: decifra la cache di ATAS X e la tiene leggibile' -Force | Out-Null
 
-Start-ScheduledTask -TaskName $taskName
-Start-Sleep -Seconds 8
-Write-Host "installato e avviato (senza finestra): $OutDir"
+Write-Host "registrato, non avviato (parte solo con -Start): $OutDir"
 Show-Status
