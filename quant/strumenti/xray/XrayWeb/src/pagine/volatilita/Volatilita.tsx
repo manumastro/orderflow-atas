@@ -38,7 +38,7 @@ export function Volatilita() {
             {INDICI.map((i) => d.indici.find((x) => x.indice === i))
               .filter((x) => x != null)
               .map((x) => (
-                <Meteo key={x.indice} x={x} />
+                <Meteo key={x.indice} x={x} adesso={d.quando} />
               ))}
           </>
         )}

@@ -403,7 +403,7 @@
     "ora": "dopo le 22:00",
     "evento": "Trimestrale QCOM (EPS att. 1,46 $)",
     "peso": "medio",
-    "esito": "esito non nei dati; NQZ6 ora 22: 28.567 -> 28.647"
+    "esito": "telefoni -26% (contesto, non nei dati); NQZ6 ora 22: 28.567 -> 28.647"
   },
   {
     "data": "2026-11-05",
@@ -414,30 +414,44 @@
   },
   {
     "data": "2026-11-05",
-    "ora": "15:30-16:17",
-    "evento": "Crollo di NQ all'apertura della cassa, causa non dichiarata",
+    "ora": "15:30-22:00",
+    "evento": "Vendita di chip e AI in cassa (elezioni, QCOM, H200 fermi)",
     "peso": "contesto",
-    "esito": "NQZ6 28.308 -> 27.303 (-1.005); SMH -7,7%, VXN 30,3; Hammack e Barkin per rialzi"
+    "esito": "NQZ6 cassa 28.567 -> 26.746 (-6,4%); SMH -11,2%, RSP -2,9%, VXN 38,3 max 1a"
+  },
+  {
+    "data": "2026-11-06",
+    "ora": "notte 5-6",
+    "evento": "Asia: chip giu' (SK Hynix -11,7%, Taiwan oltre -8%)",
+    "peso": "contesto",
+    "esito": "NQZ6 minimo 26.366,5 (ora 00), poi 27.159 (ora 03) e 27.251,5 (ora 10)"
   },
   {
     "data": "2026-11-06",
     "ora": "14:30",
     "evento": "Occupati non agricoli USA, ottobre (att. 65 mila, prec. 29)",
     "peso": "alto",
-    "esito": ""
+    "esito": "165 mila (att. 65), CNBC; NQZ6 ora 14: 27.098 -> 27.154, delta -1.065"
   },
   {
     "data": "2026-11-06",
     "ora": "14:30",
     "evento": "Disoccupazione USA (att. 4,2%) e salari orari m/m (att. 0,3%)",
     "peso": "alto",
-    "esito": ""
+    "esito": "disoccupazione 4,1% (CNBC); salari non trovati; rialzo Fed 9/12 all'89,6%"
   },
   {
     "data": "2026-11-06",
     "ora": "16:00",
     "evento": "Fiducia Michigan prelim. (att. 48,1) e attese d'inflazione",
     "peso": "medio",
+    "esito": ""
+  },
+  {
+    "data": "2026-11-06",
+    "ora": "21:30",
+    "evento": "COT (posizioni di martedi' 3)",
+    "peso": "contesto",
     "esito": ""
   }
 ]

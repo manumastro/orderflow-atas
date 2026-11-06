@@ -34,7 +34,7 @@ derivazione della chiave sono in `docs/ATASX_XRAY_CACHE.md` del repo `ATAS_Tool`
 | `scripts/prova_pagina.py` | prova la pagina nel browser (Playwright): errori, grafici disegnati, filtri, telefono, foto |
 | `scripts/scrivi_lettura.py` | pubblica una lettura dal vivo nella pagina **Lettura** (2 novembre 2026): controlla la forma lineare e l'assenza di segnali, la salva in `quant/dati/letture/<giorno NY>/<HHMM>.json`; il server la serve in `/api/lettura` (`XrayLive/Server/Letture.cs`) |
 | `scripts/leggi_pagina.py` | **la pagina letta come la vede l'utente** (2 novembre 2026): scheda per scheda il testo visibile, la scelta dei comandi e le serie e le linee dei grafici come sono disegnate (l'istanza di ECharts che `Grafico.tsx` appende al nodo come `__grafico`); `--foto DIR` una foto per scheda. E' da dove parte la lettura dell'agente: [come-si-leggono-le-opzioni-dal-vivo](../../metodo/come-si-leggono-le-opzioni-dal-vivo.md) |
-| `scripts/xray_live_task.ps1` | il task all'accesso: `-Install`, `-Start`, `-Stop`, `-Status`, `-Remove` |
+| `scripts/xray_live_task.ps1` | il task all'accesso: `-Install`, `-Start`, `-Stop`, `-Status`, `-Remove`. Lancia il lanciatore dentro `conhost.exe --headless`: su Windows 11 Windows Terminal ignora `-WindowStyle Hidden` e lasciava aperta una finestra di PowerShell (6 novembre 2026); dopo un cambio, `-Install` di nuovo |
 | `scripts/xray_live_run.ps1` | il lanciatore nascosto che il task chiama: un solo lanciatore, il lettore senza finestra, `lettore.log` |
 
 ## I Dati

@@ -11,7 +11,7 @@ import { useState, type ReactNode } from 'react';
 import { Collapse, UnstyledButton } from '@mantine/core';
 import { IconArrowsDiff, IconCheck, IconChevronDown, IconMinus } from '@tabler/icons-react';
 import type { ConfrontoVol, Indice, VolInBreve } from '../../api/tipi';
-import { doppiaOra, num, oraDoppiaCorta, segno } from '../../formato';
+import { doppiaOra, giornoEOra, giornoNY, num, oraDoppiaCorta, segno } from '../../formato';
 import { Scheda } from '../../componenti/Scheda';
 import { Termine } from '../../componenti/Termine';
 import { useSpiegazioni } from '../../stato/spiegazioni';
@@ -143,12 +143,14 @@ function Perche({ x }: { x: VolInBreve }) {
   );
 }
 
-export function Meteo({ x }: { x: VolInBreve }) {
+export function Meteo({ x, adesso }: { x: VolInBreve; adesso: number }) {
   const [modo] = useSpiegazioni();
   const [scelta, setScelta] = useState<boolean | null>(null);
   const aperto = scelta ?? modo === 'impara';
   const variazione = x.livello != null && x.apertura != null ? x.livello - x.apertura : null;
   const freccia = variazione == null ? '' : variazione > 0.05 ? '▲ ' : variazione < -0.05 ? '▼ ' : '';
+  // 6 novembre 2026: a cassa chiusa l'indice ufficiale e' quello di ieri; "da stamattina" era falso
+  const diOggi = x.quandoLivello != null && giornoNY(x.quandoLivello) === giornoNY(adesso);
   return (
     <Scheda
       titolo={`Il meteo · ${NOME_METEO[x.indice]}`}
@@ -171,8 +173,10 @@ export function Meteo({ x }: { x: VolInBreve }) {
         </span>
         <BarraFasce x={x} />
         <span className="meteo-variazione" title={x.quandoLivello ? doppiaOra(x.quandoLivello) : undefined}>
-          {variazione == null ? '–' : `${freccia}${segno(variazione, 1)} da stamattina`}
-          {x.quandoLivello ? <span className="spento"> · {oraDoppiaCorta(x.quandoLivello)}</span> : null}
+          {variazione == null ? '–' : `${freccia}${segno(variazione, 1)} ${diOggi ? 'da stamattina' : 'nella seduta'}`}
+          {x.quandoLivello ? (
+            <span className="spento"> · {diOggi ? oraDoppiaCorta(x.quandoLivello) : `ultimo dato ${giornoEOra(x.quandoLivello)}`}</span>
+          ) : null}
         </span>
       </div>
       <div className="meteo-numeri">

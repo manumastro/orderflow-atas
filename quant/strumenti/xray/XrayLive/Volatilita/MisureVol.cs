@@ -288,7 +288,7 @@ internal sealed class MisureVol
         }
         var (d, quando) = LeggiGex(radice);
         var punti = new List<object>();
-        if (d?["scadenze"] is JsonArray sc && quando is { } q)
+        if (d?["scadenze"] is JsonArray sc && quando is { } q && DateTime.UtcNow - q <= MassimaEtaGex)
             foreach (var s in sc)
             {
                 string g = s!["giorno"]!.GetValue<string>();
@@ -360,8 +360,11 @@ internal sealed class MisureVol
             return st.Atm.Where(kv => st.Righe.ContainsKey(kv.Key))
                 .Select(kv => (kv.Key, (st.Righe[kv.Key][0].ScadeUtc - adesso).TotalDays, kv.Value.vol * 100))
                 .Where(x => x.Item2 > 0).OrderBy(x => x.Item2).ToList();
-        var (d, _) = LeggiGex(radice);
+        var (d, quando) = LeggiGex(radice);
         var out_ = new List<(string, double, double)>();
+        // 6 novembre 2026: un file di gex.py vecchio non vale (quello di ES non si rigenera dal 5/11, e il 6/11 dava le
+        // vol del 2/11 come di oggi: movimento atteso di ES +-37 contro +-124 del VIX). Meglio nessun punto che un punto falso
+        if (quando is { } qf && adesso - qf > MassimaEtaGex) return out_;
         if (d?["scadenze"] is JsonArray sc)
             foreach (var s in sc)
             {
@@ -670,6 +673,9 @@ internal sealed class MisureVol
         string casa = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         return Directory.GetFiles(casa, $".fabio-gex-{radice}*.json").OrderByDescending(File.GetLastWriteTimeUtc).FirstOrDefault();
     }
+
+    /// <summary>Oltre questa eta' un file di gex.py non da' la struttura a termine: le sue scadenze e le sue vol sono di un altro giorno.</summary>
+    private static readonly TimeSpan MassimaEtaGex = TimeSpan.FromHours(12);
 
     private static (JsonNode? dati, DateTime? quando) LeggiGex(string radice)
     {

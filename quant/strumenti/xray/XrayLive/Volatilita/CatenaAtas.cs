@@ -84,7 +84,11 @@ internal sealed class CatenaAtas
             Thread.Sleep(2500);
             var (n, s) = Scarica(url(3, 1500));
             var cn = Conta(n);
-            if (cn.settlement <= conta.settlement && cn.bid <= conta.bid) break;
+            // 6 novembre 2026: una scadenza appena chiesta arriva vuota (ATAS la sottoscrive in quel momento) e si riempie
+            // qualche secondo dopo: con "niente di nuovo, esco" il 4/12-11/12 di ES restava vuoto a ogni giro e il VIX
+            // ricostruito era in errore da un giorno. Finche' e' vuota si aspetta tutti i giri
+            bool vuota = conta.settlement == 0 && conta.bid == 0;
+            if (!vuota && cn.settlement <= conta.settlement && cn.bid <= conta.bid) break;
             (q, sottostante, conta) = (n, s, cn);
         }
         return new Scadenza(serie.Giorno, serie.ScadeUtc, q, sottostante);

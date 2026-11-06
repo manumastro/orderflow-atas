@@ -412,10 +412,10 @@ a { color: inherit; }
 /* la tessera (A.5) */
 .tessera { gap: 2px; min-height: 72px; justify-content: space-between; }
 .tessera .etichetta {
-  display: flex; align-items: center; justify-content: space-between; gap: 6px;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; min-width: 0;
   font-size: var(--t-mini); color: var(--spento); text-transform: uppercase; letter-spacing: 0.06em;
 }
-.etichetta-segni { display: inline-flex; align-items: center; gap: 4px; text-transform: none; letter-spacing: 0; }
+.etichetta-segni { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px; min-width: 0; text-transform: none; letter-spacing: 0; }
 .tessera .etichetta .fonte-badge { text-transform: none; letter-spacing: 0; }
 .tag {
   display: inline-flex; align-items: center; height: 18px; padding: 0 6px;

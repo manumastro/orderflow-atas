@@ -112,9 +112,12 @@ if (-not (Test-Path -LiteralPath $dll)) {
     exit 1
 }
 
-# la finestra non serve: powershell nascosto lancia il lettore e ne raccoglie il log
-$action = New-ScheduledTaskAction -Execute 'powershell.exe' `
-    -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$launcher`" -OutDir `"$OutDir`" -Interval $IntervalSeconds"
+# la finestra non serve: powershell nascosto lancia il lettore e ne raccoglie il log.
+# Passa da `conhost --headless` (6 novembre 2026): su Windows 11 il terminale predefinito e'
+# Windows Terminal, che ignora -WindowStyle Hidden, e all'accesso restava aperta una finestra
+# di PowerShell; conhost senza testa da' al lanciatore una console che non si vede mai.
+$action = New-ScheduledTaskAction -Execute 'conhost.exe' `
+    -Argument "--headless powershell.exe -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$launcher`" -OutDir `"$OutDir`" -Interval $IntervalSeconds"
 $trigger = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME
 $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries `
     -StartWhenAvailable -RestartCount 999 -RestartInterval (New-TimeSpan -Minutes 1) `
