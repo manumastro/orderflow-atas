@@ -45,6 +45,20 @@
 .tabella-flusso td.nome-gruppo { font-weight: 600; color: var(--testo); }
 .tabella-flusso td .barra-inline { width: auto; }
 .tabella-flusso td.trenta { color: var(--testo-2); }
+.tabella-flusso td { vertical-align: top; }
+.tabella-flusso th:nth-child(3), .tabella-flusso th:nth-child(4), .tabella-flusso td:nth-child(3), .tabella-flusso td:nth-child(4) { text-align: left; }
+.flusso { display: flex; flex-direction: column; gap: 10px; }
+.flusso-contesto { margin: 0; color: var(--testo-2); font-size: var(--t-piccolo); }
+.flusso-contesto b { color: var(--testo); font-weight: 600; }
+.flusso-lettura { display: inline-flex; align-items: baseline; gap: 6px; color: var(--testo); }
+.flusso-lettura .segno-punto { align-self: center; }
+.flusso-sotto { display: block; margin-top: 2px; color: var(--spento); font-size: var(--t-mini); }
+.flusso-bande { display: grid; gap: var(--gap); grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.flusso-banda { min-width: 0; }
+.flusso-banda h3 { margin: 0 0 2px; font-size: var(--t-piccolo); font-weight: 600; color: var(--testo-2); }
+.flusso-riserva { margin: 0; color: var(--spento); font-size: var(--t-piccolo); }
+@media (max-width: 1199px) { .flusso-bande { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 767px) { .flusso-bande { grid-template-columns: minmax(0, 1fr); } }
 
 .strike-vicini td.forte { font-weight: 700; color: var(--testo); }
 .strike-vicini tr.blocco td {

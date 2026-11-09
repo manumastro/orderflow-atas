@@ -3,7 +3,7 @@
 // (prima `notMerge` lo azzerava a ogni giro dal vivo, G1).
 //
 // - `opzioni` puo' essere una funzione della larghezza: i margini si adattano (griglia() di grafici.ts);
-// - `altezza` 'alto' | 'medio' | 'basso' segue la finestra (D.2); un numero resta per le pagine di prima;
+// - `altezza` 'alto' | 'pieno' | 'medio' | 'basso' segue la finestra (D.2); un numero resta per le pagine di prima;
 // - `puntatore`: per le mappe disegnate come immagine (viz/mappa.ts) il tooltip non viene dai segni ma
 //   dalla posizione: il grafico passa il punto in coordinate dei dati, la funzione da' l'HTML;
 // - `onCursore`: il valore sotto il cursore, null quando esce: la legenda al cursore. E' la x (il tempo),
@@ -19,7 +19,8 @@ import { FONT } from '../tema/colori';
 
 export type { Puntatore };
 
-export type Altezza = number | 'alto' | 'medio' | 'basso' | { min: number; max: number; schermo: number };
+/** `maxVerticale`: il massimo sullo schermo verticale (vedi `verticale`), se diverso da `max`. */
+export type Altezza = number | 'alto' | 'pieno' | 'medio' | 'basso' | { min: number; max: number; schermo: number; maxVerticale?: number };
 
 interface Props {
   /** null = niente da disegnare: il grafico si svuota */
@@ -40,17 +41,32 @@ interface Props {
 
 const limita = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
+/**
+ * Lo schermo verticale (9 novembre 2026, richiesta dell'utente: un monitor 1200 per 1920 in verticale):
+ * piu' alto che largo e non un telefono. Li' i grafici crescono fino a riempire la prima schermata invece
+ * di fermarsi ai massimi pensati per 1600 per 900. La stessa soglia sta in `stile.css` (orientation: portrait).
+ */
+export function verticale(finestra: { larghezza: number; altezza: number }): boolean {
+  return finestra.larghezza >= 768 && finestra.altezza > finestra.larghezza;
+}
+
 /** L'altezza in px per la finestra data (D.2). */
 export function altezzaPx(a: Altezza, finestra: { larghezza: number; altezza: number }): number {
   if (typeof a === 'number') return a;
   const h = finestra.altezza;
-  if (typeof a === 'object') return limita(h * a.schermo, a.min, a.max);
-  if (a === 'alto') return finestra.larghezza < 768 ? 420 : limita(h - 330, 360, 640);
+  const v = verticale(finestra);
+  if (typeof a === 'object') return limita(h * a.schermo, a.min, v ? (a.maxVerticale ?? a.max) : a.max);
+  // in verticale "alto" lascia sotto lo spazio per un riquadro basso (il delta di Adesso): circa 760 px con testata e tessere
+  if (a === 'alto') return finestra.larghezza < 768 ? 420 : v ? limita(h - 760, 360, 1100) : limita(h - 330, 360, 640);
+  // "pieno": il grafico grande senza riquadri sotto (Per strike, Livelli, Previsione); fuori dal verticale e' "alto"
+  if (a === 'pieno') return finestra.larghezza < 768 ? 420 : v ? limita(h - 430, 360, 1400) : limita(h - 330, 360, 640);
   if (a === 'medio') return limita(h * 0.38, 240, 380);
-  return limita(h * 0.19, 150, 170);
+  // in verticale i quattro pannelli della Deriva si dividono lo schermo
+  return v ? limita(h * 0.14, 150, 300) : limita(h * 0.19, 150, 170);
 }
 
-function useFinestra() {
+/** La finestra, aggiornata quando cambia misura. */
+export function useFinestra() {
   const leggi = () => ({ larghezza: typeof window === 'undefined' ? 1600 : window.innerWidth, altezza: typeof window === 'undefined' ? 900 : window.innerHeight });
   const [f, setF] = useState(leggi);
   useEffect(() => {

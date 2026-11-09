@@ -5,13 +5,13 @@
 // Il server calcola, la pagina disegna: il regime sintetico ("segnali opposti"), il meteo e i muri sul
 // valore vengono da /api/quattro-domande (prezzi in ES), la scala con le zone fuse da /api/adesso (in SPX).
 
-import { useCallback, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useMediaQuery } from '@mantine/hooks';
 import { IconSunrise } from '@tabler/icons-react';
 import type { UseQueryResult } from '@tanstack/react-query';
 import { useMisura, useQuattroDomande } from '../../api/domande';
-import type { DexGruppo, Esposizione, RispostaAdesso, RispostaProfilo, RispostaQuattroDomande, Scadenza } from '../../api/tipi';
-import { distanza, giornoNY, nome, num, segno, sig } from '../../formato';
+import type { Esposizione, RispostaAdesso, RispostaFlusso, RispostaProfilo, RispostaQuattroDomande, Scadenza } from '../../api/tipi';
+import { distanza, giornoNY, num, segno, sig } from '../../formato';
 import { useFiltri, type Filtri } from '../../stato/contesto';
 import { useScelte } from '../../stato/scelte';
 import { C } from '../../tema/colori';
@@ -22,7 +22,6 @@ import { Tessera, type Tono } from '../../componenti/Tessera';
 import { Esito, Vuoto } from '../../componenti/Esito';
 import { Segmenti } from '../../componenti/Comandi';
 import { ScalaPrezzi } from '../../componenti/ScalaPrezzi';
-import { BarraInline } from '../../componenti/BarraInline';
 import { Termine } from '../../componenti/Termine';
 import type { Opzioni } from '../../viz/echarts';
 import {
@@ -38,7 +37,6 @@ import {
   passoDi,
   puntatoreStrike,
   rigaTip,
-  segnoFlusso,
   segnoGamma,
   serieBarre,
   serieLinee,
@@ -46,6 +44,7 @@ import {
   tooltip,
   type LineaOrizzontale,
 } from '../../viz/grafici';
+import { FlussoGruppi, type Ambito } from './FlussoGruppi';
 import './xray1.css';
 
 const FONTE = ['xray'] as const;
@@ -87,10 +86,12 @@ const versoDi = (v: number | null | undefined): Verso | null => (v == null || !N
 
 export function Adesso() {
   const f = useFiltri();
-  const [s, setS] = useScelte<{ ampiezza: string }>('adesso', { ampiezza: '2.5' });
+  const [s, setS] = useScelte<{ ampiezza: string; ambito: string }>('adesso', { ampiezza: '2.5', ambito: '0dte' });
   const qa = useMisura<RispostaAdesso>('adesso', f.parametri, f.vivo, f.pronto);
   const qp = useMisura<RispostaProfilo>('profilo', { ...f.parametri, greca: 'gamma', ampiezza: s.ampiezza }, f.vivo, f.pronto);
   const qd = useQuattroDomande('ES', f.parametri, f.vivo, f.pronto);
+  const qf = useMisura<RispostaFlusso>('flusso', f.parametri, f.vivo, f.pronto);
+  const ambito: Ambito = s.ambito === 'all' ? 'all' : '0dte';
   const telefono = useMediaQuery('(max-width: 767px)') ?? false;
   const a = qa.data;
 
@@ -116,7 +117,7 @@ export function Adesso() {
         {(d) => <Tessere a={d} qd={qd} f={f} daEs={daEs} />}
       </Esito>
       <div className="griglia">
-        <Profilo qp={qp} a={a} qd={qd.data} f={f} daEs={daEs} ampiezza={s.ampiezza} cambiaAmpiezza={(x) => setS({ ampiezza: x })} />
+        <Profilo qp={qp} a={a} qd={qd.data} f={f} daEs={daEs} ampiezza={s.ampiezza} cambiaAmpiezza={(x) => setS((p) => ({ ...p, ampiezza: x }))} />
         <Scheda
           titolo="La scala dei prezzi"
           fonti={FONTE}
@@ -151,28 +152,60 @@ export function Adesso() {
           titolo="Chi ha comprato delta oggi"
           fonti={FONTE}
           larghezza={12}
-          breve="Il delta che ogni gruppo ha comprato o venduto da inizio giornata, sulle opzioni di oggi e su tutte."
+          riserva="non provato come previsione"
+          riservaIntera="Nessun paper trova un gruppo che anticipi SPX, e sulle nostre sedute il flusso, tolto il prezzo, non predice il pomeriggio: quant/paper/ricerche/2026-11-09-flusso-delle-opzioni-per-gruppo.md."
+          breve="Per ogni gruppo: quanto è insolito il flusso di oggi a quest'ora, e quanto va oltre ciò che il prezzo spiega."
+          comandi={
+            <Segmenti<Ambito>
+              etichetta="Scadenze del delta"
+              valore={ambito}
+              cambia={(v) => setS((p) => ({ ...p, ambito: v }))}
+              opzioni={[
+                { valore: '0dte', testo: 'Solo oggi (0DTE)' },
+                { valore: 'all', testo: 'Tutte le scadenze' },
+              ]}
+            />
+          }
           legenda={
             <Legenda
               voci={[
                 { colore: C.compra, forma: 'rett', testo: 'comprato' },
                 { colore: C.vende, forma: 'rett', testo: 'venduto' },
+                { colore: C.testo, testo: 'oggi' },
+                { colore: C.spento, tratto: 'dashed', testo: 'metà delle sedute' },
+                { colore: 'rgba(180,186,198,0.35)', forma: 'rett', testo: 'banda 10-90% delle sedute' },
               ]}
             >
-              <span className="nota">flusso sommato da inizio giornata, non posizione</span>
+              <span className="nota">flusso dalle 09:30, non posizione</span>
             </Legenda>
           }
           semplice={
-            <p>
-              Il <Termine k="DEX">DEX</Termine>: quanto rialzo (comprato) o ribasso (venduto) ogni gruppo si è caricato oggi con le
-              opzioni su SPX, sugli <Termine k="0DTE">0DTE</Termine> e su tutte le scadenze, e quanto negli ultimi 30 minuti. È un
-              flusso, non dice da solo dove va il prezzo.
-            </p>
+            <>
+              <p>
+                Il <Termine k="DEX">DEX</Termine>: quanto rialzo (comprato) o ribasso (venduto) ogni gruppo si è caricato oggi con le
+                opzioni su SPX, dall’apertura della cassa. Il numero da solo dice poco: il flusso del retail è quasi lo specchio del
+                prezzo (vende quando sale, compra quando scende, in 33 sedute su 35).
+              </p>
+              <ul>
+                <li>
+                  <b>A quest’ora</b>: il flusso di oggi contro le sedute passate alla stessa ora. Sotto il 20% o sopra l’80% è
+                  insolito.
+                </li>
+                <li>
+                  <b>Oltre il prezzo</b>: il flusso meno quello che il movimento del prezzo dall’apertura farebbe attendere. È la parte
+                  che il prezzo non spiega.
+                </li>
+                <li>
+                  <b>I piccoli grafici</b>: la linea di oggi dentro la banda delle sedute passate; fuori dalla banda è insolito.
+                </li>
+              </ul>
+              <p>Sono descrizioni: nessuna è provata come previsione del prezzo.</p>
+            </>
           }
-          sotto="DEX per gruppo di OptionsDepth, minuto per minuto, sommato dall'inizio della giornata; unità di OptionsDepth."
+          sotto="DEX per gruppo di OptionsDepth (unità sue), sommato dalle 09:30 di New York. Percentile fra le sedute prima di oggi alla stessa ora; sorpresa = flusso meno la retta dei minimi quadrati sul prezzo dall'apertura, fra le stesse sedute; sbilancio = netto / somma dei |delta| di ogni minuto e strike. Almeno 10 sedute. Il retail di OptionsDepth sono i clienti non professionali del Cboe, che comprendono anche istituzioni."
         >
-          <Esito q={qa} rotta="adesso" altezza={140}>
-            {(d) => <TabellaDelta dex={d.dex} />}
+          <Esito q={qf} rotta="flusso" altezza={320}>
+            {(d) => <FlussoGruppi d={d} ambito={ambito} />}
           </Esito>
         </Scheda>
       </div>
@@ -508,48 +541,3 @@ function StrisciaScadenze({ gex }: { gex: Esposizione[] }) {
   );
 }
 
-// ------------------------------------------------------------------ il delta per gruppo
-
-const ORDINE_GRUPPI: DexGruppo['gruppo'][] = ['nonprocust', 'procust', 'firm', 'broker'];
-
-function TabellaDelta({ dex }: { dex: DexGruppo[] }) {
-  const righe = [...dex].sort((x, y) => ORDINE_GRUPPI.indexOf(x.gruppo) - ORDINE_GRUPPI.indexOf(y.gruppo));
-  if (!righe.length) return <Vuoto>Nessun dato del delta per gruppo a quest’ora.</Vuoto>;
-  const max0 = massimoAssoluto(righe.map((d) => d.zeroDte));
-  const maxT = massimoAssoluto(righe.map((d) => d.tutte));
-  const trenta = (v: number | null): ReactNode => (v == null ? '–' : `${v >= 0 ? '▲' : '▼'} ${sig(v, 2)}`);
-  return (
-    <div className="tabella-scorre tabella-flusso">
-      <table>
-        <thead>
-          <tr>
-            <th>Gruppo</th>
-            <th>0DTE, da inizio giornata</th>
-            <th data-priorita="2">0DTE, ultimi 30 min</th>
-            <th>Tutte le scadenze</th>
-            <th data-priorita="2">Tutte, ultimi 30 min</th>
-          </tr>
-        </thead>
-        <tbody>
-          {righe.map((d) => (
-            <tr key={d.gruppo}>
-              <td className="nome-gruppo">{nome(d.gruppo)}</td>
-              <td>
-                <BarraInline valore={d.zeroDte} massimo={max0} scala={segnoFlusso} />
-              </td>
-              <td className="trenta" data-priorita="2">
-                {trenta(d.zeroDteTrentaMinuti)}
-              </td>
-              <td>
-                <BarraInline valore={d.tutte} massimo={maxT} scala={segnoFlusso} />
-              </td>
-              <td className="trenta" data-priorita="2">
-                {trenta(d.tutteTrentaMinuti)}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}

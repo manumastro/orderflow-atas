@@ -621,6 +621,28 @@ a.lettura-dove:hover { color: var(--testo); }
   .chip-passato::after { content: 'Passato'; font-size: var(--t-piccolo); margin-left: 4px; }
 }
 
+/* ================================================================ schermo verticale (da 768 px, piu' alto che largo)
+   9 novembre 2026, richiesta dell'utente: un monitor 1200 per 1920 in verticale. La stessa soglia sta in
+   `verticale()` di Grafico.tsx, che li' fa crescere i grafici. Qui: la testata compatta (marchio senza nome,
+   orologio corto) perche' il menu entri intero; la barra del contesto su due righe, le linguette sopra e i
+   comandi del tempo sotto (il divisore fa da a capo), perche' a 1200 px le linguette si tagliavano; e
+   accanto al grafico grande la colonna dei livelli piu' larga (5 colonne su 12 invece di 4). */
+
+@media (orientation: portrait) and (min-width: 768px) {
+  .marchio-nome { display: none; }
+  .orologio-lungo { display: none; }
+  .orologio-corto { display: inline; }
+  .barra-contesto { height: auto; flex-wrap: wrap; row-gap: 0; }
+  .barra-contesto > .voci, .barra-contesto > .pagina-aiuto, .barra-contesto > .comandi-tempo { height: var(--barra-contesto); }
+  .barra-contesto > .contesto-divisore { flex-basis: 100%; height: 0; margin: 0; background: none; }
+  .barra-contesto > .voci { flex: 0 1 auto; mask-image: none; }
+}
+/* sotto i 1100 px valgono le colonne del tablet (tutto a tutta larghezza) */
+@media (orientation: portrait) and (min-width: 1100px) {
+  .griglia:has(> .s8 + .s4) > .s8 { grid-column: span 7; }
+  .griglia:has(> .s8 + .s4) > .s4 { grid-column: span 5; }
+}
+
 /* ================================================================ tablet (da 768 a 1199 px) */
 
 @media (max-width: 1199px) {

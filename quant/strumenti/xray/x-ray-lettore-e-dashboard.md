@@ -50,6 +50,8 @@ series/SPX/<famiglia>/<giorno>.jsonl.gz       le giornate chiuse
 journal.jsonl                                 un chunk per riga: quando, che famiglia, quante colonne nuove
 index.tsv                                     i file della cache gia' letti (al riavvio non si rileggono)
 lettore.log                                   l'output del lettore (ruotato a 5 MB)
+flusso/<giorno>.json                          il riassunto del DEX per gruppo di una seduta chiusa, minuto per minuto
+                                              dall'apertura (lo scrive il server, /api/flusso; 9 novembre 2026)
 ```
 
 **Le tre regole dell'archivio** (30 ottobre 2026). L'archivio era 3,8 GB in due mesi e cresceva di
@@ -218,6 +220,7 @@ volatilita' e gli scalini).
 | `/api/heatmap?metrica&ambito&ampiezza` | strike per scadenze (o per gruppi), con la colonna del totale; dal 5 novembre `nette` (la netta di ogni colonna su tutti gli strike) e `livelli` |
 | `/api/intervalli?greca&passo&ampiezza`, `/api/intervalli-strike?metrica&scadenza&passo` | tempo per prezzo e tempo per strike, con il prezzo e i flip |
 | `/api/deriva?passo` | le serie della giornata, allineate al minuto; dal 5 novembre `adesso` (l'ultimo istante), `anomali` (i minuti anomali del delta) e `unita` |
+| `/api/flusso?giorno&ts` | **(9 novembre 2026)** il DEX per gruppo dall'apertura della cassa contro le sedute prima del giorno (fino a 60, almeno 10), alla stessa ora. Per gruppo e ambito (0DTE, tutte): `oggi`, `trentaMinuti`, `sbilancio` (netto/lordo), `percentile`, `atteso` e `sorpresa` (la retta sul prezzo dall'apertura), `percentileSorpresa`, `spiegaPrezzo` (R²), `versoPrezzo`; `bande` ogni 5 minuti (10-50-90%) con la linea di oggi. Le sedute chiuse si riassumono in `flusso/<giorno>.json` (versione in `Flusso.Versione`): il primo avvio passa da 1 minuto e 45 secondi a 1,5 secondi. La regola e il perche': x-ray-in-vivo, "Il flusso per gruppo" |
 | `/api/livelli?passo` | i flip e i picchi nel tempo, e l'outlook con la sua `seduta`; ogni traccia di `zeri` e' un flip solo, mai punti di tracce diverse uniti |
 | `/api/previsione?tipo&greca&asOf` | una previsione intera, e l'elenco di tutte quelle del giorno; dal 5 novembre `zeri` (il flip previsto), `seduta`, `taglioScadenza`, `alPrezzo`, `sintesi` |
 | `/api/quattro-domande?radice=ES\|NQ&giorno&ts` | **(5 novembre 2026)** le opzioni in quattro domande: il regime (con "segnali opposti" quando il prezzo e lo 0DTE non concordano), il meteo, i muri vicini ai bordi del valore, il grilletto. Tutti i prezzi in ES (o NQ). La regola sta in `Server/QuattroDomande.cs`, una copia sola: `xray_query.quattro_domande` la legge da qui |

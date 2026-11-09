@@ -308,7 +308,7 @@ function Profilo({ q, s, f, comandi }: { q: UseQueryResult<RispostaStrike>; s: S
       if (!d || !calcolo) return null;
       const { passo, r, netto, lim, asse, visibili, pesanti } = calcolo;
       const stretto = larghezza > 0 && larghezza < 600;
-      const alto = altezzaPx('alto', { larghezza: window.innerWidth, altezza: window.innerHeight });
+      const alto = altezzaPx('pieno', { larghezza: window.innerWidth, altezza: window.innerHeight });
       const ml = lineeOrizzontali(visibili, { asse, altezzaPx: alto - 44, prezzo: P(r), fondi: 6, cifre: 0 });
       const dati = (ml.data ?? []) as { label?: Record<string, unknown> }[];
       const destra = stretto ? 12 : margineCartellini(dati.map((x) => String(x.label?.formatter ?? '')));
@@ -408,7 +408,7 @@ function Profilo({ q, s, f, comandi }: { q: UseQueryResult<RispostaStrike>; s: S
         {(x) =>
           x.presente && x.strike.length ? (
             <div onMouseLeave={() => setCursore(null)}>
-              <Grafico opzioni={opzioni} altezza="alto" etichetta="Esposizione per strike" puntatore={puntatore} />
+              <Grafico opzioni={opzioni} altezza="pieno" etichetta="Esposizione per strike" puntatore={puntatore} />
             </div>
           ) : (
             <Vuoto>

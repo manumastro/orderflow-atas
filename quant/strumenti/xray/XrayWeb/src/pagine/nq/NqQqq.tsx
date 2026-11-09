@@ -15,7 +15,7 @@ import { useFiltri } from '../../stato/contesto';
 import { useScelte } from '../../stato/scelte';
 import { useStatoFonte } from '../../stato/fonti';
 import { C } from '../../tema/colori';
-import { Grafico, type Altezza } from '../../componenti/Grafico';
+import { Grafico, altezzaPx, useFinestra as useMisuraFinestra, verticale, type Altezza } from '../../componenti/Grafico';
 import { Legenda, type Voce } from '../../componenti/Legenda';
 import { FonteBadge } from '../../componenti/FonteBadge';
 import { Scheda } from '../../componenti/Scheda';
@@ -331,6 +331,8 @@ function useFinestra(d: RispostaNqGex, finestra: Finestra): [number, number] {
 
 function Profili({ d, vista, finestra, cambia }: { d: RispostaNqGex; vista: Vista; finestra: Finestra; cambia: (v: Vista) => void }) {
   const asse = useFinestra(d, finestra);
+  // sullo schermo verticale il profilo resta vicino all'altezza di prima (640): cosi' la GEX nel tempo sta nella prima schermata
+  const alta: Altezza = verticale(useMisuraFinestra()) ? 600 : 'alto';
   const grande = d.fonti.find((x) => x.id === vista);
   if (vista === TUTTI || !grande) {
     if (!d.fonti.some((x) => x.strike.length)) return <Vuoto>Nessuna fonte ha ancora un profilo per strike.</Vuoto>;
@@ -350,7 +352,7 @@ function Profili({ d, vista, finestra, cambia }: { d: RispostaNqGex; vista: Vist
     <div className="profilo-scelto">
       <div className="affiancato grande">
         <TitoloProfilo x={grande} />
-        {grande.strike.length ? <Profilo x={grande} prezzo={d.prezzoNQ} asse={asse} altezza="alto" /> : <Vuoto>Nessun dato da questa fonte.</Vuoto>}
+        {grande.strike.length ? <Profilo x={grande} prezzo={d.prezzoNQ} asse={asse} altezza={alta} /> : <Vuoto>Nessun dato da questa fonte.</Vuoto>}
         {grande.nota && <p className="nota">{grande.nota}</p>}
       </div>
       <div className="profili-piccoli">
@@ -438,7 +440,7 @@ function Profilo({
       const visibili = linee.filter((l) => l.y >= lo && l.y <= hi);
       const fuori = !piccolo && larghezza >= 600;
       const finestra = typeof window === 'undefined' ? { larghezza: 1600, altezza: 900 } : { larghezza: window.innerWidth, altezza: window.innerHeight };
-      const alt = Math.max(120, (altezza === 'alto' ? Math.min(640, Math.max(360, finestra.altezza - 330)) : 300) - 40);
+      const alt = Math.max(120, altezzaPx(altezza, finestra) - 40);
       const markLine = piccolo
         ? {
             symbol: 'none' as const,

@@ -11,6 +11,7 @@ import adesso from '../../api/esempi/xray-adesso.json';
 import quattro from '../../api/esempi/quattro-domande-es.json';
 import strike from '../../api/esempi/xray-strike.json';
 import heatmap from '../../api/esempi/xray-heatmap.json';
+import flusso from '../../api/esempi/xray-flusso.json';
 import { Adesso } from './Adesso';
 import { PerStrike } from './PerStrike';
 import { HeatMap } from './HeatMap';
@@ -51,10 +52,24 @@ const risposteAdesso = (extra: Record<string, unknown> = {}) => ({
   '/api/adesso': adesso,
   '/api/profilo': { giorno: a.giorno, ts: a.ts, greca: 'gamma', presente: false },
   '/api/quattro-domande': quattro,
+  '/api/flusso': flusso,
   ...extra,
 });
 
 describe('X-Ray · Adesso, le quattro domande', () => {
+  it('chi ha comprato delta: ogni gruppo contro le sedute alla stessa ora e oltre il prezzo, con la riserva', async () => {
+    serverFinto(risposteAdesso());
+    rendi(<Adesso />, '/adesso?giorno=2026-10-30&prezzi=SPX');
+    const r = await screen.findByRole('region', { name: 'Chi ha comprato delta oggi' });
+    await within(r).findByText('A quest’ora, contro le altre sedute');
+    expect(within(r).getByRole('columnheader', { name: 'Oltre il prezzo' })).toBeInTheDocument();
+    expect(within(r).getAllByRole('row')).toHaveLength(5); // l'intestazione e i quattro gruppi
+    // nella fixture (30 ottobre, 11:00 NY) i firm sugli 0DTE stanno sopra il 93% delle sedute
+    expect(within(r).getByText('più compratore del solito: sopra il 93% delle sedute')).toBeInTheDocument();
+    expect(within(r).getByText(/Nessun gruppo è provato come previsione del prezzo/)).toBeInTheDocument();
+    expect(r.querySelectorAll('.flusso-banda')).toHaveLength(4);
+  });
+
   it('la prima tessera è il prezzo, a 2 decimali, in SPX se scelto', async () => {
     serverFinto(risposteAdesso());
     const { container } = rendi(<Adesso />, '/adesso?giorno=2026-10-30&prezzi=SPX');
@@ -132,9 +147,9 @@ describe('X-Ray · Adesso, le quattro domande', () => {
     serverFinto(risposteAdesso());
     rendi(<Adesso />, '/adesso?giorno=2026-10-30&prezzi=SPX');
     const delta = await screen.findByRole('region', { name: 'Chi ha comprato delta oggi' });
-    await within(delta).findByText('Retail');
+    await within(delta).findByText('Clienti professionali');
     expect(delta.querySelectorAll('tbody tr')).toHaveLength(4);
-    expect(delta).toHaveTextContent('flusso sommato da inizio giornata, non posizione');
+    expect(delta).toHaveTextContent('flusso dalle 09:30, non posizione');
     const colori = [...delta.querySelectorAll<HTMLElement>('.barra-inline-segno')].map((x) => x.style.background);
     expect(colori.length).toBeGreaterThan(0);
     for (const c of colori) expect(['rgb(57, 135, 229)', 'rgb(217, 89, 38)']).toContain(c);

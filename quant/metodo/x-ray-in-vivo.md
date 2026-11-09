@@ -65,6 +65,27 @@ giornata, il retail aveva accumulato circa −22.000 sugli 0DTE e i firm circa +
 Le unita' sono quelle di OptionsDepth e non sono dichiarate: si confrontano il segno e la forma, non
 i numeri con la nostra GEX in $ per 1%.
 
+**Il flusso per gruppo si legge contro lo storico e contro il prezzo** (9 novembre 2026). La base sono quattro paper
+verificati e una misura nostra su 35 sedute di cassa di SPX, dal 21 settembre al 6 novembre 2026: la ricerca
+[2026-11-09-flusso-delle-opzioni-per-gruppo](../paper/ricerche/2026-11-09-flusso-delle-opzioni-per-gruppo.md).
+- **Nessun gruppo anticipa il verso dell'indice.** Su SPX nessun paper lo trova, ne' al giorno ne' alla settimana. Dove un
+  flusso sugli indici predice qualcosa, predice al contrario e lentamente.
+- **Il flusso del retail e' quasi lo specchio del prezzo.** Dentro la seduta va contro il prezzo in 33 sedute su 35
+  (correlazione mediana −0,85 sugli 0DTE), e il prezzo della mattina ne spiega l'82%. I clienti professionali vanno con il
+  prezzo (+0,87, 32 su 35). Firm e broker non hanno un verso fisso.
+- **Tolta la parte spiegata dal prezzo, il flusso della mattina non predice il pomeriggio per nessun gruppo.** Tutti i p
+  sono sopra 0,05, su 8 prove con un nullo per permutazione delle giornate.
+- **Il "retail" di OptionsDepth** sono i clienti non professionali del Cboe, che comprendono anche istituzioni.
+
+Per questo "il retail ha venduto 13.000" dice soprattutto "il prezzo e' salito". Le letture con un fondamento sono due, e
+le calcola il server (`/api/flusso`, `Server/Flusso.cs`):
+- **a quest'ora**: il percentile del flusso dall'apertura fra le sedute passate alla stessa ora;
+- **oltre il prezzo**: il flusso meno quello che il movimento del prezzo dall'apertura farebbe attendere (una retta fra le
+  stesse sedute), con il suo percentile e l'R².
+
+Sotto il 20% o sopra l'80% si scrive "insolito": una convenzione nostra, non provata. Nessuna delle due letture e' provata
+come previsione del prezzo, e non si scrive chi ha ragione.
+
 **I minuti anomali del delta accumulato** (5 novembre 2026). Sommando il DEX minuto per minuto, alcuni minuti
 fanno un salto di decine di volte il passo normale, e il salto sposta tutta la linea. Sull'archivio grezzo del
 4 novembre (`dex__firm_all`) le cause sono tre:

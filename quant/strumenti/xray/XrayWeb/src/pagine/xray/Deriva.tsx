@@ -13,7 +13,7 @@ import { auto, doppiaOra, nome, num, oraDoppiaCorta, oraNY } from '../../formato
 import { indicePrima, useFiltri, type Filtri } from '../../stato/contesto';
 import { useScelte } from '../../stato/scelte';
 import { C, INCHIOSTRI } from '../../tema/colori';
-import { Grafico, type Altezza } from '../../componenti/Grafico';
+import { Grafico, altezzaPx, type Altezza } from '../../componenti/Grafico';
 import { Legenda, type Voce } from '../../componenti/Legenda';
 import { Scheda } from '../../componenti/Scheda';
 import { Tessera } from '../../componenti/Tessera';
@@ -245,7 +245,7 @@ function Pannelli({ d, f, ambito, passo, scegli }: PropsPannelli) {
     const gex = (larghezza: number) => {
       const fine = etichetteFinali(larghezza);
       const ultimi = SCADENZE.map((k) => (d.gex[k] ?? []).findLast((v) => v != null) ?? 0);
-      const sposta = distanzia(ultimi, [gLo, gHi], altezzaPannello - 14);
+      const sposta = distanzia(ultimi, [gLo, gHi], altezzaPannello() - 14);
       return base(
         larghezza,
         false,
@@ -271,7 +271,7 @@ function Pannelli({ d, f, ambito, passo, scegli }: PropsPannelli) {
     const delta = (larghezza: number) => {
       const fine = etichetteFinali(larghezza);
       const ultimi = GRUPPI.map((g) => dexPulito[g].findLast((v) => v != null) ?? 0);
-      const sposta = distanzia(ultimi, [dLo, dHi], altezzaPannello - 14);
+      const sposta = distanzia(ultimi, [dLo, dHi], altezzaPannello() - 14);
       return base(
         larghezza,
         false,
@@ -437,7 +437,7 @@ function Pannelli({ d, f, ambito, passo, scegli }: PropsPannelli) {
         'La Hedge Pressure di OptionsDepth sulle 0DTE: quanto delta i market maker dovrebbero comprare o vendere per restare coperti. Il significato del segno non è ancora scritto nei documenti, quindi la linea non ha colore di comprato o venduto.',
         [{ colore: INCHIOSTRI[0].colore, testo: 'pressione 0DTE', valore: auto(al(d.pressione)) }],
         opzioni.pressione,
-        { min: 174, max: 194, schermo: 0.215 },
+        { min: 174, max: 194, schermo: 0.215, maxVerticale: 270 },
         undefined,
         <span className="nota">{d.unita.pressione}</span>,
       )}
@@ -445,5 +445,6 @@ function Pannelli({ d, f, ambito, passo, scegli }: PropsPannelli) {
   );
 }
 
-/** L'altezza utile di un pannello "basso" per distanziare i nomi in fondo alle linee (circa). */
-const altezzaPannello = 150;
+/** L'altezza utile di un pannello "basso" per distanziare i nomi in fondo alle linee (circa): segue la finestra. */
+const altezzaPannello = () =>
+  typeof window === 'undefined' ? 150 : altezzaPx('basso', { larghezza: window.innerWidth, altezza: window.innerHeight }) - 20;

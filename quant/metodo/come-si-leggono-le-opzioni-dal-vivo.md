@@ -92,7 +92,7 @@ che non cambia con i comandi; una tessera con la sua etichetta. I valori stanno 
 | 6 ES, solo X-Ray (in prezzi di ES, di default) | **SPX · X-Ray** > Adesso: tessere Regime (al prezzo, 0DTE, tutte; "Segnali opposti" se non concordano) e Flip piu' vicino; > Freno e acceleratore, prezzo per prezzo; > La scala dei prezzi (con il regime per scadenza sotto) |
 | 7 gli zeri nel tempo | **NQ · QQQ** > La GEX viva di NQ nel tempo; per SPX, **SPX · X-Ray** > Livelli nel tempo > Il prezzo e i livelli della giornata |
 | 8 QQQ e NDX | **NQ · QQQ** > Profilo GEX per strike: il profilo scelto (comando "Profilo": NQ, QQQ, NDX, Tutti affiancati), e nella legenda il prezzo vero di QQQ (Yahoo, anche nel pre-mercato) e NQ/QQQ; > I livelli |
-| chi ha comprato o venduto delta oggi (SPX) | **SPX · X-Ray** > Adesso > Chi ha comprato delta oggi (0DTE e tutte le scadenze, per gruppo); minuto per minuto, Deriva > Delta accumulato per gruppo |
+| chi ha comprato o venduto delta oggi (SPX) | **SPX · X-Ray** > Adesso > Chi ha comprato delta oggi: per gruppo, dalle 09:30, "a quest'ora, contro le altre sedute" (percentile) e "oltre il prezzo" (la parte che il prezzo non spiega), con le bande delle sedute passate (dal 9 novembre 2026; si legge la colonna "oltre il prezzo", non il numero grezzo: [x-ray-in-vivo](x-ray-in-vivo.md)); minuto per minuto, Deriva > Delta accumulato per gruppo |
 | i livelli di X-Ray per domani | **SPX · X-Ray** > Previsione > Livelli della prossima seduta; e le righe "prossima seduta" di Adesso > La scala dei prezzi |
 
 ## L'Ordine Della Lettura

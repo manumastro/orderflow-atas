@@ -15,7 +15,7 @@ import { distanza, doppiaOra, etichettaGiorno, giornoCorto, giornoNY, num, oraDo
 import { indicePrima, useFiltri, type Filtri } from '../../stato/contesto';
 import { useScelte } from '../../stato/scelte';
 import { C } from '../../tema/colori';
-import { Grafico, altezzaPx } from '../../componenti/Grafico';
+import { Grafico, altezzaPx, verticale, type Altezza } from '../../componenti/Grafico';
 import { Legenda, type Voce } from '../../componenti/Legenda';
 import { Scheda } from '../../componenti/Scheda';
 import { Tessera } from '../../componenti/Tessera';
@@ -261,6 +261,9 @@ interface PropsMappa {
 
 /** Il grafico grande: un po' piu' basso di "alto", perche' tessere, legenda e grafico stiano nella prima schermata. */
 const ALTEZZA = { min: 340, max: 640, schermo: 0.6 };
+/** Sullo schermo verticale la mappa riempie la prima schermata ("pieno"). */
+const altezzaMappa = (): Altezza =>
+  typeof window !== 'undefined' && verticale({ larghezza: window.innerWidth, altezza: window.innerHeight }) ? 'pieno' : ALTEZZA;
 
 function Mappa({ d, f, scelte, scala, onCursore }: PropsMappa) {
   const P = f.p;
@@ -295,7 +298,7 @@ function Mappa({ d, f, scelte, scala, onCursore }: PropsMappa) {
       const basso = Math.floor(lo / passo) * passo;
       const alto = Math.ceil(hi / passo) * passo;
       // l'altezza utile della griglia, per distanziare i cartellini
-      const hGriglia = altezzaPx(ALTEZZA, { larghezza: window.innerWidth, altezza: window.innerHeight }) - 40;
+      const hGriglia = altezzaPx(altezzaMappa(), { larghezza: window.innerWidth, altezza: window.innerHeight }) - 40;
 
       const linee: LineaOrizzontale[] = [];
       if (r != null) linee.push({ y: P(r), colore: C.prezzo, spessore: 2, tipo: 'prezzo', etichetta: `prezzo alle ${oraNY(d.asOf)} ${num(P(r), 2)}`, testo: num(P(r), 2) });
@@ -411,5 +414,5 @@ function Mappa({ d, f, scelte, scala, onCursore }: PropsMappa) {
   const cursore = useCallback((t: number | null) => onCursore(t == null ? null : (d.tempi[indicePrima(d.tempi, t)] ?? null)), [d.tempi, onCursore]);
 
   if (!mappa) return <Vuoto>Nessuna previsione a questo istante: lo Strike Profile in modalità previsione non era aperto su ES.</Vuoto>;
-  return <Grafico opzioni={opzioni} altezza={telefono ? 'alto' : ALTEZZA} etichetta="La mappa prevista di freno e acceleratore" puntatore={puntatore} onCursore={cursore} />;
+  return <Grafico opzioni={opzioni} altezza={telefono ? 'alto' : altezzaMappa()} etichetta="La mappa prevista di freno e acceleratore" puntatore={puntatore} onCursore={cursore} />;
 }

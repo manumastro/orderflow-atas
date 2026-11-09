@@ -756,3 +756,51 @@ export interface RispostaQuattroDomande {
   grilletto: string;
   errori: string[];
 }
+
+/** Un gruppo del DEX contro lo storico alla stessa ora, dall'apertura della cassa (/api/flusso, 9 novembre 2026). */
+export interface FlussoGruppo {
+  gruppo: Gruppo;
+  ambito: '0dte' | 'all';
+  /** il delta accumulato dall'apertura della cassa */
+  oggi: Forse<number>;
+  trentaMinuti: Forse<number>;
+  /** netto / lordo (somma dei |delta| di ogni minuto e strike), fra -1 e +1 */
+  sbilancio: Forse<number>;
+  /** la quota (0-100) delle sedute passate sotto oggi, alla stessa ora */
+  percentile: Forse<number>;
+  confronti: number;
+  /** il flusso che il movimento del prezzo dall'apertura farebbe attendere, e la differenza */
+  atteso: Forse<number>;
+  sorpresa: Forse<number>;
+  percentileSorpresa: Forse<number>;
+  /** l'R² del flusso sul prezzo fra le sedute passate a quest'ora, e il verso della retta */
+  spiegaPrezzo: Forse<number>;
+  versoPrezzo: Forse<'con' | 'contro'>;
+}
+
+export interface BandaFlusso {
+  /** i minuti dopo le 09:30 di New York */
+  minuti: number[];
+  p10: Forse<number>[];
+  p50: Forse<number>[];
+  p90: Forse<number>[];
+  oggi: Forse<number>[];
+}
+
+export interface RispostaFlusso {
+  giorno: string;
+  ts: Ms;
+  minuto: number;
+  cassa: boolean;
+  apertura: Ms;
+  prezzoDallApertura: Forse<number>;
+  sedute: number;
+  dal: Forse<string>;
+  al: Forse<string>;
+  minimo: number;
+  soglie: { bassa: number; alta: number };
+  gruppi: FlussoGruppo[];
+  /** chiave "<gruppo>_<ambito>" */
+  bande: Record<string, BandaFlusso>;
+  nota: string;
+}

@@ -39,6 +39,7 @@ internal sealed class Servitore
     private readonly Magazzino _magazzino;
     private readonly Ponte _ponte;
     private readonly Misure _misure;
+    private readonly Flusso _flusso;
     private readonly Volatilita.Raccolta _raccolta;
     private readonly Volatilita.MisureVol _vol;
     private readonly Letture _letture;
@@ -61,6 +62,7 @@ internal sealed class Servitore
         _scalini = new ScaliniDalPonte(bridge);
         _bordi = new Bordi(bridge, _scalini);
         _misure = new Misure(_magazzino, _ponte, _bordi);
+        _flusso = new Flusso(_magazzino, _misure);
         // le fonti nuove (2 novembre 2026): catena CME via ATAS, Cboe pubblico, indici ufficiali
         string datiVol = Path.GetFullPath(Path.Combine(root, "..", "volatilita"));
         string repo = Path.GetFullPath(Path.Combine(root, "..", "..", ".."));
@@ -141,6 +143,8 @@ internal sealed class Servitore
         api.MapGet("/intervalli-strike", (string? giorno, string? metrica, string? scadenza, int? passo, double? ampiezza) =>
             Con(giorno, g => _misure.IntervalliStrike(g, Scelta(metrica, "gex", "gex", "vex"), Scelta(scadenza, "0dte", Misure.Scadenze),
                 Passo(passo), Ampiezza(ampiezza, 1.5))));
+        // il delta per gruppo contro lo storico alla stessa ora (9 novembre 2026): percentile, sorpresa, sbilancio, bande
+        api.MapGet("/flusso", (string? giorno, long? ts) => Con(giorno, g => _flusso.Di(g, ts), ts));
         api.MapGet("/deriva", (string? giorno, int? passo) => Con(giorno, g => _misure.Deriva(g, Passo(passo, 1))));
         api.MapGet("/previsione", (string? giorno, string? tipo, string? greca, long? asOf) =>
             Con(giorno, g => _misure.Previsione(g, Scelta(tipo, "forecast", "forecast", "nextday"), Scelta(greca, "gamma", "gamma", "charm"), asOf)));
@@ -177,6 +181,12 @@ internal sealed class Servitore
 
         app.StartAsync().GetAwaiter().GetResult();
         _app = app;
+        // lo storico del flusso (decine di sedute) si legge una volta all'avvio, in sottofondo: la prima pagina non aspetta
+        _ = Task.Run(() =>
+        {
+            try { if (_misure.Giorni().FirstOrDefault() is { } g) _flusso.Di(g, null); }
+            catch (Exception ex) { Console.Error.WriteLine($"flusso all'avvio: {ex.Message}"); }
+        });
         if (Raccogli) _raccolta.Avvia(_stop.Token);
     }
 

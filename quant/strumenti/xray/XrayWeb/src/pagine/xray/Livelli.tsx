@@ -484,5 +484,5 @@ function GraficoLivelli({ d, f, sfondo, scelte, massimo, onCursore }: PropsGrafi
   const cursore = useCallback((t: number | null) => onCursore(t == null ? null : (d.tempi[indicePrima(d.tempi, t)] ?? null)), [d.tempi, onCursore]);
 
   if (!d.tempi.length) return <Vuoto>Nessun dato in questa giornata.</Vuoto>;
-  return <Grafico opzioni={opzioni} altezza="alto" etichetta="Il prezzo e i livelli della giornata" puntatore={puntatore} onCursore={cursore} />;
+  return <Grafico opzioni={opzioni} altezza="pieno" etichetta="Il prezzo e i livelli della giornata" puntatore={puntatore} onCursore={cursore} />;
 }

@@ -43,6 +43,18 @@ documento. Le regole che restano sono qui.
 - **Il telefono** (sotto 768 px): testata di 80 px, le pagine in un cassetto, i filtri nel cassetto ⚙, la barra
   del tempo sostituita da ◀ ▶, e **una barra in basso** (`BarraBasso`, `nav.barra-basso`) con i cinque gruppi.
   Nessuno scorrimento orizzontale a 390 px.
+- **Lo schermo verticale** (dal 9 novembre 2026, richiesta dell'utente: un monitor 1200 per 1920 in verticale;
+  da 768 px, piu' alto che largo): `verticale()` in `Grafico.tsx` e `@media (orientation: portrait)` in
+  `stile.css`, la stessa soglia. La testata ha il marchio senza nome e l'orologio corto, e la barra del contesto va
+  su due righe, le linguette sopra e i comandi del tempo sotto. Accanto al grafico grande la colonna dei
+  livelli prende 5 colonne su 12 (dai 1100 px). I grafici crescono fino alla barra del tempo:
+  - `'alto'` lascia sotto lo spazio per un riquadro basso (il delta di Adesso);
+  - `'pieno'` e' per il grafico senza riquadri sotto (Per strike, Livelli, Previsione);
+  - `'basso'` divide lo schermo fra i quattro pannelli della Deriva;
+  - un'altezza a oggetto puo' avere `maxVerticale`.
+
+  Su NQ il profilo resta a 600 px, perche' la GEX nel tempo stia nella prima schermata. Fuori dal verticale
+  niente cambia.
 - **Ogni pagina**: una riga di tessere (la risposta), poi una griglia di riquadri. Il grafico grande ha
   `altezza="alto"` e sta nella prima schermata a 1600 per 900. Mai un'altezza fissa in pixel.
 - **Il riquadro** (`Scheda`), uguale ovunque: titolo stabile, badge corto della fonte (con l'eta' se vecchia),
@@ -199,7 +211,8 @@ npx vite preview --port 4173
 python ../scripts/prova_pagina.py --url http://127.0.0.1:4173 --foto <scratchpad>/foto
 ```
 
-Poi si guarda **a occhio** ogni pagina con il Playwright MCP (desktop 1600 per 900, telefono 390 per 844):
+Poi si guarda **a occhio** ogni pagina con il Playwright MCP (desktop 1600 per 900, verticale 1200 per 1760,
+telefono 390 per 844):
 etichette che non si sovrappongono, il grafico grande nella prima schermata, la barra del tempo, i badge con
 l'eta', nessuno scorrimento orizzontale. Si corregge cio' che non si legge, si chiude il browser. Le foto vanno nella scratchpad, mai nel repo; `node_modules/` e
 `dist/` sono in `.gitignore`.
