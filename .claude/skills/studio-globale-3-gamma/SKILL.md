@@ -96,8 +96,16 @@ saltate), lo dichiari come limite del dato: non si rifa' il calcolo.
    (5 novembre 2026, decisione dell'utente: prevale OptionsDepth, come sul chart di ATAS): non c'e'
    `gex-ESZ6.json` e non c'e' la convenzione A di ES. I livelli sono in `gamma.xray.in_prezzi_di_es`
    (flip, freno e acceleratore piu' forti, gamma al prezzo, con la base ES-SPX dichiarata), e i punti 1, 2,
-   4 e 6 qui sotto si fanno su X-Ray (GEX dei market maker per scadenza al posto della GEX A). **Nello studio di NQ**: X-Ray e' il contesto dell'S&P
-   500, in una riga; non sposta i livelli di NQ e non si converte in prezzi di NQ.
+   4 e 6 qui sotto si fanno su X-Ray (GEX dei market maker per scadenza al posto della GEX A). **Per NQ**
+   valgono la GEX della catena CME e la GEX viva; X-Ray non sposta i livelli di NQ e non si converte in
+   prezzi di NQ.
+3bis. **NQ ed ES letti insieme** (dal 9 novembre 2026 lo studio e' uno: l'utente, "le informazioni
+   optionsflow possono aiutarsi a vicenda"). L'asse del rapporto e' il confronto: i due regimi (freno o
+   acceleratore, distanza in percentuale dallo zero gamma) concordano? lo 0DTE di qui e di la'? il flusso
+   di X-Ray (DEX per gruppo, pressione 0DTE) e la variazione della GEX viva di NQ vanno nello stesso
+   verso? VIX contro VXN, implicita meno realizzata di qui e di la'. Si confrontano regimi, segni, flussi,
+   volatilita' e tempi, mai livelli convertiti. Quanto e' provato il passaggio di informazione fra i due:
+   la ricerca `quant/paper/ricerche/2026-11-09-opzioni-fra-indici.md` e la sua sintesi.
 4. **Gli strike pesanti** da `per_strike` e `per_scadenza`; la scadenza piu' pesante della settimana.
 5. **La mossa attesa** per scadenza contro la volatilita' realizzata della macro.
 6. **La scala**: converti la GEX in future dello strumento da comprare o vendere per l'1% e confrontali con il volume

@@ -445,13 +445,41 @@
     "ora": "16:00",
     "evento": "Fiducia Michigan prelim. (att. 48,1) e attese d'inflazione",
     "peso": "medio",
-    "esito": ""
+    "esito": "51,0 (att. 48), attese d'inflazione a 1 anno 4,3% da 4,7%; web, fonte secondaria"
   },
   {
     "data": "2026-11-06",
     "ora": "21:30",
     "evento": "COT (posizioni di martedi' 3)",
     "peso": "contesto",
+    "esito": "NQ mini: netto speculatori 42.873 (-5.966 in settimana), 90 pct a 3 anni"
+  },
+  {
+    "data": "2026-11-09",
+    "ora": "notte 8-9",
+    "evento": "Nvidia: indagine sul CEO Huang, titolo -5% prima della cassa",
+    "peso": "contesto",
+    "esito": "NQZ6 apre 26.878,5, min 26.751 (ora 08), 27.209 alle 12:29; ESZ6 7.451"
+  },
+  {
+    "data": "2026-11-10",
+    "ora": "10:00",
+    "evento": "Waller (Fed) parla",
+    "peso": "medio",
+    "esito": ""
+  },
+  {
+    "data": "2026-11-10",
+    "ora": "14:30",
+    "evento": "Inflazione CPI USA ottobre m/m (att. 0,3%, prec. 0,6%)",
+    "peso": "alto",
+    "esito": ""
+  },
+  {
+    "data": "2026-11-10",
+    "ora": "14:30",
+    "evento": "CPI core m/m, senza cibo ed energia (att. 0,2%, prec. 0,3%)",
+    "peso": "alto",
     "esito": ""
   }
 ]

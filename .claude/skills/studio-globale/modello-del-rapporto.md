@@ -2,7 +2,7 @@
 
 Ogni fase dello studio globale scrive **un file**, `studio/rapporti/<data>/<n>-<fase>.md`, con queste
 sezioni e in quest'ordine. Italiano, apostrofi ASCII (`e'`, `puo'`), orari in **ora italiana**, numeri
-con il punto delle migliaia e la virgola dei decimali. **Al massimo 135 righe**, il quadro 180 (lo schema per la persona ne prende circa 30): e' un rapporto, non
+con il punto delle migliaia e la virgola dei decimali. **Al massimo 170 righe**, il quadro 220 (dal 9 novembre 2026 ogni rapporto legge NQ ed ES insieme) (lo schema per la persona ne prende circa 30): e' un rapporto, non
 un'enciclopedia; il dettaglio sta nei JSON di `dati/`, e si cita.
 
 **Ogni rapporto ha due lettori, e la persona viene prima** (richiesta dell'utente del 21 ottobre 2026:

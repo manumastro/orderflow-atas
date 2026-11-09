@@ -54,29 +54,35 @@ spiegare: si misura dove va il tempo e si toglie lavoro agli agenti, non control
 2. **La raccolta.** In primo piano, con un timeout di 15 minuti, con le sole fonti delle fasi da rifare
    (fase 1 `macro`, 2 `cot`, 3 `gex`, 4 `orderflow`; tutte se si rifa' tutto):
 
+   **Lo studio e' uno, NQ ed ES insieme** (9 novembre 2026, decisione dell'utente: "lo studio deve
+   essere sempre parallelo, ma non trattato e outputtato come separato, visto e considerato che
+   convergono, soprattutto le informazioni optionsflow possono aiutarsi a vicenda"). Le due raccolte
+   partono **insieme, in parallelo** (circa 40 secondi in tutto), in due cartelle dati della stessa
+   cartella del giorno:
+
    ```bash
-   python studio/raccogli.py --out studio/rapporti/<data>/dati --fonti <fonti>
+   python studio/raccogli.py --out studio/rapporti/<data>/dati    --fonti <fonti>
+   python studio/raccogli.py --out studio/rapporti/<data>/dati-ES --fonti <fonti> --strumento ESZ6
    ```
 
-   **Lo studio di ES** (27 ottobre 2026). Lo strumento e' un parametro del collettore, non un'eccezione:
+   Poi **un agente per fase, non per strumento**: ogni fase scrive un solo rapporto che legge NQ ed ES
+   insieme (dove concordano, dove divergono, chi guida), e il quadro e' uno solo. **Ogni prezzo resta nei
+   punti del suo strumento**: i livelli non si convertono da uno all'altro; si confrontano regimi, segni,
+   flussi, volatilita' e tempi. Le cartelle `<data>-ES/` fino al 6 novembre 2026 sono gli studi separati di
+   prima, e restano come sono. Lo strumento resta un parametro del collettore; per ES:
 
-   ```bash
-   python studio/raccogli.py --out studio/rapporti/<data>-ES/dati --fonti <fonti> --strumento ESZ6
-   ```
-
-   - **la cartella** e' `studio/rapporti/<data>-ES/` (quella di NQ resta `<data>/`): i rapporti, i
-     precedenti e il rimando dell'ultima riga del QUADRO stanno li';
+   - **la cartella dati** e' `studio/rapporti/<data>/dati-ES/` (quella di NQ resta `dati/`);
    - **i file** portano lo strumento: `sedute-ESZ6.json`, `ore-ESZ6.json`, `range-ESZ6.json`, `scalini-ESZ6.json`,
      `quattro-domande-ESZ6.json` (gli ultimi due dal 5 novembre 2026: [il bias del giorno](../../../docs/research/metodo/il-bias-del-giorno.md));
      niente `gex-ESZ6.json` (5 novembre 2026: su ES vale solo X-Ray, in `xray.json` -> `in_prezzi_di_es`); `cot.json` ha `strumento: ESZ6` e l'S&P 500 e-mini come indice principale, con i
      prezzi di ES; `macro.json` ha in piu' i settori dell'S&P (`ampiezza_sp500`) e le trimestrali dei
      pesi massimi non tech; il giro e le quattro tab guardano i chart di ES;
-   - **il file della giornata** e' `docs/research/giornate/ESZ6-<data>.md`: il quadro scrive li' il suo
-     blocco QUADRO, e il giro di ES lo cerca solo li' (mai nel file di NQ);
+   - **il file della giornata** e' `docs/research/giornate/ESZ6-<data>.md`: il quadro scrive il blocco
+     QUADRO li' e in `NQZ6-<data>.md`, perche' il giro di ES lo cerca solo nel suo file;
    - **le soglie** sono di ES (`SCALE` in `raccogli.py`): profilo a fasce da 0,25, nodi del composito
      da 1 punto distanti almeno 10, confluenze entro 4 punti (15 su NQ), 50 $ a punto (20 su NQ);
-   - **agli agenti** il prompt dice lo strumento e la cartella (`<strumento>` = ESZ6, `<cartella>` =
-     `<data>-ES`): dove una skill dice NQ in un esempio, vale per lo strumento dello studio.
+   - **agli agenti** il prompt dice le due cartelle dati: dove una skill dice "lo strumento dello
+     studio", vale per tutti e due.
 
    Le fonti non richieste restano come sono; i file riscritti finiscono in `dati/precedenti/<HHMM>/`.
 
@@ -100,10 +106,14 @@ spiegare: si misura dove va il tempo e si toglie lavoro agli agenti, non control
    `studio-orderflow`, ciascuna con:
 
    ```text
-   Fase <n> dello studio globale di <strumento>, <data>. Cartella: studio/rapporti/<cartella>/.
-   I dati sono gia' raccolti in dati/ (vedi dati/raccolta.json). Segui la tua skill e il modello del
-   rapporto, scrivi <n>-<fase>.md e rispondi con 5 righe: stato, tre fatti, le lacune dei dati.
+   Fase <n> dello studio globale congiunto di NQZ6 ed ESZ6, <data>. Cartella: studio/rapporti/<data>/.
+   I dati sono gia' raccolti: NQ in dati/, ES in dati-ES/ (vedi raccolta.json di ciascuna). Un solo
+   rapporto per i due strumenti, letti insieme: dove concordano, dove divergono, chi guida; ogni prezzo
+   nei punti del suo strumento. Segui la tua skill e il modello del rapporto, scrivi <n>-<fase>.md e
+   rispondi con 5 righe: stato, tre fatti, le lacune dei dati.
    ```
+
+   I rapporti congiunti stanno sotto le 170 righe (il quadro sotto le 220).
 
 4. **Il controllo.** Per ogni rapporto: esiste; ha le sezioni del modello; lo `Stato` e' dichiarato;
    i numeri hanno fonte e ora; nessuna direzione operativa (LONG, SHORT, ingresso, stop, bersaglio).

@@ -28,9 +28,19 @@ legge e li mette in fila.
   ([il modello](../.claude/skills/studio-globale/modello-del-rapporto.md)); i dati in `dati/`, fuori
   da git, con `raccolta.json` che dice fonte per fonte se c'e' e quanto ci ha messo.
 - **Veloce: sotto i dieci minuti** (richiesta del 15 ottobre 2026). **Ogni calcolo si fa una volta**: la GEX e' una sola per giro e studio (si riusa sotto i 30 minuti, dichiarandone l'eta', altrimenti si calcola una volta), il giro si fa una volta dopo la GEX, le confluenze le calcola il codice e gli agenti non rifanno conti: cosi' la raccolta sta sotto il minuto. Rapporti di 120 righe, quadro di 150, `maxTurns: 20`. I tempi per passo sono nell'orchestratore, sezione "La velocita' e' un requisito".
+- **Lo studio e' uno, NQ ed ES insieme** (9 novembre 2026, l'utente: "lo studio deve essere sempre
+  parallelo, ma non trattato e outputtato come separato, visto e considerato che convergono, soprattutto
+  le informazioni optionsflow possono aiutarsi a vicenda"). Le due raccolte partono in parallelo nella
+  stessa cartella del giorno (`dati/` per NQ, `dati-ES/` per ES); poi un agente per fase, non per
+  strumento, scrive un solo rapporto che legge i due insieme (dove concordano, dove divergono, chi guida),
+  e un solo quadro, che scrive il blocco QUADRO nei due file della giornata. Ogni prezzo resta nei punti
+  del suo strumento: si confrontano regimi, segni, flussi, volatilita' e tempi, non livelli convertiti.
+  Quanto e' provato che le opzioni di un indice informino l'altro: la ricerca
+  `quant/paper/ricerche/2026-11-09-opzioni-fra-indici.md`. Le cartelle `<data>-ES/` fino al 6 novembre
+  2026 sono gli studi separati di prima.
 - **Lo strumento e' un parametro, non un'eccezione** (27 ottobre 2026: "adatta il collettore per essere
-  nativo in NQ e ES"). `raccogli.py --strumento NQZ6|ESZ6` (difetto NQZ6), cartella `<data>/` o
-  `<data>-ES/`. Lo seguono:
+  nativo in NQ e ES"). `raccogli.py --strumento NQZ6|ESZ6` (difetto NQZ6), cartella dati `dati/` o
+  `dati-ES/` (fino al 6 novembre 2026, `<data>-ES/`). Lo seguono:
   - **le scale** (`SCALE`): fasce del profilo 1 o 0,25, nodi del composito, soglia delle confluenze 15 o
     4 punti, 20 o 50 $ a punto;
   - **l'order flow**: `sedute-/ore-/range-<strumento>.json`, le quattro tab e il giro sui chart dello
