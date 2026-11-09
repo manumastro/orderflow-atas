@@ -18,8 +18,10 @@ aprilo, contiene la procedura Playwright provata su SSRN.
 3. **SSRN e le pagine con Cloudflare**: Playwright (server MCP `playwright`), come nel documento:
    la pagina dell'abstract, "Accept only necessary cookies", il clic su "Download This Paper" dentro
    `browser_run_code_unsafe` con `page.waitForEvent('download')` e `download.saveAs(...)`; dalla stessa
-   pagina l'abstract esatto (`.abstract-text`). Alla fine chiudi il browser e cancella le copie in
-   `.playwright-mcp/`.
+   pagina l'abstract esatto (`.abstract-text`). Alla fine cancella le copie in `.playwright-mcp/`.
+   **Il browser e' uno solo, con i cookie della verifica: non chiuderlo mai** (niente `browser_close`) e
+   **riusa la scheda aperta** (`browser_tabs` `list`, poi naviga li'), invece di aprirne una nuova. Il
+   perche' e' nel documento, "Un browser solo, sempre lo stesso".
 4. **Se compare una verifica di sicurezza o un login**: **fermati**. Non provare ad aggirarla, non
    cambiare user agent per evitarla, non cercare mirror non ufficiali. Rispondi
    `BLOCCATO: <chiave>, <url>, <cosa serve>` e aspetta: l'orchestratore chiede all'utente di

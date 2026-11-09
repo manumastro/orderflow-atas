@@ -31,6 +31,9 @@ l'indice, [`quant/paper/indice-dei-paper.md`](../../../quant/paper/indice-dei-pa
    (verifica di Cloudflare, account), **ferma tutto e chiedi all'utente** di superarla nella finestra
    di Chrome che Playwright ha aperto; poi riprendi lo stesso agente (SendMessage). Non si aggira
    mai un controllo anti-bot. Un paper che non si scarica resta `trovato` e si dice.
+   **Il browser e' uno solo e resta aperto** (i cookie della verifica stanno li'): **un agente alla
+   volta lo usa** (mai cercatore e scaricatore insieme), e nessuno lo chiude. Il perche' e' in
+   `1-come-si-cercano-le-idee.md`, "Un browser solo, sempre lo stesso".
 3. **La lettura, un agente per paper.** Per ogni PDF scaricato, un `paper-lettore`. Si possono
    lanciare **in parallelo** (paper diversi, file diversi).
 4. **La verifica, un agente per paper.** Per ogni `analisi.md`, un `paper-verificatore`, anche in

@@ -24,6 +24,12 @@ Titolo, autori, affiliazione, anno, identificativo (SSRN `abstract_id`, DOI, arX
 (preprint o rivista), revisione fra pari, **dove c'e' un PDF libero** (url diretto) e se la pagina e'
 dietro Cloudflare (SSRN, ResearchGate). Un candidato che non trovi alla fonte non entra.
 
+**SSRN si apre con Playwright**, come in `quant/metodo/1-come-si-cercano-le-idee.md`, passo 3: la ricerca
+del sito e' `https://papers.ssrn.com/searchresults.cfm?term=<parole>` (`sol3/results.cfm` da' 500). **Il
+browser e' uno solo, con i cookie della verifica: non chiuderlo mai** (niente `browser_close`) e riusa la
+scheda aperta (`browser_tabs` `list`). Se compare la verifica di Cloudflare, fermati e rispondi
+`BLOCCATO`: la supera la persona.
+
 ## Come Scegli
 
 Al massimo `quanti` paper (default 3), con questi criteri, in ordine: risponde alla domanda con un

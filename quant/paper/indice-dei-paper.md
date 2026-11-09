@@ -190,7 +190,7 @@ Nessun paper prova il pinning sugli strike degli 0DTE.
 ### Letti E Analizzati
 
 **R** rivista con revisione fra pari, **P** preprint o working paper. **Stato**: tutti `analizzato`;
-solo BPVZ e DPS hanno anche la verifica avversaria (fase 4), le altre sette no.
+solo BPVZ, DPS e ADEFOV hanno anche la verifica avversaria (fase 4), le altre sette no.
 
 | sigla | paper | autori, versione letta | sede | ruolo | stato | cosa ne viene |
 |---|---|---|---|---|---|---|
@@ -203,6 +203,7 @@ solo BPVZ e DPS hanno anche la verifica avversaria (fase 4), le altre sette no.
 | SM | [*Gamma Exposure*](opzioni-gamma/squeezemetrics-2017-gamma-exposure/analisi.md) | SqueezeMetrics, dicembre 2017 | white paper | idea | analizzato | la definizione della GEX e la convenzione del segno; nessun test, nessun campione fuori |
 | BPVZ | [*Gamma positioning and market quality*](opzioni-gamma/buis-2024-gamma-positioning-and-market-quality/analisi.md) | Buis, Pieterse-Bloem, Verschoor, Zwinkels, 2024, versione dell'editore | R, Journal of Economic Dynamics and Control | idea | analizzato, verificato il 15 ottobre 2026 | **simulazione**: gamma positiva, volatilita' piu' bassa e autocorrelazione dei rendimenti brevi piu' negativa; negativa, il contrario, e mercato piu' fragile. Con il dealer al 18-19% del flusso la volatilita' e' nel rumore, l'autocorrelazione no; nessuno scenario sotto il 18% |
 | DPS | [*Risky Intraday Order Flow and Option Liquidity*](opzioni-gamma/doshi-2025-risky-intraday-order-flow-and-option-liquidity/analisi.md) | Hitesh Doshi, Paola Pederzoli, Saim Ayberk Sert, 23 maggio 2025 | P, SSRN 5006194 | metodo | analizzato, verificato il 15 ottobre 2026 | opzioni SPX 2004-2021: lo spread delle brevissime lo spiega la volatilita' intraday del flusso, non la gamma dell'inventario; la copertura in delta e' secondaria (prova indiretta, nessun dato sul future, nessun segno) |
+| ADEFOV | [*Do S&P 500 Options Increase Market Volatility? Evidence from 0DTEs*](opzioni-gamma/adams-2025-do-sp500-options-increase-market-volatility/analisi.md) | Adams, Dim, Eraker, Fontaine, Ornthanalai, Vilkov, versione del 15 luglio 2026 (assorbe Dim, Eraker, Vilkov) | P, SSRN 5641974 | metodo | analizzato, verificato il 9 novembre 2026 | SPX 2018-2024: nei giorni con 0DTE la volatilita' a 10 minuti e' circa il 7% piu' bassa; la gamma dei market maker, ereditata dai giorni prima, la frena per circa un'ora e fa tornare indietro il flusso degli E-mini; il delta scambiato non predice. Letto nella ricerca sul [flusso per gruppo](#flusso-opzioni) |
 
 **La sintesi del filone** (15 ottobre 2026, dettagli e numeri nella
 [ricerca](ricerche/2026-10-15-gamma-0dte-volatilita-intraday.md#la-sintesi)). Tutti e nove danno lo
@@ -216,8 +217,9 @@ assumono); **gli 0DTE** (i paper su SSRN si contraddicono, i letti non li toccan
 indiretto. Nessuno usa NDX o NQ. Su NQ, con le sole barre e dentro il campione, si misurano le
 variabili (autocorrelazione intraday, volatilita' realizzata, momento secondo del delta); la gamma
 c'e' solo da ottobre 2026, e su NQ cade nel fuori campione. Su NQ la copertura vale circa lo 0,4-0,5%
-del flusso (stima nostra), molto sotto gli scenari di BPVZ. Il prossimo da scaricare col browser, con
-la persona per Cloudflare: **Adams e altri 2025** (SSRN 5641974).
+del flusso (stima nostra), molto sotto gli scenari di BPVZ. **Adams e altri** (ADEFOV), che era il prossimo
+da leggere, e' stato letto e verificato il 9 novembre 2026 dalla versione libera: conferma il verso (gamma
+positiva, volatilita' piu' bassa per circa un'ora, piu' inversione) con lo stesso dato del Cboe per gruppo.
 
 ### Trovati
 
@@ -229,9 +231,8 @@ la persona per Cloudflare: **Adams e altri 2025** (SSRN 5641974).
 | *Liquidity Provision to Leveraged ETFs and Equity Options Rebalancing Flows* ([SSRN 3925725](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3925725)) | Barbon, Beckmeyer, Buraschi, Moerke | P | gamma negativa: momento nell'ultima mezz'ora; positiva: inversione | libero |
 | *End-of-Day Reversal* ([SSRN 5039009](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5039009)) | Baltussen, Da, Soebhag, 2025 | P | le azioni invertono nell'ultima mezz'ora, non per la gamma | libero |
 | *Dealer Gamma Exposure and Overnight Gap Risk* ([SSRN 6650858](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6650858)) | Maurer, 2026 | P | **l'unico test fuori campione di una GEX**: aiuta a prevedere i gap della notte solo con VIX basso | SSRN |
-| *0DTEs: Trading, Gamma Risk and Volatility Propagation* ([SSRN 4692190](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4692190)) | Dim, Eraker, Vilkov, 2024 | P | gamma dei dealer in media positiva, volatilita' intraday piu' bassa | SSRN |
+| *0DTEs: Trading, Gamma Risk and Volatility Propagation* ([SSRN 4692190](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4692190)) | Dim, Eraker, Vilkov, 2024 | P | gamma dei dealer in media positiva, volatilita' intraday piu' bassa | SSRN; assorbito da ADEFOV, letto quello |
 | *Does 0DTE Options Trading Increase Volatility?* ([SSRN 4426358](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4426358)) | Brogaard, Han, Won | P | piu' volume 0DTE, piu' volatilita' | SSRN |
-| *Do S&P500 Options Increase Market Volatility? Evidence from 0DTEs* ([SSRN 5641974](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5641974)) | Adams e altri, 2025 | P | volatilita' piu' bassa nei giorni con 0DTE, meno momento intraday | SSRN |
 | *The impact of option hedging on the spot market volatility* ([doi](https://doi.org/10.1016/j.jimonfin.2022.102627)) | Anderegg, Ulmann, Sornette, 2022 | R, JIMF | sul cambio: gamma dei market maker ricostruita, negativa, alza la volatilita' | libero (SNB) |
 | *Option Market Activity* ([doi](https://doi.org/10.1093/rfs/hhl025)) | Lakonishok, Lee, Pearson, Poteshman, 2007 | R, Review of Financial Studies | sulle azioni chi non e' market maker vende piu' opzioni di quante ne compri | libero (bozza) |
 | *Intraday Share Price Volatility and Leveraged ETF Rebalancing* ([doi](https://doi.org/10.1093/rof/rfv061)) | Shum e altri, 2016 | R, Review of Finance | volatilita' di fine giornata legata al ribilanciamento degli ETF a leva | libero |
@@ -250,6 +251,97 @@ future sugli indici? I 19 candidati, perche' BPVZ e DPS (ora fra i letti, sopra)
 [`ricerche/2026-10-15-gamma-0dte-volatilita-intraday.md`](ricerche/2026-10-15-gamma-0dte-volatilita-intraday.md).
 Gli scartati con un titolo sul tema (Singh, Elms, Ladia, Wilkens, Popovici, 2026) sono solo su SSRN,
 con l'abstract non letto: restano nel file della ricerca, non in questo indice.
+
+### La Ricerca Del 9 Novembre 2026: Le Opzioni Fra Indici
+
+Domanda: l'informazione delle opzioni di un indice (gamma, flusso, livelli di SPX/ES) aiuta a leggere
+un altro indice correlato (NQ/NDX/QQQ), e viceversa? Serve a decidere se lo studio globale di NQ ed ES
+puo' essere uno solo. **Nessun paper trovato prova un effetto incrociato della gamma o dei livelli**;
+i quattro scelti coprono il flusso delle opzioni fra indici e la trasmissione fra future, e il supplemento
+su SSRN ne ha aggiunto uno (DIC, il VIX contro le borse estere). Candidati, scarti e motivi: [`ricerche/2026-11-09-opzioni-fra-indici.md`](ricerche/2026-11-09-opzioni-fra-indici.md).
+
+**R** rivista con revisione fra pari, **P** preprint o working paper; tutti e cinque con la verifica
+avversaria (fase 4) del 9 novembre 2026.
+
+| sigla | paper | autori, versione letta | sede | ruolo | stato | cosa ne viene |
+|---|---|---|---|---|---|---|
+| CKMS | [*Index Option Trading Activity and Market Returns*](opzioni-gamma/chordia-2021-index-option-trading-activity-and-market-returns/analisi.md) ([doi](https://doi.org/10.1287/mnsc.2019.3529), [SSRN 2798390](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2798390)) | Chordia, Kurov, Muravyev, Subrahmanyam, versione accettata del 17 ottobre 2019 (non la pubblicata, 2021) | R, Management Science | idea | analizzato, verificato il 9 novembre 2026 (sha256 `fa1b5c768f3f`) | opzioni su indici dell'ISE, **Russell 2000 e Nasdaq-100 sommati**, solo Nasdaq-100 dal 22 aprile 2013 (nota 11), nessuna stima del solo NDX; 2006-2017: le put comprate dai **piccoli** (fino a 100 contratti) predicono l'S&P 500 **al contrario** a settimane (+0,22% per deviazione standard), solo col VIX alto; letto come assicurazione. Le opzioni **SPX** e i flussi di E-mini e SPY non predicono. Letto anche nella ricerca sul [flusso per gruppo](#flusso-opzioni) |
+| HHW | [*Aggregating Information in Option Transactions*](opzioni-gamma/holowczak-2014-aggregating-information-in-option-transactions/analisi.md) ([doi](https://doi.org/10.3905/jod.2014.21.3.009), SSRN 1740046) | Holowczak, Hu, Wu, working paper del 13 gennaio 2011 (*Consolidating Information in Option Transactions*, non la pubblicata, 2014) | P (la pubblicata: R, Journal of Derivatives) | metodo | analizzato, verificato il 9 novembre 2026 (sha256 `343b8e738893`) | come si somma il flusso delle opzioni (segno, delta o vega, taglia): su QQQ 2006 va con il prezzo **nello stesso minuto** (fino a 0,41), il minuto dopo circa 0,01 (stelle da minuti trattati come indipendenti); la misura HHW pesa per n(d1)/M, non per il delta; un solo indice. Letto anche nella ricerca sul [flusso per gruppo](#flusso-opzioni) |
+| LMCB | [*When is cross impact relevant?*](opzioni-gamma/le-coz-2024-when-is-cross-impact-relevant/analisi.md) ([arXiv 2305.16915](https://arxiv.org/abs/2305.16915), [doi](https://doi.org/10.1080/14697688.2024.2302827)) | Le Coz, Mastromatteo, Challet, Benzaquen, arXiv v2 del 26 marzo 2024 | R, Quantitative Finance | metodo | analizzato, verificato il 9 novembre 2026 | il flusso dello strumento piu' liquido spiega in piu' il correlato meno liquido (correlazione sopra il 50%, 10-20 scambi per finestra), **nella stessa finestra, non in anticipo**; E-mini S&P fra i liquidi, Nasdaq-100 non nominato |
+| HAS | [*Intraday Price Formation in U.S. Equity Index Markets*](opzioni-gamma/hasbrouck-2003-intraday-price-formation-in-us-equity-index-markets/analisi.md) ([doi](https://doi.org/10.1046/j.1540-6261.2003.00609.x), [versione NYU 2000](https://archive.nyu.edu/jspui/bitstream/2451/27374/2/FIN-00-046.pdf)) | Hasbrouck, versione di lavoro del 16 novembre 2000 (non la pubblicata, 2003) | R, Journal of Finance | metodo | analizzato, verificato il 9 novembre 2026 | 2000: gli E-mini guidano, ES 0,854-0,882 e NQ 0,836-0,853 di quota d'informazione, **stimati separatamente**; fra indici solo QQQ verso SPY "al massimo circa il 10%", senza tabella; la guida sta in secondi |
+| DIC | [*US Implied Volatility as a Predictor of International Returns*](opzioni-gamma/dicle-2017-us-implied-volatility-predictor-international-returns/analisi.md) ([SSRN 3057745](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3057745)) | Dicle, working paper SSRN del 3 novembre 2017 (non la pubblicata) | P (la pubblicata: R, Quantitative Finance and Economics, sede minore) | metodo | analizzato, verificato il 9 novembre 2026 (sha256 `41b9313fc246`) | 2000-2017, chiusure giornaliere: il VIX di ieri ha un coefficiente negativo per 18 indici esteri su 20 e li "causa" nel senso di Granger in 17, fortissimo in Asia ed Europa, che chiudono prima di New York, e molto ridotto nelle Americhe, dove pero' Brasile, Canada e Cile restano significativi; l'S&P 500 solo dello stesso giorno; Nasdaq e VXN assenti. La lettura dei fusi orari e' nostra. Lezione di metodo: allineare gli istanti, non le date, e mettere il mercato guida ritardato |
+
+**La sintesi della ricerca** (9 novembre 2026, aggiornata lo stesso giorno con DIC; dettagli nella
+[ricerca](ricerche/2026-11-09-opzioni-fra-indici.md#la-sintesi)). Nessuno dei cinque tocca la gamma: **nessun
+paper prova che gamma, muri o zero gamma di un indice spieghino l'altro**. Il legame fra indici che si vede e'
+**comune e contemporaneo**: un premio di rischio comune (CKMS), il prezzo che nasce sui future liquidi e passa
+agli altri nella stessa finestra o in pochi secondi (LMCB, HAS), il flusso delle opzioni che va con il prezzo
+nello stesso minuto (HHW). L'unico che prova le opzioni di un indice contro altri indici (DIC, il VIX) trova un
+anticipo di un giorno forte dove le borse chiudono prima di New York e molto ridotto, non sparito, nelle Americhe:
+in gran parte orologio, non informazione (lettura nostra). Dove un flusso di opzioni su indici anticipa, e' lento
+e al contrario (CKMS), e le SPX non anticipano. Per lo studio globale unico di NQ ed ES: **lettura del contesto
+comune, non regola**. Rifacibile con il tape di ATAS, dentro il campione: chi guida fra ES e NQ (HAS) e quanto il
+flusso di ES spiega NQ in piu' (LMCB), ma il future ES per leggere NQ esce dal perimetro e richiede la richiesta
+dell'utente; VIX o VXN contro NQ (DIC) solo con gli istanti allineati e su richiesta, perche' il VIX e' contesto.
+Nessuno studio aperto. Il supplemento su SSRN non ha trovato nessun paper sulla gamma o sul flusso fra NDX/QQQ e
+S&P 500; gli scartati (fra cui Figlewski e Frommherz e Cenobar e Fazeli, da tenere) sono nella
+[ricerca](ricerche/2026-11-09-opzioni-fra-indici.md).
+
+## flusso-opzioni
+
+Il flusso delle opzioni per tipo di partecipante (clienti, professionisti, conti proprietari,
+broker-dealer, market maker) e cosa dice del prezzo dell'indice: chi e' informato, su che orizzonte, il
+retail e gli 0DTE, come si normalizza. Serve al riquadro "Chi ha comprato delta oggi" della pagina X-Ray
+(il DEX per gruppo di OptionsDepth su SPX), come descrizione. Ricerca del 9 novembre 2026, candidati,
+scarti e motivi: [`ricerche/2026-11-09-flusso-delle-opzioni-per-gruppo.md`](ricerche/2026-11-09-flusso-delle-opzioni-per-gruppo.md).
+Riusa due paper gia' trovati nel filone `opzioni-gamma` (Chordia e altri 2021; Holowczak, Hu, Wu 2014).
+
+### Letti E Analizzati
+
+**R** rivista con revisione fra pari, **P** preprint o working paper. Tutti con la verifica avversaria
+(fase 4) del 9 novembre 2026.
+
+| sigla | paper | autori, versione letta | sede | ruolo | stato | cosa ne viene |
+|---|---|---|---|---|---|---|
+| ADEFOV | [*Do S&P 500 Options Increase Market Volatility? Evidence from 0DTEs*](opzioni-gamma/adams-2025-do-sp500-options-increase-market-volatility/analisi.md) | Adams, Dim, Eraker, Fontaine, Ornthanalai, Vilkov, versione del 15 luglio 2026 ([libera](https://www.jean-sebastienfontaine.com/papers/0dte-options-volatility.pdf)) | P, SSRN 5641974 | metodo | analizzato, verificato il 9 novembre 2026 | stessi quattro gruppi Cboe di OptionsDepth, SPX 2018-2024 a 10 minuti; **nessun gruppo provato contro il prezzo**; il delta scambiato sommato non predice la volatilita', la gamma ereditata si'. Filone principale `opzioni-gamma` |
+| PP | [*The Information in Option Volume for Future Stock Prices*](flusso-opzioni/pan-2006-information-in-option-volume-for-future-stock-prices/analisi.md) | Pan, Poteshman, NBER w10925 del novembre 2004 (pubblicato 2006) | R, Review of Financial Studies | idea | analizzato, verificato il 9 novembre 2026 | open-buy per classe, CBOE 1990-2001: informato sui titoli; sugli indici il giorno dopo SPX niente, NDX e OEX contrarian in due classi ciascuno; i conti proprietari mai |
+| CLZZ | [*Betting Against the Crowd: Option Trading and Market Risk Premium*](flusso-opzioni/cao-2026-betting-against-the-crowd/analisi.md) | Cao, Li, Zhan, Zhou, versione accettata del gennaio 2026 | R, JFQA (in uscita) | metodo | analizzato, verificato il 9 novembre 2026 | lo sbilancio delle call dei clienti **sui titoli**, sommato, predice il mercato al contrario (giorno -0,070, t -2,94); sulle opzioni di SPX e NDX niente al giorno e alla settimana |
+| MCH | [*Option Volume Imbalance as a predictor for equity market returns*](flusso-opzioni/michael-2022-option-volume-imbalance-as-a-predictor/analisi.md) | Michael, Cucuringu, Howison, arXiv v1 del 23 gennaio 2022 | P, arXiv 2201.09319 | metodo | analizzato, verificato il 9 novembre 2026 | sbilancio fra -1 e +1 per cinque gruppi, Nasdaq 2015-2019, titoli contro SPY: clienti nel verso, market maker e broker al contrario, la notte; a 10 minuti niente dopo Bonferroni; nessun indice |
+| MAMU | [*Intraday 0DTE Option Order Flow and S&P 500 Downside Risk*](flusso-opzioni/maurer-2026-intraday-0dte-option-order-flow-and-sp500-downside-risk/analisi.md) | Maurer, Muller, versione dell'agosto 2026 (tesi di master, Frankfurt School) | P, SSRN 7339718 | metodo | analizzato, verificato il 9 novembre 2026 | PCR 0DTE di SPX pesato per la gamma alle 9:35, 1.027 sedute 2022-2026, **senza gruppi**: l'ora dopo un po' piu' debole (t -2,65) e piu' spesso in calo (logit t 3,22), solo nei primi 15 minuti; fuori campione niente; delta pesato e flusso firmato non predicono |
+| BBG | [*Retail Traders Love 0DTE Options... But Should They?*](flusso-opzioni/beckmeyer-2023-retail-traders-love-0dte-options/analisi.md) | Beckmeyer, Branger, Gayda, versione del 27 luglio 2024 | P, SSRN 4404704 | metodo | analizzato, verificato il 9 novembre 2026 | il retail d'asta (SLAN/MLAT, fino a 10 contratti; 2-4% del volume S&P 500, oltre il 6% degli 0DTE) perde oltre 125 milioni di dollari nel 2021-2023, circa tre quarti in costi; market maker corti di 0DTE; **nessuna prova del flusso contro il prezzo** (il delta con segno della Tab. 8, con gli effetti fissi del giorno, non dice niente sul verso); unita' della Tab. 7 il milione (dedotto), della Tab. 8 dubbio forte |
+| CKMS | [*Index Option Trading Activity and Market Returns*](opzioni-gamma/chordia-2021-index-option-trading-activity-and-market-returns/analisi.md) | Chordia, Kurov, Muravyev, Subrahmanyam, versione accettata del 17 ottobre 2019 | R, Management Science | idea | analizzato, verificato il 9 novembre 2026 | ISE, Russell 2000 e Nasdaq-100 sommati (solo Nasdaq-100 dal 22/04/2013): predicono l'S&P 500 solo le put dei **clienti fino a 100 contratti**, **al contrario**, a settimane, col VIX alto, come assicurazione; clienti grandi e firm no; opzioni SPX no. Filone principale `opzioni-gamma` |
+| HHW | [*Aggregating Information in Option Transactions*](opzioni-gamma/holowczak-2014-aggregating-information-in-option-transactions/analisi.md) | Holowczak, Hu, Wu, working paper del 13 gennaio 2011 | P (pubblicato: R, Journal of Derivatives) | metodo | analizzato, verificato il 9 novembre 2026 | QQQ 2006, senza gruppi: il flusso va con il prezzo nello stesso minuto (fino a 0,41), il minuto dopo circa 0,01; il DEX (delta per volume) e' la piu' bassa delle *delta per share* nello stesso minuto (0,1052); nessuna normalizzazione. Filone principale `opzioni-gamma` |
+| KVS | [*Informed Trading in the Index Option Market*](flusso-opzioni/kaeck-2017-informed-trading-in-the-index-option-market/analisi.md) ([SSRN 2981332](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2981332)) | Kaeck, van Kervel, Seeger, versione rivista del 17 agosto 2019 secondo SSRN (il PDF non porta data) | P, TILEC DP 2017-027 | metodo | analizzato, verificato il 9 novembre 2026 (sha256 `e8593596f3c4`) | opzioni SPX 2014, tutti gli scambi, **senza gruppi e senza 0DTE**, sommati come il DEX (contratti per delta per segno): il delta comprato va con il prezzo **nella stessa ora** (98,13 cents in quattro ore, t 4,41), i ritardi non predicono (t 0,6 e 0,4), il prezzo dell'ora prima predice il flusso (t 5,7); al minuto niente. La verifica: l'ordinamento da' al delta la parte comune con SPY (con SPY prima circa 70-75 cents) |
+| NSW | [*Index Options Trading and Sentiment*](flusso-opzioni/wang-2021-index-options-trading-and-sentiment/analisi.md) ([SSRN 3981994](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3981994)) | Ni, Stouraitis, Wang, 8 dicembre 2021 (ordine del frontespizio; **la cartella `wang-2021-...` non segue la regola del primo autore**: segnalato, non rinominata) | P | idea | analizzato, verificato il 9 novembre 2026 (sha256 `74e51c85f088`) | Cboe Open-Close 1991-2018, mensile: lo sbilancio dei clienti pubblici sulle SPX **in the money** predice il mercato **al contrario** a uno-tre mesi (mese dopo t -3,03, tre mesi t -3,85), letto come sentiment; le put OTM vanno nel verso opposto; nello stesso mese il pubblico compra call ITM quando il mercato scende; testo e Tab. 5 non coincidono, fuori campione non descritto |
+| AGPV | [*The Rise of Algorithmic Retail Option Traders*](flusso-opzioni/garcia-ares-2026-the-rise-of-algorithmic-retail-option-traders/analisi.md) ([SSRN 6480379](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6480379)) | Amaya, Garcia-Ares, Pearson, Vasquez, 12 agosto 2026 (ordine del PDF; la cartella segue la pagina SSRN) | P | metodo | analizzato, verificato il 9 novembre 2026 (sha256 `8eda5c817ada`) | OPRA 2022-2026, **senza tipo di cliente**: negli 0DTE di SPX raffiche entro pochi secondi da ogni mezz'ora, poi dai quarti d'ora e dai cinque minuti, crescenti ogni anno, di spread venduti e iron condor da bot retail; piu' piccole quando il mercato si agita; **nessun rendimento dell'indice guardato**. Per il riquadro: confronto allo stesso minuto in ora di New York, storico non troppo lungo |
+
+**La sintesi del filone** (9 novembre 2026, aggiornata due volte lo stesso giorno: con BBG, MAMU, CKMS e HHW, poi
+con KVS, NSW e AGPV dal supplemento su SSRN; dettagli e numeri nella
+[ricerca](ricerche/2026-11-09-flusso-delle-opzioni-per-gruppo.md#la-sintesi)). Nessuno degli undici trova un
+gruppo che anticipi il **verso di un indice**: sulle opzioni di SPX niente al giorno e alla settimana (PP, CLZZ,
+CKMS), e dentro la giornata il delta e il flusso con il segno non anticipano l'ora dopo (MAMU; KVS, con la stessa
+somma del DEX) ne' il minuto dopo (HHW, su QQQ). Dove un flusso per gruppo su indici predice, predice **al
+contrario e lento** (PP su OEX e NDX; CLZZ su SPX a due mesi; CKMS con le put dei piccoli su Russell 2000 e
+Nasdaq-100, assicurazione; NSW con le SPX in the money a uno-tre mesi, sentiment); l'unica previsione nel verso e'
+MAMU, volume senza segno e senza gruppi, nei primi 15 minuti, nulla fuori campione, e il verso delle put cambia
+con la moneyness (NSW). Il flusso va con il prezzo nello stesso tempo (HHW, KVS, CKMS, NSW, MAMU). I conti
+proprietari non dicono mai niente; i "clienti" del Cboe comprendono gli istituzionali, e il retail ha tre
+definizioni che non coincidono con il gruppo di OptionsDepth (l'asta in BBG, 4-6% degli 0DTE; il comportamento a
+orario in AGPV; la stima Cboe di meta'-tre quinti). Dentro la giornata gli 0DTE di SPX hanno **raffiche agli orari
+tondi** di New York, crescenti ogni anno (AGPV). La **nostra misura** su 35 sedute di X-Ray (descrittiva, non un
+paper): dentro la seduta i clienti non professionali vanno contro il prezzo (mediana -0,85 su 0DTE), i
+professionali con il prezzo (+0,87); tolta la parte spiegata dal prezzo della mattina, nessun gruppo predice il
+pomeriggio (8 prove, p fra 0,06 e 0,82). **Per il riquadro** gia' implementato (percentile alla stessa ora,
+sorpresa oltre il prezzo, bande 10-90%, soglie 20/80, al massimo 60 sedute): i paper lo confermano, e il confronto
+allo stesso minuto in ora di New York e' quello che neutralizza le raffiche; da leggere con cautela il minuto
+subito dopo un orario tondo e la variazione degli ultimi 30 minuti; il tetto di 60 sedute protegge da uno storico
+che invecchia e, come le soglie 20/80, e' una convenzione da dichiarare; l'etichetta "Retail" va qualificata (il
+retail automatico potrebbe stare fra i professionali). Nessuno studio aperto.
+
+### Trovati
+
+Nessuno: i tre del supplemento su SSRN (KVS, NSW, AGPV) sono letti, verificati e saliti fra i letti; gli scartati
+e i motivi sono nella [ricerca](ricerche/2026-11-09-flusso-delle-opzioni-per-gruppo.md).
 
 ## Gli Esempi Del Transcript
 

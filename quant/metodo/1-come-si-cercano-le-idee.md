@@ -35,7 +35,23 @@ non revisionato si puo' usare, ma lo si scrive nella scheda.
 `Delivery.cfm`. Lo stesso per ResearchGate. Davanti c'e' Cloudflare.
 
 **Lo strumento e' il browser, con Playwright** (il server MCP `playwright`, configurato in
-`.mcp.json`). Due regole:
+`.mcp.json`).
+
+**Un browser solo, sempre lo stesso** (9 novembre 2026, richiesta dell'utente: "gli agenti dovrebbero
+riutilizzare sempre lo stesso browser, quindi gli stessi cookie"). Il permesso che Cloudflare da' dopo la
+verifica e' un cookie: se il browser riparte vuoto, la verifica torna. Il 9 novembre e' tornata tre volte
+in un'ora, perche' il server girava con `--isolated` (profilo in memoria) e ogni agente chiudeva il
+browser alla fine. Per questo:
+
+- **il profilo e' persistente**: `.mcp.json` passa `--user-data-dir` con una cartella fuori dal repo
+  (`%LOCALAPPDATA%/ms-playwright-mcp/profilo-orderflow`), e i cookie restano anche fra le sessioni;
+- **nessun agente chiude il browser** (`browser_close` non si usa): alla fine lascia la finestra com'e';
+- **si riusa la scheda aperta**: prima `browser_tabs` (`list`), poi si naviga in quella; una scheda nuova
+  solo per tenere aperte due pagine insieme, e si chiude quella, non il browser;
+- **un agente alla volta sul browser**: il cercatore e lo scaricatore non girano insieme, e
+  l'orchestratore li mette in fila.
+
+Due regole:
 
 1. **La verifica di sicurezza la supera una persona, mai l'agente.** Se Cloudflare mostra
    "Esecuzione della verifica di sicurezza", l'agente si ferma e chiede all'utente di cliccare la
@@ -59,7 +75,7 @@ risponde 403 alla lettura automatica, e si legge con Playwright (11 ottobre 2026
    preferire ai riassunti della ricerca web;
 5. il server MCP salva una copia di ogni download anche in `.playwright-mcp/` (fuori da git): si
    cancella;
-6. alla fine si chiude il browser.
+6. alla fine il browser **resta aperto**, con i suoi cookie (vedi "Un browser solo", sopra).
 
 **Installare il browser di Playwright**, se manca (errore `Browser "chrome-for-testing" is not
 installed`). La versione deve essere quella del server MCP in uso, che e' `@latest`:
